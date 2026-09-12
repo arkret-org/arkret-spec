@@ -519,7 +519,7 @@
     },
     "peer_bootstrap_outcome": {
       "type": "object",
-      "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Every disclosed object must independently satisfy its scope disclosure policy, including private Circle controls. If required material is not disclosable, fail closed; neither an invite nor a terminal cursor is authority or a completeness proof. Source verifies the full permitted closure before authoring; no membership or message/key read is granted.",
+      "description": "Bounded request-authorized page of minimum genesis, configuration, quorum conclusions and exact producer/actor dependencies. Non-voting source verifies cbs-profiles section 9 conclusions and all authoring inputs, without unrelated control replay. Every object and conclusion requires independent scope disclosure authorization. Terminal cursor is not proof completeness or membership. Full replay material is only required for the actual replay role.",
       "required": [
         "request_id",
         "realm_id",
@@ -651,6 +651,10 @@
         },
         "observed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "conclusion_set": {
+          "$ref": "./seal-conclusion.schema.json",
+          "description": "Required exactly for sealed: exact application command and necessary membership effects, authenticated under the bootstrap-trusted configuration or continuous handoff. No unrelated raw Seal or private scope disclosure."
         }
       },
       "additionalProperties": false,
@@ -678,9 +682,33 @@
               "decision"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "realm_state": {
+                "const": "sealed"
+              }
+            },
+            "required": [
+              "realm_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "conclusion_set"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "conclusion_set"
+              ]
+            }
+          }
         }
       ],
-      "x-arkret-max-canonical-bytes": 262144
+      "x-arkret-max-canonical-bytes": 8388608
     },
     "self_application_status_request_body": {
       "type": "object",
@@ -984,6 +1012,22 @@
             },
             "event": {
               "$ref": "./event-envelope.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "conclusion_set"
+          ],
+          "properties": {
+            "kind": {
+              "const": "seal_conclusion"
+            },
+            "conclusion_set": {
+              "$ref": "./seal-conclusion.schema.json"
             }
           },
           "additionalProperties": false

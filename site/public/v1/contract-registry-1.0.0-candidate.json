@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T10:44:58+08:00",
+  "generated_at": "2026-09-12T11:52:50+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -10966,6 +10966,12 @@
         "description": "Seal control-plane finality commitment schema"
       },
       {
+        "schema_id": "ak.schema.seal_conclusion.v1",
+        "file": "schemas/seal-conclusion.schema.json",
+        "status": "active",
+        "description": "Scope-authorized quorum conclusions and frozen configuration handoffs for non-voting receivers."
+      },
+      {
         "schema_id": "ak.schema.seal_transparency.v1",
         "file": "schemas/seal-transparency.schema.json",
         "status": "active",
@@ -11265,8 +11271,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-12.11",
-    "generated_at": "2026-09-12T10:44:58+08:00"
+    "version": "2026-09-12.12",
+    "generated_at": "2026-09-12T11:52:50+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -14386,7 +14392,7 @@
         "http": "QUERY /_arkret/peer/seals/resolve",
         "grpc": "PeerSeals/Resolve",
         "mq": "peer.seals.read.resolve",
-        "notes": "Authenticated exact Seal-only resolve by canonical seal_refs; no Event envelope is returned. Optional peer history_traversal_access accepts only a pending_archive_replica_digest and authorizes Seal refs in its exact retained cut; request replicas never grant traversal.",
+        "notes": "Exact raw seal_refs OR bounded conclusion_queries, never both. Same existing authorization and retained history access; quorum conclusions follow cbs-profiles section 9. No generic private-scope grant. Unknown, unauthorized and unavailable conclusion queries share missing treatment. Request <=64 KiB; response <=8 MiB.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
@@ -16710,7 +16716,7 @@
         "http": "QUERY /_arkret/self/seals/resolve",
         "grpc": "SelfSeals/Resolve",
         "mq": "self.seals.read.resolve",
-        "notes": "Exact Seal-only resolve by seal_refs. Event selectors are forbidden. Optional self history_traversal_access names one retained request receipt/archive replica basis digest and authorizes only Seal refs in its exact target-to-base traversal cut; unknown and unauthorized remain indistinguishable.",
+        "notes": "Exact raw seal_refs OR bounded conclusion_queries, never both. Same existing authorization and retained history access; quorum conclusions follow cbs-profiles section 9. No generic private-scope grant. Unknown, unauthorized and unavailable conclusion queries share missing treatment. Request <=64 KiB; response <=8 MiB.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
@@ -16856,8 +16862,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-12.11",
-    "generated_at": "2026-09-12T10:44:58+08:00",
+    "version": "2026-09-12.12",
+    "generated_at": "2026-09-12T11:52:50+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

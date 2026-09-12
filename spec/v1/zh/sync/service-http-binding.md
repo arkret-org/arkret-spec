@@ -1605,3 +1605,9 @@ MLS 请求携已加密 envelope 和最小冻结 encryption_context（scheme/effe
 request_digest 为 `SHA-256(JCS(exact closed request))`。缓存键绑定完整 account、认证设备及 generation、operation 与 request_id；同身份异 bytes 返回 duplicate_conflict。同身份在有效期内重放原结果，不以新 frontier 重建。expires_at 固定为请求 created_at 加 300 秒，服务端拒绝未来 created_at、已到期请求或不可恢复的既有缓存；在有效期结束前必须耐久保留已返回缓存，不能逐出后重建。到期使用 authoring_request_expired 并要求新 identity。prepare 不保留 sequence，不写 accepted 状态；submit 无 prepare ticket。客户端遇 submit 结果不明须 exact replay 原 bytes/proof/幂等身份，prepare 到期不撤销已接受 Event，也不阻止既有 submit outcome 恢复。
 
 SDK 重算 EventId、检查完整 closed unsigned body 和 exact payload/时间，核对独立已知目标 scope、认证 signer 与完整已知 frontier，再签名；同序号 sibling 增加本身不是失效条件。新成员“成员资格已接受”须来自已验证的确认状态（使用 self 读服务时由其认证 Station 验证投影），“可发送”还需目标授权及适用 MLS gate；不等待最近页、完整 roster、头像或旧历史。使用此 helper 时，依赖就绪后的路径为 typed intent → prepare → 核对/签名 → self.events.submit；两次请求不包含首次治理同步、MLS 准备或附件上传。SDK 已持有完整已验证依赖和 authoring frontier 时 MAY 本地构造、签名，并向任意合资格接收站使用 ProofAuthenticatedPublication 单次提交。prepare、原站在线和新 Seal 均不是普通发布的准入条件。
+
+
+Seal resolve 的同一 self/peer operation 增加与 seal_refs 互斥的 conclusion_queries 分支，schema 仍由
+service-operation-dtos 的 SealResolveRequestCore/SealResolveOutcome 定义；请求/响应、逐 scope 授权、
+query 完整性、missing 不可枚举语义和字节预算按 [cbs-profiles §9.4](../authz/cbs-profiles.md#94-披露传输与失败)。
+该分支不是通用治理读取授权，不开放给尚未入群者；首次加入只消费原 bootstrap/application-status 中的受限同型 evidence。

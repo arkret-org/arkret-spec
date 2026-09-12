@@ -586,17 +586,17 @@ ActorId routing projection；部署已知 peer、notary、mirror、Directory / s
 
 请求体是 closed `peer_bootstrap_request_body`：首次请求只携 `request_id`、`realm_id`、完整 `applicant_account_id`、`intent`；续页只携 opaque `cursor`。持有方 MUST 验证服务认证、Source/Destination、trust domain，申请人的 Station 必须等于已认证来源。每页（包括缓存重放）均 MUST 从 current accepted 状态重新验证本次 intent：exact invite/token/完整 invitee/未撤销/未过期，或 Join Policy 允许的 join/knock。读取权不冻结；撤销/过期/策略改变立即停止后续披露。未授权、不存在、跨人或失效邀请共用不可枚举 not_found 与固定 timing bucket；沿 `(realm_id, applicant_account_id)` 及来源 service 限速。未登记的 restricted/application intent 返回 unsupported_feature。
 
-**治理材料披露授权**：允许本次引导只允许申请人的 Station 读取本次 intent 所需、且其各自 scope policy 允许向该申请人披露的治理验证闭包，包含其中其它成员身份、历史治理值、Control Move 原 payload 和公开签名元数据。来源 Station 可能由申请人运营；不得承诺已发送材料仍对其保密，撤销不能回收 bytes。该许可不包括普通消息、附件、应用历史、额外 roster/search、私钥、KeyPackage claim、Welcome 或消息密钥；必要公开 MLS 治理记录按原载体返回，不授予解密权。不增加通用治理读接口或可转赠 capability。Realm 加入许可不授予 private Circle 或其它独立 scope 的控制正文读取权。持有方 MUST 在输出每个对象前核验该披露权限；必要闭包中存在不可披露对象时 MUST 返回统一 frontier_unavailable，不能通过删去对象后声称完整、返回原文、或把服务自报 root 当作证明来继续。因本协议的 Realm 安全日志包含多个隐私 scope，完整重放路径不保证每个合法加入都能取得所需材料；这是已知的首次引导可用性限制，不得对外声称分页已解决。
+**治理材料披露授权**：允许本次引导只允许申请人的 Station 读取本次 intent 所需、且其各自 scope policy 允许向该申请人披露的治理验证闭包，包含其中其它成员身份、历史治理值、Control Move 原 payload 和公开签名元数据。来源 Station 可能由申请人运营；不得承诺已发送材料仍对其保密，撤销不能回收 bytes。该许可不包括普通消息、附件、应用历史、额外 roster/search、私钥、KeyPackage claim、Welcome 或消息密钥；必要公开 MLS 治理记录按原载体返回，不授予解密权。不增加通用治理读接口或可转赠 capability。Realm 加入许可不授予 private Circle 或其它独立 scope 的控制正文读取权。持有方 MUST 在输出每个对象前核验该披露权限；非投票来源使用 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 的 quorum 结论证明必要 Cell、未写入与精确结果，不要求无关私有历史。仍缺必要且可披露的事实/起点依赖时 MUST frontier_unavailable；不得删减结论、返回越权原文或信服务自报 root。冷查询缺可用 quorum 仍可能未决，分页不提供权限或结论认证。
 
 首次响应冻结完整 `(Source, Destination, realm_id, applicant_account_id, request_id, request_digest, governance_facts, observed_at, expires_at)`；digest 仍按原 domain-separated SHA-256 绑定 exact 初始 canonical request（包含不回显的邀请凭据）。governance_facts 的 seal_basis MUST 恰含本次观察已验证的本 Realm 唯一确认 head。suite、join_rule、encryption_profile 由该确认状态导出；缺失、未验证或竞争确认 lineage 不得猜值或合并。expires_at 不晚于观察时间加 300 秒和邀请期限。cursor 只定位同一冻结读取上下文，绑定上述来源/目标/账号/Realm/digest/basis/expiry，不是继续授权证明。
 
-`peer_bootstrap_outcome` 每页最多 8 MiB、128 条 typed records，携 page_index（从 0 连续增长）和必填 next_cursor（终页为 null）。record 的唯一分支是 seal、control_move、governance_dependency、applicant_predecessor，分别复用既有 Seal、Event、GovernanceDependency、Event。不能拆签名对象或以任意 JSON 代替。按确定性先进先出遍历：唯一 basis head，随后每个 Seal 的 predecessor、command_results 中全部命令（包括失败命令）、delta、configuration_ref、事务记录及正式 verifier 声明的依赖 selector，按各自 canonical 顺序入队；相同对象只输出一次。不得沿任意业务 refs 扩张读取集合。申请人 predecessor 是 exact Realm/完整 account ActorId 最高所见 accepted sequence 上全部已知 sibling，按 EventId 排序；其 producer proof 的历史 signer evidence 从已验证缓存或登记的 exact dependency resolve 取得，不要求 origin proof 或原站在线。空结果不证明空链或全网完整。
+`peer_bootstrap_outcome` 每页最多 8 MiB、128 条 typed records，携 page_index（从 0 连续增长）和必填 next_cursor（终页为 null）。record 分支为 seal、control_move、governance_dependency、applicant_predecessor 和 seal_conclusion；前四项复用既有 Seal、Event、GovernanceDependency、Event，seal_conclusion 复用公共 seal-conclusion evidence。不能拆签名对象或以任意 JSON 代替。非投票引导按唯一 basis 的必要治理 Cell/absence、配置交接、起点和 producer 依赖构建确定性队列；结论按 target/selector canonical 顺序，配置按交接顺序，原始依赖按 selector 顺序入队，相同对象只输出一次。只有实际完整重放角色才从 head 沿 predecessor、全部 command_results（含失败）、delta、配置及事务依赖遍历。不得沿任意业务 refs 扩张读取集合。申请人 predecessor 是 exact Realm/完整 account ActorId 最高所见 accepted sequence 上全部已知 sibling，按 EventId 排序；其 producer proof 的历史 signer evidence 从已验证缓存或登记的 exact dependency resolve 取得，不要求 origin proof 或原站在线。空结果不证明空链或全网完整。
 
 分页只解决传输。每页最多执行 1024 次图遍历步骤，进度和已发送页必须在 expiry 前可重放；同一有效 cursor 返回同一 canonical 页面，不能偷偷更换 basis。上下文最多 65536 条记录、256 MiB 累积 bytes，来源每次最多顺序读取 64 页（in-flight=1），候选最多 16。达到本次工作预算须保留可恢复进度并返回 limit_exceeded/暂不可用；不得截断成终页成功或无限循环。上下文失效返回 cursor_expired，重新 bootstrap；已取得的 content-addressed 材料可缓存复用，但必须按新 basis 重新判断闭合。单个不可拆分对象超过页预算时也必须 limit_exceeded，不能把它拆成未登记碎片。每页限制不是整 Realm 历史 8 MiB 上限；超出资源预算不承诺固定时间完成。机器预算以 schema 的 x-arkret-bootstrap-budgets 为唯一数值来源。
 
-来源 Station MUST 检查所有页的身份、digest、basis、时间完全相等及页序连续，拒绝重复、矛盾或披露集合外的记录；primary Seal/Control Move 必须属于目标 Realm，applicant_predecessor 必须属于目标 Realm 和完整申请人 ActorId。注册 verifier 明确要求的跨 Realm 配置、身份或事务依赖必须逐一验证 exact binding 与独立披露授权，不得扩张为外域历史扫描。next_cursor=null 仅表示持有方结束传输，不能代替完整性证明。临时只读上下文中必须独立验证每个 leaf/predecessor/delta、原 producer proof 与精确历史 signer evidence、必要依赖、suite、Seal authority、CBS、reducer 与 state_root；缺失或错误一律在 authoring 前拒绝。candidate 的观测、服务签名、root 回显和终页不构成治理事实证明。
+来源 Station MUST 检查所有页的身份、digest、basis、时间完全相等及页序连续，拒绝重复、矛盾或披露集合外的记录；primary Seal/Control Move 必须属于目标 Realm，applicant_predecessor 必须属于目标 Realm 和完整申请人 ActorId。注册 verifier 明确要求的跨 Realm 配置、身份或事务依赖必须逐一验证 exact binding 与独立披露授权，不得扩张为外域历史扫描。next_cursor=null 仅表示持有方结束传输，不能代替完整性证明。临时只读上下文中必须认证 Realm 起点、配置 lineage、quorum 结论、必要原始 producer proof/历史 signer evidence、suite 与实际加入事实。非投票来源不重放无关 predecessor/delta/reducer/root；返回原始对象仍完整验其签名和内容地址。遗漏任何实际需要的 Cell、rule、absence、邀请或依赖均在 authoring 前拒绝。candidate 的观测、服务签名、root 回显和终页不构成治理事实证明。
 
-完成重放后，从唯一确认安全状态读取 exact member.state 的 revision_event_id/value，或 invite.live_target/lifecycle 及占格的已验证 invite.create。head_eq 仍检查登记的领域值，不能把 revision_event_id 填入 member.state 的 value。未写入和已写入 null 的业务值都可为 null，但后者保留 revision；执行时从签名 basis 独立派生并比较 revision，防止 ABA。缺证据或竞争确认状态不可用；invite 必须指向本申请人且生命周期为 pending/claimed。删除 bootstrap 专用 cell inclusion/sorted-neighbor/precondition evidence；一般 CBS operation 证明规则不变。最后按既有 Event 接受规则验证申请人 predecessor 的作用域、签名及连续性，结合 §5.3.4 本地历史求 frontier。所有下载/prepare 结果只用于此次临时验证，MUST NOT 写入 accepted Event、Seal、membership、projection 或 actor frontier。已知反证必须拒绝；不声称检测全网未知并发。
+完成结论认证后，从唯一确认安全状态的精确事实读取 exact member.state 的 revision_event_id/value，或 invite.live_target/lifecycle 及占格的已验证 invite.create。head_eq 仍检查登记的领域值，不能把 revision_event_id 填入 member.state 的 value。未写入和已写入 null 的业务值都可为 null，但后者保留 revision；执行时从签名 basis 独立派生并比较 revision，防止 ABA。缺证据或竞争确认状态不可用；invite 必须指向本申请人且生命周期为 pending/claimed。不存在证明使用公共 cell 结论的 state=null，写过 null 则是含 revision 的非空 state。不得恢复 bootstrap 专用邻居证明；一般 CBS 证明继续可用，但必须满足独立披露权限。最后按既有 Event 接受规则验证申请人 predecessor 的作用域、签名及连续性，结合 §5.3.4 本地历史求 frontier。所有下载/prepare 结果只用于此次临时验证，MUST NOT 写入 accepted Event、Seal、membership、projection 或 actor frontier。已知反证必须拒绝；不声称检测全网未知并发。
 
 #### 5.3.2 来源持久化与转发（normative）
 
@@ -641,9 +641,7 @@ peer 结果在 `realm_state != "received"` 时 MUST 携带该 exact 提案的
 它 MUST NOT 被解释为 Realm acceptance。邀请撤销、权限变化、旧 basis、候选过期或不可达时，来源 Station MUST
 保留可恢复事实并返回当前结果，MUST NOT 扩散到部署 peer 列表。
 
-取得 `sealed` 后，来源 Station MUST 用既有成员面（`ak.peer.seals.read.resolve.v1`、
-`ak.peer.seals.read.governance_dependencies.v1`、`ak.peer.events.read.*`）取回覆盖 Seal 与必要验证闭包并独立
-验证 authority、CBS、suite、邀请与成员状态迁移，然后才形成本地 accepted 状态与成员投影。v1 MUST NOT 为回传
+取得 `sealed` 后，来源 Station MUST 从受限结果中的 conclusion_set 或既有获授权 resolve 取得 exact command outcome、必要成员 effect/current Cell 与配置证明，按 cbs-profiles §9 认证后才形成本地 accepted 结果与成员投影；不要求先取得成员级读取权，也不重放整个历史。受限证据只能覆盖本申请及其必要成员事实。若另外取得原始 Event/Seal，仍独立验其 canonical bytes、producer proof 与签名，不能把结论当作已验证原文。v1 MUST NOT 为回传
 另造第二套材料载体。MLS Welcome / 密钥处理另按
 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 完成；Ack 与成员状态都不能
 替代它。
@@ -655,7 +653,7 @@ peer 结果在 `realm_state != "received"` 时 MUST 携带该 exact 提案的
 `request_id`、`account_id`、`realm_id`、`intent`、客户端预先选定的 `created_at` 与可选 `hlc`；MUST NOT
 携带 candidate endpoint、自报 `seal_basis` 或调用方自称的治理事实。时间或意图改变必须产生新的请求身份。
 
-自己的 Station MUST 在本地无该 Realm 已接受状态时按 §5.3.1 完成分页引导并独立验证完整治理闭包；
+自己的 Station MUST 在本地无该 Realm 已接受状态时按 §5.3.1 完成有界引导并认证完整的本次必要事实；非投票来源不重放全部治理历史；
 随后冻结 closed `self_prepare_outcome`：请求/账号/Realm 回显、绑定完整请求（含从不回显的邀请凭据）的
 `request_digest`、`governance_facts`、`accepted_actor_frontier`、`authoring_device_generation_ref`、完整
 `unsigned_event`、`observed_at` 与 `expires_at`。unsigned_event 包含 EventId、kind、scope、actor、序号、

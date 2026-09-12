@@ -161,7 +161,7 @@ MUST 包含恰好一条 `is_default=true` 的对应 non-tombstoned 行；Realm p
 frontier。服务不能以 `since_join` 为由同时隐藏两条默认入口发现路径。
 
 由于 ratchet 永不放宽，current policy 本身就是历史最窄值，不需要 event/epoch ceiling、activation-policy witness 或 policy meet。
-direct Seal replay 仍验证 winning MLS transition、epoch continuity、requester incarnation 与 join floor，但不在 activation Seal 采样
+认证事实消费或实际重放均须验证 winning MLS transition、epoch continuity、requester incarnation 与 join floor，但不在 activation Seal 采样
 history policy。MLS Genesis 只校验 content scheme 与 initial policy 兼容，不复制或选择 `history_access`；后续 Commit 和 MLS security frontier
 也不绑定该 cell。T1 使用 current ratchet 值与 current membership/device/account/source/scope gates。T2 是已交付、已备份或已由 RHRK 解出的
 不可撤回能力；因此收紧只禁止未来读取/交付，不宣称回收既有能力。
@@ -199,15 +199,14 @@ history_secret[N] = MLS-Exporter(
 incarnation 或 RHRK tuple、registry digests 与 retention。`traversal_intent_digest = SHA-256(UTF8("ak.history-governance-traversal-intent-v1")
 ||0x00||JCS(traversal_intent))`。服务不得替换 caller 的 base/current、缩成单一 head 或在 retry 中换 target。
 
-v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的完整 predecessor-free Realm
-bootstrap cut；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器不能使用缺少 pre-base provenance/joined-state 的 later checkpoint 冒充。
-以下 cut 遍历、签名、root、coverage 和重放要求仅适用于承担 admission、联邦或独立审计的验证者，不适用于普通客户端。
+v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的从合法 Realm 起点认证的安全依据（包括 quorum 结论路径）；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器必须认证 pre-base provenance/joined-state；later basis 可按 cbs-profiles §9 的配置与 ancestry/状态结论认证，不能使用自报 checkpoint。
+非投票 admission/联邦/恢复消费者按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证必要 epoch/transition、suite、Realm/Circle incarnation、join floor、T0 policy ceiling 与 current ratchet，并用 ancestry 结论验证冻结 bases 关系；不承担完整 cut 重放。以下完整 cut 遍历、root/coverage 重算只适用于实际投票/执行和选择独立重放的 auditor，不适用于普通客户端。
 从每个 target leaf 反向沿 signed `predecessor_refs[]` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的每个 direct predecessor 必须仍在
 区间或恰为 base leaf，每个 base leaf 至少被一条 target 路径消费，且 target 必须支配 trusted current 的每个 leaf。隐藏 predecessor、无法从
 base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
 
-承担验证的服务器或独立审计者使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
-direct traversal 只消费 Seal 与其 `delta[]` 唯一发现的 Control Move；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
+实际完整重放角色使用 SQLite 或等价 disk-backed work queue+visited set，从 target 反向发现完整 cut，再按拓扑 base→target 运行标准 `apply_seal`。
+完整重放消费 Seal、全部 command_results（包括失败命令）、delta、配置/事务记录及注册依赖；普通 Message/reaction 等 DataEvent 的 digest 不得进入 `delta[]`，也不因
 某个 Seal 的 optional data observation root 出现它而取得控制面 finality。resolve 必须返回该 accepted Seal 在 acceptance 时实际 pin 的
 exact canonical Control Move bytes，并同时提供 registered `apply_seal` 所需的 historical signer evidence、AvailabilityReceipt 及其它 CBS
 依赖。每个 Seal 的 notary、predecessor、delta、control_event_set_root、state_root、frozen-predecessor admission、
@@ -238,8 +237,7 @@ fork-resolution/recovery 归一。没有 acceptance-time bytes/output pin 的新
 
 Replay 解释器只由 Realm 冻结的 profile id 选择；profile 的规范语义与 conformance vectors 随实现发布，不作为可寻址运行时工件进入 replay 输入。验签、Event identity 与转发均以收到并持久化的 canonical raw bytes 为准，typed view 只用于已知字段的语义解释，不得通过重序列化改变对象身份。实现不支持该 profile 时只对目标 Realm 返回 `unsupported_profile`，不得降级为权限错误或扩大到连接、账户和其他 Realm。
 
-winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由服务器已验证的 accepted 状态派生；允许按精确输入/规则上下文耐久增量复用，不要求每个用户请求重新 replay；同一 Move 被多个并发 Seal 覆盖不产生可选的
-singular activation Seal。普通 Message/reaction 等 DataEvent 只携既有 accepted `auth_context.authority_refs` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
+winning MLS transition、requester join/incarnation 和 scope 当前单向收紧的 history access 均由服务器已验证的 accepted 状态派生；允许按精确输入/规则上下文耐久增量复用，不要求每个用户请求重新 replay；同一 Realm 只有单一确认 lineage，epoch 必须绑定该 lineage 上唯一 accepted winning transition。普通 Message/reaction 等 DataEvent 只携既有 accepted `auth_context.authority_refs` authorization view，不携 `seal_basis`、不进入 Seal.delta、不推进 epoch。
 T1 release 不进入 governance proof query；它由 chunk 首次耐久入队事务生成 `HistoryReleaseAttestation`。旧
 `HistoryGovernanceEvidenceChain`、page/root/ownership/selection/activation/auth witness、`epoch_activation_range`、
 `complete_control_state_v1` 与独立客户端 history proof/snapshot carrier 均不存在；这不禁止 `server-trusted-results` 已登记的、有界且按请求授权的 Station 当前结果。
@@ -297,8 +295,7 @@ fragment 或服务私有“默认设备”替换。
 
 Request create 返回成功前，release service 必须冻结并完整验证 request-expiring `HistoryGovernanceTraversalIntent`，在 receipt 的
 `history_traversal_retention` 中保存 intent 与 registered digest。`intent.retention.expires_at == request.expires_at == receipt.expires_at == response stream expiry`
-必须逐字相等，否则同事务零写失败。服务到 expiry 保留 exact target→base accepted Seal cut、每个 Seal.delta 命中的 canonical Control Move bytes
-以及所有 registered `apply_seal` dependency；split-view 仍由既有 transparency/gossip 处理。object 丢失显式返回 `frontier_unavailable`
+必须逐字相等，否则同事务零写失败。服务到 expiry 必须保留足以完成所选验证职责的精确材料：非投票消费保留冻结 bases、认证配置/结论、必要 epoch 原文与原始 signer/来源依赖；实际完整重放或独立审计义务保留 exact target→base Seal cut、全部命令/事务和 registered apply_seal 依赖；split-view 仍由既有 transparency/gossip 处理。object 丢失显式返回 `frontier_unavailable`
 （reason=`history_traversal_anchor_unreachable`）并要求新 request，不得在旧 receipt 下换 base/current/target/range。
 
 每个 Manifest descriptor 只列 `chunk_response_id,chunk_index,covered_epoch_range`。具有相同 requester 授权的独立审计工具可凭 session/capability 及 exact
@@ -363,9 +360,7 @@ history_chunk_context = JCS({
 request、receipt、manifest、effective scope、authorized ranges 与 expiry 已由 `manifest_admission_digest` 闭包承诺，不得重复进入
 context。recipient public key 来自已签 request 而不是 transport route，仅用于 HPKE `SetupBaseS`，不是 context 成员。manifest descriptor 只绑定 `chunk_response_id,chunk_index,covered_epoch_range`；
 不存在 selection digest、range key 或 page root。sealed chunk wire 仅携
-`{kind,manifest_digest,manifest_admission_digest,chunk_index,enc,ciphertext}`，不得重复 range。Manifest 首次
-admission 必须从 receipt target 按 predecessor_refs 反向取得完整 closed cut 和 registered dependencies，再从 base basis 按拓扑 `apply_seal`
-重放到 target basis，执行 join/profile floor、scope current monotone history-access ratchet 与 winning transition 校验；任一失败时整个 manifest 零 record、
+`{kind,manifest_digest,manifest_admission_digest,chunk_index,enc,ciphertext}`，不得重复 range。Manifest 首次 admission 的非投票服务器 MUST 对每个请求 epoch 取得认证的 winning transition/suite 与全部 join/profile floor、incarnation、T0/current ratchet 事实，并证明冻结 base/current/target 的 ancestry 关系；不得只验范围端点、猜中间 epoch 或省略 parent Circle 条件。实际重放角色仍从 receipt target 发现完整 cut 并从 base apply_seal 到 target；任一失败时整个 manifest 零 record、
 零 admission。成功事务耐久写 `HistoryManifestAdmission`，其 digest 绑定 manifest/request/receipt、exact `traversal_intent_digest`、
 authorized ranges 和 T0 pass marker。Source 必须先取得该首次 accepted manifest receipt；在此之前提交 chunk 或提交错误
 admission digest 必须 dependency reject 且零 pending、零 response record、零 attestation。
@@ -681,15 +676,14 @@ archive、container Event ref、archive-lifetime `HistoryGovernanceTraversalRete
 key-evidence Event 已成为 effective tuple 且 container Event 是该 epoch winning transition。不同 item 逻辑独立，服务可按 digest 物理复用
 retained Event/Seal/dependency bytes。Holder service 由此投影 archive read/list；不创建 ArchiveId、proof package/result object 或 `ak:snapshot`，
 也不存在 request 式临时 expiry/renewal 状态。
-跨服务 replica 可先 durable 进入 `pending_traversal` 并以 exact replica digest 授权拉取 missing objects；只有完整 cut 与全部 registered dependencies
+跨服务 replica 可先 durable 进入 `pending_traversal` 并以 exact replica digest 授权拉取 missing objects；只有本角色所需的完整认证事实/依赖（完整重放角色为完整 cut）
 验证通过，才能在一个事务中转为 `accepted` 并分配 archive sequence。Source outbox 只重放同一 pending replica bytes/digest，
 不得因部分下载或重启生成新对象。
 
 Winning Genesis/Commit 被 accepted Seal 激活时，activation consumer 必须在同一个 durable checkpoint 事务中按
 `(effective_scope,mls_group_id,epoch,container_event_ref,archive_tuple_digest)` upsert replication obligation 与 exact-byte
 outbox。启动、重连和 projection checkpoint 恢复都必须扫描已激活 archive 并补建遗漏 obligation。Replica 首次生成后不得重新
-HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原 bytes，exact duplicate 返回首次 accepted receipt。Archive、其
-完整 Seal cut、Control Move bytes 与 registered replay dependencies 作为 Realm history recovery material 长期同寿命；旧 key rotation
+HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原 bytes，exact duplicate 返回首次 accepted receipt。Archive 与该角色验证所必需的认证配置、quorum 结论、精确 epoch/transition 和原始来源依赖必须长期同寿命；独立投票/审计义务另保留完整 Seal cut、全部命令与 registered replay dependencies；旧 key rotation
 不缩短寿命。v1 不定义 RHRK 远端 GC、renewal 或双方销毁协调 surface；部署在规范外本地销毁后不得再声称对应历史可恢复。
 
 对选择 `organization_recovery_key` durability 的 scope，source 在删除本地 epoch history secret 前 **MUST**
@@ -711,12 +705,10 @@ organization_recovery_archive))`；outer EventId、Event proof 与 archive 本�
 RHRK holder 唯一读取面是 recipient-bound、按 canonical bytes 分页的
 `ak.self.organization_recovery_archives.read.list.v1`。Query 必须给 exact effective scope、`recovery_key_id`、
 `key_agreement_ref`、`accepted_key_evidence_ref`、`holder_trusted_basis` 与可选单一 epoch range；每行直接返回匹配 archive、container Event ref、
-archive-lifetime traversal retention。holder 从 target 反向取得完整 Seal cut 并拓扑重放；
+archive-lifetime traversal retention。非投票 holder 按 cbs-profiles §9 认证 exact archive tuple、winning epoch/transition、suite/key evidence 与必要 ancestry，不要求完整 cut 重放；
 不存在 `ArchiveId` 或第二个 archive-get surface。服务只返回历史 tuple 中
 `holder_service_id` 与当前认证 holder service authority 逐字节相符，且 `holder_signing_ref` 的当前 method-controller 投影仍等于 `method_controller_principal_id` 的行；unknown scope、无匹配、tuple 失配、过期/无权 holder
-均使用同形 `not_found`。Organization Recovery holder 是显式全历史高权限恢复主体：为独立验证 notary、state root 与 activation，它被授权
-读取从 `holder_trusted_basis` 到 exact archive target 所必需的完整 Control Move 与 Seal closure；这可能披露 membership、policy 及其它 control
-metadata。该披露不能用伪稀疏证明或 service attestation 代替。若部署不能接受，MUST NOT 启用 `organization_recovery_key` durability。
+均使用同形 `not_found`。Organization Recovery holder 的正常消费使用有权读取的最小 quorum 结论，不因持有恢复密钥而自动取得无关私有控制历史。需要独立重放审计时必须另外满足原始对象的 scope 披露政策；不能使用普通 service attestation 代替 quorum。archive 真实持久化、receipt、holder key 绑定与 GC gate 保持不变。
 Traversal access 仍只允许 target→base cut 的 Seal、其 delta Control Move 与 registered dependencies：不得读取无关 DataEvent、执行 generic timeline scan、获得 membership 或 send 权。
 Holder service 首次 durable accept replica 时分配严格单调
 `archive_sequence`；list 按 `(archive_sequence,container_event_ref)` 升序，cursor 绑定 exact `holder_service_id`、`method_controller_principal_id`、完整 query digest

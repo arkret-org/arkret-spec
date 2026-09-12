@@ -73,8 +73,7 @@ revocation authority，不得只按可变 registry 名称解析当前值。
 3. policy 的 kind、source kind与ordered `authorization_rules[]` MUST 命中
    [`authority-set-policy-registry.json`](../../artifacts/registry/authority-set-policy-registry.json)
    中同 id 的 template；
-4. verifier MUST 使用 `basis_ref` 与 `CbsProofBundle` 重放 accepted control state，重新派生
-   source ref/digest/generation、每个rule的issuer methods、scope、actions 与 threshold。
+4. verifier MUST 从 `basis_ref` 的认证安全事实派生 source ref/digest/generation、每个 rule 的 issuer methods、scope、actions 与 threshold。非投票消费者使用 `CbsProofBundle.conclusion_evidence` 或既有确切证明，按 [cbs-profiles §9](./cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 验证，不重放完整控制历史；实际执行/投票者仍验证完整前态。Seal quorum 不替代所选 lease rule 的 issuer quorum，lease 签名、有限期与撤销检查不变。
 
 `authorization_rules[]` 是替代分支，不是一个可合并的全局issuer set。每个rule独立固定
 `rule_id + issuer_role + allowed_actions + issuers + threshold`；lease必须携带

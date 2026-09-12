@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.13",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T10:44:58+08:00",
+  "generated_at": "2026-09-12T12:10:01+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -178,7 +178,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:2fc6e96a18f1555f60a73f61895af13afc68bd929dfc4a58edc9a46898fea5de",
+      "section_digest": "sha256:5db3637dd723927a875800bb1d3156cc7eba1b67d20754bd698793970f2b6465",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id plus its in-envelope Station admission proof and a destination-signed claim receipt without separate PCR/device/Agent signer-evidence sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the security frontier for its accepted key-access state: the Account Station verifies public governance and foreign producer authority, while its authenticated client binds that result to its local MLS leaves and exact intent without governance-history replay; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis. Realm/Circle Proposal/Commit wire inputs are complete PublicMessage MLSMessages; the Station checks public signatures/tree transitions and persists exact consumed-proposal leaf provenance without member MAC secrets. Remove+Add always creates new provenance even when the leaf tuple is unchanged; minimal identities remain pairwise and Sidecar keeps its separate contract. Ordinary clients obtain exact historical Agent signing keys from their own Station instead of replaying public governance; they still verify the actual producer signature and historical MLS binding. Current self signing-key results serve only their requesting validation/in-flight identical query and cannot be reused for future Signals or operations. Message prepare distinguishes local plaintext intent from the encrypted wire request: the client freezes AAD inputs and encrypts locally, checks returned ciphertext/metadata and bindings byte-for-byte, and exact retry never consumes another sender counter. Plaintext is rejected under e2ee_required; the two-request path assumes send readiness and local MLS state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#11-安全状态根与序列化",
-      "section_digest": "sha256:6d1c49cbfad8e0c9bb83c4e3592caa374ed552fa398e7c1acb011fdc1fc01180",
+      "section_digest": "sha256:fb00f51fb50e0aaf30819a8f5ba2a30872dc07a22aab28ce6570e7d6416ce2a1",
       "requirement": "Seal identity excludes id and certificate, while the commit transcript binds stable body digest, exact configuration, height and view. The safety state root includes all written sequenced_state cells with exact revision identities, including written null, and excludes ordinary data. Receiver replay validates roots, command order and outcomes; signature quorum alone is not consensus.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -558,7 +558,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
-      "section_digest": "sha256:11978dcd1889847b3975bb9ed771e24614c53996a763c8b81a20c3eb749d1d5a",
+      "section_digest": "sha256:935d4860a67d7afaa3a8b0d8f4ebaadcbc9ba8dbaa1afec872375dd67279ad96",
       "requirement": "Origin/release services verify exact AccountDevice evidence, origin-Station signer closure, signed-time validity and full AccountId/device binding; first enqueue rechecks current authorization and generation. The Account Station selects and retains the history cut; ordinary requester/signing-input/receipt contain no client trust-anchor fields. Clients retain message/HPKE/signature and recipient binding checks, not governance replay. Device evidence cannot authorize Control Events, notary or organization recovery. The capability-bound Account Station supplies exact historical source-key results, deduplicated by evidence ref, and the accepted group suite. Minimal-metadata receivers retain actual encrypted IdentityLink/LeafNode and source-proof checks; public signer authority and winning-lineage range coverage are server responsibilities. Complete byte-bounded pages and ACKs never skip unresolved sequence slots.",
       "testability_grade": "audit",
       "test_plan": "Check old request/receipt trust-anchor fields are rejected and server-selected cut is frozen across exact retries. Run server device-history evidence negatives for missing refs, actor/device/Station substitution, altered authorization, revocation and invalid time. Exercise source relay generation changes before enqueue and historical replay after expiry. Run two-account request/manifest/chunk delivery with client cryptographic checks and zero client governance replay. Check missing/duplicate/surplus signer results fail before ACK, same Principal across Account Stations does not collapse per-record authority, and minimal local tree mismatches still fail. Cover registered suite/range byte-length checks, actual source signatures, singleton page admission, byte-prefix cursors, reserved sequence holes and completion after restart. Verify durable record/result installation before ACK without a client checkpoint."
@@ -614,6 +614,16 @@
       "evidence_refs": [
         "ak.vector.mls.proposal_producer_binding.v1"
       ]
+    },
+    {
+      "clause_id": "AK-NC-047",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative",
+      "section_digest": "sha256:70c672861b4234b5bac05f8464159dced57c3b6bad4378e176b2a7dd90bd780c",
+      "requirement": "Non-voting consumers authenticate exact quorum conclusions without unrelated private replay. A signing participant alone cannot replace the configured quorum; contexts, Realm/configuration, query scope and target are bound. Absence differs from written null. Execution, current authorization and end-to-end cryptography remain separate.",
+      "testability_grade": "audit",
+      "test_plan": "tools/test_seal_conclusions.py runs schema and real Ed25519 consumer vectors for quorum thresholds, wrong configuration/context/target, selector omission, absence/null, interval bounds, bootstrap and resolve carriers. It does not prove production PBFT signing, handoff durability, live revocation or complete join/history execution; those remain in arkret-work 2247/1636/1701."
     }
   ]
 }

@@ -202,7 +202,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed compact JWS carrier for the exact enclosing phase transcript. Final multi_signature requires ak.seal.commit.v1; prepared_certificate requires ak.seal.prepare.v1; view_change_vote requires ak.seal.view_change.v1 and the full statement. The protected alg/kid match the frozen configured key, payload_digest hashes that whole phase transcript, and unknown crit or noncanonical bytes reject. The Seal identity separately hashes only the stable body."
+      "description": "Closed compact JWS carrier for the exact enclosing phase transcript. Final multi_signature requires ak.seal.commit.v1; prepared_certificate requires ak.seal.prepare.v1; view_change_vote requires ak.seal.view_change.v1 and the full statement. The protected alg/kid match the frozen configured key, payload_digest hashes that whole phase transcript, and unknown crit or noncanonical bytes reject. The Seal identity separately hashes only the stable body. Quorum read conclusions and configuration handoffs reuse this carrier with their distinct contexts and fixed SHA-256 payload_digest, defined in cbs-profiles section 9; they never count as PBFT phase votes."
     },
     "multi_signature": {
       "type": "object",

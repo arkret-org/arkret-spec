@@ -142,7 +142,7 @@ PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来
 
 cell leaf 按完整 CellRef 的 Unicode code point 升序；covered digest 按 typed digest wire bytes 升序，leaf_data 为完整 typed digest 的 UTF-8 字节，保留 suite 前缀。所有树使用 RFC6962：leaf=H(0x00 || leaf_data)，node=H(0x01 || left || right)，空树=H(empty)，单 leaf 为其带域分隔 leaf hash，递归在小于长度的最大 2 的幂处分割。根的 suite 来自已验证安全配置，不从待验证对象自报摘要推断。
 
-inclusion 使用 index/tree_size/audit path；non-membership 使用认证相邻 leaf 与端点范围证明。只持有单个 Event inclusion 不证明它仍是当前 revision。投票 replica 必须有验证其安全命令所需的完整权限与材料并重放归约；无法验证不得投票。非投票 receiver 可以验证已认证配置 lineage、2f+1 commit certificate 和其有权读取的确切 Cell/历史证明，依赖同一 quorum 的故障界限，不必下载不相干私有 scope 的正文或完整控制历史。任意 service 自签 root 或未验证配置不能替代这条认证路径。普通 snapshot 的 state_digest 与本安全 root 是不同集合，不得逐字比较后声称前者已被 Seal 认证。
+inclusion 使用 index/tree_size/audit path；non-membership 使用认证相邻 leaf 与端点范围证明。只持有单个 Event inclusion 不证明它仍是当前 revision。投票 replica 必须有验证其安全命令所需的完整权限与材料并重放归约；无法验证不得投票。非投票 receiver 按 [cbs-profiles §9](./cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 验证已认证配置、quorum 和有权读取的确切结论，或使用完整 Seal 与已有确切 Cell/历史证明；依赖同一 quorum 故障界限，不承担完整历史重放。原始 producer 签名、业务操作绑定、已知撤销和端到端验证不变。任意 service 自签 root 或未验证配置不能替代这条认证路径。普通 snapshot 的 state_digest 与本安全 root 是不同集合，不得逐字比较后声称前者已被 Seal 认证。
 
 ## 12. Notary 与 reducer 配置
 
