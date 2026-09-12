@@ -3,15 +3,171 @@
 
 from __future__ import annotations
 
+import argparse
+import base64
 import hashlib
 import json
 import re
 from copy import deepcopy
 from pathlib import Path
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
+
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "contact-round-kat.json"
+CORE_DOMAIN = "ak.contact.request_acceptance_core.v1"
+TEST_PUBLIC_KEY = "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+
+
+def b64u(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+
+
+def unb64u(value: str) -> bytes:
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+
+
+def digest(value: object, domain: str | None = None) -> str:
+    prefix = "" if domain is None else domain + "\n"
+    return "sha256:" + hashlib.sha256((prefix + canonical_json(value)).encode()).hexdigest()
+
+
+def signed_fact(body: dict, method: str, created_at: str) -> dict:
+    # Published conformance seed 00..1f; never a production authority input.
+    key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+    return {**body, "signature": {
+        "verification_method": method,
+        "created_at": created_at,
+        "jws": b64u(key.sign(canonical_json(body).encode())),
+    }}
+
+
+def rebuild_producer_vectors(fixture: dict) -> None:
+    """Derive every dependent byte from fixed public conformance inputs."""
+    cases = {case["name"]: case for case in fixture["cases"]}
+    pair = cases["normal"]["contact_round"]["sorted_pair_member_ids"]
+    peers = [{"kind": "human", "account_id": member["account_id"]} for member in pair]
+    request_refs = [row["request_event_ref"] for row in cases["glare"]["contact_round"]["requests"]]
+    at = fixture["outgoing_slot_absence"]["case"]["transcript"]["observed_at"]
+    receipts = []
+    vectors = []
+    for index, event_ref in enumerate(request_refs):
+        station = pair[index]["account_id"]["station_id"].removeprefix("ak:did_core:")
+        principal = pair[index]["account_id"]["principal_id"].removeprefix("ak:did_core:")
+        core = {
+            "holder": peers[index], "peer": peers[1-index], "slot_version": 1,
+            "request_event_ref": event_ref,
+            "producer_signer": {"verification_method": "did:" + principal + "#device-fixture", "public_key_b64u": TEST_PUBLIC_KEY},
+            "source_checkpoint": "sha256:" + str(index + 1) * 64,
+            "accepted_at": at, "issuer_id": pair[index]["account_id"]["station_id"],
+        }
+        receipt = signed_fact({"core": core, "receipt_digest": digest(core, CORE_DOMAIN)}, "did:" + station + "#assertion-fixture", at)
+        receipts.append(receipt)
+        vectors.append({"name": "request_" + str(index), "schema_def": "request_acceptance_receipt", "signed_object": receipt,
+                        "canonical_unsigned": canonical_json({k:v for k,v in receipt.items() if k != "signature"}),
+                        "expected_signed_digest": digest(receipt)})
+    cases["normal"]["contact_round"]["request_acceptance_receipt_digest"] = digest(receipts[0])
+    for row, receipt in zip(cases["glare"]["contact_round"]["requests"], receipts):
+        row["request_acceptance_receipt_digest"] = digest(receipt)
+    for case in fixture["cases"]:
+        case["canonical_contact_round"] = canonical_json(case["contact_round"])
+        case["expected_contact_round_id"] = digest(case["contact_round"], fixture["domain"])
+    absence = fixture["outgoing_slot_absence"]["case"]
+    round_id = cases["normal"]["expected_contact_round_id"]
+    absence["transcript"]["contact_round_id"] = round_id
+    absence["canonical_transcript"] = canonical_json(absence["transcript"])
+    absence["expected_digest"] = digest(absence["transcript"], fixture["outgoing_slot_absence"]["domain"])
+    producer = receipts[1]["core"]["producer_signer"]
+    response_ref = "ak:event:" + b64u(bytes([1]) + bytes([0x42]) * 32)
+    reject_ref = "ak:event:" + b64u(bytes([1]) + bytes([0x43]) * 32)
+    method = receipts[1]["signature"]["verification_method"]
+    bodies = [
+        ("normal_response_acceptance_receipt", {
+            "contact_round_id": round_id, "request_receipt": receipts[0], "response_event_ref": response_ref,
+            "producer_signer": producer, "outgoing_slot_absence_digest": absence["expected_digest"],
+            "accepted_at": at, "issuer_id": receipts[1]["core"]["issuer_id"],
+        }),
+        ("reject_acceptance_receipt", {
+            "request_receipt": receipts[0], "reject_event_ref": reject_ref, "producer_signer": producer,
+            "accepted_at": at, "issuer_id": receipts[1]["core"]["issuer_id"],
+        }),
+        ("contact_lineage", {
+            "contact_round_id": round_id, "issuer": peers[1], "peer": peers[0], "version": 1,
+            "event_ref": response_ref, "producer_signer": producer, "granted_to_peer_scopes": ["direct_message"],
+        }),
+    ]
+    for definition, body in bodies:
+        signed = signed_fact(body, method, at)
+        vectors.append({"name": definition, "schema_def": definition, "signed_object": signed,
+                        "canonical_unsigned": canonical_json(body), "expected_signed_digest": digest(signed)})
+    fixture["producer_signer_kat"] = {
+        "scope": "Source signature, closed producer descriptor, and complete receipt-to-round digest chain only. Event holder proof and historical Station authority validation require the separate production verifier; these vectors do not claim either.",
+        "source_public_key_b64u": TEST_PUBLIC_KEY,
+        "source_private_seed_b64u": b64u(bytes(range(32))),
+        "linked_round_cases": ["normal", "glare"],
+        "hash_only_round_cases": ["glare_wire_order_not_digest_order"],
+        "cases": vectors,
+        "negative_cases": ["missing_producer_signer", "null_producer_signer", "unknown_member", "short_key", "long_key", "padded_key", "noncanonical_key", "substituted_method", "substituted_key"],
+    }
+
+
+def check_producer_vectors(fixture: dict) -> None:
+    section = fixture["producer_signer_kat"]
+    documents = [json.loads(path.read_text(encoding="utf-8")) for path in (ROOT / "spec/v1/artifacts/schemas").glob("*.json")]
+    registry = Registry().with_resources((doc["$id"], Resource.from_contents(doc)) for doc in documents)
+    base = "https://arkret.org/v1/schemas/contact-operations.schema.json"
+    source_key = Ed25519PublicKey.from_public_bytes(unb64u(section["source_public_key_b64u"]))
+    rebuilt = deepcopy(fixture)
+    rebuild_producer_vectors(rebuilt)
+    if rebuilt["producer_signer_kat"] != section:
+        raise SystemExit("Contact producer KAT differs from fixed conformance source inputs")
+    for case in section["cases"]:
+        signed = case["signed_object"]
+        validator = Draft202012Validator({"$ref": base + "#/$defs/" + case["schema_def"]}, registry=registry)
+        validator.validate(signed)
+        unsigned = {k: v for k, v in signed.items() if k != "signature"}
+        canonical = canonical_json(unsigned)
+        if canonical != case["canonical_unsigned"] or digest(signed) != case["expected_signed_digest"]:
+            raise SystemExit(case["name"] + ": signed object canonical bytes/digest drifted")
+        signature = unb64u(signed["signature"]["jws"])
+        source_key.verify(signature, canonical.encode())
+        if "core" in signed and digest(signed["core"], CORE_DOMAIN) != signed["receipt_digest"]:
+            raise SystemExit("request core digest mismatch")
+        for mutation in section["negative_cases"]:
+            tampered = deepcopy(signed)
+            body = tampered.get("core", tampered)
+            descriptor = body["producer_signer"]
+            if mutation == "missing_producer_signer": del body["producer_signer"]
+            elif mutation == "null_producer_signer": body["producer_signer"] = None
+            elif mutation == "unknown_member": descriptor["algorithm"] = "Ed25519"
+            elif mutation == "short_key": descriptor["public_key_b64u"] = b64u(bytes(31))
+            elif mutation == "long_key": descriptor["public_key_b64u"] = b64u(bytes(33))
+            elif mutation == "padded_key": descriptor["public_key_b64u"] += "="
+            elif mutation == "noncanonical_key": descriptor["public_key_b64u"] = descriptor["public_key_b64u"][:-1] + "B"
+            elif mutation == "substituted_method": descriptor["verification_method"] += "-other"
+            elif mutation == "substituted_key": descriptor["public_key_b64u"] = b64u(bytes(32))
+            else: raise SystemExit("unknown producer mutation")
+            if mutation not in {"substituted_method", "substituted_key"} and validator.is_valid(tampered):
+                raise SystemExit(case["name"] + ": schema accepted " + mutation)
+            transcript = canonical_json({k:v for k,v in tampered.items() if k != "signature"}).encode()
+            try:
+                source_key.verify(signature, transcript)
+            except InvalidSignature:
+                pass
+            else:
+                raise SystemExit(case["name"] + ": source signature accepted " + mutation)
+    receipts = [case["signed_object"] for case in section["cases"] if case["schema_def"] == "request_acceptance_receipt"]
+    by_ref = {receipt["core"]["request_event_ref"]: receipt for receipt in receipts}
+    for case in fixture["cases"]:
+        if case["name"] not in section["linked_round_cases"]: continue
+        rows = case["contact_round"].get("requests", [case["contact_round"]])
+        for row in rows:
+            if row["request_acceptance_receipt_digest"] != digest(by_ref[row["request_event_ref"]]):
+                raise SystemExit(case["name"] + ": round does not bind complete signed receipt")
 
 
 def canonical_json(value: object) -> str:
@@ -29,7 +185,14 @@ def canonical_request_order(contact_round: dict) -> bool:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true", help="regenerate linked producer/receipt/round/absence vectors")
+    args = parser.parse_args()
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    if args.write:
+        rebuild_producer_vectors(fixture)
+        FIXTURE.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    check_producer_vectors(fixture)
     domain = fixture.get("domain")
     if domain != "ak.contact.round.v1":
         raise SystemExit(f"unexpected Contact round domain: {domain!r}")
@@ -153,7 +316,8 @@ def main() -> int:
         raise SystemExit("non_canonical_json vector unexpectedly canonical")
 
     print(
-        f"contact round KAT: {len(fixture['cases'])} round cases and "
+        f"contact round KAT: {len(fixture['producer_signer_kat']['cases'])} signed producer facts, "
+        f"45 producer mutations, {len(fixture['cases'])} round cases and "
         f"{len(expected_negatives)} outgoing-slot negatives and "
         f"{len(ordering['negative_cases'])} request-order negatives OK"
     )

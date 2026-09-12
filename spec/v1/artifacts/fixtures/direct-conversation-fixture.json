@@ -330,35 +330,6 @@
         },
         "state": "pending_incoming",
         "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-        "request_receipt": {
-          "core": {
-            "holder": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-                "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
-              }
-            },
-            "peer": {
-              "kind": "human",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixture",
-                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-              }
-            },
-            "slot_version": 1,
-            "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-            "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-            "accepted_at": "2026-08-08T00:00:00.000Z",
-            "issuer_id": "ak:did_core:web:peer-ps.example"
-          },
-          "receipt_digest": "sha256:7c025950cd5d95374a2232f472a5f23f6d3528d4d14b866260a821461008c441",
-          "signature": {
-            "verification_method": "did:web:peer-ps.example#key-1",
-            "created_at": "2026-08-08T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9-cmVxdWVzdC1yZWNlaXB0LWZpeHR1cmU"
-          }
-        },
         "next_prepare_input": {
           "contact_round_id": "sha256:1c9de1bb43ba57c4a6de5d5f0b7f4d0b6a2b2c9ab0ad06f7cbb8a7f4d2e1c0b9",
           "version": 2,
@@ -520,8 +491,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
-            "root_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
+            "current_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
+            "root_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",
@@ -561,8 +532,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
-            "root_contact_round_id": "sha256:0ceca65487c2143ddb4e4c4e7831fcd6e1e8e049bff470a30aa8c033b4c913ec",
+            "current_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
+            "root_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",
@@ -670,6 +641,82 @@
           "kind": "controller_agent",
           "agent_provision_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
           "controller_binding_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      }
+    },
+    {
+      "name": "request_receipt_carries_closed_producer_signer",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/request_acceptance_receipt",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "core": {
+          "holder": {
+            "kind": "human",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+            }
+          },
+          "peer": {
+            "kind": "human",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "slot_version": 1,
+          "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+          "producer_signer": {
+            "verification_method": "did:webvh:z6mkfixturebobexample#device-fixture",
+            "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+          },
+          "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+          "accepted_at": "2026-08-08T00:00:00.000Z",
+          "issuer_id": "ak:did_core:web:peer-ps.example"
+        },
+        "receipt_digest": "sha256:8c40bf668f2c85b4ddac42cbcf9a4c9df34f05ca7e899f560ac75b142e4f7647",
+        "signature": {
+          "verification_method": "did:web:peer-ps.example#key-1",
+          "created_at": "2026-08-08T00:00:00.000Z",
+          "jws": "pYXwXddSRbJv7iqniNYVsslg8aTEafgDFPja7LT0o3Vaujj4nerEi0gFf8kRCQvCsUcXB6yjzK3PBun_ntVJAA"
+        }
+      }
+    },
+    {
+      "name": "request_receipt_rejects_missing_producer_signer",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/request_acceptance_receipt",
+      "expect_valid": false,
+      "first_expected_error": "contains:'producer_signer' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "core": {
+          "holder": {
+            "kind": "human",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+            }
+          },
+          "peer": {
+            "kind": "human",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "slot_version": 1,
+          "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+          "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
+          "accepted_at": "2026-08-08T00:00:00.000Z",
+          "issuer_id": "ak:did_core:web:peer-ps.example"
+        },
+        "receipt_digest": "sha256:8c40bf668f2c85b4ddac42cbcf9a4c9df34f05ca7e899f560ac75b142e4f7647",
+        "signature": {
+          "verification_method": "did:web:peer-ps.example#key-1",
+          "created_at": "2026-08-08T00:00:00.000Z",
+          "jws": "pYXwXddSRbJv7iqniNYVsslg8aTEafgDFPja7LT0o3Vaujj4nerEi0gFf8kRCQvCsUcXB6yjzK3PBun_ntVJAA"
         }
       }
     }
