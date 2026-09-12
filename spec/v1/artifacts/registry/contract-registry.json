@@ -23130,5 +23130,467 @@
       "execution": "data",
       "join": "issuer_local_components"
     }
+  },
+  "authorization_dependency_registry": {
+    "source_ref": "zh/authz/cbs-profiles.md#5-授权关闭与有限期",
+    "coordinate_fields": [
+      "dependency_kind",
+      "authorization_event_id",
+      "generation_event_id",
+      "scope_ref",
+      "actions"
+    ],
+    "rules": [
+      "Closed vocabulary and exact registered action sets; unknown kind, unknown action, empty action list and incompatible kind/scope/action combinations are invalid.",
+      "Action sets are structural upper bounds, not grants or implied dependencies. The historical evaluator must authenticate every actual source, field binding and gate applicable to the exact Event/action.",
+      "Only ordinary persisted Event authorization is classified. Security commands, live-only service policy, receipt arrival and cache freshness do not acquire historical authorization by this registry.",
+      "Authorization/generation Event IDs identify actual confirmed sources. Never synthesize IDs from state values, integers, labels, timestamps, local counters or receipt identifiers.",
+      "Closing entries arise only from a successful transition of an open exact interval; no-op, retry or terminal upgrade cannot close the same interval a second time.",
+      "Missing necessary source or frontier evidence is pending; unknown or contradictory evidence is invalid. No empty closure inventory proves completeness."
+    ],
+    "action_sets": {
+      "ordinary_event_actions": [
+        "ak.agent.sidecar.exchange.control",
+        "ak.agent.sidecar.publish",
+        "ak.agent.sidecar.write",
+        "ak.applet.bridge_error",
+        "ak.audit.accessed",
+        "ak.call.join",
+        "ak.call.moderate",
+        "ak.call.record",
+        "ak.call.screen_share",
+        "ak.call.transcribe",
+        "ak.circle.manage",
+        "ak.container.move_item",
+        "ak.container.rebalance",
+        "ak.message.create",
+        "ak.message.mention.broadcast",
+        "ak.message.redact",
+        "ak.message.redact.own",
+        "ak.message.revise",
+        "ak.message.revise.own",
+        "ak.mls.commit",
+        "ak.mls.proposal",
+        "ak.mls.welcome",
+        "ak.mls.welcome.own_device",
+        "ak.morph.archive",
+        "ak.morph.create",
+        "ak.morph.restore",
+        "ak.morph.stage.set",
+        "ak.morph.update",
+        "ak.object.archive",
+        "ak.object.restore",
+        "ak.object.stage.set",
+        "ak.pin.add",
+        "ak.pin.remove",
+        "ak.pin.reorder",
+        "ak.policy.action",
+        "ak.policy.manage",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.realm.admin",
+        "ak.realm.owner",
+        "ak.realm.profile",
+        "ak.realm.set_default_strand",
+        "ak.relation.create",
+        "ak.relation.resolve",
+        "ak.relation.tombstone",
+        "ak.relation.update",
+        "ak.rsvp.set",
+        "ak.space.archive",
+        "ak.space.create",
+        "ak.space.parent",
+        "ak.space.restore",
+        "ak.space.tombstone",
+        "ak.space.update",
+        "ak.strand.archive",
+        "ak.strand.create",
+        "ak.strand.move",
+        "ak.strand.reorder",
+        "ak.strand.restore",
+        "ak.strand.stage.set",
+        "ak.strand.tracks.update",
+        "ak.strand.update",
+        "ak.strand.watch.set",
+        "ak.strand.watch.set.others",
+        "ak.view.create",
+        "ak.view.reconcile",
+        "ak.view.update"
+      ],
+      "grantable_event_actions": [
+        "ak.agent.sidecar.exchange.control",
+        "ak.agent.sidecar.publish",
+        "ak.agent.sidecar.write",
+        "ak.applet.bridge_error",
+        "ak.audit.accessed",
+        "ak.call.join",
+        "ak.call.moderate",
+        "ak.call.record",
+        "ak.call.screen_share",
+        "ak.call.transcribe",
+        "ak.circle.manage",
+        "ak.container.move_item",
+        "ak.container.rebalance",
+        "ak.message.create",
+        "ak.message.mention.broadcast",
+        "ak.message.redact",
+        "ak.message.redact.own",
+        "ak.message.revise",
+        "ak.message.revise.own",
+        "ak.mls.commit",
+        "ak.mls.proposal",
+        "ak.mls.welcome",
+        "ak.mls.welcome.own_device",
+        "ak.morph.archive",
+        "ak.morph.create",
+        "ak.morph.restore",
+        "ak.morph.stage.set",
+        "ak.morph.update",
+        "ak.object.archive",
+        "ak.object.restore",
+        "ak.object.stage.set",
+        "ak.pin.add",
+        "ak.pin.remove",
+        "ak.pin.reorder",
+        "ak.policy.action",
+        "ak.policy.manage",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.realm.admin",
+        "ak.realm.owner",
+        "ak.realm.profile",
+        "ak.realm.set_default_strand",
+        "ak.relation.create",
+        "ak.relation.resolve",
+        "ak.relation.tombstone",
+        "ak.relation.update",
+        "ak.rsvp.set",
+        "ak.space.archive",
+        "ak.space.create",
+        "ak.space.parent",
+        "ak.space.restore",
+        "ak.space.tombstone",
+        "ak.space.update",
+        "ak.strand.archive",
+        "ak.strand.create",
+        "ak.strand.move",
+        "ak.strand.reorder",
+        "ak.strand.restore",
+        "ak.strand.stage.set",
+        "ak.strand.tracks.update",
+        "ak.strand.update",
+        "ak.strand.watch.set",
+        "ak.strand.watch.set.others",
+        "ak.view.create",
+        "ak.view.reconcile",
+        "ak.view.update"
+      ],
+      "root_derived_event_actions": [
+        "ak.audit.accessed",
+        "ak.call.join",
+        "ak.call.moderate",
+        "ak.call.record",
+        "ak.call.screen_share",
+        "ak.call.transcribe",
+        "ak.circle.manage",
+        "ak.container.move_item",
+        "ak.container.rebalance",
+        "ak.message.create",
+        "ak.message.mention.broadcast",
+        "ak.message.redact",
+        "ak.message.redact.own",
+        "ak.message.revise",
+        "ak.message.revise.own",
+        "ak.mls.commit",
+        "ak.mls.proposal",
+        "ak.mls.welcome",
+        "ak.morph.archive",
+        "ak.morph.create",
+        "ak.morph.restore",
+        "ak.morph.stage.set",
+        "ak.morph.update",
+        "ak.object.archive",
+        "ak.object.restore",
+        "ak.object.stage.set",
+        "ak.policy.action",
+        "ak.policy.manage",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.realm.admin",
+        "ak.realm.owner",
+        "ak.realm.profile",
+        "ak.realm.set_default_strand",
+        "ak.relation.create",
+        "ak.relation.resolve",
+        "ak.relation.tombstone",
+        "ak.relation.update",
+        "ak.rsvp.set",
+        "ak.space.archive",
+        "ak.space.create",
+        "ak.space.parent",
+        "ak.space.restore",
+        "ak.space.tombstone",
+        "ak.space.update",
+        "ak.strand.archive",
+        "ak.strand.create",
+        "ak.strand.move",
+        "ak.strand.reorder",
+        "ak.strand.restore",
+        "ak.strand.stage.set",
+        "ak.strand.tracks.update",
+        "ak.strand.update",
+        "ak.strand.watch.set",
+        "ak.strand.watch.set.others",
+        "ak.view.create",
+        "ak.view.reconcile",
+        "ak.view.update"
+      ],
+      "contact_event_actions": [
+        "ak.call.join",
+        "ak.call.moderate",
+        "ak.call.record",
+        "ak.call.screen_share",
+        "ak.call.transcribe",
+        "ak.message.create",
+        "ak.message.mention.broadcast",
+        "ak.message.redact",
+        "ak.message.redact.own",
+        "ak.message.revise",
+        "ak.message.revise.own",
+        "ak.reaction.add",
+        "ak.reaction.remove"
+      ],
+      "consent_event_actions": [
+        "ak.call.join"
+      ]
+    },
+    "entries": [
+      {
+        "dependency_kind": "device_generation",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Confirmed PCR ak.realm.create.",
+        "generation_source": "PCR genesis or the exact confirmed ak.device.reanchor establishing the used integer generation.",
+        "closing_transition": "The next successful device reanchor closes the prior generation.",
+        "applicability": "Actual device authentication in any business Realm expands to its owning PCR scope; never enumerate business Realms."
+      },
+      {
+        "dependency_kind": "device_authorization",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Exact confirmed ak.device.authorize establishing the used authorization instance.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Successful ak.device.revoke removing that exact authorization instance.",
+        "applicability": "The actually used device authorization; device_generation remains an independent dependency."
+      },
+      {
+        "dependency_kind": "agent_key_authorization",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Exact confirmed ak.agent.key.authorize establishing the used key instance.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Exact revoke or a successful authorize explicitly superseding the instance.",
+        "applicability": "Actual Agent key authentication; key bytes, device id or expiry cache are not instance identity."
+      },
+      {
+        "dependency_kind": "capability_grant",
+        "scope_kinds": [
+          "realm",
+          "circle",
+          "sidecar"
+        ],
+        "action_sets": [
+          "grantable_event_actions"
+        ],
+        "authorization_source": "Exact confirmed ak.capability.grant Event in the actual authorization proof path.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Successful revoke or relinquish of that exact grant.",
+        "applicability": "Every actually used recursive parent grant is separate; alternative unused proof paths do not become dependencies."
+      },
+      {
+        "dependency_kind": "realm_authority_generation",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "root_derived_event_actions"
+        ],
+        "authorization_source": "Confirmed Realm ak.realm.create.",
+        "generation_source": "Genesis or the exact confirmed ak.realm.authority.reset establishing authority_generation.",
+        "closing_transition": "The next successful authority reset.",
+        "applicability": "Root-derived grants and direct controller authority; participant baseline does not acquire this dependency."
+      },
+      {
+        "dependency_kind": "realm_controller_assignment",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "root_derived_event_actions"
+        ],
+        "authorization_source": "Confirmed Realm ak.realm.create.",
+        "generation_source": "Genesis or the exact confirmed ak.realm.owner.transfer establishing controller_epoch.",
+        "closing_transition": "The next successful controller transfer.",
+        "applicability": "Direct controller-derived authority only; previously issued grants do not acquire this dependency."
+      },
+      {
+        "dependency_kind": "member_join",
+        "scope_kinds": [
+          "realm",
+          "circle"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Exact Event establishing the actual joined instance: ak.member.state, ak.circle.member.state, ak.invite.accept, or the registered bootstrap member Event.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Successful leave, ban or registered cascade that closes that exact join instance.",
+        "applicability": "Each required Realm/Circle membership is separate; controller membership bindings retain their exact original join."
+      },
+      {
+        "dependency_kind": "agent_active",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Agent-control PCR ak.realm.create.",
+        "generation_source": "Genesis or the exact successful resume that changes paused to active.",
+        "closing_transition": "Successful pause or deactivate of the open active interval.",
+        "applicability": "Actual Agent active requirement only; retained key authorization is independent of pause/resume."
+      },
+      {
+        "dependency_kind": "realm_unarchived",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Confirmed Realm ak.realm.create.",
+        "generation_source": "Genesis or the exact successful archived-to-active restore.",
+        "closing_transition": "Successful archive of the open interval.",
+        "applicability": "Only ordinary actions whose registered lifecycle rules require an unarchived Realm; registered exceptions do not use this gate."
+      },
+      {
+        "dependency_kind": "realm_unfrozen",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Confirmed Realm ak.realm.create.",
+        "generation_source": "Genesis or the exact successful frozen-to-unfrozen transition.",
+        "closing_transition": "Successful freeze of the open interval.",
+        "applicability": "Independent of archive; only non-exempt ordinary actions use this gate."
+      },
+      {
+        "dependency_kind": "realm_nonterminal",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Confirmed Realm ak.realm.create.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "The first successful tombstone or destroy.",
+        "applicability": "Inherited by dependent Circle and Sidecar actions; terminal upgrades do not create another closure for an already closed interval."
+      },
+      {
+        "dependency_kind": "circle_active",
+        "scope_kinds": [
+          "circle"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Confirmed ak.circle.create.",
+        "generation_source": "Create or the exact successful archived-to-active restore.",
+        "closing_transition": "Successful archive or tombstone of the open interval.",
+        "applicability": "Parent Realm gates remain separate; restore preserves membership/MLS instances and cannot reopen a terminal Circle."
+      },
+      {
+        "dependency_kind": "accountability",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Exact identity accountability grant or Agent provision Event establishing the active registered accountability cell value.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Successful revocation or replacement of the actual grant instance.",
+        "applicability": "Only actual required accountability; a profile declaration is not an authorization source."
+      },
+      {
+        "dependency_kind": "applet_registration",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Exact ak.applet.registration establishing the accepted registration instance.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Successful replacement with a different security registration instance.",
+        "applicability": "Contiguous reassertion of the same epoch and security bindings retains the instance; replacement away and back creates a new instance. Installation dependencies expand to actual grants and memberships."
+      },
+      {
+        "dependency_kind": "mls_leaf",
+        "scope_kinds": [
+          "realm",
+          "circle",
+          "sidecar"
+        ],
+        "action_sets": [
+          "ordinary_event_actions"
+        ],
+        "authorization_source": "Exact MLS genesis for its creator leaf, or exact durable Add proposal for the admitted leaf.",
+        "generation_source": "Genesis, or the exact confirmed Commit consuming that Add.",
+        "closing_transition": "Confirmed Commit consuming the exact Remove for that leaf instance.",
+        "applicability": "Update and unrelated epoch advance preserve the leaf instance. Cryptographic content epoch/key validity is verified separately; Remove plus Add creates a new instance even with equal key or index."
+      },
+      {
+        "dependency_kind": "contact_direction_scope",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "contact_event_actions"
+        ],
+        "authorization_source": "Exact issuer request or acceptance Event establishing its signed directional lineage for the authenticated round.",
+        "generation_source": "That Event, or exact scope-update Event changing the required Contact scope from absent to present.",
+        "closing_transition": "Scope update removing the required action scope, or terminal closure of the directional round.",
+        "applicability": "Both required directions are independent. Retained scopes retain their interval; re-added scopes use a new interval. Scope is the issuer PCR; original signed lineage binds the full pair and round."
+      },
+      {
+        "dependency_kind": "consent_grant",
+        "scope_kinds": [
+          "realm"
+        ],
+        "action_sets": [
+          "consent_event_actions"
+        ],
+        "authorization_source": "Exact confirmed ak.consent.grant whose active tag the registered evaluator actually uses.",
+        "generation_source": "Same Event as authorization_source.",
+        "closing_transition": "Confirmed ak.consent.revoke observing that exact grant tag.",
+        "applicability": "Only an ordinary persisted action that explicitly requires this Consent. Live-only invite/call/presence gates do not manufacture historical dependencies; Contact and Personal DM never use Consent."
+      }
+    ]
   }
 }

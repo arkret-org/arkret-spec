@@ -53,7 +53,7 @@ K 为完整已验证输入证据集合。持久分类由 K、对应安全域的�
 
 ## 4. 授权关闭
 
-安全撤销决定绑定目标授权实例、action/scope 和精确因果 frontier。关闭集合 C_R 为 frontier 与其完整祖先集合。该决定 MUST 由有权的安全域确认，不能由普通 Event 或任意接收站收据签发。
+安全撤销决定绑定封闭 dependency_kind、目标授权实例、generation Event、action/scope 和精确因果 frontier；来源、匹配坐标和独立开闭区间按 [CBS §5](./cbs-profiles.md#5-授权关闭与有限期) 的 canonical 表验证，不能只比较两个 EventId。关闭集合 C_R 为 frontier 与其完整祖先集合。该决定 MUST 由有权的安全域确认，不能由普通 Event 或任意接收站收据签发。
 
 关闭记录的 `scope_ref` 标识**被关闭授权依赖自身所属的安全 scope**，不是使用该资格的普通 Event 的业务资源 scope。验证者 MUST 从已验证授权来源派生该坐标，不得直接复制普通 Event 的 `scope_ref`。例如 human device 或 Agent key 的授权依赖属于其 exact AccountId 所绑定的 PCR scope；其关闭可影响依赖该资格的任意业务 Realm，不要求 PCR 枚举所有这些 Realm。Realm membership 依赖属于该 Realm，Circle membership 依赖属于该 Circle；Circle 内的 Event 同时使用父 Realm membership 时，仍分别保留这两个授权依赖坐标。grant 的授权依赖 scope 由其已确认的授权记录及登记规则派生。业务资源 scope、grant selector 覆盖、action、audience 和 constraints 仍独立验证；依赖 scope 相同不授予跨资源访问权，也不允许任意 PCR 为其它授权域签发关闭决定。
 
@@ -61,7 +61,7 @@ K 为完整已验证输入证据集合。持久分类由 K、对应安全域的�
 
 使用已关闭资格的 e，仅在历史授权成立且 e 属于每个适用 C_R 时保持 eligible；否则 quarantined。多个适用 cut 允许集取交集，不以较宽后继 cut 复活被另一关闭排除的事件。已验证授权坐标后，任一完整适用关闭集合明确排除 e，或实际执行依赖已有确定的无效结果，即足以 quarantine；其它依赖尚缺材料不能推翻这个已证明的否定结论。尚无确定否定且缺必要 membership 证明时 pending，不把本地查不到当成 non-membership。数学签名、绑定或结构非法仍按拒绝处理。
 
-新加入、重新授权与恢复产生新授权实例或 generation；旧 Event 不得换标签进入新代。父 grant 关闭按 action 传递，多个匹配 grant 的 constraints 仍全部求值。Owner transfer 不隐含整代撤权，authority reset 按其登记范围使旧 generation 失效。
+新加入、重新授权与恢复产生新授权实例或 generation；旧 Event 不得换标签进入新代。父 grant 关闭沿实际采用的授权证明链按 action 传递，链上全部 constraints 仍求值；不把未采用的替代 grant 路径混为必需依赖。Owner transfer 关闭旧 realm_controller_assignment，保留既发 grant 所用 realm_authority_generation；authority reset 按真实根代依赖关闭，不撤销无根代依赖的 participant baseline。
 
 离线分支中真实的旧消息也可能因未被 cut 覆盖而隔离。UI MUST 表达重分类，不能声称已证明这些消息产生在撤销之后。已知撤销禁止新 live 投递，但仍可存储和验证历史证据。
 

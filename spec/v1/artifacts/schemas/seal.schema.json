@@ -408,6 +408,7 @@
       "type": "object",
       "required": [
         "command_event_id",
+        "dependency_kind",
         "authorization_event_id",
         "generation_event_id",
         "scope_ref",
@@ -417,6 +418,29 @@
       "properties": {
         "command_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "dependency_kind": {
+          "type": "string",
+          "enum": [
+            "accountability",
+            "agent_active",
+            "agent_key_authorization",
+            "applet_registration",
+            "capability_grant",
+            "circle_active",
+            "consent_grant",
+            "contact_direction_scope",
+            "device_authorization",
+            "device_generation",
+            "member_join",
+            "mls_leaf",
+            "realm_authority_generation",
+            "realm_controller_assignment",
+            "realm_nonterminal",
+            "realm_unarchived",
+            "realm_unfrozen"
+          ],
+          "description": "Closed authorization dependency coordinate discriminator, generated from contract-registry authorization_dependency_registry."
         },
         "authorization_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -434,7 +458,74 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)+$"
+            "enum": [
+              "ak.agent.sidecar.exchange.control",
+              "ak.agent.sidecar.publish",
+              "ak.agent.sidecar.write",
+              "ak.applet.bridge_error",
+              "ak.audit.accessed",
+              "ak.call.join",
+              "ak.call.moderate",
+              "ak.call.record",
+              "ak.call.screen_share",
+              "ak.call.transcribe",
+              "ak.circle.manage",
+              "ak.container.move_item",
+              "ak.container.rebalance",
+              "ak.message.create",
+              "ak.message.mention.broadcast",
+              "ak.message.redact",
+              "ak.message.redact.own",
+              "ak.message.revise",
+              "ak.message.revise.own",
+              "ak.mls.commit",
+              "ak.mls.proposal",
+              "ak.mls.welcome",
+              "ak.mls.welcome.own_device",
+              "ak.morph.archive",
+              "ak.morph.create",
+              "ak.morph.restore",
+              "ak.morph.stage.set",
+              "ak.morph.update",
+              "ak.object.archive",
+              "ak.object.restore",
+              "ak.object.stage.set",
+              "ak.pin.add",
+              "ak.pin.remove",
+              "ak.pin.reorder",
+              "ak.policy.action",
+              "ak.policy.manage",
+              "ak.reaction.add",
+              "ak.reaction.remove",
+              "ak.realm.admin",
+              "ak.realm.owner",
+              "ak.realm.profile",
+              "ak.realm.set_default_strand",
+              "ak.relation.create",
+              "ak.relation.resolve",
+              "ak.relation.tombstone",
+              "ak.relation.update",
+              "ak.rsvp.set",
+              "ak.space.archive",
+              "ak.space.create",
+              "ak.space.parent",
+              "ak.space.restore",
+              "ak.space.tombstone",
+              "ak.space.update",
+              "ak.strand.archive",
+              "ak.strand.create",
+              "ak.strand.move",
+              "ak.strand.reorder",
+              "ak.strand.restore",
+              "ak.strand.stage.set",
+              "ak.strand.tracks.update",
+              "ak.strand.update",
+              "ak.strand.watch.set",
+              "ak.strand.watch.set.others",
+              "ak.view.create",
+              "ak.view.reconcile",
+              "ak.view.update"
+            ]
           }
         },
         "frontier": {
@@ -446,7 +537,1529 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "device_generation"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "device_authorization"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "agent_key_authorization"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "capability_grant"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm",
+                      "circle",
+                      "sidecar"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "realm_authority_generation"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "realm_controller_assignment"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "member_join"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm",
+                      "circle"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "agent_active"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "realm_unarchived"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "realm_unfrozen"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "realm_nonterminal"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "circle_active"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "circle"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "accountability"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "applet_registration"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "mls_leaf"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm",
+                      "circle",
+                      "sidecar"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.agent.sidecar.exchange.control",
+                    "ak.agent.sidecar.publish",
+                    "ak.agent.sidecar.write",
+                    "ak.applet.bridge_error",
+                    "ak.audit.accessed",
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.circle.manage",
+                    "ak.container.move_item",
+                    "ak.container.rebalance",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.mls.commit",
+                    "ak.mls.proposal",
+                    "ak.mls.welcome",
+                    "ak.mls.welcome.own_device",
+                    "ak.morph.archive",
+                    "ak.morph.create",
+                    "ak.morph.restore",
+                    "ak.morph.stage.set",
+                    "ak.morph.update",
+                    "ak.object.archive",
+                    "ak.object.restore",
+                    "ak.object.stage.set",
+                    "ak.pin.add",
+                    "ak.pin.remove",
+                    "ak.pin.reorder",
+                    "ak.policy.action",
+                    "ak.policy.manage",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.realm.admin",
+                    "ak.realm.owner",
+                    "ak.realm.profile",
+                    "ak.realm.set_default_strand",
+                    "ak.relation.create",
+                    "ak.relation.resolve",
+                    "ak.relation.tombstone",
+                    "ak.relation.update",
+                    "ak.rsvp.set",
+                    "ak.space.archive",
+                    "ak.space.create",
+                    "ak.space.parent",
+                    "ak.space.restore",
+                    "ak.space.tombstone",
+                    "ak.space.update",
+                    "ak.strand.archive",
+                    "ak.strand.create",
+                    "ak.strand.move",
+                    "ak.strand.reorder",
+                    "ak.strand.restore",
+                    "ak.strand.stage.set",
+                    "ak.strand.tracks.update",
+                    "ak.strand.update",
+                    "ak.strand.watch.set",
+                    "ak.strand.watch.set.others",
+                    "ak.view.create",
+                    "ak.view.reconcile",
+                    "ak.view.update"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "contact_direction_scope"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.call.join",
+                    "ak.call.moderate",
+                    "ak.call.record",
+                    "ak.call.screen_share",
+                    "ak.call.transcribe",
+                    "ak.message.create",
+                    "ak.message.mention.broadcast",
+                    "ak.message.redact",
+                    "ak.message.redact.own",
+                    "ak.message.revise",
+                    "ak.message.revise.own",
+                    "ak.reaction.add",
+                    "ak.reaction.remove"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "dependency_kind": {
+                "const": "consent_grant"
+              }
+            },
+            "required": [
+              "dependency_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope_ref": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "realm"
+                    ]
+                  }
+                }
+              },
+              "actions": {
+                "items": {
+                  "enum": [
+                    "ak.call.join"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "existence_anchor": {
       "type": "object",

@@ -253,9 +253,19 @@ lineage 永不复活，recontact 必须创建全新 request receipt(s)与新 rou
 
 source service 必须对每个 issuer lineage 签 monotonic head checkpoint/current lease，逐字绑定 current head、
 accepted frontier、`complete_through` 与 `fresh_until`。peer mirror 保留 source signed fact、lease/checkpoint 与
-transport receipt；收到更高 incoming signed head时 target service 立即撤销旧 mirror，不等待轮询。stale/unknown
-current proof仅阻止 Contact-based create/send：existing binding resolver仍返回原坐标，并在 `found.send_blockers[]`
-报告 `contact_scope_stale`。proof stale 绝不把 accepted round 回滚为 pending，也不得隐藏 participant 坐标。
+transport receipt；收到更高 incoming signed head 时 target service 立即安装已认证变更并阻止已撤销方向的新提交，不等待轮询。
+current freshness 是 Contact mutation 与 Direct Conversation 安全 founding 的执行条件；初次缺少可验证 directional 授权仍不得发送。
+既有 Direct Conversation 的普通聊天发送可使用此前已完整验证、绑定同 pair/round 的 directional 授权区间；仅 current lease 的
+`fresh_until` 经过不撤销该历史证据，不要求 source Station 在线、新 lease 或新 Seal。未传播的撤销存在允许窗口；收到真实
+scope 收窄或 terminal 后立即 live fence，并按 [CBS §5](../authz/cbs-profiles.md#5-授权关闭与有限期) 的
+`contact_direction_scope` 与完整关闭集合重算历史资格。必要源证据未知仍 pending，不以 TTL 过期假造 revoke。
+existing binding resolver 保留原坐标；`contact_scope_stale` 仅表示当前确切操作必需的证据尚未知或 current 安全执行条件不满足，
+不能用一个过期查询 lease 阻塞已验证区间内的 ordinary send。proof stale 不把 accepted round 回滚为 pending，也不得隐藏 participant 坐标。
+
+方向 scope 使用连续开放区间：第一次合法 request/acceptance 建立已授予 scope 的起点，之后 full-set scope update 只关闭
+被删除 scope 的动作；保留 scope 的 generation 不变，重新加入时使用该次 scope update Event。每条消息分别验证所需的双方
+direction，terminal 关闭尚开放的方向区间；新 round/new request 不复活旧区间历史。Contact scope 与 action 的对应仍按本节和
+实际消息/通话规则验证，不能因为 closure 的结构 action 上界允许一个值就当作 holder 授权。
 
 `ak.self.contact.read.list.v1` 的 `contact_list_row` **MUST** 用封闭子对象 `next_prepare_input` 承载下一次写入的输入。其
 `contact_round_id`、`version`、`predecessor_event_ref` 三个字段与 `ak.self.contact.command.scope_update.v1` /

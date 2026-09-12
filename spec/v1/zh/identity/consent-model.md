@@ -42,6 +42,8 @@ Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holde
 
 Consent 表达"我允许某个 peer 发起某类不以 Contact 为授权依据的动作"，但加入 Realm、写入 Realm、解密 E2EE 内容仍需独立的 capability + membership。Consent 可作为 invite、非 Contact call/presence 等流程的上游 action gate；Contact-based create/send 与 Personal DM 完全不读取它。
 
+仅当正式登记的**持久 ordinary action** 求值器实际需要某个 active Consent grant 时，才展开 [CBS §5](../authz/cbs-profiles.md#5-授权关闭与有限期) 的 `consent_grant` 历史依赖；其 A/G 是确切 ConsentGrant Event，revoke 只关闭 observed tag 对应实例。invite、call/presence 的仅 live 私有前置检查仍是 live 检查，不自动把全部普通历史变为 Consent-dependent；尤其 Contact/Personal DM 始终没有该依赖。结构 action 上界不是新增 Consent 要求。
+
 联系人关系的 pending / accepted / rejected / tombstoned 状态不属于 consent cell。它们的真源是 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 定义的 principal-scoped contact fact log。Consent 的有效状态只有 `active` / `no-consent`；`revoke` 是撤销操作，不是联系人关系状态。
 
 ### 2.3 Consent 与 capability 正交

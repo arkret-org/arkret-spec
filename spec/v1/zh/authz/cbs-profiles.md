@@ -48,11 +48,51 @@ Seal 的 `realm_id/configuration_ref/notary_seq/predecessor_ref` 唯一绑定安
 
 ## 5. 授权关闭与有限期
 
-`authorization_closures` 每项精确绑定本 Seal 成功撤销命令、目标授权 Event、generation Event、scope、actions 和完整 Event frontier。授权 Event 指向 grant、设备/身份授权或成员实例的登记起点；generation 不得用可重复的业务状态名称替代。frontier 的完整祖先闭包就是允许保留的历史集。多个适用关闭集合取交集。
+### 5.1 精确依赖坐标
 
-关闭条目必须由命令语义派生，不能因为 notary 见过某条聊天而随意产生。撤销不用等所有接收站，因而真实离线消息也可能被排除。每个 receiver 使用相同证据重算 eligible/pending/quarantined；已发生的展示不可回滚，历史导入不得再触发 live 效果。完整规则见 [授权与状态归约](./event-auth-state-resolution.md)。
+`authorization_closures` 每项按 `command_event_id, dependency_kind, authorization_event_id, generation_event_id, scope_ref, actions, frontier` 绑定本 Seal 成功关闭命令。`dependency_kind` 是封闭判别，不能省略、使用扩展值或根据 Event 名称猜测。唯一机器真源为 [contract registry 的 authorization_dependency_registry](../../artifacts/registry/contract-registry.json)：kind、允许的 scope kind、确切 action 集合、来源与关闭规则一并登记；schema 与共享类型从该表生成约束。actions 必须是非空、canonical 排序去重的已登记 action 子集，拒绝通配、未知 action 及不合 kind/scope/action 的组合。表内 action 集合只是结构上界，不自动授予动作或宣称所有 Event 都使用该依赖。
 
-有限期资格的 `existence_anchors` 绑定授权 Event、generation 和精确 Event frontier；治理 Station 从确切授权状态派生有效窗，不接受 producer 复制的到期时间。完整 frontier 及祖先必须在冻结签名 body 前可用并通过历史授权校验。
+历史授权求值器 MUST 从原 Event 绑定的已认证历史状态展开每个**实际必需**的依赖，使用与 closure 相同的 `(dependency_kind, authorization_event_id, generation_event_id, scope_ref, action)`。每个 action 分别求值，多个适用关闭集合取交集。不能以另一条未被采用的可选授权路径补救原 Event 已关闭的依赖，也不能把所有可选路径都当成必需依赖。generation 是确切建立该开放区间的已确认 Event，不是业务整数、当前 Cell revision、时间或本地计数器。整数代际与 Event 的对应必须由连续已认证的状态变更证明；禁止伪造 EventId。
+
+scope 指**依赖自身**的登记范围，closure 所在 Seal 的 Realm 必须是其权威所属 Realm。PCR device/grant/Contact 依赖指向原 PCR，不枚举消息可能流向的业务 Realm；Circle membership/lifecycle 指向确切 Circle；Sidecar 不产生第二份成员名单。`realm_genesis` 不可作为依赖 scope，必须在验证真实 genesis 后展开其 RealmId。跨 scope 使用仅由实际授权规则展开，不能凭 id 前缀、接收 Station 或当前显示关系推测覆盖。未获授权的 PCR、Circle、Sidecar 原文和 frontier 不能因证明依赖而被公开；按 §9 认证获准披露的确切事实。
+
+### 5.2 来源与关闭边界
+
+下表的 A/G 分别指 authorization_event_id / generation_event_id，所有起点及关闭都必须是确切已确认成功的登记转换。
+
+| dependency_kind | A / G | 关闭与必要边界 |
+| --- | --- | --- |
+| `device_generation` | PCR create / create 或建立所用 generation 的 reanchor | 下一 reanchor 关闭旧代；归属 PCR，不依赖原 Station 在线。 |
+| `device_authorization` | exact device.authorize / 同一 Event | revoke 关闭所观察的该授权实例；另保留 device_generation。 |
+| `agent_key_authorization` | exact agent.key.authorize / 同一 Event | revoke 或显式 supersedes 关闭该实例；不能把同 key bytes 当作同实例。 |
+| `capability_grant` | exact grant / 同一 Event | revoke/relinquish；递归展开实际父 grant 及根代，不记录无关的可选 grant。 |
+| `realm_authority_generation` | Realm create / create 或 authority.reset | reset 关闭旧根代；owner transfer 不关闭它。participant baseline 不依赖根代。 |
+| `realm_controller_assignment` | Realm create / create 或 owner.transfer | transfer 只关闭旧 controller 的直接授权任期，不关闭任期内合法签发且尚有效的 grant。 |
+| `member_join` | 真正建立 join 的 member.state、circle.member.state、invite.accept 或登记 bootstrap member Event / 同一 Event | leave/ban/级联关闭确切 join；rejoin 是新实例，旧 Agent/controller join binding 不复活。 |
+| `agent_active` | Agent PCR create / create 或实际 resume | pause/deactivate 关闭 active 区间；相同 key 的 resume 开新区间而不更换 key authorize 起点。 |
+| `realm_unarchived` | Realm create / create 或实际 restore | archive 关闭；仅适用于规则要求未归档的 ordinary action。 |
+| `realm_unfrozen` | Realm create / create 或实际 unfreeze | freeze 关闭；与 archive 区间独立，保留正式例外动作。 |
+| `realm_nonterminal` | Realm create / 同一 Event | 第一次 tombstone/destroy 关闭，不可重开；继承到依赖它的 Circle/Sidecar，不合成子对象写入。 |
+| `circle_active` | Circle create / create 或实际 restore | archive/tombstone 关闭当前开放区间；父 Realm gates 独立。restore 不重建未被移除的 membership/MLS leaf。 |
+| `accountability` | 实际建立 active accountability 值的 identity.accountability_grant 或 agent.provision / 同一 Event | 实际 revoke/replacement 关闭；Actor Profile 声明不授权。 |
+| `applet_registration` | 实际建立 accepted registration 实例的 applet.registration / 同一 Event | security registration 实例被替换时关闭；连续重申同 epoch 与全部 security bindings 不开新代，替换离开再改回则是新实例。 |
+| `mls_leaf` | creator 的 Genesis，或确切 durable Add proposal / Genesis，或真正消费 Add 的 Commit | 真正消费 Remove 的 Commit 关闭该 leaf 实例。无关 Commit/Update 不开新代；同 index/key 的 Remove+Add 仍是新实例。 |
+| `contact_direction_scope` | issuer 该 round 的真实 request/acceptance 起点 / 起点或将所需 Contact scope 从无改为有的 scope_update | 删除该 scope 或 round terminal 关闭。保留的 scope 不换代，重新加入的 scope 开新代；双方方向分别验证。 |
+| `consent_grant` | 实际使用的 ConsentGrant / 同一 Event | ConsentRevoke 关闭确切 observed grant tag。仅登记求值器明确要求的持久 ordinary action 使用它；不扩展到 Contact/Personal DM 或仅 live 的私有操作。 |
+
+**相同 Event 建立多个条件。** Genesis E0 同时建立 root generation、controller assignment 和独立 lifecycle gates，并不使这些条件相同。E0/E0 的 owner transfer cut 只能命中 controller assignment，既发 grant 所用 root generation 保持；authority reset 则按实际根代依赖关闭。archive→freeze→restore 后仍然 frozen；随后 unfreeze 的新写必须使用各 gate 各自的开放 G，不能被另一个 gate 的旧 cut 误命中。
+
+**不复活与不重复关闭。** 只有真正关闭一个开放区间的成功转换才能生成该区间的 closure。no-op、exact retry、已经 archive 后的 terminal 升级，不得给已关闭区间另选一个 frontier；终态升级仍可关闭其它尚开放的独立 gate。restore/resume/rejoin 只让作者在新上下文重签新的 Event，不改变旧 Event 的坐标或把被排除历史重新纳入。Circle tombstone 不可 restore；相同名称的新 Circle 有新 create Event/ID，旧 scope 与旧成员实例不会自动迁入。终态 Realm 的 successor 同理。
+
+**派生与密码学。** install、Sidecar desired roster 只展开真实 registration、grant、membership、controller、key 等依赖，不虚构 install/Sidecar 授权 Event 或独立 generation。MLS leaf 授权与内容 epoch 的密码学可用性分别验证：有 leaf 不证明持有消息所用 epoch 的合法 key；无关 epoch 推进不表示该 leaf 重新 join。未知 Add/Remove 或来源不能用 leaf_index、epoch 数字或当前 roster 补成历史证明。
+
+一般 policy、join-rule 和业务约束仍在已认证历史上下文求值，不能因后续 policy 更新私自撤销既发授权。只有明确登记的独立撤权条件才产生上述 closure；扩充这类语义必须同步修改 canonical 表、来源证明和验证器。对象展示生命周期、运行态 readiness/presence、private participation、Account 当前服务状态、session/DPoP、cache TTL 和外部 DID 当前查询都不制造历史关闭坐标；这些路径原有 live gate 独立保留，确切已知 revoke 仍立即阻止新 live 提交。
+
+### 5.3 历史集合与有限期
+
+frontier 必须是该依赖/action 关闭边界的完整 Event heads；其 prev_refs/causal_refs 完整祖先闭包就是允许保留的历史集。关闭条目只能由上述成功命令语义派生，不能因为治理 Station 见过某条聊天而随意产生。撤销不用等所有接收站，因而真实离线消息也可能被排除。每个 receiver 使用同一已认证证据重算 eligible/pending/quarantined；缺少来源、完整关闭清单或必要 frontier 材料是 pending，签名矛盾或非法 kind/source/组合是 invalid，不能以空清单或任意 allow 回调宣称完成。已发生的展示不可回滚，历史导入不得再触发 live 效果。完整规则见 [授权与状态归约](./event-auth-state-resolution.md)。
+
+有限期资格的 `existence_anchors` 绑定授权 Event、generation 和精确 Event frontier；anchor 只认证 Event 存在于有效窗，不表达授权关闭匹配，因此不携 dependency_kind，也不能替代上述依赖/source 验证。治理 Station 从确切授权状态派生有效窗，不接受 producer 复制的到期时间。完整 frontier 及祖先必须在冻结签名 body 前可用并通过历史授权校验。
 
 设配置声明治理 Station 的可信 UTC 时钟误差至多 ε=`max_clock_error_ms`。冻结 anchor 或带显式期限的安全命令时，治理 Station MUST 确认本机可信时钟与 `sealed_at` 相差不超过 ε，且所有被锚定/批准 Event 已存在；整个 `[sealed_at-2ε,sealed_at+2ε]` 必须落在资格有效窗内。时钟不能保证误差界就不得出具该事实。重试只恢复已耐久冻结的同一 body 和存在观测，不对新到数据倒签。
 

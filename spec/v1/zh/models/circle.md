@@ -261,7 +261,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 1. `Circle.members ⊆ Realm.members`。reducer 在 `ak.circle.member.state -> join` 时，若 target actor 的父 Realm `ak.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `ak.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 
-   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭精确绑定原成员授权实例、scope、actions 和保留历史 frontier。已知关闭的接收站立即阻止新 live 投递；未见关闭的分区站允许临时按缓存聊天。后来补齐证明后统一重算历史，接纳先后不是永久保留依据。
+   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭按 CBS §5 的 member_join 坐标精确绑定原成员授权实例、generation、scope、actions 和保留历史 frontier；circle_active 与父 Realm lifecycle 坐标独立。已知关闭的接收站立即阻止新 live 投递；未见关闭的分区站允许临时按缓存聊天。后来补齐证明后统一重算历史，接纳先后不是永久保留依据。
 
 Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM，完整 `member_id: ActorId` 是 cell key。申请正文 MUST NOT 进入 member-state Move；部署若需附加私密材料，必须通过独立的加密扩展通道传输。
 

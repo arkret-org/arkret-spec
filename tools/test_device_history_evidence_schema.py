@@ -64,6 +64,38 @@ class DeviceHistoryEvidenceSchemaTest(unittest.TestCase):
             value["signer_evidence_digest"] = "sha256:" + "b" * 64
             self.assertFalse(validator.is_valid(value))
 
+    def test_authorization_closure_requires_closed_kind_scope_action_coordinates(self):
+        validator = self.validator("seal.schema.json#/$defs/authorization_closure")
+        event_id = "ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV"
+        value = {
+            "command_event_id": event_id,
+            "dependency_kind": "realm_controller_assignment",
+            "authorization_event_id": event_id,
+            "generation_event_id": event_id,
+            "scope_ref": {"kind": "realm", "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"},
+            "actions": ["ak.message.create"], "frontier": [],
+        }
+        validator.validate(value)
+        for kind in (None, "lifecycle", "circle_active", "consent_grant"):
+            invalid = copy.deepcopy(value)
+            if kind is None:
+                del invalid["dependency_kind"]
+            else:
+                invalid["dependency_kind"] = kind
+            self.assertFalse(validator.is_valid(invalid), kind)
+        invalid = copy.deepcopy(value)
+        invalid["actions"] = ["ak.message.edit"]
+        self.assertFalse(validator.is_valid(invalid))
+        invalid["actions"] = ["ak.self.agent.command.pause.v1"]
+        self.assertFalse(validator.is_valid(invalid))
+        invalid = copy.deepcopy(value)
+        invalid["scope_ref"] = {"kind": "realm_genesis"}
+        self.assertFalse(validator.is_valid(invalid))
+
+    def test_dependency_schema_is_derived_from_the_closed_registry(self):
+        from tools.artifact_pipeline import check_authorization_dependency_schema
+        self.assertEqual(check_authorization_dependency_schema(), [])
+
 
 if __name__ == "__main__":
     unittest.main()
