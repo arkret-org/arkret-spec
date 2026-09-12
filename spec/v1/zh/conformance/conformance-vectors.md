@@ -971,7 +971,7 @@ Expected：
 
 Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `mlswg/mls-implementations` 的 `test-vectors/` corpus commit `cfd450286d1bfd9cd2519b95c80f9771f94a5b1a`。声明 MLS 支持的实现 MUST 对 ciphersuite `0x0001` 运行 registry 列出的 `crypto-basics.json`、`key-schedule.json`、`messages.json`、`welcome.json` 与 `treekem.json` 全部适用 case，并逐字节匹配编码、KEM/HPKE 输出、joiner / epoch secret、Welcome 与 TreeKEM 派生值。只通过 Arkret 结构绑定 fixture、不运行该字节级 corpus，不足以声明 `ak.vector.mls.rfc9420_mti_kat.v1` 通过。更换 upstream commit 必须作为 registry review 变更并重新跑全套 KAT。
 
-### 2.5.5 Vector: MLS Security Frontier 精确且不吸收普通 Seal
+### 2.5.5 Vector: MLS Security Frontier 精确且不吸收无关治理 Seal
 
 `vector_id`: `ak.vector.mls.security_frontier_key_access_only.v1`
 

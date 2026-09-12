@@ -256,7 +256,7 @@ Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可
 | 阶段 | 标准载体 | 边界 |
 | --- | --- | --- |
 | 预配 | `ak.open.third_party_invite.command.provision.v1` | 服务生成并保管秘密，只返回公开材料与 `provisioning_id`（§7.2） |
-| author 与接受 | `ak.invite.third_party` Event 经 `ak.self.events.command.submit.v1` 摄取 | 复用普通 Control Move 接受流程，Invite ID 由该 Event 派生（§7.3） |
+| author 与接受 | `ak.invite.third_party` Event 经 `ak.self.events.command.submit.v1` 摄取 | 复用非锚点 Control Move 接受流程，Invite ID 由该 Event 派生（§7.3） |
 | 接受证据 | `ak.self.third_party_invite.read.acceptance_attestation.v1` | 自己 Station 签发用途受限、audience 绑定的接受证据（§7.4） |
 | 回绑激活 | `ak.open.third_party_invite.command.activate.v1` | 把 exact invite 与私有记录一次性绑定并落地投递意图（§7.5） |
 | 投递与观察 | `ak.open.third_party_invite.read.provisioning_status.v1` | 带外投递进度与生命周期读取面（§7.6） |
@@ -281,7 +281,7 @@ Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可
 
 ### 7.3 author 与接受（normative）
 
-邀请者 MUST 把预配返回的 `third_party_invite` 与 `expires_at` 逐字放入 `ak.invite.third_party` payload，经 `ak.self.events.command.submit.v1` 提交，并按普通 Control Move 规则等待 Realm 接受。Invite ID 沿用创建 Event 派生规则（见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)），MUST NOT 在预配阶段另造，也 MUST NOT 由验证服务代签用户 Event。
+邀请者 MUST 把预配返回的 `third_party_invite` 与 `expires_at` 逐字放入 `ak.invite.third_party` payload，经 `ak.self.events.command.submit.v1` 提交，并按非锚点 Control Move 规则等待 Realm 接受。Invite ID 沿用创建 Event 派生规则（见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)），MUST NOT 在预配阶段另造，也 MUST NOT 由验证服务代签用户 Event。
 
 对公开材料的任何编辑都会使该 invite 不可激活：验证服务在 §7.5 逐成员比对预配记录与已接受 cell，不采纳已接受 cell 的值去覆盖自己冻结的材料。若 Event 被拒绝或被放弃，邀请者 MUST 重新预配并 author 新 invite（新 `invite_id`、新 token、新 commitment），MUST NOT 复用旧 `provisioning_id`。
 

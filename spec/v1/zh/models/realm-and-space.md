@@ -339,7 +339,7 @@ Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，�
 - 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_access → discovery`，可选 `alias`，条件 `plaintext_visible_services`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
 - 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `head_eq null`。`ak.strand.create` 平时是携 `auth_context` 的 ordinary Event；但该 exact unit 的 Genesis Seal 同时覆盖四条，Strand 无法引用尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
 
-不在该列表内的 Control Move 一律要求 `seal_basis`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-seal) 携带 basis。
+不在该列表内的 Control Move 一律要求 `seal_basis`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有非锚点 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-seal) 携带 basis。
 
 Authz 含义：
 
