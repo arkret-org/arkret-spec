@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.22",
+  "version": "2026-09-12.23",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T19:55:58+08:00",
+  "generated_at": "2026-09-12T20:45:44+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8722,7 +8722,7 @@
       }
     },
     "version": "2026-09-12.13",
-    "generated_at": "2026-09-12T15:42:00+08:00",
+    "generated_at": "2026-09-12T20:45:44+08:00",
     "history_admission_contract": {
       "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
       "consumer_contexts": [
@@ -11208,8 +11208,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-12.14",
-    "generated_at": "2026-09-12T19:55:58+08:00"
+    "version": "2026-09-12.15",
+    "generated_at": "2026-09-12T20:45:44+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -12160,7 +12160,7 @@
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
     "version": "2026-09-08.4",
-    "generated_at": "2026-09-08T16:43:05+08:00",
+    "generated_at": "2026-09-12T20:45:44+08:00",
     "notification_projection_identity_contract": {
       "applies_to_id_kinds": [
         "notification_projection"
@@ -15602,7 +15602,7 @@
         "http": "POST /_arkret/self/control-proposal-decisions/query",
         "grpc": "SelfControlProposalDecisions/Get",
         "mq": "self.control_proposal_decisions.read.get",
-        "notes": "Authenticated exact proposal observation surface. Returns only the durable authority discriminator, canonical Ack when applicable, verified decision chain and covering Seal state for the requested Realm/proposal digest. control_proposal_ack permits the closed pending/deferred/overdue/rejected/sealed chain and always carries Ack; the narrow ackless_event_proof branch permits only pending/sealed and carries no Ack, decision or Ack-derived deadline fault. ak.device.revoke is always control_proposal_ack. The operation cannot mint an Ack, synthesize a reject or mutate pending state; unauthorized and unknown selectors are non-enumerating.",
+        "notes": "Authenticated exact proposal observation surface. Returns only the durable authority discriminator, canonical Ack when applicable, verified decision chain and covering Seal state for the requested Realm/proposal digest. control_proposal_ack permits the closed pending/deferred/overdue/sealed chain and always carries Ack; the narrow ackless_event_proof branch permits only pending/sealed and carries no Ack, decision or Ack-derived deadline fault. ak.device.revoke is always control_proposal_ack. The operation cannot mint an Ack, synthesize a reject or mutate pending state; unauthorized and unknown selectors are non-enumerating.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body",
@@ -16799,8 +16799,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-12.17",
-    "generated_at": "2026-09-12T19:55:58+08:00",
+    "version": "2026-09-12.18",
+    "generated_at": "2026-09-12T20:45:44+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -21449,11 +21449,11 @@
       }
     ],
     "version": "2026-09-08.3",
-    "generated_at": "2026-09-08T11:03:00+08:00"
+    "generated_at": "2026-09-12T20:45:44+08:00"
   },
   "current_result_registry": {
     "version": "2026-09-12.6",
-    "generated_at": "2026-09-12T09:51:32+08:00",
+    "generated_at": "2026-09-12T20:45:44+08:00",
     "rules": [
       "Each registered non-log built-in family has exactly one complete current value mapping. Ordered logs remain timeline or dedicated current roster projections; clients never replay them for governance.",
       "Selector scope and CellRef define identity. Target is immutable interest ownership, derived by the registered rule from accepted source coordinates, never chosen by the caller or inferred from Event order.",

@@ -82,11 +82,10 @@ device-signed PCR Seal 与用户 DID 控制操作仍由授权设备持钥签署�
 
 客户端确认自己已知的 Control Move 是否被 Seal 接受时，MUST 使用
 `ak.self.control_proposal_decisions.read.get.v1` 的 exact `(realm_id, proposal_digest)` 结果。
-自己 Station 返回 `proposal_state=sealed` 且绑定同一 Event kind、digest 与 `accepted_seal_id`，即可确认该 Event
-已被接受；pending/deferred/overdue/rejected 不得当作 sealed。客户端保留已签 intent 的确切内容与摘要绑定，
+自己 Station 返回 `proposal_state=sealed` 且绑定同一 Event kind、digest 与 `accepted_seal_id`，只确认该 Event 已有安全终局。客户端 MUST resolve 此确切 Seal，核对唯一对应 `command_results` 单元；仅 `outcome=committed` 才是业务成功，`outcome=rejected` 是业务拒绝。pending/deferred/overdue 不能当作终局。客户端保留已签 intent 的确切内容与摘要绑定，
 但 MUST NOT 为这项确认拉取 Seal 前驱闭包、DID history 或治理重放检查点。若还需取得接纳后追加的 Event envelope，
 只 resolve 已知的确切 Event 并核对原始签署输入不变。`accepted_seal_id` MUST 是唯一确认序列中
-`command_results[]` 首次直接包含该 Event 的 Seal；同一 Event 出现第二个直接接受结果或同一位置出现两个确认 Seal 都是安全故障，必须停止该安全域，不得按字节序挑选赢家。该引用不是完整 frontier，不得直接代替 authoring
+`command_results[]` 首次直接包含该 Event 的 Seal（成功或拒绝均属终局）；同一 Event 出现第二个直接终局结果或同一位置出现两个确认 Seal 都是安全故障，必须停止该安全域，不得按字节序挑选赢家。该引用不是完整 frontier，不得直接代替 authoring
 `seal_basis`。服务器先按当前会话检查该 Event 可见性，查询命中的 durable
 proposal/covering-Seal 状态；不得为单 Event 确认枚举整个站点的 canonical Events。
 

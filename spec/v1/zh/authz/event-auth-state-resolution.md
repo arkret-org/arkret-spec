@@ -55,6 +55,8 @@ K 为完整已验证输入证据集合。持久分类由 K、对应安全域的�
 
 安全撤销决定绑定目标授权实例、action/scope 和精确因果 frontier。关闭集合 C_R 为 frontier 与其完整祖先集合。该决定 MUST 由有权的安全域确认，不能由普通 Event 或任意接收站收据签发。
 
+关闭记录的 `scope_ref` 标识**被关闭授权依赖自身所属的安全 scope**，不是使用该资格的普通 Event 的业务资源 scope。验证者 MUST 从已验证授权来源派生该坐标，不得直接复制普通 Event 的 `scope_ref`。例如 human device 或 Agent key 的授权依赖属于其 exact AccountId 所绑定的 PCR scope；其关闭可影响依赖该资格的任意业务 Realm，不要求 PCR 枚举所有这些 Realm。Realm membership 依赖属于该 Realm，Circle membership 依赖属于该 Circle；Circle 内的 Event 同时使用父 Realm membership 时，仍分别保留这两个授权依赖坐标。grant 的授权依赖 scope 由其已确认的授权记录及登记规则派生。业务资源 scope、grant selector 覆盖、action、audience 和 constraints 仍独立验证；依赖 scope 相同不授予跨资源访问权，也不允许任意 PCR 为其它授权域签发关闭决定。
+
 普通 Event 不等待关闭决定。实际撤销时汇集可获得的目标历史，不等待所有副本在线；关闭证明只承诺选定集合，不证明世界历史收齐。最大 actor_seq、wall clock、HLC 和摘要排序 MUST NOT 代替完整 Event 身份。
 
 使用已关闭资格的 e，仅在历史授权成立且 e 属于每个适用 C_R 时保持 eligible；否则 quarantined。多个适用 cut 允许集取交集，不以较宽后继 cut 复活被另一关闭排除的事件。已验证授权坐标后，任一完整适用关闭集合明确排除 e，或实际执行依赖已有确定的无效结果，即足以 quarantine；其它依赖尚缺材料不能推翻这个已证明的否定结论。尚无确定否定且缺必要 membership 证明时 pending，不把本地查不到当成 non-membership。数学签名、绑定或结构非法仍按拒绝处理。
@@ -137,6 +139,8 @@ PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来
 ## 11. 安全状态根与序列化
 
 `covered(S)` 是 `S.delta` 与唯一 predecessor 的 covered 集合的并集。`control_event_set_root` 仅覆盖成功安全命令；拒绝结果由 Seal 的签名 `command_results` 直接承诺。普通数据从不进入该集合。genesis 注册原子 unit 的初始 D 效果仍由完整 unit 复算，不能宣称这些数据以后必须被 Seal 覆盖。
+
+含 D/S 的安全原子命令，其 `result_digest` 中 D 效果的完整模型状态 MUST 从该成员签名 `prev_refs` 与 `causal_refs` 可达的完整 D 因果输入、已验证历史资格上下文，以及它确切依赖的 unit 内前序写入重算。未被该成员观察的并发 D 写 MUST NOT 进入这个结果；同一 unit 中仅仅排在前面的 D 写也不自动成为它的因果依赖。`seal_basis` 只固定安全授权与 S revision，不能充当 D 状态快照；接收站当前全局 D 投影不能替代该签名依赖 cut。必要认证材料、资格或因果依赖缺失时整个命令保持 pending，不得把缺失解释为 unwritten/null，也不得先发布其中 D 效果。命令确认后，其全部成功 D/S 操作、唯一终局与发布 outbox MUST 原子保存；S root 与 delta 仍只承诺 S 部分，普通全局 D 投影在相同资格上下文内再合并其它合法并发写，不能反向改变已确认命令的 `result_digest`。
 
 `state_root` 的每个 leaf 恰为 `JCS({cell:<CellRef>,state:{revision_event_id:<EventId>,value:<value>}})`。成员恰为该安全域中已执行成功注册 write 的 `sequenced_state` cell；未写入者无 leaf，写过 null 者保留 leaf。revision 是最后成功写入的 Event 身份，不能用值或 Seal ID 替代。安全 register 的 value 是完整登记业务值；安全 set 的 value 是按 tag_id 排序的全部活跃 `{tag_id,value}` 项，空集为 []，不保存已移除项。安全 set 不进行离线 merge，确切 revision 已防止旧命令复活被删除的 dot。安全 log 保留按登记键排序的完整不可变 entries。上述内部表示不同于可能剥离 tags 的查询展示值；只有 D OR-set 必须保留 removed_tag_ids。D cell、未登记隐含写入、候选命令都不进入安全 root。
 

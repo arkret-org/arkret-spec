@@ -476,13 +476,12 @@
     },
     "realm_join_realm_state": {
       "type": "string",
-      "description": "State of one join application as observed by the receiving Realm member Station. received means the byte-identical Event was durably accepted for forwarding but is not yet an Ack-bearing proposal; the remaining five values map one to one onto control_proposal_decision_read_outcome.proposal_state pending, deferred, overdue, rejected and sealed.",
+      "description": "State of one join application as observed by the receiving Realm member Station. received means the byte-identical Event was durably accepted for forwarding but is not yet an Ack-bearing proposal; authority_pending, deferred, overdue and sealed correspond to proposal_state pending, deferred, overdue and sealed. sealed denotes a terminal command result, not business success; the exact deciding Seal unit outcome determines whether the join committed.",
       "enum": [
         "received",
         "authority_pending",
         "deferred",
         "overdue",
-        "rejected",
         "sealed"
       ]
     },

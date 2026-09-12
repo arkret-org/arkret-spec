@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.24",
+  "version": "2026-09-12.25",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T19:55:58+08:00",
+  "generated_at": "2026-09-12T20:45:44+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#11-安全状态根与序列化",
-      "section_digest": "sha256:fb00f51fb50e0aaf30819a8f5ba2a30872dc07a22aab28ce6570e7d6416ce2a1",
+      "section_digest": "sha256:b745a20d9999f473bbd060fe335fccd621ae1dad69992c32fd8cdce3fa54ccbf",
       "requirement": "Seal identity excludes id and certificate, while the commit transcript binds stable body digest, exact configuration, height and view. The safety state root includes all written sequenced_state cells with exact revision identities, including written null, and excludes ordinary data. Receiver replay validates roots, command order and outcomes; signature quorum alone is not consensus.",
       "testability_grade": "vector",
       "evidence_refs": [

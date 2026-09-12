@@ -474,7 +474,8 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "scope_ref": {
-          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref",
+          "description": "Scope of the verified authorization dependency being closed, not the ordinary Event's resource scope. Device and Agent key dependencies use their bound PCR scope even when used in another Realm; resource selector coverage and authorization remain independently required. Derive this coordinate from the verified authorization source, never from an unverified Event assertion."
         },
         "actions": {
           "type": "array",

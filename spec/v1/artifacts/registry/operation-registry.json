@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.17",
+  "version": "2026-09-12.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T19:55:58+08:00",
+  "generated_at": "2026-09-12T20:45:44+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3398,7 +3398,7 @@
       "http": "POST /_arkret/self/control-proposal-decisions/query",
       "grpc": "SelfControlProposalDecisions/Get",
       "mq": "self.control_proposal_decisions.read.get",
-      "notes": "Authenticated exact proposal observation surface. Returns only the durable authority discriminator, canonical Ack when applicable, verified decision chain and covering Seal state for the requested Realm/proposal digest. control_proposal_ack permits the closed pending/deferred/overdue/rejected/sealed chain and always carries Ack; the narrow ackless_event_proof branch permits only pending/sealed and carries no Ack, decision or Ack-derived deadline fault. ak.device.revoke is always control_proposal_ack. The operation cannot mint an Ack, synthesize a reject or mutate pending state; unauthorized and unknown selectors are non-enumerating.",
+      "notes": "Authenticated exact proposal observation surface. Returns only the durable authority discriminator, canonical Ack when applicable, verified decision chain and covering Seal state for the requested Realm/proposal digest. control_proposal_ack permits the closed pending/deferred/overdue/sealed chain and always carries Ack; the narrow ackless_event_proof branch permits only pending/sealed and carries no Ack, decision or Ack-derived deadline fault. ak.device.revoke is always control_proposal_ack. The operation cannot mint an Ack, synthesize a reject or mutate pending state; unauthorized and unknown selectors are non-enumerating.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body",
