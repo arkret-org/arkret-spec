@@ -21,6 +21,12 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "contact-round-kat.json"
 CORE_DOMAIN = "ak.contact.request_acceptance_core.v1"
 TEST_PUBLIC_KEY = "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+TEST_DIDS = {
+    "ak:did_core:webvh:z6mkfixturealice": "did:webvh:z6mkfixturealice:alice.example",
+    "ak:did_core:webvh:z6mkfixturebob": "did:webvh:z6mkfixturebob:bob.example",
+    "ak:did_core:webvh:z6mkfixturestationa": "did:webvh:z6mkfixturestationa:station-a.example",
+    "ak:did_core:webvh:z6mkfixturestationb": "did:webvh:z6mkfixturestationb:station-b.example",
+}
 
 
 def b64u(value: bytes) -> str:
@@ -56,16 +62,18 @@ def rebuild_producer_vectors(fixture: dict) -> None:
     receipts = []
     vectors = []
     for index, event_ref in enumerate(request_refs):
-        station = pair[index]["account_id"]["station_id"].removeprefix("ak:did_core:")
-        principal = pair[index]["account_id"]["principal_id"].removeprefix("ak:did_core:")
+        # Complete DID locators are explicit fixture inputs, never reconstructed
+        # from the deliberately location-free core identifier.
+        station = TEST_DIDS[pair[index]["account_id"]["station_id"]]
+        principal = TEST_DIDS[pair[index]["account_id"]["principal_id"]]
         core = {
             "holder": peers[index], "peer": peers[1-index], "slot_version": 1,
             "request_event_ref": event_ref,
-            "producer_signer": {"verification_method": "did:" + principal + "#device-fixture", "public_key_b64u": TEST_PUBLIC_KEY},
+            "producer_signer": {"verification_method": principal + "#device-fixture", "public_key_b64u": TEST_PUBLIC_KEY},
             "source_checkpoint": "sha256:" + str(index + 1) * 64,
             "accepted_at": at, "issuer_id": pair[index]["account_id"]["station_id"],
         }
-        receipt = signed_fact({"core": core, "receipt_digest": digest(core, CORE_DOMAIN)}, "did:" + station + "#assertion-fixture", at)
+        receipt = signed_fact({"core": core, "receipt_digest": digest(core, CORE_DOMAIN)}, station + "#assertion-fixture", at)
         receipts.append(receipt)
         vectors.append({"name": "request_" + str(index), "schema_def": "request_acceptance_receipt", "signed_object": receipt,
                         "canonical_unsigned": canonical_json({k:v for k,v in receipt.items() if k != "signature"}),

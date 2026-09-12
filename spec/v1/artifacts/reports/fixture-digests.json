@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",
-      "sha256": "3a62de95bc17428d27b0c6a7276f6342c8bd45afe4e52328244a4651167ad8df"
+      "sha256": "58a52abc9b4cc81f20662fa2edaee2d91be26e7e74422ee8856ee5e3d5810275"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "8e180ec4bc84a0b1efc7711182d25d1fa3f54d1a3fcf684dbcae854edefef1b4"
+      "sha256": "8c1486cba5f519cbf743c8912eaf21527fc0586580a603b74575d5742eeb5a83"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",

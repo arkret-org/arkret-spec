@@ -491,8 +491,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
-            "root_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
+            "current_contact_round_id": "sha256:e30f777027d7d6a965a0d3edc4d9ac1e440726dfc39d6e2dc51c84afd45e57f6",
+            "root_contact_round_id": "sha256:e30f777027d7d6a965a0d3edc4d9ac1e440726dfc39d6e2dc51c84afd45e57f6",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",
@@ -532,8 +532,8 @@
           "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "authorization_core": {
             "kind": "human",
-            "current_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
-            "root_contact_round_id": "sha256:66adc861d301e09bc769b4f8d6d4e723747b58a1febd46b841f09f2bceb65c93",
+            "current_contact_round_id": "sha256:e30f777027d7d6a965a0d3edc4d9ac1e440726dfc39d6e2dc51c84afd45e57f6",
+            "root_contact_round_id": "sha256:e30f777027d7d6a965a0d3edc4d9ac1e440726dfc39d6e2dc51c84afd45e57f6",
             "accepted_contact_evidence_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           },
           "issuer_id": "ak:did_core:web:ps.example",
@@ -654,32 +654,32 @@
           "holder": {
             "kind": "human",
             "account_id": {
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
             }
           },
           "peer": {
             "kind": "human",
             "account_id": {
-              "principal_id": "ak:did_core:webvh:z6mkfixture",
-              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationb"
             }
           },
           "slot_version": 1,
-          "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
+          "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
           "producer_signer": {
-            "verification_method": "did:webvh:z6mkfixturebobexample#device-fixture",
+            "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
             "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
           },
-          "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-          "accepted_at": "2026-08-08T00:00:00.000Z",
-          "issuer_id": "ak:did_core:web:peer-ps.example"
+          "source_checkpoint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "accepted_at": "2026-08-31T03:59:00.000Z",
+          "issuer_id": "ak:did_core:webvh:z6mkfixturestationa"
         },
-        "receipt_digest": "sha256:8c40bf668f2c85b4ddac42cbcf9a4c9df34f05ca7e899f560ac75b142e4f7647",
+        "receipt_digest": "sha256:1e1d9527e9d8ce0f8557d6fa5df351d69a639feb19a5e9f89700495ce820f523",
         "signature": {
-          "verification_method": "did:web:peer-ps.example#key-1",
-          "created_at": "2026-08-08T00:00:00.000Z",
-          "jws": "pYXwXddSRbJv7iqniNYVsslg8aTEafgDFPja7LT0o3Vaujj4nerEi0gFf8kRCQvCsUcXB6yjzK3PBun_ntVJAA"
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "q9cXu-Jp9HftTiorgdcGB3ApQT1InCm5xxDO20iGK686m4DhrlOk5ajij_KSTtF20_xRBy2JkMK8i0uiUc6jDQ"
         }
       }
     },
@@ -695,28 +695,28 @@
           "holder": {
             "kind": "human",
             "account_id": {
-              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
             }
           },
           "peer": {
             "kind": "human",
             "account_id": {
-              "principal_id": "ak:did_core:webvh:z6mkfixture",
-              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationb"
             }
           },
           "slot_version": 1,
-          "request_event_ref": "ak:event:AWAIb405aEEenVBHYRG-ZfDs-f9_j3E67tWGI36uYxFJ",
-          "source_checkpoint": "sha256:9a8b7c6d5e4f30211f2e3d4c5b6a798807162534435261708192a3b4c5d6e7f8",
-          "accepted_at": "2026-08-08T00:00:00.000Z",
-          "issuer_id": "ak:did_core:web:peer-ps.example"
+          "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "source_checkpoint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "accepted_at": "2026-08-31T03:59:00.000Z",
+          "issuer_id": "ak:did_core:webvh:z6mkfixturestationa"
         },
-        "receipt_digest": "sha256:8c40bf668f2c85b4ddac42cbcf9a4c9df34f05ca7e899f560ac75b142e4f7647",
+        "receipt_digest": "sha256:1e1d9527e9d8ce0f8557d6fa5df351d69a639feb19a5e9f89700495ce820f523",
         "signature": {
-          "verification_method": "did:web:peer-ps.example#key-1",
-          "created_at": "2026-08-08T00:00:00.000Z",
-          "jws": "pYXwXddSRbJv7iqniNYVsslg8aTEafgDFPja7LT0o3Vaujj4nerEi0gFf8kRCQvCsUcXB6yjzK3PBun_ntVJAA"
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "created_at": "2026-08-31T03:59:00.000Z",
+          "jws": "q9cXu-Jp9HftTiorgdcGB3ApQT1InCm5xxDO20iGK686m4DhrlOk5ajij_KSTtF20_xRBy2JkMK8i0uiUc6jDQ"
         }
       }
     }
