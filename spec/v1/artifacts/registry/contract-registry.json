@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.25",
+  "version": "2026-09-12.26",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T22:13:28+08:00",
+  "generated_at": "2026-09-12T22:53:51+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
