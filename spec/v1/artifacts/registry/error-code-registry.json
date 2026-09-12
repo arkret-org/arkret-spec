@@ -3454,14 +3454,6 @@
       "description": "Client cannot use the committed `session_focus` (e.g. focus not in local `foci_preferred[]`, region restricted, capability mismatch). Client MAY fail closed without joining the call rather than silently degrading; clients MUST NOT pick a different focus to bypass `session_focus_no_split_brain`. See zh/crypto-media/media-service-binding.md §5."
     },
     {
-      "code": "forensic_attribution_mismatch",
-      "applies_to": [
-        "event_auth_state",
-        "state_resolution"
-      ],
-      "description": "A threshold-notary Seal's declared forensic_attribution mode (e.g. waived or quorum_intersection) does not satisfy the Realm's forensic-attribution obligation for the signer set. The Seal MUST reject. See fixtures/cbs-lattice-fixture.json."
-    },
-    {
       "code": "founding_device_commitment_mismatch",
       "applies_to": [
         "pcr_genesis"

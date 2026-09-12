@@ -68,13 +68,13 @@
       ]
     },
     {
-      "name": "concurrent_sibling_bottom",
+      "name": "ordered_competing_transitions",
       "vector_id": "ak.vector.call_state.ordered_competing_transitions.v1",
-      "runner": "cotest::conformance::call_state_core::run_concurrent_sibling_bottom_vector",
+      "runner": "cotest::conformance::call_state_core::run_ordered_competing_transitions_vector",
       "assertions": [
-        "ringing to active and ringing to missed compete in the confirmed sequence; the stale revision is rejected",
-        "the Bottom kind is conflict",
-        "no deterministic winner is selected from the sibling heads"
+        "ringing to active and ringing to missed compete in the confirmed sequence; the first valid command advances the revision",
+        "the command evaluated second against the stale revision is durably rejected with no state effect",
+        "the result follows the confirmed Seal order and never creates sibling heads or Bottom"
       ]
     },
     {

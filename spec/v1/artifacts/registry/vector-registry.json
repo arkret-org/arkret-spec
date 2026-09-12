@@ -1584,7 +1584,7 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.threshold_forensic_attribution.v1",
+      "vector_id": "ak.vector.cbs_lattice.quorum_geometry.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -1593,7 +1593,7 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ],
-      "description": ""
+      "description": "Fixed PBFT notary geometry: n=3f+1 and exact confirmation quorum 2f+1, including f=0 and invalid replica/quorum counts."
     },
     {
       "vector_id": "ak.vector.circle.content_floor_below_realm_rejected.v1",

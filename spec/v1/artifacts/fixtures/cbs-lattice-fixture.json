@@ -1273,81 +1273,62 @@
       ]
     },
     {
-      "name": "threshold_forensic_attribution",
-      "description": "Threshold notary forensic_attribution must match the quorum-intersection arithmetic rule.",
+      "name": "quorum_geometry",
+      "description": "The only notary configuration uses fixed PBFT geometry n=3f+1 and exact commit quorum 2f+1.",
       "cases": [
         {
-          "name": "n5_k3_quorum_intersection",
+          "name": "f0_single_replica",
           "notary": {
-            "members": [
-              "did:webvh:z6mkfixturen1example:n1.example",
-              "did:webvh:z6mkfixturen2example:n2.example",
-              "did:webvh:z6mkfixturen3example:n3.example",
-              "did:webvh:z6mkfixturen4example:n4.example",
-              "did:webvh:z6mkfixturen5example:n5.example"
-            ],
-            "threshold": 3,
-            "forensic_attribution": "quorum_intersection",
-            "kind": "threshold"
+            "kind": "quorum",
+            "signer_count": 1,
+            "fault_tolerance": 0
           },
+          "present_commit_signatures": 1,
           "expected": {
-            "result": "accept"
+            "result": "accept",
+            "quorum": 1
           }
         },
         {
-          "name": "n5_k3_waived_reject",
+          "name": "f1_four_replicas",
           "notary": {
-            "members": [
-              "did:webvh:z6mkfixturen1example:n1.example",
-              "did:webvh:z6mkfixturen2example:n2.example",
-              "did:webvh:z6mkfixturen3example:n3.example",
-              "did:webvh:z6mkfixturen4example:n4.example",
-              "did:webvh:z6mkfixturen5example:n5.example"
-            ],
-            "threshold": 3,
-            "forensic_attribution": "waived",
-            "kind": "threshold"
+            "kind": "quorum",
+            "signer_count": 4,
+            "fault_tolerance": 1
+          },
+          "present_commit_signatures": 3,
+          "expected": {
+            "result": "accept",
+            "quorum": 3
+          }
+        },
+        {
+          "name": "f1_wrong_replica_count",
+          "notary": {
+            "kind": "quorum",
+            "signer_count": 3,
+            "fault_tolerance": 1
           },
           "expected": {
             "result": "reject",
-            "reason": "forensic_attribution_mismatch"
+            "reason": "notary_configuration_invalid"
           }
         },
         {
-          "name": "n4_k2_quorum_intersection_reject",
+          "name": "f1_insufficient_commit_quorum",
           "notary": {
-            "members": [
-              "did:webvh:z6mkfixturen1example:n1.example",
-              "did:webvh:z6mkfixturen2example:n2.example",
-              "did:webvh:z6mkfixturen3example:n3.example",
-              "did:webvh:z6mkfixturen4example:n4.example"
-            ],
-            "threshold": 2,
-            "forensic_attribution": "quorum_intersection",
-            "kind": "threshold"
+            "kind": "quorum",
+            "signer_count": 4,
+            "fault_tolerance": 1
           },
+          "present_commit_signatures": 2,
           "expected": {
             "result": "reject",
-            "reason": "forensic_attribution_mismatch"
-          }
-        },
-        {
-          "name": "threshold_missing_forensic_attribution",
-          "notary": {
-            "members": [
-              "did:webvh:z6mkfixturen1example:n1.example",
-              "did:webvh:z6mkfixturen2example:n2.example",
-              "did:webvh:z6mkfixturen3example:n3.example"
-            ],
-            "threshold": 2,
-            "kind": "threshold"
-          },
-          "expected": {
-            "result": "schema_violation"
+            "reason": "seal_signer_unauthorized"
           }
         }
       ],
-      "vector_id": "ak.vector.cbs_lattice.threshold_forensic_attribution.v1"
+      "vector_id": "ak.vector.cbs_lattice.quorum_geometry.v1"
     },
     {
       "name": "revocation_propagation_window",
