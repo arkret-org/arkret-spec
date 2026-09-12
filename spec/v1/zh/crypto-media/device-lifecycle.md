@@ -120,7 +120,7 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ak.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 或 generation 字段。客户端铸造 basis 的注册来源是 `ak.self.seals.read.frontier.v1?realm_id=<principal_control_realm_id>` 返回的 `RealmSealFrontierView.seal_basis`；本 Realm 恰一确认 leaf。自己的 Station MUST 验证所引 Seal 与 joined roots；client 消费该结果并固定 basis，不下载或重放历史，不把 roots 复制进 Event。来源不可用或不完整时 MUST fail closed，不得伪造 basis。
+`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 或 generation 字段。客户端铸造 basis 的注册来源是 `ak.self.seals.read.frontier.v1?realm_id=<principal_control_realm_id>` 返回的 `RealmSealFrontierView.seal_basis`；本 Realm 恰一确认 head。自己的 Station MUST 验证所引 Seal 的证书和 roots；client 消费该结果并固定 basis，不下载或重放历史，不把 roots 复制进 Event。来源不可用或不完整时 MUST fail closed，不得伪造 basis。
 
 **`revocation_pending` 状态机（normative）**：机读合同为 [`device-revocation-state.schema.json`](../../artifacts/schemas/device-revocation-state.schema.json)（`ak.schema.device_revocation_state.v1`）。所有 deployment profile 使用同一规则，不存在通用部署 `SHOULD`、E2EE / hardening 才 `MUST` 的分支。
 

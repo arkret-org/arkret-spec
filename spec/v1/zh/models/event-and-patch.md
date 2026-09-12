@@ -470,7 +470,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 否则时钟回拨的设备会把自己卡死。`created_at` MUST 是**本 Event 的提交时刻**；桥接外部平台消息时，外部原始时间戳只能进 `metadata` / `external_ref`，写入 `created_at` 会被 (b) 拒。
 
-同型先例见 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md) 的 "`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`"：同样是签名值对签名值、沿 DAG 单调、无本地时钟。
+同型先例见 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md) 的 “`sealed_at` MUST 不早于 predecessor 的 `sealed_at`”：同样是签名值对签名值、沿唯一确认序列单调、无本地时钟。
 
 ### 2.6 `actor_seq` fork 约束
 
@@ -516,7 +516,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 4. 仅在可见性与授权均通过后，求值 profile feature gate、对象 lifecycle、Track enabled
    状态及其它 kind-specific precondition；此阶段才可返回
    `discussion_track_disabled`、`failed_precondition` 等会揭示对象内部状态的诊断。
-5. 最后执行 registry reducer projection、lattice precondition 与原子写入；任一失败拒绝
+5. 最后执行 registry reducer projection、对应 state-model/领域 precondition 与原子写入；任一失败拒绝
    整条 Event，不得留下部分 projection。
 
 同一准入入口的 batch 项也 MUST 逐项遵守上述顺序。实现可以合并不会改变可观察结果的内部
@@ -864,7 +864,7 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 
 签发方 MUST 在计算 `receipt_digest` 前按上述排序键对 `events[]` 排序并去重，并把规范化后的数组作为实际 wire 值签发；接收方 MUST 在验签前确认相邻排序键严格递增。非升序或含重复项的 receipt MUST 以 `schema_violation` 拒绝，不得通过本地静默重排后接受。对于 `scope.kind="device_reanchor_unit"`，数组仍是 canonical set：实现按 item 的 `kind` 找到唯一 `ak.device.reanchor` 与唯一 `ak.device.authorize`；对于 `scope.kind="pcr_genesis_unit"`，实现同样找到唯一 `ak.realm.create` 与唯一 `ak.device.authorize`。consumer MUST 从每个 typed item 的 `event_id` 解出 suite-bearing digest，按该 ID resolve Event 并重算 canonical digest；缺项、重复 kind、错误 kind、ID 与 resolved Event 不一致均 fail closed。两种 unit 均不得复制同源 digest，也不得依赖 `[0]` / `[1]` 位置。
 
-Event Batch Receipt 不携带 `frontier`。它只承诺 `events[]` 的选择集合，不证明顺序、历史完整性、accepted Seal view 或 issuer 的 DAG 前沿；`created_at` 只是签发时间。需要 actor/Realm frontier 的协议必须使用对应的 typed frontier/read 合同，MUST NOT 从 receipt 的事件集合或时间推断该状态。
+Event Batch Receipt 不携带 `frontier`。它只承诺 `events[]` 的选择集合，不证明顺序、历史完整性、confirmed Seal state 或 issuer 的 actor causal frontier；`created_at` 只是签发时间。需要 actor/Realm frontier 的协议必须使用对应的 typed frontier/read 合同，MUST NOT 从 receipt 的事件集合或时间推断该状态。
 
 ## 6. Reducer 总则
 

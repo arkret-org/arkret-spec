@@ -508,7 +508,7 @@
       "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
       "assertions": [
         "target_event_content_commitment_and_signature_verify",
-        "durable_proof_event_and_covering_seal_verify",
+        "durable_proof_event_and_optional_existence_anchor_verify",
         "evidence_package_does_not_release_governance_or_mls_secrets",
         "target_event_tamper_downgrades_proof",
         "retired_mirror_or_plaintext_fields_rejected"
@@ -519,7 +519,7 @@
           "target_event_content_commitment_matches": true,
           "franking_signature_matches": true,
           "durable_proof_event_matches": true,
-          "covering_seal_observation_valid": true,
+          "existence_anchor_valid": true,
           "retired_proof_fields": [],
           "proof_contains_plaintext_body": false,
           "evidence_forbidden_secret_fields": [],
@@ -533,7 +533,7 @@
           "target_event_content_commitment_matches": false,
           "franking_signature_matches": true,
           "durable_proof_event_matches": true,
-          "covering_seal_observation_valid": true,
+          "existence_anchor_valid": true,
           "retired_proof_fields": [],
           "proof_contains_plaintext_body": false,
           "expected": {
@@ -546,7 +546,7 @@
           "target_event_content_commitment_matches": true,
           "franking_signature_matches": true,
           "durable_proof_event_matches": true,
-          "covering_seal_observation_valid": true,
+          "existence_anchor_valid": true,
           "retired_proof_fields": [
             "retired_digest_mirror",
             "retired_sender_mirror",

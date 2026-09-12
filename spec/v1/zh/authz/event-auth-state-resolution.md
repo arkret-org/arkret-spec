@@ -296,9 +296,9 @@ authority 给出有界、可验证的决议，并为失约提供 health/fault/re
 
 `ak.self.seals.read.frontier.v1` 与 `ak.peer.seals.read.frontier.v1` 的 Realm current Seal discovery MUST 返回同一 closed
 `RealmSealFrontierView`：`seal_basis.leaves[]` 恰含该 Realm 的一个唯一确认 head。该 View 按 `kind, realm_id, seal_basis, live_digest_suite, governance_health, observation_coordinate` 顺序携带字段。
-`live_digest_suite` MUST 来自 exact `seal_basis` 的已验证 joined effective state，包含已经接受的 digest-suite transition；
+`live_digest_suite` MUST 来自 exact `seal_basis` 对应的已确认 effective state，包含已经接受的 digest-suite transition；
 不得从 Seal ID 的哈希前缀猜测。`observation_coordinate={service_id,sequence,observed_at}` 中的 current 仅表示该 service
-在该坐标的 durable view，不是 global wall-clock latest。Peer 响应的 Event `heads[]` 不能替代 Seal leaves。
+在该坐标的 durable view，不是 global wall-clock latest。Peer 响应的 Event `heads[]` 不能替代 Realm 的唯一 confirmed Seal head。
 自己的 authenticated Account Station 负责验证历史与 已确认安全状态与 roots；客户端核对 Realm、会话和本次请求绑定后
 直接使用该 View，不得为订阅、签署 basis 或取得 digest suite 拉取闭包、重放历史或重算 roots。
 Peer server 对 foreign governance 仍独立解析和验证；上述 self 信任不得扩展到任意 remote service 或代替 E2EE 检查。

@@ -898,11 +898,11 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - `next_epoch`：必须等于 `base_epoch + 1`。
 - `governance_binding`：见第 2.5 节。
 
-同一 `(effective_scope, derived_group_id, base_epoch)` 上多个 effective `ak.mls.commit` 候选如果无法由 Lattice 合并，会产生 `⊥`，而不是并存的多个有效 epoch。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 Seal view 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
+同一 `(effective_scope, derived_group_id, base_epoch)` 上的多个 `ak.mls.commit` 候选由 Realm 安全序列按 `command_results` 顺序执行；首个满足 revision、授权和 MLS transition 的命令可提交，后续基于旧 revision 的候选必须留下 durable rejection，不能并存为多个有效 epoch，也不产生可接受的 `⊥`。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 confirmed Seal state 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
 
 每个 group 的当前 epoch 由 effective `ak.mls.commit` Control Move 的 `next_epoch` 字段直接表达；projection seal 是 Lattice / snapshot 派生视图，不进入 wire history。
 
-当网络分区导致节点短期看见不同 Seal leaf 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 Seal view、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Realm policy 授权为普通 actor 或 service capability，不能替代 CBS/Lattice 验证。
+当网络分区导致节点尚未取得同一 confirmed Seal head、只看见不同未决 Commit 候选时，客户端 MUST 把依赖未知 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到确认序列、backfill 或 snapshot-assisted verification 补齐。服务端不得通过本地接收顺序指定 MLS epoch；发现两个互不可达 confirmed Seal 时必须停止该安全域。可选 designated committer / key service 只能由 Realm policy 授权为普通 actor 或 service capability，不能替代 CBS 验证。
 
 ### 5.5 Commit / Welcome 处理失败报告
 

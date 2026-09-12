@@ -850,7 +850,7 @@ MUST 支持：
 
 - 在接收 E2EE Event Envelope 时签发七字段 `ak.moderation.franking_proof` 事件，绑定 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce` 与 `signature`；不得携带派生 digest、sender claim、proof id 或 payload `kind`。
 - franking proof `signature` 由 service DID 在 `received_at` 有效的 verification method 签发，覆盖 `ak.franking_proof.signature.v1` 唯一 canonical transcript。
-- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺、验证历史 service/Realm binding，并取得 byte-identical durable proof Event 的首次 covering data-plane Seal observation。仅本地命中不能替代该证据。
+- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺，验证 proof Event 的 producer proof、authority refs 与历史 service/Realm binding。若声明期限内存在，还必须取得 byte-identical durable proof Event、确认安全 Seal 的确切 `existence_anchor` 与完整 frontier 祖先；普通 Event 不进入 Seal.delta，且普通发送与验证不得等待该可选证据。仅本地命中不能替代所声明的存在证明。
 - 接收 reporter 提交的 `ak.self.moderation.command.report.v1` 时，把 exact durable franking proof Event 与 report Event 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 
@@ -923,7 +923,7 @@ E2EE profile MUST 额外提供：
 
 - KeyPackage verification vector
 - KeyPackage claim single-use vector
-- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配 Seal view）
+- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配对应 confirmed Seal state）
 - minimal-metadata identity link vector
 - AAD visibility vector
 - MLS epoch transition vector

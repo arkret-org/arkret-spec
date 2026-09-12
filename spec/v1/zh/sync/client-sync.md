@@ -407,9 +407,9 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
-**协议正确性层面**，Arkret 的事件携带 `prev_refs` Event 因果边与 `refs[role=authorized_by]` 不可变 grant id；结合 `seal_ref` / `seal_basis` 固定授权求值 frontier，reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
+**协议正确性层面**，Arkret 的普通 Event 携带 `prev_refs` Event 因果边、不可变授权引用和签名 `auth_context.authority_refs`；安全命令使用 `seal_basis`，Signal 使用自己的 `seal_ref`。各分支分别固定授权求值坐标，reducer / projection 在 gap 期间不会把当前展示状态冒充历史授权或收敛证据。这部分不依赖额外 gap-boundary 信息。
 
-**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Strand / Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 seal view"渲染 window 起点事件会显示错误的 display name / Realm/Strand/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
+**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Strand / Space 元数据变更、或 E2EE epoch rotation 时，客户端若用当前普通数据投影和当前 confirmed MLS state 渲染 window 起点事件，会显示错误的 display name / Realm/Strand/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
 
 **(a) 返回 `state_at_window_start`** (推荐路径，projection-only)：
 

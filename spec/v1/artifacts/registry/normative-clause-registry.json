@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.15",
+  "version": "2026-09-12.16",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T13:50:00+08:00",
+  "generated_at": "2026-09-12T14:56:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -86,7 +86,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#7-hlc",
-      "section_digest": "sha256:c3dbb26412de1e2c5a662775cdc29b36698ff7e5f8eecf4884bae6f75911c927",
+      "section_digest": "sha256:214eb88e852b87971941ff3b925896d5d42361bcd81f7d4016f3daa7ebdb5084",
       "requirement": "HLC well-formedness, logical-counter overflow handling and the causal-first usage boundary: HLC breaks ties between causally incomparable items only and MUST NOT select a winner in shared protocol state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -266,7 +266,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:e422ddabcab2f7f96212aaae2f2b2eb8e1372ce40a65f835b258f7c435927f63",
+      "section_digest": "sha256:cfecd157e10cc1d6db4c0dc85803f481ef257f473937abffe8d1399945464a39",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -424,7 +424,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:94c0c4aee03bc8fe63b82da27f6d9c403e574fae4022a95fbd5578a2587d1c2b",
+      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
       "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -446,7 +446,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:94c0c4aee03bc8fe63b82da27f6d9c403e574fae4022a95fbd5578a2587d1c2b",
+      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
       "requirement": "An accepted ordinary-Realm or Agent closed-anchor Control Move, its Control Proposal Ack and pending index are committed atomically; the covering Seal atomically applies lineage and cell effects and marks every covered pending digest sealed, rolling back if any digest is absent. The separately specified human self-principal PCR authority-authored path omits the Ack but not the pending index or covering-Seal obligation.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -528,7 +528,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:94c0c4aee03bc8fe63b82da27f6d9c403e574fae4022a95fbd5578a2587d1c2b",
+      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
       "requirement": "Historical deadline faults remain auditable but are not embedded in current frontier health. An incomplete bounded pending sample explicitly carries pending_proposals_complete=false and cannot prove absence of a safety gate; it does not invalidate an independently verified Seal basis.",
       "testability_grade": "audit",
       "test_plan": "Exercise 129 and 1000 late accepted obligations, verify current health and complete paginated retained history; exercise 129 pending obligations and validate explicit incompleteness without deletion. Verify target revoke gates independently of the diagnostic sample."
@@ -598,7 +598,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:94c0c4aee03bc8fe63b82da27f6d9c403e574fae4022a95fbd5578a2587d1c2b",
+      "section_digest": "sha256:54acb33cd70b196a3b41bd8ad27d010c3710b2eb4bef1d81518dcb67bfe415cd",
       "requirement": "A Control Proposal Ack intake request explicitly selects online or delayed publication. Online forbids an AuthorizationLease and re-evaluates current accepted authority; delayed requires an independently valid Event-bound lease. A malformed, invalid or expired delayed request never downgrades to online, and neither branch turns the Ack into a lease or a Seal.",
       "testability_grade": "audit",
       "test_plan": "Validate schema and shared SDK positive cases for online without a lease and delayed with a matching lease; reject online with a lease, delayed without one, invalid or expired leases, mode replacement, Event substitution and cross-actor or cross-scope lease reuse. Verify exact retry preserves the first durable Ack and deadline."

@@ -1454,7 +1454,7 @@
       "vector_id": "ak.vector.lattice.concurrent_heads_no_winner.v1",
       "steps": [
         {
-          "name": "input_order_independent_winner",
+          "name": "input_order_independent_heads",
           "input": {
             "siblings": [
               "ak:event:AUlycOVeLSbMf8PaE6qF8aMP-psSJxmcjHUKaRk30Aph",
@@ -1465,7 +1465,7 @@
           "expected": {
             "outcome": "accepted",
             "invariants": [
-              "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered event set"
+              "all conformant reducers retain the same two Event-identified heads and coverage regardless of input order; no implicit winner or Bottom is produced"
             ]
           },
           "runner": {
@@ -1479,9 +1479,9 @@
                 "same_logical_time": true
               }
             },
-            "operation": "security_closure.evaluate",
+            "operation": "causal_register.join",
             "transcript": {
-              "step": "input_order_independent_winner",
+              "step": "input_order_independent_heads",
               "canonicalization": "fixture_json_v1",
               "input": {
                 "siblings": [
@@ -1494,7 +1494,7 @@
             "expected_state_transition": {
               "outcome": "accepted",
               "invariants": [
-                "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered event set"
+                "all conformant reducers retain the same two Event-identified heads and coverage regardless of input order; no implicit winner or Bottom is produced"
               ]
             },
             "expected_external_response": {

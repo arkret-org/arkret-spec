@@ -253,7 +253,7 @@ frontier 互换。共享 `admission_evidence` 只含 `agent_authority_state_evid
 `controller_account_gate_attestation` 及无自引用的 `admission_evidence_digest`。raw public key不是秘密；Agent/controller
 private key、MLS private state、服务本地 `account_id` 与 raw account cell 永不进入 portable evidence。
 
-`agent_authority_state_evidence.state` 在 Agent Principal Control Realm 的一个 exact signed Seal view 中同时承载完整
+`agent_authority_state_evidence.state` 在 Agent Principal Control Realm 的一个 exact confirmed Seal state 中同时承载完整
 pcr_genesis_event、key_authorization_event、key authorization、key state witness 和 Agent lifecycle witness。`state_digest` 只对 state
 做 RFC 8785/JCS SHA-256；`lease` 由该 PCR 的权威 service DID 在独立 domain
 `ak.agent_authority_state_evidence.v1` 下签名并逐字绑定 authority、verification method、state digest 与时窗。

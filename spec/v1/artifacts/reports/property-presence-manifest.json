@@ -12705,7 +12705,7 @@
         "/$defs/franking_proof/properties/signature": "required",
         "/$defs/franking_proof/properties/verification_method": "required",
         "/$defs/franking_seal_observation_outcome/properties/ancestry_events": "required",
-        "/$defs/franking_seal_observation_outcome/properties/covering_seal": "required",
+        "/$defs/franking_seal_observation_outcome/properties/anchor_seal": "required",
         "/$defs/franking_seal_observation_outcome/properties/existence_anchor": "required",
         "/$defs/franking_seal_observation_outcome/properties/proof_event": "required",
         "/$defs/franking_seal_observation_outcome/properties/service_signer_evidence": "required",

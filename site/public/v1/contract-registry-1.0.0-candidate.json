@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.16",
+  "version": "2026-09-12.17",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T13:50:00+08:00",
+  "generated_at": "2026-09-12T14:56:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -16381,7 +16381,7 @@
         "http": "POST /_arkret/self/moderation/franking/seal-observation",
         "grpc": "SelfModeration/FrankingSealObservation",
         "mq": "self.moderation.read.franking_seal_observation",
-        "notes": "Optional authenticated existence anchor for the exact franking proof Event, its target and service key validity interval. Return the exact Seal anchor and necessary original ancestry; ordinary chat never waits for this evidence.",
+        "notes": "Optional authenticated time-existence evidence for the exact ordinary franking-proof Event, its target and service key validity interval. Return one confirmed security Seal containing the exact existence_anchor plus the necessary ordinary Event ancestry. The proof Event never enters Seal.delta or a data observation root, and ordinary chat never waits for this evidence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
@@ -16862,8 +16862,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-12.14",
-    "generated_at": "2026-09-12T13:50:00+08:00",
+    "version": "2026-09-12.15",
+    "generated_at": "2026-09-12T14:56:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

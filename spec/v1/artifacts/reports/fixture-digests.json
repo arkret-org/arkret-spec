@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
-      "sha256": "1fba646791812069edb6651b1b488c02f7c986ffaee544aac637afdb53438fc6"
+      "sha256": "6e66a89a3760e4a179e0bc0b9067977ddcbd83968914815db08b06bbae262de0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -178,7 +178,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "85f53528a81949922105bd6566cc561b14aeeaabebdeba041ce457509ecf07b5"
+      "sha256": "43e14a318c7e0760041784a65821561d1d7a4a18e338b1ac0cbe4f8f4c4ed81b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
@@ -254,7 +254,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "4a94437295fe3610f7617c320eacbdc9e34f4f40e615f3d4035e1cc879537d3a"
+      "sha256": "95393e1468812a5815aa330dbb08f9737a73d27c3f2430c1ab7cbd0c80235630"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
@@ -370,7 +370,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "fdcb4ab34f934937bf8630ce7758340981ddde1370a9b2e6a94becfd05a73618"
+      "sha256": "6cceea16745cc29655eec2363550c8ca9353c7ea2b00c99f8c34c3ea382d8450"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

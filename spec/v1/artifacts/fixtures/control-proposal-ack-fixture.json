@@ -12,9 +12,17 @@
   ],
   "cases": [
     {
-      "name": "threshold_ack_set_uses_distinct_current_members",
-      "profile": "threshold",
-      "threshold": 2,
+      "name": "quorum_ack_set_uses_distinct_current_members",
+      "notary": {
+        "kind": "quorum",
+        "fault_tolerance": 1,
+        "signer_verification_methods": [
+          "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
+          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
+          "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary",
+          "did:webvh:z6mkfixtureauthoritydexample:authority-d.example#notary"
+        ]
+      },
       "authority_acks": [
         {
           "verification_method": "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
@@ -27,6 +35,12 @@
           "received_at": "2026-07-29T00:00:02.000Z",
           "decision_due_at": "2026-07-29T00:00:32.000Z",
           "absolute_due_at": "2026-07-29T00:01:32.000Z"
+        },
+        {
+          "verification_method": "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary",
+          "received_at": "2026-07-29T00:00:01.000Z",
+          "decision_due_at": "2026-07-29T00:00:31.000Z",
+          "absolute_due_at": "2026-07-29T00:01:31.000Z"
         }
       ],
       "expected": {
@@ -36,16 +50,27 @@
         "absolute_due_at": "2026-07-29T00:01:30.000Z",
         "member_order": [
           "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary"
+          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
+          "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary"
         ]
       }
     },
     {
       "name": "duplicate_member_does_not_count_twice",
-      "threshold": 2,
-      "member_verification_methods": [
+      "notary": {
+        "kind": "quorum",
+        "fault_tolerance": 1,
+        "signer_verification_methods": [
+          "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
+          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
+          "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary",
+          "did:webvh:z6mkfixtureauthoritydexample:authority-d.example#notary"
+        ]
+      },
+      "authority_ack_verification_methods": [
         "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-        "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary"
+        "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
+        "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary"
       ],
       "expected": {
         "decision": "reject",

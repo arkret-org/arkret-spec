@@ -414,7 +414,7 @@
         },
         "accepted_seal_id": {
           "$ref": "./seal.schema.json#/$defs/seal_ref",
-          "description": "One currently accepted non-quarantined direct covering Seal of the ak.invite.third_party Event; when several cover it, the canonical bytewise-smallest Seal id. It is an acceptance observation, not an authoring seal_basis and not the complete leaf antichain."
+          "description": "The unique confirmed non-quarantined Seal whose command_results contains the ak.invite.third_party Event. An Event belongs to at most one command result in the confirmed history, so multiple direct covering Seals are invalid. It is an acceptance observation, not an authoring seal_basis or the current confirmed head."
         },
         "observed_at": {
           "$ref": "#/$defs/timestamp",

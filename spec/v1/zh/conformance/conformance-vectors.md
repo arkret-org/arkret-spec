@@ -872,7 +872,7 @@ ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1
 
 ### 2.3 Vector: 普通数据不需要 Seal 观察根
 
-`ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1`：普通消息只经过本地独立验证和因果复制。向 Seal 注入 data_view_root、data_event_set_root 或 completeness_root 必须 schema 拒绝；普通消息不因被存储、复制或快照覆盖而变为安全命令。
+`ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1`：普通消息只经过本地独立验证和因果复制。Seal schema 是 closed object，只接受登记的安全命令、结果、状态承诺与证据字段；任何企图注入普通数据观察根或完整性根的未登记字段都必须拒绝。普通消息不因被存储、复制或快照覆盖而变为安全命令。
 
 ### 2.4 Vector: Control Move 必须有 Basis 且由 Seal 覆盖
 
@@ -904,7 +904,7 @@ ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1
 
 - 同一 ordered submit batch 中包含 Control Move `M1` 与 `M2`。
 - `M2` 的 precondition 只有在读取 `M1` 的 projected write 后才成立。
-- `M2.seal_basis` 指向 batch 前的 Seal view。
+- `M2.seal_basis` 指向 batch 前的 confirmed Seal state。
 
 期望：
 
@@ -3674,14 +3674,14 @@ Expected：
 
 Steps：
 
-1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ak.self.seals.read.frontier.v1` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
-2. 攻击者重放该设备在 S 之后（以 S 或其后继 Seal view 判定）签发的 session grant、KeyPackage publish 或 to-device write。
+1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（本 Realm 单 head，取自 `ak.self.seals.read.frontier.v1`），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
+2. 攻击者重放该设备在 S 之后（以 S 或其后继 confirmed Seal state 判定）签发的 session grant、KeyPackage publish 或 to-device write。
 3. 某 E2EE Realm 提交 MLS Remove，但其 `governance_binding.security_frontier_digest` 不是从包含该 device revoke/leaf remove 的 accepted state 重算所得。
 4. 客户端在 `ak.self.seals.read.frontier.v1` 来源不可用（错误、缺完整 `seal_basis.leaves[]` 或任一 leaf 无法验证）时尝试提交 `ak.device.revoke`。
 
 Expected：
 
-- 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代以 S 或其后继 Seal view 的判定。
+- 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代以 S 或其后继 confirmed Seal state 的判定。
 - 第 3 步 Commit MUST reject，且 current winning MLS group state 不得推进；后续 E2EE DataEvent 继续被 security frontier gate 阻塞。
 - 第 4 步客户端 MUST fail closed，不得伪造 `seal_basis`；缺失或不一致 basis 的 Control Move 按 `ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1` 拒收。
 
@@ -4309,7 +4309,7 @@ Steps（均以非 controller 且非其 owned Agent 的 caller 视角）:
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Strand 的 notification fanout。
-5. 读取目标 Realm default seal leaf 明文 metadata。
+5. 读取目标 Realm confirmed Seal 的明文安全 metadata。
 
 Expected:
 
@@ -4317,7 +4317,7 @@ Expected:
 - 第 2 步不存在任何协议 Relation 可用于枚举 Sidecar 或 source-context mapping。
 - 第 3 步对 `sidecar_id` 与 controller 映射均 zero hits。
 - 第 4 步 Sidecar 内 Event 不触发 source Strand 参与者的 notification。
-- 第 5 步 Sidecar-scoped Event 不出现在 Realm default seal leaf 明文中；只能作为 opaque commitment。
+- 第 5 步 Sidecar-scoped Event 不出现在 Realm confirmed Seal 的明文安全 metadata 中；只能作为 opaque commitment。
 
 ### 11.10 Vector: Ownership/Effective Access + Revocation 闭环
 

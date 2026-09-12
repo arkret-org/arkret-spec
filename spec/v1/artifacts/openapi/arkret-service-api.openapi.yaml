@@ -8121,11 +8121,11 @@ paths:
         schema:
           type: string
           const: ak.self.moderation.read.franking_seal_observation.v1
-      description: Returns the exact durable franking-proof Event, its target Event, the first signed Seal covering
-        the proof Event, an RFC 6962 inclusion path against data_event_set_root, and historical receiving-service
-        signer evidence. Authorization and all absent, invisible, Realm-mismatched, or binding-mismatched selectors
-        fail through the same not_found anti-oracle result. This data-plane observation never substitutes a control-plane
-        delta proof.
+      description: Returns the exact durable ordinary franking-proof Event, its target Event, one confirmed security
+        Seal containing the exact existence_anchor, the ordinary Event ancestry needed by that anchor, and historical
+        receiving-service signer evidence. The proof Event never enters Seal.delta or a data observation root. Authorization
+        and all absent, invisible, Realm-mismatched, or binding-mismatched selectors fail through the same not_found
+        anti-oracle result. Ordinary message send, acceptance and replication never wait for this optional security evidence.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -8137,7 +8137,7 @@ paths:
               $ref: ../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request
       responses:
         '200':
-          description: Independently verifiable franking proof and data-plane Seal observation
+          description: Independently verifiable franking proof and optional bounded-time existence anchor
           content:
             application/json:
               schema:

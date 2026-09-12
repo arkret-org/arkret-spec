@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the near-current antichain MLS governance-frontier fixture."""
+"""Generate the near-current unique-head MLS governance-frontier fixture."""
 
 from __future__ import annotations
 
@@ -200,8 +200,8 @@ def make_case(
         "outcome": outcome,
         "expected_page_digest": page_digest,
         "expected_relation": (
-            "equal_antichain" if base_refs == target_refs else
-            "strict_descendant_antichain"
+            "equal_basis" if base_refs == target_refs else
+            "strict_descendant_basis"
         ),
     }
 
@@ -232,7 +232,7 @@ def build() -> dict[str, Any]:
     return {
         "profile": "ak.profile.mls_governance_binding.full.v1",
         "version": "2026-08-21",
-        "suite": "mls_governance_frontier_antichain",
+        "suite": "mls_governance_frontier_basis",
         "generated_by": "tools/generate_mls_governance_proof_fixture.py",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.mls.governance_proof_bundle.v1"},
         "covers_vectors": [
@@ -260,7 +260,7 @@ def build() -> dict[str, Any]:
             },
             {
                 "name": "concurrent_unreachable_basis",
-                "mutation": "replace proof_target_basis with an antichain having no base ancestor",
+                "mutation": "replace proof_target_basis with a head that has no base ancestor",
                 "expected": "mls_governance_anchor_unreachable",
                 "response_count": 0,
             },
@@ -315,7 +315,7 @@ def build() -> dict[str, Any]:
         ],
         "runner_rules": [
             "Validate every positive query and outcome against the read_request/read_outcome schema.",
-            "Treat proof_base_basis and proof_target_basis as canonical complete Seal antichains.",
+            "Treat proof_base_basis and proof_target_basis as canonical complete Seal bases with exactly one confirmed head per represented Realm.",
             "base==target is valid; a strict descendant is valid only with the complete unique predecessor chain.",
             "The stateless operation never transports bulk epoch activation evidence.",
         ],

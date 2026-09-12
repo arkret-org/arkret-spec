@@ -249,7 +249,7 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 
 ## 5. Cell Join 与 Effective Consent
 
-Consent cell 是 sequenced_state 安全状态，值为 dot-based observed-remove 集合（详见 [`event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 Seal view 下 确认顺序逐项应用集合增删所得状态派生：
+Consent cell 是 sequenced_state 安全状态，值为 dot-based observed-remove 集合（详见 [`event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 confirmed Seal state 中按确认顺序逐项应用集合增删所得状态派生：
 
 - `active_dots(cell) = { (entry.tag_id, entry.value) | entry ∈ cell.state.value }`
 - `effective_grants(cell) = group active_dots(cell) by value.intent` —— projection 把同 intent 的多 active dot 折叠成一条 effective consent。

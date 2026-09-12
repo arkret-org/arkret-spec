@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.16",
+  "version": "2026-09-12.17",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T13:50:00+08:00",
+  "generated_at": "2026-09-12T14:56:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9136,7 +9136,7 @@
         "required": [
           "proof_event",
           "target_event",
-          "covering_seal",
+          "anchor_seal",
           "service_signer_evidence",
           "existence_anchor",
           "ancestry_events"
@@ -9144,7 +9144,7 @@
         "properties": [
           "proof_event",
           "target_event",
-          "covering_seal",
+          "anchor_seal",
           "service_signer_evidence",
           "existence_anchor",
           "ancestry_events"

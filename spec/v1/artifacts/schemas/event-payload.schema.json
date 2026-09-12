@@ -11785,7 +11785,7 @@
         "token_endpoint": {
           "type": "string",
           "pattern": "^https://[^\\s]+$",
-          "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact cell value against the current accepted Seal view before anchoring it."
+          "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact cell value against the current confirmed Seal state before anchoring it."
         },
         "connect_url": {
           "type": "string",

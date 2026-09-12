@@ -191,7 +191,7 @@ history_secret[N] = MLS-Exporter(
 普通客户端按 [server-trusted-results](../sync/server-trusted-results.md) 消费自己 Station 的治理结果。
 `ak.self.seals.read.mls_governance_proof.v1` 返回绑定 exact request/local leaves 的 `MlsGovernanceFrontierOutcome`，
 不含 base checkpoint、Merkle range witnesses 或需要客户端回放的闭包。已知历史 MLS artifact 复用该文 §5.2 的 exact accepted-artifact 结果。
-需要独立验证远端输入的服务器仍使用 peer proof/标准 Seal admission；其 range inclusion、nonmembership、边界与完整 antichain 检查不转交普通客户端。
+需要独立验证远端输入的服务器仍使用 peer proof/标准 Seal admission；其 range inclusion、nonmembership、边界与每 Realm 唯一 confirmed head 检查不转交普通客户端。
 
 批量/旧 epoch 历史不得使用独立 stateless activation-range page、proof package 或第二套 witness wire。Request receipt 只冻结 closed
 `HistoryGovernanceTraversalIntent`：profile、scope/group、服务器选择、独立验证并固定到 retained intent 的完整 `trusted_history_base_basis` 与
@@ -199,7 +199,7 @@ history_secret[N] = MLS-Exporter(
 incarnation 或 RHRK tuple、registry digests 与 retention。`traversal_intent_digest = SHA-256(UTF8("ak.history-governance-traversal-intent-v1")
 ||0x00||JCS(traversal_intent))`。服务不得替换 caller 的 base/current、缩成单一 head 或在 retry 中换 target。
 
-v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的从合法 Realm 起点认证的安全依据（包括 quorum 结论路径）；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器必须认证 pre-base provenance/joined-state；later basis 可按 cbs-profiles §9 的配置与 ancestry/状态结论认证，不能使用自报 checkpoint。
+v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的从合法 Realm 起点认证的安全依据（包括 quorum 结论路径）；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器必须认证 pre-base provenance 与 confirmed state；later basis 可按 cbs-profiles §9 的配置与 ancestry/状态结论认证，不能使用自报 checkpoint。
 非投票 admission/联邦/恢复消费者按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证必要 epoch/transition、suite、Realm/Circle incarnation、join floor、T0 policy ceiling 与 current ratchet，并用 ancestry 结论验证冻结 bases 关系；不承担完整 cut 重放。以下完整 cut 遍历、root/coverage 重算只适用于实际投票/执行和选择独立重放的 auditor，不适用于普通客户端。
 从每个 target leaf 反向沿 signed `predecessor_ref` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的唯一 direct predecessor 必须仍在
 区间或恰为 base leaf，每个 base leaf 至少被一条 target 路径消费，且 target 必须支配 trusted current 的每个 leaf。隐藏 predecessor、无法从

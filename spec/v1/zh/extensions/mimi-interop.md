@@ -43,7 +43,7 @@ updated: 2026-07-02
 | User / client | Arkret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Arkret Strand discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
-MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + current winning group-state projection）。MIMI room state 是对这些状态的互操作投影。
+MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 producer-signed ordinary Event、Control Move、唯一确认的 Seal 安全序列、按已登记状态模型投影的 cell state、capability refs 与 MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + current confirmed group-state projection）。MIMI room state 是对这些状态的互操作投影。
 
 ## 3. Provider Discovery
 
@@ -450,7 +450,7 @@ facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content
 
 ## 9. Policy Mapping
 
-Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
+Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `cell_family`、`execution`、`state_model`、`value_shape` 与 `bottom`；安全状态只消费唯一确认的 Seal 顺序。
 
 ### 9.1 Cell Family 互译
 

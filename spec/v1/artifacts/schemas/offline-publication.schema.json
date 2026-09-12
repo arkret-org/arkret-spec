@@ -27,7 +27,7 @@
         },
         "basis_ref": {
           "$ref": "#/$defs/lease_basis_ref",
-          "description": "Authorization basis. Ordinary publication uses an accepted Seal or signed multi-leaf seal_basis. Only a caller-validated registered genesis unit may use the exact anchor_unit digest commitment."
+          "description": "Frozen authorization basis used only when the caller explicitly requests an authorization lease for delayed/offline publication. It names one accepted Seal, or a signed multi-Realm seal_basis containing exactly one confirmed head per represented Realm. Only a caller-validated registered genesis unit may use the exact anchor_unit digest commitment. Ordinary producer-proof publication without a lease does not consume this field or wait for a Seal."
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -92,7 +92,7 @@
           "$ref": "#/$defs/anchor_unit_basis_ref"
         }
       ],
-      "description": "Accepted control-state basis shared by authorization leases and other basis-committed records. Ordinary publication uses an accepted Seal or signed multi-leaf seal_basis; only a caller-validated registered genesis unit may use the exact anchor_unit digest commitment."
+      "description": "Accepted control-state basis for an explicitly requested authorization lease or another basis-committed record. A multi-Realm seal_basis contains exactly one confirmed head per represented Realm. Only a caller-validated registered genesis unit may use the exact anchor_unit digest commitment. Ordinary producer-proof publication without a lease does not require this basis."
     },
     "anchor_unit_basis_ref": {
       "type": "object",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.14",
+  "version": "2026-09-12.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T13:50:00+08:00",
+  "generated_at": "2026-09-12T14:56:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4114,7 +4114,7 @@
       "http": "POST /_arkret/self/moderation/franking/seal-observation",
       "grpc": "SelfModeration/FrankingSealObservation",
       "mq": "self.moderation.read.franking_seal_observation",
-      "notes": "Optional authenticated existence anchor for the exact franking proof Event, its target and service key validity interval. Return the exact Seal anchor and necessary original ancestry; ordinary chat never waits for this evidence.",
+      "notes": "Optional authenticated time-existence evidence for the exact ordinary franking-proof Event, its target and service key validity interval. Return one confirmed security Seal containing the exact existence_anchor plus the necessary ordinary Event ancestry. The proof Event never enters Seal.delta or a data observation root, and ordinary chat never waits for this evidence.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",

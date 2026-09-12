@@ -1,9 +1,9 @@
 {
-  "version": "2026-09-12.1",
-  "generated_at": "2026-09-12T13:00:00+08:00",
+  "version": "2026-09-12.2",
+  "generated_at": "2026-09-12T14:56:00+08:00",
   "source_of_truth": true,
   "profile_id": "ak.security_frontier.v1",
-  "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
+  "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from the unique confirmed Seal sequence and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
   "canonicalization": "json_jcs",
   "digest_suite": "sha256",
   "artifact_digest_rule": "frontier_registry_digest = sha256(RFC 8785 JCS bytes of this exact complete registry artifact). The digest is carried by each proof projection and compared against the verifier's locally pinned artifact bytes.",

@@ -158,7 +158,7 @@ Profile 对 non-event action 的显式授权规则必须登记在
 Realm effective owner（authority-root cell current controller 或 active co-owner grant）；
 该扩展只替换 issuer 来源，profile 的 registration / constraint / evidence gate 一条不减。
 Reducer 只有在同一
-`seal_basis` joined view 下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
+`seal_basis` 对应的已确认状态下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
 effective owner）和 child resource，
 且被引用 registration、subject、constraint、epoch、scope、requested action 全部满足规则时，
 才可把该规则视为 child action 的 issuer 上界；任一 registration 缺失、profile 未声明、
@@ -179,11 +179,11 @@ Capability grant wire body MUST NOT 携带 registry version、timestamp 或 dige
 **确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
 - issuer 自身有效持有的 effective capability 必须从签名 seal_basis 中各 Realm 的确认状态验证，并将可撤销的实际安全读取加入事务 revision/锁集合；执行时重新检查，不能靠 Seal 年龄推断当前资格。
-- 若 issuer 的上界 ancestor 能力在该 `seal_basis` joined view 下**被撤销 / superseded / expired / tombstoned**（即 joined view 下 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
-- 若 issuer 的上界 ancestor 能力在该 joined view 下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
+- 若 issuer 的上界 ancestor 能力在该 `seal_basis` 对应的已确认状态下**被撤销 / superseded / expired / tombstoned**（即 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
+- 若 issuer 的上界 ancestor 能力在该已确认状态下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
 - 配置、确认前缀或确切授权依赖不能验证时 fail closed/pending；同 Realm 竞争 Seal 不产生可选权限 heads。
 
-该规则使首发 grant 的上界校验有"先按 seal_basis joined view 确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed"的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
+该规则使首发 grant 的上界校验有“先按 seal_basis 对应的已确认状态确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed”的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
 
 ### 3.3 注册的非 grant authority source（normative）
 
@@ -763,10 +763,10 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id`；regis
 
 ### 12.1 Grant cell 的确定性收敛（normative）
 
-capability 授权状态投影到 cell family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。grant create 的 `cell_subject` 从 `envelope.event_id` 重类型派生；revoke / relinquish 从 `payload.grant_id` 引用同一 cell（每个 `grant_id` 一个 cell），`lattice = or_set`。v1 只有这一个 capability cell family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。收敛规则：
+capability 授权状态投影到 cell family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。该 family 明示 `execution=security`、`state_model=sequenced_state`、`value_shape=set`；grant create 的 `cell_subject` 从 `envelope.event_id` 重类型派生，revoke / relinquish 从 `payload.grant_id` 引用同一 cell（每个 `grant_id` 一个 cell）。v1 只有这一个 capability cell family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。其集合操作由唯一确认的 Seal 顺序执行：
 
-- **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照。
-- **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。
+- **grant** = 对该 grant cell 的 tagged set **add**：add identity = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（identity 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照；应用位置仍由 `sequenced_state` 的确切 revision 决定。
+- **revoke** = 对**同一** grant cell 的 set **remove**，引用该 grant 的 add identity（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 Control Move 的唯一确认前态中把目标 grant 的 add identity 解析为合法 add 后再 supersede。已移除的 add **MUST NOT** 因同 `grant_id` 的后续重放而复活；竞争命令由 Seal 顺序逐项给出 accepted/rejected 结果，不产生安全域 Bottom。
 - **有效性** = 唯一确认序列中尚未被 observed-remove 的 grant add。Cell 模型是 sequenced_state，值为完整活跃 tagged set；revoke 按确切 revision 执行移除。集合元素并存不代表安全分叉，不能通过无序权限 join 或 Bottom 替代确认。
 - **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
 

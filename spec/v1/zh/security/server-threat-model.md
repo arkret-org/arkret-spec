@@ -63,7 +63,7 @@ sidebar:
     污染 DID resolver、registry、witness 可信链，或 `did:web` / `did:webvh` 的域绑定与 `did.jsonl` 托管，错误承认身份控制权。**默认 method 是 `did:webvh`**，其 hosting 方 split-view 与历史截断只被部分缓解，见 §2.1a。
 
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
-    利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence、Seal DAG / coverage 分叉制造 Lattice bottom 或错误 CBS query basis。
+    利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence或竞争确认凭证制造普通状态错误、错误 CBS query basis 或安全域停摆。两个互不可达 confirmed Seal 是共识安全故障，不能作为可 join 的 Lattice bottom。
 
 15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。

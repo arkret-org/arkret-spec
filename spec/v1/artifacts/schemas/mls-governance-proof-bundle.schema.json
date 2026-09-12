@@ -586,7 +586,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "One independently signed target-branch projection. It never claims that a joined multi-leaf state root was signed by one Seal."
+      "description": "One independently signed target-branch projection. It never claims that a composite multi-Realm state root was signed by one Seal."
     },
     "frontier_projection": {
       "oneOf": [

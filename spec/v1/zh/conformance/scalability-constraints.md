@@ -269,7 +269,7 @@ operation 已定义的有界分页/typed unavailable，不得截断完整事实�
 | 单个 Control Move 的 `preconditions[]` 项数 | 256 | 这是 wire schema 的 `maxItems`；超过时 MUST reject。 |
 | 单个 Event 的 reducer-projected cell write 数 | 128 | receiver 从 registry 重算；与 Event Envelope `cell_writes.maxItems=128` 使用同一上限。任何 projection（包括 `ak.patch.apply` 的 cell 展开）超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction；registry 不得给某 kind 登记更高局部上限。 |
 | 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
-| Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
+| 单 Realm 当前 confirmed Seal head 数 | 1 | 出现第二个同高度或互不可达 confirmed head 是安全故障；必须停止受影响安全域，不能通过 compaction、排序或本地选择恢复。 |
 | 单个 `CbsProofBundle` canonical bytes | 8 MiB | 超过时 MUST `limit_exceeded`；不得截断或产生部分 accepted state。 |
 | 单个 `CbsProofBundle` 对象数 | 256 Seals；1,024 Control Moves；两类 proof 合计 2,048 | 与 `cbs-proof-bundle.schema.json` 及 `cbs-profiles.md` §5 同值。 |
 | 单条 target→genesis dependency path | 4,096 | 超过时 MUST 使用合法 compaction/state-root-assisted recovery，不得无界递归。 |
@@ -295,19 +295,19 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 | --- | ---: | --- |
 | 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉精确 missing refs；响应 MAY 携带全部可验证的有界超集，不要求字节级最小闭包。 |
 | 单 Realm 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
-| snapshot-assisted recovery 触发 | Seal leaf 过多、join 预算耗尽或本地预算耗尽 | 必须验证 Seal signer authority、frontier、state_root 和 chunk digest。 |
+| snapshot-assisted recovery 触发 | Seal predecessor 链超过直接回放预算、普通状态 join 预算耗尽或本地预算耗尽 | 必须验证 Seal signer authority、唯一 confirmed head、state_root 和 chunk digest。 |
 | 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `seal_incomplete`，并继续后台恢复。 |
 | retry backoff | 指数退避，有上限 | 响应 SHOULD 带 `retry_after_ms`、`next_retry_at`、缺失 ref 和可用 source。 |
 
 渐进恢复阶段：
 
-1. **Seal probe**：先查询 Realm Seal leaves、可用 snapshot manifest 和缺失 ref 的 source。
+1. **Seal probe**：先查询 Realm 唯一 confirmed Seal head、可用 snapshot manifest 和缺失 ref 的 source。
 2. **Targeted dependency fetch**：按精确 missing DataEvent、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
 3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 DataEvent 与 Control Move。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBS query basis 的只读 projection，并显式标记 query basis incomplete。
-5. **Write revalidation**：任何新 Control Move 必须在提交前以最新 Seal view 重新验证 preconditions；DataEvent 必须补齐其已签授权依赖并应用已知关闭，不要求最新 Seal 或定期刷新；不得继承 partial view 的乐观允许结果。
+5. **Write revalidation**：任何新 Control Move 必须在提交前以当前 confirmed Seal state 重新验证 preconditions；DataEvent 必须补齐其已签授权依赖并应用已知关闭，不要求最新 Seal 或定期刷新；不得继承 partial view 的乐观允许结果。
 
-长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Seal DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Event / Seal。
+长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Seal predecessor-chain 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Event / Seal。
 
 ## 5. Space / Relation / View 上限
 
@@ -348,7 +348,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单 principal active device 数 | 100 | 超过时 Station device/key surface MAY require admin approval or device cleanup。 |
-| 单个 Seal 的 `predecessor_ref` | 1 | genesis 必须为 null；其它 Seal 必须恰有一个同 Realm 已确认前驱。安全序列没有可截断、合并或挑选赢家的 DAG frontier。 |
+| 单个 Seal 的 `predecessor_ref` | 1 | genesis 必须为 null；其它 Seal 必须恰有一个同 Realm 已确认前驱。安全序列没有可截断、合并或挑选赢家的多前驱集合。 |
 | 单个 compaction Seal 的 `covered_event_digests[]` | 1,048,576 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得接受不完整覆盖；producer 必须按既有 Seal predecessor/coverage 规则重规划为多个有界 successor，不得生成无界单对象或发明历史完整性 sidecar。 |
 | MLS Governance Proof exact response canonical bytes | 1 MiB（1,048,576 bytes） | 唯一近端 `group_security_frontier` profile 只携 small closed sparse witness 与 content-addressed Event/Seal descriptors；完整对象经 resolve 取得。每个 query 显式绑定完整 canonical `proof_base_basis`/`proof_target_basis` Seal 反链、`frontier_purpose` 及其 closed 字段和 `byte_limit`。`base == target` 合法；并发/不可达返回 `mls_governance_anchor_unreachable`，必需材料缺失返回 `frontier_unavailable`。完整响应超界返回 `mls_governance_proof_bounds_exceeded`；服务不分页、不截断 witness、不返回 cursor，调用方只能提供更接近且已独立验证的 base 或 fail closed。 |
 | History response manifest / source chunk record | 256 KiB / 2 MiB | manifest descriptor 是 `chunk_response_id,chunk_index,covered_epoch_range` 的唯一真源，其 range 必须被 receipt-bound direct traversal 的完整 replay 与 current history-access/join-floor admission 逐字授权；不存在独立 manifest-level evidence selector、selector digest 或 range key。sealed source chunk 只含 manifest/admission digest、index 与 HPKE bytes，不重复 range。二者按最终 canonical source record bytes 分别计限。 |
@@ -362,7 +362,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 分块流式 AEAD 附件 `segment_bytes` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）。 |
 | 分块流式 AEAD 附件派生段数上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 互操作上限为 2^20；接收方 MUST 从 descriptor 的 `size_bytes` 与 `segment_bytes` 计算 `N = max(1, ceil(size_bytes / segment_bytes))`，超过时拒绝（`segment_bounds_invalid`）。wire 不携带段数镜像。边界负例见 [conformance-vectors.md](./conformance-vectors.md) §16.5（`ak.vector.blob.stream_aead_bounds_rejected.v1`）。 |
 
-声明该 operation 的 Service Describe MUST 暴露固定 v1 exact-response bound。协议不创建 proof result-set、cursor、continuation 或 `ak:snapshot`。相同 canonical query 与相同 accepted Event/Seal/witness 材料必须生成相同 canonical 响应与 `page_digest`。近端 stateless 响应没有 history-retention 承诺；材料缺失返回 `frontier_unavailable`，不得换 base/target 或缩减 antichain 重建另一响应。批量/旧历史由 request receipt 冻结 direct traversal intent 与 retention，标准 Event/Seal/dependency resolve 只放行该 target→base 闭包。
+声明该 operation 的 Service Describe MUST 暴露固定 v1 exact-response bound。协议不创建 proof result-set、cursor、continuation 或 `ak:snapshot`。相同 canonical query 与相同 accepted Event/Seal/witness 材料必须生成相同 canonical 响应与 `page_digest`。近端 stateless 响应没有 history-retention 承诺；材料缺失返回 `frontier_unavailable`，不得换 base/target 或删除 basis 中任何 Realm 的唯一 confirmed head 后重建另一响应。批量/旧历史由 request receipt 冻结 direct traversal intent 与 retention，标准 Event/Seal/dependency resolve 只放行该 target→base 闭包。
 
 上述数值边界、分页连续性与 `limit-1 / limit / limit+1` 生成矩阵由 `ak.vector.scalability.mls_governance_proof_bounds.v1` 固化；runner 归属与逐项期望见 [conformance-vectors.md](./conformance-vectors.md) §1.12.3。
 

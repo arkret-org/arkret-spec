@@ -26,7 +26,7 @@
     "cases": [
       {
         "vector_id": "ak.vector.lattice.causal_register_join.v1",
-        "state_model": "sequenced_state",
+        "state_model": "causal_register",
         "assertions": [
           "concurrent_set_surfaces_all_heads",
           "does_not_choose_winner"
@@ -1569,7 +1569,7 @@
       ]
     },
     {
-      "name": "same_seal_bottom_reject_serialization",
+      "name": "same_seal_ordered_reject_serialization",
       "vector_id": "ak.vector.seal.ordered_command_results.v1",
       "description": "Every safety command is evaluated at its ordered position. Rejected commands remain authenticated outcomes and have no effects.",
       "state_model": "sequenced_state",

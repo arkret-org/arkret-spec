@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-11.2",
-  "generated_at": "2026-09-11T23:16:51+08:00",
+  "version": "2026-09-12.1",
+  "generated_at": "2026-09-12T14:56:00+08:00",
   "source_of_truth": true,
   "hash": "sha256",
   "canonicalization": "RFC8785_JCS",
@@ -132,7 +132,7 @@
     "archive_authorization_tuple_digest": {
       "domain": "ak.organization-recovery-archive-tuple-v1",
       "preimage": "the complete closed ArchiveAuthorizationTuple including accepted_key_evidence_ref and holder_trusted_basis",
-      "rule": "accepted_key_evidence_ref is Event provenance and holder_trusted_basis is the independently pinned complete prior accepted Seal antichain; direct Seal traversal to the archive target proves the effective tuple and no singular activation Seal is carried"
+      "rule": "accepted_key_evidence_ref is Event provenance and holder_trusted_basis is the independently pinned complete prior accepted Seal basis with exactly one confirmed head per represented Realm; direct Seal traversal to the archive target proves the effective tuple and no singular activation Seal is carried"
     },
     "archive_set_digest": {
       "domain": "ak.organization-recovery-archive-set-v1",

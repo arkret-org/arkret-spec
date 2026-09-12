@@ -194,7 +194,7 @@
       "code": "counter_bound_exceeded",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "v1 无 lattice:“counter” cell family、无 parameters.max/min；escrow equivocation 由 fork-resolution 承载。"
+      "why": "v1 有无界 `counter` 状态模型，但未定义 parameters.max/min 或 escrow 配额；因此不存在 counter_bound_exceeded，发行者重复/分叉操作由 Event 身份冲突与普通因果收敛规则处理。"
     },
     {
       "code": "genesis_created_at_too_old",

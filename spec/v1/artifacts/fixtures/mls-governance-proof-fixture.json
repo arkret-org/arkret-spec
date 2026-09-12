@@ -1,7 +1,7 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
   "version": "2026-08-21",
-  "suite": "mls_governance_frontier_antichain",
+  "suite": "mls_governance_frontier_basis",
   "generated_by": "tools/generate_mls_governance_proof_fixture.py",
   "runner": {
     "kind": "named_suite",
@@ -58,7 +58,7 @@
       "query_digest": "sha256:d4e167573c6d49438ef6350ae9bda02adb7141c1be65e5e341003578c50e4564",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
@@ -98,7 +98,7 @@
       "outcome": {
         "query_digest": "sha256:d4e167573c6d49438ef6350ae9bda02adb7141c1be65e5e341003578c50e4564",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
@@ -134,10 +134,10 @@
           "seal_predecessor_edges": [],
           "event_ids": []
         },
-        "page_digest": "sha256:a53a2b819d9c46892089af6d611cba9a10a8b1e04a51057ccc0e7a35cb5a7b8a"
+        "page_digest": "sha256:c29da4078cbf73797f9281e572d7d4fd88fbb4cdd5382dfeea7eeb2ff59de75a"
       },
-      "expected_page_digest": "sha256:a53a2b819d9c46892089af6d611cba9a10a8b1e04a51057ccc0e7a35cb5a7b8a",
-      "expected_relation": "equal_antichain"
+      "expected_page_digest": "sha256:c29da4078cbf73797f9281e572d7d4fd88fbb4cdd5382dfeea7eeb2ff59de75a",
+      "expected_relation": "equal_basis"
     },
     {
       "name": "successor_base_equals_target",
@@ -181,7 +181,7 @@
       "query_digest": "sha256:44ef72b7df05c0b61a8015a7065d6f1f35faf23d7676551e5ee26213a90f64ca",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
@@ -221,7 +221,7 @@
       "outcome": {
         "query_digest": "sha256:44ef72b7df05c0b61a8015a7065d6f1f35faf23d7676551e5ee26213a90f64ca",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0101010101010101010101010101010101010101010101010101010101010101",
@@ -257,10 +257,10 @@
           "seal_predecessor_edges": [],
           "event_ids": []
         },
-        "page_digest": "sha256:eff5b41a705b8d64692e6a9e72f3d3c5b9187b10365358bb37689b82195225e0"
+        "page_digest": "sha256:14b154b771ade187a9aa7ac5cce5b3987af96996d5ad39d2f1c76a0c0de1e9d5"
       },
-      "expected_page_digest": "sha256:eff5b41a705b8d64692e6a9e72f3d3c5b9187b10365358bb37689b82195225e0",
-      "expected_relation": "equal_antichain"
+      "expected_page_digest": "sha256:14b154b771ade187a9aa7ac5cce5b3987af96996d5ad39d2f1c76a0c0de1e9d5",
+      "expected_relation": "equal_basis"
     },
     {
       "name": "strict_descendant",
@@ -304,7 +304,7 @@
       "query_digest": "sha256:04ffc6a6d47148b656dad1f38dc3075ac674205712a91bde773d1ae4447a35c5",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202",
@@ -375,7 +375,7 @@
       "outcome": {
         "query_digest": "sha256:04ffc6a6d47148b656dad1f38dc3075ac674205712a91bde773d1ae4447a35c5",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0202020202020202020202020202020202020202020202020202020202020202",
@@ -442,10 +442,10 @@
             "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
           ]
         },
-        "page_digest": "sha256:0ccd4f393463c865c3c5fd90a1378cedb0e3c2da0b64173afec389a897df8756"
+        "page_digest": "sha256:a06e686bc7e926dc4f6d5eba54a8065913006184cb394ea4a19779cd2d6787d8"
       },
-      "expected_page_digest": "sha256:0ccd4f393463c865c3c5fd90a1378cedb0e3c2da0b64173afec389a897df8756",
-      "expected_relation": "strict_descendant_antichain"
+      "expected_page_digest": "sha256:a06e686bc7e926dc4f6d5eba54a8065913006184cb394ea4a19779cd2d6787d8",
+      "expected_relation": "strict_descendant_basis"
     },
     {
       "name": "confirmed_prefix_two_steps",
@@ -489,7 +489,7 @@
       "query_digest": "sha256:c970d1cd932818cd34676fcf73fd065fcbd1104c3bdca3de16959117b7db2918",
       "page_body_without_query_digest_and_page_digest": {
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0303030303030303030303030303030303030303030303030303030303030303",
@@ -567,7 +567,7 @@
       "outcome": {
         "query_digest": "sha256:c970d1cd932818cd34676fcf73fd065fcbd1104c3bdca3de16959117b7db2918",
         "frontier_projection": {
-          "frontier_registry_digest": "sha256:a6da2b0d63cfb79c533f4459dddd1a984638a20b55e9effe60df1369c549d10f",
+          "frontier_registry_digest": "sha256:34b30a015a54e7d7205cc00decd1c31ccb53cb069d4720043fe114c1a5581de4",
           "branches": [
             {
               "target_seal_ref": "ak:seal:sha256:0303030303030303030303030303030303030303030303030303030303030303",
@@ -641,10 +641,10 @@
             "ak:event:AfvrAq1HpvtWnJUdItm-GuA1K2J_x5KVF7DAoTlvG8Q3"
           ]
         },
-        "page_digest": "sha256:e4a5d7dfbb09abfeed36609d235db201f5d9cd683f1a783352f14d6e99f5d1b8"
+        "page_digest": "sha256:a5f64dc35aa5fddc83a7d81cb7afcf2bda1148530f2248dac3502f9d32bbc3df"
       },
-      "expected_page_digest": "sha256:e4a5d7dfbb09abfeed36609d235db201f5d9cd683f1a783352f14d6e99f5d1b8",
-      "expected_relation": "strict_descendant_antichain"
+      "expected_page_digest": "sha256:a5f64dc35aa5fddc83a7d81cb7afcf2bda1148530f2248dac3502f9d32bbc3df",
+      "expected_relation": "strict_descendant_basis"
     }
   ],
   "negative_cases": [
@@ -662,7 +662,7 @@
     },
     {
       "name": "concurrent_unreachable_basis",
-      "mutation": "replace proof_target_basis with an antichain having no base ancestor",
+      "mutation": "replace proof_target_basis with a head that has no base ancestor",
       "expected": "mls_governance_anchor_unreachable",
       "response_count": 0
     },
@@ -717,7 +717,7 @@
   ],
   "runner_rules": [
     "Validate every positive query and outcome against the read_request/read_outcome schema.",
-    "Treat proof_base_basis and proof_target_basis as canonical complete Seal antichains.",
+    "Treat proof_base_basis and proof_target_basis as canonical complete Seal bases with exactly one confirmed head per represented Realm.",
     "base==target is valid; a strict descendant is valid only with the complete unique predecessor chain.",
     "The stateless operation never transports bulk epoch activation evidence."
   ]

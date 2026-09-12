@@ -241,12 +241,12 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 替代设计：
 
-- 协议事实由 DataEvent 或 Control Move 的 `kind + payload` 表达；cell target 与 lattice op 由注册 reducer contract 确定性派生，不是 wire 字段。
+- 协议事实由普通 Event 或 Control Move 的 `kind + payload` 表达；cell target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
 - `cell_id` 是显式 canonical cell，例如 `ak:cell:ak.component.member.state.v1:<actor-did>`。
-- 每个 cell family 在 registry / Realm schema 中声明 `lattice` 与 `bottom`。
+- 每个 cell family 在 registry 中声明 `execution`、`state_model`、`value_shape` 与 `bottom`；`bottom` 只适用于普通 `causal_register` 的真实并发冲突，安全写入使用唯一确认顺序且不得把冲突降格为 `bottom`。
 - Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit cell id 与 projected value。
 
-**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Seal finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
+**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 cell id 与注册状态合同；普通数据按声明的 CRDT 模型收敛，安全状态由 Seal 确认序列推进，轻客户端按各自承诺验证。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
 ### 6.2 没有 `ak.realm.policy.set` 这种聚合 kind
 

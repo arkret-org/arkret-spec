@@ -69,9 +69,9 @@ device-signed PCR Seal 与用户 DID 控制操作仍由授权设备持钥签署�
 自己 Station 返回 `proposal_state=sealed` 且绑定同一 Event kind、digest 与 `accepted_seal_id`，即可确认该 Event
 已被接受；pending/deferred/overdue/rejected 不得当作 sealed。客户端保留已签 intent 的确切内容与摘要绑定，
 但 MUST NOT 为这项确认拉取 Seal 前驱闭包、DID history 或治理重放检查点。若还需取得接纳后追加的 Event envelope，
-只 resolve 已知的确切 Event 并核对原始签署输入不变。存在多个有效直接 covering Seals 时，`accepted_seal_id`
-MUST 选择其中 canonical 字节序最小的一项；隔离的 Seal 不参与选择。它不是完整 frontier，不得直接代替 authoring
-`seal_basis`；选择项变化本身不表示原 Event 不再被接受。服务器先按当前会话检查该 Event 可见性，查询命中的 durable
+只 resolve 已知的确切 Event 并核对原始签署输入不变。`accepted_seal_id` MUST 是唯一确认序列中
+`command_results[]` 首次直接包含该 Event 的 Seal；同一 Event 出现第二个直接接受结果或同一位置出现两个确认 Seal 都是安全故障，必须停止该安全域，不得按字节序挑选赢家。该引用不是完整 frontier，不得直接代替 authoring
+`seal_basis`。服务器先按当前会话检查该 Event 可见性，查询命中的 durable
 proposal/covering-Seal 状态；不得为单 Event 确认枚举整个站点的 canonical Events。
 
 同一服务器 MUST 将治理接纳与逐请求授权分离。对相同 Realm/scope、exact accepted basis、canonical bytes/acceptance pin、历史 authority 与规则/贡献上下文，验证结果及派生视图 MUST 持久共享；不得只因用户、设备、请求 ID 或重复读取变化而重新全量验证。并发相同目标的计算 MUST 合并，所有等待者分别执行当前读取/动作授权。
@@ -101,7 +101,7 @@ epoch 只允许 0→0 或 n→n+1；后者必须提供准确的 base_group_state
 accepted Genesis 时携 proposed_group_genesis_binding，proposal、accepted immutable Genesis 和并发冲突仍遵守
 现有 Genesis 错误合同。固定使用 `ak.security_frontier.v1` 选择规则和 full MLS binding profile。
 
-服务器 MUST 对每次请求检查当前账号的 Realm/Circle 可见性，并读取 exact seal_basis 的已接受 joined state，
+服务器 MUST 对每次请求检查当前账号的 Realm/Circle 可见性，并读取 exact seal_basis 对应的已确认状态，
 不得静默替换为当前单一 head。沿现有 frontier registry、exact local leaves 与不可变 Genesis binding 计算
 security_frontier_digest；其公式与 peer verifier 相同。服务器不得返回未验证的 cells 或用空状态掩盖依赖缺失。
 successor 的 epoch cell 必须具有 next_epoch=请求 previous_epoch 且 transition_ref=请求 base_group_state_ref；

@@ -647,35 +647,6 @@
                 "state_root": {
                   "pattern": "^sha256:[0-9a-f]{64}$"
                 }
-              },
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "covered_event_digests"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "data_view_root"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "data_event_set_root"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "previous_state_root"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "previous_digest_algorithm"
-                    ]
-                  }
-                ]
               }
             }
           ]
@@ -5738,11 +5709,11 @@
         },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Canonical sorted unique complete accepted Seal leaf antichain. Self clients copy the exact authenticated Account Station result into their signed intent; peer servers verify its governance independently."
+          "description": "Canonical sorted unique list containing exactly one confirmed Seal head for each Realm represented by the basis. Self clients copy the exact authenticated Account Station result into their signed intent; peer servers verify its governance independently."
         },
         "live_digest_suite": {
           "$ref": "./realm.schema.json#/properties/digest_algorithm",
-          "description": "Effective digest suite in the verified joined state at exactly seal_basis, including any accepted digest-suite transition. It is not inferred from a Seal ID hash prefix. Self clients use this result without downloading governance history."
+          "description": "Effective digest suite in the verified confirmed state at exactly seal_basis, including any accepted digest-suite transition. It is not inferred from a Seal ID hash prefix. Self clients use this result without downloading governance history."
         },
         "governance_health": {
           "$ref": "#/$defs/ControlGovernanceHealth",

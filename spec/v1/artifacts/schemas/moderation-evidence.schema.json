@@ -123,7 +123,7 @@
       "required": [
         "proof_event",
         "target_event",
-        "covering_seal",
+        "anchor_seal",
         "service_signer_evidence",
         "existence_anchor",
         "ancestry_events"
@@ -135,15 +135,16 @@
         "target_event": {
           "$ref": "./event-envelope.schema.json"
         },
-        "covering_seal": {
-          "$ref": "./seal.schema.json"
+        "anchor_seal": {
+          "$ref": "./seal.schema.json",
+          "description": "Confirmed security Seal whose existence_anchors contains existence_anchor. The franking-proof Event remains an ordinary Event and is never inserted into Seal.delta or a data observation root."
         },
         "service_signer_evidence": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
         },
         "existence_anchor": {
           "$ref": "./seal.schema.json#/$defs/existence_anchor",
-          "description": "Must exactly equal a covering_seal.existence_anchors member, with the franking grant and generation and an authenticated frontier containing proof_event directly or transitively."
+          "description": "Must exactly equal an anchor_seal.existence_anchors member, with the franking grant and generation and an authenticated ordinary-Event frontier containing proof_event directly or transitively."
         },
         "ancestry_events": {
           "type": "array",
@@ -156,7 +157,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Optional time-existence evidence for a franking proof. Independently verify the Seal quorum and bounded-time anchor, original Event authority, service signer key validity over the full anchor uncertainty interval and exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is not required to send or accept ordinary messages. No data observation root exists."
+      "description": "Optional security evidence that a franking-proof ordinary Event existed within a bounded interval. Independently verify the anchor Seal quorum, the exact existence_anchor frontier, original Event producer proof and authority refs, service signer key validity over the full interval, and the exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is never required to send, accept or replicate ordinary messages. The Event does not enter Seal.delta and no data observation root exists."
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

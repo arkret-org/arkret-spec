@@ -3957,7 +3957,7 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         if query.get("profile") != "group_security_frontier":
             lint.fail(path, f"cases[{index}] must use the sole near-current profile")
         if not isinstance(query.get("proof_base_basis"), dict) or not isinstance(query.get("proof_target_basis"), dict):
-            lint.fail(path, f"cases[{index}] must carry SealBasis antichains")
+            lint.fail(path, f"cases[{index}] must carry complete SealBasis values")
         expected_query_digest = "sha256:" + hashlib.sha256(
             b"ak.mls-governance-proof-query-v1"
             + b"\x00"
