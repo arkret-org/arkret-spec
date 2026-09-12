@@ -57,7 +57,7 @@ ak:cell:ak.component.realm.reducer_profile.v1:null
 
 当前 v1 registry 没有 active upgrade edge，因此任何 `ak.realm.upgrade` 都按 §4 以 `failed_precondition` 拒绝；这是已裁决的 v1 边界，不是隐式成功或实现缺省。首个后继 reducer profile 只能在同一发布中同时登记 source→target edge，并满足 `reducer-profile-registry.json#upgrade_release_gate` 要求的成功 transition、source `head_eq` precondition、未注册 target、未声明 edge 与并发 upgrade 冲突五类向量后发布。
 
-普通 Event 不声明 reducer profile。DataEvent 从其已签 `auth_context.authority_refs` 固定的授权状态读取 reducer 合同；Control Move 从 `seal_basis` 绑定的确认前缀读取，并按实际执行位置重验相关 revision。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
+普通 Event 不声明 reducer profile。ordinary Event 从其已签 `auth_context.authority_refs` 固定的授权状态读取 reducer 合同；Control Move 从 `seal_basis` 绑定的确认前缀读取，并按实际执行位置重验相关 revision。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
 
 ## 3. Profile carrier 边界
 

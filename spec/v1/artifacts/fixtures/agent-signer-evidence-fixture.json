@@ -36,7 +36,7 @@
       "contains_two_current_authority_refs_and_event_admission_dependencies": true
     },
     {
-      "name": "current_stale_lease_is_unresolved",
+      "name": "current_stale_attestation_is_unresolved",
       "verification_mode": "current_admission",
       "all_current_windows_valid": false,
       "expected": "unresolved",

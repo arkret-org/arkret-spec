@@ -306,7 +306,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 }
 ```
 
-整个变更由单个 DataEvent 的 reducer projection 原子写入同一 `causal_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
+整个变更由单个 ordinary Event 的 reducer projection 原子写入同一 `causal_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
 
 Strand authoring 复用 current 的 `heads[{event_id,value}]`，不定义第二份 head 镜像。
 标题、描述、字段、track、日历都按 [通用 patch 基线规则](./event-and-patch.md#431-patch-reducer-的唯一输入normative)
@@ -949,8 +949,7 @@ add dot 就不复存在，审计视图无从重建；本节又要求 remove 连*
 
 因此下文"不引用核心 `or_set` lattice"的准确含义是：**remove-wins 收敛规则不是 or_set 的
 join**，而是该 or_set 之上的**默认视图投影**。cell 的 join 仍是核心 or_set 的 dot 集合并，
-仍然可交换、可结合、幂等且数学上永不产生 `⊥`；registry 登记的 `bottom=expose` 按 §9.1.1 由
-本节这一领域规则定义暴露语义。实现 MUST NOT 据此把该 cell 实现成第七种 lattice。
+仍然可交换、可结合、幂等且不声明 Bottom。领域投影直接从完整 dot 集计算 remove-wins 视图；实现 MUST NOT 据此把该 cell 实现成第六种 state model。
 
 默认视图的成员判定式：actor `A` 属于 `(target_ref, key)` 的 `members[]`，当且仅当集合中存在
 一条 `A` 在该 `(target_ref, key)` 上的 add 断言 `α`，使得对 `A` 在该 `(target_ref, key)` 上的

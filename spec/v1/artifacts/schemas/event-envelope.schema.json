@@ -106,7 +106,7 @@
     },
     "causal_refs": {
       "type": "array",
-      "description": "Optional DataEvent semantic causal predecessors by event_digest. The property MUST be omitted when there is no business causality; an explicitly empty array is not a canonical Event shape. A DataEvent carrying payload.patch MUST provide at least one causal_ref and MUST identify exactly one accepted base-head digest for every target cell; the per-cell uniqueness and post-state reconstruction checks are reducer semantics. Other DataEvents may use this field for business causality. These refs are not global completeness proofs.",
+      "description": "Optional ordinary Event semantic causal predecessors by event_digest. The property MUST be omitted when there is no business causality; an explicitly empty array is not a canonical Event shape. A ordinary Event carrying payload.patch MUST provide at least one causal_ref and MUST identify exactly one accepted base-head digest for every target cell; the per-cell uniqueness and post-state reconstruction checks are reducer semantics. Other ordinary Events may use this field for business causality. These refs are not global completeness proofs.",
       "minItems": 1,
       "maxItems": 128,
       "uniqueItems": true,

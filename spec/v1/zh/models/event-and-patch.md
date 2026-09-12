@@ -19,7 +19,7 @@ updated: 2026-08-13
 - **Field Patch (`ak.schema.patch.v1`)**：非 create 类更新的标准字段增量格式。
 - **Event Batch Receipt**（`ak:receipt:`）：可选审计 / 同步加速对象。
 
-CBS 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
+CBS 双平面、ordinary Event、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
 
 公共字段见 [`common-fields.md`](./common-fields.md)。
 
@@ -27,13 +27,13 @@ CBS 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、author
 
 ### 2.1 概念
 
-> **Reducer**（归约器）：按确定性规则把签名后的 Event 序列计算成当前对象状态——Event 是事实日志，reducer 是把日志"播放"成 Strand / Message / Relation 等当前态对象的引擎。本文 §6 给出 reducer MUST 满足的总则；完整协议模型（DataEvent / Control Move / Seal / Lattice / cell / state resolution 等术语）见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)，一行术语条目见 [`../overview/glossary.md`](../overview/glossary.md)。
+> **Reducer**（归约器）：按确定性规则把签名后的 Event 序列计算成当前对象状态——Event 是事实日志，reducer 是把日志"播放"成 Strand / Message / Relation 等当前态对象的引擎。本文 §6 给出 reducer MUST 满足的总则；完整协议模型（ordinary Event / Control Move / Seal / Lattice / cell / state resolution 等术语）见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)，一行术语条目见 [`../overview/glossary.md`](../overview/glossary.md)。
 
 Event 是 reducer 输入和审计事实。所有协作变化最终都落为签名 `event`。Event 是审计根和 reducer 输入；当前态只是 Event 集合在某个 reducer profile 下的物化结果。
 
 Reducer-input event 按 CBS 分为两类：
 
-- DataEvent：顶层带 `auth_context`，不带 `seal_basis`；可声明仅针对签名因果 basis 的 preconditions。
+- ordinary Event：顶层带 `auth_context`，不带 `seal_basis`；可声明仅针对签名因果 basis 的 preconditions。
 - Control Move：顶层带 `seal_basis`，可带 `preconditions[]`，不带 `seal_ref` / `auth_context`。
 
 非 reducer event 不带这些 reducer 字段。
@@ -60,7 +60,7 @@ Schema id: `ak.schema.event.v1`
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<EventId>` | 可为空。每项是完整 suite-tagged Event ID，仅承载 actor event chain causal predecessors；suite code 与全部 digest bytes 进入本 Event digest preimage。 | Actor event chain 前序的完整密码学身份。 |
 | `refs` | conditional | `array<SemanticRef>` | 没有语义引用时 MUST 省略；出现时至少一项，显式 `[]` 是 `schema_violation`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。需要特定 role 的 Event kind 仍由 schema / reducer 明确要求该字段与对应 `contains`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 可选语义引用集合。 |
-| `causal_refs` | conditional | `array<digest>` | 没有业务因果时 MUST 省略；出现时至少一项，显式 `[]` 是 `schema_violation`。携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 可选数据面因果前驱。 |
+| `causal_refs` | conditional | `array<digest>` | 没有业务因果时 MUST 省略；出现时至少一项，显式 `[]` 是 `schema_violation`。携带 `payload.patch` 的 ordinary Event MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 ordinary Event 可用于声明业务因果。它不提供全局完整性证明。 | 可选数据面因果前驱。 |
 | `preconditions` | conditional | `array<Predicate>` | 普通数据在签名因果基底求值；安全命令在实际确认前态求值。普通条件不承诺离线唯一成功。 | 注册业务前置条件。 |
 | `auth_context` | conditional | `object` | 普通数据携带 key 坐标和已确认 `authority_refs`，按注册 admission 分支验证。缓存没有 Seal 年龄租约；已知撤销立即约束 live gate。 | 可携带授权上下文。 |
 | `seal_basis` | conditional | `object` | 安全命令的确认基线；每安全域恰一个 head，按 canonical 顺序列入 `leaves`。普通数据不得携带。genesis 按封闭原子起点验证。 | 安全前态。 |
@@ -76,7 +76,7 @@ Schema id: `ak.schema.event.v1`
 Event 都使用同一组 envelope 字段；它们由 `kind` 与注册 payload schema 区分。内容是否由
 MLS 保护是 payload protection 维度，不是第二种 Event envelope。SDK / 实现 MUST NOT 定义
 字段规则不同的通用 `MlsEvent` wire 类型，或因 payload 已加密而省略该 Event 所属 CBS plane
-的字段。特别地，加密 `ak.message.create` 仍是 DataEvent，仍 MUST 携带 `auth_context`。
+的字段。特别地，加密 `ak.message.create` 仍是 ordinary Event，仍 MUST 携带 `auth_context`。
 
 Producer SDK 还 MUST 在与外层提交态正交的 payload protection 轴上提供等价于
 `PlainPayload<T> | MlsEncryptedPayload<T>` 的 closed choice。前者持有通过 `T` 自身 schema
@@ -97,7 +97,7 @@ MUST 使用 `MlsEncryptedPayload<MessageMetadata>`，不得用 ContentBlock wrap
 状态。普通首发 / lease / submit API MUST 只接受一个已经通过完整 Event schema 与 CBS shape
 校验、且不能再原地修改 envelope 的已验证提交态，其 closed variant 至少区分：
 
-- DataEvent：`auth_context` 必填，`seal_basis` 禁止；preconditions 仅对签名因果 basis 检查；
+- ordinary Event：`auth_context` 必填，`seal_basis` 禁止；preconditions 仅对签名因果 basis 检查；
 - Control Move：`seal_basis` 必填，`auth_context` 禁止；
 - non-reducer Event：全部 CBS reducer 字段禁止。
 
@@ -134,7 +134,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
 操作，必须先作为封闭枚举逐项登记并证明不会重新形成 producer reducer DSL；在此之前一律
 `unknown_kind` / `schema_violation` fail closed。
 
-### 2.3 最小 DataEvent 示例
+### 2.3 最小 ordinary Event 示例
 
 ```json schema=schemas/event-envelope.schema.json
 {
@@ -450,7 +450,7 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 (a) created_at ≥ max( prev_refs[] 中每条已接受 Event 的 created_at )
         reason_code = created_at_before_causal_predecessor
 (b) created_at ≥ 本 Event 绑定 Seal 的 sealed_at
-        DataEvent    取 auth_context.authority_refs 中全部 Seal 的最大 sealed_at
+        ordinary Event    取 auth_context.authority_refs 中全部 Seal 的最大 sealed_at
         Control Move 取 max(seal_basis.leaves[].sealed_at)
         reason_code = created_at_before_basis_seal
 (c) created_at ≤ now + hard_future_skew_ms   （既有规则，未来一侧）
@@ -480,7 +480,7 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 - Producer author 普通 Event 时 MUST 直接使用 `actor_seq=next_actor_seq`，并把实际观察到的完整 `frontier_event_ids` 合入 `prev_refs`。Receiver 不得反向要求该 Event 覆盖接收时才出现的并发 sibling；只要 signed basis 满足同 Realm、同 actor、紧邻 sequence 与 fork 上限，查询后新增的 sibling 不得改变既有 signed Event 的结构合法性。
 - Producer SHOULD 为同一 `(realm_id, actor_id)` 维护单调本地链，避免主动产生同高 sibling fork。一个 actor 在不同 Realm 的相同 `actor_seq` 是正常事件，不构成 fork，也不得互相写入 `prev_refs`。
 - 同一 `(realm_id, actor_id)` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 在同一 Realm 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`。跨 Realm predecessor MUST `schema_violation`。唯一 identity recovery 例外是 B 模型 Principal Control Realm 内的 `ak.device.reanchor`：其 `prev_refs` 精确等于该 PCR 的 `pre_fence_seal_frontier` preserved closure 加 genesis anchor set 中该 actor 的 canonical heads，`actor_seq=1+max(preserved actor_seq)`；紧随的 replacement authorize 只引用 re-anchor id 且 sequence 加一。未被 `pre_fence_seal_frontier` 保留的 pending/unsealed sibling 不进入新 generation，也不能以更高 sequence 阻塞恢复。
-- 相同 `(realm_id, actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
+- 相同 `(realm_id, actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 ordinary Event / Control Move 验证、Seal coverage 与 Lattice join。
 - 实现 MUST 对同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 的单桶上限为 16。同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。两项均是无条件 v1 上限，单一数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)。
 - Realm 隔离、同 Realm sibling 与跨 Realm predecessor 拒绝由 `ak.vector.actor_chain.realm_scope.v1` 固定。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
@@ -796,7 +796,7 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 冻结 pre-state 的唯一求值规则：
 
 - Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBS frozen-baseline 规则读取。
-- 携带 patch 的 DataEvent 的 `causal_refs[]` 引用作者实际观察到的 accepted source；receiver 按目标 `(scope_ref, cell_id)` 解析这些来源的完整 post-state。不得读取 receiver 当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
+- 携带 patch 的 ordinary Event 的 `causal_refs[]` 引用作者实际观察到的 accepted source；receiver 按目标 `(scope_ref, cell_id)` 解析这些来源的完整 post-state。不得读取 receiver 当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
 - 只有一个目标 cell source 且未携带 `expected_state_digest` 时，该来源的完整值就是 pre-state。携带已登记的 `expected_state_digest` 时，以该 digest 精确选取被引用来源中的完整值；多个来源可具有相同完整值，但不得选择不同值。无匹配或有歧义时 MUST `schema_violation` / `reducer_projection_failed`。
 - 显式合并多个来源复用普通 Data patch：作者在 `causal_refs[]` 引用实际观察并决定收敛的来源，并用签名覆盖的 `expected_state_digest` 指定计算基值。patch 表达相对于该基值的合并结果；没有修改的字段明确继承该基值。未被引用的并发来源仍然保留。多来源而无 pre-state digest MUST 拒绝。不得新增与此规则重复的 Strand 专用 resolver 或 authoring 接口。
 - 基于旧来源编写的合法 patch 即使提交时 current 已改变也 MUST 接受为因果后继／并发来源；不得隐式把旧草稿重定位到提交时的 current。无 pre-state 的 create 不使用本 patch 规则。
@@ -878,12 +878,12 @@ Reducer MUST：
 - 按 §2.2 处理未知字段：拒绝 schema 未声明的字段，保留 schema 显式声明扩展槽中的未识别内容
 - 输出可声明的 reducer profile
 
-具体 DataEvent / Control Move / Seal / Lattice / state resolution 细节、authority chain、E2EE covered Seals 等见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+具体 ordinary Event / Control Move / Seal / Lattice / state resolution 细节、authority chain、E2EE covered Seals 等见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 
 ## 7. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
-- DataEvent / Control Move / Seal / Lattice / state resolution：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- ordinary Event / Control Move / Seal / Lattice / state resolution：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Event-first 发布、snapshot、冲突收敛：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
 - Canonical JSON、HLC、cursor：[`../conformance/encoding.md`](../conformance/encoding.md)。
 - Conformance vector：[`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md)。

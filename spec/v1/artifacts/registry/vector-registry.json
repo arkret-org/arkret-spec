@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.13",
+  "version": "2026-09-12.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T13:05:00+08:00",
+  "generated_at": "2026-09-12T15:37:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -510,14 +510,14 @@
       ]
     },
     {
-      "vector_id": "ak.vector.audit.binding_fsm.v1",
+      "vector_id": "ak.vector.audit.binding_transitions.v1",
       "status": "active",
       "domain": "audit",
       "applies_to_profiles": [
         "ak.profile.attested_audit.e2ee.v1",
         "ak.profile.disclosed_audit.e2ee.v1"
       ],
-      "description": "Audit binding is a closed control-plane FSM: active and suspended may transition as registered, revoked is terminal, and competing safety commands are serialized and stale relevant revisions are rejected.",
+      "description": "Audit binding is a closed sequenced-state transition contract: active and suspended may transition as registered, revoked is terminal, and competing safety commands are serialized and stale relevant revisions are rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/audit-release-fixture.json"
@@ -580,14 +580,14 @@
       ]
     },
     {
-      "vector_id": "ak.vector.audit.session_fsm.v1",
+      "vector_id": "ak.vector.audit.session_transitions.v1",
       "status": "active",
       "domain": "audit",
       "applies_to_profiles": [
         "ak.profile.attested_audit.e2ee.v1",
         "ak.profile.disclosed_audit.e2ee.v1"
       ],
-      "description": "Audit session stages follow the registered request-authorize-notice-close FSM, permit explicit early close, reject skipped stages, and make close terminal.",
+      "description": "Audit session stages follow the registered registered request-authorize-notice-close transitions, permit explicit early close, reject skipped stages, and make close terminal.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/audit-release-fixture.json"
@@ -1428,7 +1428,7 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1",
+      "vector_id": "ak.vector.cbs_lattice.ordinary_event_accepts_without_seal_finality.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -1440,7 +1440,7 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1",
+      "vector_id": "ak.vector.cbs_lattice.ordinary_event_observation_does_not_seal.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -1548,7 +1548,7 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1",
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_ordinary_event_digest.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -3238,7 +3238,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbsProofBundle superset rooted at signed DataEvent auth_context.authority_refs and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before DataEvents, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
+      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbsProofBundle superset rooted at signed ordinary Event auth_context.authority_refs and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before ordinary Events, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -4689,7 +4689,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's ordinary authorization references do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
+      "description": "Proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the ordinary Event's ordinary authorization references do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md",

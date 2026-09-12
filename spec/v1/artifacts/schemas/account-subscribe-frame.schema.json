@@ -606,7 +606,7 @@
         },
         "event_states": {
           "type": "array",
-          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. The 'bottom' detail object lives separately in 'bottoms' below — keyed by cell, not duplicated per event — so wire body is not doubled. Receivers correlate event_state=failed_bottom with the cell-level bottom diagnostic via the cells listed in bottom.cells[]. See zh/sync/service-surface.md §5.3.",
+          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. For an ordinary causal_register conflict, the 'bottom' detail object lives separately in 'bottoms' below — keyed by cell, not duplicated per event — so wire body is not doubled. Receivers correlate event_state=failed_bottom only with that causal-register diagnostic via the cells listed in bottom.cells[]. See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [

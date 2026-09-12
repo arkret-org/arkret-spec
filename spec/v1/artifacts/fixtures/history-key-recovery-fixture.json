@@ -1830,7 +1830,7 @@
     ],
     "wire_reason_code": null,
     "late_collision_policy_vector": "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
-    "data_events_in_delta": false
+    "ordinary_events_in_delta": false
   },
   "backup_recovery_unlock_manifest_kat": {
     "vector_id": "ak.vector.key_backup.recovery_session_manifest_capacity.v1",

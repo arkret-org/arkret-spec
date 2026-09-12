@@ -386,10 +386,10 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         },
         "event_kind_lattice_dispatch_fixture": {
             "registered_dispatch_target",
-            "or_set_bottom_never_rejects",
+            "bottom_only_for_causal_register",
             "family_semantics_present",
             "unknown_dispatch_fails_closed",
-            "fsm_family_contract_closure",
+            "transition_contract_closure",
             "actor_private_contract_closure",
         },
         "event_kind_payload_coverage_fixture": {
@@ -4763,8 +4763,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
             or substitution.get("predecessor_replay_may_have_occurred") is not True
         ):
             lint.fail(path, "current-key substitution assertions drifted")
-        if replay_kat.get("wire_reason_code") is not None or replay_kat.get("data_events_in_delta") is not False:
-            lint.fail(path, "replay KAT must not invent a wire reason code or place DataEvents in Seal.delta")
+        if replay_kat.get("wire_reason_code") is not None or replay_kat.get("ordinary_events_in_delta") is not False:
+            lint.fail(path, "replay KAT must not invent a wire reason code or place ordinary Events in Seal.delta")
 
     signer_kat = data.get("authenticated_signer_resolution_evidence_kat")
     if not isinstance(signer_kat, dict) or signer_kat.get("evidence", {}).get("kind") != "service":

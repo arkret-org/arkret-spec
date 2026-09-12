@@ -179,7 +179,7 @@ defer_count=0, authority_set_ref, authority_acks[]
 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
 `ak.self.events.command.submit.v1` / `ak.peer.events.command.submit.v1` 对 accepted 或 byte-identical
 duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_acks[]` 返回已持久化的
-原 Ack；authority-authored self-principal PCR Move 必须省略该数组项，DataEvent 也不得进入该数组。
+原 Ack；authority-authored self-principal PCR Move 必须省略该数组项，ordinary Event 也不得进入该数组。
 重复提交不得重签或延长任何 deadline。
 Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,000ms，协议硬上限
 24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
@@ -242,7 +242,7 @@ author 将互异 authority Ack 按 `signature.verification_method` canonical 升
 
 `EventInitialSubmission.control_proposal_ack` 与
 `EventFederationSubmission.control_proposal_ack` 是该证据的唯一输入位置，只允许 Control
-Move；DataEvent携带时必须 schema/admission拒绝。`cbs_proof_bundles[]`只补basis closure，不得
+Move；ordinary Event携带时必须 schema/admission拒绝。`cbs_proof_bundles[]`只补basis closure，不得
 承载或替代Ack。收集未在共同窗口内达到quorum时，本proposal永久不能以零散authority Ack入库；
 producer必须author并签署新的Control Move Event，authority不得为旧digest重新计时。
 `proposal_ack_digest = SHA-256(JCS(the complete canonical ControlProposalAck including
@@ -285,7 +285,7 @@ signed-reject 时：
 2. 产生稳定诊断 `control_proposal_decision_overdue`，并允许形成 censorship evidence；
 3. 依赖该 pending Move 的 authoring/readiness，以及无法证明旧授权在 pending revoke /
    ban / notary change 下仍安全的写入 MUST fail closed；
-4. 与该 Move 无关、仍由 accepted 旧 Seal 合法授权的 DataEvent MUST NOT 被全局误伤；
+4. 与该 Move 无关、仍由 accepted 旧 Seal 合法授权的 ordinary Event MUST NOT 被全局误伤；
 5. 后来抵达且按 Seal 规则有效的 Seal仍正常 accepted；fault 作为可审计证据保留。
 
 不得因“迟到”把同一 cryptographically valid Seal 在不同 receiver 上分成 accepted /

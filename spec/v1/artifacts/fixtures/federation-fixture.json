@@ -234,7 +234,7 @@
       "cases": [
         {
           "case": "complete_control_seal_data_closure",
-          "expected": "control_and_basis_seals_resolved_topologically_then_data_events_verified"
+          "expected": "control_and_basis_seals_resolved_topologically_then_ordinary_events_verified"
         },
         {
           "case": "missing_control_seal_basis_leaf",
@@ -273,8 +273,8 @@
           "expected": "request_schema_violation_without_receiver_reordering"
         },
         {
-          "case": "same_batch_unsealed_grant_then_data_event",
-          "expected": "grant_not_visible_for_data_event_authorization"
+          "case": "same_batch_unsealed_grant_then_ordinary_event",
+          "expected": "grant_not_visible_for_ordinary_event_authorization"
         },
         {
           "case": "seal_transport",

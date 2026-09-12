@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 394,
+  "audited_occurrence_count": 395,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -117,7 +117,7 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Closed composite of one Agent's authority state view and the authority-signed lease over its digest. The state itself spans more than two material families before the lease is counted: a signing key binding, a capability authorization, a key state witness, a key transition witness, an Agent lifecycle witness and the Seal lineage closure that ties them to one frontier."
+      "reason": "Closed composite of one Agent's authority state view and the authority-signed attestation over its digest. The state itself spans more than two material families before the attestation is counted: a signing key binding, a capability authorization, a key state witness, a key transition witness, an Agent lifecycle witness and the Seal lineage closure that ties them to one frontier."
     },
     {
       "file": "agent-signer-evidence.schema.json",
@@ -817,6 +817,13 @@
         "transcript"
       ],
       "reason": "The signed Applet registration Event manifest carries the single method-native registration-time identity transcript and its accepted key commitments."
+    },
+    {
+      "file": "forbidden-wire-fields.json",
+      "key": "agent_authority_state_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the exact forbidden-field context for the Agent authority evidence container; it does not carry evidence material."
     },
     {
       "file": "forbidden-wire-fields.json",

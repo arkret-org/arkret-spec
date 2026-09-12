@@ -16,19 +16,19 @@
       "rule": "Every durable event kind resolves to its registered component and state-resolution family without prose inference."
     },
     {
-      "id": "or_set_bottom_never_rejects",
-      "rule": "Every or_set component declares bottom as inert or expose, never reject, and an or_set bottom is never dispatched as an authorization rejection. inert is the default because the or_set join cannot produce bottom; expose is legal only for a cell family whose owning domain document defines the exposed multi-head handling. See zh/authz/event-auth-state-resolution.md section 9.1.1."
+      "id": "bottom_only_for_causal_register",
+      "rule": "Only ordinary causal_register components declare a bottom policy. sequenced_state, or_set, ordered_log and counter never emit Bottom; validators reject invalid transitions separately and legitimate collection/log values remain directly observable."
     },
     {
       "id": "family_semantics_present",
-      "rule": "Every referenced lattice or state-machine family has a registered reducer semantic."
+      "rule": "Every referenced state model and domain transition contract has a registered reducer semantic."
     },
     {
       "id": "unknown_dispatch_fails_closed",
-      "rule": "Unknown component, lattice family, or critical dispatch metadata is rejected before state mutation."
+      "rule": "Unknown component, state model, transition rule, or critical dispatch metadata is rejected before state mutation."
     },
     {
-      "id": "fsm_family_contract_closure",
+      "id": "transition_contract_closure",
       "rule": "Every transition-constrained cell family resolves to exactly one closed domain transition contract after template instance parameters are applied; event rows never duplicate the table."
     },
     {

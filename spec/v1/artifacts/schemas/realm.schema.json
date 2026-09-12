@@ -307,7 +307,7 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed ordinary Events retain the suite of their signed authority context. Transition uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §13."
+      "description": "Digest suite (canonicalization x hash tuple) used for ordinary Event ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed ordinary Events retain the suite of their signed authority context. Transition uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §13."
     },
     "notary": {
       "$ref": "#/$defs/notary_configuration",
@@ -360,7 +360,7 @@
     "bottom_escalation_after_ms": {
       "type": "integer",
       "minimum": 60000,
-      "description": "Optional timeout after which unresolved bottom diagnostics should be escalated to recovery governance. Expiry does not choose a winner automatically."
+      "description": "Optional timeout after which unresolved ordinary causal_register conflict diagnostics should be escalated to recovery governance. Expiry does not choose a winner automatically; other state models never produce Bottom."
     },
     "retention_policy_id": {
       "type": "string",

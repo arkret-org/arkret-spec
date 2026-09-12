@@ -192,7 +192,7 @@ transparency 存档、离线转发与 durable idempotency ledger 必须把 recei
 
 `control_proposal_ack` 只允许 Control Move，且必须是
 [`event-auth-state-resolution.md` §14](./event-auth-state-resolution.md) 的 canonical
-authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBS bundle，也不能由接收
+authority receipt set；ordinary Event携带该字段必须拒绝。它不属于通用CBS bundle，也不能由接收
 Station在不持有真实authority key时补签。
 
 ### 2.2 租约签发

@@ -148,8 +148,8 @@
   },
   "vectors": [
     {
-      "name": "data_event_accepts_without_seal_finality",
-      "vector_id": "ak.vector.cbs_lattice.data_event_accepts_without_seal_finality.v1",
+      "name": "ordinary_event_accepts_without_seal_finality",
+      "vector_id": "ak.vector.cbs_lattice.ordinary_event_accepts_without_seal_finality.v1",
       "description": "Any eligible receiver verifies a producer-signed ordinary Event and its portable cached authority without contacting the account origin.",
       "cases": [
         {
@@ -176,8 +176,8 @@
       ]
     },
     {
-      "name": "data_event_observation_does_not_seal",
-      "vector_id": "ak.vector.cbs_lattice.data_event_observation_does_not_seal.v1",
+      "name": "ordinary_event_observation_does_not_seal",
+      "vector_id": "ak.vector.cbs_lattice.ordinary_event_observation_does_not_seal.v1",
       "description": "Ordinary storage and observation never confer safety finality or make a message permanently eligible.",
       "expected": {
         "ordinary_data_in_delta": false,
@@ -275,8 +275,8 @@
       }
     },
     {
-      "name": "seal_delta_excludes_data_event_digest",
-      "description": "A Seal delta contains newly sealed control-plane event digests only. Including a DataEvent digest in delta is a seal validation failure.",
+      "name": "seal_delta_excludes_ordinary_event_digest",
+      "description": "A Seal delta contains newly sealed control-plane event digests only. Including a ordinary Event digest in delta is a seal validation failure.",
       "seal": {
         "id": "ak:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "delta": [
@@ -290,9 +290,9 @@
       "expected": {
         "seal_result": "reject",
         "event_state": "rejected_seal",
-        "reason": "delta_contains_data_event"
+        "reason": "delta_contains_ordinary_event"
       },
-      "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_data_event_digest.v1"
+      "vector_id": "ak.vector.cbs_lattice.seal_delta_excludes_ordinary_event_digest.v1"
     },
     {
       "name": "confirmed_prefix_compaction",
@@ -1241,10 +1241,11 @@
           "expected": "retain_confirmed_evidence"
         },
         {
-          "name": "resolution_cell_bottom_refails_closed_after_clear",
-          "description": "A stale clear must not survive: once the resolution cell joins to bottom or a new unadjudicated subject appears, the peer is quarantined again.",
+          "name": "resolution_confirmation_failure_refails_closed_after_clear",
+          "description": "A stale clear must not survive: if the confirmation previously trusted for the resolution becomes invalid, or separate evidence introduces a new unadjudicated subject, the peer is quarantined again.",
           "event_kind": "ak.fork.resolution",
-          "resolution_cell_status_after_clear": "bottom",
+          "resolution_confirmation_after_clear": "invalid",
+          "new_unadjudicated_subject": true,
           "expected": "requarantine_peer"
         },
         {
@@ -1311,7 +1312,7 @@
           },
           "expected": {
             "result": "reject",
-            "reason": "notary_configuration_invalid"
+            "reason": "schema_violation"
           }
         },
         {

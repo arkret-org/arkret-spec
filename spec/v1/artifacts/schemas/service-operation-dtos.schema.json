@@ -2472,7 +2472,7 @@
         },
         "control_proposal_ack": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-          "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
+          "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for ordinary Events."
         },
         "ackless_self_principal_admission_evidence": {
           "$ref": "#/$defs/AcklessSelfPrincipalAdmissionEvidence",
@@ -2593,7 +2593,7 @@
         },
         "control_proposal_ack": {
           "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-          "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
+          "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for ordinary Events."
         },
         "membership_compensation_evidence": {
           "$ref": "#/$defs/MembershipCompensationSubmissionEvidence"
@@ -3352,7 +3352,7 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "description": "ak.self.events.read.resolve.v1 result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry signed auth_context.authority_refs, never enter Seal.delta and never require a covering Seal.",
+      "description": "ak.self.events.read.resolve.v1 result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. ordinary Events carry signed auth_context.authority_refs, never enter Seal.delta and never require a covering Seal.",
       "required": [
         "events",
         "missing"
@@ -3409,7 +3409,7 @@
         },
         "history_traversal_access": {
           "$ref": "./history-key.schema.json#/$defs/self_history_traversal_access",
-          "description": "Optional narrow access to Control Moves and registered apply_seal dependencies in the exact retained target-to-base traversal cut. It never authorizes unrelated DataEvents or timeline scanning; unknown, unauthorized, outside-cut and missing remain same-shape."
+          "description": "Optional narrow access to Control Moves and registered apply_seal dependencies in the exact retained target-to-base traversal cut. It never authorizes unrelated ordinary Events or timeline scanning; unknown, unauthorized, outside-cut and missing remain same-shape."
         },
         "max_response_bytes": {
           "type": "integer",
@@ -3875,7 +3875,7 @@
           "items": {
             "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack"
           },
-          "description": "Signed bounded-decision receipts for accepted or duplicate Control Move proposal digests. A duplicate MUST return the originally stored byte-identical receipt; a service MUST NOT mint later deadlines. DataEvents never appear in this array."
+          "description": "Signed bounded-decision receipts for accepted or duplicate Control Move proposal digests. A duplicate MUST return the originally stored byte-identical receipt; a service MUST NOT mint later deadlines. ordinary Events never appear in this array."
         },
         "duplicate": {
           "type": "array",

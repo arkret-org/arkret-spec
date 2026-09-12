@@ -31,7 +31,7 @@ Kernel 仅包含下列安全原语：
 1. Principal、Device、Service identity 与 proof；
 2. Realm 与 `realm | circle | sidecar` `scope_ref` 原生安全作用域，以及 create-only `realm_genesis` 例外；
 3. CBS Control Move、Seal、notary、state root 与闭集 lattice 词表；
-4. signed durable DataEvent；
+4. signed durable ordinary Event；
 5. MLS scope/epoch binding；
 6. core to-device queue；
 7. self sync、peer federation 与 dependency fetch；

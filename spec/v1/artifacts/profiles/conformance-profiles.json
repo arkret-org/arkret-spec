@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.7",
-  "generated_at": "2026-09-12T13:00:00+08:00",
+  "version": "2026-09-12.8",
+  "generated_at": "2026-09-12T15:37:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -179,7 +179,7 @@
           "V"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-011",
-        "summary": "Light clients must not authorize a DataEvent from a single leaf proof",
+        "summary": "Light clients must not authorize a ordinary Event from a single leaf proof",
         "required_evidence": [
           "vector_result"
         ]
@@ -2886,7 +2886,7 @@
       },
       "e2ee_mls_interop_floor": {
         "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
-        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.mls.welcome, MLS-backed E2EE DataEvents, or active MLS security-frontier state.",
+        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.mls.welcome, MLS-backed E2EE ordinary Events, or active MLS security-frontier state.",
         "required_artifacts": [
           "governance_binding.binding_profile",
           "governance_binding.reducer_profile",
@@ -2895,7 +2895,7 @@
         ],
         "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
-        "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/DataEvent before advancing Realm frontier."
+        "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/ordinary Event before advancing Realm frontier."
       }
     },
     "ak.profile.signal_message_stream.v1": {

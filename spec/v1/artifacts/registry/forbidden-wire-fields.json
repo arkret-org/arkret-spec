@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 46,
+  "version": 48,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-12T13:30:00+08:00",
+  "generated_at": "2026-09-12T15:45:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -1113,6 +1113,26 @@
           "match_scope": "descendants"
         }
       ]
+    },
+    "agent_authority_state_evidence": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_evidence",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
+    },
+    "notary_configuration": {
+      "selectors": [
+        {
+          "document_kind": "schema_instance",
+          "schema_ref": "realm.schema.json#/$defs/notary_configuration",
+          "instance_pointer": "",
+          "match_scope": "root"
+        }
+      ]
     }
   },
   "entries": [
@@ -1316,6 +1336,24 @@
           "ghost"
         ],
         "value_pointer": "/actor_kind"
+      }
+    },
+    {
+      "id": "agent_authority_state_evidence.lease",
+      "context": "agent_authority_state_evidence",
+      "since_revision": "2026-09-12",
+      "rejection_level": "hard_reject",
+      "replacement": "attestation",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The signed Agent state object is an observation attestation, not a periodically renewed ordinary-publication authorization lease.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "lease"
+        ]
       }
     },
     {
@@ -2056,6 +2094,24 @@
       }
     },
     {
+      "id": "available_count",
+      "context": "keypackages_upload_outcome",
+      "since_revision": "2026-08-26",
+      "rejection_level": "hard_reject",
+      "replacement": "accepted/rejected settlement for the submitted batch only",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "v1 exposes no remote KeyPackage inventory count or maintenance query; clients maintain an endpoint-scoped local ledger.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "available_count"
+        ]
+      }
+    },
+    {
       "id": "avatar",
       "context": "directory_projection",
       "since_revision": "2026-05-24",
@@ -2088,24 +2144,6 @@
         "kind": "field",
         "values": [
           "avatar_ref"
-        ]
-      }
-    },
-    {
-      "id": "available_count",
-      "context": "keypackages_upload_outcome",
-      "since_revision": "2026-08-26",
-      "rejection_level": "hard_reject",
-      "replacement": "accepted/rejected settlement for the submitted batch only",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "v1 exposes no remote KeyPackage inventory count or maintenance query; clients maintain an endpoint-scoped local ledger.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "available_count"
         ]
       }
     },
@@ -2722,24 +2760,6 @@
       }
     },
     {
-      "id": "enrollment_authority_binding",
-      "context": "retired_device_identity_wire",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "root_anchored or accepted_device authorization",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "enrollment_authority_binding"
-        ]
-      }
-    },
-    {
       "id": "endpoint_signature",
       "context": "keypackage_upload_entry",
       "since_revision": "2026-08-26",
@@ -2772,6 +2792,42 @@
         "kind": "field",
         "values": [
           "endpoint_signature"
+        ]
+      }
+    },
+    {
+      "id": "enrollment_authority_binding",
+      "context": "retired_device_identity_wire",
+      "since_revision": "2026-08-09",
+      "rejection_level": "hard_reject",
+      "replacement": "root_anchored or accepted_device authorization",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed from current v1 by the PCR genesis clean cut.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "enrollment_authority_binding"
+        ]
+      }
+    },
+    {
+      "id": "error.delta_contains_data_event",
+      "context": "error_code",
+      "since_revision": "2026-09-12",
+      "rejection_level": "hard_reject",
+      "replacement": "delta_contains_ordinary_event",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The ordinary Event classification has no DataEvent wire/type alias.",
+      "match": {
+        "kind": "value",
+        "values": [
+          "delta_contains_data_event"
         ]
       }
     },
@@ -3727,6 +3783,23 @@
       }
     },
     {
+      "id": "notary_configuration.recovery_members",
+      "context": "notary_configuration",
+      "since_revision": "2026-09-12",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Current v1 has one fixed quorum configuration; fork resolution uses that quorum and does not install a parallel recovery signer set.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "recovery_members"
+        ]
+      }
+    },
+    {
       "id": "notary_sig",
       "context": "seal",
       "since_revision": "2026-05-29",
@@ -3907,6 +3980,24 @@
       }
     },
     {
+      "id": "ok",
+      "context": "http_response_body",
+      "since_revision": "2026-08-27",
+      "rejection_level": "hard_reject",
+      "replacement": "operation-specific outcome fields or an empty 204 response",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Arkret v1 HTTP success bodies use operation-specific semantics; HTTP failures use RFC 9457 Problem Details. A generic ok discriminator is forbidden in either response shape.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "ok"
+        ]
+      }
+    },
+    {
       "id": "op_target_type",
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
@@ -4011,6 +4102,24 @@
         "kind": "field",
         "values": [
           "parent_space_refs"
+        ]
+      }
+    },
+    {
+      "id": "participant_identity",
+      "context": "media_response_backend_token_roster_binding_sfu_answer_exporter_context_error_code_or_vector_id",
+      "since_revision": "2026-09-01",
+      "rejection_level": "hard_reject",
+      "replacement": "participant_id",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Media participant wire objects, signature transcripts and ak.rtc-frame-key/v1 exporter Context use participant_id. The retired participant_identity spelling is not an alias; accepting it would change canonical JSON/signature or exporter bytes. The old participant_identity_unrecognised error and vector identifiers are retired with the same clean break.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "participant_identity"
         ]
       }
     },
@@ -4247,24 +4356,6 @@
         "kind": "field",
         "values": [
           "payload_hash"
-        ]
-      }
-    },
-    {
-      "id": "participant_identity",
-      "context": "media_response_backend_token_roster_binding_sfu_answer_exporter_context_error_code_or_vector_id",
-      "since_revision": "2026-09-01",
-      "rejection_level": "hard_reject",
-      "replacement": "participant_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Media participant wire objects, signature transcripts and ak.rtc-frame-key/v1 exporter Context use participant_id. The retired participant_identity spelling is not an alias; accepting it would change canonical JSON/signature or exporter bytes. The old participant_identity_unrecognised error and vector identifiers are retired with the same clean break.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "participant_identity"
         ]
       }
     },
@@ -5027,6 +5118,41 @@
       }
     },
     {
+      "id": "seal.forensic_attribution",
+      "context": "seal",
+      "since_revision": "2026-09-12",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Fixed quorum geometry and view-bound signatures replace the removed threshold forensic-attribution mode.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "forensic_attribution"
+        ]
+      }
+    },
+    {
+      "id": "seal.predecessor_refs",
+      "context": "seal",
+      "since_revision": "2026-09-12",
+      "rejection_level": "hard_reject",
+      "replacement": "predecessor_ref",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "A Realm Seal has one predecessor and forms a unique confirmed sequence. Multi-Realm Control Move bases continue to use seal_basis.leaves.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "predecessor_refs"
+        ]
+      }
+    },
+    {
       "id": "security_class",
       "context": "space_payload",
       "since_revision": "2026-05-24",
@@ -5760,24 +5886,6 @@
         "kind": "path",
         "values": [
           "webhook_auth.type"
-        ]
-      }
-    },
-    {
-      "id": "ok",
-      "context": "http_response_body",
-      "since_revision": "2026-08-27",
-      "rejection_level": "hard_reject",
-      "replacement": "operation-specific outcome fields or an empty 204 response",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Arkret v1 HTTP success bodies use operation-specific semantics; HTTP failures use RFC 9457 Problem Details. A generic ok discriminator is forbidden in either response shape.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "ok"
         ]
       }
     }
