@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.12",
-  "generated_at": "2026-09-12T15:37:00+08:00",
+  "version": "2026-09-12.13",
+  "generated_at": "2026-09-12T19:55:58+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1914,7 +1914,7 @@
       "code": "device_revocation_pending",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The exact device generation is blocked by one or more durable accepted ak.device.revoke proposals that have not been terminally signed-rejected or covered by an accepted Seal. Timeout and cache eviction do not clear this state.",
+      "description": "The exact device generation is blocked by one or more durable accepted ak.device.revoke proposals that have not been terminally rejected by a confirmed Seal command result or covered by an accepted Seal. Timeout and cache eviction do not clear this state.",
       "type_uri": "https://arkret.org/problems/device_revocation_pending",
       "title": "Device revocation pending"
     },
@@ -3011,7 +3011,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "A receipted Control Move proposal reached its signed decision_due_at without include, signed-reject, or a valid bounded signed-defer, or exhausted its immutable absolute_due_at / maximum defer count without include or signed-reject. This is a governance health and censorship-evidence fault, not an acceptance or Seal-finality result: a later cryptographically valid Seal remains acceptable and the fault stays auditable. See zh/authz/event-auth-state-resolution.md section 7.2."
+      "description": "A receipted Control Move proposal reached its signed decision_due_at without include, confirmed rejected command result, or a valid bounded signed-defer, or exhausted its immutable absolute_due_at / maximum defer count without include or confirmed rejected command result. This is a governance health and censorship-evidence fault, not an acceptance or Seal-finality result: a later cryptographically valid Seal remains acceptable and the fault stays auditable. See zh/authz/event-auth-state-resolution.md section 7.2."
     },
     {
       "code": "covered_set_mismatch",
@@ -3651,7 +3651,7 @@
         "event_auth_state",
         "state_resolution"
       ],
-      "description": "A Seal failed to discharge a FOCIL-style inclusion-list obligation: a listed, receipt-backed Control Move digest was neither included nor signed-rejected nor proven to fail batch pre-state verification within expiry_seal_count. Receivers MUST reject the entire Seal (rejected_seal). See authz/event-auth-state-resolution.md section 7.3 and schemas/inclusion-list.schema.json."
+      "description": "The obliged Seal has no explicit committed or rejected command result for a listed proposal. A deferral or standalone verification-failure claim does not discharge inclusion. Reject the entire Seal with inclusion_list_violation."
     },
     {
       "code": "inclusion_proof_failed",

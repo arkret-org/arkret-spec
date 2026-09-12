@@ -120,6 +120,9 @@ def check_error_code_closure(lint: Lint) -> None:
         # It ends in _rejected and appears on sentences about rejected chunks,
         # so it would otherwise trip the code-shape heuristic.
         "permanently_rejected",
+        # Closed device-revocation result status, authenticated by its deciding
+        # Seal. It is not a reason_code (device-revocation-state.schema.json).
+        "revocation_rejected",
     }
 
     for path in markdown_files():

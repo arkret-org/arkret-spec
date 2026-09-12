@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11681,
+    "total_properties": 11668,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3071,
+      "optional": 3061,
       "optional_defaulted": 63,
-      "required": 7460,
+      "required": 7457,
       "required_nullable": 345,
       "tristate": 742
     },
@@ -6884,11 +6884,10 @@
         "/$defs/control_proposal_decision_read_outcome/allOf/1/if/properties/proposal_state": "required",
         "/$defs/control_proposal_decision_read_outcome/allOf/2/if/properties/proposal_state": "required",
         "/$defs/control_proposal_decision_read_outcome/allOf/3/if/properties/proposal_state": "required",
-        "/$defs/control_proposal_decision_read_outcome/allOf/4/if/properties/proposal_state": "required",
-        "/$defs/control_proposal_decision_read_outcome/allOf/5/else/properties/proposal_state": "optional",
-        "/$defs/control_proposal_decision_read_outcome/allOf/5/if/properties/proposal_authority_kind": "required",
-        "/$defs/control_proposal_decision_read_outcome/allOf/6/if/properties/proposal_event_kind": "required",
-        "/$defs/control_proposal_decision_read_outcome/allOf/6/then/properties/proposal_authority_kind": "optional",
+        "/$defs/control_proposal_decision_read_outcome/allOf/4/else/properties/proposal_state": "optional",
+        "/$defs/control_proposal_decision_read_outcome/allOf/4/if/properties/proposal_authority_kind": "required",
+        "/$defs/control_proposal_decision_read_outcome/allOf/5/if/properties/proposal_event_kind": "required",
+        "/$defs/control_proposal_decision_read_outcome/allOf/5/then/properties/proposal_authority_kind": "optional",
         "/$defs/control_proposal_decision_read_outcome/properties/accepted_seal_id": "optional",
         "/$defs/control_proposal_decision_read_outcome/properties/control_proposal_ack": "optional",
         "/$defs/control_proposal_decision_read_outcome/properties/defer_decisions": "optional",
@@ -6898,13 +6897,8 @@
         "/$defs/control_proposal_decision_read_outcome/properties/proposal_event_kind": "required",
         "/$defs/control_proposal_decision_read_outcome/properties/proposal_state": "required",
         "/$defs/control_proposal_decision_read_outcome/properties/realm_id": "required",
-        "/$defs/control_proposal_decision_read_outcome/properties/terminal_reject": "optional",
         "/$defs/control_proposal_decision_read_request_body/properties/proposal_digest": "required",
         "/$defs/control_proposal_decision_read_request_body/properties/realm_id": "required",
-        "/$defs/control_proposal_decision_submit_outcome/allOf/0/if/properties/decision_kind": "required",
-        "/$defs/control_proposal_decision_submit_outcome/allOf/0/then/properties/proposal_state": "optional",
-        "/$defs/control_proposal_decision_submit_outcome/allOf/1/if/properties/decision_kind": "required",
-        "/$defs/control_proposal_decision_submit_outcome/allOf/1/then/properties/proposal_state": "optional",
         "/$defs/control_proposal_decision_submit_outcome/properties/decision_digest": "required",
         "/$defs/control_proposal_decision_submit_outcome/properties/decision_kind": "required",
         "/$defs/control_proposal_decision_submit_outcome/properties/proposal_digest": "required",
@@ -6915,12 +6909,6 @@
         "/$defs/proof/properties/jws": "required",
         "/$defs/proof/properties/payload_digest": "required",
         "/$defs/proof/properties/verification_method": "required",
-        "/$defs/proposal_decision/allOf/0/if/properties/kind": "optional",
-        "/$defs/proposal_decision/allOf/0/then/properties/defer_count": "optional",
-        "/$defs/proposal_decision/allOf/0/then/properties/reason_code": "optional",
-        "/$defs/proposal_decision/allOf/1/if/properties/kind": "optional",
-        "/$defs/proposal_decision/allOf/1/then/properties/defer_count": "optional",
-        "/$defs/proposal_decision/allOf/1/then/properties/reason_code": "optional",
         "/$defs/proposal_decision/properties/absolute_due_at": "required",
         "/$defs/proposal_decision/properties/authority_set_ref": "required",
         "/$defs/proposal_decision/properties/decided_at": "required",
@@ -6932,16 +6920,14 @@
         "/$defs/proposal_decision/properties/proposal_digest": "required",
         "/$defs/proposal_decision/properties/realm_id": "required",
         "/$defs/proposal_decision/properties/reason_code": "required",
-        "/$defs/signed_defer/allOf/1/properties/kind": "optional",
-        "/$defs/signed_reject/allOf/1/properties/kind": "optional"
+        "/$defs/signed_defer/allOf/1/properties/kind": "optional"
       },
       "conditionally_required": [
         "/$defs/control_proposal_ack_issue_request/properties/authorization_lease",
         "/$defs/control_proposal_decision_read_outcome/properties/accepted_seal_id",
         "/$defs/control_proposal_decision_read_outcome/properties/control_proposal_ack",
         "/$defs/control_proposal_decision_read_outcome/properties/defer_decisions",
-        "/$defs/control_proposal_decision_read_outcome/properties/fault_reason",
-        "/$defs/control_proposal_decision_read_outcome/properties/terminal_reject"
+        "/$defs/control_proposal_decision_read_outcome/properties/fault_reason"
       ]
     },
     "current-signer-evidence-operations.schema.json": {
@@ -7197,8 +7183,8 @@
         "/$defs/device_revocation_pending_state/allOf/1/properties/denied_actions": "required",
         "/$defs/device_revocation_pending_state/allOf/1/properties/fault_reason": "optional",
         "/$defs/device_revocation_pending_state/allOf/1/properties/status": "required",
+        "/$defs/device_revocation_rejected_state/allOf/1/properties/deciding_seal_id": "required",
         "/$defs/device_revocation_rejected_state/allOf/1/properties/status": "required",
-        "/$defs/device_revocation_rejected_state/allOf/1/properties/terminal_decision": "required",
         "/$defs/device_revoked_state/allOf/1/properties/covering_seal_id": "required",
         "/$defs/device_revoked_state/allOf/1/properties/sealed_at": "required",
         "/$defs/device_revoked_state/allOf/1/properties/status": "required"

@@ -196,7 +196,7 @@
           "items": {
             "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_gate_record"
           },
-          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by (acceptance_seq, proposal_digest). At most 128 distinct unresolved proposals may be admitted; exact replay consumes no slot, signed_reject removes one pending slot, and an already revoked generation accepts no new proposal. Sealing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
+          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by (acceptance_seq, proposal_digest). At most 128 distinct unresolved proposals may be admitted; exact replay consumes no slot, confirmed rejected command result removes one pending slot, and an already revoked generation accepts no new proposal. Sealing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
         }
       },
       "allOf": [

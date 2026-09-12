@@ -1278,15 +1278,15 @@ ak.vector.cbs_lattice.inclusion_list_obligation.v1
 
 - 非 proposer signer 签发 inclusion list，列出持有效 receipt、通过本地 verify 的 Control Move digest D。
 - **Case A**：下一 Seal include D。
-- **Case B**：下一 Seal 对 D 附 signed-reject。
-- **Case C**：下一 Seal 附 D 在 batch pre-state 下 verify_control_move 失败的证明。
-- **Case D**：下一 Seal 对 D 三者皆无。
+- **Case B**：下一 Seal 对 D 附 已确认 Seal 拒绝结果。
+- **Case C**：下一 Seal 仅附执行位置验证失败说明，没有 D 的显式 rejected command result。
+- **Case D**：下一 Seal 完全缺少 D 的命令结果。
 - **Case E**：同一 `(realm_id, signer_id, list_seq)` 出现两份内容不同的 inclusion list。
 
 期望：
 
-- Case A/B/C：Seal 可接受。
-- Case D：receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）。
+- Case A/B：Seal 可接受。
+- Case C/D：receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）。
 - Case E：构成 §7.1 equivocation evidence（list_seq 复用 slot 语义）。
 - `quorum_f0` profile 下该机制不可用，实现 MUST NOT 伪造 inclusion list 语义。
 
@@ -3693,7 +3693,7 @@ Runner MUST 执行 `device-revocation-pending-fixture.json` 的全部 semantic c
    - expected binding 两字段必须同时出现或同时缺省，且只有两个 issue action 可缺省；refresh 必须携 predecessor binding。与 derived 值不等时 decision 为 `generation_mismatch`，receipt 不回携新 binding。
    - 无权 caller、非本服务账号、未知设备与他人设备统一返回同形 `authority_mismatch`，且 caller 授权校验先于任何 device-private 读取。
    - `authority_mismatch -> device_unauthorized`，`revocation_pending` / `revoked` / `generation_mismatch` 分别 typed block；全部零签发。任一 human success 都含完整 `device_binding`。
-4. restart、exact replay、同device/generation两个不同 proposal、只 reject 其中一个、错误 proposal/Ack/authority/device-generation decision、exact signed reject 清最后一项、overdue alert但不解封；达到128条 distinct gate record 后新 proposal `limit_exceeded` 零写入，exact replay仍成功。
+4. restart、exact replay、同device/generation两个不同 proposal、只 reject 其中一个、错误 proposal/Ack/authority/device-generation decision、exact 已确认 Seal 拒绝结果 清最后一项、overdue alert但不解封；达到128条 distinct gate record 后新 proposal `limit_exceeded` 零写入，exact replay仍成功。
 5. reject-first / Seal-first terminal CAS 两种竞态，以及未被 reject终结的 late valid Seal；任何执行次序只能产生一个 terminal winner。
 6. pending 只保留恢复所需最小客户端材料，Seal后才擦除 generation-specific material；pending前合法 admission proof 在pending/Seal后仍可离线验证。
 

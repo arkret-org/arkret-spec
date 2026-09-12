@@ -76,7 +76,7 @@ sidebar:
 
 18. **会话成员与设备凭证滥用（Session/Device Credential Abuse）**
     复用未及时撤销的 device/session/gateway token 继续提交高敏操作、join、invite 或读取。
-    **授权 revoke proposer 的 pending DoS**：持有 `ak.device.revoke` authority 的主体可提交一条合法 proposal，使 exact device generation 在 covering Seal 前立即进入 `revocation_pending`，统一阻断 session grant、KeyPackage claim、to-device write、Event write 与 普通 live 提交。该可用性影响是 revoke authority 的显式组成部分，不是可由 profile 关闭的副作用。缓解边界是：(a) 未获 authority 的 caller 在读取 device-private state 前即不可区分地拒绝且零写入；(b) accepted Event、canonical Ack、exact authority/device/generation 与 pending index 原子持久化；(c) 只有同一 Ack authority quorum 的 exact `signed_reject` 可解除，overdue/timeout/admin flag/cache eviction 都不可；(d) 多个 proposal 独立计数，reject 一条不清另一条；(e) governance health / recovery 告警暴露 overdue。协议不能同时授予即时 revoke 能力又消除恶意合法 authority 的阻断能力；部署必须用 threshold/recovery authority 分离、审计与 signer rotation 管理该残余风险。
+    **授权 revoke proposer 的 pending DoS**：持有 `ak.device.revoke` authority 的主体可提交一条合法 proposal，使 exact device generation 在 covering Seal 前立即进入 `revocation_pending`，统一阻断 session grant、KeyPackage claim、to-device write、Event write 与 普通 live 提交。该可用性影响是 revoke authority 的显式组成部分，不是可由 profile 关闭的副作用。缓解边界是：(a) 未获 authority 的 caller 在读取 device-private state 前即不可区分地拒绝且零写入；(b) accepted Event、canonical Ack、exact authority/device/generation 与 pending index 原子持久化；(c) 只有唯一已确认 Seal 的 exact rejected command result 可解除该 proposal 的 pending，overdue/timeout/admin flag/cache eviction 都不可；(d) 多个 proposal 独立计数，reject 一条不清另一条；(e) governance health / recovery 告警暴露 overdue。协议不能同时授予即时 revoke 能力又消除恶意合法 authority 的阻断能力；部署必须用 threshold/recovery authority 分离、审计与 signer rotation 管理该残余风险。
 
 19. **加密状态回退与伪造（MLS Epoch Abuse）**
     通过 epoch 回退、非法 commit 顺序、已移除成员持有先前密钥继续参与解密相关流程。

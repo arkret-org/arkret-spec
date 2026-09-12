@@ -325,7 +325,7 @@
       "minimum": 1,
       "default": 30000,
       "maximum": 86400000,
-      "description": "Realm-level default first decision window for an acknowledged Control Move. A Control Proposal Ack commits decision_due_at = received_at + an effective window no greater than this value and the protocol hard ceiling of 24 hours. The deadline requires a verifiable decision (include in an accepted Seal, signed reject, or bounded signed defer); it is not an acceptance or finality SLA.",
+      "description": "Realm-level default first decision window for an acknowledged Control Move. A Control Proposal Ack commits decision_due_at = received_at + an effective window no greater than this value and the protocol hard ceiling of 24 hours. The deadline requires a verifiable decision (include in an accepted Seal, confirmed rejected command result, or bounded signed defer); it is not an acceptance or finality SLA.",
       "$comment": "Reducer/conformance validation MUST enforce proposal_decision_window_ms <= proposal_absolute_deadline_ms. If max_proposal_defers > 0, the inequality MUST be strict so at least one strictly later decision_due_at remains representable. JSON Schema cannot compare sibling numeric properties."
     },
     "proposal_absolute_deadline_ms": {

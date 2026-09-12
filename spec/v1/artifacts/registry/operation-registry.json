@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.16",
+  "version": "2026-09-12.17",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T15:37:00+08:00",
+  "generated_at": "2026-09-12T19:55:58+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3380,7 +3380,7 @@
       "http": "POST /_arkret/self/control-proposal-decisions",
       "grpc": "SelfControlProposalDecisions/Submit",
       "mq": "self.control_proposal_decisions.command.submit",
-      "notes": "Authenticated submission of one complete signed_defer or signed_reject. The receiver loads the durable accepted proposal and its immutable canonical ControlProposalAck, recomputes proposal_ack_digest, verifies the exact Realm/proposal/authority-set/deadline/defer chain and quorum, then atomically persists the decision. Exact decision replay is byte-identical duplicate; conflicting terminal or post-Seal decisions fail closed. For ak.device.revoke, only a valid signed_reject for the exact proposal/Ack (therefore the exact reducer-derived device and generation) clears that proposal's revocation_pending record; it clears no other pending revoke for the device.",
+      "notes": "Authenticated submission of one complete signed_defer for a still-pending proposal. Resolve the durable proposal and immutable canonical Ack, recompute proposal_ack_digest, verify exact Realm/proposal/authority/deadline chain and quorum, then atomically store the deferral. Exact replay returns the first durable result even after the proposal is terminal; a new deferral after a terminal Seal is rejected. This operation cannot decide acceptance, rejection or clear a device pending gate; only the unique confirmed Seal command_result can do that.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",

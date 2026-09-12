@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.21",
+  "version": "2026-09-12.22",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T19:31:35+08:00",
+  "generated_at": "2026-09-12T19:55:58+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7187,7 +7187,6 @@
           "proposal_state",
           "control_proposal_ack",
           "defer_decisions",
-          "terminal_reject",
           "fault_reason",
           "accepted_seal_id"
         ],

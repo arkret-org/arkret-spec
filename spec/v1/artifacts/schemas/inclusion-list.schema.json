@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/inclusion-list.schema.json",
   "title": "Arkret InclusionList",
-  "description": "FOCIL-style control-plane inclusion list. A non-proposer notary signer lists pending Control Move digests that passed its local verification; the next Seal MUST include, signed-reject, or prove ordered-command verification failure for every listed digest, otherwise receivers MUST reject that Seal (authz/event-auth-state-resolution.md section 7.3). A quorum configuration with f=0 has no distinct non-proposer voter and cannot supply this mechanism. The list is an accountability object, not a Seal: it never advances governance state by itself.",
+  "description": "FOCIL-style control-plane inclusion list for a configuration with a distinct non-proposer signer. Each obliged digest must have an explicit committed or rejected command result in the required Seal. A standalone verification-failure proof or deferral does not discharge this obligation. The list never advances governance state by itself.",
   "type": "object",
   "required": [
     "realm_id",

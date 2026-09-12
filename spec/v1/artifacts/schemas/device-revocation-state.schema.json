@@ -249,15 +249,15 @@
           "type": "object",
           "required": [
             "status",
-            "terminal_decision"
+            "deciding_seal_id"
           ],
           "properties": {
             "status": {
               "const": "revocation_rejected"
             },
-            "terminal_decision": {
-              "$ref": "./control-proposal-decision.schema.json#/$defs/signed_reject",
-              "description": "The only transition that clears this proposal's pending gate. Its proposal_digest MUST equal the digest recovered from proposal_event_id, its proposal_ack_digest MUST match the embedded Ack, and its verified authority set MUST be the Ack authority set."
+            "deciding_seal_id": {
+              "$ref": "./seal.schema.json#/$defs/seal_ref",
+              "description": "The unique confirmed Seal whose command_results rejects this exact proposal. Verify the proposal unit, original device/generation binding and terminal outcome; rejection clears only this proposal pending gate."
             }
           }
         }

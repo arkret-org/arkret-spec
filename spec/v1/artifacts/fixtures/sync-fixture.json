@@ -1305,7 +1305,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1315,7 +1315,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:4339a37ab7cef57cb549cbb5091733a4404bc5de167ff1c74634dfd2699c66eb",
+              "payload_digest": "sha256:0b0916ffd82f4b0f94385ac949895c15606868faf752451b5cb5381fa3d08ca1",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1325,7 +1325,7 @@
       "eligibility_context": {
         "authority_refs": [],
         "closure_command_refs": [],
-        "reducer_contract_digest": "sha256:4c718982b27186728e3b0dfa928879d2c712ccf3ae0110c4e47d946315d161cc"
+        "reducer_contract_digest": "sha256:0113797c1f9128b2e6f9ebab95b4d42e943a494085bbb14dade5b31ba59112a6"
       }
     },
     "canonical_input": {
@@ -1366,10 +1366,10 @@
       "eligibility_context": {
         "authority_refs": [],
         "closure_command_refs": [],
-        "reducer_contract_digest": "sha256:4c718982b27186728e3b0dfa928879d2c712ccf3ae0110c4e47d946315d161cc"
+        "reducer_contract_digest": "sha256:0113797c1f9128b2e6f9ebab95b4d42e943a494085bbb14dade5b31ba59112a6"
       }
     },
-    "expected_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+    "expected_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
     "cases": [
       {
         "name": "valid_quorum_accepted",
@@ -1379,7 +1379,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1389,7 +1389,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessb:witness-b.example#snapshot-witness-1",
-              "payload_digest": "sha256:4339a37ab7cef57cb549cbb5091733a4404bc5de167ff1c74634dfd2699c66eb",
+              "payload_digest": "sha256:0b0916ffd82f4b0f94385ac949895c15606868faf752451b5cb5381fa3d08ca1",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1411,7 +1411,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1421,7 +1421,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-2",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1439,7 +1439,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1449,7 +1449,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessd:witness-d.example#snapshot-witness-1",
-              "payload_digest": "sha256:65128ba37d512a1d00a9698a04714ae90f0ef054501cbb4938b827eb62ce1a3b",
+              "payload_digest": "sha256:eb723709ce208d426f84fd4f1c9659cfca806ecd64b66a13344740342350c1fe",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1466,7 +1466,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1476,7 +1476,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessc:witness-c.example#snapshot-witness-1",
-              "payload_digest": "sha256:c10225efc9bbfa08204de03f1a36e56187d7bfaaf8f8b4e9c7afe24f3635af81",
+              "payload_digest": "sha256:722533a69137d6a2eec6511486585c42b5ae0525760b366eb940f8b07cdd2760",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1494,7 +1494,7 @@
             "proof": {
               "kind": "detached_jws",
               "verification_method": "did:webvh:z6mkfixturewitnessa:witness-a.example#snapshot-witness-1",
-              "payload_digest": "sha256:2ee63d674609f434046d28f4c42aa0eb28bd0e982c3c86a75e04a5eddfebf490",
+              "payload_digest": "sha256:66a0e2645f4cfa5e5bc4eee9c7b025e6bf0464825fb19492d5995db7a19fc62f",
               "created_at": "2026-04-26T00:00:00.000Z",
               "jws": "..."
             }
@@ -1543,10 +1543,10 @@
           "eligibility_context": {
             "authority_refs": [],
             "closure_command_refs": [],
-            "reducer_contract_digest": "sha256:4c718982b27186728e3b0dfa928879d2c712ccf3ae0110c4e47d946315d161cc"
+            "reducer_contract_digest": "sha256:0113797c1f9128b2e6f9ebab95b4d42e943a494085bbb14dade5b31ba59112a6"
           }
         },
-        "expected_digest": "sha256:804df5435af46597fe3c983a9d48765c67fe6dee4970be2395c4fda77dc6539d",
+        "expected_digest": "sha256:e92fe213e70e4b96ad88da1e0717ab5a21cd167505dac248b02eeb7995b7b7a8",
         "expected_error": "signature_invalid",
         "note": "reusing the manifest context yields a different transcript digest and MUST be rejected even when the JWS verifies"
       },
@@ -1590,10 +1590,10 @@
           "eligibility_context": {
             "authority_refs": [],
             "closure_command_refs": [],
-            "reducer_contract_digest": "sha256:4c718982b27186728e3b0dfa928879d2c712ccf3ae0110c4e47d946315d161cc"
+            "reducer_contract_digest": "sha256:0113797c1f9128b2e6f9ebab95b4d42e943a494085bbb14dade5b31ba59112a6"
           }
         },
-        "expected_digest": "sha256:feebc3c26b135a4e252e5bdc1538f327738134170e57386f2f813acdf5684e09",
+        "expected_digest": "sha256:25e1ad2cb86ad93ef46bd647c7b441c319b243476a3908a5a3e85ccff7e9ae39",
         "expected_error": "signature_invalid"
       },
       {
@@ -1638,7 +1638,7 @@
           "closure_command_refs": [
             "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
           ],
-          "reducer_contract_digest": "sha256:4c718982b27186728e3b0dfa928879d2c712ccf3ae0110c4e47d946315d161cc"
+          "reducer_contract_digest": "sha256:0113797c1f9128b2e6f9ebab95b4d42e943a494085bbb14dade5b31ba59112a6"
         },
         "reuse_original_witness_proofs": true,
         "expected_error": "signature_invalid"

@@ -8537,7 +8537,7 @@
     },
     "notary_fault_censorship_payload": {
       "type": "object",
-      "description": "Notary censorship evidence: a signed control-plane receipt whose event digest is provably absent from the obliged Seal's control_event_set_root and that received neither signed-reject nor defer. Does NOT automatically disqualify the notary; adds an audit fault record. See authz/event-auth-state-resolution.md section 7.2.",
+      "description": "Notary censorship evidence: a signed control-plane receipt whose event digest is provably absent from the obliged Seal's control_event_set_root and that received neither confirmed rejected command result nor defer. Does NOT automatically disqualify the notary; adds an audit fault record. See authz/event-auth-state-resolution.md section 7.2.",
       "required": [
         "signer_id",
         "receipt",
@@ -8561,7 +8561,7 @@
         "seal_ref": {
           "type": "string",
           "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
-          "description": "The Seal that was obliged to include / signed-reject / defer the receipted Control Move."
+          "description": "The Seal that was obliged to include / confirmed rejected command result / defer the receipted Control Move."
         },
         "non_membership_proof": {
           "type": "object",
@@ -8569,7 +8569,7 @@
         },
         "missing_rejection_or_defer_proof": {
           "type": "object",
-          "description": "Optional structured evidence that no signed-reject / defer covering the receipt exists in the obliged window."
+          "description": "Optional structured evidence that no confirmed rejected command result / defer covering the receipt exists in the obliged window."
         }
       },
       "additionalProperties": false

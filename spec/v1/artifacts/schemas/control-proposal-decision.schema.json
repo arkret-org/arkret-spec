@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/control-proposal-decision.schema.json",
   "title": "Arkret Control Proposal Ack and Decision",
-  "description": "Quorum-capable Control Proposal Acks and signed reject/defer decisions for CBS Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
+  "description": "Control Proposal Acks and signed deferrals. Terminal committed and rejected outcomes exist only in the unique confirmed Seal command_results.",
   "oneOf": [
     {
       "$ref": "#/$defs/control_proposal_ack"
@@ -116,10 +116,7 @@
       ],
       "properties": {
         "kind": {
-          "enum": [
-            "signed_reject",
-            "signed_defer"
-          ]
+          "const": "signed_defer"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -141,14 +138,15 @@
         },
         "defer_count": {
           "type": "integer",
-          "minimum": 0,
+          "minimum": 1,
           "maximum": 2
         },
         "reason_code": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 96,
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "enum": [
+            "dependency_missing",
+            "quorum_unreachable",
+            "temporarily_unavailable"
+          ]
         },
         "authority_set_ref": {
           "$ref": "#/$defs/digest"
@@ -164,60 +162,6 @@
           "description": "Canonical ascending verification_method order. Every proof signs the same decision payload and the set independently satisfies the Control Proposal Ack authority quorum."
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "signed_reject"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "defer_count": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 2
-              },
-              "reason_code": {
-                "enum": [
-                  "capability_denied",
-                  "cas_conflict",
-                  "policy_denied",
-                  "schema_violation",
-                  "superseded"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "signed_defer"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "defer_count": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 2
-              },
-              "reason_code": {
-                "enum": [
-                  "dependency_missing",
-                  "quorum_unreachable",
-                  "temporarily_unavailable"
-                ]
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "signed_defer": {
@@ -229,20 +173,6 @@
           "properties": {
             "kind": {
               "const": "signed_defer"
-            }
-          }
-        }
-      ]
-    },
-    "signed_reject": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/proposal_decision"
-        },
-        {
-          "properties": {
-            "kind": {
-              "const": "signed_reject"
             }
           }
         }
@@ -319,7 +249,7 @@
     },
     "control_proposal_decision_submit_request_body": {
       "type": "object",
-      "description": "Standard authenticated carrier for a complete signed defer or signed reject. The receiver resolves the durable proposal and its canonical Ack before accepting any decision; request data cannot create or replace those facts.",
+      "description": "Standard authenticated carrier for a signed deferral of a still-pending proposal. The receiver resolves the durable proposal and canonical Ack; request data cannot create or replace them, or decide a terminal outcome.",
       "required": [
         "decision"
       ],
@@ -353,58 +283,12 @@
           "$ref": "#/$defs/digest"
         },
         "decision_kind": {
-          "enum": [
-            "signed_defer",
-            "signed_reject"
-          ]
+          "const": "signed_defer"
         },
         "proposal_state": {
-          "enum": [
-            "deferred",
-            "rejected"
-          ]
+          "const": "deferred"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "decision_kind": {
-                "const": "signed_defer"
-              }
-            },
-            "required": [
-              "decision_kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "proposal_state": {
-                "const": "deferred"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "decision_kind": {
-                "const": "signed_reject"
-              }
-            },
-            "required": [
-              "decision_kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "proposal_state": {
-                "const": "rejected"
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "control_proposal_decision_read_request_body": {
@@ -456,7 +340,6 @@
             "pending",
             "deferred",
             "overdue",
-            "rejected",
             "sealed"
           ]
         },
@@ -472,15 +355,12 @@
             "$ref": "#/$defs/signed_defer"
           }
         },
-        "terminal_reject": {
-          "$ref": "#/$defs/signed_reject"
-        },
         "fault_reason": {
           "const": "control_proposal_decision_overdue"
         },
         "accepted_seal_id": {
           "$ref": "./seal.schema.json#/$defs/seal_ref",
-          "description": "The unique confirmed non-quarantined Seal whose command_results contains this proposal. An Event belongs to at most one command result in the confirmed history, so multiple direct covering Seals are invalid. This is an acceptance observation, not the current confirmed head or an authoring seal_basis."
+          "description": "The unique confirmed Seal whose command_results contains this exact proposal unit, whether committed or rejected. Consumers MUST inspect that result before reporting business success. This reference is not the current head or an authoring basis."
         }
       },
       "allOf": [
@@ -501,13 +381,6 @@
                 "not": {
                   "required": [
                     "defer_decisions"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "terminal_reject"
                   ]
                 }
               },
@@ -547,13 +420,6 @@
               {
                 "not": {
                   "required": [
-                    "terminal_reject"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
                     "fault_reason"
                   ]
                 }
@@ -587,46 +453,6 @@
               {
                 "not": {
                   "required": [
-                    "terminal_reject"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "accepted_seal_id"
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "proposal_state": {
-                "const": "rejected"
-              }
-            },
-            "required": [
-              "proposal_state"
-            ]
-          },
-          "then": {
-            "required": [
-              "terminal_reject"
-            ],
-            "allOf": [
-              {
-                "not": {
-                  "required": [
-                    "fault_reason"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
                     "accepted_seal_id"
                   ]
                 }
@@ -650,13 +476,6 @@
               "accepted_seal_id"
             ],
             "allOf": [
-              {
-                "not": {
-                  "required": [
-                    "terminal_reject"
-                  ]
-                }
-              },
               {
                 "not": {
                   "required": [
@@ -704,13 +523,6 @@
                 "not": {
                   "required": [
                     "defer_decisions"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "terminal_reject"
                   ]
                 }
               }

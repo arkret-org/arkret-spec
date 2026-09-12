@@ -57,7 +57,7 @@ K 为完整已验证输入证据集合。持久分类由 K、对应安全域的�
 
 普通 Event 不等待关闭决定。实际撤销时汇集可获得的目标历史，不等待所有副本在线；关闭证明只承诺选定集合，不证明世界历史收齐。最大 actor_seq、wall clock、HLC 和摘要排序 MUST NOT 代替完整 Event 身份。
 
-使用已关闭资格的 e，仅在历史授权成立且 e 属于每个适用 C_R 时保持 eligible；否则 quarantined。多个适用 cut 允许集取交集，不以较宽后继 cut 复活被另一关闭排除的事件。缺 membership 证明时 pending，不把本地查不到当成 non-membership。
+使用已关闭资格的 e，仅在历史授权成立且 e 属于每个适用 C_R 时保持 eligible；否则 quarantined。多个适用 cut 允许集取交集，不以较宽后继 cut 复活被另一关闭排除的事件。已验证授权坐标后，任一完整适用关闭集合明确排除 e，或实际执行依赖已有确定的无效结果，即足以 quarantine；其它依赖尚缺材料不能推翻这个已证明的否定结论。尚无确定否定且缺必要 membership 证明时 pending，不把本地查不到当成 non-membership。数学签名、绑定或结构非法仍按拒绝处理。
 
 新加入、重新授权与恢复产生新授权实例或 generation；旧 Event 不得换标签进入新代。父 grant 关闭按 action 传递，多个匹配 grant 的 constraints 仍全部求值。Owner transfer 不隐含整代撤权，authority reset 按其登记范围使旧 generation 失效。
 
@@ -162,9 +162,9 @@ transition 的 snapshot commitment 按原 suite 验证其声明的确切数据�
 
 除 [`cbs-profiles.md` §4](./cbs-profiles.md) 定义的 authority-authored human
 self-principal PCR Move 外，控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名
-Control Proposal Ack（控制提案签收）或签名 rejection。该例外已由 current accepted device 作为
+Control Proposal Ack（控制提案签收）；准入失败通过登记错误返回，不创建第二种安全终局证明。该例外已由 current accepted device 作为
 exact Move 的 author/authority，不产生第二份 Ack 或 decision deadline，但仍必须进入 pending Control
-index，并且只有 accepted successor Seal 能使其生效。**`ak.device.revoke` 明确不属于此 Ack-less 例外**：为使可验证 `signed_reject` 始终具有唯一 `proposal_ack_digest`，每个 accepted revoke 都 MUST 将 canonical Ack 与 accepted Event、derived exact device/generation record、pending index 原子持久化；无有效 Ack 时零写入。`proposal_intake_sla_ms` 的权威字段是
+index，并且只有 accepted successor Seal 能使其生效。**`ak.device.revoke` 明确不属于此 Ack-less 例外**：为固定 pending 阻断及延期审计的唯一 `proposal_ack_digest`，每个 accepted revoke 都 MUST 将 canonical Ack 与 accepted Event、derived exact device/generation record、pending index 原子持久化；无有效 Ack 时零写入。`proposal_intake_sla_ms` 的权威字段是
 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `proposal_intake_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准，不用本地接收时间。
 
 **Proposal 有界决议（normative）**：`proposal_intake_sla_ms` 只管「多久确认收到」。authority
@@ -252,16 +252,10 @@ authority signatures))`；同一有效authority集合只有一种排序和一种
 
 每个决议窗口到期前，authority MUST 产生以下之一：
 
-1. proposal digest 被 accepted Seal 的 covered set 覆盖；
-2. `signed_reject`，携带 closed `reason_code`；
-3. `signed_defer`，携带 closed `reason_code`、严格递增且不晚于 `absolute_due_at` 的新
-   `decision_due_at`，并把 `defer_count` 恰好加一。
+1. exact proposal unit 在唯一已确认 Seal 的 `command_results` 中取得 committed 或 rejected 终局；
+2. `signed_defer`，携带封闭 `reason_code`、严格递增且不晚于 `absolute_due_at` 的新 `decision_due_at`，并把 `defer_count` 恰好加一。
 
-`signed_reject.reason_code` 的封闭集合为 `capability_denied`、`cas_conflict`、
-`policy_denied`、`schema_violation`、`superseded`；
-`signed_defer.reason_code` 的封闭集合为 `dependency_missing`、`quorum_unreachable`、
-`temporarily_unavailable`。实现不得接受
-未登记字符串，也不得把 defer 原因用于 terminal reject。
+`signed_defer.reason_code` 恰为 `dependency_missing`、`quorum_unreachable`、`temporarily_unavailable`。延期不是业务拒绝。只有 Seal 的完整命令结果决定业务成功或拒绝；失败结果无业务效果，其 `reason_code` 使用全局注册错误原因。MUST NOT 再签发独立的拒绝 decision，也不能以缺依赖或延期上限耗尽制造终局拒绝。
 
 每个 defer MUST 引用完整 canonical Ack-set digest，绑定同一 proposal、Realm 与 authority
 set，并由当前 Ack quorum 对同一 decision payload 产生按 verification method canonical
@@ -269,16 +263,15 @@ set，并由当前 Ack quorum 对同一 decision payload 产生按 verification 
 `payload_digest`必须等于该值、`created_at`必须等于`decided_at`，签名transcript固定为
 `JCS({context:"ak.control_proposal_decision_proof.v1",payload_digest,
 verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 defer count拼接。它还必须
-原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
-决议，**不是** proposal 被接受，也不提供 finality；只有第 1 项中的 accepted Seal 提供
-控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
+原样保留 `absolute_due_at`。`signed_defer` 只提供可验证的延期审计，不提供 finality；只有第 1 项的已确认 Seal 提供控制面终局。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
 receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
 
-签名 decision 的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 先从 durable store 读取 accepted proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，再验证 exact Realm/proposal/authority set/deadline/defer chain/quorum 并原子写 decision；caller 不能随请求创建或替换 Ack。read 只投影 canonical Ack、verified decision chain 与 covering Seal，不能生成 decision 或清 pending。对 `ak.device.revoke`，`signed_reject` 通过 proposal Event 与 reducer-derived `ak.schema.device_revocation_state.v1` record 传递性绑定 exact device/generation；只清该 proposal，其他同目标 pending record仍保持 gate。terminal reject 必须对应同一安全序列中该命令的 rejected outcome；安全日志唯一终态先持久化再对外签发 decision。commit/reject 不能由不同接收站的先到顺序竞争，exact retry 返回同一持久结果。
+签名延期的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 从 durable store 读取已准入 proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，验证 exact Realm/proposal/authority set/deadline/defer chain/quorum，并只对尚未终结的 proposal 原子写延期；caller 不能创建或替换 Ack。已持久化延期的 exact retry 返回首次结果，不能重新延长窗口。终局和延期写入与同一 proposal 的持久决定串行化。
+
+read 的 `proposal_state` 恰为 pending/deferred/overdue/sealed。`sealed` 表示 exact unit 已有唯一终局，不等于业务成功；`accepted_seal_id` 指向该 Seal，消费者 MUST 核验它的对应 `command_results` 是 committed 才宣布成功，rejected 则呈现其真实原因。read 不合成 decision、不清 pending、不以当前 head 代替确切终局。对于 `ak.device.revoke`，仅该命令的已确认 rejected outcome 清除自己的 pending record；其它同目标 proposal 不受影响。唯一安全历史中同一命令不能先拒绝后接受或先接受后拒绝；exact retry 返回同一持久结果。
 
 **逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
-`decision_due_at` 前没有上述三者，或到达 `absolute_due_at` / defer 上限后仍未 include /
-signed-reject 时：
+`decision_due_at` 前没有上述两者，或到达 `absolute_due_at` / defer 上限后仍未取得 terminal command result 时：
 
 1. Realm governance health 投影进入 `degraded`，记录 proposal digest、Ack、当前
    decision chain 与 deadline；
@@ -346,7 +339,7 @@ Seal 与当前 authority/fence；旧进程或轮换前 key 的重新上线不恢
 
 已 sealed/rejected 的请求返回原结果；旧 basis 或超出 replay window 的请求经当前已登记的
 合法决议路径终结，不能改写原签名 basis。暂缺 Ack/依赖、损坏记录与已验证不合法的请求 MUST
-区分：隔离单项调度故障、保留安全 gate 与可诊断恢复入口，MUST NOT 伪造 signed-reject。
+区分：隔离单项调度故障、保留安全 gate 与可诊断恢复入口，MUST NOT 伪造终局拒绝。
 同 Realm 已证明无依赖的就绪工作和其他 Realm MUST 获得公平处理机会；扫描预算不是队列总量
 上限，重复重启或固定读取第一页不能使已准入义务永久饿死。安全收紧与合法 recovery 要有处理
 机会，但不得违反 barrier 排批或整张 Seal 的原子验证。

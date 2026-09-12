@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
-      "sha256": "afc8d54f1b8b629fd6ced9b7d47ffaa5ac5a620b3f649e826d0fdb5c963e86ea"
+      "sha256": "53763fe9e46441b6d85c89d34993bf6a7b5551080e42364cad5573b6764b4b44"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
-      "sha256": "07977c2a8ca1a18f0f11be26a9b2c7fd3ca3c6005967241cbaf148e62a267ec7"
+      "sha256": "9111e89ce767ee0ee8d4a033d70a5f508ce71d24b38bccb833472c349448959d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -410,7 +410,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "96b9f4e8b7e1ca8e9091a8267c6b59c76f38691eb735c3326088f7c6d75a3232"
+      "sha256": "ce399e826e8887bcb21d824fa42821c7d9ac48c84c48be328f3f747ae275d40f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

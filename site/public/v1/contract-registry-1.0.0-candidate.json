@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.21",
+  "version": "2026-09-12.22",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T19:31:35+08:00",
+  "generated_at": "2026-09-12T19:55:58+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9990,7 +9990,7 @@
         "schema_id": "ak.schema.control_proposal_decision.v1",
         "file": "schemas/control-proposal-decision.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
+        "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed deferrals (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
       },
       {
         "schema_id": "ak.schema.controller_account_gate_attestation.v1",
@@ -10068,7 +10068,7 @@
         "schema_id": "ak.schema.device_revocation_state.v1",
         "file": "schemas/device-revocation-state.schema.json",
         "status": "active",
-        "description": "Reducer-owned durable state machine for accepted ak.device.revoke proposals: mandatory Ack, exact authority/device/generation binding, universal revocation_pending gates, exact signed-reject release, overdue fault retention and covering-Seal finality."
+        "description": "Reducer-owned durable state machine for accepted ak.device.revoke proposals: mandatory Ack, exact authority/device/generation binding, universal revocation_pending gates, exact confirmed rejected command result release, overdue fault retention and covering-Seal finality."
       },
       {
         "schema_id": "ak.schema.did_binding_contracts.v1",
@@ -10302,7 +10302,7 @@
         "schema_id": "ak.schema.inclusion_list.v1",
         "file": "schemas/inclusion-list.schema.json",
         "status": "active",
-        "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest",
+        "description": "Inclusion-list accountability for a configuration with a distinct non-proposer signer. Each obliged proposal requires its explicit committed or rejected result in the unique confirmed Seal; a standalone verification-failure claim is insufficient.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "control-plane inclusion list",
@@ -11208,8 +11208,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-12.13",
-    "generated_at": "2026-09-12T19:31:35+08:00"
+    "version": "2026-09-12.14",
+    "generated_at": "2026-09-12T19:55:58+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -15584,7 +15584,7 @@
         "http": "POST /_arkret/self/control-proposal-decisions",
         "grpc": "SelfControlProposalDecisions/Submit",
         "mq": "self.control_proposal_decisions.command.submit",
-        "notes": "Authenticated submission of one complete signed_defer or signed_reject. The receiver loads the durable accepted proposal and its immutable canonical ControlProposalAck, recomputes proposal_ack_digest, verifies the exact Realm/proposal/authority-set/deadline/defer chain and quorum, then atomically persists the decision. Exact decision replay is byte-identical duplicate; conflicting terminal or post-Seal decisions fail closed. For ak.device.revoke, only a valid signed_reject for the exact proposal/Ack (therefore the exact reducer-derived device and generation) clears that proposal's revocation_pending record; it clears no other pending revoke for the device.",
+        "notes": "Authenticated submission of one complete signed_defer for a still-pending proposal. Resolve the durable proposal and immutable canonical Ack, recompute proposal_ack_digest, verify exact Realm/proposal/authority/deadline chain and quorum, then atomically store the deferral. Exact replay returns the first durable result even after the proposal is terminal; a new deferral after a terminal Seal is rejected. This operation cannot decide acceptance, rejection or clear a device pending gate; only the unique confirmed Seal command_result can do that.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -16799,8 +16799,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-12.16",
-    "generated_at": "2026-09-12T15:37:00+08:00",
+    "version": "2026-09-12.17",
+    "generated_at": "2026-09-12T19:55:58+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

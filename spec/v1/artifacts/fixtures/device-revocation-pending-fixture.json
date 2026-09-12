@@ -136,7 +136,7 @@
     {
       "name": "multiple_distinct_proposals_are_independent",
       "given": "two different accepted proposal Event IDs target the same device and generation",
-      "action": "validly signed-reject only the first proposal",
+      "action": "validly confirmed rejected command result only the first proposal",
       "expected": "revocation_pending",
       "invariants": [
         "the first record becomes revocation_rejected",
@@ -181,20 +181,20 @@
       ]
     },
     {
-      "name": "only_exact_signed_reject_clears_last_pending",
+      "name": "only_exact_rejected_command_outcome_clears_last_pending",
       "given": "one unresolved pending revoke",
-      "action": "submit decisions with wrong proposal, Ack digest, authority set, device-generation lineage, then the exact valid signed_reject",
-      "expected": "only_exact_decision_clears",
+      "action": "accept a verified Seal rejecting this exact proposal unit; reject mismatched proposal, authority and device-generation binding",
+      "expected": "only_exact_rejected_outcome_clears",
       "invariants": [
-        "wrong decisions change no state",
-        "exact decision is persisted through ak.self.control_proposal_decisions.command.submit.v1",
+        "invalid Seal or mismatched unit changes no state",
+        "the unique confirmed rejected command result clears only this proposal gate",
         "device returns to its independently verified lifecycle state",
         "minimal recovery material retained during pending remains available"
       ]
     },
     {
       "name": "overdue_stays_blocked_and_alerts",
-      "given": "the decision deadline and absolute deadline pass without Seal or signed_reject",
+      "given": "the decision deadline and absolute deadline pass without a terminal Seal",
       "action": "rebuild governance health and attempt a blocked action",
       "expected": "revocation_pending_overdue",
       "invariants": [
@@ -204,14 +204,14 @@
       ]
     },
     {
-      "name": "reject_and_seal_terminal_race_is_serialized",
-      "given": "valid signed_reject and covering Seal race for the same proposal",
-      "action": "run once with reject terminal CAS first and once with Seal terminal CAS first",
-      "expected": "single_terminal_winner",
+      "name": "command_outcome_is_unique_in_confirmed_sequence",
+      "given": "two candidate Seals propose different outcomes for the same proposal and predecessor",
+      "action": "confirm one candidate, then replay the other and restart",
+      "expected": "single_confirmed_terminal_outcome",
       "invariants": [
-        "reject-first yields revocation_rejected and later Seal cannot revive the proposal",
-        "Seal-first yields revoked and later reject cannot clear it",
-        "late Seal remains acceptable only when no earlier terminal reject won"
+        "a confirmed rejected result cannot later become committed",
+        "a confirmed committed result cannot later become rejected",
+        "restart and exact replay preserve the unique confirmed result"
       ]
     },
     {
@@ -223,17 +223,32 @@
         "covering_seal_id and sealed_at are durable truth",
         "the revoked generation remains blocked after restart",
         "client erases generation-specific session, KeyPackage and to-device material only now",
-        "a later signed_reject cannot restore it"
+        "a later competing command outcome cannot restore it"
       ]
     },
     {
-      "name": "historical_admission_is_not_retroactively_invalidated",
-      "given": "an Event was independently accepted from its valid producer proof, signer evidence and authority refs before the pending linearization point",
-      "action": "verify it after pending and after covering Seal",
-      "expected": "accept_historical_event",
+      "name": "historical_eligibility_is_recomputed_from_confirmed_closures",
+      "given": "the same original Event and verified historical authorization instance",
+      "action": "recompute after receiving the complete confirmed closure evidence",
+      "expected": "classification_depends_on_exact_closure_membership",
       "invariants": [
-        "accepted_at remains the admission-time cut",
-        "offline verification does not query current PCR state"
+        "Event identity and original evidence are unchanged across cases",
+        "receiver accepted_at and arrival order do not decide persistent eligibility",
+        "historical import does not repeat live side effects"
+      ],
+      "classification_cases": [
+        {
+          "closure_membership": "included_in_all_applicable_closures",
+          "classification": "eligible"
+        },
+        {
+          "closure_membership": "excluded_by_a_complete_applicable_closure",
+          "classification": "quarantined"
+        },
+        {
+          "closure_membership": "necessary_frontier_evidence_missing",
+          "classification": "pending"
+        }
       ]
     }
   ]

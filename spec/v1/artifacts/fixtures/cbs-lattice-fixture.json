@@ -473,7 +473,7 @@
     },
     {
       "name": "inclusion_list_obligation",
-      "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
+      "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by an explicit committed or rejected command result; standalone verification failure is insufficient.",
       "notary_kind": "quorum",
       "notary_proposer_id": "ak:did_core:webvh:z6mkfixturenotaryproposerexample",
       "notary_signer_id": "ak:did_core:webvh:z6mkfixturenotarysignerexample",
@@ -503,17 +503,18 @@
           }
         },
         {
-          "name": "next_seal_signed_rejects_digest",
-          "seal_action": "signed_reject",
+          "name": "next_seal_records_rejected_command_result",
+          "seal_action": "rejected_command_result",
           "expected": {
             "seal_result": "accept"
           }
         },
         {
-          "name": "next_seal_proves_pre_state_failure",
+          "name": "standalone_verification_failure_is_not_terminal",
           "seal_action": "pre_state_failure_proof",
           "expected": {
-            "seal_result": "accept"
+            "seal_result": "reject",
+            "reason": "inclusion_list_violation"
           }
         },
         {
