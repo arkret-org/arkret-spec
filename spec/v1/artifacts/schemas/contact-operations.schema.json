@@ -637,6 +637,7 @@
     },
     "contact_current_proof": {
       "type": "object",
+      "description": "Existing source Station attestation of its confirmed directional Contact projection. Authorizing proofs are issued only after the exact source command is committed by the unique confirmed Seal; the peer verifies the independently derived Station's historical service authority and the original holder producer separately, without receiving private PCR history.",
       "required": [
         "contact_round_id",
         "issuer_id",
@@ -654,7 +655,7 @@
         },
         "issuer_id": {
           "$ref": "#/$defs/did_core_id",
-          "description": "Station service authority that signed this proof at fresh_until's evidence lineage. It is not a Contact participant identity."
+          "description": "Station service authority independently derived from the exact directional participant and verified at signature.created_at. It is not a Contact participant identity; fresh_until is a freshness limit, not an authority-history lookup time."
         },
         "peer": {
           "$ref": "#/$defs/contact_peer",
@@ -666,7 +667,7 @@
         },
         "terminal": {
           "type": "boolean",
-          "description": "Signed current-head classification. true means head_event_ref is an accepted ak.contact.tombstone terminal head for this basis; false means the basis remains non-terminal. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
+          "description": "Signed current-head classification. true authenticates the round-wide fence from a confirmed ak.contact.tombstone; both directional proofs may reference that same source tombstone without inventing another holder Event. The counterpart verifies the original source proof and retains its own direction's complete_through version. Incomplete local direction material permits a known-terminal fence but no fabricated completeness proof. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
         },
         "accepted_frontier": {
           "type": "array",
@@ -678,10 +679,12 @@
         },
         "complete_through": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Last completely authenticated version of the direction identified by (contact_round_id, issuer_id, peer): initial normal accepted or implicit glare request head is 1, successors use their confirmed payload.version. Never PCR actor_seq, request slot_version, Seal height or receiver time. A counterpart terminal acknowledgement retains its local confirmed version, without copying the remote version or incrementing it."
         },
         "fresh_until": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/timestamp",
+          "description": "Current freshness bound for Contact mutation and Direct Conversation security founding. Expiry alone does not revoke a previously fully verified ordinary-message authorization interval or require the source Station online; known revocations and actual authorization bounds still apply."
         },
         "signature": {
           "$ref": "./principal-operations.schema.json#/$defs/signature"
@@ -2015,6 +2018,7 @@
     },
     "normal_response_acceptance_receipt": {
       "type": "object",
+      "description": "Source Station attestation issued only after the exact response Event's command unit is committed and its Contact effect atomically installed. Pending admission or proposal acknowledgement is not this receipt.",
       "required": [
         "contact_round_id",
         "request_receipt",
@@ -2708,6 +2712,7 @@
       ]
     },
     "peer_contact_submit_request": {
+      "description": "Closed Contact-only peer carrier. Each Event branch carries existing source Station attestation of a truly Seal-committed Contact projection; pending admission cannot produce an authorizing receipt or receipted outbox. The original holder producer remains independently authenticated. No private PCR bootstrap, Seal or new confirmation field is carried.",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.contact.accepted",
         "ak.contact.rejected",
@@ -3060,6 +3065,7 @@
     },
     "reject_acceptance_receipt": {
       "type": "object",
+      "description": "Source Station attestation of the committed Contact rejection Event, which is a successful terminal domain command. A Seal-rejected command or pending Event cannot produce this receipt.",
       "required": [
         "request_receipt",
         "reject_event_ref",
@@ -3089,6 +3095,7 @@
     },
     "request_acceptance_receipt": {
       "type": "object",
+      "description": "Source Station attestation issued only after the exact request Event's command unit is committed and its Contact effect atomically installed. It may seed normal/glare round evidence; a pending admission receipt cannot occupy this type.",
       "required": [
         "core",
         "receipt_digest",

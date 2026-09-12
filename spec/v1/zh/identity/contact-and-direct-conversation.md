@@ -74,7 +74,8 @@ request、respond、reject、scope replacement 与 tombstone 共享唯一写链�
 ```text
 prepare private durable reservation
 → holder-authorized signer 签 closed Event，并在必要时附外部 authority Control Proposal Ack
-→ commit 在 holder PCR 本地原子 acceptance
+→ commit 在 holder PCR 耐久保存 pending Control Event
+→ 唯一已确认 Seal 的 exact command result 为 committed，原子安装 Contact effect
 → source-signed acceptance receipt + durable receipted outbox
 → peer carrier 投递原始 signed fact 与对应 receipt
 → peer 保存 verified mirror、checkpoint/current lease 与 transport receipt
@@ -93,9 +94,29 @@ Control Move；commit body 可携带`control_proposal_ack`，其结构和验证�
 `EventInitialSubmission.control_proposal_ack`完全相同。当接收 Station 不能代表当前 authority set
 提供配置要求的唯一签名时，caller **MUST** 携带该字段；服务端能产生时该字段 **MAY** 省略。该证据只是
 Event 外的 publication evidence，不进入 reserved Event bytes 或 Event digest。同一
-operation/idempotency/phase + 相同完整bytes回放该phase首次outcome；prepare与commit必须使用同一
+operation/idempotency/phase + 相同完整bytes回放该phase首次耐久终局 outcome；prepare与commit必须使用同一
 operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立。响应丢失、重启或outbox redelivery
 不得产生第二Event、第二receipt或第二lineage head。
+
+上述 acceptance receipt、授权 lineage/current proof、normal/glare 建轮材料与对外 receipted outbox 只能从真实
+已确认 Contact effect 产生。source MUST 核对唯一已确认 Seal 中包含 exact Event digest 的 command unit 实际
+结果为 `committed`，并在该 unit 全部成员与 effects 原子安装后固定原始 Event bytes、receipt 与 outbox 内容。
+仅 pending Event、Control Proposal Ack、HTTP 接收成功、IngressReceipt 或本地预折叠状态均不足；`rejected`
+unit 不产生这些效果。未决期间可以保存本地待办与非授权接收结果，但 MUST NOT 将它们编码为本节 acceptance
+receipt、用于 round/lineage 授权或发送至 peer carrier。重启和重试从同一确切终局恢复，不能以重新接收冒充确认。
+
+self commit 已耐久保存 Event 但尚无确切 command 终局时，返回既有 HTTP `503 temporarily_unavailable`
+Problem Details，并在可预估等待时提供 `Retry-After`；不得返回 `ContactOperationOutcome.accepted`、
+将未决编码为 `failed`，或向客户端提前交付可建 round 的 receipt。503 不承诺 Event 未保存，也不是永久幂等
+终局。客户端继续使用原 operation/idempotency/phase 与逐字相同的完整 commit bytes；服务端保留该绑定，
+重新读取同一 Event 的确切终局，不能让临时 HTTP 缓存永久遮蔽后来的确认。`prepared` draft 的首次结果固定；
+commit 的首个耐久终局 `accepted` 或真实终局 `failed` 一旦产生才逐字固定。原 reservation 到期不能删除已经
+durable admitted 的 Event、重新分配 EventId 或改签 receipt/round；既有身份与 exact retry 授权检查仍执行。
+接纳前的暂时失败与接纳后的未确认/响应丢失均重试同一 commit，不能从 HTTP 错误推断命令没有进入 pending。
+对 human device 持有唯一 PCR signing authority 的分支，客户端收到该未确认响应后 MUST 继续已有的 pending
+Control 查询、确切 Seal prepare/sign/submit 流程，再以原 bytes 重试 Contact commit 取得终局；该 Seal 流程不得
+以先取得 Contact `accepted` 为前置，否则形成相互等待。客户端只签自己既有 intent 对应的确切准备结果，不能
+因重试扩展批准范围。此安全变更流程不参与既有 Direct Conversation 的普通消息发送。
 
 对 human self-principal PCR，commit 的 exact Event 已由 current active accepted device 以 canonical
 `{holder}#{device_id}` method 签名；该 device method 同时是 current 唯一 holder signing authority，因此这是
@@ -192,6 +213,17 @@ bundle 的两张 proof 必须覆盖 `p0 -> p1` 与 `p1 -> p0` 两个相反方向
 proof 即使共同指向同一 tombstone head，仍按 signed peer 覆盖两个方向。重复方向、对调 peer、pair 外 peer、同一方向
 两个时点快照或错误 service signer全部拒绝。
 
+这是源 Station 对自身已确认 Contact 投影的既有跨主体认证合同。接收 Station MUST 从 exact human AccountId
+的 Station，或 exact Agent 的已认证 controller AccountId 的 Station，独立确定该方向允许的 service issuer，
+验证其在 proof/receipt evidence time 的历史 `assertionMethod`、签名与全部 participant/ref/round 绑定。
+不能从待验 proof 的任意 `issuer_id` 自钉信任，不能将同 core 不同 Station 合并。原始 Event 的 content digest、
+holder producer proof 及该 human device / Agent / controller 分支的完整历史授权材料仍须按既有 producer 规则
+独立认证；service proof 不替代 holder 签名，也不把 peer transport 身份变成 Contact author。
+接收方通过该已登记的签名投影合同认证 Contact 确认结果，不重新读取源 PCR、认证其初始 notary 或重放其私有
+控制历史；本 carrier 不增加 PCR genesis、registration body、Seal 或通用 CBS conclusion 披露权。source checkpoint
+仍是本节登记的 exact source fact commitment，**不是 Seal ref，也不是 Seal 签名**。本合同不改变
+[CBS §9](../authz/cbs-profiles.md#9-治理结果证明normative) 中其它治理结果操作的独立证明义务。
+
 `glare_concurrency_attestation` 同理签 `subject_id: ActorId`、`peer_id: ActorId` 与
 `issuer_id: DidCoreId`。两张 attestation 必须分别是 `p0 -> p1` 与 `p1 -> p0`，issuer 必须是 subject 在
 `observed_at` 已接受的 Station service authority；同 core 异 Station与同 Station双账号均按完整 ActorId 独立判定，
@@ -254,6 +286,18 @@ lineage 永不复活，recontact 必须创建全新 request receipt(s)与新 rou
 source service 必须对每个 issuer lineage 签 monotonic head checkpoint/current lease，逐字绑定 current head、
 accepted frontier、`complete_through` 与 `fresh_until`。peer mirror 保留 source signed fact、lease/checkpoint 与
 transport receipt；收到更高 incoming signed head 时 target service 立即安装已认证变更并阻止已撤销方向的新提交，不等待轮询。
+`contact_current_proof.complete_through` 恰为 signed `(contact_round_id, issuer_id, peer)` 方向已完整认证的
+lineage version：normal 初始 accepted 与 glare 中以 request 为 head 的隐式初始方向均为 1；同方向后继 scope
+update / tombstone 使用其已确认 payload.version。它不是 PCR actor_seq、request admission slot_version、Seal
+高度、接收顺序或时钟。非 terminal proof 的 head 必须逐字对应该方向及该 version，不能以较大无关计数声明完整。
+
+whole-round terminal 的对端确认保留 §2 允许的共享 tombstone head：必须先验证 tombstone 的真实源方向 proof，
+再对其在本地方向安装的 terminal fence 签名。该对端 proof 的 `complete_through` 保留**本地方向最后已确认且
+完整的 version**，不复制远端 version、不凭终止确认加一，也不合成另一条 holder Event。共享 tombstone head
+证明 whole-round 终止，不声称它是另一方向新写入的 lineage head。若本地方向必要材料尚缺，接收方只持久保存
+已认证 known-terminal fence 并阻止该 round 的新提交，不产生授权或虚假的 completeness proof；待完整材料补齐
+后才可签发本地方向 terminal acknowledgement。`glare_concurrency_attestation.complete_through` 的 request slot
+completeness 合同不受此 direction-version 定义影响。
 current freshness 是 Contact mutation 与 Direct Conversation 安全 founding 的执行条件；初次缺少可验证 directional 授权仍不得发送。
 既有 Direct Conversation 的普通聊天发送可使用此前已完整验证、绑定同 pair/round 的 directional 授权区间；仅 current lease 的
 `fresh_until` 经过不撤销该历史证据，不要求 source Station 在线、新 lease 或新 Seal。未传播的撤销存在允许窗口；收到真实

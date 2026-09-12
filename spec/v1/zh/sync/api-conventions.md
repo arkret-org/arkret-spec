@@ -442,6 +442,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
+- Contact self commit 的暂时未确认响应遵守 [Contact 写链 §2](../identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round)：`503 temporarily_unavailable` 不表示未写入，也不是首次耐久终局 outcome。相同完整请求继续查询原 Event 的终局；不得永久缓存该临时错误、重建 Event 或在 Seal 确认前返回可授权 receipt。prepare 的首次 draft 与 commit 的首次耐久终局分别固定。
 - 服务端 SHOULD 记录 request identity 与完整 canonical request hash；联邦与服务间写入 MUST 将完整 hash 纳入签名 transcript 或 transaction replay cache。
 - `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、frontier、版本或状态机规则约束。**Event identity 例外**：`ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1` 虽登记为 `protocol_sequence`，但 `event_id` 是 immutable content identity。接收方必须先从当前 canonical Event bytes 重算 EventId：carried ID 不匹配是 `event_id_digest_mismatch` 且零副作用；只有不同 digest-preimage canonical bytes 各自重算为同一个完整 EventId 时，才 MUST 按 operations-sync §12 / federation §4.3 整组 quarantine，并返回登记的 `witness_disagreement` reason。仅 excluded envelope 字段不同不属于该分支。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
