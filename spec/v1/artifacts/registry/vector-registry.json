@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.13",
+  "version": "2026-09-12.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T13:05:00+08:00",
+  "generated_at": "2026-09-12T16:05:55+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3161,7 +3161,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Every accepted or byte-identical duplicate Agent Event in a peer submission returns exactly one receiver-signed admission receipt written in the same acceptance transaction, rejected, quarantined and dependency-missing items return none, exact duplicates replay the first stored bytes, and the source durable outbox only completes the handoff after the receipt set matches the producer-evidence-pair Events one to one and the materialization obligation is committed atomically.",
+      "description": "Agent Events use the ordinary accepted/duplicate/rejected/quarantine outcome. Acceptance atomically retains original Events, producer evidence and recursive dependencies. No receiver-signed admission receipt or new authority is created. Exact retry and source/destination crash recovery preserve canonical bytes and pending delivery obligations.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

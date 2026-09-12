@@ -368,95 +368,79 @@
       "name": "agent_event_admission_receipt_handoff",
       "vector_id": "ak.vector.federation.agent_admission_receipt_handoff.v1",
       "request_contract": {
-        "outcome_field": "agent_event_admissions",
-        "receipt_proof_domain": "ak.agent_signer_admission_receipt.v1",
-        "receipted_outcome_classes": [
+        "outcome_fields": [
           "accepted",
-          "duplicate"
-        ],
-        "unreceipted_outcome_classes": [
+          "duplicate",
           "rejected",
-          "quarantine",
-          "dependency_missing"
+          "quarantine"
         ],
-        "receipt_written_in_event_acceptance_transaction": true,
-        "self_submit_outcome_omits_receipts": true,
-        "receipt_binding_fields": [
-          "event_id",
-          "realm_id",
-          "producer_accepted_at",
-          "accepted_at",
-          "agent_id",
-          "verification_method",
-          "producer_signer_resolution_evidence_ref",
-          "receiver_id"
+        "producer_evidence_schema": "ak.schema.authenticated_signer_resolution_evidence.v1",
+        "receiver_admission_receipt": false,
+        "retained_material": [
+          "original_event",
+          "producer_evidence",
+          "recursive_dependencies"
         ],
-        "producer_evidence_schema": "ak.schema.authenticated_signer_resolution_evidence.v1"
+        "acceptance_and_dependencies_atomic": true,
+        "exact_retry_reuses_canonical_bytes": true,
+        "successful_outcome_creates_authority": false
       },
       "cases": [
         {
           "case": "accepted_agent_event",
-          "expected": "outcome_returns_one_receiver_signed_receipt_for_that_event"
+          "expected": "ordinary_per_event_accepted_without_receiver_receipt"
         },
         {
           "case": "accepted_non_agent_event",
-          "expected": "outcome_carries_no_receipt_for_that_event"
+          "expected": "same_per_event_outcome_contract"
         },
         {
           "case": "rejected_quarantined_or_dependency_missing_agent_event",
-          "expected": "no_receipt_signed_and_none_returned"
+          "expected": "no_successful_acknowledgement"
         },
         {
-          "case": "receipt_write_fails_inside_event_acceptance_transaction",
-          "expected": "event_acceptance_rolls_back_with_zero_receipt"
+          "case": "dependency_write_fails_inside_event_acceptance_transaction",
+          "expected": "event_acceptance_rolls_back"
         },
         {
           "case": "two_receivers_accept_the_same_event",
-          "expected": "one_receipt_per_receiver_id_as_distinct_historical_branches"
+          "expected": "independent_local_persistence_without_new_authority"
         },
         {
           "case": "byte_identical_resubmission_of_an_accepted_event",
-          "expected": "duplicate_returns_the_first_stored_byte_identical_receipt"
-        },
-        {
-          "case": "duplicate_branch_mints_a_new_accepted_at_or_signing_method",
-          "expected": "nonconformant_receipt_replay"
+          "expected": "duplicate_reuses_original_event_and_evidence"
         },
         {
           "case": "carried_event_id_does_not_match_current_canonical_bytes",
-          "expected": "event_id_digest_mismatch_with_zero_receipt_and_zero_side_effect"
+          "expected": "event_id_digest_mismatch_before_dedup_or_side_effects"
         },
         {
           "case": "two_distinct_canonical_preimages_artificially_injected_with_the_same_recomputed_complete_event_id",
-          "expected": "witness_disagreement_quarantines_affected_scope_with_zero_receipt"
+          "expected": "witness_disagreement_quarantines_affected_scope"
         },
         {
-          "case": "receipt_set_matches_producer_evidence_pair_events_one_to_one",
-          "expected": "source_atomically_commits_receipt_and_materialization_obligation"
-        },
-        {
-          "case": "outcome_omits_a_receipt_for_one_such_event",
-          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
-        },
-        {
-          "case": "outcome_returns_a_receipt_outside_accepted_and_duplicate",
-          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
-        },
-        {
-          "case": "receipt_proof_unparsable_or_receiver_id_mismatch",
-          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
-        },
-        {
-          "case": "receipt_producer_evidence_pair_differs_from_the_frozen_origin_pair",
-          "expected": "handoff_incomplete_and_delivery_not_marked_complete"
-        },
-        {
-          "case": "source_restarts_before_the_obligation_commit",
-          "expected": "same_outbox_row_replays_the_same_event_receiver_receipt_intent"
+          "case": "outcome_omits_an_event_from_accepted_and_duplicate",
+          "expected": "outbox_obligation_remains_pending"
         },
         {
           "case": "response_transport_authentication_or_outcome_schema_invalid",
-          "expected": "outcome_discarded_before_any_receipt_consumption"
+          "expected": "outcome_discarded_before_delivery_completion"
+        },
+        {
+          "case": "destination_crashes_before_durable_commit",
+          "expected": "no_successful_acknowledgement"
+        },
+        {
+          "case": "destination_crashes_after_commit_before_response",
+          "expected": "same_event_retry_returns_duplicate"
+        },
+        {
+          "case": "source_restarts_before_delivery_completion_commit",
+          "expected": "same_outbox_event_and_evidence_retry_is_safe"
+        },
+        {
+          "case": "later_current_state_is_available_but_original_evidence_is_missing",
+          "expected": "dependency_missing_without_reconstructing_original_authority"
         }
       ]
     },

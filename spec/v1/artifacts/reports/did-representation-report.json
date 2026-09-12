@@ -1543,7 +1543,7 @@
       ]
     },
     {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease/properties/authority_id",
+      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_attestation/properties/authority_id",
       "property_name": "authority_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -1553,7 +1553,7 @@
       ]
     },
     {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease/properties/verification_method",
+      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_attestation/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",

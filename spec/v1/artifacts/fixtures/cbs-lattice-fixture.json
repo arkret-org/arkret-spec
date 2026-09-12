@@ -1311,7 +1311,7 @@
           },
           "expected": {
             "result": "reject",
-            "reason": "notary_configuration_invalid"
+            "reason": "schema_violation"
           }
         },
         {

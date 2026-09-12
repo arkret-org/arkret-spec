@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.16",
+  "version": "2026-09-12.17",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T14:56:00+08:00",
+  "generated_at": "2026-09-12T16:05:55+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -399,7 +399,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#2-独立接收站准入",
-      "section_digest": "sha256:0d203deed28b9bf5818c6bd3082bd21ba342f23717219288bc4f7d9a55baf676",
+      "section_digest": "sha256:018ceb474be5aee89e2f5a1b4bc17c4ef2671f1729b002d7f4401122cc74a148",
       "requirement": "Any eligible receiving Station independently verifies the original producer and portable authority evidence. Ordinary publication requires neither origin countersignature nor a new Seal nor a cache freshness lease. Known revocation serializes with the local live gate; unknown revocation has a propagation window. Historical eligibility is recomputed from exact closures, while confirmed security outcomes retain their frozen dependencies.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -558,7 +558,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
-      "section_digest": "sha256:935d4860a67d7afaa3a8b0d8f4ebaadcbc9ba8dbaa1afec872375dd67279ad96",
+      "section_digest": "sha256:018a7683106088b30db5935c9afc1f4e8ce42d9ad4fd9dc25986b00dceb41026",
       "requirement": "Origin/release services verify exact AccountDevice evidence, origin-Station signer closure, signed-time validity and full AccountId/device binding; first enqueue rechecks current authorization and generation. The Account Station selects and retains the history cut; ordinary requester/signing-input/receipt contain no client trust-anchor fields. Clients retain message/HPKE/signature and recipient binding checks, not governance replay. Device evidence cannot authorize Control Events, notary or organization recovery. The capability-bound Account Station supplies exact historical source-key results, deduplicated by evidence ref, and the accepted group suite. Minimal-metadata receivers retain actual encrypted IdentityLink/LeafNode and source-proof checks; public signer authority and winning-lineage range coverage are server responsibilities. Complete byte-bounded pages and ACKs never skip unresolved sequence slots.",
       "testability_grade": "audit",
       "test_plan": "Check old request/receipt trust-anchor fields are rejected and server-selected cut is frozen across exact retries. Run server device-history evidence negatives for missing refs, actor/device/Station substitution, altered authorization, revocation and invalid time. Exercise source relay generation changes before enqueue and historical replay after expiry. Run two-account request/manifest/chunk delivery with client cryptographic checks and zero client governance replay. Check missing/duplicate/surplus signer results fail before ACK, same Principal across Account Stations does not collapse per-record authority, and minimal local tree mismatches still fail. Cover registered suite/range byte-length checks, actual source signatures, singleton page admission, byte-prefix cursors, reserved sequence holes and completion after restart. Verify durable record/result installation before ACK without a client checkpoint."
