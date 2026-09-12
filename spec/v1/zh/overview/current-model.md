@@ -126,3 +126,12 @@ Arkret v1 的统一读法是：
 | 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化以 signed Event 落地，而不是只写投影缓存。 |
 | Saved filter / personal board view | 共享视图用 `View`；个人列宽、折叠、临时 filter 用 actor-private account data | View 是共享投影定义；个人偏好不进入 Realm 共享历史。 |
 | Watchers / assignment / mention | `ak.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |
+
+
+## 普通聊天的最短路径
+
+自己 Station 已验证并投影成员资格后，界面才显示“成员资格已接受”；“可发送”还要求目标当前授权、archive/freeze/terminal 等写入门禁和适用 MLS 状态全部就绪。缺少最近消息、完整成员列表、头像或旧历史不阻塞第一条消息。
+
+安全依赖已就绪时，应用调用 SDK 的 typed Message intent：先在本地完成必要加密，再调用 `ak.self.messages.command.prepare.v1`，核对完整 unsigned Event 并附加 producer proof，最后走既有 `ak.self.events.command.submit.v1`。这两次请求不包含首次治理同步、MLS 入组或附件上传；应用不自行构造 Seal、actor sequence、前驱链或 cell。普通回复和 mention 沿 Message payload 表达，其它 Relation 操作不藏在该入口中。
+
+准备不是接纳；准备与提交之间撤权或 MLS 上下文改变仍按当前规则拒绝。提交结果不明确时，重放已保存的同一 signed submission，不能重新 prepare、加密或签名来掩盖不确定结果。完整合同见 [普通消息 authoring](../sync/service-http-binding.md#普通消息的完整-authoring-准备)。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.5",
+  "version": "2026-09-12.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "generated_at": "2026-09-12T09:11:56+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3990,20 +3990,46 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "realm_id",
-          "applicant_account_id",
-          "intent"
-        ],
+        "schema_kind": "oneOf",
+        "required": [],
         "properties": [
           "request_id",
           "realm_id",
           "applicant_account_id",
-          "intent"
+          "intent",
+          "cursor"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_initial_request_body",
+            "schema_kind": "object",
+            "required": [
+              "request_id",
+              "realm_id",
+              "applicant_account_id",
+              "intent"
+            ],
+            "properties": [
+              "request_id",
+              "realm_id",
+              "applicant_account_id",
+              "intent"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
+            "schema_kind": "object",
+            "required": [
+              "cursor"
+            ],
+            "properties": [
+              "cursor"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
@@ -4014,9 +4040,9 @@
           "applicant_account_id",
           "request_digest",
           "governance_facts",
-          "dependency_bundles",
-          "precondition_evidence",
-          "applicant_predecessor_events",
+          "page_index",
+          "records",
+          "next_cursor",
           "observed_at",
           "expires_at"
         ],
@@ -4026,9 +4052,9 @@
           "applicant_account_id",
           "request_digest",
           "governance_facts",
-          "dependency_bundles",
-          "precondition_evidence",
-          "applicant_predecessor_events",
+          "page_index",
+          "records",
+          "next_cursor",
           "observed_at",
           "expires_at"
         ],

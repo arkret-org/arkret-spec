@@ -33,6 +33,8 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 
 `join_rule` 与 `join_policy` 的一致性由 reducer 强制：`join_rule` 为 `restricted` 或 `knock_restricted` 时，`join_policy` MUST 含至少一个自动 gate（`claim_required` / `challenge_response` / `parent_membership`），且 `combinator` 不得使评估结果与声明的入口模式矛盾：只含 `principal_admission` / `cooldown` 硬门时，按 §4 规则 2-3 的求值顺序 `restricted` 的可通过集合与 `public` 完全相同，`knock_restricted` 则退化为 `restricted`。`restricted` 未配任何自动 gate、或 `knock_restricted` 的 gate 组合实际退化为 `restricted` 时，写入 `ak.realm.join_rule` / `ak.realm.policy_bundle` 的 reducer MUST 以 `failed_precondition`、`reason_code=join_rule_policy_mismatch` 拒绝，不接受互相矛盾的入口声明。
 
+允许本次首次跨站引导，还授权申请人的 Station 读取完整独立验证所必需的治理闭包（包括必要的其它成员身份和历史治理 payload）；公开 join/knock 同样承担这一披露代价。来源 Station 可能由申请人运营，撤销只能停止后续页，不能回收已发送 bytes。该许可不授予普通消息、附件或 MLS 密钥读取；逐页重验与完整验证边界见 [federation §5.3.1](../sync/federation.md#531-有界加入引导normative)。
+
 ## 3. 数据模型
 
 机器真源是 [`event-payload.schema.json#/$defs/join_policy_component`](../../artifacts/schemas/event-payload.schema.json)。最小形态：

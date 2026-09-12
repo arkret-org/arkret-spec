@@ -47,7 +47,7 @@
       "event_kind": 3,
       "inbound": 59,
       "outbound": 67,
-      "prose": 112,
+      "prose": 111,
       "prose_only": 2,
       "schema_reference": 141,
       "startup_compile": 228,
@@ -1151,7 +1151,6 @@
       "schema_id": "ak.schema.cbs_proof_bundle.v1",
       "file": "schemas/cbs-proof-bundle.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.2",
+  "version": "2026-09-12.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "generated_at": "2026-09-12T09:11:56+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2023,7 +2023,7 @@
       "http": "POST /_arkret/peer/realm-joins/bootstrap",
       "grpc": "PeerRealmJoin/Bootstrap",
       "mq": "peer.realm_join.query.bootstrap",
-      "notes": "Bounded first-contact join bootstrap served by an existing joined-member Station to the applicant's own Station. The holder verifies service-to-service authentication, applicant_account_id.station_id equals the Source-Service-ID, itself as Destination-Service-ID, the exact invite in its accepted state for invite_accept, and the current join policy for member_join and knock. It returns only the join_rule, complete accepted seal_basis, live digest_algorithm and encryption_profile of that Realm plus one receiver-relative dependency bundle per basis leaf, and it never returns roster, message history, MLS material, unrelated cells or a reusable governance read grant. Missing, Bottom, non-unique or unverifiable joined values fail instead of defaulting. Unauthorized applicants, unknown Realms and invalid or revoked invites share one non-enumerating not_found under a fixed timing bucket. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature. It also returns the exact-precondition evidence for the single control cell the declared intent will bind: per basis leaf either a state_root inclusion audit path or a sorted-neighbor non-membership proof, plus the occupying invite lifecycle and the exact ak.invite.create Control Move on the invite branch. It also returns the applicant's own predecessor Events at the highest accepted actor sequence the holder observes. Both are unverified input: an empty predecessor array proves neither an empty chain nor completeness, and no next_actor_seq, frontier_digest or service signature over frontier completeness exists. Holding material is not permission to disclose it: ordinary sync still requires its own membership, operation and data-scope authorization. A closure that cannot fit the response budget is limit_exceeded and is never truncated.",
+      "notes": "Initial closed join intent or opaque continuation cursor; freeze complete basis and request identity, recheck current intent authorization on every page/replay. Typed Seal/Control Move/governance dependency/applicant predecessor pages; full independent replay before authoring. 8 MiB per page, never a total history cap.",
       "body_class": "non_streaming_json",
       "max_items": 64,
       "success_shape_kind": "typed_response",
@@ -5734,6 +5734,10 @@
         },
         {
           "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.messages.command.prepare.v1",
           "binding_kind": "http_json"
         },
         {

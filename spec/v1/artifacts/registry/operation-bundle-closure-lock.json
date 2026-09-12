@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-11.4",
-  "generated_at": "2026-09-11T18:53:00+08:00",
+  "version": "2026-09-11.5",
+  "generated_at": "2026-09-12T09:11:56+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -127,7 +127,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
-      "sha256": "sha256:c4c41a352986a02eee849c7365fa2c37596d50048add6a62c71a834a786e4d0d"
+      "sha256": "sha256:f8130ec83386ab35ee991ad2c6bbaf28110d03d422fc7b96a98dc23b974bf12d"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",
