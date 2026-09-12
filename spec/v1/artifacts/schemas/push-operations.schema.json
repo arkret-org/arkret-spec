@@ -103,30 +103,10 @@
       "properties": {
         "device_id": {
           "$ref": "#/$defs/device_id"
-        },
-        "push_key": {
-          "$ref": "#/$defs/push_key"
-        },
-        "app_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "platform": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "visible_notification_opt_in": {
-          "type": "boolean",
-          "default": false,
-          "description": "Receiver device authorization state for ak.profile.push_gateway.visible_notification.v1. Missing or false means this device MUST receive only blind_wakeup output even if the caller service is plaintext-visible; visible metadata requires an explicit per-device opt-in."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Per-notification device selector only. The gateway obtains provider token, application, platform and explicit visible-notification opt-in solely from authenticated durable registration, and derives timing from source service, selected route and declared profile."
     },
     "route_tokens": {
       "type": "object",
@@ -166,7 +146,6 @@
       "required": [
         "push_target_id",
         "wakeup_kind",
-        "timing_profile_hint",
         "devices"
       ],
       "properties": {
@@ -186,14 +165,6 @@
             "scheduled_send",
             "expiry_invalidation"
           ]
-        },
-        "timing_profile_hint": {
-          "type": "string",
-          "enum": [
-            "default",
-            "traffic_metadata_hardened"
-          ],
-          "description": "Closed timing/profile hint from a Station sync surface. traffic_metadata_hardened means the source service declares support in ServiceDescribe and its deployment applies ak.profile.traffic_metadata_hardened.v1 to this route; the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. This is not Realm profile activation. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",
@@ -226,7 +197,7 @@
           "items": {
             "$ref": "#/$defs/device_route"
           },
-          "description": "Input device routes for this notification. device_id MUST be unique across the array: the input is a set, not a multiset. uniqueItems only rejects byte-identical entries, so the gateway MUST additionally reject a repeated device_id that differs in push_key or any other field. This uniqueness is what lets the response conserve exactly one outcome per input device. See push-notifications.md §5.1."
+          "description": "Nonempty unique device_id set. Routes, platform, application and visible-notification opt-in are resolved exclusively from authenticated current device registrations."
         }
       },
       "not": {
@@ -270,7 +241,6 @@
       "required": [
         "push_target_id",
         "wakeup_kind",
-        "timing_profile_hint",
         "devices",
         "event_id",
         "realm_id",
@@ -293,14 +263,6 @@
             "scheduled_send",
             "expiry_invalidation"
           ]
-        },
-        "timing_profile_hint": {
-          "type": "string",
-          "enum": [
-            "default",
-            "traffic_metadata_hardened"
-          ],
-          "description": "Closed timing/profile hint from a Station sync surface. traffic_metadata_hardened means the source service declares support in ServiceDescribe and its deployment applies ak.profile.traffic_metadata_hardened.v1 to this route; the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. This is not Realm profile activation. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",
@@ -333,7 +295,7 @@
           "items": {
             "$ref": "#/$defs/device_route"
           },
-          "description": "Input device routes for this notification. device_id MUST be unique across the array: the input is a set, not a multiset. uniqueItems only rejects byte-identical entries, so the gateway MUST additionally reject a repeated device_id that differs in push_key or any other field. This uniqueness is what lets the response conserve exactly one outcome per input device. See push-notifications.md §5.1."
+          "description": "Nonempty unique device_id set. Routes, platform, application and visible-notification opt-in are resolved exclusively from authenticated current device registrations."
         },
         "event_id": {
           "$ref": "#/$defs/event_id"
@@ -410,6 +372,11 @@
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "visible_notification_opt_in": {
+          "type": "boolean",
+          "default": false,
+          "description": "Receiver device authorization state for ak.profile.push_gateway.visible_notification.v1. Missing or false means this device MUST receive only blind_wakeup output even if the caller service is plaintext-visible; visible metadata requires an explicit per-device opt-in."
         }
       },
       "additionalProperties": false

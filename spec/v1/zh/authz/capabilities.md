@@ -904,7 +904,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 普通消息、编辑和其它 `execution=data` 操作不以 Seal 年龄、签名缓存 TTL、heartbeat 或在线 revocation 查询为前置。接收站必须已完整验证 Event 引用的授权和依赖，但不要求取得全球最新状态。未知撤销的传播窗口在持续分区中没有固定上界；获知撤销立即阻止新 live 效果，历史按关闭证明重算。
 
-`execution=security` 操作在其唯一确认顺序处重新检查真实权限和前态；quorum 不可用时 pending，不按 low/medium risk 降级为本地授权。显式有限期资格仍按 §6.1 和 [授权归约 §5](./event-auth-state-resolution.md) 验证，普通无期限聊天不因此引入定期授权续签。
+`execution=security` 操作在其唯一确认顺序处重新检查真实权限和前态；治理签署者不可用时 pending，不按 low/medium risk 降级为本地授权。显式有限期资格仍按 §6.1 和 [授权归约 §5](./event-auth-state-resolution.md) 验证，普通无期限聊天不因此引入定期授权续签。
 
 风险等级只决定已登记的审批、期限与约束，不能覆盖 execution 分类或把同一数据写入在不同 Station 变成不同模型。
 

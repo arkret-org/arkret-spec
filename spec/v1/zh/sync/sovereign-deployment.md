@@ -160,7 +160,12 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
     "trust_domain": "ak:trust_domain:did.webvh.defense.example",
     "value": {
       "default_principal_method": "did:webvh",
-      "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
+      "allowed_methods": [
+        "did:webvh",
+        "did:web",
+        "did:plc",
+        "did:key"
+      ],
       "trust_roots": [
         "ak:did_core:webvh:zE2ucm2oH9PCib4kBzLEAkFqa",
         "ak:did_core:webvh:z2TiX7ug9JmCNeioq6D2V4VjK",
@@ -205,7 +210,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 
 | 轴 | 唯一协议 carrier | 明确不授予的含义 |
 | --- | --- | --- |
-| deployment profile | 服务通过 `ak.server.read.describe.v1` 的 `claimed_profiles[]` 发布，并由对应 conformance evidence 支撑 | 不得写入 Realm genesis、`schema_refs` 或任何 Realm facet；不产生 `primary_server`、`hosted_on` 或完整历史权威 |
+| deployment profile | 服务通过 `ak.server.read.describe.v1` 的 `supported_profiles[]` 发布，并由对应 conformance evidence 支撑 | 不得写入 Realm genesis、`schema_refs` 或任何 Realm facet；不产生 `primary_server`、`hosted_on` 或完整历史权威 |
 | Realm structural role | closed `ak.schema.realm_genesis.v1` 的 `purpose`，以及 `schema_refs` 中封闭的 structural profile | 不表示物理部署位置、组织所有权或 federation peer |
 | organization relationship | active `ak.realm.organization`，且同时通过 Realm-side admin authority 与 organization-side authorization | `relationship=owner` 仍不自动授予 `ak.realm.owner` / `ak.realm.admin` capability、notary、recovery key、Station hosting 或历史完整性 |
 | notary | genesis `notary` 与后继 sealed `ak.realm.notary` cell | 只决定 control-plane Seal finality；不证明 signer 保存、看见或可提供全部 Event |
@@ -237,21 +242,16 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
         "security_class": "high_assurance",
         "encryption_profile": "mls_rfc9420",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL"
-              },
-              "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL"
+            },
+            "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         }
       }
@@ -314,7 +314,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 ]
 ```
 
-示例采用 f=0 quorum，配置在 create 显式冻结。跨组织 Realm 可配置 n=3f+1 的独立 voter；变更经过旧配置确认的 handoff。普通 Event 按已验证缓存授权接纳，安全命令按唯一序列生效，federation_policy 与 notary 配置正交。
+示例采用唯一治理 signer，配置在 create 显式冻结。轮换必须由旧权威确认、冻结旧写权并继承完整耐久历史；不提供多 Station 共同确认。普通 Event 按已验证缓存授权接纳，安全命令按唯一序列生效，federation_policy 与治理配置正交。
 
 推荐 policy：
 
@@ -358,7 +358,9 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
   "subject": "ak:did_core:webvh:zGTog8Hi4N3h8YrvWRQ2Lr3RP",
   "claim_scope": {
     "realm_id": "ak:realm:AdWzSfd6qUSWZ7yTEm3s-ICCpjkzBWzz2DrtY8FQvjIv",
-    "roles": ["contractor_reviewer"],
+    "roles": [
+      "contractor_reviewer"
+    ],
     "max_members": 20
   },
   "expires_at": "2026-07-26T00:00:00Z"

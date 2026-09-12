@@ -110,13 +110,13 @@ ordinary Event 的安全问题主要是签名伪造、授权过期、写入不�
 接收方 MUST：
 
 1. 对非 anchor-unit 的 Control Move，确认 Event 携带签名 `scope_ref`、`seal_basis`，且不携带 `seal_ref` 或 `auth_context`。
-2. 确认 `seal_basis.leaves[]` canonical sorted、duplicate-free、每 Realm 恰一个已确认 head，并独立验证各域配置与 quorum 证明。Event 不重复声明 roots。
+2. 确认 `seal_basis.leaves[]` canonical sorted、duplicate-free、每 Realm 恰一个已确认 head，并独立验证各域配置与 治理结果证明。Event 不重复声明 roots。
 3. 从签名 basis 验证 signer、capability、policy、membership、Realm/Circle lifecycle 与 scope；在唯一确认的实际执行位置，重验授权及全部实际读写 Cell 的 revision。跨域依赖按安全事务锁定，不能用旧 basis 的值比较代替身份比较。
 4. 求值 `preconditions[]`；任一 predicate 不成立则拒绝该 Control Move。
 5. 从注册 reducer 的条件重算有效 write，确认至少一个 security write，且全部效果构成注册的同一原子命令。仅登记的 bootstrap unit 可携带 D 初始效果。
 6. 将该 Control Move 放入控制面 pending set，等待 Seal 覆盖。
 
-Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 结果；只有 committed 的安全效果进入 delta 与 state_root。投票副本必须重放并验证结果；非投票接收者按已验证配置 quorum 和有权读取的确切状态证明或 [quorum 结论](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 验证，不重算已确认历史执行。结构、签名、顺序或 root 不成立时拒绝该 Seal。
+Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 结果；只有 committed 的安全效果进入 delta 与 state_root。治理 Station必须重放并验证结果；治理结果消费 Station按已验证配置唯一签名和有权读取的确切状态证明或 [治理结果证明](../authz/cbs-profiles.md#9-治理结果证明normative) 验证，不重算已确认历史执行。结构、签名、顺序或 root 不成立时拒绝该 Seal。
 
 #### 3.2.1 Anchor Unit 验证
 
@@ -132,7 +132,7 @@ Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.sch
 - predecessor / slot / profile 约束。
 - `delta[]` 只包含本 Seal 新增的控制面 Event digest。
 - `control_event_set_root` 与递归控制面覆盖集一致。
-- 投票副本及选择独立审计的重放者按 `command_results` 重算执行结果、安全状态与 `state_root`；非投票消费者依 §3.2 引用的 quorum 结论规则验证所需事实，不因读取普通消息而强制完整重放。
+- 治理 Station及选择独立审计的重放者按 `command_results` 重算执行结果、安全状态与 `state_root`；治理结果消费 Station依 §3.2 引用的 治理结果证明规则验证所需事实，不因读取普通消息而强制完整重放。
 - inclusion list / receipt obligation / fault evidence 规则。
 
 普通消息不依赖数据观察根。`availability_receipt_digests[]` 只约束对应安全命令 bytes 的可用性义务。
@@ -322,7 +322,7 @@ Snapshot 后续恢复流程：
 - 只有相同 `event_id` 且相同 canonical preimage 的重复投递才是 exact duplicate，并 MAY 作为幂等成功处理。携带相同 ID 但重算结果不同是 `event_id_digest_mismatch`，必须在进入 ID bucket 前拒绝，不能影响既有 accepted Event。
 - 若两个不同 canonical preimage 在同一 suite 下重算出同一个 `event_id`，这是完整 hash collision evidence。提交响应 MUST 拒绝新到变体；本地状态处置 MUST 把该 ID 的全部已验证变体作为一组进入 quarantine，包括此前已 accepted 的变体、由任一变体创建的 Event-derived object、未 final writes，以及引用该 ID 的后继。先到顺序、较早 accepted 或字典序都不能证明哪一变体“正确”。
 - 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。碰撞下两个变体的 `event_digest` 相同，Seal 承诺无法指认覆盖的是哪一个 preimage，因此归一裁决按 canonical bytes 指认、历史 Seal 输入不得事后重算、碰撞区间不得被 compaction 跨越——见 [`event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md)。
-- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受当前固定 quorum 确认的专用 fork-resolution Seal 所覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.collision_variant_record.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 只用于取得全部已知变体，最终解除仍必须由上述 accepted fork-resolution authority 驱动；current-v1 不存在历史范围 attestation 或同 scope witness quorum 解除分支，任何普通成功、root 相等或数据库直清都不是解除 authority。
+- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受当前唯一 signer 确认的专用 fork-resolution Seal 所覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.collision_variant_record.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 只用于取得全部已知变体，最终解除仍必须由上述 accepted fork-resolution authority 驱动；current-v1 不存在历史范围 attestation 或同 scope witness quorum 解除分支，任何普通成功、root 相等或数据库直清都不是解除 authority。
 - **accepted `canonical_winner` 归一是本条整组 quarantine 的唯一封闭豁免（normative）**：当本 Realm 已有一条 accepted 的 `ak.fork.resolution`，其 `subject.kind=event_id_collision`、subject 逐字等于该 `event_id`、`verdict.kind=canonical_winner`，且待准入 bytes 与该 verdict 的 `conflict_evidence.variants[winner_index]` 解出的 bytes 逐字相等时，receiver MUST 按 [`../authz/event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 第 3 点把 winner 准入为该 ID 的 accepted 变体，并 MUST NOT 因此报 `witness_disagreement` 或再次整组 quarantine。豁免的触发条件只有这一条：**不存在满足上述四项的 accepted `ak.fork.resolution` 时，第二个 preimage 仍按本节整组 quarantine**，普通提交 MUST NOT 触发它；winner 仍 MUST 独立通过结构 / suite / `realm_id` / `event_id` 重算前置检查，并按 §15 第 3 点复用该 `event_id` 已验证的 proof 集合重跑 binding 校验；loser 保留为 forensic 变体，其派生 writes 按本节既有规则移除。MUST NOT 用 `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认待准入变体，也 MUST NOT 经私有 endpoint、operator 命令或数据库直写完成取代。
 
 ## 13. 授权时序

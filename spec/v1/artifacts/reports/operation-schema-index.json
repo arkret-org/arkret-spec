@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.19",
+  "version": "2026-09-12.22",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T18:21:38+08:00",
+  "generated_at": "2026-09-12T20:12:54+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -102,7 +102,6 @@
           "auth_metadata",
           "limits",
           "plaintext_visibility",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -131,7 +130,6 @@
           "resource_kinds",
           "private_contact_discovery",
           "restricted_query_proof",
-          "ingest_modes",
           "accept_policy_kind",
           "accept_policy_ref",
           "default_ttl_seconds",
@@ -141,7 +139,6 @@
           "accepted_did_methods",
           "takedown_contact",
           "rate_limits",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -292,7 +289,8 @@
           "push_key",
           "platform",
           "app_id",
-          "display_name"
+          "display_name",
+          "visible_notification_opt_in"
         ],
         "closed": true
       },
@@ -399,40 +397,6 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.push.command.register.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
-        "schema_kind": "object",
-        "required": [
-          "subscriber_id",
-          "resource_filter",
-          "webhook_url"
-        ],
-        "properties": [
-          "subscriber_id",
-          "resource_filter",
-          "webhook_url",
-          "secret",
-          "expires_at"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome",
-        "schema_kind": "object",
-        "required": [
-          "subscription_id",
-          "effective_at"
-        ],
-        "properties": [
-          "subscription_id",
-          "effective_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.find.directory.read.describe.v1",
       "success_shape_kind": "service_describe",
       "response": {
@@ -449,7 +413,6 @@
           "auth_metadata",
           "limits",
           "plaintext_visibility",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -478,7 +441,6 @@
           "resource_kinds",
           "private_contact_discovery",
           "restricted_query_proof",
-          "ingest_modes",
           "accept_policy_kind",
           "accept_policy_ref",
           "default_ttl_seconds",
@@ -488,7 +450,6 @@
           "accepted_did_methods",
           "takedown_contact",
           "rate_limits",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -995,8 +956,6 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "challenge_id",
-          "challenge",
           "identity_creation_lease_id",
           "lease_fence",
           "principal_id",
@@ -1004,8 +963,6 @@
         ],
         "properties": [
           "request_id",
-          "challenge_id",
-          "challenge",
           "identity_creation_lease_id",
           "lease_fence",
           "principal_id",
@@ -1146,7 +1103,6 @@
           "principal_id",
           "did",
           "did_version_id",
-          "log_head_digest",
           "control_key_digest",
           "dpop_jkt",
           "audience_id",
@@ -1164,73 +1120,8 @@
           "principal_id",
           "did",
           "did_version_id",
-          "log_head_digest",
           "control_key_digest",
           "witness_evidence",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
-          "issued_at",
-          "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "principal_id",
-          "did_version_id"
-        ],
-        "properties": [
-          "request_id",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "principal_id",
-          "did_version_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "purpose",
-          "account_subject",
-          "principal_id",
-          "did_version_id",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "consequence_disclosure",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
-          "issued_at",
-          "expires_at"
-        ],
-        "properties": [
-          "request_id",
-          "challenge_id",
-          "challenge",
-          "purpose",
-          "account_subject",
-          "principal_id",
-          "did_version_id",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "consequence_disclosure",
           "dpop_jkt",
           "audience_id",
           "origin",
@@ -1279,24 +1170,6 @@
           "challenge_id",
           "challenge",
           "purpose",
-          "account_subject",
-          "principal_id",
-          "did",
-          "operation_digest",
-          "did_version_id",
-          "log_head_digest",
-          "control_key_digest",
-          "pcr_realm_id",
-          "realm_create_payload_digest",
-          "founding_authorize_payload_digest",
-          "initial_session_request_digest",
-          "genesis_unit_kinds",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
           "issued_at",
           "expires_at"
         ],
@@ -1305,24 +1178,6 @@
           "challenge_id",
           "challenge",
           "purpose",
-          "account_subject",
-          "principal_id",
-          "did",
-          "operation_digest",
-          "did_version_id",
-          "log_head_digest",
-          "control_key_digest",
-          "pcr_realm_id",
-          "realm_create_payload_digest",
-          "founding_authorize_payload_digest",
-          "initial_session_request_digest",
-          "genesis_unit_kinds",
-          "identity_creation_lease_id",
-          "lease_fence",
-          "dpop_jkt",
-          "audience_id",
-          "origin",
-          "trust_domain",
           "issued_at",
           "expires_at"
         ],
@@ -3897,7 +3752,6 @@
           "did",
           "pcr_realm_id",
           "did_version_id",
-          "log_head_digest",
           "control_key_digest",
           "idempotency_key",
           "registration_request_digest",
@@ -3912,7 +3766,6 @@
           "did",
           "pcr_realm_id",
           "did_version_id",
-          "log_head_digest",
           "control_key_digest",
           "idempotency_key",
           "registration_request_digest",
@@ -4797,7 +4650,6 @@
           "auth_metadata",
           "limits",
           "plaintext_visibility",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -4826,7 +4678,6 @@
           "resource_kinds",
           "private_contact_discovery",
           "restricted_query_proof",
-          "ingest_modes",
           "accept_policy_kind",
           "accept_policy_ref",
           "default_ttl_seconds",
@@ -4836,7 +4687,6 @@
           "accepted_did_methods",
           "takedown_contact",
           "rate_limits",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -4978,7 +4828,6 @@
           "auth_metadata",
           "limits",
           "plaintext_visibility",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -5007,7 +4856,6 @@
           "resource_kinds",
           "private_contact_discovery",
           "restricted_query_proof",
-          "ingest_modes",
           "accept_policy_kind",
           "accept_policy_ref",
           "default_ttl_seconds",
@@ -5017,7 +4865,6 @@
           "accepted_did_methods",
           "takedown_contact",
           "rate_limits",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -6270,6 +6117,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
         "schema_kind": "object",
         "required": [
+          "realm_id",
+          "call_id",
+          "actor_id",
+          "device_id",
           "focus_id",
           "connect_url",
           "backend_token",
@@ -6279,6 +6130,10 @@
           "backend_kind"
         ],
         "properties": [
+          "realm_id",
+          "call_id",
+          "actor_id",
+          "device_id",
           "focus_id",
           "connect_url",
           "backend_token",
@@ -6538,7 +6393,8 @@
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
         "schema_kind": "object",
         "required": [
-          "holder_account_id"
+          "holder_account_id",
+          "consent_scope"
         ],
         "properties": [
           "holder_account_id",
@@ -7647,7 +7503,6 @@
           "auth_metadata",
           "limits",
           "plaintext_visibility",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -7676,7 +7531,6 @@
           "resource_kinds",
           "private_contact_discovery",
           "restricted_query_proof",
-          "ingest_modes",
           "accept_policy_kind",
           "accept_policy_ref",
           "default_ttl_seconds",
@@ -7686,7 +7540,6 @@
           "accepted_did_methods",
           "takedown_contact",
           "rate_limits",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -7936,13 +7789,11 @@
         "required": [
           "request_id",
           "account_id",
-          "intended_purpose",
           "notary"
         ],
         "properties": [
           "request_id",
           "account_id",
-          "intended_purpose",
           "notary"
         ],
         "closed": true
@@ -9689,8 +9540,7 @@
           "configuration_ref",
           "command_results",
           "authorization_closures",
-          "existence_anchors",
-          "transaction_records"
+          "existence_anchors"
         ],
         "closed": true
       },
@@ -9795,50 +9645,14 @@
         "required": [
           "account_id",
           "query_digest",
-          "authorization_incarnation",
-          "join_epoch",
-          "history_floor_epoch"
-        ],
-        "properties": [
-          "account_id",
-          "query_digest",
-          "authorization_incarnation",
-          "join_epoch",
-          "history_floor_epoch"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.membership_authority.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request_body",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "properties": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "query_digest",
           "authorization_incarnation"
         ],
         "properties": [
           "account_id",
           "query_digest",
-          "authorization_incarnation"
+          "authorization_incarnation",
+          "join_epoch",
+          "history_floor_epoch"
         ],
         "closed": true
       }
@@ -9951,18 +9765,18 @@
         "required": [
           "effective_scope",
           "mls_group_id",
-          "local_mls_leaves",
           "seal_basis",
           "base_group_state_ref",
-          "epoch"
+          "epoch",
+          "mls_leaf_set_digest"
         ],
         "properties": [
           "effective_scope",
           "mls_group_id",
-          "local_mls_leaves",
           "seal_basis",
           "base_group_state_ref",
-          "epoch"
+          "epoch",
+          "mls_leaf_set_digest"
         ],
         "closed": true
       },
@@ -9972,12 +9786,18 @@
         "required": [
           "account_id",
           "query_digest",
-          "remove_leaf_indices"
+          "remove_leaf_indices",
+          "seal_basis",
+          "base_group_state_ref",
+          "epoch"
         ],
         "properties": [
           "account_id",
           "query_digest",
-          "remove_leaf_indices"
+          "remove_leaf_indices",
+          "seal_basis",
+          "base_group_state_ref",
+          "epoch"
         ],
         "closed": true
       }
@@ -10004,13 +9824,11 @@
         "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome",
         "schema_kind": "object",
         "required": [
-          "welcome_refs",
-          "limited"
+          "welcome_refs"
         ],
         "properties": [
           "welcome_refs",
-          "next_cursor",
-          "limited"
+          "next_cursor"
         ],
         "closed": true
       }
@@ -10511,7 +10329,6 @@
           "auth_metadata",
           "limits",
           "plaintext_visibility",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -10540,7 +10357,6 @@
           "resource_kinds",
           "private_contact_discovery",
           "restricted_query_proof",
-          "ingest_modes",
           "accept_policy_kind",
           "accept_policy_ref",
           "default_ttl_seconds",
@@ -10550,7 +10366,6 @@
           "accepted_did_methods",
           "takedown_contact",
           "rate_limits",
-          "claimed_profiles",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",

@@ -102,25 +102,21 @@ OR-set 按精确 observed-remove dots 合并；移除只覆盖签名上下文实
 
 ## 8. 安全状态与 Seal
 
-v1 每个 Realm 构成一个安全域，域内身份控制、授权政策、MLS group 和硬唯一对象共用确认序列。Circle 按 scope 隔离读写权限，不另启可绕过父域撤销的安全序列。不同 Realm 独立；producer 不能另选域缩小联合约束。安全命令的 seal_basis 每域仅一个确认 head；签名 basis 必须位于该域当前确认前缀上。对命令实际读取或写入的每个安全 Cell，从签名 basis 派生 revision（从未写入为 absence），并在执行位置与当前 revision 比较；变化则持久拒绝，业务值相同也不能通过。仅无关 Cell 的后继不使命令失效；显式要求 exact frontier 的专用操作仍执行自己的强前置条件。跨域 apply 复用已 prepare 并锁定的读写状态，不把 prepare 自己推进的 Seal 当作 stale basis。
+v1 每个 Realm 构成一个安全域，域内身份控制、授权政策、MLS group 和硬唯一对象共用确认序列。Circle 按 scope 隔离读写权限，不另启可绕过父域撤销的安全序列。不同 Realm 独立；producer 不能另选域缩小联合约束。安全命令的 seal_basis 每域仅一个确认 head；签名 basis 必须位于该域当前确认前缀上。对命令实际读取或写入的每个安全 Cell，从签名 basis 派生 revision（从未写入为 absence），并在执行位置与当前 revision 比较；变化则持久拒绝，业务值相同也不能通过。仅无关 Cell 的后继不使命令失效；显式要求 exact frontier 的专用操作仍执行自己的强前置条件。多域安全效果由同一个本地事务锁定和提交，不能把部分提交当成功。
 
-安全域按有持久投票状态与 view change 的 PBFT 确认日志执行，n=3f+1，确认 quorum=2f+1。n=1 为无副本容错部署。阈值签名本身不替代共识。签名绑定 domain/configuration/height/view/parent 与完整命令/结果，投票前持久化防双签状态；安全性以不超过 f 个故障副本为前提，活性需要最终通信和可用 quorum。
+安全域由唯一治理 Station 耐久串行执行，签署者使用冻结配置的唯一 key。单写者排他、CAS、防重复签发、原子终态与 outbox 遵循 [安全域确认 §1–§3](./cbs-profiles.md)；不声明多节点容错或自动选主。
 
 Seal 只确认该域的安全命令。每条命令在确认顺序处对实际状态执行 CAS 与领域转移；相同前置 revision 的竞争命令最多一个成功。失败命令无业务效果且结果持久，超时不等于失败。
 
 安全 root 只承诺该域状态，不承诺普通消息完整性。普通消息不进入 delta，不产生 KeyView、普通数据覆盖 root 或周期空 Seal。普通快照同步不要求签署者在线。
 
-配置 handoff 由旧配置确认冻结后继权，新配置取得完整前缀与未决锁后确认就绪才激活。新旧配置不得混票；旧备份不得自启平行分支。notary 资格不是 controller 权力，不能取得客户端 MLS 私钥。
+配置轮换由旧 signer 确认并冻结后继写权，新执行者取得完整前缀与耐久终态/outbox 后才激活。旧备份不得自启平行分支。notary 资格不是 controller 权力，不能取得客户端 MLS 私钥。
 
 `head_eq`/`head_in` 保留领域值检查；它们不携带第二份 revision 镜像。安全 CAS 的身份比较从原签名 basis 独立派生，普通数据只对自己的已签因果 basis 检查值，不获得互斥成功保证。
 
 ## 9. 跨域与不可逆效果
 
-能共域的不变量直接共域。跨域事务在 prepare 前固定参与域全集、读写资源、内容摘要与唯一决策域，按 canonical domain ID 全序拿冲突锁。各参与域确认并持久化 prepare；只有带全部 exact prepare 证明的唯一 commit 才生效。
-
-commit/abort 在同一决策域日志互斥，参与者仅按认证终态解锁；晚到 prepare 不重开 aborted 事务。超时不强行解锁，配置迁移不丢未决锁。锁限实际冲突资源，不笼统锁整个 Realm；决策 quorum 不可用时安全操作可以阻塞，普通聊天不加入该事务。
-
-prepare 不释放秘密。单次 controller approval 需要唯一消费事务，绑定 nonce 与完整冻结命令，不能两站分别消费。相同 Event 去重不保证外部动作只执行一次；外部执行需幂等键/fencing 或可恢复 owner，结果不明时待核实，不能换 Event 重试另一次动作。
+跨 Realm 不变量仅在同一治理 Station 的同一串行化存储事务内支持。完整读写依赖闭包、signed basis、当前 revision、nonce、所有域 Seal、effects 与 outbox 原子提交；需要跨 Station 当前读锁或协调更新时执行前 `failed_precondition`，零写入。不可变历史验证和允许撤销传播的普通 D 消费不产生跨域事务。完整拓扑、失败与副作用恢复合同见 [安全域确认 §6](./cbs-profiles.md#6-跨-realm-原子性)。
 
 ## 10. MLS、恢复与快照
 
@@ -128,7 +124,7 @@ prepare 不释放秘密。单次 controller approval 需要唯一消费事务，
 
 被移除者仍可构造旧 epoch 密文。已知移除的 receiver 阻止新发言，历史按关闭证明分类；未知移除的分区站仍可能暂时接纳，这是传播窗口。保留成员的合法迟到旧 epoch 历史不因 epoch 较小自动作废，不能为解密回滚密钥。
 
-PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来自预先授权的恢复策略。旧签名备份不证明最新，缺连续证据或安全 quorum 不自证接管。稳定 Direct Conversation 全部私有状态丢失时暂停，不新建同 pair 的平行 group。
+PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来自预先授权的恢复策略。旧签名备份不证明最新，缺连续证据或治理签署权不自证接管。稳定 Direct Conversation 全部私有状态丢失时暂停，不新建同 pair 的平行 group。
 
 普通快照保留必要活跃值、覆盖 membership、授权/关闭证明，以及未来资格重算可能需要的旧值和认证因果关系。可用归档可以承载旧内容，但不能只存一个 root 然后声称可恢复。不能证明旧值以后无用就不得 GC；依法硬删除后明确不可恢复。
 
@@ -142,7 +138,7 @@ PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来
 
 cell leaf 按完整 CellRef 的 Unicode code point 升序；covered digest 按 typed digest wire bytes 升序，leaf_data 为完整 typed digest 的 UTF-8 字节，保留 suite 前缀。所有树使用 RFC6962：leaf=H(0x00 || leaf_data)，node=H(0x01 || left || right)，空树=H(empty)，单 leaf 为其带域分隔 leaf hash，递归在小于长度的最大 2 的幂处分割。根的 suite 来自已验证安全配置，不从待验证对象自报摘要推断。
 
-inclusion 使用 index/tree_size/audit path；non-membership 使用认证相邻 leaf 与端点范围证明。只持有单个 Event inclusion 不证明它仍是当前 revision。投票 replica 必须有验证其安全命令所需的完整权限与材料并重放归约；无法验证不得投票。非投票 receiver 按 [cbs-profiles §9](./cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 验证已认证配置、quorum 和有权读取的确切结论，或使用完整 Seal 与已有确切 Cell/历史证明；依赖同一 quorum 故障界限，不承担完整历史重放。原始 producer 签名、业务操作绑定、已知撤销和端到端验证不变。任意 service 自签 root 或未验证配置不能替代这条认证路径。普通 snapshot 的 state_digest 与本安全 root 是不同集合，不得逐字比较后声称前者已被 Seal 认证。
+inclusion 使用 index/tree_size/audit path；non-membership 使用认证相邻 leaf 与端点范围证明。只持有单个 Event inclusion 不证明它仍是当前 revision。治理 Station 必须有验证其安全命令所需的完整权限与材料并重放归约；无法验证不得执行。治理结果消费 Station 按 [cbs-profiles §9](./cbs-profiles.md#9-治理结果证明normative) 验证已认证配置、唯一签名和有权读取的确切结论，或使用完整 Seal 与已有确切 Cell/历史证明；依赖同一唯一治理方信任边界，不承担完整历史重放。原始 producer 签名、业务操作绑定、已知撤销和端到端验证不变。任意 service 自签 root 或未验证配置不能替代这条认证路径。普通 snapshot 的 state_digest 与本安全 root 是不同集合，不得逐字比较后声称前者已被 Seal 认证。
 
 ## 12. Notary 与 reducer 配置
 
@@ -172,7 +168,7 @@ index，并且只有 accepted successor Seal 能使其生效。**`ak.device.revo
 
 ```text
 proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count=0, authority_set_ref, authority_acks[]
+defer_count=0, authority_set_ref, signature
 ```
 
 机读合同为
@@ -192,14 +188,14 @@ MUST 以 `schema_violation` 拒绝。若 `max_proposal_defers > 0`，两者 MUST
 `max_proposal_defers` MUST 为 `0`。该判定基于签名 payload 与冻结 basis，是所有 reducer
 必须执行的确定性跨字段校验。
 
-**外部 authority Ack set（normative）**：当接收 Event 的 Station 不持有当前
-notary authority，或单个 signer 不能满足 配置 quorum 时，它不得用服务密钥代签。
-proposal author 必须对每个真实 authority 使用
+**唯一 authority Ack（normative）**：当接收 Event 的 Station 不持有当前
+notary authority，或本地 signer 不是配置的唯一 signer 时，它不得用服务密钥代签。
+proposal author 必须对唯一真实 authority 使用
 `ak.self.control_proposal_acks.command.issue.v1` 的 typed request；本地 Agent/device signer
-使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。每个
+使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。该
 authority 独立验证最终签名 Event、genesis/basis 当前 notary policy、
 Realm、`proposal_digest`、signer membership 与 deadlines，随后签发一次
-`ControlProposalAuthorityAck`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
+`ControlProposalAck`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
 byte-identical retry MUST 返回首次持久化的 authority Ack；不同 Event bytes、authority set
 或时间字段 MUST `duplicate_conflict`，不得重签延长期限。
 
@@ -214,41 +210,16 @@ Ack deadline。transport outcome 丢失后相同 canonical request 返回首次�
 必须显式构造新的 `online` request，authority 仍按当前权限校验，且命中同一 proposal/authority 的既有
 Ack 时不得重签或延长期限。
 
-member签名 transcript 是
-`JCS({context:"ak.control_proposal_authority_ack_proof.v1",
-payload_digest:SHA-256(JCS(authority_ack_without_signature)),verification_method,
-created_at:received_at})`；proof的`payload_digest`与`created_at`必须逐字匹配，禁止签任意摘要后
-只比较字段。每个member的`decision_due_at`必须恰等于
-`received_at + proposal_decision_window_ms`，`absolute_due_at`必须恰等于
-`received_at + proposal_absolute_deadline_ms`；所有加法按UTC instant计算，溢出或超协议上限拒绝。
+唯一 authority 返回完整 `ControlProposalAck`，不收集或聚合成员回执。其 `signature` 签名 transcript 为
+`JCS({context:"ak.control_proposal_authority_ack_proof.v1",payload_digest:SHA-256(JCS(ack_without_signature)),verification_method,created_at:received_at})`。
+proof 的 payload_digest 与 created_at MUST 逐字匹配；body 包含 kind、Realm、proposal、deadline、defer_count 与 authority_set_ref。
+`authority_set_ref` 在该合同中是唯一冻结配置的 canonical digest，不能把 lease issuer、恢复门限或多个独立 authority 混入。
+`decision_due_at=received_at+proposal_decision_window_ms`，`absolute_due_at=received_at+proposal_absolute_deadline_ms`，按 UTC instant 计算并验证上限/溢出。
 
-author 将互异 authority Ack 按 `signature.verification_method` canonical 升序组装为唯一
-`ControlProposalAck`。receiver 必须：
-
-1. 逐项重算 member statement digest并验真实签名，按 verification method 去重，只把 genesis
-   或 Event basis 解析出的当前 authority member计入 quorum；
-2. 要求所有 member 的 Realm、proposal digest与authority-set ref逐字一致，且
-   `max(received_at)-min(received_at) <= proposal_intake_sla_ms`；
-3. 令set级 `received_at=max(member.received_at)`、
-   `decision_due_at=min(member.decision_due_at)`、
-   `absolute_due_at=min(member.absolute_due_at)`，并要求
-   `received_at <= decision_due_at <= absolute_due_at`；set级字段与该计算不一致即拒绝；
-4. 按精确 quorum 配置验证 2f+1 个不同 voter；同域不接受多 lineage 拼接；
-5. 把canonical Ack set、accepted Event、pending index与wakeup原子提交。closed anchor Event
-   不能因无 `seal_basis` 跳过该 pending index；覆盖它的 accepted Seal 必须在同一原子事务写入
-   Seal lineage / cell effects 并把每个 `delta[]` digest 从 pending 标记为 sealed，任一 digest
-   不存在时整笔 Seal 提交回滚。duplicate Event
-   返回byte-identical Ack set；Ack集合、成员时间、顺序或签名不同均不得覆盖首次事实。
-
-`EventInitialSubmission.control_proposal_ack` 与
-`EventFederationSubmission.control_proposal_ack` 是该证据的唯一输入位置，只允许 Control
-Move；ordinary Event携带时必须 schema/admission拒绝。`cbs_proof_bundles[]`只补basis closure，不得
-承载或替代Ack。收集未在共同窗口内达到quorum时，本proposal永久不能以零散authority Ack入库；
-producer必须author并签署新的Control Move Event，authority不得为旧digest重新计时。
-`proposal_ack_digest = SHA-256(JCS(the complete canonical ControlProposalAck including
-authority signatures))`；同一有效authority集合只有一种排序和一种digest。
-该外部成员签发、共同窗口、quorum、duplicate/equivocation与decision-set binding由
-`ak.vector.cbs.external_control_proposal_ack_quorum.v1`固定。
+接收者 MUST 从 genesis 或 signed basis 独立认证唯一 signer，重算 body/transcript 并验签，再把 exact Ack、accepted Event、pending index 与 wakeup 原子提交。
+重复 Event 返回首次 exact Ack，不能重签延长时间。Seal 接纳原子保存 lineage、Cell effects、命令终态并清理其 pending index；缺 pending 记录或依赖则整体失败。
+`EventInitialSubmission.control_proposal_ack` 与 `EventFederationSubmission.control_proposal_ack` 是唯一 submission carrier；ordinary Event 禁止携带，proof bundle 不能替代。
+`proposal_ack_digest=SHA-256(JCS(complete Ack including signature))`；签名或字段变化不能覆盖首次事实。
 
 每个决议窗口到期前，authority MUST 产生以下之一：
 
@@ -259,13 +230,12 @@ authority signatures))`；同一有效authority集合只有一种排序和一种
 
 `signed_reject.reason_code` 的封闭集合为 `capability_denied`、`cas_conflict`、
 `policy_denied`、`schema_violation`、`superseded`；
-`signed_defer.reason_code` 的封闭集合为 `dependency_missing`、`quorum_unreachable`、
+`signed_defer.reason_code` 的封闭集合为 `dependency_missing`、
 `temporarily_unavailable`。实现不得接受
 未登记字符串，也不得把 defer 原因用于 terminal reject。
 
 每个 defer MUST 引用完整 canonical Ack-set digest，绑定同一 proposal、Realm 与 authority
-set，并由当前 Ack quorum 对同一 decision payload 产生按 verification method canonical
-排序的 `proofs[]`。`decision_digest=SHA-256(JCS(decision_without_proofs))`，每个proof的
+set，并由该 Ack 的唯一授权 signer 对同一 decision payload 产生 `proof`。`decision_digest=SHA-256(JCS(decision_without_proof))`，该 proof的
 `payload_digest`必须等于该值、`created_at`必须等于`decided_at`，签名transcript固定为
 `JCS({context:"ak.control_proposal_decision_proof.v1",payload_digest,
 verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 defer count拼接。它还必须
@@ -274,7 +244,7 @@ verification_method,created_at})`；proof不得跨 Ack set、decision kind 或 d
 控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
 receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
 
-签名 decision 的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 先从 durable store 读取 accepted proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，再验证 exact Realm/proposal/authority set/deadline/defer chain/quorum 并原子写 decision；caller 不能随请求创建或替换 Ack。read 只投影 canonical Ack、verified decision chain 与 covering Seal，不能生成 decision 或清 pending。对 `ak.device.revoke`，`signed_reject` 通过 proposal Event 与 reducer-derived `ak.schema.device_revocation_state.v1` record 传递性绑定 exact device/generation；只清该 proposal，其他同目标 pending record仍保持 gate。terminal reject 必须对应同一安全序列中该命令的 rejected outcome；安全日志唯一终态先持久化再对外签发 decision。commit/reject 不能由不同接收站的先到顺序竞争，exact retry 返回同一持久结果。
+签名 decision 的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 先从 durable store 读取 accepted proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，再验证 exact Realm/proposal/authority set/deadline/defer chain/唯一签名 并原子写 decision；caller 不能随请求创建或替换 Ack。read 只投影 canonical Ack、verified decision chain 与 covering Seal，不能生成 decision 或清 pending。对 `ak.device.revoke`，`signed_reject` 通过 proposal Event 与 reducer-derived `ak.schema.device_revocation_state.v1` record 传递性绑定 exact device/generation；只清该 proposal，其他同目标 pending record仍保持 gate。terminal reject 必须对应同一安全序列中该命令的 rejected outcome；安全日志唯一终态先持久化再对外签发 decision。commit/reject 不能由不同接收站的先到顺序竞争，exact retry 返回同一持久结果。
 
 **逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
 `decision_due_at` 前没有上述三者，或到达 `absolute_due_at` / defer 上限后仍未 include /
@@ -341,7 +311,7 @@ Ack-required 未决项；超过 128 项时只返回 canonical 前 128 项并置�
 在当前合法签发或恢复权威、必要持久材料仍可用、故障停止、已准入积压有限且调度公平的条件下，
 实现 MUST 能继续处理受支持控制操作。恢复首先核对持久 frontier、签名位置、原 Ack/decision/
 Seal 与当前 authority/fence；旧进程或轮换前 key 的重新上线不恢复已失去的签发资格。
-同一 voter 的全部 worker MUST 共用持久 frontier CAS 与原子接受边界。lease 超时只是本地
+同一治理 Station 的全部 worker MUST 共用持久 frontier CAS 与原子接受边界。lease 超时只是本地
 调度条件，不授权并发控制谱系；崩溃后先查原 durable outcome，未知结果只精确重投或查询。
 
 已 sealed/rejected 的请求返回原结果；旧 basis 或超出 replay window 的请求经当前已登记的
@@ -385,8 +355,10 @@ Censorship evidence 是非锚点 Control Move，event kind 为 **`ak.notary.faul
 
 普通 actor 同位置 sibling 按已验证因果身份保留，执行依赖与授权分类仍逐个验证。超过登记资源界限或属于领域禁止的 sibling 集时，完整争议 scope 隔离；不能只保留先到者。安全命令竞争由唯一确认顺序及 revision 守卫处理，不产生安全状态 join。
 
-相同 EventId 的不同 canonical bytes 是内容地址碰撞，必须保存完整 variants、隔离普通效果并停止依赖该碰撞的安全操作。已经确认的历史 Seal、原始 bytes 和结果不可追溯改写。`ak.fork.resolution` 是登记的安全命令，按完整 subject 与原始 variant bytes 验证 `canonical_winner` / `void_all`；对应 resolution Cell 必须未写入，`head_eq:null` 加确切 revision 防止二次裁决。它不授权任意 Cell reset，不修复已破坏的 quorum 假设，也不通过合并多个 Seal 选出安全 lineage。
+相同 EventId 的不同 canonical bytes 是内容地址碰撞，必须保存完整 variants、隔离普通效果并停止依赖该碰撞的安全操作。已经确认的历史 Seal、原始 bytes 和结果不可追溯改写。`ak.fork.resolution` 是登记的安全命令，按完整 subject 与原始 variant bytes 验证 `canonical_winner` / `void_all`；对应 resolution Cell 必须未写入，`head_eq:null` 加确切 revision 防止二次裁决。它不授权任意 Cell reset，不修复已失陷的唯一治理权威，也不通过合并多个 Seal 选出安全 lineage。
 
 collision 的 winner_index 只定位 `conflict_evidence.variants` 中完整 canonical bytes；不能用碰撞的 digest、长度或另一种临时摘要代替。已确认 canonical_winner 是相同 ID 整组隔离的唯一例外：待准入 bytes 必须与确切 winner 相等，并重新验证结构、Realm、suite、完整 AccountId、签名和授权；不得把一个变体的签名直接赋给另一个变体。复用历史 proof 集时也必须对 winner bytes 重新验签。loser 只保留取证，不参与 D 投影。
 
 后继 resolution 只改变其后的有效资格与执行 gate，不能重算已经确认的旧结果或越过未解决碰撞做 compaction。需要当前状态修复时，由有权主体在该已确认裁决之后提交明确的领域安全命令；不存在自动恢复被隔离权限的机制。peer 清除 stale 还须完成 federation 登记的 exact-scope alignment，不能因本地已见裁决或全局 root 相等便替 peer 作证。
+
+`ak.vector.cbs.single_authority_ack.v1` 覆盖唯一 authority Ack、拒绝旧聚合载体、固定期限、exact retry 与 decision-chain binding；业务 producer proof 和 authorization-rule 门限独立保留。

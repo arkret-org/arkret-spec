@@ -110,23 +110,12 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
         },
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
-        "foci_preferred": ["fra-1", "us-east-1"],
+        "foci_preferred": [
+          "fra-1",
+          "us-east-1"
+        ],
         "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
-          "scheme": "ak.media.participant_binding.v1",
-          "realm_id": "ak:realm:...",
-          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-          "focus_id": "fra-1",
-          "actor_id": {
-            "kind": "account",
-            "account_id": {
-              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-            }
-          },
-          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
           "sig": "base64url..."
@@ -135,7 +124,10 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
           "audio": true,
           "video": true,
           "screen": false
-        }
+        },
+        "realm_id": "ak:realm:...",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "focus_id": "fra-1"
       }
     }
   }

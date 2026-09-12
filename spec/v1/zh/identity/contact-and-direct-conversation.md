@@ -91,16 +91,16 @@ commit移除proof后必须与 reserved unsigned bytes 和 digest
 逐字一致，并对最终 Event 执行普通 content-bound ID/kind 校验；任何其它变化返回conflict，不存在接受caller自造Event shape的分支。五类 Contact Event 均为
 Control Move；commit body 可携带`control_proposal_ack`，其结构和验证规则与
 `EventInitialSubmission.control_proposal_ack`完全相同。当接收 Station 不能代表当前 authority set
-产生完整 quorum 时，caller **MUST** 携带该字段；服务端能产生时该字段 **MAY** 省略。该证据只是
+提供配置要求的唯一签名时，caller **MUST** 携带该字段；服务端能产生时该字段 **MAY** 省略。该证据只是
 Event 外的 publication evidence，不进入 reserved Event bytes 或 Event digest。同一
 operation/idempotency/phase + 相同完整bytes回放该phase首次outcome；prepare与commit必须使用同一
 operation/idempotency，但两phase的canonical bytes与幂等记录彼此独立。响应丢失、重启或outbox redelivery
 不得产生第二Event、第二receipt或第二lineage head。
 
 对 human self-principal PCR，commit 的 exact Event 已由 current active accepted device 以 canonical
-`{holder}#{device_id}` method 签名；该 device method 同时是 current f=0 quorum holder authority，因此这是
+`{holder}#{device_id}` method 签名；该 device method 同时是 current 唯一 holder signing authority，因此这是
 authority-authored Move，不得再要求一份独立 Control Proposal Ack，也不得因 Station 不持有
-holder 私钥而返回 `quorum_unreachable`。commit 仍须把 Event 写入 pending Control index；只有后继
+holder 私钥而返回 `temporarily_unavailable`。commit 仍须把 Event 写入 pending Control index；只有后继
 device-signed accepted Seal 覆盖该 digest 后 Contact effect 才 materialize。Agent delegation、
 organization governance、ordinary Realm 与 recovery/re-anchor 不使用此例外。
 

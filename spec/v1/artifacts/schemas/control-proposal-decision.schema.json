@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/control-proposal-decision.schema.json",
   "title": "Arkret Control Proposal Ack and Decision",
-  "description": "Quorum-capable Control Proposal Acks and signed reject/defer decisions for CBS Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
+  "description": "Single-authority Control Proposal Ack and durable signed reject/defer decisions. Deadlines bound authority decisions; they do not promise command acceptance.",
   "oneOf": [
     {
       "$ref": "#/$defs/control_proposal_ack"
@@ -23,7 +23,7 @@
         "absolute_due_at",
         "defer_count",
         "authority_set_ref",
-        "authority_acks"
+        "signature"
       ],
       "properties": {
         "kind": {
@@ -50,49 +50,6 @@
         "authority_set_ref": {
           "$ref": "#/$defs/digest"
         },
-        "authority_acks": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 32,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/control_proposal_authority_ack"
-          },
-          "description": "Canonical ascending verification_method order. Distinct valid members, not array length, determine quorum."
-        }
-      },
-      "additionalProperties": false
-    },
-    "control_proposal_authority_ack": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "proposal_digest",
-        "received_at",
-        "decision_due_at",
-        "absolute_due_at",
-        "authority_set_ref",
-        "signature"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "proposal_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "received_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "decision_due_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "absolute_due_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "authority_set_ref": {
-          "$ref": "#/$defs/digest"
-        },
         "signature": {
           "$ref": "#/$defs/proof"
         }
@@ -112,7 +69,7 @@
         "defer_count",
         "reason_code",
         "authority_set_ref",
-        "proofs"
+        "proof"
       ],
       "properties": {
         "kind": {
@@ -153,15 +110,8 @@
         "authority_set_ref": {
           "$ref": "#/$defs/digest"
         },
-        "proofs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 32,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/proof"
-          },
-          "description": "Canonical ascending verification_method order. Every proof signs the same decision payload and the set independently satisfies the Control Proposal Ack authority quorum."
+        "proof": {
+          "$ref": "#/$defs/proof"
         }
       },
       "allOf": [
@@ -210,7 +160,6 @@
               "reason_code": {
                 "enum": [
                   "dependency_missing",
-                  "quorum_unreachable",
                   "temporarily_unavailable"
                 ]
               }
@@ -312,7 +261,7 @@
       ],
       "properties": {
         "authority_ack": {
-          "$ref": "#/$defs/control_proposal_authority_ack"
+          "$ref": "#/$defs/control_proposal_ack"
         }
       },
       "additionalProperties": false

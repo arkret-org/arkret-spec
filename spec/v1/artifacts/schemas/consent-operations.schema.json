@@ -37,7 +37,6 @@
       "type": "string",
       "enum": [
         "invite",
-        "direct_message",
         "voice_call",
         "video_call",
         "presence",
@@ -200,7 +199,8 @@
       "type": "object",
       "description": "Body for opaque contact/consent request submission. The peer is the exact authenticated ActorId and is never caller-supplied. Holder existence is deliberately not a precondition visible to the caller.",
       "required": [
-        "holder_account_id"
+        "holder_account_id",
+        "consent_scope"
       ],
       "properties": {
         "holder_account_id": {
@@ -212,7 +212,6 @@
           "not": {
             "const": "invite"
           },
-          "default": "direct_message",
           "description": "Requested scope, taken from the section 4 enum minus invite. An invite-scope request has no carrier here: it would have to become a holder_quarantine entry whose surface_kind is consent_request, and that branch pins consent_scope away from invite because an invite belongs to invite delivery. Rejecting it at the request boundary keeps the server from inventing a behaviour for a scope it can never store."
         }
       },

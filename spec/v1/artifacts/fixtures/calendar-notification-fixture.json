@@ -53,12 +53,6 @@
         "auth_metadata": {},
         "limits": {},
         "plaintext_visibility": {},
-        "claimed_profiles": [
-          {
-            "profile_id": "ak.profile.calendar_notification_dispatch.v1",
-            "claim_kind": "self_claimed"
-          }
-        ],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,

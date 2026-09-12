@@ -587,7 +587,6 @@
           "type": "string",
           "enum": [
             "invite",
-            "direct_message",
             "voice_call",
             "video_call",
             "presence",

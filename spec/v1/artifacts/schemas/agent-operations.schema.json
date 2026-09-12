@@ -1033,8 +1033,7 @@
         "agent_id",
         "did",
         "initial_resolution",
-        "controller_authorization_ref",
-        "requested_scope_digest"
+        "controller_authorization_ref"
       ],
       "properties": {
         "status": {
@@ -1070,10 +1069,6 @@
         },
         "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
-        },
-        "requested_scope_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted create-locked bootstrap history (entry 1); only this digest, not the complete scope, is public. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -1311,7 +1306,10 @@
     "agent_pairing_runtime_identity": {
       "type": "object",
       "description": "Identity context obtained from the accepted Agent/controller binding. It does not authorize the runtime key. The verification method controller MUST project to bootstrap.agent_id; its fragment is a key label, not a human device identity.",
-      "required": ["controller_account_id", "verification_method"],
+      "required": [
+        "controller_account_id",
+        "verification_method"
+      ],
       "properties": {
         "controller_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"

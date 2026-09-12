@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.12",
+  "version": "2026-09-12.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T11:52:50+08:00",
+  "generated_at": "2026-09-12T20:15:07+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -456,7 +456,7 @@
       "schema_id": "ak.schema.control_proposal_decision.v1",
       "file": "schemas/control-proposal-decision.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
+      "description": "Closed request/response DTO bundle for single-authority Control Proposal Acks and signed reject/defer decisions (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
     },
     {
       "schema_id": "ak.schema.controller_account_gate_attestation.v1",
@@ -762,17 +762,6 @@
         "kind": "standalone_schema_alias",
         "selector": "principal resolution evidence or service resolution record",
         "normative_ref": "zh/identity/identity-did.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.inclusion_list.v1",
-      "file": "schemas/inclusion-list.schema.json",
-      "status": "active",
-      "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "control-plane inclusion list",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
       }
     },
     {
@@ -1372,7 +1361,7 @@
       "schema_id": "ak.schema.seal_conclusion.v1",
       "file": "schemas/seal-conclusion.schema.json",
       "status": "active",
-      "description": "Scope-authorized quorum conclusions and frozen configuration handoffs for non-voting receivers."
+      "description": "Scope-authorized single-authority governance conclusions and frozen configuration handoffs for governance-result receivers."
     },
     {
       "schema_id": "ak.schema.seal_transparency.v1",
@@ -1413,7 +1402,7 @@
       "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / claimed_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / supported_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
       "schema_id": "ak.schema.service_identity_bundle.v1",

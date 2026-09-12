@@ -115,8 +115,7 @@
         },
         "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
       }
     },
     {
@@ -136,8 +135,7 @@
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
       }
     },
     {
@@ -155,8 +153,7 @@
         },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
       }
     },
     {
@@ -174,8 +171,7 @@
         },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
       }
     },
     {
@@ -190,9 +186,9 @@
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd",
         "selector_visibility": "private",
-        "created_at": "2026-08-02T00:00:00.000Z"
+        "created_at": "2026-08-02T00:00:00.000Z",
+        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
       }
     },
     {
@@ -208,10 +204,10 @@
         "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd",
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
-        "proofs": []
+        "proofs": [],
+        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
       }
     },
     {

@@ -243,21 +243,20 @@
       "instance": {
         "snapshot_cursor": "ak:cursor:list",
         "items": [],
-        "complete": true,
         "snapshot_revision": 7
       }
     },
     {
-      "name": "demand_list_nonfinal_missing_cursor_rejected",
+      "name": "demand_list_removed_complete_rejected",
       "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/realm_list_page",
       "expect_valid": false,
       "instance": {
         "snapshot_cursor": "ak:cursor:list",
         "items": [],
-        "complete": false,
-        "snapshot_revision": 7
+        "snapshot_revision": 7,
+        "complete": false
       },
-      "first_expected_error": "$: 'next_cursor' is a required property"
+      "first_expected_error": "contains:complete"
     },
     {
       "name": "demand_retired_station_cas_complete_rejected",

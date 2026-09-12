@@ -152,7 +152,6 @@ grpc:
       SearchOrganizations: ak.find.directory.read.search_organizations.v1
       SearchRealms: ak.find.directory.read.search_realms.v1
       SearchUsers: ak.find.directory.read.search_users.v1
-      PushRegister: ak.find.directory.push.command.register.v1
       Withdraw: ak.find.directory.command.withdraw.v1
     SelfAuthorizationLeases:
       Issue: ak.self.authorization_leases.command.issue.v1
@@ -177,7 +176,6 @@ grpc:
       MlsGovernanceProof: ak.self.seals.read.mls_governance_proof.v1
       MlsAcceptedArtifact: ak.self.seals.read.mls_accepted_artifact.v1
       MlsWelcomeRefs: ak.self.seals.read.mls_welcome_refs.v1
-      MembershipAuthority: ak.self.seals.read.membership_authority.v1
       MlsMembershipRemoval: ak.self.seals.read.mls_membership_removal.v1
       HistoryAuthority: ak.self.seals.read.history_authority.v1
       Resolve: ak.self.seals.read.resolve.v1
@@ -397,7 +395,6 @@ mq:
     self.seals.read.mls_governance_proof: ak.self.seals.read.mls_governance_proof.v1
     self.seals.read.mls_accepted_artifact: ak.self.seals.read.mls_accepted_artifact.v1
     self.seals.read.mls_welcome_refs: ak.self.seals.read.mls_welcome_refs.v1
-    self.seals.read.membership_authority: ak.self.seals.read.membership_authority.v1
     self.seals.read.mls_membership_removal: ak.self.seals.read.mls_membership_removal.v1
     self.seals.read.history_authority: ak.self.seals.read.history_authority.v1
     self.seals.read.governance_dependencies: ak.self.seals.read.governance_dependencies.v1
@@ -505,7 +502,6 @@ mq:
     find.directory.query.list_handles_for_subject: ak.find.directory.read.list_handles_for_subject.v1
     find.directory.command.announce: ak.find.directory.command.announce.v1
     find.directory.command.withdraw: ak.find.directory.command.withdraw.v1
-    find.directory.push.command.register: ak.find.directory.push.command.register.v1
     self.keys.keypackages.upload.create: ak.self.keys.keypackages.upload.create.v1
     self.keys.keypackages.command.claim: ak.self.keys.keypackages.command.claim.v1
     self.keys.keypackages.command.consume: ak.self.keys.keypackages.command.consume.v1

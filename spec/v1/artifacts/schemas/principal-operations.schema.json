@@ -332,7 +332,6 @@
         "did",
         "pcr_realm_id",
         "did_version_id",
-        "log_head_digest",
         "control_key_digest",
         "idempotency_key",
         "registration_request_digest",
@@ -361,10 +360,6 @@
           "minLength": 1,
           "description": "Validated did:webvh inception versionId. It MUST match the same fields in identity_creation_control_proof and the accepted registry log."
         },
-        "log_head_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 digest of the exact method-native DID inception log entry seen by the Account Authority and committed by the identity root proof."
-        },
         "control_key_digest": {
           "$ref": "#/$defs/digest",
           "description": "SHA-256 digest of the active inception update key committed by the identity root proof."
@@ -392,7 +387,8 @@
           "$ref": "#/$defs/pcr_genesis_unit"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "pcr_genesis_unit": {
       "type": "object",

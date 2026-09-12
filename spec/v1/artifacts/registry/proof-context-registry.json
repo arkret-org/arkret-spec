@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.7",
+  "version": "2026-09-12.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T15:37:00+08:00",
+  "generated_at": "2026-09-12T19:34:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -102,7 +102,13 @@
         "witness_evidence?"
       ],
       "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof"
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/account_registration_control_proof",
+      "injected_fields": [
+        {
+          "field": "log_head_digest",
+          "source": "Method-native digest derived from the verified entry pinned by did_version_id; not an independently supplied wire field. See identity/account-lifecycle.md."
+        }
+      ]
     },
     {
       "context": "ak.accountability_grant_proof.v1",
@@ -253,7 +259,7 @@
         "created_at"
       ],
       "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-control-proposal-ack-与-inclusion-obligation",
-      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_authority_ack"
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack"
     },
     {
       "context": "ak.control_proposal_decision_proof.v1",

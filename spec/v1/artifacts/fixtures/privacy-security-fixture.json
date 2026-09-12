@@ -27,7 +27,6 @@
     "ak.vector.directory.policy_revision_rollback.v1",
     "ak.vector.directory.accept_policy_denied.v1",
     "ak.vector.directory.reannounce_idempotent_ttl.v1",
-    "ak.vector.directory.pull_mode_refresh_verification.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
     "ak.vector.directory.withdraw_blinded_not_found.v1",
     "ak.vector.directory.operator_takedown_audit.v1",
@@ -427,7 +426,6 @@
         "ak.vector.directory.policy_revision_rollback.v1",
         "ak.vector.directory.accept_policy_denied.v1",
         "ak.vector.directory.reannounce_idempotent_ttl.v1",
-        "ak.vector.directory.pull_mode_refresh_verification.v1",
         "ak.vector.directory.ttl_expiry_removal.v1",
         "ak.vector.directory.withdraw_blinded_not_found.v1",
         "ak.vector.directory.operator_takedown_audit.v1",
@@ -570,15 +568,13 @@
         "notification": {
           "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
           "wakeup_kind": "message",
-          "timing_profile_hint": "default",
           "push_hint": "new_message",
           "counts": {
             "unread_increment": 1
           },
           "devices": [
             {
-              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-              "app_id": "com.arkret.client"
+              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
             }
           ]
         }

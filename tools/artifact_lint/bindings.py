@@ -536,7 +536,6 @@ def check_service_describe_alignment(lint: Lint) -> None:
     directory_fields = {
         "resource_kinds",
         "restricted_query_proof",
-        "ingest_modes",
         "accept_policy_kind",
         "accept_policy_ref",
         "default_ttl_seconds",

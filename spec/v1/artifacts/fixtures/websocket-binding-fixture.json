@@ -87,7 +87,7 @@
             }
           ],
           "did_binding_methods": [
-            "session_grant"
+            "session_dpop"
           ]
         },
         "limits": {
@@ -97,7 +97,6 @@
         },
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,

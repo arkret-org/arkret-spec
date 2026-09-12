@@ -217,10 +217,11 @@ class SealScopeContractTest(unittest.TestCase):
                 value = {"payload": payload}
                 self.assertNotEqual(present.is_valid(value), absent.is_valid(value))
 
-    def test_seal_identity_is_independent_of_certificate_view(self):
+    def test_seal_identity_has_one_signature_and_no_view(self):
         schema = read("schemas/seal.schema.json")
         self.assertNotIn("view", schema["properties"])
-        self.assertIn("view", schema["$defs"]["multi_signature"]["required"])
+        self.assertNotIn("multi_signature", schema["$defs"])
+        self.assertEqual(schema["properties"]["notary_signature"]["$ref"], "#/$defs/signature")
         unsigned = schema["$defs"]["unsigned_seal"]
         self.assertEqual(set(unsigned["properties"]), set(schema["properties"]) - {"id", "notary_signature"})
         predecessor = schema["properties"]["predecessor_ref"]
@@ -260,7 +261,7 @@ class SealScopeContractTest(unittest.TestCase):
     def test_commit_signature_cannot_cross_phase_view_or_configuration(self):
         vector = next(v for v in read('fixtures/cbs-lattice-fixture.json')['vectors']
                       if v['name'] == 'seal_canonical_no_self_reference')
-        proof = vector['certificate']['signatures'][0]
+        proof = vector['certificate']
         header, _, signature = proof['jws'].split('.')
         seed = base64.urlsafe_b64decode(vector['test_key']['private_key_seed'] + '=')
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -275,8 +276,8 @@ class SealScopeContractTest(unittest.TestCase):
             with self.assertRaises(InvalidSignature):
                 verify(transcript)
 
-    def test_view_change_wire_rejects_extra_fields_and_unknown_phase(self):
-        vote = self.validator('seal.schema.json#/$defs/vote_transcript')
+    def test_commit_wire_rejects_extra_fields_and_unknown_context(self):
+        vote = self.validator('seal.schema.json#/$defs/commit_transcript')
         vector = next(v for v in read('fixtures/cbs-lattice-fixture.json')['vectors']
                       if v['name'] == 'seal_canonical_no_self_reference')
         self.assert_shape(vote, vector['commit_transcript'], True)

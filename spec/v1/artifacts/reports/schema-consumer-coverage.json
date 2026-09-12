@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 228,
+    "total_schemas": 227,
     "by_consumer": {
-      "declared_wire": 59,
+      "declared_wire": 58,
       "event_kind": 3,
       "inbound": 59,
       "outbound": 67,
       "prose": 108,
       "prose_only": 2,
       "schema_reference": 143,
-      "startup_compile": 228,
+      "startup_compile": 227,
       "vectors": 124
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 104,
+    "without_vector_coverage": 103,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -116,7 +116,6 @@
     "ak.schema.history_key.v1",
     "ak.schema.http_problem_details.v1",
     "ak.schema.ice_config_response.v1",
-    "ak.schema.inclusion_list.v1",
     "ak.schema.invite_delivery.v1",
     "ak.schema.invite_delivery_request.v1",
     "ak.schema.keypackage_operations.v1",
@@ -247,7 +246,6 @@
         "owners": [
           "ak.gate.account.command.abandon_identity_creation.v1",
           "ak.gate.account.command.issue_did_binding_challenge.v1",
-          "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
           "ak.gate.account.command.issue_identity_binding_challenge.v1",
           "ak.gate.account.command.register.v1",
           "ak.gate.account.command.request_erasure.v1",
@@ -1288,7 +1286,6 @@
           "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
           "ak.schema.identity_resolution.v1",
-          "ak.schema.inclusion_list.v1",
           "ak.schema.invite.v1",
           "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
@@ -1794,7 +1791,6 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.find.directory.push.command.register.v1",
           "ak.find.directory.read.list_handles_for_subject.v1",
           "ak.find.directory.read.private_contact_discovery.v1",
           "ak.find.directory.read.resolve_agent_selector.v1",
@@ -2163,8 +2159,7 @@
           "ak.self.history_key_responses.command.send.v1",
           "ak.self.history_key_responses.read.list.v1",
           "ak.self.organization_recovery_archives.read.list.v1",
-          "ak.self.seals.read.history_authority.v1",
-          "ak.self.seals.read.membership_authority.v1"
+          "ak.self.seals.read.history_authority.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2285,25 +2280,6 @@
         "kind": "standalone_schema_alias",
         "selector": "principal resolution evidence or service resolution record",
         "normative_ref": "zh/identity/identity-did.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.inclusion_list.v1",
-      "file": "schemas/inclusion-list.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "standalone_schema_alias",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "control-plane inclusion list",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
       }
     },
     {
@@ -4237,7 +4213,6 @@
           "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
           "ak.schema.identity_resolution.v1",
-          "ak.schema.inclusion_list.v1",
           "ak.schema.invite.v1",
           "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",

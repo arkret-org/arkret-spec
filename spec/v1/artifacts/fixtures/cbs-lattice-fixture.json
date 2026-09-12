@@ -336,7 +336,7 @@
       },
       "expected": {
         "id": "ak:seal:sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18",
-        "notary_signature_payload_digest": "sha256:6439a91a21b367b4f557d3b413898428ef34e79fff4dc3e0d5fb16b88270cf26",
+        "notary_signature_payload_digest": "sha256:7b0aac985cb100216f9c24e307272a016ee6082a6101ce5d4eea7e273c4bb436",
         "valid_result": "accept"
       },
       "attacks": [
@@ -381,21 +381,12 @@
       },
       "commit_transcript": {
         "context": "ak.seal.commit.v1",
-        "seal_digest": "sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18",
-        "configuration_ref": "ak:event:AYdKcd4Mb1IzAPoctcZYEVvHLuvqQFdhPu0jBrZv-M0Q",
-        "notary_seq": 7,
-        "view": 0
+        "seal_digest": "sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18"
       },
       "certificate": {
-        "kind": "multi_sig",
-        "view": 0,
-        "signatures": [
-          {
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
-            "payload_digest": "sha256:6439a91a21b367b4f557d3b413898428ef34e79fff4dc3e0d5fb16b88270cf26",
-            "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..Kd6eaAYPIEwPqvwTc8eWlpIGobuExoH9QWZ2Bk9bpvtoSbL5jsbnr4IkcBpUDcVd_O8uhlopkFtexFDzrqhcDw"
-          }
-        ]
+        "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+        "payload_digest": "sha256:7b0aac985cb100216f9c24e307272a016ee6082a6101ce5d4eea7e273c4bb436",
+        "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..18DTrkqtwYyCUU1oVOCeSSA_DSqExg2OtoxYzKAaHjLTlqL_L00N2cLR3LxTFwEV_3EuSOXZxFEfIwlfujLtAA"
       }
     },
     {
@@ -472,71 +463,6 @@
       ]
     },
     {
-      "name": "inclusion_list_obligation",
-      "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
-      "notary_kind": "quorum",
-      "notary_proposer_id": "ak:did_core:webvh:z6mkfixturenotaryproposerexample",
-      "notary_signer_id": "ak:did_core:webvh:z6mkfixturenotarysignerexample",
-      "inclusion_list": {
-        "realm_id": "ak:realm:AdbrvqPXnyWuzHszTKHBTzBht7dhJzgDbqa5RxOlifAo",
-        "signer_id": "ak:did_core:webvh:z6mkfixturenotarysignerexample",
-        "list_seq": 7,
-        "event_digests": [
-          "sha256:7777777777777777777777777777777777777777777777777777777777777777"
-        ],
-        "expiry_seal_count": 1,
-        "created_at": "2026-06-11T00:00:00.000Z",
-        "signature": {
-          "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixturenotarysignerexample:notary-signer.example#key-1",
-          "payload_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-          "created_at": "2026-06-11T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
-        }
-      },
-      "cases": [
-        {
-          "name": "next_seal_includes_digest",
-          "seal_action": "include",
-          "expected": {
-            "seal_result": "accept"
-          }
-        },
-        {
-          "name": "next_seal_signed_rejects_digest",
-          "seal_action": "signed_reject",
-          "expected": {
-            "seal_result": "accept"
-          }
-        },
-        {
-          "name": "next_seal_proves_pre_state_failure",
-          "seal_action": "pre_state_failure_proof",
-          "expected": {
-            "seal_result": "accept"
-          }
-        },
-        {
-          "name": "next_seal_omits_obligation",
-          "seal_action": "omit",
-          "expected": {
-            "seal_result": "reject",
-            "reason": "inclusion_list_violation"
-          }
-        },
-        {
-          "name": "same_signer_seq_different_contents",
-          "conflicting_event_digests": [
-            "sha256:9999999999999999999999999999999999999999999999999999999999999999"
-          ],
-          "expected": {
-            "fault_evidence": "equivocation"
-          }
-        }
-      ],
-      "vector_id": "ak.vector.cbs_lattice.inclusion_list_obligation.v1"
-    },
-    {
       "name": "notary_fault_equivocation_quarantine",
       "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
       "fault_pair": {
@@ -568,7 +494,7 @@
         "fault_cell": "ak.component.notary_fault.v1",
         "later_seal_from_signer": "reject",
         "affected_branch_disposition": "fork_quarantine",
-        "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
+        "remaining_signer_policy": "governance_paused_no_automatic_replacement"
       },
       "invalid_parallel_leaf_case": {
         "signer_id": "ak:did_core:webvh:z6mkfixtureothernotaryexample",
@@ -1132,7 +1058,7 @@
           "expected": "retain_confirmed_evidence"
         },
         {
-          "name": "witness_disagreement_quorum_reagreement_does_not_clear",
+          "name": "witness_disagreement_resigning_does_not_clear",
           "description": "Current-v1 registers no history-range attestation and no same-scope witness re-agreement branch. Repeated agreeing witnesses are diagnostics; only an authorized fork resolution plus per-peer exact-scope alignment clears confirmed evidence.",
           "witness_count": 2,
           "same_complete_scope": true,
@@ -1249,10 +1175,10 @@
           "expected": "requarantine_peer"
         },
         {
-          "name": "quorum_fork_resolution_seal_accepted",
-          "description": "The dedicated fork-resolution Seal uses the current fixed quorum and contains only fork-resolution commands.",
+          "name": "single_authority_fork_resolution_seal_accepted",
+          "description": "The dedicated fork-resolution Seal uses the current sole configured authority and contains only fork-resolution commands.",
           "event_kind": "ak.fork.resolution",
-          "seal_signer_configuration": "current_quorum",
+          "seal_signer_configuration": "current_single_authority",
           "seal_delta_kinds": [
             "ak.fork.resolution",
             "ak.fork.resolution"
@@ -1261,9 +1187,9 @@
         },
         {
           "name": "fork_resolution_seal_mixing_an_unrelated_move_rejected",
-          "description": "The special quarantine-bypass Seal is confirmed by the current quorum but cannot attach an unrelated Control Move to the fork-resolution batch.",
+          "description": "The special quarantine-bypass Seal is confirmed by the current sole configured authority but cannot attach an unrelated Control Move to the fork-resolution batch.",
           "event_kind": "ak.fork.resolution",
-          "seal_signer_configuration": "current_quorum",
+          "seal_signer_configuration": "current_single_authority",
           "seal_delta_kinds": [
             "ak.fork.resolution",
             "ak.member.state"
@@ -1274,62 +1200,59 @@
       ]
     },
     {
-      "name": "quorum_geometry",
-      "description": "The only notary configuration uses fixed PBFT geometry n=3f+1 and exact commit quorum 2f+1.",
+      "name": "single_authority_configuration",
+      "description": "One frozen signer; legacy quorum geometry is rejected, never interpreted as a fallback.",
       "cases": [
         {
-          "name": "f0_single_replica",
-          "notary": {
-            "kind": "quorum",
-            "signer_count": 1,
-            "fault_tolerance": 0
+          "name": "single_signer_valid",
+          "schema_ref": "schemas/realm.schema.json#/$defs/notary_configuration",
+          "instance": {
+            "signer": {
+              "actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixture"
+              },
+              "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+              "key_kind": "ed25519_raw32",
+              "jose_algorithm": "Ed25519",
+              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            },
+            "max_clock_error_ms": 1000
           },
-          "present_commit_signatures": 1,
-          "expected": {
-            "result": "accept",
-            "quorum": 1
-          }
+          "expect_valid": true
         },
         {
-          "name": "f1_four_replicas",
-          "notary": {
+          "name": "legacy_signers_array_rejected",
+          "schema_ref": "schemas/realm.schema.json#/$defs/notary_configuration",
+          "instance": {
             "kind": "quorum",
-            "signer_count": 4,
-            "fault_tolerance": 1
+            "signers": [
+              {
+                "actor_id": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixture"
+                },
+                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                "key_kind": "ed25519_raw32",
+                "jose_algorithm": "Ed25519",
+                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ],
+            "fault_tolerance": 0,
+            "max_clock_error_ms": 1000
           },
-          "present_commit_signatures": 3,
-          "expected": {
-            "result": "accept",
-            "quorum": 3
-          }
+          "expect_valid": false
         },
         {
-          "name": "f1_wrong_replica_count",
-          "notary": {
-            "kind": "quorum",
-            "signer_count": 3,
-            "fault_tolerance": 1
+          "name": "missing_signer_rejected",
+          "schema_ref": "schemas/realm.schema.json#/$defs/notary_configuration",
+          "instance": {
+            "max_clock_error_ms": 1000
           },
-          "expected": {
-            "result": "reject",
-            "reason": "schema_violation"
-          }
-        },
-        {
-          "name": "f1_insufficient_commit_quorum",
-          "notary": {
-            "kind": "quorum",
-            "signer_count": 4,
-            "fault_tolerance": 1
-          },
-          "present_commit_signatures": 2,
-          "expected": {
-            "result": "reject",
-            "reason": "seal_signer_unauthorized"
-          }
+          "expect_valid": false
         }
       ],
-      "vector_id": "ak.vector.cbs_lattice.quorum_geometry.v1"
+      "vector_id": "ak.vector.cbs_lattice.single_authority_configuration.v1"
     },
     {
       "name": "revocation_propagation_window",
@@ -1974,7 +1897,7 @@
             "evidence_scope": "resolved",
             "resolution_fanout_exempt_from_peer_stale": true
           },
-          "note": "The current-quorum fork-resolution Seal and its covered resolution Move remain deliverable while the peer is stale; otherwise the responder could never satisfy the disclosure gate and the second phase would not terminate."
+          "note": "The current-single-authority fork-resolution Seal and its covered resolution Move remain deliverable while the peer is stale; otherwise the responder could never satisfy the disclosure gate and the second phase would not terminate."
         },
         {
           "name": "settled_subject_refuses_a_second_resolution",

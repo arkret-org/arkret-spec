@@ -36,15 +36,12 @@
       "notification": {
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "wakeup_kind": "message",
-        "timing_profile_hint": "default",
         "devices": [
           {
-            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-            "app_id": "com.arkret.client"
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
           },
           {
-            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
-            "app_id": "com.arkret.client"
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b"
           }
         ]
       }
@@ -349,28 +346,26 @@
     {
       "name": "request_with_repeated_device_id_is_rejected",
       "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
-      "expect_valid": true,
-      "schema_only_valid": true,
+      "expect_valid": false,
+      "schema_only_valid": false,
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
-      "notes": "devices[] is a set keyed by device_id. uniqueItems only rejects byte-identical entries, so this pair differing only in app_id passes JSON Schema; the gateway MUST still reject it. Accepting it would make one input device demand two outcomes and break conservation at the source.",
+      "notes": "devices[] is a closed set of device_id-only objects; duplicate devices now fail uniqueItems directly.",
       "instance": {
         "notification": {
           "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
           "wakeup_kind": "message",
-          "timing_profile_hint": "default",
           "devices": [
             {
-              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-              "app_id": "com.arkret.client"
+              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
             },
             {
-              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-              "app_id": "com.arkret.client.beta"
+              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
             }
           ]
         }
-      }
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
     },
     {
       "name": "canonical_full_hmac_push_target_id_is_valid",

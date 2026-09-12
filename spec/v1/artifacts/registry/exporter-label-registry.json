@@ -8,15 +8,22 @@
       "primitive": "MLS-Exporter",
       "purpose": "Per-epoch exporter-scheme history root",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
-      "context_fields": ["effective_scope"],
+      "context_fields": [
+        "effective_scope"
+      ],
       "context_encoding": "canonical_effective_scope_key_bytes(effective_scope): UTF-8 canonical RealmId for Realm or UTF-8 canonical CircleId for Circle; JCS, realm-only context and empty context are forbidden",
       "output_bytes": "KDF.Nh",
       "applies_to_profiles": [],
-      "applies_to_content_schemes": ["mls_exporter_aead_v1"],
+      "applies_to_content_schemes": [
+        "mls_exporter_aead_v1"
+      ],
       "grandfathered": false,
       "empty_context_forbidden": true,
       "empty_context_error": "mls_exporter_context_invalid",
-      "forbid_reuse_with": ["ak.reaction-routing-root-v1", "ak.signal-root-v1"]
+      "forbid_reuse_with": [
+        "ak.reaction-routing-root-v1",
+        "ak.signal-root-v1"
+      ]
     },
     {
       "label": "ak.content-v1",
@@ -24,30 +31,44 @@
       "parent_secret": "ak.history-v1",
       "purpose": "Per-verified-sender exporter content AEAD key",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
-      "context_fields": ["sender_domain"],
+      "context_fields": [
+        "sender_domain"
+      ],
       "context_encoding": "exact active LeafNode BasicCredential identity bytes; ordinary DeviceId UTF-8, Agent ActorId UTF-8, or Realm-global minimal endpoint-incarnation pairwise ActorId UTF-8",
       "output_bytes": "AEAD.Nk",
       "applies_to_profiles": [],
-      "applies_to_content_schemes": ["mls_exporter_aead_v1"],
+      "applies_to_content_schemes": [
+        "mls_exporter_aead_v1"
+      ],
       "grandfathered": false,
       "empty_context_forbidden": true,
       "empty_context_error": "mls_sender_domain_invalid",
-      "forbid_reuse_with": ["ak.reaction-routing-v1", "ak.signal-v1"]
+      "forbid_reuse_with": [
+        "ak.reaction-routing-v1",
+        "ak.signal-v1"
+      ]
     },
     {
       "label": "ak.reaction-routing-root-v1",
       "primitive": "MLS-Exporter",
       "purpose": "Non-deliverable standard-MLS reaction routing root",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
-      "context_fields": ["effective_scope"],
+      "context_fields": [
+        "effective_scope"
+      ],
       "context_encoding": "canonical_effective_scope_key_bytes(effective_scope)",
       "output_bytes": "KDF.Nh",
       "applies_to_profiles": [],
-      "applies_to_content_schemes": ["mls_rfc9420"],
+      "applies_to_content_schemes": [
+        "mls_rfc9420"
+      ],
       "grandfathered": false,
       "empty_context_forbidden": true,
       "empty_context_error": "mls_exporter_context_invalid",
-      "forbid_reuse_with": ["ak.history-v1", "ak.signal-root-v1"]
+      "forbid_reuse_with": [
+        "ak.history-v1",
+        "ak.signal-root-v1"
+      ]
     },
     {
       "label": "ak.reaction-routing-v1",
@@ -55,30 +76,47 @@
       "parent_secret": "history_secret for exporter scheme; ak.reaction-routing-root-v1 for standard scheme",
       "purpose": "One-hour target-bound reaction routing HMAC key",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
-      "context_fields": ["effective_scope", "target_ref", "routing_window"],
+      "context_fields": [
+        "effective_scope",
+        "target_ref",
+        "routing_window"
+      ],
       "context_encoding": "RFC 8785 JCS bytes of closed {effective_scope,target_ref,routing_window}",
       "output_bytes": 32,
       "applies_to_profiles": [],
-      "applies_to_content_schemes": ["mls_rfc9420", "mls_exporter_aead_v1"],
+      "applies_to_content_schemes": [
+        "mls_rfc9420",
+        "mls_exporter_aead_v1"
+      ],
       "grandfathered": false,
       "empty_context_forbidden": true,
       "empty_context_error": "reaction_routing_context_invalid",
-      "forbid_reuse_with": ["ak.content-v1", "ak.signal-v1"]
+      "forbid_reuse_with": [
+        "ak.content-v1",
+        "ak.signal-v1"
+      ]
     },
     {
       "label": "ak.signal-root-v1",
       "primitive": "MLS-Exporter",
       "purpose": "Non-deliverable standard-MLS Signal root",
       "defined_in": "zh/sync/signal.md §1",
-      "context_fields": ["effective_scope"],
+      "context_fields": [
+        "effective_scope"
+      ],
       "context_encoding": "canonical_effective_scope_key_bytes(effective_scope)",
       "output_bytes": "KDF.Nh",
       "applies_to_profiles": [],
-      "applies_to_content_schemes": ["mls_rfc9420"],
+      "applies_to_content_schemes": [
+        "mls_rfc9420"
+      ],
       "grandfathered": false,
       "empty_context_forbidden": true,
       "empty_context_error": "mls_exporter_context_invalid",
-      "forbid_reuse_with": ["ak.history-v1", "ak.reaction-routing-root-v1"]
+      "forbid_reuse_with": [
+        "ak.history-v1",
+        "ak.reaction-routing-root-v1"
+      ]
     },
     {
       "label": "ak.signal-v1",
@@ -86,15 +124,23 @@
       "parent_secret": "history_secret for exporter scheme; ak.signal-root-v1 for standard scheme",
       "purpose": "Per-verified-sender Signal AEAD key",
       "defined_in": "zh/sync/signal.md §1",
-      "context_fields": ["sender_domain"],
+      "context_fields": [
+        "sender_domain"
+      ],
       "context_encoding": "exact active LeafNode BasicCredential identity bytes",
       "output_bytes": "AEAD.Nk",
       "applies_to_profiles": [],
-      "applies_to_content_schemes": ["mls_rfc9420", "mls_exporter_aead_v1"],
+      "applies_to_content_schemes": [
+        "mls_rfc9420",
+        "mls_exporter_aead_v1"
+      ],
       "grandfathered": false,
       "empty_context_forbidden": true,
       "empty_context_error": "mls_sender_domain_invalid",
-      "forbid_reuse_with": ["ak.content-v1", "ak.reaction-routing-v1"]
+      "forbid_reuse_with": [
+        "ak.content-v1",
+        "ak.reaction-routing-v1"
+      ]
     },
     {
       "label": "ak.rtc-frame-key/v1",

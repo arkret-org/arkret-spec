@@ -77,10 +77,16 @@ issuer key 的签名在另一条验证路径下被重解释。SFU 在每次 SDP 
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "realm_id": "ak:realm:...",
   "focus_id": "fra-1",
-  "participant_binding": { "scheme": "ak.media.participant_binding.v1", "...": "..." },
+  "participant_binding": {},
   "backend_token": "<token from §2>",
-  "capability_refs": ["ak:grant:..."],
-  "desired_media": { "audio": true, "video": true, "screen": false }
+  "capability_refs": [
+    "ak:grant:..."
+  ],
+  "desired_media": {
+    "audio": true,
+    "video": true,
+    "screen": false
+  }
 }
 ```
 

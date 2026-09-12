@@ -294,7 +294,9 @@ def lint_select_component(
         unknown_branch_keys = set(branch) - {"field", "forbidden_fields"}
         if unknown_branch_keys:
             lint.fail(path, f"{branch_ref} has unknown member(s) {sorted(unknown_branch_keys)}")
-    unknown_keys = set(component) - {"kind", "selector", "branches"}
+    if "transform" in component and component["transform"] != "base64url_utf8":
+        lint.fail(path, f"{ref}.transform must be base64url_utf8")
+    unknown_keys = set(component) - {"kind", "selector", "branches", "transform"}
     if unknown_keys:
         lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown_keys)}")
 
@@ -2847,7 +2849,6 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         "ak.gate.account.command.abandon_identity_creation.v1",
         "ak.gate.account.command.issue_controller_gate_attestation.v1",
         "ak.gate.account.command.issue_did_binding_challenge.v1",
-        "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
         "ak.gate.account.command.request_erasure.v1",
         "ak.gate.account.read.onboarding.v1",
     }

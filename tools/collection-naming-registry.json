@@ -436,14 +436,13 @@
       "companion_fields": [
         "next_cursor"
       ],
-      "reason": "Account Realm summaries paginate a frozen account-private snapshot; complete additionally marks its terminal page."
+      "reason": "Account Realm summaries paginate a frozen account-private snapshot; absence of next_cursor marks its terminal page."
     },
     {
       "file": "mls-welcome-refs.schema.json",
       "pointer": "/$defs/welcome_refs_outcome",
       "collection_field": "welcome_refs",
       "companion_fields": [
-        "limited",
         "next_cursor"
       ],
       "reason": "Authenticated recipient discovery paginates only Welcome Event references."

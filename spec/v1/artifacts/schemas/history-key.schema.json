@@ -77,12 +77,6 @@
       "$ref": "#/$defs/organization_recovery_archive_replica_outcome"
     },
     {
-      "$ref": "#/$defs/membership_authority_request_body"
-    },
-    {
-      "$ref": "#/$defs/membership_authority_outcome"
-    },
-    {
       "$ref": "#/$defs/history_authority_request_body"
     },
     {
@@ -3252,48 +3246,6 @@
       },
       "additionalProperties": false
     },
-    "membership_authority_request_body": {
-      "type": "object",
-      "description": "One exact current Realm/Circle membership at the requested current confirmed basis with exactly one head per Realm. Account Station query, not a history proof. Canonical body at most 64 KiB.",
-      "required": [
-        "effective_scope",
-        "actor_id",
-        "seal_basis"
-      ],
-      "properties": {
-        "effective_scope": {
-          "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "seal_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
-        }
-      },
-      "additionalProperties": false
-    },
-    "membership_authority_outcome": {
-      "type": "object",
-      "description": "Complete current membership result for one exact selector. The caller is currently allowed to see membership in this scope. No history, signature closure or continuation. Canonical response at most 64 KiB.",
-      "required": [
-        "account_id",
-        "query_digest",
-        "authorization_incarnation"
-      ],
-      "properties": {
-        "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id"
-        },
-        "query_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
-        },
-        "authorization_incarnation": {
-          "$ref": "#/$defs/authorization_incarnation"
-        }
-      },
-      "additionalProperties": false
-    },
     "history_authority_request_body": {
       "type": "object",
       "description": "Exact current history authorization for one scope and ActorId. Canonical request at most 64 KiB; no history proof or pagination.",
@@ -3317,13 +3269,11 @@
     },
     "history_authority_outcome": {
       "type": "object",
-      "description": "Current accepted membership, MLS join epoch and scope policy floor. No client bootstrap checkpoint. No grant for later key release. Canonical complete response at most 64 KiB.",
+      "description": "Exact current membership always; the two history epoch fields appear together only when the unique MLS lineage is available. A history consumer must fail frontier_unavailable on their absence.",
       "required": [
         "account_id",
         "query_digest",
-        "authorization_incarnation",
-        "join_epoch",
-        "history_floor_epoch"
+        "authorization_incarnation"
       ],
       "properties": {
         "account_id": {
@@ -3346,7 +3296,15 @@
           "maximum": 18446744073709551615
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "join_epoch": [
+          "history_floor_epoch"
+        ],
+        "history_floor_epoch": [
+          "join_epoch"
+        ]
+      }
     },
     "history_source_signer_result": {
       "description": "One exact historical public signer result from the requester Account Station. The evidence ref is the only dictionary key. This result is not a portable proof or a grant for another record.",

@@ -1165,6 +1165,10 @@
     "CallMediaTokenExchangeOutcome": {
       "type": "object",
       "required": [
+        "realm_id",
+        "call_id",
+        "actor_id",
+        "device_id",
         "focus_id",
         "connect_url",
         "backend_token",
@@ -1174,6 +1178,20 @@
         "backend_kind"
       ],
       "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "call_id": {
+          "type": "string",
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
         "focus_id": {
           "type": "string",
           "pattern": "^(?!ak:)",
@@ -1194,64 +1212,7 @@
           "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "participant_binding": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "realm_id",
-            "call_id",
-            "focus_id",
-            "actor_id",
-            "device_id",
-            "participant_id",
-            "issued_at",
-            "expires_at",
-            "issuer_kid",
-            "sig"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "ak.media.participant_binding.v1"
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "call_id": {
-              "type": "string",
-              "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
-            },
-            "focus_id": {
-              "type": "string",
-              "pattern": "^(?!ak:)",
-              "minLength": 1,
-              "maxLength": 64
-            },
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            },
-            "device_id": {
-              "type": "string",
-              "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            },
-            "participant_id": {
-              "type": "string",
-              "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            },
-            "issued_at": {
-              "$ref": "./time.schema.json#/$defs/timestamp"
-            },
-            "expires_at": {
-              "$ref": "./time.schema.json#/$defs/timestamp"
-            },
-            "issuer_kid": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-            },
-            "sig": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
+          "$ref": "./event-payload.schema.json#/$defs/participant_binding"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
@@ -4255,7 +4216,6 @@
       "required": [
         "kind",
         "version_id",
-        "log_head_digest",
         "control_key_digest"
       ],
       "properties": {
@@ -4267,16 +4227,13 @@
           "pattern": "^(?!ak:)",
           "minLength": 1
         },
-        "log_head_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
         "control_key_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "IdentityResolveRequestBody": {
       "type": "object",

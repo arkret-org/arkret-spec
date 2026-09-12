@@ -88,7 +88,7 @@ Schema id: `ak.schema.realm.v1`
 | `durability_policy` | conditional | `enum(none, organization_recovery_key)` | 与 `content_scheme` 一同由 accepted MLS Genesis 固定且 create-locked；`content_scheme=mls_exporter_aead_v1` 时必填，其它 scheme 必须省略。任何后续 policy/Commit/group-state 变化均 `failed_precondition`。 | Realm 恢复密钥（RHRK）持久化策略。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §13](../authz/event-auth-state-resolution.md)）。 |
-| `notary` | yes | closed union | Genesis notary control cell 初值；`kind=quorum` 是唯一配置，n=3f+1、quorum=2f+1；f=0 为单副本。每个 slot 是冻结的 signer descriptor（actor did_core_id、DID URL、exact key bytes/digest、JOSE alg）；不存在并行 `notary_profile` 字段。 | 当前与历史 Seal 签发规则。 |
+| `notary` | yes | closed object | `{signer,max_clock_error_ms}`，唯一冻结 signer descriptor（完整 ActorId、verification method DID URL、canonical key bytes、JOSE alg）；不携 key digest、配置 kind 或签署者数组。 | 当前与历史 Seal 签发规则，见 [cbs-profiles](../authz/cbs-profiles.md)。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor confirmed membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 Seal transparency auditor attestation。 | Seal transparency auditor allowlist、门限与独立性 policy。 |
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_seal`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
@@ -176,21 +176,16 @@ threshold 或 custody topology。每个 exporter Realm/Circle 独立 opt in，Ci
   "encryption_profile": "mls_rfc9420",
   "content_scheme": "mls_rfc9420",
   "notary": {
-    "kind": "quorum",
-    "signers": [
-      {
-        "actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h"
-        },
-        "verification_method": "did:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h:acme.example#notary-1",
-        "key_kind": "ed25519_raw32",
-        "jose_algorithm": "Ed25519",
-        "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "frozen_public_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-      }
-    ],
-    "fault_tolerance": 0,
+    "signer": {
+      "actor_id": {
+        "kind": "service",
+        "service_id": "ak:did_core:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h"
+      },
+      "verification_method": "did:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h:acme.example#notary-1",
+      "key_kind": "ed25519_raw32",
+      "jose_algorithm": "Ed25519",
+      "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
     "max_clock_error_ms": 1000
   },
   "created_by": {
@@ -470,7 +465,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
   - `schema_refs` 包含 `ak.profile.principal_control_realm.v1`
   - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
   - effective `content_encryption_floor = "e2ee_required"` 且 `metadata_encryption_floor = "e2ee_required"`。v1 不存在"明文地板的 PCR"：两条 floor 由 PCR profile baseline 固定，不是 genesis object 的 producer 字段。
-   - `created_by` 从 create envelope 的完整 `actor_id` 派生；genesis `notary={kind:"quorum",signers:[...],fault_tolerance:0,max_clock_error_ms:1000}` 的唯一 voter actor_id 指向同一完整 ActorId；Seal proof 必须逐字使用该冻结 descriptor 的 verification method/key，而不是 current resolver key。
+   - `created_by` 从 create envelope 的完整 `actor_id` 派生；genesis `notary={signer:...,max_clock_error_ms:1000}` 的唯一 signer actor_id 指向同一完整 ActorId；Seal proof 必须逐字使用该冻结 descriptor 的 verification method/key，而不是 current resolver key。
   - genesis `security_class = "high_assurance"`；effective `federation_policy ∈ {closed, restricted, quarantine}` 来自 profile/policy projection。
   - effective `history_access = "since_join"`。Standard-MLS PCR 不提供可交付 history secret；新 endpoint 从自己的 initial Add/Welcome admission 起读取密文，durable device-list / normalized principal view 提供必要控制 baseline，不恢复 foreign active MLS state。
 - 事件类型由 `ak.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 identity resolution / device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。allowlist 是**闭合**的：正文要求写入 PCR 的每个 kind MUST 出现在其中，反之亦然；`ak.identity.resolution.update`（[`../identity/identity-did.md` §4.2](../identity/identity-did.md)）与 `ak.contact.scope.update`（[`../identity/contact-and-direct-conversation.md` §3](../identity/contact-and-direct-conversation.md)）同属该 allowlist。

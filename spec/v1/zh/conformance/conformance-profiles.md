@@ -123,7 +123,7 @@ assertion 名补前缀、映射为 feature，或为缺失项生成兼容 alias�
 
 §2.1 的"实现只声明自己实际支持的 profile"对可裁剪模块构建（Cargo feature、编译开关、插件拆分等形态的实现或 SDK）有一条显式推论：
 
-- 以可裁剪模块构建的实现 / SDK MUST 保证其 profile 声明面（`ServiceDescribe.claimed_profiles`、`supported_profiles`、SDK 静态导出的 conformance 声明常量等）与**当前构建产物的实际编译能力**一致，而不是与全功能构建的能力一致。
+- 以可裁剪模块构建的实现 / SDK MUST 保证其 profile 声明面（`ServiceDescribe.supported_profiles`、SDK 静态导出的 conformance 声明常量等）与**当前构建产物的实际编译能力**一致，而不是与全功能构建的能力一致。
 - 构建期裁剪掉某 profile 的任一 MUST 能力（对应 `profile_requirements` 中 `operation_requirements` / `required_event_kinds` / `required_schemas` 的实现模块）时，该构建 MUST 同时摘除该 profile 的声明——通过构建期对账（feature gate 与声明常量联动）或等效守卫实现。裁剪构建（例如 `--no-default-features`）继续静态声明完整 required 面（如 `e2ee_client` 的 required 集合）即违反本条与 §2.1 的声明纪律。
 - 对端按 §1 的能力交集原则信任声明面；声明面与编译能力脱钩会把 fail-closed 协商变成 fail-open，因此本条按声明纪律缺陷处理，而非文档瑕疵。
 
@@ -441,7 +441,7 @@ SHOULD 支持：
 
 ### 11.1 Traffic Metadata Hardening
 
-`ak.profile.traffic_metadata_hardened.v1` 是 service/deployment 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务 MUST 在 `ServiceDescribe.claimed_profiles` 中暴露支持面，并对部署配置选中的适用 route 按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。v1 不定义 Realm 级 activation carrier；Realm `schema_refs`、policy bundle 与私有 active-profile 集合均不得声明本 profile。
+`ak.profile.traffic_metadata_hardened.v1` 是 service/deployment 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务 MUST 在 `ServiceDescribe.supported_profiles` 中暴露支持面，并对部署配置选中的适用 route 按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。v1 不定义 Realm 级 activation carrier；Realm `schema_refs`、policy bundle 与私有 active-profile 集合均不得声明本 profile。
 
 MUST 支持：
 
@@ -993,7 +993,7 @@ Feature discovery MUST 使用
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)
 的 closed `ServiceDescribe` DTO。完整且可校验的响应示例见
 [`service-surface.md` §3](../sync/service-surface.md)；profile 通过
-`supported_profiles` / `claimed_profiles` / `verified_profiles` 表达，reducer 与 schema
+`supported_profiles` / `verified_profiles` 表达，reducer 与 schema
 版本不得伪装成独立的顶层 profile 字段。
 
 ## 22. 基线 Profile

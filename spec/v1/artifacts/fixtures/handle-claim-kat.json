@@ -16,7 +16,9 @@
         "station_id": "ak:did_core:webvh:z6mkfixturestation"
       },
       "issuer_id": "ak:did_core:webvh:z6mkfixtureissuer",
-      "claim": { "kind": "handle_binding" },
+      "claim": {
+        "kind": "handle_binding"
+      },
       "visibility": "public",
       "audience": null,
       "issued_at": "2026-09-01T00:00:00.000Z",
@@ -83,7 +85,9 @@
           "station_id": "ak:did_core:webvh:z6mkfixturestation"
         },
         "issuer_id": "ak:did_core:webvh:z6mkfixtureissuer",
-        "claim": { "kind": "handle_binding" },
+        "claim": {
+          "kind": "handle_binding"
+        },
         "visibility": "public",
         "audience": null,
         "issued_at": "2026-09-01T00:00:00.000Z",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.8",
-  "generated_at": "2026-09-12T15:37:00+08:00",
+  "version": "2026-09-12.9",
+  "generated_at": "2026-09-12T20:12:54+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4347,7 +4347,7 @@
       }
     },
     "ak.profile.sovereign_deployment.v1": {
-      "description": "Deployment and conformance profile for an organization-controlled Arkret service domain. It is advertised only through ServiceDescribe.claimed_profiles and remains orthogonal to Realm structural role, organization relationship, notary choice and joined-member Station routing. It creates no Realm hosting field, primary service or complete-history authority. See zh/sync/sovereign-deployment.md sections 2, 3.2 and 7.1.",
+      "description": "Deployment and conformance profile for an organization-controlled Arkret service domain. It is advertised only through ServiceDescribe.supported_profiles and remains orthogonal to Realm structural role, organization relationship, notary choice and joined-member Station routing. It creates no Realm hosting field, primary service or complete-history authority. See zh/sync/sovereign-deployment.md sections 2, 3.2 and 7.1.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -4454,13 +4454,13 @@
         "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
         "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed.",
-        "realm_hosting_boundary_must": "This deployment profile is advertised only through ServiceDescribe.claimed_profiles and MUST NOT be written into Realm genesis, schema_refs or any Realm facet. It creates no primary_server, hosted_on, home_server, canonical mirror or complete-history authority.",
+        "realm_hosting_boundary_must": "This deployment profile is advertised only through ServiceDescribe.supported_profiles and MUST NOT be written into Realm genesis, schema_refs or any Realm facet. It creates no primary_server, hosted_on, home_server, canonical mirror or complete-history authority.",
         "canonical_realm_data_path_must": "Realm creation, facets, invitation, membership, Event persistence, federation and recovery MUST use registered ak.* Event kinds and operations backed by the canonical durable Event store. Private /_soland/* endpoints, in-memory Realm records, caller-seeded Realm ids and arbitrary JSON store-and-forward queues MUST NOT satisfy this profile.",
         "live_claim_gate_must": "ServiceDescribe MUST omit this profile unless live conformance evidence covers independent Station processes and databases, restart on both sides, durable-outbox outage recovery, external-member boundaries, and effective federation_policy enforcement on ingress, destination selection and fanout. Static fixture ids and private state-machine tests are insufficient."
       }
     },
     "ak.profile.sovereign_enclave.v1": {
-      "description": "Controlled-collaboration enclave deployment variant. It runs alongside or downstream of a sovereign main domain and serves ordinary ak.schema.realm.v1 Collaboration Realms whose external members, policy and routing remain canonical Realm state. The profile is a ServiceDescribe.claimed_profiles deployment/conformance claim only: no Realm deployment_profile, hosted_on, primary_server or complete-history authority exists. Outbound federation is denied by default and may target only destinations allowed by effective Realm federation policy, joined-member routing projection and the deployment peer allowlist. Public discovery and public DID resolution remain disabled. See zh/sync/sovereign-deployment.md sections 2, 3.2, 4 and 7.1.",
+      "description": "Controlled-collaboration enclave deployment variant. It runs alongside or downstream of a sovereign main domain and serves ordinary ak.schema.realm.v1 Collaboration Realms whose external members, policy and routing remain canonical Realm state. The profile is a ServiceDescribe.supported_profiles deployment/conformance claim only: no Realm deployment_profile, hosted_on, primary_server or complete-history authority exists. Outbound federation is denied by default and may target only destinations allowed by effective Realm federation policy, joined-member routing projection and the deployment peer allowlist. Public discovery and public DID resolution remain disabled. See zh/sync/sovereign-deployment.md sections 2, 3.2, 4 and 7.1.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -5385,7 +5385,7 @@
     },
     "ak.profile.traffic_metadata_hardened.v1": {
       "role": "admin",
-      "description": "Service/deployment hardening profile for high-privacy traffic metadata. A declaring service exposes support through ServiceDescribe.claimed_profiles and applies the profile to deployment-configured routes; federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST satisfy the declared observable bounds. Arkret v1 defines no Realm activation carrier for this profile.",
+      "description": "Service/deployment hardening profile for high-privacy traffic metadata. A declaring service exposes support through ServiceDescribe.supported_profiles and applies the profile to deployment-configured routes; federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST satisfy the declared observable bounds. Arkret v1 defines no Realm activation carrier for this profile.",
       "enforcement_phases": [
         "build",
         "conformance"

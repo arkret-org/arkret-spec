@@ -354,7 +354,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | History response manifest / source chunk record | 256 KiB / 2 MiB | manifest descriptor 是 `chunk_response_id,chunk_index,covered_epoch_range` 的唯一真源，其 range 必须被 receipt-bound direct traversal 的完整 replay 与 current history-access/join-floor admission 逐字授权；不存在独立 manifest-level evidence selector、selector digest 或 range key。sealed source chunk 只含 manifest/admission digest、index 与 HPKE bytes，不重复 range。二者按最终 canonical source record bytes 分别计限。 |
 | History response send request / response | 8 MiB / 8 MiB | 所有 non-streaming canonical request/response 都受同一 8 MiB 上限。source 成功响应只返回小型 immutable receipt，不回显完整 response record 或 authority locators。 |
 | 普通 KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。 |
-| Last-resort KeyPackage 有效期 | 30 days（默认上限） | **Last-resort KeyPackage**（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.6.2）的有效期 MUST 受与普通 KeyPackage 同一 30 days 默认上限约束，且 **不享** "更长有效期由 profile 声明" 的豁免（last-resort 包复用 init/encryption key、弱化 Welcome 前向保密，其生命周期即弱化窗口硬上界）；`personal_node` profile MAY 放宽但 MUST 向用户披露。 |
+| Last-resort KeyPackage 有效期 | 30 days（默认上限） | **Last-resort KeyPackage**（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.6.2）的有效期 MUST 受与普通 KeyPackage 同一 30 days 默认上限约束，且 **不享** "更长有效期由 profile 声明" 的豁免（last-resort 包复用 init/encryption key、弱化 Welcome 前向保密，生命周期只限制新分发资格，不是已捕获 Welcome 的密码学撤销期限）；`personal_node` profile MAY 放宽但 MUST 向用户披露。 |
 | KeyPackage 接收侧时钟偏差宽限 | ≤ 有效期的 10% | 实现 MAY 声明一个不超过该 KeyPackage 有效期 10% 的接收侧时钟偏差宽限窗口；该宽限同时适用于普通与 last-resort KeyPackage 的过期判定。 |
 | to-device 队列 TTL | 24 hours（默认最大值） | `DeviceMessageEnvelope.expires_at` 不得晚于当前 service / Realm / profile TTL 上限；服务端 MUST 拒绝缺失、已过期、早于 `sent_at` 或超限的消息。高安全 profile SHOULD 声明更短 TTL。 |
 | KeyPackage claim 限速 | 60 seconds 内最多 5 次 / `(requester_id, target_principal_id)` | 超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope），不得泄露目标存在性；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。 |
@@ -443,3 +443,17 @@ cursor ≤4096 字符。必须使用事务发布的精确 recipient/scope/group 
 **错误码层级约定（normative）**：本文表中形如 ``schema_violation`，`reason_code=prev_refs_too_large`` 的标注表示**顶层错误码** + **reason 子码**两层结构——顶层错误码（如 `schema_violation` / `payload_too_large` / `rate_limited`）来自 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)，`reason_code=<...>` 是对该顶层码的细化子码。表中未显式写 `reason_code=` 前缀而直接出现的裸 code（如 `payload_too_large`、`rate_limited`、`temporarily_unavailable`）均为**顶层错误码**。`prev_refs_too_large`、`refs_too_large` 等只在 `reason_code=` 前缀下出现，是 reason 子码而非顶层码。
 
 实现不得把超限输入静默截断后当作 accepted state。
+
+### 8.1 self operation 预算与通用错误
+
+下表是这些 self operation 的通用请求/完整响应 canonical JSON 预算真源；HTTP、gRPC、MQ 一致。各自 schema 以 `x-arkret-max-canonical-bytes` 登记相同字节数。结果必须完整，不能用截断或部分成功满足预算。
+
+| operation | 请求 | 完整响应 |
+| --- | ---: | ---: |
+| `ak.self.seals.read.mls_welcome_refs.v1` | 64 KiB | 64 KiB |
+| `ak.self.seals.read.mls_membership_removal.v1` | 64 KiB | 1 MiB |
+| `ak.self.signer_keys.read.resolve.v1` | 64 KiB | 1 MiB |
+| `ak.self.genesis_notary.read.resolve.v1` | 64 KiB | 64 KiB |
+| `ak.self.media_service_binding.read.resolve.v1` | 64 KiB | 64 KiB |
+
+请求字节超限 MUST `413 payload_too_large`；closed 字段、类型、枚举或项数非法 MUST `422 schema_violation`；合法查询不能在预算内返回完整结果 MUST `limit_exceeded`。未认证沿用 §8 及 API authentication 的 401 合同。不可见与不存在使用同形 `404 not_found`；仅对已认证且可见对象，exact basis/base/epoch 或叶集合不匹配使用 `state_mismatch`，治理确认事实缺依赖使用 `frontier_unavailable`。genesis-notary/media-service 的可见目标尚无可用已验证服务绑定使用 `503 temporarily_unavailable`，不返回占位、旧缓存或未验证候选。各操作保留独有的访问控制、不披露状态合并规则与集合完整性要求。

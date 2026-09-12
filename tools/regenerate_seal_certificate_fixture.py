@@ -35,17 +35,15 @@ def main() -> None:
     body["command_results"] = []
     transcript = {
         "context": "ak.seal.commit.v1", "seal_digest": digest(body),
-        "configuration_ref": body["configuration_ref"],
-        "notary_seq": body["notary_seq"], "view": 0,
     }
     header = b64(canonical_json({"alg": "Ed25519", "kid": TEST_KEY["kid"]}).encode())
     payload = b64(canonical_json(transcript).encode())
     signing_input = (header + "." + payload).encode("ascii")
     key = Ed25519PrivateKey.from_private_bytes(base64.urlsafe_b64decode(TEST_KEY["private_key_seed"] + "="))
-    certificate = {"kind": "multi_sig", "view": 0, "signatures": [{
+    certificate = {
         "verification_method": TEST_KEY["kid"], "payload_digest": digest(transcript),
         "jws": header + ".." + b64(key.sign(signing_input)),
-    }]}
+    }
     vector["description"] = "Byte-level body identity and commit certificate KAT. Symbolic predecessor roots are not an execution-validity proof."
     vector["test_key"] = TEST_KEY
     vector["commit_transcript"] = transcript

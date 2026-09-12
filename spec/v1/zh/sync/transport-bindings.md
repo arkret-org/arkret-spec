@@ -104,7 +104,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.gate.account.command.revoke_session.v1` | 撤销 session grant；不撤销 device authorization。 |
 | `ak.find.directory.read.search_realms.v1` / `ak.find.directory.read.search_organizations.v1` / `ak.find.directory.read.search_actors.v1` / `ak.find.directory.read.search_users.v1` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
 | `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_organization.v1` / `ak.find.directory.read.resolve_handle.v1` / `ak.find.directory.read.resolve_agent_selector.v1` / `ak.find.directory.read.list_handles_for_subject.v1` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及按完整 AccountId 列出已知账号的当前可见 handle claims。 |
-| `ak.find.directory.command.announce.v1` / `ak.find.directory.command.withdraw.v1` / `ak.find.directory.push.command.register.v1` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `ak.self.blob.upload.create.v1` | 上传 blob。 |
 | `ak.self.blob.resource.get.v1` | 获取 blob 或下载授权。 |
 | `ak.edge.push.command.register_device.v1` | 注册推送设备和推送网关。 |

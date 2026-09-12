@@ -503,7 +503,6 @@ Candidate payload:
   "notification": {
     "push_target_id": "ak:pseudonym:push:lg8aqJ2eJjms1GQpkzloxGn8F802f8RfmfmfsC85eRo",
     "wakeup_kind": "call_invite",
-    "timing_profile_hint": "default",
     "push_hint": "incoming_call"
   }
 }
@@ -511,7 +510,7 @@ Candidate payload:
 
 设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ak.call.signal{signal_kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
-Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；provider-facing body 的唯一权威形态是 [`discovery/push-notifications.md` §5.1](../discovery/push-notifications.md) 的 blind notification。WebRTC call invite 只允许使用 `notification.push_target_id`、`notification.wakeup_kind`、`notification.timing_profile_hint`、可选 `notification.push_hint="incoming_call"` 以及该节允许的本地化 / 计数字段；不得携带 `urgency`、`expires_at` 或任何未登记字段。其它一切信息必须通过本地解密获得。
+Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；provider-facing body 的唯一权威形态是 [`discovery/push-notifications.md` §5.1](../discovery/push-notifications.md) 的 blind notification。WebRTC call invite 只允许使用 `notification.push_target_id`、`notification.wakeup_kind`、可选 `notification.push_hint="incoming_call"` 以及该节允许的本地化 / 计数字段；不得携带 `urgency`、`expires_at` 或任何未登记字段。其它一切信息必须通过本地解密获得。
 
 **Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ak.call.signal{signal_kind=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 

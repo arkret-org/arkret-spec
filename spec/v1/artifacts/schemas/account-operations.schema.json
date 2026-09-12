@@ -357,7 +357,6 @@
         "principal_id",
         "did",
         "did_version_id",
-        "log_head_digest",
         "control_key_digest",
         "dpop_jkt",
         "audience_id",
@@ -409,9 +408,6 @@
           ],
           "description": "Adapter-defined versionId of the entry whose current active update key signed this proof."
         },
-        "log_head_digest": {
-          "$ref": "#/$defs/sha256_digest"
-        },
         "control_key_digest": {
           "$ref": "#/$defs/sha256_digest",
           "description": "SHA-256 over the canonical multikey bytes of the verified current active update key."
@@ -448,7 +444,8 @@
           "$ref": "#/$defs/non_empty_string"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "account_handoff_authentication_proof": {
       "type": "object",
@@ -711,13 +708,12 @@
           "const": [
             "ak.gate.account.command.issue_identity_binding_challenge.v1",
             "ak.gate.account.command.issue_did_binding_challenge.v1",
-            "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
             "ak.gate.account.command.abandon_identity_creation.v1",
             "ak.gate.account.command.register.v1",
             "ak.gate.account.command.issue_session_grant.v1",
             "ak.gate.account.command.issue_recovery_completion_grant.v1"
           ],
-          "description": "Closed set of operations this handoff may be presented at. The two abandonment operations are members because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them; membership here does not widen the handoff into a session credential."
+          "description": "Closed set of operations this handoff may be presented at. The abandonment command is a member because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them; membership here does not widen the handoff into a session credential."
         },
         "binding": {
           "$ref": "#/$defs/account_handoff_binding"
@@ -726,41 +722,16 @@
       "additionalProperties": false
     },
     "account_onboarding_goal": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "goal"
-          ],
-          "properties": {
-            "goal": {
-              "const": "complete_identity"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "goal",
-            "challenge",
-            "fresh_authentication_required"
-          ],
-          "properties": {
-            "goal": {
-              "const": "abandon_provisional_identity"
-            },
-            "challenge": {
-              "$ref": "#/$defs/identity_abandonment_challenge_outcome"
-            },
-            "fresh_authentication_required": {
-              "type": "boolean",
-              "description": "Authoritative Account Authority decision. true means the current handoff is the challenge-issuing handoff and confirmation requires a new authentication; clients MUST NOT infer this by comparing locally persisted credentials."
-            }
-          },
-          "additionalProperties": false
+      "type": "object",
+      "required": [
+        "goal"
+      ],
+      "properties": {
+        "goal": {
+          "const": "complete_identity"
         }
-      ]
+      },
+      "additionalProperties": false
     },
     "account_onboarding_state": {
       "type": "object",
@@ -838,30 +809,12 @@
     },
     "identity_binding_challenge_outcome": {
       "type": "object",
-      "description": "Durable single-use proof transcript. Canonical issued_at is chosen after current authentication and live lease/fence checks under shared locks; expires_at = issued_at + a positive TTL <=300s, independently of handoff and lease expiry. Issuance never renews a lease and consumes only its independent account/audience/holder issuance budget. Still-valid proofs survive same-binding reauthentication or renewal; register separately verifies current authority. Persisted, single-use server challenge. The client copies every field from challenge_id through expires_at into identity_creation_control_proof, adds proof_kind and verification_key_multibase, and signs that complete proof object with signature omitted. request_id is idempotency metadata and is not part of the root-control transcript.",
+      "description": "Only fresh challenge material and domain separation. The authority durably retains the full request, account/handoff subject, lease/fence, DID operation and independently derived pins, PCR/genesis/session digests, audience/origin/trust-domain, and rechecks all of them atomically at registration. The client reconstructs the proof from its frozen submission and authenticated onboarding context.",
       "required": [
         "request_id",
         "challenge_id",
         "challenge",
         "purpose",
-        "account_subject",
-        "principal_id",
-        "did",
-        "operation_digest",
-        "did_version_id",
-        "log_head_digest",
-        "control_key_digest",
-        "pcr_realm_id",
-        "realm_create_payload_digest",
-        "founding_authorize_payload_digest",
-        "initial_session_request_digest",
-        "genesis_unit_kinds",
-        "identity_creation_lease_id",
-        "lease_fence",
-        "dpop_jkt",
-        "audience_id",
-        "origin",
-        "trust_domain",
         "issued_at",
         "expires_at"
       ],
@@ -878,67 +831,6 @@
         },
         "purpose": {
           "const": "account_binding_and_pcr_genesis"
-        },
-        "account_subject": {
-          "$ref": "#/$defs/account_subject"
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "did": {
-          "$ref": "#/$defs/did"
-        },
-        "operation_digest": {
-          "$ref": "#/$defs/sha256_digest",
-          "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete request did_operation object."
-        },
-        "did_version_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "description": "Validated did:webvh inception versionId copied into the root-control transcript."
-        },
-        "log_head_digest": {
-          "$ref": "#/$defs/sha256_digest",
-          "description": "SHA-256 over RFC 8785 JCS bytes of the exact method-native inception log entry."
-        },
-        "control_key_digest": {
-          "$ref": "#/$defs/sha256_digest",
-          "description": "SHA-256 over the canonical multikey bytes of the current active update key (parameters.updateKeys[0]) of the DID entry pinned by did_version_id; never private key material or a next-key commitment. For account-first inception that entry is entry 0; for an already-published DID it is the entry current at binding time, so a spent inception key is never required."
-        },
-        "pcr_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "realm_create_payload_digest": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "founding_authorize_payload_digest": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "initial_session_request_digest": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "genesis_unit_kinds": {
-          "$ref": "#/$defs/pcr_genesis_unit_kinds"
-        },
-        "identity_creation_lease_id": {
-          "$ref": "#/$defs/opaque_registration_id"
-        },
-        "lease_fence": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "dpop_jkt": {
-          "$ref": "#/$defs/dpop_jkt"
-        },
-        "audience_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "origin": {
-          "$ref": "./common-ids.schema.json#/$defs/web_origin"
-        },
-        "trust_domain": {
-          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -976,7 +868,6 @@
         "did",
         "operation_digest",
         "did_version_id",
-        "log_head_digest",
         "control_key_digest",
         "pcr_realm_id",
         "realm_create_payload_digest",
@@ -1024,9 +915,6 @@
           "type": "string",
           "pattern": "^(?!ak:)",
           "minLength": 1
-        },
-        "log_head_digest": {
-          "$ref": "#/$defs/sha256_digest"
         },
         "control_key_digest": {
           "$ref": "#/$defs/sha256_digest"
@@ -1085,7 +973,8 @@
           "description": "64-byte Ed25519 identity-root signature encoded base64url without padding."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "identity_creation_registration": {
       "type": "object",
@@ -2188,7 +2077,6 @@
         "principal_id",
         "did",
         "did_version_id",
-        "log_head_digest",
         "control_key_digest",
         "dpop_jkt",
         "audience_id",
@@ -2233,9 +2121,6 @@
           ],
           "description": "versionId of the entry the Account Authority resolved as current; the proof MUST be signed by that entry's active update key."
         },
-        "log_head_digest": {
-          "$ref": "#/$defs/sha256_digest"
-        },
         "control_key_digest": {
           "$ref": "#/$defs/sha256_digest"
         },
@@ -2263,148 +2148,14 @@
           "description": "Issued lifetime MUST be no greater than 300 seconds."
         }
       },
-      "additionalProperties": false
-    },
-    "identity_abandonment_challenge_request_body": {
-      "type": "object",
-      "description": "Request the single-use challenge that makes abandoning a provisional identity explicit. It applies only while the Principal Control Realm was never accepted and the identity root is lost, so the caller can sign nothing and the account handoff grant is the only available credential. principal_id and did_version_id pin exactly which reservation is being given up.",
-      "required": [
-        "request_id",
-        "identity_creation_lease_id",
-        "lease_fence",
-        "principal_id",
-        "did_version_id"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/request_id"
-        },
-        "identity_creation_lease_id": {
-          "$ref": "#/$defs/opaque_registration_id"
-        },
-        "lease_fence": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Provisional principal recorded in the holder-authenticated reserved_identity_creation checkpoint. The Account Authority MUST reject any other value and MUST NOT issue a challenge for a principal whose PCR is already accepted."
-        },
-        "did_version_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ],
-          "description": "versionId of the published entry 0 that becomes the orphan anchor. Pinning it lets the confirmation detect a PCR acceptance that landed after the challenge was issued instead of abandoning a live identity."
-        }
-      },
-      "additionalProperties": false
-    },
-    "identity_abandonment_consequence_disclosure": {
-      "type": "array",
-      "description": "Closed ordered set of consequences the client MUST present before it may submit the confirmation. The protocol fixes which consequences must be disclosed; the localized wording is deployment-owned. This list is not a self-asserted acknowledgement receipt, which would be forgeable; the anti-automation property comes from the challenge itself, which no login, session resume, lease fence advance or other automated flow ever fetches.",
-      "const": [
-        "orphan_anchor_permanently_unusable",
-        "orphan_anchor_cannot_be_deactivated",
-        "no_continuable_state_on_the_orphan_anchor",
-        "a_new_identity_root_did_and_pcr_must_be_created"
-      ]
-    },
-    "identity_abandonment_challenge_outcome": {
-      "type": "object",
-      "description": "Persisted, single-use server challenge for provisional identity abandonment. It is the evidence that the abandonment was an explicit user action: the identity root is lost, so the holder cannot sign a confirmation. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states.",
-      "required": [
-        "request_id",
-        "challenge_id",
-        "challenge",
-        "purpose",
-        "account_subject",
-        "principal_id",
-        "did_version_id",
-        "identity_creation_lease_id",
-        "lease_fence",
-        "consequence_disclosure",
-        "dpop_jkt",
-        "audience_id",
-        "origin",
-        "trust_domain",
-        "issued_at",
-        "expires_at"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/request_id"
-        },
-        "challenge_id": {
-          "$ref": "#/$defs/opaque_registration_id"
-        },
-        "challenge": {
-          "type": "string",
-          "minLength": 22
-        },
-        "purpose": {
-          "const": "provisional_identity_abandonment"
-        },
-        "account_subject": {
-          "$ref": "#/$defs/account_subject"
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "did_version_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "identity_creation_lease_id": {
-          "$ref": "#/$defs/opaque_registration_id"
-        },
-        "lease_fence": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Identity-creation lease fence at issuance. The confirmation MUST be rejected when the current fence differs, so a concurrent holder cannot have its reservation abandoned underneath it."
-        },
-        "consequence_disclosure": {
-          "$ref": "#/$defs/identity_abandonment_consequence_disclosure"
-        },
-        "dpop_jkt": {
-          "$ref": "#/$defs/dpop_jkt"
-        },
-        "audience_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "origin": {
-          "$ref": "./common-ids.schema.json#/$defs/web_origin"
-        },
-        "trust_domain": {
-          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
-        },
-        "issued_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "MUST be at most 300 seconds after issued_at."
-        }
-      },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "identity_abandonment_request_body": {
       "type": "object",
-      "description": "Confirm the explicit abandonment of a provisional identity. It MUST present a fresh account handoff grant and MUST NOT reuse the grant presented when the challenge was issued; how strong the authentication behind that fresh handoff is, which risk checks run and how long any cooldown lasts are deployment governance and are deliberately not specified here.",
+      "description": "Single explicit command using a fresh holder-bound account handoff grant. The authority MUST verify a successful authentication event later than the frozen reservation creation, not merely a refreshed token. Current account, lease/fence, holder binding and never-accepted PCR are rechecked atomically. Authentication strength and cooldown remain deployment governance.",
       "required": [
         "request_id",
-        "challenge_id",
-        "challenge",
         "identity_creation_lease_id",
         "lease_fence",
         "principal_id",
@@ -2414,13 +2165,6 @@
         "request_id": {
           "$ref": "#/$defs/request_id",
           "description": "Idempotency identity of the abandonment. Replaying it returns the recorded terminal outcome and MUST NOT produce a second orphan-anchor tombstone."
-        },
-        "challenge_id": {
-          "$ref": "#/$defs/opaque_registration_id"
-        },
-        "challenge": {
-          "type": "string",
-          "minLength": 22
         },
         "identity_creation_lease_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -2447,7 +2191,7 @@
     },
     "identity_abandonment_outcome": {
       "type": "object",
-      "description": "Recorded terminal outcome of an explicit abandonment. One transaction consumed the challenge, recorded the orphan-anchor tombstone / audit reservation, suppressed the reserved_identity_creation checkpoint on every holder-readable surface and released the identity-creation lease. There is exactly one success terminal; every other terminal is an error reply. Whether the orphan anchor is annotated on a discovery surface, when its handle and namespace are released and how long the reservation is retained are deployment governance and are not carried here.",
+      "description": "Recorded terminal outcome of an explicit abandonment. One transaction recorded the orphan-anchor tombstone / audit reservation, suppressed the reserved_identity_creation checkpoint on every holder-readable surface and released the identity-creation lease. There is exactly one success terminal; every other terminal is an error reply. Whether the orphan anchor is annotated on a discovery surface, when its handle and namespace are released and how long the reservation is retained are deployment governance and are not carried here.",
       "required": [
         "request_id",
         "account_subject",

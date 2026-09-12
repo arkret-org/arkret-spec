@@ -49,29 +49,39 @@
       },
       "additionalProperties": false
     },
+    "query_signing_key": {
+      "type": "object",
+      "required": [
+        "public_key_b64u",
+        "authorization_ref"
+      ],
+      "properties": {
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+        },
+        "authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Query-only key material. Identity and method are taken exclusively from the enclosing complete selector. authorization_ref remains mandatory."
+    },
     "historical_device_signing_key": {
       "type": "object",
       "required": [
-        "actor",
-        "verification_method",
         "public_key_b64u"
       ],
       "properties": {
-        "actor": {
-          "$ref": "#/$defs/signing_account_actor_id"
-        },
-        "verification_method": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-        },
         "public_key_b64u": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
           "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Historical self-query device key; identity and method come exclusively from the enclosing selector."
     },
     "current_account_device_selector": {
       "type": "object",
@@ -269,7 +279,7 @@
           "const": "resolved"
         },
         "key": {
-          "$ref": "#/$defs/station_signing_key"
+          "$ref": "#/$defs/query_signing_key"
         }
       },
       "additionalProperties": false,
@@ -317,7 +327,7 @@
           "const": "resolved"
         },
         "key": {
-          "$ref": "#/$defs/station_signing_key"
+          "$ref": "#/$defs/query_signing_key"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

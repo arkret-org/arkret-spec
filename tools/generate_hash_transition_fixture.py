@@ -251,7 +251,7 @@ def main() -> None:
                 "control_event_set_root": genesis_control_root,
                 "seal_body_canonical_bytes_utf8": genesis_body_bytes,
                 "seal_id": "ak:seal:" + genesis_seal_digest,
-                "notary_signature_payload_digest": blake3_digest(jcs({"context": "ak.seal.commit.v1", "seal_digest": genesis_seal_digest, "configuration_ref": genesis_body["configuration_ref"], "notary_seq": 0, "view": 0}).encode()),
+                "notary_signature_payload_digest": blake3_digest(jcs({"context": "ak.seal.commit.v1", "seal_digest": genesis_seal_digest}).encode()),
                 "expected": {"accepted_live_suite": "blake3", "decision": "accept"},
             },
             {
@@ -277,7 +277,7 @@ def main() -> None:
                 ],
                 "seal_body_canonical_bytes_utf8": transition_body_bytes,
                 "seal_id": "ak:seal:" + transition_seal_digest,
-                "notary_signature_payload_digest": blake3_digest(jcs({"context": "ak.seal.commit.v1", "seal_digest": transition_seal_digest, "configuration_ref": transition_body["configuration_ref"], "notary_seq": 1, "view": 0}).encode()),
+                "notary_signature_payload_digest": blake3_digest(jcs({"context": "ak.seal.commit.v1", "seal_digest": transition_seal_digest}).encode()),
                 "successor_event_digest_preimage_canonical_bytes_utf8": successor_bytes,
                 "successor_event_digest": successor_digest,
                 "successor_event_id": event_id(successor_digest, 2),

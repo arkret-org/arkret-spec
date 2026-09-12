@@ -260,7 +260,7 @@ Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain d
 
 - 普通数据采用因果寄存器、OR-set、日志或分片计数器；接收站独立验证，未知撤销允许传播窗口。
 - 安全命令在每 Realm 唯一确认序列中执行，实际读取/写入 revision 与授权必须重验，竞争 CAS 至多一个成功。
-- Seal 只确认安全状态，不覆盖普通消息。配置统一为 n=3f+1、2f+1 quorum，包含 f=0 单副本部署。
+- Seal 只确认安全状态，不覆盖普通消息。每个 Realm 同阶段仅一个治理 Station 和唯一冻结 signer；不提供多节点容错。
 - 普通多头通过有权因果后继消解；安全状态不做无序 join，也不存在任意 Cell reset。
 
 ### 6.4 Component Lattice
