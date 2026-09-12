@@ -858,7 +858,8 @@ function matches_field_access(operation, constraint):
     if constraint.condition:
         condition_result = meets_condition(operation, constraint.condition)
         # Three-valued result: true, false, or indeterminate. Missing/stale
-        # dependencies and lattice bottom are indeterminate, never false.
+        # Missing dependencies and an unresolved ordinary causal-register
+        # conflict are indeterminate, never false.
         if condition_result == indeterminate:
             return DENIED
         if condition_result == false:

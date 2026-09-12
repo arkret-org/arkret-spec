@@ -389,7 +389,7 @@ Release service admission 必须完整验证 authenticated branch 及其递归 a
 独立审计工具可使用 `request_receipt` history traversal access 从标准
 governance-dependency resolve surface 按 digest 取得；普通 receiver 使用下述响应页的去重 signer result，不获取递归闭包。不得查询 current DID document 代替历史 evidence，也不得把最多 1 MiB 的
 evidence bytes 重复内联到每个 manifest/chunk。
-Agent 使用可复用 CurrentAdmission 材料，在 source proof 的签署时刻核对 lease/gate/key 时窗与当前授权。
+Agent 使用可复用 CurrentAdmission 材料，在 source proof 的签署时刻核对 attestation/gate/key 原始观察时窗与当时授权；普通历史验证不按 verifier-now 要求刷新。
 `source_proof` 直接签完整 history response signing input，包括 evidence ref；不再计算另一份 Agent observation
 request digest。实际 request、receiver、范围与 capability 仍由该消息自己的签名和请求合同绑定。
 Ordinary human、Agent 与 organization-recovery holder source 使用 `AuthenticatedSignerResolutionEvidence`。

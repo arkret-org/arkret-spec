@@ -141,7 +141,7 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Frozen admission-time material with original same-Station admission or distinct receiver receipt."
+      "reason": "Frozen verification material with the original producer proof and authorization evidence, or a distinct receiver receipt."
     },
     {
       "file": "applet-install-authoring.schema.json",

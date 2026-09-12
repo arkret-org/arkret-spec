@@ -2269,7 +2269,7 @@
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
-      "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state lease and independent privacy-minimal controller gate. Current evidence has a maximum 300 second original observation window; historical evidence freezes either the original same-Station admission or a distinct receiver receipt. Server and peer consumers verify complete identity/method/history dependencies and reuse unchanged material. Ordinary clients consume authenticated own-Station signing-key results and independently verify message signature/MLS/replay; later terminal transitions do not invalidate previously accepted history.",
+      "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state attestation and independent privacy-minimal controller gate. Their maximum 300 second windows constrain direct current-query consumption only; verified ordinary publication evidence remains reusable without periodic refresh and is fenced by known revocation. Historical evidence freezes the original producer proof and authorization evidence, or a distinct receiver receipt. Server and peer consumers verify complete identity/method/history dependencies and reuse unchanged material. Ordinary clients consume authenticated own-Station signing-key results and independently verify message signature/MLS/replay; later terminal transitions do not invalidate previously accepted history.",
       "enforcement_phases": [
         "conformance",
         "peer_eligibility"

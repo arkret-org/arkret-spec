@@ -328,7 +328,7 @@
       "type": "object",
       "required": [
         "state_digest",
-        "lease"
+        "attestation"
       ],
       "properties": {
         "state": {
@@ -338,8 +338,8 @@
           "$ref": "./agent-signer-evidence.schema.json#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of state only."
         },
-        "lease": {
-          "$ref": "./agent-signer-evidence.schema.json#/$defs/agent_authority_state_lease"
+        "attestation": {
+          "$ref": "./agent-signer-evidence.schema.json#/$defs/agent_authority_state_attestation"
         }
       },
       "additionalProperties": false,

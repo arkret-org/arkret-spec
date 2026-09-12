@@ -158,7 +158,7 @@
       "applies_to_fixtures": [
         "agent-signer-evidence-fixture.json"
       ],
-      "description": "Historical Agent materialization freezes original state and tagged acceptance: original same-Station admission without another receipt, or a distinct receiver receipt. Same selector and acceptance replay returns the original root; conflicting acceptance/root never overwrites it. Complete historical method evidence is evaluated at original proof times, independent of verifier-now expiry.",
+      "description": "Historical Agent materialization freezes original state and tagged acceptance: the original producer proof and authorization evidence, or a distinct receiver receipt. Same selector and acceptance replay returns the original root; conflicting acceptance/root never overwrites it. Complete historical method evidence is evaluated at original proof times, independent of verifier-now expiry.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/identity/key-management.md",

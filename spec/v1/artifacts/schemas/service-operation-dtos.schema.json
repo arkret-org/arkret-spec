@@ -5053,7 +5053,7 @@
     },
     "PeerEventsSiblingPositionChallenge": {
       "type": "object",
-      "description": "One exact-scope alignment challenge. fork_resolution_event_id names the accepted ak.fork.resolution Move whose event_sibling_position subject is exactly this position; a responder that does not hold that Move as a settled non-bottom ak.component.fork_resolution.v1 cell over exactly this position discloses nothing. The challenge therefore reaches only positions an authorized recovery Move already adjudicated and is not a general history read.",
+      "description": "One exact-scope alignment challenge. fork_resolution_event_id names the accepted ak.fork.resolution Move whose event_sibling_position subject is exactly this position; a responder that does not hold that Move as a confirmed and set ak.component.fork_resolution.v1 cell over exactly this position discloses nothing. The challenge therefore reaches only positions an authorized quorum-confirmed Move already adjudicated and is not a general history read.",
       "required": [
         "actor_id",
         "actor_seq",

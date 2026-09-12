@@ -444,7 +444,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Complete immutable entry set. Exact Event digest is identity; canonical ordering is registered in lattice_contracts. Sparse actor sequence numbers do not block inclusion or choose a sibling winner."
+      "description": "Complete immutable entry set. Exact Event digest is identity; canonical ordering is registered in state_model_contracts. Sparse actor sequence numbers do not block inclusion or choose a sibling winner."
     },
     "counter_state": {
       "type": "object",

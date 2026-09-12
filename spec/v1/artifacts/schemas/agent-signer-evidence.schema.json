@@ -93,7 +93,7 @@
       "required": [
         "state",
         "state_digest",
-        "lease"
+        "attestation"
       ],
       "properties": {
         "state": {
@@ -103,8 +103,8 @@
           "$ref": "#/$defs/sha256",
           "description": "SHA-256 over RFC 8785 JCS of state only."
         },
-        "lease": {
-          "$ref": "#/$defs/agent_authority_state_lease"
+        "attestation": {
+          "$ref": "#/$defs/agent_authority_state_attestation"
         }
       },
       "additionalProperties": false
@@ -174,7 +174,7 @@
           "items": {
             "$ref": "./realm.schema.json#/$defs/notary_signer_descriptor"
           },
-          "description": "Exactly the unique controller delegated notary descriptors used by signatures of Seals in this state, sorted by verification_method bytes. Empty for genesis-root-only signatures. Each complete actor is the genesis delegated controller Account; only keys independently verified and retained at the original Seal admission may be emitted. The existing state lease authenticates this accepted key-source fact together with the exact Seal set; no new signature exists. Never a generic device or DID key source, never reconstructed from current device state."
+          "description": "Exactly the unique controller delegated notary descriptors used by signatures of Seals in this state, sorted by verification_method bytes. Empty for genesis-root-only signatures. Each complete actor is the genesis delegated controller Account; only keys independently verified and retained at the original Seal admission may be emitted. The existing state attestation authenticates this accepted key-source fact together with the exact Seal set; no new signature exists. Never a generic device or DID key source, never reconstructed from current device state."
         }
       },
       "allOf": [
@@ -238,7 +238,7 @@
       ],
       "additionalProperties": false
     },
-    "agent_authority_state_lease": {
+    "agent_authority_state_attestation": {
       "type": "object",
       "required": [
         "authority_kind",
@@ -273,7 +273,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The Agent Authority signature binds context ak.agent_authority_state_evidence.v1 and every sibling field except proof.jws. issued_at is the immutable observation; expires_at is only the current-query cache deadline, at most 300 seconds later. Ordinary publication can reuse verified observed authority after that deadline and applies explicit key/delegation expiry and revocation closures. Repackaging never changes observation or revives revoked authority.",
+      "description": "The Agent Authority signature binds context ak.agent_authority_state_evidence.v1 and every sibling field except proof.jws. issued_at is the immutable observation; expires_at is only the direct current-query consumption deadline, at most 300 seconds later. It is not an authorization lease. Ordinary publication can reuse verified observed authority after that deadline and applies explicit key/delegation expiry and revocation closures. Repackaging never changes observation or revives revoked authority.",
       "x-arkret-signature-domain": "ak.agent_authority_state_evidence.v1"
     },
     "controller_account_gate_attestation": {

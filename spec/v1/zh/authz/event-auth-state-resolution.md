@@ -30,7 +30,7 @@ Event `proofs` 恰有一个 `producer_event_proof`，其 signer evidence 解析�
 
 普通数据 `auth_context` 绑定生产者 key 坐标和已确认的 `authority_refs`。接收站 MUST 验证全部相关 grant constraints、父委托链、成员、设备、安装授权和 scope。refs 可以长期缓存，MUST NOT 因 Seal 年龄、无 heartbeat 或签署者离线自动过期。显式业务授权的有效期仍执行，见 §5。
 
-Agent state lease、controller gate attestation 和设备投影 attestation 的短 TTL 只约束需要“当前查询结果”的消费面；普通数据验证证明在其 observation 时有效后，可以缓存复用。设备的真实期限从已签 `authorization_window` 读取，Agent 从确切 key/delegation 授权读取，不能把缓存 TTL 当成资格期限。签名 issuer 及其授权证据也按相同的固定历史依据验证，不递归引入每消息在线刷新。安全操作仍执行其注册的当前状态检查。
+Agent state attestation、controller gate attestation 和设备投影 attestation 的短 TTL 只约束直接消费“当前查询结果”的接口；它们不是普通数据授权租约。普通数据验证这些对象在原 observation 时有效后，可以持久缓存并复用。设备的真实期限从已签 `authorization_window` 读取，Agent 从确切 key/delegation 授权读取，不能把缓存 TTL 当成资格期限。签名 issuer 及其授权证据也按相同的固定历史依据验证，不递归引入每消息在线刷新。安全操作仍执行其注册的当前状态检查。
 
 接收站在同一事务中记录 Event、证明依赖、分类与 outbox；已知 revoke fence 与该 scope 的 live admission MUST 串行化并持久化。相同 Event 身份的重放不重复业务效果，且不能绕过 producer proof 的精确重试验证。
 

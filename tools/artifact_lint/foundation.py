@@ -26,7 +26,7 @@ from .core import (
     PROFILE_ID_RE,
     Path,
     REGISTRY_BOTTOMS,
-    REGISTRY_LATTICES,
+    REGISTRY_STATE_MODELS,
     REGISTRY_PLANES,
     ROOT,
     SCHEMA_ID_RE,
@@ -684,7 +684,7 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
 def lint_effect_source(
     lint: Lint, path: Path, ref: str, source: object, *, allow_dot: bool = False
 ) -> None:
-    """Validate one closed source used to derive a lattice op member.
+    """Validate one closed source used to derive a state operation member.
 
     `dot` resolves to the write's canonical OR-Set dot
     (`ak:event:<event_id>:<write_index>`, event-and-patch.md section 2.4.2) and is
@@ -766,9 +766,9 @@ def lint_effect_projection(
     path: Path,
     ref: str,
     projection: object,
-    lattice: object,
+    state_model: object,
 ) -> None:
-    """Validate the closed payload-to-lattice-op projection grammar."""
+    """Validate the closed payload-to-state-operation projection grammar."""
     if not isinstance(projection, dict):
         lint.fail(path, f"{ref} must be an object")
         return
@@ -784,14 +784,14 @@ def lint_effect_projection(
             "or_set_remove_observed",
             "or_set_remove_dots",
         },
-    }.get(lattice)
+    }.get(state_model)
     if expected_kinds is None:
-        lint.fail(path, f"{ref} is not defined for lattice {lattice!r}")
+        lint.fail(path, f"{ref} is not defined for state model {state_model!r}")
         return
     if projection_kind not in expected_kinds:
         lint.fail(
             path,
-            f"{ref}.kind must be one of {sorted(expected_kinds)!r} for lattice {lattice!r}",
+            f"{ref}.kind must be one of {sorted(expected_kinds)!r} for state model {state_model!r}",
         )
         return
     if projection_kind == "transition_to":
@@ -834,14 +834,14 @@ def lint_effect_projection(
         elif "patch" in projection:
             lint_effect_source(lint, path, f"{ref}.patch", projection["patch"])
         # Patches bind a specific causal head; sequential commands use their confirmed predecessor.
-        if lattice == "causal_register" and "expected_prestate" not in projection:
+        if state_model == "causal_register" and "expected_prestate" not in projection:
             lint.fail(
                 path,
                 f"{ref} on a causal_register requires expected_prestate; without it the head "
                 f"this patch applies to is undefined",
             )
         if increment_members is not None:
-            if lattice != "sequenced_state":
+            if state_model != "sequenced_state":
                 lint.fail(path, f"{ref}.increment_members requires sequenced_state")
             if "expected_prestate" not in projection:
                 lint.fail(path, f"{ref}.increment_members requires expected_prestate")
@@ -1669,21 +1669,21 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                             f"{write_ref}.condition.fields must equal the cell_subject "
                             "coalesce fields item-for-item and in order",
                         )
-                write_lattice = write.get("state_model")
-                if write_lattice not in REGISTRY_LATTICES:
-                    lint.fail(event_path, f"{write_ref} has unknown lattice {write_lattice!r}")
+                write_model = write.get("state_model")
+                if write_model not in REGISTRY_STATE_MODELS:
+                    lint.fail(event_path, f"{write_ref} has unknown state model {write_model!r}")
                 write_bottom = write.get("bottom")
                 if write.get("execution") not in {"data", "security"}:
                     lint.fail(event_path, f"{write_ref} must declare data or security execution")
-                if (write.get("execution") == "security") != (write_lattice == "sequenced_state"):
+                if (write.get("execution") == "security") != (write_model == "sequenced_state"):
                     lint.fail(event_path, f"{write_ref} execution and state_model disagree")
                 if write.get("value_shape") not in {"register", "set", "log", "counter"}:
                     lint.fail(event_path, f"{write_ref} requires a registered value_shape")
-                if write_lattice == "sequenced_state" and "bottom" in write:
+                if write_model == "sequenced_state" and "bottom" in write:
                     lint.fail(event_path, f"{write_ref} sequenced_state cannot declare a join bottom")
-                if write_lattice != "sequenced_state" and write_bottom not in REGISTRY_BOTTOMS:
+                if write_model != "sequenced_state" and write_bottom not in REGISTRY_BOTTOMS:
                     lint.fail(event_path, f"{write_ref} has unknown bottom {write_bottom!r}")
-                elif write_lattice == "or_set" and write_bottom == "reject":
+                elif write_model == "or_set" and write_bottom == "reject":
                     # zh/authz/event-auth-state-resolution.md section 9.1.1: the
                     # or_set join never produces bottom, so an or_set bottom can
                     # never be an authorization rejection. inert is the default;

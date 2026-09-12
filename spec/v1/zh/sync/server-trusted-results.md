@@ -378,7 +378,7 @@ current 成功项按序为 `{selector,status:"resolved",key}`。key 复用 close
 
 所有不可用项按序为 `{selector,status:"unavailable"}`。拒绝/缺失结果不得提升消息为 verified。当前分支的撤销/冲突/过期与历史原接纳无效/缺材料均使用此同形结果，不能以细分 reason 泄漏隐藏状态；服务器内部 MAY 记录原因。
 
-Station MUST 将原 accepted Event、admission 与验证其签名必需的来源及保留关系维持在同一耐久接纳边界；该要求也适用于 ordinary DataEvent，不能仅给 Control Event 保留历史 Station signer 来源。GC MUST NOT 先删除仍可读取 Event 所需的来源。原 Station signer ref 沿现有治理依赖接口精确定位，已完整验证的耐久状态可复用，不重新拉取整段历史。缺失或损坏不可把裸缓存公钥当作成功；应 unavailable，正常新接纳不得以“以后再补”跳过保留义务。
+Station MUST 将原 accepted Event、producer proof、授权证据与验证其签名必需的来源及保留关系维持在同一耐久接纳边界；该要求也适用于 ordinary Event，不能仅给 Control Event 保留历史 signer 来源。GC MUST NOT 先删除仍可读取 Event 所需的来源。原 signer ref 沿现有治理依赖接口精确定位，已完整验证的耐久状态可复用，不重新拉取整段历史。缺失或损坏不可把裸缓存公钥当作成功；应 unavailable，正常新接纳不得以“以后再补”跳过保留义务。
 
 历史结果 MAY 按自己 Station/recipient、Realm、exact Event、派生本地 receiver、完整 actor/device/method、原 producer admission 坐标与适用 Agent source ref 缓存；MUST NOT 跨账号或模式复用，不授予后续读取或 current 权限。客户端仍验真实 producer 签名、历史 MLS active leaf/epoch/group、AAD/AEAD 与 replay/TTL；自己 Station 成功不等于加密内容认证成功。minimal-metadata 不使用本普通 signer 查询，继续其专用 MLS 身份合同。
 

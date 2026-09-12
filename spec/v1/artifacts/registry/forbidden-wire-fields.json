@@ -3880,7 +3880,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors approvers / recovery_members). The two-letter of is not a valid wire field name.",
+      "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors the approvers list). The two-letter of is not a valid wire field name.",
       "match": {
         "kind": "field",
         "values": [

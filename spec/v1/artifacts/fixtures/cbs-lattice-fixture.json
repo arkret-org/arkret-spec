@@ -1973,7 +1973,7 @@
             "evidence_scope": "resolved",
             "resolution_fanout_exempt_from_peer_stale": true
           },
-          "note": "The recovery Seal and its covered resolution Move remain deliverable while the peer is stale; otherwise the responder could never satisfy the disclosure gate and the second phase would not terminate."
+          "note": "The current-quorum fork-resolution Seal and its covered resolution Move remain deliverable while the peer is stale; otherwise the responder could never satisfy the disclosure gate and the second phase would not terminate."
         },
         {
           "name": "settled_subject_refuses_a_second_resolution",

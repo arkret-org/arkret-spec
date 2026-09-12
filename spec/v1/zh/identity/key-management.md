@@ -255,7 +255,7 @@ private key、MLS private state、服务本地 `account_id` 与 raw account cell
 
 `agent_authority_state_evidence.state` 在 Agent Principal Control Realm 的一个 exact confirmed Seal state 中同时承载完整
 pcr_genesis_event、key_authorization_event、key authorization、key state witness 和 Agent lifecycle witness。`state_digest` 只对 state
-做 RFC 8785/JCS SHA-256；`lease` 由该 PCR 的权威 service DID 在独立 domain
+做 RFC 8785/JCS SHA-256；`attestation` 由该 PCR 的权威 service DID 在独立 domain
 `ak.agent_authority_state_evidence.v1` 下签名并逐字绑定 authority、verification method、state digest 与时窗。
 state 的 `seal_lineages[]` 必须是把 key/status witness Seal 连接到 `frontier_seal_id` 的完整、无重复
 predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无效均拒绝。
@@ -295,7 +295,7 @@ caller 自报 active 布尔值都是 schema violation。
 
 Account Authority 是同一 owning Station 下的独立签名职责，可以使用专用 verification method，但没有独立 service DID（见 overview/architecture.md 与 sync/service-surface.md）。消费者从实际 Agent 完整 AccountId 独立取得 Station：gate.authority_id MUST 等于该 Station；controller 的完整 AccountId 从 key_authorization_event 的已验证原始 producer proof 与可携带授权 与 producer 身份取得，MUST 等于 {principal_id: binding.controller_principal_id, station_id: Agent AccountId.station_id}。同 principal 在另一 Station 的 Account 或 gate 自报 authority 均不能替代。controller binding 使用该 Event 冻结的 producer method/key 验签；设备 method 不要求出现在 Principal DID assertionMethod 中，不再携带独立 controller signer evidence ref。
 
-Agent authority **不能自行合成 Account Authority evidence**。缺少未过期且匹配 controller principal 的 gate 时，
+Agent authority **不能自行合成 Account Authority evidence**。当签发或直接消费需要 current-query 语义的结果且缺少未过期、匹配 controller principal 的 gate 时，
 它 MUST 使用 authenticated S2S `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
 `{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。Account Authority 独立验证完整
 AuthenticatedServiceResolution、method-native evidence、document digest、current assertion method，再验证 RFC 9421
@@ -303,23 +303,23 @@ AuthenticatedServiceResolution、method-native evidence、document digest、curr
 verified source、`agent_authority_id` 与 controller exact AccountId 的 Station 必须相同；裸 DID、URL、bearer、自报
 public key 或 account active 值不能代替签名来源。未知 principal、错误 authority 或无权 caller 返回不可枚举的
 `not_found`。gate 的正有效期 MUST 不超过 300 秒；相同 request id 与 canonical intent 的 replay 返回原字节，
-不同 intent 为 `duplicate_conflict` 且零签发。有效 gate 可以跨状态查询、消息与同一适用关系的设备复用；只在
-缺失、到期或已观察状态变化时刷新，不增加 controller 审批。
+不同 intent 为 `duplicate_conflict` 且零签发。有效 gate 可以跨 current 状态查询与同一适用关系的设备复用；直接 current 消费只在
+缺失、到期或已观察状态变化时刷新，不增加 controller 审批。普通 Event 携带并验证的是原 observation 事实，gate 到期本身不要求 producer 刷新，也不要求 Account Authority 在线。
 
 #### 可复用当前授权
 
-`current_admission` 只包含 tagged `admission_evidence` 与可选 transparency。Agent Authority 的唯一状态签名为
-`agent_authority_state_evidence.lease`，它绑定 exact authority、method、state digest 和观察时窗；独立的 controller
+`current_admission` 表示该材料在签发时来自 current basis，只包含 tagged `admission_evidence` 与可选 transparency；该名称不赋予普通 Event 周期租约语义。Agent Authority 的唯一状态签名为
+`agent_authority_state_evidence.attestation`，它绑定 exact authority、method、state digest 和观察时窗；独立的 controller
 proof、Account Authority gate 和 Seal 签名各自保留。不再定义 current observation、Agent outer 或 query response
-签名。租约 `issued_at` MUST 是读取权威状态的真实时刻，`0 < expires_at-issued_at <= 300s`；转发、重新包装、重连、
-磁盘恢复或重复签旧观察 MUST NOT 重新计时。有效截止为 lease、gate、binding 与 key authorization 的所有已声明 expiry 最小值；有效开始为 lease.issued_at、gate.issued_at、binding.issued_at、authorization.accepted_at 与 not_before 的最大值，共同窗口必须非空。
+签名。attestation `issued_at` MUST 是读取权威状态的真实时刻，`0 < expires_at-issued_at <= 300s`；转发、重新包装、重连、
+磁盘恢复或重复签旧观察 MUST NOT 重新计时。直接 current-query 消费的有效截止为 attestation、gate、binding 与 key authorization 的所有已声明 expiry 最小值；有效开始为 attestation.issued_at、gate.issued_at、binding.issued_at、authorization.accepted_at 与 not_before 的最大值，共同窗口必须非空。普通 Event 将该时窗作为已签原始观察验证，不按接收时墙钟重新要求 current；其后由显式业务期限与已知撤销 fence 决定 live 接纳。
 
-每次使用 MUST 从可信来源核对完整 Agent AccountId、Agent PCR authority、controller exact AccountId、runtime
+直接 current-query 消费与普通 Event 首次验证都 MUST 从可信来源核对完整 Agent AccountId、Agent PCR authority、controller exact AccountId、runtime
 method/key、accepted authorize Event/dot 与 scope disclosure。state 中 controller binding 和独立 gate 的 principal
 必须一致，authority routing 必须匹配完整 AccountId。裸摘要、同 principal 的另一 Station、同 owner 标记和另一端
 的 verified 标志都不是授权。新操作仍从实际请求核对 operation/scope、Realm、当前 membership/generation 与授权
 subset；有界缓存的 key、Agent lifecycle、controller account 均须 active。已观察 revoke/supersede、pause/deactivate、
-account inactive 或相关冲突立即使当前 Agent 签名授权缓存失效，不等租约到期。membership ending/generation 变化立即使对应操作不再适用，由每消息的 membership/MLS 检查拒绝；它不改变 Agent 签名事实，不要求刷新同一 PCR lease。
+account inactive 或相关冲突立即使当前 Agent 签名授权缓存失效，不等租约到期。membership ending/generation 变化立即使对应操作不再适用，由每消息的 membership/MLS 检查拒绝；它不改变 Agent 签名事实，不要求刷新同一 PCR state attestation。
 
 自有关系在 accepted pairing/首次入组时验证并保留完整材料。稳态多条 Signal MUST 复用仍有效的本地验证结果，
 每条独立验证 producer signature、actor/endpoint、scope/group/epoch、TTL、AAD/AEAD 与 replay。普通重连、重新订阅、
@@ -327,13 +327,13 @@ account inactive 或相关冲突立即使当前 Agent 签名授权缓存失效�
 刷新失败暂停需要当前授权的操作，历史验证不受影响。上下文只是派生验证结果：不得新增 context id、服务端登记表、
 建立/确认握手或独立撤销链。多端共享同一已签事实，各端仍自行验证 session、设备授权、MLS 成员资格和消息。
 
-Agent authority MUST 由完整 Agent ActorId 的 AccountId.station_id 独立确定；state.authority_id 必须与其相等，不得用响应自报 authority 作为 expected authority。Service signer leaf 验证完整 method-native history：resolution 来源按自身签发时刻验证，各个 Station proof 和 lease/gate 按其实际签发/接纳时刻选择历史 method。历史方法不必仍存在于 current head；新 resolution 不得让旧签名追溯失效。
+Agent authority MUST 由完整 Agent ActorId 的 AccountId.station_id 独立确定；state.authority_id 必须与其相等，不得用响应自报 authority 作为 expected authority。Service signer leaf 验证完整 method-native history：resolution 来源按自身签发时刻验证，各个 Station proof 和 attestation/gate 按其实际签发/接纳时刻选择历史 method。历史方法不必仍存在于 current head；新 resolution 不得让旧签名追溯失效。
 
 Signal current-signer query 的 `known_agent_state_digests` 只声明本地已完整验证的 state；相同摘要可在专用 compact
 transport root 中省略 `state`。接收端 MUST 先按摘要补回完整 state，再重算 admission/root digest 和验证签名；
 compact bytes 不是 canonical signer-evidence 对象，也不能存入 canonical CAS。变更 state 必须完整交付。
 `known_signer_evidence_refs` 允许省略已知依赖，消费者按已验证缓存与收到材料组成完整闭包；缺项仍 unresolved。
-稳定材料不重复验签，authority 观察更新只验证新 lease/gate；冷缓存不声明 known，返回完整材料。不新增取回端点。
+稳定材料不重复验签，authority 观察更新只验证新 attestation/gate；冷缓存不声明 known，返回完整材料。不新增取回端点。
 
 稳定 state MUST 始终携带原始 pcr_genesis_event 与 exact key_authorization_event，二者均为已有完整 accepted Event，不是新 proof。前者必须是本 Agent 完整 Account actor 的唯一 ak.realm.create，event-derived Realm 必须等于 principal_control_realm_id，并按 §3.6.3 验证 create-locked controller、delegation 与 notary。即使当前 lifecycle provenance 已是 resume/pause，仍须携带原 genesis，不能把后续状态 Event 当作 genesis。后者的 Event ID、完整 Agent actor、executed_by 的完整 controller Account、Agent/key、binding core digest 与授权 witness 必须逐字匹配；executed_by/authorization_ref 必须与原 genesis 的 controller/delegation 一致。两者都独立验证唯一 producer proof 及其精确 signer evidence，再验证所属安全序列的确认；controller binding 的签名方法必须精确等于授权 Event 的 producer method，并使用同一已接纳 key 验证。不得改查当前设备或 Principal DID assertionMethod。
 
@@ -341,13 +341,13 @@ compact bytes 不是 canonical signer-evidence 对象，也不能存入 canonica
 
 state 的 accepted_delegated_notary_signers 是既有 NotarySignerDescriptor 的必需数组，按 verification_method 的 UTF-8 字节序排列、去重；只含本 state 所携 Seal 签名实际使用的 delegated controller key，只有 Agent root 签名时为空。每项 actor_id 必须逐字等于已验证 genesis.executed_by 的完整 controller Account，且符合 create-locked delegation；verification_method、key kind、JOSE algorithm、frozen public key 与 digest 按既有 descriptor 规则逐项验证，并精确匹配目标 Seal 签名。未使用项、同 method 冲突 key、另一 controller/Station 或 service actor 均拒绝。
 
-这些 descriptor 是 authority 在原 Seal admission 时独立核验并持久保留的接纳事实，由唯一 state lease 连同该 state 的确切 Seal 集合一并签名；不另造公证 receipt、签名或通用 device evidence。producer MUST 在原接纳事务保留来源，之后即使设备撤销、轮换或不在线也只能重用原记录，不能从当前设备状态重构历史 key。consumer 只能用该映射验证本 state 的已接纳 Seal，不得用它验证普通 Event、Signal、controller binding 或扩张 genesis notary/delegation。不同合法 controller 设备可封存其他设备已提交的 Event，不要求重签 genesis 或重新授权 Agent runtime key。
+这些 descriptor 是 authority 在原 Seal admission 时独立核验并持久保留的接纳事实，由唯一 state attestation 连同该 state 的确切 Seal 集合一并签名；不另造公证 receipt、签名或通用 device evidence。producer MUST 在原接纳事务保留来源，之后即使设备撤销、轮换或不在线也只能重用原记录，不能从当前设备状态重构历史 key。consumer 只能用该映射验证本 state 的已接纳 Seal，不得用它验证普通 Event、Signal、controller binding 或扩张 genesis notary/delegation。不同合法 controller 设备可封存其他设备已提交的 Event，不要求重签 genesis 或重新授权 Agent runtime key。
 
 #### 历史接纳
 
 `historical_event` 保存完整冻结 `admission_evidence`、`authorization_closure_refs` 和可选 transparency。Event 的唯一 producer proof 指向原 signer evidence；receiver receipt 和接收时间均不授予作者权限。历史 wrapper 不需要另签消息准入证明，也不能改写冻结内容。
 
-Agent Authority lease 与 Account Authority gate 的签名按其 observation 依据验证；短缓存 TTL 不要求普通消息在线刷新。真实 key/delegation 的授权期限、Agent lifecycle、controller lifecycle 及适用关闭集合分别验证并取交集。后来发现撤销可使此前暂时接纳的普通 Event 隔离，不能声称所有已接纳历史永远有效。
+Agent Authority attestation 与 Account Authority gate 的签名按其 observation 依据验证；短缓存 TTL 不要求普通消息在线刷新。真实 key/delegation 的授权期限、Agent lifecycle、controller lifecycle 及适用关闭集合分别验证并取交集。后来发现撤销可使此前暂时接纳的普通 Event 隔离，不能声称所有已接纳历史永远有效。
 
 原 genesis、key authorization 和 lifecycle Event 的 producer proof 必须独立验证，所需递归 refs 去重保留。设备签名 key 由原授权 evidence 解析，notary 签名按唯一确认配置的 frozen descriptor 验证；两者不得互换。缺必要依赖 unresolved，确定无权则拒绝/隔离。当前 DID head 和新服务签名均不能补造历史权限。
 

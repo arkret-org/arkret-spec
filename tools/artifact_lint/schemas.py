@@ -4688,8 +4688,8 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         # while `event-auth-state-resolution.md` Â§9.3.1.5 dedupes by Event
         # identity and keeps two same-`(from,to)` identities as two heads; and
         # `identical_transition_only_otherwise_reject` promised a rejection the
-        # lattice cannot deliver, because Â§9.3.1.7 item 5 rejects only inside one
-        # Seal batch and genuinely concurrent different-`to` writes are `âŠ¥`.
+        # causal state model cannot deliver, because §9.3.1.7 item 5 rejects only inside one
+        # Seal batch and genuinely concurrent different-`to` ordinary writes retain distinct heads.
         # A documentary field that contradicts the section it documents is worse
         # than none, so the values are pinned here.
         if contract_view.get("idempotent_replay") != "same_event_identity_replay_noop":
