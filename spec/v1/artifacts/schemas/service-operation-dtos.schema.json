@@ -3288,7 +3288,7 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "description": "ak.self.events.read.resolve.v1 result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry their accepted seal_ref, never enter Seal.delta and never require a covering Seal.",
+      "description": "ak.self.events.read.resolve.v1 result. events[] and missing[] plus optional unauthorized[] form a partition. This surface returns Event bytes only. Control-Move effectiveness is established separately from the complete current Seal frontier/resolve closure; no covering or first-activation Seal is attached. DataEvents carry signed auth_context.authority_refs, never enter Seal.delta and never require a covering Seal.",
       "required": [
         "events",
         "missing"

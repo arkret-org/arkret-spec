@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.10",
+  "version": "2026-09-12.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T10:22:27+08:00",
+  "generated_at": "2026-09-12T10:44:58+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "lattice_contracts": {
     "ordered_log": {
@@ -239,7 +239,8 @@
         },
         "description": "Authoritative Synthesis track stored at Strand.tracks.synthesis; its narrative carrier is tracks.synthesis.content / tracks.synthesis.encrypted_content."
       }
-    ]
+    ],
+    "version": "2026-08-26.3"
   },
   "authority_source_registry": {
     "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -396,7 +397,8 @@
         "delegated_event_rule": "none",
         "failure_mode": "atomic_rollback"
       }
-    ]
+    ],
+    "version": "2026-09-07.12"
   },
   "event_kind_registry": {
     "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -495,7 +497,7 @@
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
       "Registered state models are causal_register, sequenced_state, or_set, counter and ordered_log. Domain transition tables and CAS predicates are validation rules, not additional shared state-model types.",
       "Every ordered_log append MUST project issuer_seq from envelope.actor_seq exactly. The coordinate is sparse within a cell; join retains every accepted Event sibling and digest order is serialization-only. A registry row MUST NOT declare a cell-local constant or payload counter, slot winner, prefix gap, or authorization effect for ordered_log.",
-      "State convergence is defined by CBS: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
+      "Ordinary DataEvent eligibility derives from signed auth_context.authority_refs and known closure decisions; eligible data effects converge by their registered CRDT. Safety writes execute in the unique confirmed Realm sequence, without a safety-state join. Event Envelope routing fields MUST NOT be used as ordering authority.",
       "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by tools/artifact_lint; no active durable reducer-input event may lack an admission source (fail-closed).",
       "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate.",
       "Every active standard Event kind MUST declare exactly one payload_schema_ref. The reference MUST resolve to an existing schema location and MUST equal the single Event Envelope payload dispatch for that kind. Consumers MUST NOT infer payload schemas from Event.kind spelling, schema-name conventions, or fallback definitions.",
@@ -8782,8 +8784,8 @@
         }
       }
     },
-    "version": "2026-09-12.10",
-    "generated_at": "2026-09-12T10:22:27+08:00",
+    "version": "2026-09-12.11",
+    "generated_at": "2026-09-12T10:53:29+08:00",
     "history_admission_contract": {
       "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
       "consumer_contexts": [
@@ -10761,7 +10763,7 @@
         "file": "schemas/realm-join-intake.schema.json",
         "fragment": "#/$defs/peer_bootstrap_outcome",
         "status": "active",
-        "description": "Bounded join bootstrap material: effective join_rule, complete accepted seal_basis, live digest suite, encryption profile, one dependency bundle per basis leaf, the exact-precondition proof for the single control cell of this intent, and the applicant's own predecessor Events as unverified authoring input. It is purpose limited and expiring, never membership, never a governance read grant and never a frontier completeness proof."
+        "description": "One bounded page of the request-authorized governance replay closure for the unique confirmed Realm head. Independent scope disclosure authorization is required for every object; unavailable private dependencies fail closed. Terminal cursor is not a completeness proof and downloading does not install accepted state."
       },
       {
         "schema_id": "ak.schema.realm_join_bootstrap_request.v1",
@@ -11263,8 +11265,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-12.10",
-    "generated_at": "2026-09-12T10:22:27+08:00"
+    "version": "2026-09-12.11",
+    "generated_at": "2026-09-12T10:44:58+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -14120,7 +14122,7 @@
         "http": "QUERY /_arkret/peer/events/resolve",
         "grpc": "PeerEvents/Resolve",
         "mq": "peer.events.read.resolve",
-        "notes": "Read-only federation dependency resolution for canonical-bytewise sorted exact Event IDs/digests in one Realm. It never attaches covering or first-activation Seals; Control-Move effectiveness uses the separate Seal frontier/resolve closure. Ordinary DataEvents are authorized by their signed existing seal_ref and never enter Seal.delta. Optional peer history_traversal_access accepts only a pending_archive_replica_digest and authorizes delta Control Moves in that exact target-to-base cut; request replicas never grant it.",
+        "notes": "Read-only federation dependency resolution for canonical-bytewise sorted exact Event IDs/digests in one Realm. It never attaches covering or first-activation Seals; Control-Move effectiveness uses the separate Seal frontier/resolve closure. Ordinary DataEvents are authorized by their signed auth_context.authority_refs and portable signer evidence and never enter Seal.delta. Optional peer history_traversal_access accepts only a pending_archive_replica_digest and authorizes delta Control Moves in that exact target-to-base cut; request replicas never grant it.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
@@ -14316,7 +14318,7 @@
         "http": "POST /_arkret/peer/realm-joins/bootstrap",
         "grpc": "PeerRealmJoin/Bootstrap",
         "mq": "peer.realm_join.query.bootstrap",
-        "notes": "Bounded first-contact join bootstrap served by an existing joined-member Station to the applicant's own Station. The holder verifies service-to-service authentication, applicant_account_id.station_id equals the Source-Service-ID, itself as Destination-Service-ID, the exact invite in its accepted state for invite_accept, and the current join policy for member_join and knock. It returns only the join_rule, complete accepted seal_basis, live digest_algorithm and encryption_profile of that Realm plus one receiver-relative dependency bundle per basis leaf, and it never returns roster, message history, MLS material, unrelated cells or a reusable governance read grant. Missing, competing or unverifiable confirmed values fail instead of defaulting. Unauthorized applicants, unknown Realms and invalid or revoked invites share one non-enumerating not_found under a fixed timing bucket. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature. It also returns the exact-precondition evidence for the single control cell the declared intent will bind: per basis leaf either a state_root inclusion audit path or a sorted-neighbor non-membership proof, plus the occupying invite lifecycle and the exact ak.invite.create Control Move on the invite branch. It also returns the applicant's own predecessor Events at the highest accepted actor sequence the holder observes. Both are unverified input: an empty predecessor array proves neither an empty chain nor completeness, and no next_actor_seq, frontier_digest or service signature over frontier completeness exists. Holding material is not permission to disclose it: ordinary sync still requires its own membership, operation and data-scope authorization. A closure that cannot fit the response budget is limit_exceeded and is never truncated.",
+        "notes": "Initial closed join intent or opaque continuation cursor; freeze the unique confirmed Realm head and exact request identity, recheck intent and each object scope disclosure authorization on every page/replay. Typed Seal/Control Move/governance dependency/applicant predecessor pages; full independent replay before authoring. Required but undisclosable private-scope material fails with frontier_unavailable. An invite grants no private Circle read authority. 8 MiB per page, never a total history cap.",
         "body_class": "non_streaming_json",
         "max_items": 64,
         "success_shape_kind": "typed_response",
@@ -14726,7 +14728,7 @@
         "http": "POST /_arkret/self/account/profile",
         "grpc": "SelfAccount/UpdateProfile",
         "mq": "self.account.command.update_profile",
-        "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact account-local PCR Realm selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Until the Control Move has accepted Seal coverage the operation returns frontier_unavailable; exact retry after coverage returns the byte-identical stored outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
+        "notes": "Carries exactly one holder-signed profile_event EventInitialSubmission and no unsigned patch. event.realm_id is the exact account-local PCR Realm selector; accepted-profile presence is evaluated only in that PCR lineage. If it has no accepted Actor Profile, the Event must be ak.profile.create; its actor_profile ID is derived by retyping the create Event ID and payload.object must omit id. If it has an accepted Profile, the Event must be ak.profile.update, payload.target_ref must equal that create-derived ID, and the signed patch remains limited to display_name, avatar_blob_ref and profile_fields.<key>. Both branches bind realm scope to the same PCR and event.actor_id to the session principal. On create payload.object.principal_id must equal that principal; on update the accepted target profile's materialized principal_id must equal it. Direct holder proof is required without executor or Applet provenance. Event preconditions are empty; update concurrency uses only optional signed payload.expected_state_digest. The service forwards the exact bytes through ordinary Event admission without authoring, rebuilding, co-signing, choosing an ID or adding a concurrency guard. Profile writes are ordinary data. Successful durable independent admission returns the outcome without Seal coverage or advancement; exact retry returns the stored byte-identical outcome. The single accepted effect advances the holder account-aggregate projection once; it creates no Directory announcement or account-data Event.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -14831,7 +14833,7 @@
         "http": "POST /_arkret/self/actor-profiles/query",
         "grpc": "SelfActorProfile/Resolve",
         "mq": "self.actor_profile.query.resolve",
-        "notes": "Only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts. A global profile Event lives in its owner's Principal Control Realm, so a co-member cannot reach it through a Realm-scoped read and MUST NOT reach it through a cross-principal actor selector on ak.self.events.read.scan.v1. Authorization is current effective joined membership of body realm_id for both the caller and each returned actor; realm_id MUST NOT be a Principal Control Realm. Each row returns the exact signed profile Event and the accepted Seal covering that one event_digest, and never any other Event of that Realm. Unknown actor, actor without an accepted profile, non-member actor and unauthorized caller all report profile_unavailable so the operation cannot probe membership or account existence.",
+        "notes": "Only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts. A global profile Event lives in its owner's Principal Control Realm, so a co-member cannot reach it through a Realm-scoped read and MUST NOT reach it through a cross-principal actor selector on ak.self.events.read.scan.v1. Authorization is current effective joined membership of body realm_id for both the caller and each returned actor; realm_id MUST NOT be a Principal Control Realm. Each row returns the display projection and one exact signed profile Event as provenance. No covering Seal exists for these ordinary writes. The authenticated own-Station projection is not an independently proven complete CRDT state; a patch Event alone cannot reconstruct the full profile. It grants no authority and exposes no other PCR Event. Unknown actor, actor without an accepted profile, non-member actor and unauthorized caller all report profile_unavailable so the operation cannot probe membership or account existence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_request",
@@ -16353,7 +16355,7 @@
         "http": "POST /_arkret/self/moderation/report",
         "grpc": "SelfModeration/Report",
         "mq": "self.moderation.command.report",
-        "notes": "Carries exactly one direct-holder signed report_event EventInitialSubmission and no unsigned report fields. The Event kind is ak.self.moderation.report; this self endpoint accepts only absent/self provenance and forbids source_provider_id, delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter must equal the authenticated session principal. There is no path Realm: event.realm_id, payload.realm_id, signed scope_ref and the accepted target's derived governance scope must match exactly. Realm-default reports may omit payload.effective_scope; Circle reports must sign the exact Circle scope. The target must be accepted and visible to the reporter; absent, invisible and scope-mismatched targets use the same not_found response. This DataEvent carries seal_ref plus auth_context and cannot carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs, maps an operation ref to another target or adds a concurrency guard. report_id is derived by retyping the accepted Event id and the stored submit outcome has status=submitted. Exact replay returns that byte-identical outcome without a second log or queue append; the same Event identity with different bytes returns duplicate_conflict. routed_to is omitted for an ordinary reporter and may be returned only when the caller independently holds moderation/governance capability for the exact scope.",
+        "notes": "Carries exactly one direct-holder signed report_event EventInitialSubmission and no unsigned report fields. The Event kind is ak.self.moderation.report; this self endpoint accepts only absent/self provenance and forbids source_provider_id, delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter must equal the authenticated session principal. There is no path Realm: event.realm_id, payload.realm_id, signed scope_ref and the accepted target's derived governance scope must match exactly. Realm-default reports may omit payload.effective_scope; Circle reports must sign the exact Circle scope. The target must be accepted and visible to the reporter; absent, invisible and scope-mismatched targets use the same not_found response. This DataEvent carries auth_context.authority_refs and no seal_ref and cannot carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs, maps an operation ref to another target or adds a concurrency guard. report_id is derived by retyping the accepted Event id and the stored submit outcome has status=submitted. Exact replay returns that byte-identical outcome without a second log or queue append; the same Event identity with different bytes returns duplicate_conflict. routed_to is omitted for an ordinary reporter and may be returned only when the caller independently holds moderation/governance capability for the exact scope.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -16854,8 +16856,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-12.10",
-    "generated_at": "2026-09-12T10:22:27+08:00",
+    "version": "2026-09-12.11",
+    "generated_at": "2026-09-12T10:44:58+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -18074,6 +18076,10 @@
           },
           {
             "operation_id": "ak.self.media_service_binding.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.messages.command.prepare.v1",
             "binding_kind": "http_json"
           },
           {
@@ -20546,7 +20552,8 @@
       "polymorphic_object": "Action covers the same object-lifecycle verb across multiple object event kinds.",
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
-    }
+    },
+    "version": "2026-09-12.5"
   },
   "calendar_timezone_registry": {
     "registry_rules": [
@@ -20679,7 +20686,8 @@
           }
         ]
       }
-    ]
+    ],
+    "version": "2026-08-26.3"
   },
   "did_document_contract_registry": {
     "registry_rules": [
@@ -20795,7 +20803,8 @@
         "reverse_binding": true,
         "owner": "zh/identity/key-management.md#4.1"
       }
-    ]
+    ],
+    "version": "2026-08-31.8"
   },
   "did_evidence_boundary_registry": {
     "registry_rules": [
@@ -20887,7 +20896,8 @@
         "expected_core_path": "the Arkret-owned id or *_id field",
         "route_evidence": "none; an isolated core is not resolvable"
       }
-    ]
+    ],
+    "version": "2026-09-08.3"
   },
   "did_authority_verifier_actions": [
     {
@@ -21152,7 +21162,8 @@
           "has_update_operation": false
         }
       }
-    }
+    },
+    "version": "2026-08-31.8"
   },
   "binding_kind_registry": {
     "kind_pattern": "^[a-z][a-z0-9_]*$",
@@ -21180,7 +21191,8 @@
         "profile_document": "zh/sync/websocket-binding.md",
         "description": "Optional authenticated multiplexed WebSocket binding; operation coverage comes only from advertised operation bundles."
       }
-    ]
+    ],
+    "version": "2026-08-27.6"
   },
   "feature_registry": {
     "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -21493,8 +21505,8 @@
         "conflicts": []
       }
     ],
-    "version": "2026-08-30.1",
-    "generated_at": "2026-08-30T23:30:00+08:00"
+    "version": "2026-09-08.3",
+    "generated_at": "2026-09-08T11:03:00+08:00"
   },
   "current_result_registry": {
     "version": "2026-09-12.6",

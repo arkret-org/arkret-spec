@@ -447,6 +447,15 @@
         "next_cursor"
       ],
       "reason": "Authenticated recipient discovery paginates only Welcome Event references."
+    },
+    {
+      "file": "realm-join-intake.schema.json",
+      "pointer": "/$defs/peer_bootstrap_outcome",
+      "collection_field": "records",
+      "companion_fields": [
+        "next_cursor"
+      ],
+      "reason": "Request-authorized governance replay records share one frozen basis and opaque continuation cursor."
     }
   ]
 }

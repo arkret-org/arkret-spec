@@ -92,7 +92,7 @@ MUST 使用 `MlsEncryptedPayload<MessageMetadata>`，不得用 ContentBlock wrap
 `MlsCommitPayload`、`MlsGenesisPayload` 等是由 Event `kind` 分派的具体 MLS 协议 payload，
 不等同于这个内容保护 wrapper。
 
-通用 wire `Event` 为支持解析全部 plane，可以把 `seal_ref`、`auth_context`、`seal_basis`
+通用 wire `Event` 为支持解析全部 plane，可以把 `auth_context`、`seal_basis`
 表示为条件字段；但 producer SDK MUST 将“可解析 wire object”与“可提交 Event”建模为不同
 状态。普通首发 / lease / submit API MUST 只接受一个已经通过完整 Event schema 与 CBS shape
 校验、且不能再原地修改 envelope 的已验证提交态，其 closed variant 至少区分：

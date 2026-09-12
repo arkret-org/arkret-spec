@@ -110,7 +110,7 @@ Schema id: `ak.schema.actor_profile.v1`
     响应，必须拿到真实 controller 签名的 claim；拿不到就不能广告 / 返回该成功面，
     服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
 
-- **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `sequenced_state` 安全 Cell。完整 controller AccountId 与 slug 派生唯一 subject；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须绑定实际前态的 exact bind/provision 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
+- **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `sequenced_state` 安全 Cell。controller principal 与 slug 派生唯一 subject（namespace 不含 Station）；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须恰含已签 seal_basis 中该 Cell 当前 revision 的 exact bind/provision 来源；首次未写入时为空，不得附加旧 revision 或其它 namespace 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
 
 - **Selector 解析（normative）**：先读取唯一已确认值，再检查当前 Agent lifecycle、accountability、visibility 和 expiry。null 或过期不返回成功，也不显露被取代的旧 bind。缺确认材料 fail closed。解析结果仍须独立验证完整 AccountId；selector 不替代成员、grant 或审计责任身份。provision 不伪造内层 claim proof，portable claim 需要真实 controller 签名。
 

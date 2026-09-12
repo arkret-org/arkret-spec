@@ -126,3 +126,14 @@ Arkret v1 的统一读法是：
 | 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化以 signed Event 落地，而不是只写投影缓存。 |
 | Saved filter / personal board view | 共享视图用 `View`；个人列宽、折叠、临时 filter 用 actor-private account data | View 是共享投影定义；个人偏好不进入 Realm 共享历史。 |
 | Watchers / assignment / mention | `ak.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |
+
+
+## 普通聊天的最短路径
+
+成员资格显示必须来自已验证的确认状态；“可发送”还要求接收站当前已知授权、archive/freeze/terminal 等写入门禁和适用 MLS 状态就绪。缺少最近消息、完整成员列表、头像或旧历史不阻塞第一条消息。
+
+SDK 已持有可携带授权、历史 signer evidence 与 authoring frontier 时，直接从 typed Message intent 构造并签名普通 Event，以 ProofAuthenticatedPublication 向任意合资格接收站单次提交。原账号 Station 与安全 quorum 可以离线，聊天不推进 Seal。接收站尚未收到撤销时允许按最后已验证授权继续聊天；收到相关撤销后立即关闭该 scope 的新 live admission，历史资格按已确认关闭边界确定。
+
+可选的 `ak.self.messages.command.prepare.v1` 帮助缺少 authoring 上下文的客户端准备 unsigned Event：本地加密 → prepare → SDK 核对/签名 → submit。它增加一次准备请求，不构成所有普通消息必经的网络路径。首次治理同步、MLS 入组及附件上传另计；回复与 mention 沿 Message payload 表达，不暗中产生其它 Relation Event。
+
+prepare 不授予权限或预留 sequence。提交时已知的相关撤销和安全关闭按既有 gate 求值；单纯无关 Seal/MLS epoch 前进不得一概拒绝仍满足历史资格及已登记 epoch 规则的消息。结果不明确时精确重放同一 signed submission，不能重新加密或签名掩盖不确定结果。完整合同见 [普通消息 authoring](../sync/service-http-binding.md#普通消息的完整-authoring-准备)。

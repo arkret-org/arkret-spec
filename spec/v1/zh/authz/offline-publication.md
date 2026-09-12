@@ -212,7 +212,7 @@ issuer MUST 独立确认 action/risk、当前 accepted basis、session actor/dev
 Realm 和当前 authority policy；intent 本身不是授权。`submissions` 与 `intents` 不得同时出现；裸 `events` 字段 MUST 拒绝，不保留平行载体。预检不得持久接纳 Event 或公开叶输入；成功只签发逐项绑定 Event 的租约，实际发布仍独立验证。
 
 成功响应 `AuthorizationLeaseIssueOutcome {authorization_leases[]}` MUST 与 request target
-逐项同序、同数量。普通 Event 的 lease 绑定其 `seal_ref` / `seal_basis`；genesis 绑定 §1 的完整
+逐项同序、同数量。显式申请 lease 的普通 Event 绑定其 `auth_context.authority_refs` 所选安全 basis，安全命令绑定 `seal_basis`；genesis 绑定 §1 的完整
 anchor unit。lease action 必须是其 `target_event_kinds` 覆盖 Event kind 且 actor 在该 basis
 实际持有的 registered capability action；未知 action 按 high risk fail closed。
 

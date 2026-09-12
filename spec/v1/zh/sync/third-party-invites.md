@@ -178,17 +178,17 @@ Bob 的客户端通过 `ak.open.third_party_invite.command.present_token.v1`（`
 
 Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有内部 reason code 对外仍按 §6 不可枚举响应处理：
 
-在线初检与 Seal finality 是两个时点：origin 初检及新 notary proposal intake MUST 在适用的
-serializable gate 读取 current invite/policy 与 barrier，阻断新的无效 claim；取得 origin proof 仅是
-`control_pending`。以下 reducer 步骤在覆盖 claim 的 Seal 的**冻结 predecessor view**上执行，并校验
-claim 的签名 CBS basis 与该 view 的关系。历史重放 MUST 使用同一冻结 view，禁止读取 receiver 当前
+在线初检与 Seal finality 是两个时点：接收站初检及新 notary proposal intake MUST 在适用的
+serializable gate 读取 current invite/policy 与 barrier，阻断新的无效 claim；通过本地 producer proof 与授权验证仍仅是
+`control_pending`。以下 reducer 步骤在覆盖 claim 的 Seal 内执行该命令之前的**确切安全前态**（包含本 Seal 先前成功命令）上执行，并校验
+claim 的签名 CBS basis 与该 view 的关系。历史重放 MUST 使用同一确切安全前态，禁止读取 receiver 当前
 invite/policy、当前终态或墙钟。初检之后、covering Seal 之前已生效的 revoke/policy change 可以阻断该
 Seal 对 claim 的纳入；claim 已经合法 sealed 之后的变更则不得追溯改判。
 
-1. 从该 covering Seal 的冻结 predecessor view 读取目标 invite cell，按 `invite_id` 与 `token_commitment` 匹配一条 `state="pending"` 的 `ak.invite.third_party`；不匹配、不存在、不是 3PID invite 或该 view 中已是终态时 MUST reject，且不得创建 membership proposal。依赖闭包不全时 MUST `frontier_unavailable` / pending，MUST NOT 用缓存、caller 旧 basis 或 receiver 当前投影替代该 view。
+1. 从该 covering Seal 内该命令的确切安全前态 读取目标 invite cell，按 `invite_id` 与 `token_commitment` 匹配一条 `state="pending"` 的 `ak.invite.third_party`；不匹配、不存在、不是 3PID invite 或该 view 中已是终态时 MUST reject，且不得创建 membership proposal。依赖闭包不全时 MUST `frontier_unavailable` / pending，MUST NOT 用缓存、caller 旧 basis 或 receiver 当前投影替代该 view。
 2. 在任何签名接受前重算过期前置条件。**判定时点是 canonical、签名覆盖的量，MUST NOT 使用 receiver 本地墙钟 `now`（normative）**：
    - 比较对象固定为该 `ak.invite.claim` Event 自身的签名 `created_at`（进入 canonical bytes 与 `event_digest`，对所有 receiver 唯一确定）与 invite cell 在该 claim CBS basis 上的 `expires_at`。`invite.expires_at <= claim_event.created_at` 时 MUST 以 `expired_invite_token` 拒绝本次 claim。
-   - 若该 claim 已被 Seal 覆盖，同一判定 MUST 得到相同结果；receiver MUST NOT 因为重放 / backfill 发生在更晚的本地时刻而改判。这是 `apply_seal` 与 `J(L)` "不依赖本地时钟、对同一依赖集合为纯函数" 硬约束的直接推论（[`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)）。
+   - 若该 claim 已被 Seal 覆盖，同一判定 MUST 得到相同结果；receiver MUST NOT 因为重放 / backfill 发生在更晚的本地时刻而改判。该命令还必须满足 CBS 对显式期限的可信存在时间区间检查，不能只靠作者回填 created_at 绕过过期。这遵守确认安全序列的确定性重放约束（[`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)）。
    - **被拒绝的 claim MUST NOT 产生任何共享 projected write（normative）**：它不写 invite cell、不写 membership proposal、不推进任何 lattice。invite 的 `pending -> expired` 是**独立的、已登记的、可签名且可被 Seal 覆盖的 Control Move**（由授权 writer 提交的 `ak.invite.revoke`，携带 `reason_code` 表达 `expired`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)），MUST NOT 由被拒 claim 的处理路径顺带写出——那样的 transition 没有独立 accepted Event / event digest，无法被另一 receiver 从 canonical history 重放，等于把 receiver-local timer 提升成共享真相源。
    - reducer 在读到 invite cell 已处于 `expired` 或任一终态时，按 step 1 的终态规则拒绝。token material / lookup pepper 的 zeroize 规则见 §6.1；zeroize 是**服务端本地清理义务**，不是共享 cell 状态，MUST NOT 反过来充当 invite state 的真源。
 3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，签名输入 MUST 是 §4.2 定义的 `ak.invite.claim.binding_proof.v1` transcript，并绑定 `subject_account_id`、`realm_id`、audience、过期时间、claim nonce、`invite_id`、`token_commitment` 与 invite cell digest；`binding_proof.subject_account_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。binding proof 畸形、签名不可验证或未通过本节 policy 复校验时，内部审计 reason 为 `claim_invalid`（对外仍按 §6 不可枚举响应处理）。

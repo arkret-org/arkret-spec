@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-09.2",
+  "version": "2026-09-12.11",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -350,8 +350,7 @@
           "direction": "response",
           "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
           "json_pointers": [
-            "/$defs/resolved_actor_profile/properties/profile_event",
-            "/$defs/resolved_actor_profile/properties/accepted_seal"
+            "/$defs/resolved_actor_profile/properties/profile_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.shared_realm_membership.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
@@ -368,8 +367,7 @@
           "direction": "response",
           "schema_ref": "schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome",
           "json_pointers": [
-            "/$defs/resolved_actor_profile/properties/profile_event",
-            "/$defs/resolved_actor_profile/properties/accepted_seal"
+            "/$defs/resolved_actor_profile/properties/profile_event"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.shared_realm_membership.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
@@ -464,5 +462,5 @@
       "exposures": []
     }
   ],
-  "generated_at": "2026-09-09T17:46:16+08:00"
+  "generated_at": "2026-09-12T10:53:29+08:00"
 }

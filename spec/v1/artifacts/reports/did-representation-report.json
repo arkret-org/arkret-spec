@@ -7324,7 +7324,7 @@
       ]
     },
     {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome/properties/applicant_account_id",
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_initial_request_body/properties/applicant_account_id",
       "property_name": "applicant_account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
@@ -7334,7 +7334,7 @@
       ]
     },
     {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body/properties/applicant_account_id",
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome/properties/applicant_account_id",
       "property_name": "applicant_account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",

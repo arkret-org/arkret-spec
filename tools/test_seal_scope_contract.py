@@ -52,6 +52,50 @@ class SealScopeContractTest(unittest.TestCase):
         errors = list(validator.iter_errors(instance))
         self.assertEqual(not errors, expected, [e.message for e in errors])
 
+    def test_paged_bootstrap_cursor_cannot_override_frozen_request(self):
+        validator = self.validator("realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body")
+        self.assert_shape(validator, {"cursor": "frozen-context-page-1"}, True)
+        self.assert_shape(validator, {"cursor": ""}, False)
+        self.assert_shape(validator, {"cursor": "frozen-context-page-1", "realm_id": self.message["realm_id"]}, False)
+        self.assert_shape(validator, {"cursor": "frozen-context-page-1", "applicant_account_id": {}}, False)
+
+    def test_bootstrap_basis_cannot_reintroduce_same_realm_multihead(self):
+        validator = self.validator("realm-join-intake.schema.json#/$defs/realm_join_governance_facts/properties/seal_basis")
+        leaves = ["ak:seal:sha256:" + "a" * 64]
+        self.assert_shape(validator, {"leaves": leaves}, True)
+        self.assert_shape(validator, {"leaves": []}, False)
+        self.assert_shape(validator, {"leaves": leaves + ["ak:seal:sha256:" + "b" * 64]}, False)
+
+    def test_bootstrap_terminal_cursor_and_page_size_are_bounded(self):
+        prefix = "realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome/properties/"
+        cursor = self.validator(prefix + "next_cursor")
+        self.assert_shape(cursor, None, True)
+        self.assert_shape(cursor, "next-page", True)
+        self.assert_shape(cursor, "", False)
+        records = self.validator(prefix + "records")
+        record = {"kind": "applicant_predecessor", "event": self.message}
+        self.assert_shape(records, [record] * 128, True)
+        self.assert_shape(records, [record] * 129, False)
+        self.assert_shape(records, [{"kind": "arbitrary_governance", "event": self.message}], False)
+
+    def test_profile_view_does_not_require_impossible_data_seal_coverage(self):
+        profile = {
+            "schema": "ak.schema.actor_profile.v1",
+            "principal_id": self.message["actor_id"]["account_id"]["principal_id"],
+            "actor_kind": "user", "display_name": "Alice",
+            "created_at": self.message["created_at"],
+        }
+        event = copy.deepcopy(self.message)
+        event["kind"] = "ak.profile.create"
+        event["payload"] = {"object": profile}
+        event.pop("authorization_ref", None)
+        event["preconditions"] = []
+        validator = self.validator("actor-profile-operations.schema.json#/$defs/resolved_actor_profile")
+        row = {"actor_id": event["actor_id"], "actor_profile": profile, "profile_event": event}
+        self.assert_shape(validator, row, True)
+        row["accepted_seal"] = {}
+        self.assert_shape(validator, row, False)
+
     def test_shared_chat_needs_no_new_seal_or_origin_proof(self):
         self.assert_shape(self.envelope, self.message, True)
         self.assertNotIn("seal_ref", self.message)

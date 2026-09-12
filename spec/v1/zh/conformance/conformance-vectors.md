@@ -5853,7 +5853,7 @@ Steps:
 
 1. 在 receiver 已有零个、部分或全部 predecessor Seal 的三种状态下，提交同一 Realm 的
    `旧 Control Move → Seal S0 → 以 S0 为 seal_basis 的新 Control Move → Seal S1 →
-   引用 S1 的 DataEvent`。bundle 根为 `seal_basis.leaves[] ∪ seal_ref`；各数组按自身
+   引用 S1 的 DataEvent`。bundle 根为安全命令的 `seal_basis.leaves[]` 或普通 Event 的 `auth_context.authority_refs[]`；各数组按自身
    canonical id/digest 的 UTF-8 bytes 严格递增，可携带从 target 可达的有界超集。
 2. 分别删除 target Seal、一个 receiver 不持有的 predecessor、一个 Seal delta 覆盖的
    Control Move；构造“Control Move 的 basis 根 Seal 反向覆盖该 Event 自身”的循环；再分别
