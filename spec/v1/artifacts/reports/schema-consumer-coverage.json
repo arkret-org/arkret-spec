@@ -49,7 +49,7 @@
       "outbound": 67,
       "prose": 108,
       "prose_only": 2,
-      "schema_reference": 143,
+      "schema_reference": 145,
       "startup_compile": 227,
       "vectors": 124
     },
@@ -623,6 +623,7 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
+        "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
@@ -684,6 +685,7 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
+        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,

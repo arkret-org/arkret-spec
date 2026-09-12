@@ -625,6 +625,8 @@ POST /_arkret/self/keys/claim
 
 origin Station MUST 在签发时从该 exact account-device 的 current accepted `ak.device.authorize` 验证授权有效期：当前时刻 `now >= not_before`，且原授权 `expires_at` 非空时 `now < expires_at`；仅有缓存的 `active` 标记不能替代这项检查。缺少对应 accepted 授权 Event、时间材料无法验证、授权尚未生效或已经到期时，MUST NOT 签发可用 row。`authorization_window` 必须逐字表达原 device grant 的 not_before 与可空 expires_at。证明的短 expires_at 只限制当前查询缓存，普通消息缓存复用按 authorization_window 与关闭证明判断，不要求每条消息重签。证明的 `attested_at` 表示本次当前投影检查的时刻，证明 `expires_at` MUST 晚于 `attested_at`，且 MUST NOT 晚于原授权非空的 `expires_at`；实现自定的短 TTL 只能进一步收紧此上界，不能延长原设备授权。没有有效剩余窗口时，按下述非枚举失败形态省略 row，不得通过重签证明、刷新缓存或依赖后台过期扫描延续授权。
 
+普通 Event 的历史 signer evidence 认证与当前 `keys/query` 结果验收分开。历史认证 MUST 从完整来源证据按源签名 `attested_at` 验证当时的 method、assertion 能力、签名、精确 Account/设备授权实例及原授权窗口；MUST NOT 要求接收站曾在证明短 `expires_at` 前见过该原件，也不得把本地首次观察时间增加为授权坐标。相同完整证据 K 的接收站按相同关闭集合归约，首次取得证据时短缓存已过期不制造历史 revoke 或独立 origin 重签门槛。这里使用 `attested_at` 认证源在当时作出的事实，绝不冒充本地观察时间；新的 live 操作仍核真实授权期限及已知关闭，有限期历史仍执行 CBS existence anchor 规则。下列新鲜度门只约束本次当前设备查询结果及明确要求它的新 key-access / Signal / E2EE 动作。
+
 自己 Station 接纳远端设备结果时 MUST 验证以下全部规则；客户端消费该 Station 的结果，只执行第 2–4 项的请求、密钥、generation 和状态绑定及有效期检查，不解析 origin DID history：
 
 1. attestation proof 的 controller 投影后**精确等于** `attestation.account_id.station_id`，且该 key 在其当前已验证 method history 下具备 assertion 能力；`proof.created_at` 逐字等于 `attestation.attested_at`，当前时刻早于 `expires_at`；

@@ -32,7 +32,7 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "applet_id",
           "source_id"
@@ -41,9 +41,42 @@
           "applet_id",
           "source_id",
           "events",
-          "signals"
+          "signals",
+          "authoring_result"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_event_transaction_request_body",
+            "schema_kind": "object",
+            "required": [
+              "applet_id",
+              "source_id"
+            ],
+            "properties": [
+              "applet_id",
+              "source_id",
+              "events",
+              "signals"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_authoring_transaction_request_body",
+            "schema_kind": "object",
+            "required": [
+              "applet_id",
+              "source_id",
+              "authoring_result"
+            ],
+            "properties": [
+              "applet_id",
+              "source_id",
+              "authoring_result"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",

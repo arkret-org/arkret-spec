@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11636,
+    "total_properties": 11643,
     "total_schema_documents": 173,
     "by_presence_class": {
       "optional": 3067,
       "optional_defaulted": 62,
-      "required": 7349,
+      "required": 7356,
       "required_nullable": 381,
       "tristate": 777
     },
@@ -5373,6 +5373,17 @@
         "/$defs/applet_actor_view/properties/display_name": "optional",
         "/$defs/applet_actor_view/properties/exists": "required",
         "/$defs/applet_actor_view/properties/external_ref": "optional",
+        "/$defs/applet_authoring_transaction_request_body/properties/applet_id": "required",
+        "/$defs/applet_authoring_transaction_request_body/properties/authoring_result": "required",
+        "/$defs/applet_authoring_transaction_request_body/properties/source_id": "required",
+        "/$defs/applet_event_transaction_request_body/properties/applet_id": "required",
+        "/$defs/applet_event_transaction_request_body/properties/events": "optional",
+        "/$defs/applet_event_transaction_request_body/properties/signals": "optional",
+        "/$defs/applet_event_transaction_request_body/properties/source_id": "required",
+        "/$defs/applet_managed_actor_authoring_result/properties/accepted_actor_frontier": "required",
+        "/$defs/applet_managed_actor_authoring_result/properties/auth_context": "required",
+        "/$defs/applet_managed_actor_authoring_result/properties/committed_request": "required",
+        "/$defs/applet_managed_actor_authoring_result/properties/digest_suite": "required",
         "/$defs/applet_ping_outcome/properties/applet_id": "required",
         "/$defs/applet_ping_outcome/properties/protocol_version": "required",
         "/$defs/applet_ping_outcome/properties/service_id": "required",
@@ -5394,10 +5405,6 @@
         "/$defs/applet_transaction_outcome/properties/rejections": "optional",
         "/$defs/applet_transaction_outcome/properties/retry_after_ms": "optional",
         "/$defs/applet_transaction_outcome/properties/status": "required",
-        "/$defs/applet_transaction_request_body/properties/applet_id": "required",
-        "/$defs/applet_transaction_request_body/properties/events": "optional",
-        "/$defs/applet_transaction_request_body/properties/signals": "optional",
-        "/$defs/applet_transaction_request_body/properties/source_id": "required",
         "/$defs/external_ref/properties/display_name": "optional",
         "/$defs/external_ref/properties/external_id": "required",
         "/$defs/external_ref/properties/instance_id": "optional",
@@ -5418,8 +5425,8 @@
         "/$defs/third_party_query/properties/protocol": "required"
       },
       "conditionally_required": [
-        "/$defs/applet_transaction_request_body/properties/events",
-        "/$defs/applet_transaction_request_body/properties/signals"
+        "/$defs/applet_event_transaction_request_body/properties/events",
+        "/$defs/applet_event_transaction_request_body/properties/signals"
       ]
     },
     "applet-ghost-operations.schema.json": {

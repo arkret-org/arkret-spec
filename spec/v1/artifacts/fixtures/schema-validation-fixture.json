@@ -4492,7 +4492,7 @@
         "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "source_id": "ak:did_core:webvh:z6mkfixturesourceexample"
       },
-      "first_expected_error": "contains:is not valid under any of the given schemas"
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample'} is not valid under any of the given schemas"
     },
     {
       "name": "applet_transaction_empty_signals_invalid",
@@ -4503,7 +4503,7 @@
         "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
         "signals": []
       },
-      "first_expected_error": "$.signals: [] should be non-empty"
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'signals': []} is not valid under any of the given schemas"
     },
     {
       "name": "applet_transaction_empty_events_invalid",
@@ -4514,7 +4514,7 @@
         "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
         "events": []
       },
-      "first_expected_error": "$.events: [] should be non-empty"
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'events': []} is not valid under any of the given schemas"
     },
     {
       "name": "read_receipt_signal_plaintext_valid",
@@ -9191,6 +9191,85 @@
       },
       "expect_valid": false,
       "first_expected_error": "$.auth_context: 'authority_refs' is a required property"
+    },
+    {
+      "name": "applet_completion_cannot_mix_with_signals",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
+        "signals": [
+          {
+            "realm_id": "ak:realm:AW6AHHZBWKki1wq-ePyQR56bpMI3orLMBDMr-DnVQFvh",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AW6AHHZBWKki1wq-ePyQR56bpMI3orLMBDMr-DnVQFvh"
+            },
+            "sender_actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
+            "sender_device_id": "ak:device:019a7360-0000-7000-8000-000000000031",
+            "seal_ref": "ak:seal:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "signal_class": "session",
+            "sent_at": "2026-05-20T00:00:00.000Z",
+            "expires_at": "2026-05-20T00:00:30.000Z",
+            "encrypted_payload": {
+              "scheme": "ak.signal_exporter_aead.v1",
+              "key_ref": {
+                "group_state_ref": "ak:event:ARKvbHo7orDUG4lSf-XaWVE2UDU5C-hOBPqUSLx8PmM3"
+              },
+              "purpose": "ak.signal.v1",
+              "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+              "epoch": 3,
+              "nonce": "AAAAAAAAAAAAAAAA",
+              "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA"
+            },
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "envelope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "jws": "a..b"
+            }
+          }
+        ],
+        "authoring_result": {}
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'signals': [{'realm_id': 'ak:realm:AW6AHHZBWKki1wq-ePyQR56bpMI3orLMBDMr-DnVQFvh', 'scope_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AW6AHHZBWKki1wq-ePyQR56bpMI3orLMBDMr-DnVQFvh'}, 'sender_actor_id': {'kind': 'service', 'service_id': 'ak:did_core:webvh:z6mkfixture'}, 'sender_device_id': 'ak:device:019a7360-0000-7000-8000-000000000031', 'seal_ref': 'ak:seal:sha256:8888888888888888888888888888888888888888888888888888888888888888', 'signal_class': 'session', 'sent_at': '2026-05-20T00:00:00.000Z', 'expires_at': '2026-05-20T00:00:30.000Z', 'encrypted_payload': {'scheme': 'ak.signal_exporter_aead.v1', 'key_ref': {'group_state_ref': 'ak:event:ARKvbHo7orDUG4lSf-XaWVE2UDU5C-hOBPqUSLx8PmM3'}, 'purpose': 'ak.signal.v1', 'aead_profile': 'MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519', 'epoch': 3, 'nonce': 'AAAAAAAAAAAAAAAA', 'ciphertext': 'AAAAAAAAAAAAAAAAAAAAAA'}, 'proof': {'kind': 'detached_jws', 'verification_method': 'did:webvh:z6mkfixture:alice.example#device-1', 'envelope_digest': 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'jws': 'a..b'}}], 'authoring_result': {}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "applet_completion_null_result_invalid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
+        "authoring_result": null
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'authoring_result': None} is not valid under any of the given schemas"
+    },
+    {
+      "name": "applet_completion_empty_result_invalid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
+        "authoring_result": {}
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'authoring_result': {}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "applet_completion_unknown_branch_invalid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "instance": {
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "source_id": "ak:did_core:webvh:z6mkfixturesourceexample",
+        "completion": {}
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'completion': {}} is not valid under any of the given schemas"
     }
   ]
 }

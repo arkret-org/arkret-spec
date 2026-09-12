@@ -1573,6 +1573,26 @@
       ]
     },
     {
+      "schema_path": "applet-edge-operations.schema.json#/$defs/applet_authoring_transaction_request_body/properties/source_id",
+      "property_name": "source_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "applet-edge-operations.schema.json#/$defs/applet_event_transaction_request_body/properties/source_id",
+      "property_name": "source_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "applet-edge-operations.schema.json#/$defs/applet_ping_outcome/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
@@ -1590,16 +1610,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "applet-edge-operations.schema.json#/$defs/applet_transaction_request_body/properties/source_id",
-      "property_name": "source_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {

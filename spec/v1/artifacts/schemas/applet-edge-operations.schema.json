@@ -197,50 +197,15 @@
       "additionalProperties": false
     },
     "applet_transaction_request_body": {
-      "type": "object",
-      "description": "Body for ak.edge.applet.command.transaction.v1. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted delivery_authentication_record. See zh/extensions/applet-integration.md section 7.3.1.",
-      "required": [
-        "applet_id",
-        "source_id"
-      ],
-      "properties": {
-        "applet_id": {
-          "$ref": "#/$defs/applet_id",
-          "description": "Exact active Applet registration selected for signature and epoch verification; service_id alone is not unique."
-        },
-        "source_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Must exactly match the Source-Service-ID header and the signed source-service-id component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
-        },
-        "events": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "./event-envelope.schema.json"
-          }
-        },
-        "signals": {
-          "type": "array",
-          "minItems": 1,
-          "description": "Optional encrypted Signal Extension envelopes. Exact applet payload types and targets remain inside ciphertext.",
-          "items": {
-            "$ref": "./signal-envelope.schema.json"
-          }
-        }
-      },
-      "anyOf": [
+      "description": "Body for ak.edge.applet.command.transaction.v1. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted delivery_authentication_record. See zh/extensions/applet-integration.md section 7.3.1. Event/Signal delivery and managed-actor completion are mutually exclusive closed branches. Completion is allowed only in the node-to-Applet direction.",
+      "oneOf": [
         {
-          "required": [
-            "events"
-          ]
+          "$ref": "#/$defs/applet_event_transaction_request_body"
         },
         {
-          "required": [
-            "signals"
-          ]
+          "$ref": "#/$defs/applet_authoring_transaction_request_body"
         }
-      ],
-      "additionalProperties": false
+      ]
     },
     "applet_transaction_outcome": {
       "type": "object",
@@ -413,6 +378,111 @@
         }
       },
       "additionalProperties": false
+    },
+    "applet_event_transaction_request_body": {
+      "type": "object",
+      "description": "Event and/or Signal delivery under the existing per-delivery source authentication rules; at least one non-empty array is required.",
+      "required": [
+        "applet_id",
+        "source_id"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "#/$defs/applet_id",
+          "description": "Exact active Applet registration selected for signature and epoch verification; service_id alone is not unique."
+        },
+        "source_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Must exactly match the Source-Service-ID header and the signed source-service-id component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "signals": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Optional encrypted Signal Extension envelopes. Exact applet payload types and targets remain inside ciphertext.",
+          "items": {
+            "$ref": "./signal-envelope.schema.json"
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "events"
+          ]
+        },
+        {
+          "required": [
+            "signals"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "applet_managed_actor_committed_request": {
+      "description": "The exact original request committed by the installing Station. The install union includes both initial creation and reuse of the existing managed actor; Ghost provisioning retains its original request and bundle.",
+      "oneOf": [
+        {
+          "$ref": "./applet-install-operations.schema.json#/$defs/applet_install_request_body"
+        },
+        {
+          "$ref": "./applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body"
+        }
+      ]
+    },
+    "applet_managed_actor_authoring_result": {
+      "type": "object",
+      "description": "Durable own-installation-Station result for a managed actor producer. It is authoring input, not transferable Event admission evidence. Accepted frontier and digest suite belong to the exact collaboration Realm of the original committed request.",
+      "required": [
+        "committed_request",
+        "digest_suite",
+        "auth_context",
+        "accepted_actor_frontier"
+      ],
+      "properties": {
+        "committed_request": {
+          "$ref": "#/$defs/applet_managed_actor_committed_request"
+        },
+        "digest_suite": {
+          "$ref": "./realm.schema.json#/properties/digest_algorithm"
+        },
+        "auth_context": {
+          "$ref": "./event-envelope.schema.json#/properties/auth_context"
+        },
+        "accepted_actor_frontier": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16777216
+    },
+    "applet_authoring_transaction_request_body": {
+      "type": "object",
+      "description": "Exclusive node-to-Applet completion delivery. The reverse direction is forbidden. The Applet persists the whole result and exact source binding before returning accepted; partial installation is forbidden.",
+      "required": [
+        "applet_id",
+        "source_id",
+        "authoring_result"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "#/$defs/applet_id"
+        },
+        "source_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "authoring_result": {
+          "$ref": "#/$defs/applet_managed_actor_authoring_result"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16777216
     }
   }
 }

@@ -451,7 +451,7 @@ Base URL 来自 registration 的 `base_url`。
 | --- | --- | --- | --- | --- | --- |
 | `ak.edge.applet.read.ping.v1` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe.v1` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
-| `ak.edge.applet.command.transaction.v1` | edge（节点→Applet） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | `events: EventEnvelope[]`; `signals: SignalEnvelope[]`（两者**至少出现一个**） | `status: enum(accepted,partial,rejected)`; `rejected: object[]?`; `retry_after_ms: int?` | 字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、event signature、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
+| `ak.edge.applet.command.transaction.v1` | edge（节点→Applet） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | `events: EventEnvelope[]` / `signals: SignalEnvelope[]`（至少一组非空），或互斥的 `authoring_result`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `rejected: object[]?`; `retry_after_ms: int?` | 字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、event signature、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
 | `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: percent-encoded RFC 8785 JCS(ActorId)` | 无 | `exists: boolean`; `actor_id: ActorId?`; `display_name: string?`; `external_ref: object?` | path 解码后必须是 closed ActorId，按完整 Actor 命中 Applet actor namespace；不得只比较 principal。 |
 | `ak.edge.applet.realm.read.resolve.v1` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata.v1` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
@@ -496,7 +496,7 @@ POST /_arkret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
-Arkret Station sync surface / Events API 向 Applet 推送事件批次。
+Arkret Station 向 Applet 推送 Event/Signal 批次，或按 §7.3.2 交付已确认 managed Actor 的 authoring 初始化结果。
 
 请求示例（非完整 schema）：
 
@@ -637,6 +637,34 @@ code 与 `type` URI，接收方 MUST 直接返回该 code，MUST NOT 返回通�
 - 幂等 identity 已存在但 canonical body digest 或 `delivery_authentication_record` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回上述对应的认证失败 code，避免泄露历史 transaction 状态。
 
 transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`proofs[]`）与 capability grant 校验：arkret 把外部 transaction 落为 durable Arkret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `proofs[]`。
+
+#### 7.3.2 已确认 managed Actor 的 authoring 初始化
+
+普通发送的 Applet producer MAY 消费其安装所绑定 Station 的已确认结果。该角色服从 own-Station result 的信任边界：结果提供构造普通 Event 所需的已确认配置和引用，MUST NOT 作为接收 Station 的准入证明。接收 Station 仍独立验证原 producer、安装、grant、membership 与适用关闭依赖；本节不授予 Applet 读取整个 Realm/PCR 的权限。另承担治理消费者角色的 Applet 仍 MUST 从独立可信起点验证 CBS 证明，不能从此结果创建 notary trust。
+
+`ak.edge.applet.command.transaction.v1` 的请求具有两个互斥的封闭分支：既有 Event/Signal 批次，或 `authoring_result`。后者只允许 Station→Applet；Applet→Arkret 入站出现该分支 MUST 返回 `schema_violation`。该分支不得同时包含 `events` 或 `signals`，完整 canonical body 上限为 16 MiB。结果结构由 `applet-edge-operations.schema.json#/$defs/applet_managed_actor_authoring_result` 定义，字段顺序为：
+
+| 字段 | 精确含义 |
+| --- | --- |
+| `committed_request` | 本次实际提交并确认的原请求。复用既有 install 首次/复用请求或 Ghost provision 请求的封闭类型，不创建第二个 request ID、digest 或 actor anchor 副本。 |
+| `digest_suite` | 本次目标 Collaboration Realm 在该确认上下文中的真实 digest suite；MUST NOT 从其他 Realm/PCR 的 Seal 引用推断。 |
+| `auth_context` | 该已确认安装和原 producer 所需的确切授权引用。结果不改变原 grant 的 scope、有限期或关闭规则。 |
+| `accepted_actor_frontier` | 同一目标 Realm、同一完整 managed Actor 的既有 `RealmActorFrontierView`，其 digest 按本字段所属 Realm 的 `digest_suite` 校验。 |
+
+安装 Station MUST 在原 install/Ghost closed unit 实际 committed 且全部效果完成安装后，才将完整结果、原请求及 Applet 交付 outbox 意图持久固定；它们 MUST 属于同一可恢复的原子提交。若协议实现将 Seal 确认和派生效果安装分阶段，完成阶段也 MUST 先核确切已确认原 unit，再原子保存效果、结果与 outbox，不能以已有一条 timeline row 认定整个单元完成。pending/rejected 不产生结果。该 outbox 是本地 Station→Applet 完成交付，MUST NOT 把私有 fixed set 拆为 Realm Event federation。管理员在安装返回后离线不影响重试交付。
+
+接收 Applet MUST 先执行 §7.3.1 的逐次 RFC 9421 来源认证，且 body/header/source proof 的来源 MUST 等于 `committed_request.authoring_request.basis.target_station_id`，目标 MUST 等于同一 basis 的 `service_id`，外层 `applet_id` MUST 等于 basis 的 `applet_id`。已知其他 Station 的有效签名不能覆盖本安装来源。原 authoring request/bundle 的结构、内容 digest、audience 与全部交叉绑定 MUST 成立；收到 own-Station 结果不构成对外可转交的管理员或治理证明。
+
+首次 install 或 Ghost provision 的原四 Event Bundle MUST 与 runtime 在 author 阶段已经耐久保存的 exact request/bundle 相等，并使用当时保存的身份密钥。后续 scope 的 install reuse 分支 MAY 首次向 runtime 交付该 scope 的新 request；runtime MUST 将其 `reuse_existing_managed_actor` 全部不可变 anchors 与首次保存的 Bot 身份精确匹配，不得重新生成 Bot、PCR、Bundle 或私钥。丢失原身份材料时 MUST 保持未决并恢复原材料，不能从结果重造平行身份。
+
+`accepted_actor_frontier.realm_id` MUST 等于 install effective_scope 的 Realm 或 Ghost basis 的 `realm_id`；完整 Actor MUST 等于该原 Bundle 或 reuse anchors 的 managed Actor，且其 Account Station 与安装目标相等。Circle install 保留原 Circle scope，MUST NOT 扩为整个 Realm。适用的 grant 从原 committed request 和 runtime 的原授权记录取得，缺材料保持未决；`accountability_grant` 仅表达责任，MUST NOT 当作普通发送 capability。跨授权域引用可以使用不同 digest suite。
+
+runtime MUST 原子保存确切来源记录、原 committed request、对应原身份/授权材料、该 Realm suite 与 authoring 上下文后，才返回 `status="accepted"`；该分支没有 partial 安装。完全相同的重投只确认原持久结果，不重置 Actor frontier，不覆盖已经冻结的待发送 Event，也不刷新首次观察时间。不同原文或绑定不得复用同一幂等身份。迟到结果不得使 frontier 倒退、清除已知关闭或重新打开旧授权实例；接收方可以确认已保存的旧结果而不恢复其 live 资格。
+
+完成交付后的普通聊天不要求逐消息查询原 Station、推进 Seal 或续订 Seal 年龄租约。原授权的真实有限期与已知关闭继续约束新 live 提交；离线接收方尚未知撤销的传播窗口按 CBS §5 处理。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的 `auth_context`、用户填写的 Seal ID 或重新读取 current DID 的结果冒充本次完成材料。
+
+同机 host MAY 经内部类型化存储交付相同结果，但 MUST 保持以上来源、原件、原子保存及重复处理规则，不能用一个公开 bool 或裸配置字符串替代它们。
+
 
 ### 7.4 Query Actor
 
@@ -1053,7 +1081,7 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 
 - `applet_registration` 的字段集由 [`applet-package.schema.json`](../../artifacts/schemas/applet-package.schema.json) 与 [`event-payload.schema.json#/$defs/applet_registration_payload`](../../artifacts/schemas/event-payload.schema.json) 固定（closed，`additionalProperties:false`），至少包含 service DID、`base_url`、namespace、protocol、`requested_scopes` 与 `webhook_auth` signing policy。它**不携带** capability refs 与 expiry：实际授权由独立的 `ak.capability.grant` 承载并有自己的 `temporal` 约束，registration 的时效由 `registration_epoch` 与 controller 的 revoke 表达。
 - Namespace pattern grammar（命名空间模式语法）MUST 明确 actor、realm、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
-- Transaction push 操作 MUST 包含 exact `applet_id`、`source_id`、`events[]`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；**两个投递方向（node→Applet 与 app/bridge→arkret edge inbound）都 MUST 携带逐次投递 RFC 9421 来源签名并由接收方逐次验签，覆盖 header 集、失败码与认证记录见 §7.3.1**；纯 bearer 的 transaction push MUST 被拒绝。外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Arkret Event 的 `external_ref` / provenance / capability refs 中，不得通过 transaction 专用 durable Event 表达。
+- Transaction push 操作 MUST 包含 exact `applet_id`、`source_id`、其封闭分支的非空 Event/Signal 批次或 `authoring_result`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；**两个投递方向（node→Applet 与 app/bridge→arkret edge inbound）都 MUST 携带逐次投递 RFC 9421 来源签名并由接收方逐次验签，覆盖 header 集、失败码与认证记录见 §7.3.1**；纯 bearer 的 transaction push MUST 被拒绝。外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Arkret Event 的 `external_ref` / provenance / capability refs 中，不得通过 transaction 专用 durable Event 表达。
 - Protocol metadata schema（协议元数据 schema）MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `ak.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key（外部事件去重 key）MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
