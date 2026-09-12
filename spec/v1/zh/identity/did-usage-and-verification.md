@@ -3,7 +3,7 @@ title: DID 使用与验证边界
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-11
+updated: 2026-09-12
 ---
 
 ## 0. 规范语言
@@ -40,7 +40,7 @@ method successor、显式启用的 DID-root recovery。历史验证不得查询�
 controller 替代旧 key；current controller 也不得仅凭 `did_core_id` 相同取得既有 PCR、membership、grant、
 contact、session 或 account lifecycle authority。
 
-本文件的 DID authority verifier、方法历史与 accepted binding store 义务适用于接纳外部材料的 Station、registry、联邦服务及独立审计者。普通客户端通过自己的已认证 Station 消费结果，核对完整账号、subject、purpose 与 freshness，不实现这些历史 verifier 或持久证据闭包；详见 [服务器信任与结果消费](../sync/server-trusted-results.md)。客户端本地签署及端到端密钥/消息认证继续执行。
+本文件的 DID authority verifier、方法历史与 accepted binding store 义务适用于接纳外部材料的 Station、registry、联邦服务及独立审计者。普通客户端通过自己的已认证 Station 消费结果，核对完整账号、subject、purpose 与 freshness，不实现这些历史 verifier 或持久证据闭包；详见 [服务器信任与结果消费](../sync/server-trusted-results.md)。普通客户端自己 Station 的首次接入与重连同样不承担方法历史 verifier，按 [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative) 核对显式信任起点与持久认证绑定。客户端本地签署及端到端密钥/消息认证继续执行。
 
 ## 2. DID 身份材料的正交分类与命名
 

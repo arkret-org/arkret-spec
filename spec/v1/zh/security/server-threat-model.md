@@ -3,7 +3,7 @@ title: 服务端攻击模型与反制
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-09-12
 sidebar:
   label: 服务端威胁模型
 ---
@@ -15,7 +15,7 @@ sidebar:
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-所有条目均按 Arkret 的 Events API / Station sync surface / Directory / Identity 平面映射到协议规则。
+所有条目均按 Arkret 的 Events API / Station sync surface / Directory / Identity 平面映射到协议规则。客户端侧的单一攻击面索引见 [architecture §6.7](../overview/architecture.md#67-客户端攻击面索引)。
 
 ## 2. 服务端攻击面
 
@@ -126,6 +126,14 @@ sidebar:
 - **#23 联邦流量模式旁观** —— 详见 §2.1 #23 正文；profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)（`ak.profile.traffic_metadata_hardened.v1`）。
 - **Sender 元数据对承载服务可见（acknowledged residual exposure，informative）** —— v1 baseline 接受 Event Envelope 顶层 `actor_id` 对承载它的 Station / Station sync surface **始终明文可见**（见 [`sync/operations-sync.md` §14](../sync/operations-sync.md) 字段可见性分级把 `actor_id` 列为路由 / 签名归属元数据）。即"谁在何时给谁发"对受托承载服务可观测，base v1 不提供 sender-anonymity 通道。这是 acknowledged residual exposure，与 #23 联邦流量旁观同属"承载服务可见的元数据面"；未来加固方向（sealed-sender 风格的对中转服务隐藏 `actor_id` 通道、OHTTP / oblivious relay 提升为 event-submit / push / directory 的可选元数据隐私基线）列为未来 profile，不在 v1 core。实现 MUST NOT 把 E2EE 正文加密误表述为隐藏 sender 元数据。
 
+- **认证组件局部失陷** —— Account Authority 是 Station 认证 TCB 内部职责，不是独立 wire role；内部重验仍为强制义务。分析 MUST 明确未失陷方，不能把下列能力合并：
+  - IdP 失陷但 Authority/Station 诚实时，攻击者可冒用受该 IdP 管理且映射到本站的 subject；绑定账号只可取得 holder-bound 受限恢复会话及 pre-proof 闭包，不能跳过 accepted-device proof 或恢复 policy。策略可见性限于该账号，不等于枚举任意本站用户；首次抢先绑定只适用于尚未绑定的 service account，不能覆盖既有 principal/PCR。见 [account-lifecycle §2.1.2](../identity/account-lifecycle.md)。
+  - 仅 issuer signing key 泄露但 ledger 与认证内省仍诚实时，伪造 JWT 签名不等于创建 active ledger record；资源服务器继续验证 exact signed claims/派生 ID、issuer-ledger state、audience、holder DPoP 与 current gate。若攻击者还控制被接受的 status，则已越过此假设，属于下一项。见 [key-management §6](../identity/key-management.md#6-session-grant)。
+  - Authority/ledger/status authority 被控制但 Station 业务准入仍诚实时，会话签发、账号状态和认证新鲜度失去可信性；攻击者可能建立指向其 holder 的账号会话，访问各 operation 与当前业务授权允许的数据或滥用恢复 pre-proof 面。此半径不是所有非 E2EE 数据，也不自动批准 Agent pairing：后者仍须 controller producer 签名、合法 Seal 与 durable activation。恢复 policy 的任一方法必须另获对应授权，服务身份不提供该授权。
+  - 以上各项不产生攻击者未持有的用户/root/device 签名或既有 E2EE/backup 解密密钥；也不保证错误认证/治理结果无法诱导未来错误授权。整个 Station 被控制时适用下项，不能继续假设其准入验证诚实。
+- **首次接入与认证权威替换** —— 普通客户端按 [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative) 从明确选择/独立预配 origin 接入并持久比较身份和认证配置。选错 origin、预配渠道或受信 WebPKI/origin 失陷是残余暴露；正常证书验证仍防御仅控制网络的主动攻击者。首次 pin 不能追溯证明初始选择正确，describe 自洽不能成为独立身份背书。
+- **确认组超阈值、受托恢复方与 runtime 宿主失陷** —— [architecture §6.0](../overview/architecture.md#60-参与方关系矩阵) 分别界定其权限。超过 quorum Byzantine 假设可产生错误结论，不保证都以可检测分叉表现；合法恢复服务可滥用既有整账号恢复授权，但不自动取得历史密钥；runtime 宿主影响其实际持有的全部 Agent key/秘密，不保证仅单 Agent 受损。
+- **运营方/管理员滥权** —— 管理身份仅在已授权 operation 内生效；可用性、元数据及合法可见明文可能受影响。export、retention/hold、quarantine 与恢复分别按领域合同，不附赠 E2EE 密钥或用户签名。运营者控制整站的情形适用下项，不把 MUST NOT 误表述为恶意服务器不可实施的动作。
 - **自己 Station / 同源 registry 失陷** —— personal_node 允许 registry 与 Station 同源。普通客户端信任自己的 Station 提供治理与身份授权结果，不承诺独立检测其任意 registry equivocation 或伪造的历史。客户端仍核对自己提交的账号、设备/DID 公钥、inception 和待签字节，保留私钥 possession、内容认证及既有带外设备信任；这些检查不等于重放完整 DID/PCR 历史。服务间接纳外部 DID 的验证与独立 witness/auditor 仍适用；同源运营者失陷属于治理可信边界失陷，不能声称客户端会自动通过 pin 恢复真实历史。见 [服务器信任与结果消费](../sync/server-trusted-results.md)。
 - **base v1 不要求 consistency proof** —— 证明 log append-only、历史未被改写的 consistency proof 只在 `high_security_organization` 与 `sovereign_deployment` profile 是 MUST；base v1（含 `small_team` / `organization`）以离散 witness 签名为准，不要求 log-backed transparency。因此"历史未被截断"在默认部署下不可由协议独立证明。
 
@@ -145,7 +153,7 @@ sidebar:
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
-- **多源交叉校验**：snapshot / resolver / frontier / policy decision / DID 头部状态引入二次验证。
+- **验证角色分工**：首次接纳外部材料、投票/执行副本和独立审计者按其领域合同验证 snapshot、resolver、frontier、policy 与 DID 状态；非投票消费者按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证 exact quorum 结论，不被要求重放无关历史。普通客户端按 [server-trusted-results §1–§3](../sync/server-trusted-results.md) 核对请求、意图、已知身份与 E2EE，不执行泛化二次治理验证。
 - **隔离与缓冲**：异常源先走 `quarantine` 与 `review` 决策，再决定 `allow`、`deny` 或 `reject`。
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
 - **故障收敛策略**：`rate_limited`、`soft_failed`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。
@@ -165,13 +173,13 @@ sidebar:
 | 写入泛滥 | 是 | `rate_limit`，`per-source` 与 `per-realm` 队列保护。 |
 | 重试放大 | 是 | 窗口退避、批次阈值、失败率熔断，优先使用 `Retry-After`，并在 body 中提供 `retry_after_ms`。 |
 | 来源身份伪造 | 是 | source DID / message-signature / service signature 验签链。 |
-| 钓鱼 | 是/部分 | 需要可验证展示（service DID 与 policy 来源）与用户告警策略。 |
+| 钓鱼 | 是/部分 | 客户端按 object-addressing 与 architecture §6.7 展示 canonical 身份、目标与用户意图；治理来源由自己 Station 的 scoped 结果确认。展示与带外核对仍是客户端职责，不保证识破所有社会工程。 |
 | 恶意载荷 | 是 | blob/mime/hash 扫描、危险标签隔离、`quarantine` 与人工复核。 |
 | 枚举探测 | 是 | 目录/join/probe 接口统一 `not_found`/`forbidden` 时序与时延。 |
 | 队列耗尽 | 是 | `quota_exceeded`、`rate_limited` 与短时限批量写保护。 |
 | 重放 | 是 | `request_id` 与 canonical hash 绑定，异内容复用返回 `duplicate_conflict`；Event 先重算 content-addressed `event_id`，carried ID 不匹配以 `event_id_digest_mismatch` 拒绝，真正 full-hash collision 以 `witness_disagreement` 隔离。 |
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
-| 拓扑污染 | 是 | service list 与发现结果签名可验证，目录/Realm 官方背书需双重签名。 |
+| 拓扑污染 | 是 | 实际接纳/审计角色按 [discovery-directory §8.10 / §11](../discovery/discovery-directory.md) 验来源签名、source-ref 与背书授权，按 service-surface §2.6 验服务路由；普通客户端按已登记 Station 结果消费。不定义通用双签载体。 |
 | 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
 | 冲突/分叉 | 是 | fork 检测、冲突源 quarantine + backfill re-check。 |
 | 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、frontier 一致性双重校验。 |
@@ -190,8 +198,7 @@ sidebar:
 
 ### 4.1 入口与服务面
 
-- 所有服务入口区分 `authenticated`、`trusted_service`、`anonymous_forwarded`。
-- `anonymous_forwarded` 来源不直通写入；默认进入 `rate_limited` 或 `quarantine` 流程。
+- 所有入口 MUST 按 [service-http-binding §2.2](../sync/service-http-binding.md#22-端点契约规则) 及各 operation 的认证、授权、披露、限流和失败合同执行；namespace、认证机制与业务权限不得混用。匿名或转发来源不因路径/代理身份取得写权，也不得绕过已登记 operation 的失败语义另建通用 quarantine 准入。
 - 所有统一错误语义在未认证/未授权/不可见场景保持不可区分。
 - `request_id`、`request_canonical_digest`、`Idempotency-Key` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
 - 受保护 endpoint 不得接受 URL 中的认证材料；反向代理、应用日志和安全审计日志必须对敏感 query 做脱敏或拒绝记录。

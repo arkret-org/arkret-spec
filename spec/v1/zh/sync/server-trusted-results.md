@@ -3,7 +3,7 @@ title: 账号服务器信任与结果消费
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-10
+updated: 2026-09-12
 sidebar:
   label: 服务器信任与结果
 ---
@@ -12,7 +12,7 @@ sidebar:
 
 ## 1. 信任方与角色
 
-普通客户端 MUST 信任当前完整 AccountId 所属 Station 在已认证账号会话下给出的治理验证结果。信任绑定完整 AccountId、Station service、当前设备/会话与所调用 operation；客户端 MUST NOT 将任意 Directory、远端 Realm 服务、Blob/Media endpoint、URL 或第三方自报的 verified 状态视为自己的 Station。建立账号会话之前，预期 Station 身份及认证绑定 MUST 已由接入流程确定，不能以待接入服务的自报形成循环信任。
+普通客户端 MUST 信任当前完整 AccountId 所属 Station 在已认证账号会话下给出的治理验证结果。信任绑定完整 AccountId、Station service、当前设备/会话与所调用 operation；客户端 MUST NOT 将任意 Directory、远端 Realm 服务、Blob/Media endpoint、URL 或第三方自报的 verified 状态视为自己的 Station。建立账号会话之前，预期 Station 身份及认证绑定 MUST 按 §1.2 从用户明确选择或部署独立预配的信任起点建立；describe 自洽不构成独立身份背书。
 
 角色按实际动作划分，不按程序或 SDK 包名划分：
 
@@ -36,9 +36,25 @@ sidebar:
 | 已撤销/过期设备或 Agent key、只有会话凭据者 | 自己 Station 在当前动作/Signal self 投递执行 current authority、PoP、expiry/fence；session 与缓存公钥均不代替授权实例。 |
 | 同组恶意成员、篡改密文 | 客户端逐项核对 producer signature、MLS credential/tree/transcript、AAD/AEAD、replay、对象与收件人绑定。 |
 | 恶意自己 Station | 不承诺独立检测其治理谎报；客户端仍核对签字意图、已知身份/撤销、exact授权实例、端到端认证与安装代际。 |
+| Authentication Method Provider、issuer key 或 Account Authority 局部失陷 | 分别按 [服务端威胁模型 §2.1a](../security/server-threat-model.md) 判断身份因子、签名能力与 ledger/status authority，不能合并为任意账号权限；诚实 Station 仍验证当前授权与实际 producer proof。 |
+| Station 运营方/管理员 | 只有已授权 operation 的账号状态、ACL、审计与保留职责；管理身份不替代用户签名、E2EE 密钥或 accepted recovery policy。整站被控制时适用恶意自己 Station 一行。 |
 
 MLS tree 是此前已验证身份的连续性锚；首次身份绑定仍由接入认证与用户带外确认建立。leaf 尚存不证明当前未撤销。
 稳定公钥 bytes 与 exact Event/epoch/authorization 结果必须分开缓存；同 actor/method/key 的重授权不能发生 ABA 混装。
+
+### 1.2 普通客户端的 Station 接入（normative）
+
+本节是普通客户端首次登录、恢复连接与重新接入自己 Station 的唯一合同；不要求客户端实现 DID method-native 历史 verifier，也不授权它把任意外部服务当作自己 Station。
+
+1. **独立起点**：客户端 MUST 从用户明确选择的 Station HTTPS base URL，或部署独立预配的 base URL 与预期身份/认证绑定开始。搜索结果、邀请、二维码及 redirect 只提供候选，不得自动替换该选择。TLS MUST 验证被选择 origin 的证书；预配的 `service_id`、`trust_domain` 或认证绑定一旦存在，服务自报 MUST 与之匹配，不能覆盖它。明确启用的本地开发 transport 例外仍受既有开发规则约束，不授予生产身份保证。
+2. **公开发现**：在发送任何既有账号凭据之前，从该 base 读取 `GET /_arkret/describe`。MUST 按 [service-http-binding §2.3](./service-http-binding.md) 执行无自动 redirect、大小、压缩与超时限制，检查 `protocol_version="1.0"`、`service_kind="station"`、唯一 canonical HTTP JSON base 与实际选择一致，以及合法的 `service_id`、`trust_domain` 和 `auth_metadata`。这里由受信 origin 发布 Station 绑定；`service_resolution` 的存在不使客户端承担完整 WebVH 日志验证。describe 自洽不证明该 origin 是某个人或组织的真实服务。
+3. **认证绑定**：MUST 从 `auth_metadata.account_authority.gate_account_base_url` 派生全部客户端 account 操作，校验其 origin 与 `account_authority.origin` 一致；不得按 operation 猜地址或从缺失 base 回退。所用方法的 `method`、`issuer_uri`、`provider_uri`、`openid_configuration_url`、`client_id`、`scopes` 与 `grant_exchange` 按已公布配置绑定。Station、Authority 与 IdP 可以分 origin；OIDC 的 issuer、client、redirect、state、nonce、PKCE 与 DPoP 验证继续适用。
+4. **持久接纳**：客户端 MUST 在开始认证或重用凭据前，耐久保存并核对所选 base URL、`service_id`、`trust_domain`、Authority origin/base 与认证方法配置。认证方法/其 scopes 的集合顺序、协议惰性 `x_*`、动态 limits/features 与未改变上述绑定的常规签名 key rotation，不构成认证权威替换。持久状态不随登出、进程重启、账号切换或缓存淘汰自动丢弃；并发首次安装必须比较已有绑定，不允许后写覆盖。保存或读取失败 MUST 阻止后续凭据发送，不能按首次接入处理。
+5. **变化与重新接入**：恢复连接 MUST 先重新取得公开 describe 并比较持久绑定；三元身份不变但 Authority/issuer/方法配置变化也不能静默接受。失配时停止认证、refresh 和既有凭据发送，保留旧绑定及账号材料；只有用户显式重新选择并确认新绑定，或独立受信部署管理渠道授权更新后，才可安装新绑定并重新认证。不得向新权威转交旧 handoff、authorization code、refresh token 或 SessionGrant，不得仅以“重试”“重新连接”或清缓存代替重新接入。身份变化不迁移旧 Account/PCR；base URL 迁移亦须按此边界重新接入。
+6. **缓存与请求**：同一连接期间可复用已核对绑定，不能每个 self 请求额外增加 describe/历史验证。得知认证 metadata 变化时 MUST 使相应发现缓存失效并按第 5 项处理；不因未变的 advertised feature 重置会话。每次认证回调、签名/提交与会话恢复仍核对本次冻结的完整账号、目的地及用户意图。
+7. **独立服务**：已登记的自己 Station 结果面按其 operation 消费。未登录的 Directory 等独立消费不取得 Station 可信结果资格；需要认证候选真实性时，必须由实际承担 [service-surface §2.6](./service-surface.md) 的独立验证者提供验证，或待已有自己 Station 的登记结果可用。不能验证的候选不得标记 verified 或作为隐式账号接入依据。Station、registry、联邦接收方与独立审计者的原生验证职责不变。
+
+首次 origin 选错、独立预配渠道或受信 WebPKI/origin 失陷属于残余暴露；正常 TLS 验证仍防御仅控制网络的主动攻击者。持久绑定只能延续已经作出的选择，不能追溯证明首次选择正确；恶意 Station 的后续治理结果按 §1.1 处理。
 
 ## 2. 结果绑定与可用性
 
