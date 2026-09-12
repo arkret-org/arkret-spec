@@ -110,7 +110,11 @@ Problem Details，并在可预估等待时提供 `Retry-After`；不得返回 `C
 将未决编码为 `failed`，或向客户端提前交付可建 round 的 receipt。503 不承诺 Event 未保存，也不是永久幂等
 终局。客户端继续使用原 operation/idempotency/phase 与逐字相同的完整 commit bytes；服务端保留该绑定，
 重新读取同一 Event 的确切终局，不能让临时 HTTP 缓存永久遮蔽后来的确认。`prepared` draft 的首次结果固定；
-commit 的首个耐久终局 `accepted` 或真实终局 `failed` 一旦产生才逐字固定。原 reservation 到期不能删除已经
+commit 的首个耐久终局 `accepted`、真实领域终局 `failed` 或登记的终局 Problem Details 一旦产生才逐字固定。
+已确认 unit 的拒绝原因仅在逐字对应既有五个 Contact 领域原因时使用 `failed`；其它原因保留登记的 Problem
+Details 映射（通常为 `failed_precondition` 与真实 unit.reason_code，有明确登记 top-level code 时使用该映射），
+固定原 HTTP status/body，禁止统一伪装为 `contact_lineage_conflict`。终局拒绝不得触发新 Seal 或重建命令。
+原 reservation 到期不能删除已经
 durable admitted 的 Event、重新分配 EventId 或改签 receipt/round；既有身份与 exact retry 授权检查仍执行。
 接纳前的暂时失败与接纳后的未确认/响应丢失均重试同一 commit，不能从 HTTP 错误推断命令没有进入 pending。
 对 human device 持有唯一 PCR signing authority 的分支，客户端收到该未确认响应后 MUST 继续已有的 pending
