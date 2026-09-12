@@ -4012,7 +4012,7 @@
       "additionalProperties": false
     },
     "EventsSubmitRequestBody": {
-      "description": "Closed request union for ak.self.events.command.submit.v1. The single and batch branches carry ordinary Events; the direct_conversation_founding branch is the only carrier for the Direct Conversation founding unit and is discriminated by unit_kind, which the other two branches forbid through additionalProperties:false.",
+      "description": "Closed request union for ak.self.events.command.submit.v1: EventInitialSubmission, EventsSubmitBatchRequestBody, DirectConversationFoundingUnitSubmission, or AgentMembershipCascadeSubmission. The two dedicated atomic-unit branches are selected by their exact unit_kind; generic single and batch carriers forbid that member. Generic publication does not itself confirm security commands. Federation submissions use the separate peer operation.",
       "oneOf": [
         {
           "$ref": "#/$defs/EventInitialSubmission"
@@ -4029,7 +4029,7 @@
       ]
     },
     "SelfEventsSubmitOutcome": {
-      "description": "Closed response union for ak.self.events.command.submit.v1. Ordinary submissions return EventsSubmitOutcome; the direct_conversation_founding request branch returns DirectConversationFoundingAcceptanceOutcome, which carries the source-signed founding acceptance receipt.",
+      "description": "Closed response union for ak.self.events.command.submit.v1. The direct_conversation_founding request branch returns DirectConversationFoundingAcceptanceOutcome, which carries the source-signed founding acceptance receipt. The other registered request branches return EventsSubmitOutcome; a publication or proposal acknowledgment does not itself confirm security commands.",
       "oneOf": [
         {
           "$ref": "#/$defs/EventsSubmitOutcome"
