@@ -120,7 +120,7 @@ Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 
 
 #### 3.2.1 Anchor Unit 验证
 
-无 `seal_basis` 的 reducer-input Event MUST 先进入封闭 anchor-unit 分支，不能按非锚点 Control Move 拒绝。receiver MUST 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 验证：kind / batch 组合白名单、同批原子性、`ak.realm.create` 的 critical `refs[role=did_inception]` 与 bootstrap follow-up 完整覆盖，或 `ak.device.reanchor` 的 accepted PCR policy/verified session、冻结 replacement device key 对两条 Event 的证明、`pre_fence_seal_frontier` 全 frontier CAS 与 replacement authorize 原子 unit（`device-lifecycle.md` §14；不得携带 `did_recovery_anchor` ref）。任一 unit 缺项、跨 Realm、重复或携带 `seal_basis` 均 MUST fail closed。
+接收方 MUST 先按注册写入和已登记原子 unit 判定执行域。普通 Event 使用 §3.1 的独立准入；只有属于登记 anchor unit 的安全命令及其同 unit 初始效果，才在没有 `seal_basis` 时进入本节封闭分支。不能把所有无 `seal_basis` 的 reducer-input Event 都当成 anchor，也不能把合法 anchor 按非锚点 Control Move 拒绝。receiver MUST 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 验证：kind / batch 组合白名单、同批原子性、`ak.realm.create` 的 critical `refs[role=did_inception]` 与 bootstrap follow-up 完整覆盖，或 `ak.device.reanchor` 的 accepted PCR policy/verified session、冻结 replacement device key 对两条 Event 的证明、`pre_fence_seal_frontier` 全 frontier CAS 与 replacement authorize 原子 unit（`device-lifecycle.md` §14；不得携带 `did_recovery_anchor` ref）。任一 unit 缺项、跨 Realm、重复或携带 `seal_basis` 均 MUST fail closed。
 
 ### 3.3 Seal 验证
 
@@ -132,7 +132,7 @@ Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.sch
 - predecessor / slot / profile 约束。
 - `delta[]` 只包含本 Seal 新增的控制面 Event digest。
 - `control_event_set_root` 与递归控制面覆盖集一致。
-- 控制面 reducer 重放后的 `state_root` 与 Seal 声明一致。
+- 投票副本及选择独立审计的重放者按 `command_results` 重算执行结果、安全状态与 `state_root`；非投票消费者依 §3.2 引用的 quorum 结论规则验证所需事实，不因读取普通消息而强制完整重放。
 - inclusion list / receipt obligation / fault evidence 规则。
 
 普通消息不依赖数据观察根。`availability_receipt_digests[]` 只约束对应安全命令 bytes 的可用性义务。

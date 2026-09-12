@@ -1596,7 +1596,7 @@
           "alias": "general:acme.example"
         },
         "create_time_alias_shape": "registered conditional alias slot in the same ordered atomic Realm bootstrap unit",
-        "post_bootstrap_alias_shape": "ordinary Control Move carrying seal_basis",
+        "post_bootstrap_alias_shape": "non-anchor Control Move carrying seal_basis",
         "rename_shape": "successor using exact revision CAS, followed by namespace activation",
         "release_shape": "explicit {tombstone:true} set; effective resolution treats it as absence and the Realm stays addressable only by realm_id",
         "resolution_source": "intersection of current confirmed Realm alias intent and unique namespace issuer allocation of the same canonical alias and Realm",

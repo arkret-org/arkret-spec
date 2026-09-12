@@ -335,7 +335,7 @@ binding 和 exact leaves 计算 security_frontier_digest。每个 content-addres
 event_ids 仅列 sparse provenance，不能替代完整 delta 解析。query_digest/page_digest、1 MiB 完整响应上限、
 64 siblings 上限和每个 closed collection 边界仍适用；没有 cursor、continuation 或 partial frontier。
 
-向量 ak.vector.mls.security_frontier_key_access_only.v1 继续保证无关治理 Seal/无关治理前进不改变 key-access
+向量 ak.vector.mls.security_frontier_key_access_only.v1 继续保证与密钥访问无关的治理 Seal 前进不改变 key-access
 digest，而 active leaf revoke 必须影响它。自己 Station 的结果消费与 peer 的独立证明验证分别验收。
 
 #### 2.5.4 SealBasis 信任来源（normative）
