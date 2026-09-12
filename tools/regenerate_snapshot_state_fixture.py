@@ -38,18 +38,13 @@ def main():
         model = models[item["id"].split(":", 3)[2]]
         item["state_model"] = model
         state = item["state"]
-        if model == "sequenced_state" and "revision_event_id" not in state:
-            head = state.get("heads", [{"event_id": event_id, "value": state.get("value")}])[0]
-            item["state"] = {"revision_event_id": head["event_id"], "value": head["value"]}
-        elif model == "causal_register":
-            heads = state.get("heads", [{"event_id": event_id, "value": state.get("value")}])
-            item["state"] = {"covered_event_ids": sorted(h["event_id"] for h in heads), "heads": heads}
-        elif model == "or_set" and isinstance(state["value"], list):
-            item["state"] = {"value": {"adds": state["value"], "removed_tag_ids": []}}
-        elif model == "ordered_log":
-            for entry in state["value"]:
-                if isinstance(entry["issuer_id"], str):
-                    entry["issuer_id"] = {"kind": "service", "service_id": entry["issuer_id"]}
+        if model == "causal_register":
+            assert set(state) == {"covered_event_ids", "heads"}
+        elif model == "sequenced_state":
+            assert set(state) == {"revision_event_id", "value"}
+        elif model == "or_set":
+            assert set(state["value"]) == {"adds", "removed_tag_ids"}
+            assert all(set(entry) == {"tag_id", "value"} for entry in state["value"]["adds"])
     items.sort(key=lambda x: x["id"])
     preimages = [canonical_json({"cell": x["id"], "state_model": x["state_model"], "state": x["state"]}).encode() for x in items]
     root = "sha256:" + tree(preimages, "sha256").hex()

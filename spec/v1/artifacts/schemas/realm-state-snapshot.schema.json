@@ -368,7 +368,8 @@
           }
         },
         "reducer_contract_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "SHA-256 of RFC8785 JCS of the complete canonical contract-registry.json object used to validate and project this snapshot; not a generated-language source hash or an HTTP response digest."
         }
       },
       "additionalProperties": false,

@@ -182,6 +182,7 @@ class SealScopeContractTest(unittest.TestCase):
     def test_closed_model_catalog_and_family_consistency(self):
         models = {"causal_register", "sequenced_state", "or_set", "ordered_log", "counter"}
         self.assertEqual(set(self.catalog["state_model_contracts"]), models)
+        self.assertEqual(self.catalog["state_model_contracts"]["sequenced_state"]["value_shapes"], ["register", "set", "log"])
         families = {}
         for contract in self.events["cell_contracts"].values():
             for write in contract["cell_writes"]:
@@ -191,6 +192,18 @@ class SealScopeContractTest(unittest.TestCase):
                 self.assertEqual(families.setdefault(write["cell_family"], shape), shape)
                 if write["execution"] == "security":
                     self.assertNotIn("bottom", write)
+
+    def test_command_digest_retains_complete_ordinary_state(self):
+        validator = self.validator("seal.schema.json#/$defs/command_result_digest_input")
+        event_id = self.message["event_id"]
+        event_digest = "sha256:" + "a" * 64
+        item = {"event_digest": event_digest, "unit_event_digests": [event_digest], "outcome": "committed", "effects": [{"cell_id": "ak:cell:ak.component.realm.profile.v1:null", "state": {"covered_event_ids": [event_id], "heads": [{"event_id": event_id, "value": None}]}}], "reason_code": None}
+        self.assert_shape(validator, item, True)
+        without_coverage = copy.deepcopy(item)
+        del without_coverage["effects"][0]["state"]["covered_event_ids"]
+        self.assert_shape(validator, without_coverage, False)
+        item["outcome"] = "rejected"
+        self.assert_shape(validator, item, False)
 
     def test_unknown_execution_condition_is_rejected(self):
         with self.assertRaises(ValueError):

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.18",
+  "version": "2026-09-12.19",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T15:37:00+08:00",
+  "generated_at": "2026-09-12T18:21:38+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -23085,9 +23085,9 @@
       "value_shapes": [
         "register",
         "set",
-        "log",
-        "counter"
-      ]
+        "log"
+      ],
+      "command_result_digest_schema_ref": "schemas/seal.schema.json#/$defs/command_result_digest_input"
     },
     "causal_register": {
       "execution": "data",

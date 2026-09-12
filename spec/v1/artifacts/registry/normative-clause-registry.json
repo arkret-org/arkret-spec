@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.19",
+  "version": "2026-09-12.20",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T17:38:51+08:00",
+  "generated_at": "2026-09-12T18:13:19+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -494,7 +494,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:511bc9900b6ffe156b3e2c5086c5b099ea08a362e269bb7cb6e124708a4977b9",
+      "section_digest": "sha256:92f362c1a0998f31c512ab998475985ed2a523c6d83c6530e4b458fe6af1f2f1",
       "requirement": "Snapshot items contain registered full Cell state with explicit state_model and authenticated eligibility context. Snapshot digest hashes {cell,state_model,state}, independently of the Seal security root. Restore verifies retained original events, coverage and closure evidence; byte-level digest agreement alone is insufficient. Wrong family/model, missing required evidence and context mismatches cannot restore an eligible state.",
       "testability_grade": "audit",
       "test_plan": "Review model-specific carrier and replay validation, run snapshot digest KAT, then require SDK restore tests for closure reclassification and missing membership. The digest KAT does not prove a complete authenticated restore."
@@ -516,7 +516,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:511bc9900b6ffe156b3e2c5086c5b099ea08a362e269bb7cb6e124708a4977b9",
+      "section_digest": "sha256:92f362c1a0998f31c512ab998475985ed2a523c6d83c6530e4b458fe6af1f2f1",
       "requirement": "A receiver restored from a Realm state snapshot MUST still answer exactly whether an old Event belongs to that view's covered set C, and MUST hold or fail closed when it has no evidence rather than answering false - a false answer makes section 9.3.1.4 treat a late branch as unseen and revive superseded writes. Evidence is one of two paths only: retaining the shared membership index, admitted solely when recomputing event_set_commitment.root over it under the declared algorithm reproduces the manifest root at covered_event_count, or obtaining a valid per-entry proof under that same existing root. Absent a fenced authority, an implementation MUST NOT keep only the last N writes, drop value=null heads, or drop the fact that an Event was once covered.",
       "testability_grade": "vector",
       "evidence_refs": [

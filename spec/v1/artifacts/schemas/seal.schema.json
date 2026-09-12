@@ -411,7 +411,7 @@
         },
         "result_digest": {
           "$ref": "#/$defs/digest",
-          "description": "H(JCS({event_digest,unit_event_digests,outcome,effects,reason_code})). effects is the unique CellRef-sorted array of {cell_id,state}, one complete final post-unit state per touched Cell after all registered writes in their normative order. A rejected unit has effects=[] and the exact registered reason_code; a committed unit uses reason_code=null. Only registered atomic units may combine Events. Recompute from original Events at the execution position, never from HTTP output."
+          "description": "H(JCS({event_digest,unit_event_digests,outcome,effects,reason_code})). effects is the unique CellRef-sorted array of {cell_id,state}, one complete final post-unit state per touched Cell after all registered writes in their normative order. A rejected unit has effects=[] and the exact registered reason_code; a committed unit uses reason_code=null. Only registered atomic units may combine Events. Recompute from original Events at the execution position, never from HTTP output. The exact preimage shape is $defs/command_result_digest_input; each effect state uses the canonical family model, including complete ordinary causal coverage and set tombstones."
         },
         "reason_code": {
           "$ref": "./http-problem-details.schema.json#/properties/reason_code",
@@ -843,6 +843,116 @@
         "$ref": "#/$defs/view_change_vote"
       },
       "description": "Exactly 2f+1 distinct configured voters sorted by verification_method; all coordinates must match, every prepared view is lower than new_view, and the highest prepared view fixes the entire next body. No prepared certificate permits a fresh valid proposal."
+    },
+    "command_result_effect": {
+      "type": "object",
+      "required": [
+        "cell_id",
+        "state"
+      ],
+      "properties": {
+        "cell_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/cell_ref"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/heads_state"
+            },
+            {
+              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/sequenced_state"
+            },
+            {
+              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/set_state"
+            },
+            {
+              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/log_state"
+            },
+            {
+              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/counter_state"
+            }
+          ],
+          "description": "The complete post-unit state selected by the canonical Cell family state_model, with exactly the corresponding snapshot state shape. In particular causal_register retains covered_event_ids and heads; bootstrap ordinary state is never converted into sequenced_state or a display value. The family fixes the model; the producer cannot select another matching branch."
+        }
+      },
+      "additionalProperties": false
+    },
+    "command_result_digest_input": {
+      "type": "object",
+      "required": [
+        "event_digest",
+        "unit_event_digests",
+        "outcome",
+        "effects",
+        "reason_code"
+      ],
+      "properties": {
+        "event_digest": {
+          "$ref": "#/$defs/event_digest"
+        },
+        "unit_event_digests": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/event_digest"
+          },
+          "description": "Exact execution-ordered members of the registered atomic command unit. A standalone command is [event_digest]. A registered bootstrap/cascade uses its normative order and first member as event_digest; arbitrary batching cannot create a unit. Each Event belongs to at most one result in the entire confirmed history."
+        },
+        "outcome": {
+          "enum": [
+            "committed",
+            "rejected"
+          ]
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/command_result_effect"
+          },
+          "description": "Strict CellRef order, exactly one complete final state for every Cell touched by the unit."
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "./http-problem-details.schema.json#/properties/reason_code"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "committed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason_code": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "effects": {
+                "maxItems": 0
+              },
+              "reason_code": {
+                "$ref": "./http-problem-details.schema.json#/properties/reason_code"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

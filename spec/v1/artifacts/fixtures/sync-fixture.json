@@ -1635,8 +1635,8 @@
       },
       {
         "id": "ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
-        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF\",\"state\":{\"value\":{\"adds\":[{\"tag\":\"ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0\",\"value\":{\"key\":\"thumbs_up\",\"target_ref\":\"ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF\"}}],\"removed_tags\":[]}},\"state_model\":\"or_set\"}",
-        "leaf": "sha256:b06c23b4ef78ac332f2ca7932f2272882d5c06c4b543dc153d0484af8dad213c"
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.message.reactions.v1:ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF\",\"state\":{\"value\":{\"adds\":[{\"tag_id\":\"ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0\",\"value\":{\"key\":\"thumbs_up\",\"target_ref\":\"ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF\"}}],\"removed_tag_ids\":[]}},\"state_model\":\"or_set\"}",
+        "leaf": "sha256:11a5259130f86ea442f1d24fb973a6317f3eea60f3e1f6607293b24d39d50581"
       },
       {
         "id": "ak:cell:ak.component.realm.reducer_profile.v1:null",
@@ -1659,7 +1659,7 @@
         "leaf": "sha256:1a929a7eb813cf9cf3b69f3e6a55588bcabaf76d2a0f2649540139af35f58a54"
       }
     ],
-    "state_digest": "sha256:c93f690fac1a0166cfbede1b0ab7ee1d40850efe4a72251d1235cd0a835bdc30",
+    "state_digest": "sha256:75efc29d8d325a830c71108a30ae3a3d7d1ab17627548eb3f0cb1a387815df84",
     "cases": [
       {
         "name": "canonical_chunk_recomputes_state_digest",
@@ -1688,14 +1688,14 @@
                   "value": {
                     "adds": [
                       {
-                        "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
                         "value": {
                           "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
                           "key": "thumbs_up"
-                        }
+                        },
+                        "tag_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0"
                       }
                     ],
-                    "removed_tags": []
+                    "removed_tag_ids": []
                   }
                 },
                 "state_model": "or_set"
@@ -1796,7 +1796,7 @@
             "replay_authority_refs": []
           }
         ],
-        "declared_state_digest": "sha256:c93f690fac1a0166cfbede1b0ab7ee1d40850efe4a72251d1235cd0a835bdc30"
+        "declared_state_digest": "sha256:75efc29d8d325a830c71108a30ae3a3d7d1ab17627548eb3f0cb1a387815df84"
       },
       {
         "name": "chunk_boundaries_do_not_change_state_digest",
@@ -1825,14 +1825,14 @@
                   "value": {
                     "adds": [
                       {
-                        "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
                         "value": {
                           "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
                           "key": "thumbs_up"
-                        }
+                        },
+                        "tag_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0"
                       }
                     ],
-                    "removed_tags": []
+                    "removed_tag_ids": []
                   }
                 },
                 "state_model": "or_set"
@@ -1963,7 +1963,7 @@
             "replay_authority_refs": []
           }
         ],
-        "declared_state_digest": "sha256:c93f690fac1a0166cfbede1b0ab7ee1d40850efe4a72251d1235cd0a835bdc30"
+        "declared_state_digest": "sha256:75efc29d8d325a830c71108a30ae3a3d7d1ab17627548eb3f0cb1a387815df84"
       },
       {
         "name": "blake3_digest",
@@ -1992,14 +1992,14 @@
                   "value": {
                     "adds": [
                       {
-                        "tag": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0",
                         "value": {
                           "target_ref": "ak:message:AS0yTilcRArn_38JhBXLOJlnUIbSufPbMrNVQGc9eVpF",
                           "key": "thumbs_up"
-                        }
+                        },
+                        "tag_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka:0"
                       }
                     ],
-                    "removed_tags": []
+                    "removed_tag_ids": []
                   }
                 },
                 "state_model": "or_set"
@@ -2100,7 +2100,7 @@
             "replay_authority_refs": []
           }
         ],
-        "declared_state_digest": "blake3:635ea24837b51a13c3916b1e8c6e8ab15f949a510e54cdef08822bbe7a15f752"
+        "declared_state_digest": "blake3:89a247fd1d04db285014f295e7528c216765c50c2e16548cfd65779c4bf2f267"
       },
       {
         "name": "wrong_digest",

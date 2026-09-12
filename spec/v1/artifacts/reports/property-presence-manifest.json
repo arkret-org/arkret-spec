@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11670,
+    "total_properties": 11681,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3069,
+      "optional": 3071,
       "optional_defaulted": 63,
-      "required": 7454,
-      "required_nullable": 344,
-      "tristate": 740
+      "required": 7460,
+      "required_nullable": 345,
+      "tristate": 742
     },
-    "tristate_occurrences": 740,
-    "tristate_audit_targets": 163,
+    "tristate_occurrences": 742,
+    "tristate_audit_targets": 165,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 154,
+      "absent_null_equivalent": 156,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -715,6 +715,8 @@
     "recovery-policy.schema.json/properties/expires_at",
     "recovery-receipt.schema.json/allOf/0/then/properties/proof_summary",
     "sdk-conformance-claim.schema.json/$defs/clause_claim/allOf/0/else/properties/evidence",
+    "seal.schema.json/$defs/command_result_digest_input/allOf/0/else/properties/effects",
+    "seal.schema.json/$defs/command_result_digest_input/allOf/0/then/properties/reason_code",
     "seal.schema.json/$defs/transaction_participant/anyOf/0/properties/read_cell_refs",
     "seal.schema.json/$defs/transaction_participant/anyOf/1/properties/write_cell_refs",
     "security-transaction.schema.json/$defs/pcr_policy_progress_contract/allOf/0/then/properties/accepted_steps",
@@ -2425,6 +2427,26 @@
       "instance_path": "/evidence",
       "occurrences": [
         "/$defs/clause_claim/allOf/0/else/properties/evidence"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "seal.schema.json",
+      "shape": "/$defs/command_result_digest_input",
+      "instance_path": "/effects",
+      "occurrences": [
+        "/$defs/command_result_digest_input/allOf/0/else/properties/effects"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "seal.schema.json",
+      "shape": "/$defs/command_result_digest_input",
+      "instance_path": "/reason_code",
+      "occurrences": [
+        "/$defs/command_result_digest_input/allOf/0/then/properties/reason_code"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -14578,6 +14600,17 @@
         "/$defs/command_result/properties/reason_code": "optional",
         "/$defs/command_result/properties/result_digest": "required",
         "/$defs/command_result/properties/unit_event_digests": "required",
+        "/$defs/command_result_digest_input/allOf/0/else/properties/effects": "tristate",
+        "/$defs/command_result_digest_input/allOf/0/else/properties/reason_code": "optional",
+        "/$defs/command_result_digest_input/allOf/0/if/properties/outcome": "optional",
+        "/$defs/command_result_digest_input/allOf/0/then/properties/reason_code": "tristate",
+        "/$defs/command_result_digest_input/properties/effects": "required",
+        "/$defs/command_result_digest_input/properties/event_digest": "required",
+        "/$defs/command_result_digest_input/properties/outcome": "required",
+        "/$defs/command_result_digest_input/properties/reason_code": "required_nullable",
+        "/$defs/command_result_digest_input/properties/unit_event_digests": "required",
+        "/$defs/command_result_effect/properties/cell_id": "required",
+        "/$defs/command_result_effect/properties/state": "required",
         "/$defs/existence_anchor/properties/authorization_event_id": "required",
         "/$defs/existence_anchor/properties/frontier": "required",
         "/$defs/existence_anchor/properties/generation_event_id": "required",
