@@ -6300,7 +6300,7 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 10. 同一 service DID 的 verified endpoint 更新 MUST 保留原 intent/幂等键并在复校验后发送；新 Station 的 AccountId 或
     新 membership Event MUST NOT 改写旧 target、重定向旧 intent 或令已取消 intent 复活。
 
-## 37. Agent Event admission receipt handoff closure vector
+## 37. Agent Event evidence handoff closure vector
 
 `vector_id`: `ak.vector.federation.agent_admission_receipt_handoff.v1`
 
@@ -6309,18 +6309,20 @@ peer acceptance。仅对 schema 做枚举校验不构成通过：
 [`../sync/federation.md` §4.1.1](../sync/federation.md)、
 [`../sync/service-http-binding.md` §3.1.6](../sync/service-http-binding.md) 与
 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)。
+登记 vector_id 与 fixture case 名称不创建 receipt 载体；下列义务与普通逐项 outcome 相同。
 
 Runner MUST 覆盖：
 
-1. peer/self submit 成功 outcome 为每个 accepted/duplicate Agent Event 返回唯一 `agent_event_admissions[]`。
-   历史 wrapper 只保留原授权证据与适用关闭引用，不依赖某接收站的接纳签名。
-   非 Agent、rejected、quarantine 与 dependency-missing 不生成此项。
-2. 独立 receipt 与对应 durable acceptance 同事务提交，失败整体回滚；原同站接纳直接复用原 Event proof，不签第二 receipt。
-3. 不同 receiver 的接纳独立按 receiver_id 存储；exact duplicate 返回第一次保存的 byte-identical 接纳材料，不重写时间或method。
-4. source outbox 验证完整 outcome schema/transport、接纳集合与 accepted/duplicate 精确一一对应，以及每项
-   Event/Realm/Agent/method、原 producer evidence ref 与实际 receiver；缺项、错配或无效历史 signer 不完成交接。
-5. 接纳材料、frozen original CurrentAdmission root、完整依赖与 selector index 原子保存。重试同事实 no-op，
-   异事实为 duplicate_conflict 且零覆盖；不得使用后来 current state 补造丢失接纳。
+1. Agent 与非 Agent Event 共用 `accepted[]`、`duplicate[]`、`rejected[]`、`quarantine[]`；
+   不返回 `agent_event_admissions[]`，不创建 receiver admission receipt 或新的作者 authority。
+2. destination 在 durable acceptance 同事务保留原 Event、producer evidence 与全部递归依赖；
+   依赖写入失败不得确认接受，不能用后来 current state 重建原授权材料。
+3. exact duplicate 复用已保存的 canonical Event 与原 evidence。不同 receiver 的本地接受互不创造 authority。
+   carried ID 与 canonical bytes 不匹配先拒绝；真正 full-hash collision 按 §4.5.1 隔离。
+4. source 先验证 outcome schema、transport 与本次提交的逐项绑定；缺少 accepted/duplicate 确认的义务仍 pending。
+   source 保留原 Event/evidence/依赖，不能把合法响应当成新的密码学权限或永久 retention 承诺。
+5. destination commit 前崩溃不确认；commit 后响应前崩溃由 exact retry 的 duplicate 收敛；
+   source 在持久化 delivered 前崩溃时同样安全重试。不得为这些情况增加第二套 signed receipt。
 
 ## Account status issuer ledger
 

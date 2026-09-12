@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "a14e3a597d3e4d85eb392ea450cb98d6bf486e03f8e0585d72ef163f7570b245"
+      "sha256": "8da4490f60b9adeb31b923f2a4a8b839f176c44cb62721c3cdf2661261507ca4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json",
