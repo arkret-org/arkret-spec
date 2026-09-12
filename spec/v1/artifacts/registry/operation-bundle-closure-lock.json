@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-11.5",
-  "generated_at": "2026-09-12T09:11:56+08:00",
+  "version": "2026-09-12.2",
+  "generated_at": "2026-09-12T21:15:06+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -31,7 +31,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.directory_service.http_core.v1",
-      "sha256": "sha256:f9eebcac5acb77b9a91470e2e4e21607536d90424a9e101e6a556ae4bff671a2"
+      "sha256": "sha256:ac4abab0be3f9d03bd47698a9ca5be7c9de182ef689c512c74f6034cd1c44aa4"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.directory_service.private_contact_discovery.v1",
@@ -83,7 +83,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
-      "sha256": "sha256:038a7b66e3b5f3e4ff56886e387fc4721f8d6adc49cd4d479d47ead4efc66953"
+      "sha256": "sha256:bb7321e2685d38691c2e0a64842386dcd6df971d569f6d3540aca253418ef126"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
@@ -127,7 +127,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
-      "sha256": "sha256:f8130ec83386ab35ee991ad2c6bbaf28110d03d422fc7b96a98dc23b974bf12d"
+      "sha256": "sha256:f6108c0203a65f54efc48361e9e0bed92dc8fe7f3a7d1b06abc633870a7976c7"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",
@@ -135,7 +135,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.push.v1",
-      "sha256": "sha256:f4423190787097402416cf9f7c16b113d6e3dc482f6c9a8e616cb42e69e6ae64"
+      "sha256": "sha256:29639d6a3b821da1a2dc01b8474c71c63bf5ea416686af0bc07d92ba38ab15f1"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",

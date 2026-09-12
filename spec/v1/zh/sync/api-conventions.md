@@ -193,10 +193,8 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 受保护 endpoint 的请求 MUST 携带可验证且 sender-constrained 的认证材料。`ak.session.grant` 是 RFC 9449 DPoP-bound token，current-v1 的唯一 HTTP Authorization scheme 固定为 `DPoP`；`Bearer` 不属于该 credential 的合法出示形态，即使请求同时携带 `DPoP` proof header 也 MUST 拒绝。高安全 profile 可在此基础上叠加 RFC 9421 HTTP Message Signature，但不得改回或协商其它 SessionGrant scheme。
 
-1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ak.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。会话凭据与签名密钥绑定，仅截获 `ak.session.grant` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
-2. **detached JWS request signature** 或等价 signed proof body：栈不便用 RFC 9421 时的等价 sender-constrained 出示。
-3. **mTLS**：用于受控企业或服务间通信。
-4. **`Authorization: DPoP <ak.session.grant>` + `DPoP` proof header**：凡直接出示 SessionGrant 的端点均使用 §3.3 的这一固定形态。错误 scheme、缺 proof、`ath`/`htu`/`htm` 不符均 fail closed。公开 metadata endpoint 若定义为无需认证的 public surface，MAY 忽略无效 credential 并按未认证请求返回公开响应，但 MUST NOT 把它当作 session / capability 认证。
+1. **默认会话出示**：`Authorization: DPoP <ak.session.grant>` 加匹配 RFC 9449 DPoP proof；认证、JKT、audience、method/URI、时间与重放检查全部执行。
+2. **高安全追加层**：仅在已登记高安全 profile 中追加 RFC 9421 HTTP Message Signature 绑定 transcript/body；它不替代 DPoP，也不是第二种默认会话 scheme。detached JWS 不作为 SessionGrant fallback；其它独立登记的业务 proof 保持原合同。
 
 无论采用哪种传输认证方式，协议层权限判断最终 MUST 回到：
 
@@ -243,7 +241,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
         "grant_exchange": {"kind": "account_handoff"}
       }
     ],
-    "did_binding_methods": ["session_grant", "did_http_signature"]
+    "did_binding_methods": ["session_dpop", "session_http_signature"]
   }
 }
 ```
@@ -271,7 +269,7 @@ introspection/status。这两个签名域 MUST 分离：DPoP 证明当前 holder
 - `/_arkret/self/*` 以及 Account Authority 的 refresh、revoke、logout 等直接出示 SessionGrant 的 endpoint MUST 使用 §3.3 的 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof header；`Bearer` + DPoP、DPoP scheme 无 proof、错误 `ath` 均 MUST 拒绝。
 - 高安全 profile 对所有受保护的 `ak.self.*` operation MUST 要求 RFC 9421 HTTP Message Signature 会话出示并绑定 transcript/body。`ak.self.` 前缀是机器可判定的默认保护面；同一 operation 若在 registry 明确列为匿名 public metadata projection，无有效 proof 时只能返回该公开 projection，MUST NOT 把 bare bearer 当作 session / capability 认证。新增或未知 `ak.self.*` operation 默认 fail closed，除非 operation registry 与其规范性 contract 同时明确声明匿名 public projection。
 - 对其它受保护 current-v1 endpoint，实现仍 MUST 使用其合同指定的 sender-constrained proof；只要 credential 是 `ak.session.grant`，Authorization scheme 仍固定为 `DPoP`。
-- 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），供客户端选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
+- 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），其中 session_dpop 表示唯一默认层，session_http_signature 表示可追加的高安全层，不能作为可互换选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
 
 **PoP 出示形态（RFC 9421，与联邦面同栈）**：客户端用 `session_public_key` 对应私钥对请求签名，`Signature-Input` covered components 与联邦 service-to-service 出示对齐（见 [`federation.md` §3.2](./federation.md) 与 [`service-http-binding.md` §2.5](./service-http-binding.md)），至少覆盖：

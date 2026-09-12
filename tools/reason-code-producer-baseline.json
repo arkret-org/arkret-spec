@@ -43,7 +43,6 @@
     "invite_already_terminal",
     "invite_event_actor_mismatch",
     "invite_event_unaccepted",
-    "keypackage_expired",
     "message_already_terminal",
     "mimi_draft_unsupported",
     "mimi_observer_write_forbidden",

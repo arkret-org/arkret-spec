@@ -66,12 +66,6 @@
     },
     {
       "$ref": "#/$defs/directory_private_contact_discovery_outcome"
-    },
-    {
-      "$ref": "#/$defs/directory_push_register_request_body"
-    },
-    {
-      "$ref": "#/$defs/directory_push_register_outcome"
     }
   ],
   "$defs": {
@@ -86,10 +80,6 @@
     },
     "event_id": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
-    },
-    "subscription_id": {
-      "type": "string",
-      "pattern": "^ak:subscription:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "cursor": {
       "$ref": "./authz-operations.schema.json#/$defs/cursor"
@@ -1366,7 +1356,6 @@
           "type": "string",
           "enum": [
             "invite",
-            "direct_message",
             "voice_call",
             "video_call",
             "presence",
@@ -1509,85 +1498,6 @@
           "$ref": "#/$defs/psi_match_outcome"
         }
       ]
-    },
-    "directory_push_register_request_body": {
-      "type": "object",
-      "required": [
-        "subscriber_id",
-        "resource_filter",
-        "webhook_url"
-      ],
-      "properties": {
-        "subscriber_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "resource_filter": {
-          "type": "object",
-          "required": [
-            "resource_kinds"
-          ],
-          "properties": {
-            "resource_kinds": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "realm",
-                  "organization",
-                  "actor",
-                  "applet",
-                  "handle"
-                ]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "resource_ids": {
-              "type": "array",
-              "items": {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/non_empty_string"
-                  },
-                  {
-                    "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                  }
-                ]
-              },
-              "uniqueItems": true
-            }
-          },
-          "additionalProperties": false
-        },
-        "webhook_url": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://"
-        },
-        "secret": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "directory_push_register_outcome": {
-      "type": "object",
-      "required": [
-        "subscription_id",
-        "effective_at"
-      ],
-      "properties": {
-        "subscription_id": {
-          "$ref": "#/$defs/subscription_id"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
     }
   }
 }

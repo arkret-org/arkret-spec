@@ -1264,34 +1264,6 @@ ak.vector.lattice.ordered_log_gap.v1
 
 `ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1`：空闲超过 compaction 提醒时间不使授权失效，不强制生成普通消息 Seal，不阻断缓存授权下聊天。实际存在未决安全义务时只按该义务的已签 Ack/deadline 产生健康诊断，不能全 Realm 阻断无关数据。
 
-### 2.16 Vector: inclusion list 收录义务
-
-向量名称：
-
-```text
-ak.vector.cbs_lattice.inclusion_list_obligation.v1
-```
-
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.3 与 [`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)。
-
-输入（multi-signer notary profile）：
-
-- 非 proposer signer 签发 inclusion list，列出持有效 receipt、通过本地 verify 的 Control Move digest D。
-- **Case A**：下一 Seal include D。
-- **Case B**：下一 Seal 对 D 附 已确认 Seal 拒绝结果。
-- **Case C**：下一 Seal 仅附执行位置验证失败说明，没有 D 的显式 rejected command result。
-- **Case D**：下一 Seal 完全缺少 D 的命令结果。
-- **Case E**：同一 `(realm_id, signer_id, list_seq)` 出现两份内容不同的 inclusion list。
-
-期望：
-
-- Case A/B：Seal 可接受。
-- Case C/D：receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）。
-- Case E：构成 §7.1 equivocation evidence（list_seq 复用 slot 语义）。
-- `quorum_f0` profile 下该机制不可用，实现 MUST NOT 伪造 inclusion list 语义。
-
-失败条件：Case D 的 Seal 被接受；Case E 不产生 fault 证据。
-
 ### 2.17 Vector: notary equivocation fault 与 fork quarantine
 
 向量名称：
@@ -1345,30 +1317,10 @@ ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1
 
 失败条件：first-row-wins 或较早 accepted 者胜出；接受只按 digest 指认的归一裁决；碰撞区间被 compaction 跨越；把重算的 `state_root` 当作原 Seal 承诺。
 
-### 2.18 Vector: 固定 PBFT quorum 几何
+### 2.18 Vector: 唯一治理签署者
 
-向量名称：
-
-```text
-ak.vector.cbs_lattice.quorum_geometry.v1
-```
-
-本向量固化 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 唯一 `notary.kind=quorum` 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §8 的 PBFT 算术规则。
-
-输入：
-
-- **Case A**：`f=0,n=1`，携 1 份合法 commit 签名。
-- **Case B**：`f=1,n=4`，携 3 份不同配置 voter 的合法 commit 签名。
-- **Case C**：`f=1,n=3`，违反 `n=3f+1`。
-- **Case D**：`f=1,n=4`，只携 2 份 commit 签名，未达到 `2f+1`。
-
-期望：
-
-- Case A / Case B：accept，确认 quorum 分别为 1 与 3。
-- Case C：notary 配置必须拒绝；schema 的字段形状通过不能替代跨字段 `n=3f+1` 校验。
-- Case D：Seal 必须以签名 quorum 不足拒绝，零安全状态效果。
-
-失败条件：接受任意其它 notary kind、自选 k-of-n、把同一 voter 的多把 key 计多票，或让不足 `2f+1` 的签名确认 Seal。
+`ak.vector.cbs_lattice.single_authority_configuration.v1` 固化 `{signer,max_clock_error_ms}`。
+正确单签配置通过；缺少 signer、携带 kind/signers/fault_tolerance 或旧共识载体必须拒绝，不挑选数组第一项，也不提供 f=0 兼容路径。正反例由 cbs-lattice fixture 与 `tools/test_protocol_simplification.py` 执行。Seal 签名必须绑定完整 body digest，错误 context、配置、Realm、前态与结果不得通过。
 
 ### 2.19 Vector: 分区撤销传播
 
@@ -3611,7 +3563,6 @@ Expected：
 Steps：
 
 1. PCR 未 accepted 且 identity root 已丢失。以当前 lease holder 的 handoff grant 调用
-   `ak.gate.account.command.issue_identity_abandonment_challenge.v1`，再以**另一份新鲜** handoff grant 调用
    `ak.gate.account.command.abandon_identity_creation.v1` 完成放弃。
 2. 不取 challenge，直接调用确认；以及取到 challenge 后复用签发它的那份 handoff grant 再确认。
 3. challenge 已签发、尚未确认时让该 PCR 被 accepted，然后提交确认。
@@ -5274,7 +5225,7 @@ Expected：
 
 - holder 上线后 MUST 发布新的 last-resort KeyPackage（新 init/encryption key），并把旧包转入 `revoked`、记录 `revocation_reason="keypackage_rotated"`；轮换后旧包 MUST NOT 再被分发给新 claim。
 - holder MUST 对所有经该旧 last-resort 包加入的 group 触发一次 MLS self-update Commit（引入新 leaf key 材料）推进 epoch；无法精确定位经哪个包加入了哪些 group 时，MUST 对该 device 当前所有 last-resort-joined group 保守触发 update。
-- 该轮换 + update 序列 MUST 把上文弱化窗口闭合在有界范围内；组建立后常规消息 ratchet 前向保密不受影响（仅初始 Welcome 注入受弱化窗口约束）。
+- 测试 MUST 分开检查：到期后新 claim 不返回旧包；已捕获 Welcome 在匹配旧私钥泄露后仍可解密；有效 update 引入攻击者未知秘密时后续 epoch 才能按 MLS 威胁条件恢复保密。到期、轮换与 update 均不得被报告为恢复旧明文保密性。
 
 ### 17.3 Vector: Last-Resort Affinity And Optionality
 

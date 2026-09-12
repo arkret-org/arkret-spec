@@ -84,7 +84,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
   3. **外部锚点判据**：wire、normative canonical JSON 与 Arkret 可执行 artifact DSL 中的 `type` 轴字段 MUST 有逐路径外部锚点，且 `dispatch_authority="external_standard"`、`arkret_extensions_allowed=false`。真正的 JSON Schema `type` vocabulary keyword 由 parser 上下文排除；Arkret mini-schema 的值形状声明使用 `value_shape`。
   4. **同轴与顺序判据**：同一概念不得并存不同后缀轴；无法从 stem 判断的正交概念必须用 `semantic_axis` / `distinct_from` 显式声明。任何 tier 字段必须有有限值、严格全序和比较语义。
 
-  因而 Event Envelope 的唯一事件 discriminator 是 `kind`；`morph_kind`、`service_kind`、`claim_kind` 与 `notary.kind` 均为 Arkret 自有分派。MLS `proposal_type`、WebRTC session description `type`、W3C DID/Data Integrity raw object `type` 与 IANA/HTTP `media_type` / `content_type` 只在 registry 登记的精确路径保留，不形成全局例外。
+  因而 Event Envelope 的唯一事件 discriminator 是 `kind`；`morph_kind`、`service_kind`、`claim_kind` 与 `notary.signer` 均为 Arkret 自有分派。MLS `proposal_type`、WebRTC session description `type`、W3C DID/Data Integrity raw object `type` 与 IANA/HTTP `media_type` / `content_type` 只在 registry 登记的精确路径保留，不形成全局例外。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。**已登记外部标准命名例外**：[`calendar-event.md` §4.2](./calendar-event.md) 的 recurrence 终止字段名为 `until`，不是 `expires_at`。它不是绝对 instant，也不是对象级有效期上界，而是 RFC 8984 `RecurrenceRule.until` 的 snake_case 映射——按事件 `timezone` + `tzdb_version` 解释的 local 终止界，与 occurrence 的 local start 做 `<=` 比较。沿用外部标准名是有意取舍，MUST NOT 改名为 `expires_at`；反之，新增的对象级有效期上界字段仍 MUST 使用 `expires_at`，MUST NOT 借用 `until`。**已登记 interop 命名例外**：设备验证 to-device 消息族 `ak.key.verification.*`（schema [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的 `key_verification_content`）沿用 Matrix `m.key.verification` interop 的裸字段名 `timestamp` 表示请求签发 instant，是对齐外部验证协议 transcript 的有意例外，不改名为 `issued_at`；新增的非 interop date-time wire 字段仍 MUST 使用 `_at` 形态。
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Strand / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只保留给外部协议或加密 transcript 自身的创建者 tuple，不得作为 object 创建主体字段的别名；v1 未登记任何 `creator_*` wire 字段，新增字段不得引入该形态。
@@ -670,7 +670,7 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 
-实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`digest_algorithm`；notary 则由 closed union 的 `notary.kind` 唯一分派），又有 `<axis>_policy_id` 这样指向独立 Policy 对象的字段（如 `policy_id`、`retention_policy_id`、`disclosure_policy_id`、`rate_limit_policy_id`）。这是有意区分，规则如下：
+实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `encryption_profile`、`federation_policy`、`digest_algorithm`；notary 则由 closed union 的 `notary.signer` 唯一分派），又有 `<axis>_policy_id` 这样指向独立 Policy 对象的字段（如 `policy_id`、`retention_policy_id`、`disclosure_policy_id`、`rate_limit_policy_id`）。这是有意区分，规则如下：
 
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"quorum"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Seal）或新 Realm。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。

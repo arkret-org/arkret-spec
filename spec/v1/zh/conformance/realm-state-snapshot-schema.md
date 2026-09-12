@@ -247,7 +247,7 @@ Realm auth/policy state：
   `realm_state_snapshot_authority_unverified` 拒绝。
 
 **v1 没有"等价 quorum proof"**。v1 只有 `witness_attestations[]` 这一个 typed carrier。任何未在本节
-定义的替代 quorum 证据 MUST NOT 被接受，实现 MUST NOT 用私有字段、`x_*` 扩展或带外材料补洞；
+定义的替代已认证治理签名 证据 MUST NOT 被接受，实现 MUST NOT 用私有字段、`x_*` 扩展或带外材料补洞；
 需要新的 quorum 形态时，必须先在本节定义 closed union 分支、独立 context 与验证合同，而不是让
 verifier 各自解释。
 

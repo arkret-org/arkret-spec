@@ -69,7 +69,7 @@ class SelfSignerResultTests(unittest.TestCase):
 
     def test_historical_device_has_no_fabricated_authorization_or_source_ref(self):
         selector = self.request("historical_event", "account_device")["queries"][0]
-        result = {"selector": selector, "status": "resolved", "key": {"actor": selector["actor"], "verification_method": selector["verification_method"], "public_key_b64u": "A" * 43}, "accepted_at": "2026-09-10T00:00:00.000Z"}
+        result = {"selector": selector, "status": "resolved", "key": {"public_key_b64u": "A" * 43}, "accepted_at": "2026-09-10T00:00:00.000Z"}
         validator = self.validator("historical_account_device_result")
         validator.validate(result)
         changed = copy.deepcopy(result)
@@ -80,7 +80,7 @@ class SelfSignerResultTests(unittest.TestCase):
 
     def test_historical_agent_retains_authorization_without_source_provenance(self):
         selector = self.request("historical_event")["queries"][0]
-        result = {"selector": selector, "status": "resolved", "key": {"actor": selector["actor"], "verification_method": selector["verification_method"], "public_key_b64u": "A" * 43, "authorization_ref": selector["event_id"]}, "accepted_at": "2026-09-10T00:00:00.000Z"}
+        result = {"selector": selector, "status": "resolved", "key": {"public_key_b64u": "A" * 43, "authorization_ref": selector["event_id"]}, "accepted_at": "2026-09-10T00:00:00.000Z"}
         validator = self.validator("historical_agent_result")
         validator.validate(result)
         del result["key"]["authorization_ref"]

@@ -38,14 +38,14 @@
           "maxLength": 4096
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
     },
     "welcome_refs_outcome": {
       "type": "object",
-      "description": "References only, complete canonical response <=64 KiB. limited=true iff next_cursor is present; a limited page makes progress. No read result is an ACK or a KeyPackage consume.",
+      "description": "Only next_cursor presence indicates another page. A nonterminal page MUST contain at least one item; no duplicated terminal flag is carried.",
       "required": [
-        "welcome_refs",
-        "limited"
+        "welcome_refs"
       ],
       "properties": {
         "welcome_refs": {
@@ -60,40 +60,26 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 4096
-        },
-        "limited": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false,
       "allOf": [
         {
           "if": {
-            "properties": {
-              "limited": {
-                "const": true
-              }
-            }
-          },
-          "then": {
             "required": [
               "next_cursor"
-            ],
+            ]
+          },
+          "then": {
             "properties": {
               "welcome_refs": {
                 "minItems": 1
               }
             }
-          },
-          "else": {
-            "not": {
-              "required": [
-                "next_cursor"
-              ]
-            }
           }
         }
-      ]
+      ],
+      "x-arkret-max-canonical-bytes": 65536
     }
   }
 }

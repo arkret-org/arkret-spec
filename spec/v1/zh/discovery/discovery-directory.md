@@ -497,16 +497,9 @@ Directory 接受 ingest 的前置条件：
 - 资源不在 Directory `accept_policy` 范围内 → MUST 拒绝并返回 `accept_policy_denied`。
 - 资源端 governance key 在 ingest 时刻不在 DID document 当前 epoch → MUST 拒绝并返回 `governance_key_invalid`。
 
-### 8.2 两种 ingest 模式
+### 8.2 唯一 ingest 模式
 
-Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest 模式之一，且 MUST 在 `ak.find.directory.read.describe.v1.ingest_modes` 中显式声明本实例支持的模式。
-
-| 模式 | 触发方 | 适用场景 |
-| --- | --- | --- |
-| push（announce） | 资源 Station 主动提交签名 discovery state | 公开 / 社区 directory；资源希望尽快上线或撤销 |
-| pull（refresh） | Directory 按已知资源 DID 周期性拉取最新签名 discovery state | 高安全部署、白名单 directory、与 federation 复用 |
-
-资源端 MAY 任选支持的一种使用；Directory MAY 同时支持两种以提高可用性。两模式产生的索引条目 normative 等价。
+current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送；不存在 pull refresh、webhook 注册或 ingest_modes 协商。Directory 不得把资源 Station 的 self Events API 当 discovery dump。资源侧 typed read、认证、分页、freshness 与 capability 尚未登记，不能用 describe 占位承诺主动抓取。
 
 ### 8.3 Push 模式：`ak.find.directory.command.announce.v1`
 
@@ -535,7 +528,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | `announce_id` | `ak:announce:<uuidv7>` | 本次 ingest 记录 id，例如 `ak:announce:0196419b-0000-7000-8000-000000000000`。这是 Directory 本地 ingest 记录；typed 形态只用于统一 validator / SDK 处理，不赋予跨 Directory 的全局对象权威。 |
 | `indexed_at` | `timestamp` | Directory 完成索引的服务器时间。 |
 | `effective_ttl_seconds` | `int` | Directory 实际授予的 TTL。 |
-| `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
+| `next_revalidation_after` | `timestamp` | 下一次 re-announce 的最早时间。 |
 | `warnings` | `string[]?` | 非阻塞警告，例如 `truncated_member_count`、`policy_revision_drift`。 |
 
 **典型错误码**：`directory_unauthorized`、`accept_policy_denied`、`signature_invalid`、`signature_stale`、`source_refs_unverifiable`、`governance_key_invalid`、`ttl_out_of_range`、`rate_limited`、`takedown_in_force`。
@@ -583,23 +576,16 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 }
 ```
 
-### 8.4 Pull 模式与 push webhook 注册：`ak.find.directory.push.command.register.v1`
 
-Pull 模式不得调用资源 Station 的 `/_arkret/self/events/*`。资源若允许 Directory 主动 refresh discovery state，必须通过 `/_arkret/find/directory/*` ingest / pull profile 暴露 Directory 专用读取面，并在 `supported_operation_bundles` 中声明对应 Directory operation 的精确 carrier/schema 行；Directory 只能读取该资源签名的 effective discovery state，不得把 Events API 当作通用 discovery dump。
+### 8.4 推送续约
 
-Directory 拉取流程：
-
-1. 按本地 trust root / 已配对资源列表，定期向资源 Station 的 Directory 专用读取面发 state-only query。
-2. Station 返回最新 effective discovery Event 原件（与 push 模式的 `discovery_event` 是同一对象，不另造 state-only 形态）。
-3. Directory 按 §8.5 验签后写入或更新本地索引。
-
-可选的 webhook 辅助：Directory MAY 调用 `ak.find.directory.push.command.register.v1`（§9）让资源 Station 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
+资源以同一 announce 合同提供新的签名 discovery state；withdraw 使用 §8.7 的独立授权与撤销合同。Directory 不订阅未登记的资源侧 webhook 或 pull API。
 
 ### 8.5 验签与接受规则
 
-Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
+Directory 接受 announce ingest前 MUST 顺序完成：
 
-1. **Transport layer**：验证 HTTP Message Signature（push）或 service binding + TLS（pull）。
+1. **Transport layer**：验证发送资源服务的 HTTP Message Signature 与目标 service binding。
 2. **Discovery proof**：按 Event proof 既有规则验证 `discovery_event` 的 `proofs[]`（重算 canonical bytes 与 `event_id` 并逐字节比对），确认 effective signer 是资源 governance key 且签发时间在 key 当前 epoch 内（按 DID document key history）；随后按 kind / cell-subject 映射派生资源类别与主键，不存在外层 mismatch 分支。
 3. **Directory authorization**：确认 `discovery_event.payload.value.directory_ids` 数组包含本 Directory 的 service DID。
 4. **Source refs authority 与首次抽验**：先验证 `source_ref_access` 的 source service detached JWS；其 `ak.directory_source_ref_access_proof.v1` transcript 覆盖 carrier 删除 proof 后的 `payload_digest`、`source_id`、authenticated `directory_id`、`realm_id`、`discovery_event_id`、canonical sorted/duplicate-free `source_refs`、`as_of`、`expires_at`、`verification_method`、`created_at`、Arkret `domain` 与接收 Directory `audience`。carrier 的 discovery Event / `as_of` 必须与本次 announce 逐字相等，source service 必须等于已验证 transport 来源，Directory 必须等于本服务，过期或签名不成立即拒绝。Directory 对**首次 ingest** MUST 从 carrier refs 选择至少一个，并调用既有 `ak.peer.events.read.resolve.v1`，把同一 carrier 放入唯一 `directory_source_ref_access` 字段；请求只可带非空 `event_ids` 子集，禁止 `event_digests`、scan/list 与 `history_traversal_access`。
@@ -623,7 +609,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 规则：
 
-- 资源 MUST 在 `next_revalidation_after` 之前发起 re-announce 或允许 Directory pull-refresh。
+- 资源 MUST 在 `next_revalidation_after` 之前发起 re-announce。
 - TTL + grace 过期后未续约的 entry MUST 在查询结果中标记 `stale=true`；Directory MAY 在再延迟 24h 后从索引中移除。
 - 资源 governance key 在 ingest 期间发生 rotation：MUST 在下一次 announce 中携带新 key 的签名；Directory MUST 在验证 DID document key history 后接受。
 - Discovery state 内容未变但需要续约时，资源 MAY 重新提交相同 `discovery_event` + 新 `as_of`，Directory MUST 视为有效续约（按 `(resource_id, as_of)` 幂等）。
@@ -699,7 +685,6 @@ Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `ingest_modes` | `array<push \| pull>` | 本 directory 支持的模式，至少一个。 |
 | `accept_policy_kind` | `enum(open, allowlist, trust_root_signed, operator_review)` | `open` = 任意签名资源；`allowlist` = 资源 DID 在显式白名单；`trust_root_signed` = 需要 trust seal 背书；`operator_review` = 人工审核。 |
 | `accept_policy_ref` | `object?` | 描述如何获得接入资格的可读 ref（URL / DID / governance contact）。 |
 | `default_ttl_seconds` | `int` | 默认 TTL。 |
@@ -767,7 +752,6 @@ POST /_arkret/find/directory/push/register
 | `ak.find.directory.read.private_contact_discovery.v1` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `ak.find.directory.command.announce.v1` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
 | `ak.find.directory.command.withdraw.v1` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | `withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID；见 §8.7。 |
-| `ak.find.directory.push.command.register.v1` | `subscriber_id: did_core_id`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
 `search_users` 的 `users[].membership` 若出现，MUST 是闭集 `joined | invited | knocked | left | unknown` 中的一值。它描述请求 `realm_id` 上下文中的单个成员状态，因此离开状态的精确 wire 值是 `left`；`left_ids` 是设备列表等对象中的 id 数组字段名，不是成员状态。该字段仅供本地展示，MUST NOT 作为授权、准入或投递依据。
 
@@ -1057,7 +1041,6 @@ Directory-capable implementations MUST test：
 - `ak.vector.directory.policy_revision_rollback.v1`：announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry。
 - `ak.vector.directory.accept_policy_denied.v1`：announce rejected with `accept_policy_denied` when resource outside policy。
 - `ak.vector.directory.reannounce_idempotent_ttl.v1`：re-announce idempotent on `(resource_id, as_of)`，TTL 正确续约。
-- `ak.vector.directory.pull_mode_refresh_verification.v1`：pull-mode ingest verifies signed discovery state on every refresh。
 - `ak.vector.directory.ttl_expiry_removal.v1`：TTL expiry marks entries `stale=true`，after grace + 24h removed。
 - `ak.vector.directory.withdraw_blinded_not_found.v1`：withdraw stops disclosure within ≤ 1h，subsequent resolve returns indistinguishable `not_found`。
 - `ak.vector.directory.operator_takedown_audit.v1`：operator takedown writes audit log with `operator_takedown` marker and notifies governance contact。

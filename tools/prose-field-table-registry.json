@@ -76,7 +76,9 @@
     {
       "document": "spec/v1/zh/discovery/push-notifications.md",
       "schema_ref": "push-operations.schema.json#/$defs/push_register_device_request_body",
-      "external_field_mentions": []
+      "external_field_mentions": [
+        "station_id"
+      ]
     },
     {
       "document": "spec/v1/zh/discovery/push-notifications.md",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-09.1",
+  "version": "2026-09-12.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-09T11:39:09+08:00",
+  "generated_at": "2026-09-12T21:26:02+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -560,6 +560,816 @@
       },
       "derivation": "adapter_version := did-method-adapter-registry row keyed by method_evidence_kind = evidence_kind",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.welcome_refs_outcome_limited.v1",
+      "ruling": "2026-09-12-1825 A11",
+      "schema": "schemas/mls-welcome-refs.schema.json",
+      "path": "/$defs/welcome_refs_outcome",
+      "removed": "limited",
+      "source": {
+        "field": "next_cursor"
+      },
+      "derivation": "More pages iff next_cursor is present; a nonterminal page is nonempty.",
+      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.realm_list_page_complete.v1",
+      "ruling": "2026-09-12-1825 A11",
+      "schema": "schemas/account-subscribe-frame.schema.json",
+      "path": "/$defs/realm_list_page",
+      "removed": "complete",
+      "source": {
+        "field": "next_cursor"
+      },
+      "derivation": "Complete iff next_cursor is absent; a nonterminal page is nonempty.",
+      "spec_anchor": "spec/v1/zh/sync/client-sync.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.genesis_notary_outcome_intended_purpose.v1",
+      "ruling": "2026-09-12-1825 E4",
+      "schema": "schemas/genesis-notary-binding.schema.json",
+      "path": "/$defs/genesis_notary_outcome",
+      "removed": "intended_purpose",
+      "source": {
+        "path": "/$defs/genesis_notary_request_body",
+        "field": "intended_purpose"
+      },
+      "derivation": "The caller retains the exact submitted purpose; the response never echoes it.",
+      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_governance_binding_realm_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_governance_binding",
+      "removed": "realm_id",
+      "source": {
+        "field": "effective_scope"
+      },
+      "derivation": "Scope IDs project from effective_scope. MLS group_id is canonical_effective_scope_key_bytes(effective_scope), using the registered wire representation.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_governance_binding_circle_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_governance_binding",
+      "removed": "circle_id",
+      "source": {
+        "field": "effective_scope"
+      },
+      "derivation": "Scope IDs project from effective_scope. MLS group_id is canonical_effective_scope_key_bytes(effective_scope), using the registered wire representation.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_governance_binding_sidecar_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_governance_binding",
+      "removed": "sidecar_id",
+      "source": {
+        "field": "effective_scope"
+      },
+      "derivation": "Scope IDs project from effective_scope. MLS group_id is canonical_effective_scope_key_bytes(effective_scope), using the registered wire representation.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_governance_binding_mls_group_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_governance_binding",
+      "removed": "mls_group_id",
+      "source": {
+        "field": "effective_scope"
+      },
+      "derivation": "Scope IDs project from effective_scope. MLS group_id is canonical_effective_scope_key_bytes(effective_scope), using the registered wire representation.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_commit_payload_mls_group_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_commit_payload",
+      "removed": "mls_group_id",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_commit_payload_base_epoch.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_commit_payload",
+      "removed": "base_epoch",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_commit_payload_next_epoch.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_commit_payload",
+      "removed": "next_epoch",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_genesis_payload_mls_group_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_genesis_payload",
+      "removed": "mls_group_id",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_genesis_payload_effective_scope.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_genesis_payload",
+      "removed": "effective_scope",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_genesis_payload_epoch.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_genesis_payload",
+      "removed": "epoch",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_welcome_payload_mls_group_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_welcome_payload",
+      "removed": "mls_group_id",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_welcome_payload_epoch.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_welcome_payload",
+      "removed": "epoch",
+      "source": {
+        "field": "governance_binding"
+      },
+      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.mls_commit_failed_payload_reporter_device_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/mls_commit_failed_payload",
+      "removed": "reporter_device_id",
+      "source": {
+        "schema": "schemas/event-envelope.schema.json",
+        "path": "",
+        "field": "proofs"
+      },
+      "derivation": "Reporter device is the fragment of the sole producer proof verification_method; validate its actor and authorization.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.agent_provision_outcome_requested_scope_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/agent-operations.schema.json",
+      "path": "/$defs/agent_provision_outcome",
+      "removed": "requested_scope_digest",
+      "source": {
+        "schema": "schemas/agent-operations.schema.json",
+        "path": "/$defs/agent_provision_request_body",
+        "field": "requested_scope"
+      },
+      "derivation": "Recompute from frozen submitted requested_scope and returned agent identity with the authenticated controller; server independently recomputes its durable scope at commit and entry-1 binding admission.",
+      "spec_anchor": "spec/v1/zh/identity/key-management.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_scheme.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "scheme",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_realm_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "realm_id",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_call_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "call_id",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_focus_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "focus_id",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_actor_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "actor_id",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_device_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "device_id",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_participant_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "participant_id",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.participant_binding_issued_at.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/event-payload.schema.json",
+      "path": "/$defs/participant_binding",
+      "removed": "issued_at",
+      "source": {
+        "schema": "schemas/service-operation-dtos.schema.json",
+        "path": "/$defs/CallMediaTokenExchangeRequestBody",
+        "field": "call_id"
+      },
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.notary_signer_descriptor_frozen_public_key_digest.v1",
+      "ruling": "2026-09-12-1825 A1",
+      "schema": "schemas/realm.schema.json",
+      "path": "/$defs/notary_signer_descriptor",
+      "removed": "frozen_public_key_digest",
+      "source": {
+        "field": "frozen_public_key_b64u"
+      },
+      "derivation": "SHA-256 of canonical public key bytes decoded according to key_kind; compare canonical bytes for key identity.",
+      "spec_anchor": "spec/v1/zh/authz/cbs-profiles.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.account_registration_control_proof_log_head_digest.v1",
+      "ruling": "2026-09-12-1825 A13",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/account_registration_control_proof",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "did_version_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_creation_control_proof_log_head_digest.v1",
+      "ruling": "2026-09-12-1825 A13",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_creation_control_proof",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "did_version_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.did_binding_challenge_outcome_log_head_digest.v1",
+      "ruling": "2026-09-12-1825 A13",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/did_binding_challenge_outcome",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "did_version_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.pcr_genesis_submit_request_log_head_digest.v1",
+      "ruling": "2026-09-12-1825 A13",
+      "schema": "schemas/principal-operations.schema.json",
+      "path": "/$defs/pcr_genesis_submit_request",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "did_version_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.pcr_genesis_scope_log_head_digest.v1",
+      "ruling": "2026-09-12-1825 A13",
+      "schema": "schemas/event-batch-receipt.schema.json",
+      "path": "/$defs/pcr_genesis_scope",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "did_version_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.didwebvhidentitymethodevidence_log_head_digest.v1",
+      "ruling": "2026-09-12-1825 A13",
+      "schema": "schemas/service-operation-dtos.schema.json",
+      "path": "/$defs/DidWebvhIdentityMethodEvidence",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "version_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_account_subject.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "account_subject",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_principal_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "principal_id",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_did.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "did",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_operation_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "operation_digest",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_did_version_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "did_version_id",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_log_head_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "log_head_digest",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_control_key_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "control_key_digest",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_pcr_realm_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "pcr_realm_id",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_realm_create_payload_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "realm_create_payload_digest",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_founding_authorize_payload_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "founding_authorize_payload_digest",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_initial_session_request_digest.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "initial_session_request_digest",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_genesis_unit_kinds.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "genesis_unit_kinds",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_identity_creation_lease_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "identity_creation_lease_id",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_lease_fence.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "lease_fence",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_dpop_jkt.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "dpop_jkt",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_audience_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "audience_id",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_origin.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "origin",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.identity_binding_challenge_outcome_trust_domain.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/account-operations.schema.json",
+      "path": "/$defs/identity_binding_challenge_outcome",
+      "removed": "trust_domain",
+      "source": {
+        "field": "request_id"
+      },
+      "derivation": "Reconstruct from the immutable request_id-bound submitted request and authenticated onboarding context; the authority retains and atomically rechecks the complete durable transcript. Never derive from mutable UI state or caller echoes.",
+      "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.device_route_push_key.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/push-operations.schema.json",
+      "path": "/$defs/device_route",
+      "removed": "push_key",
+      "source": {
+        "field": "device_id"
+      },
+      "derivation": "Resolve only the exact authenticated Account/device current registration; notify cannot override route or opt-in.",
+      "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.device_route_app_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/push-operations.schema.json",
+      "path": "/$defs/device_route",
+      "removed": "app_id",
+      "source": {
+        "field": "device_id"
+      },
+      "derivation": "Resolve only the exact authenticated Account/device current registration; notify cannot override route or opt-in.",
+      "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.device_route_platform.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/push-operations.schema.json",
+      "path": "/$defs/device_route",
+      "removed": "platform",
+      "source": {
+        "field": "device_id"
+      },
+      "derivation": "Resolve only the exact authenticated Account/device current registration; notify cannot override route or opt-in.",
+      "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.device_route_visible_notification_opt_in.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/push-operations.schema.json",
+      "path": "/$defs/device_route",
+      "removed": "visible_notification_opt_in",
+      "source": {
+        "field": "device_id"
+      },
+      "derivation": "Resolve only the exact authenticated Account/device current registration; notify cannot override route or opt-in.",
+      "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.blind_notification_timing_profile_hint.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/push-operations.schema.json",
+      "path": "/$defs/blind_notification",
+      "removed": "timing_profile_hint",
+      "source": {
+        "field": "devices"
+      },
+      "derivation": "Authenticated source, registered device routes and declared deployment profile deterministically select timing; never trust a per-notify override.",
+      "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.visible_notification_timing_profile_hint.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/push-operations.schema.json",
+      "path": "/$defs/visible_notification",
+      "removed": "timing_profile_hint",
+      "source": {
+        "field": "devices"
+      },
+      "derivation": "Authenticated source, registered device routes and declared deployment profile deterministically select timing; never trust a per-notify override.",
+      "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_effective_scope.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/mls-governance-proof-bundle.schema.json",
+      "path": "/$defs/accepted_transition",
+      "removed": "effective_scope",
+      "source": {
+        "path": "/$defs/accepted_artifact_outcome",
+        "field": "governance_binding"
+      },
+      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_mls_group_id.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/mls-governance-proof-bundle.schema.json",
+      "path": "/$defs/accepted_transition",
+      "removed": "mls_group_id",
+      "source": {
+        "path": "/$defs/accepted_artifact_outcome",
+        "field": "governance_binding"
+      },
+      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_previous_epoch.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/mls-governance-proof-bundle.schema.json",
+      "path": "/$defs/accepted_transition",
+      "removed": "previous_epoch",
+      "source": {
+        "path": "/$defs/accepted_artifact_outcome",
+        "field": "governance_binding"
+      },
+      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_next_epoch.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/mls-governance-proof-bundle.schema.json",
+      "path": "/$defs/accepted_transition",
+      "removed": "next_epoch",
+      "source": {
+        "path": "/$defs/accepted_artifact_outcome",
+        "field": "governance_binding"
+      },
+      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_content_scheme.v1",
+      "ruling": "2026-09-12-1825",
+      "schema": "schemas/mls-governance-proof-bundle.schema.json",
+      "path": "/$defs/accepted_transition",
+      "removed": "content_scheme",
+      "source": {
+        "path": "/$defs/accepted_artifact_outcome",
+        "field": "governance_binding"
+      },
+      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.query_signing_key_actor.v1",
+      "ruling": "2026-09-12-1853 R2",
+      "schema": "schemas/signer-key-operations.schema.json",
+      "path": "/$defs/query_signing_key",
+      "removed": "actor",
+      "source": {
+        "path": "/$defs/current_result",
+        "field": "selector"
+      },
+      "derivation": "Read actor from the enclosing complete selector; never correlate by result array position.",
+      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.query_signing_key_verification_method.v1",
+      "ruling": "2026-09-12-1853 R2",
+      "schema": "schemas/signer-key-operations.schema.json",
+      "path": "/$defs/query_signing_key",
+      "removed": "verification_method",
+      "source": {
+        "path": "/$defs/current_result",
+        "field": "selector"
+      },
+      "derivation": "Read verification_method from the enclosing complete selector; never correlate by result array position.",
+      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.historical_device_signing_key_actor.v1",
+      "ruling": "2026-09-12-1853 R2",
+      "schema": "schemas/signer-key-operations.schema.json",
+      "path": "/$defs/historical_device_signing_key",
+      "removed": "actor",
+      "source": {
+        "path": "/$defs/historical_account_device_result",
+        "field": "selector"
+      },
+      "derivation": "Read actor from the enclosing complete selector; never correlate by result array position.",
+      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
+    },
+    {
+      "lock_id": "ak.lock.derived_wire_field_removal.historical_device_signing_key_verification_method.v1",
+      "ruling": "2026-09-12-1853 R2",
+      "schema": "schemas/signer-key-operations.schema.json",
+      "path": "/$defs/historical_device_signing_key",
+      "removed": "verification_method",
+      "source": {
+        "path": "/$defs/historical_account_device_result",
+        "field": "selector"
+      },
+      "derivation": "Read verification_method from the enclosing complete selector; never correlate by result array position.",
+      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
     }
   ]
 }

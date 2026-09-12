@@ -125,7 +125,7 @@ Content-Type: application/json
 }
 ```
 
-响应（`scheme="ak.media.participant_binding.v1"` 是 v1 唯一 participant binding scheme）：
+响应（binding scheme 由本 operation 固定为 `ak.media.participant_binding.v1`，不重复携带）：
 
 ```json schema=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome
 {
@@ -135,25 +135,21 @@ Content-Type: application/json
   "backend_token": "<opaque to Arkret protocol — backend-specific>",
   "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
-    "scheme": "ak.media.participant_binding.v1",
-    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-    "focus_id": "fra-1",
-    "actor_id": {
-      "kind": "account",
-      "account_id": {
-        "principal_id": "ak:did_core:webvh:z6mkfixture",
-        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-      }
-    },
-    "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-    "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-    "issued_at": "2026-05-27T12:29:56.000Z",
     "expires_at": "2026-05-27T12:34:56.000Z",
     "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
     "sig": "AA"
   },
-  "expires_at": "2026-05-27T12:34:56.000Z"
+  "expires_at": "2026-05-27T12:34:56.000Z",
+  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+  "actor_id": {
+    "kind": "account",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    }
+  },
+  "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001"
 }
 ```
 
@@ -166,6 +162,7 @@ Content-Type: application/json
   - **轮换语义（normative）**：`participant_binding` 只承诺六元组 + `expires_at`，**不**绑定签发时的 media_service epoch。issuer 锚定按**写入 `ak.call.state` 时的当前 epoch** `service_id` 判定（[`call-state.md` §4.1](./call-state.md)），因此一次 media_service 轮换（旧 `service_id` 被移出当前 epoch）即时作废由被移出 service 签发、尚在 TTL 内的在途 binding：reducer MUST 以 `token_issuer_unauthorised` 拒绝其落账，客户端 MUST 重新向当前 epoch service 兑换。这是已知的 ≤600s 活性窗口（与 TTL 上限一致），不引入跨 epoch binding 复用；实现 MUST NOT 为旧 epoch binding 增设 grace 接受。
 - **`participant_id` 形态**：作为 SFU-local 短期随机 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），也不得由可公开重算的主体元组确定性派生。六元组绑定职责由下方 `participant_binding` 的签名承诺承担。
 - **`participant_id` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `ak.call.state.roster_delta.op="join"` 的 participant value（用于 §7 cross-check）——这条安全集合 value 是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_id` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
+- **唯一载体与重建**：`participant_binding` 恰为 `{expires_at, issuer_kid, sig}`。token outcome 同时携带 realm_id、call_id、focus_id、actor_id、device_id、participant_id；与 exact request 对应坐标必须一致。durable roster entry 保存 actor_id/device_id/participant_id/focus_id 与该 binding，realm_id 和 call_id 从 enclosing Call 身份取得。写入时 focus_id 必须等于已接受的 selected focus；以后轮换 focus 不改旧 entry 的签名输入。p2p/mesh 不携带这组三字段。无完整七元组的 carrier MUST 拒绝，不能查询不相关状态补齐、使用空值或保留另一种完整 binding 形状。issued_at 没有签名或消费者，删除；签名七元组与域分隔 bytes 保持不变。
 - **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `ak.component.call.roster.v1` 已确认活跃集合（见 [`call-state.md` §4](./call-state.md)）。backend 只看到 `participant_id` 与 `backend_token`，不应获得长期 actor 身份。
 - **落账时序**：客户端在获得 token exchange response 后，MUST 先提交包含本端 `participant_id` 与 `participant_binding` 的单项 `ak.call.state.roster_delta` join，并等待该 event 被服务端接受，之后才可把该 identity 视为 durable roster 成员并向用户暴露/订阅对应 SFU media stream。`ak.call.signal` 中的 `invite` / `answer` 只表示实时协商意图，MUST NOT 作为 participant authorization 或 cross-check 真源。
   - **签名输入（normative，跨实现互通契约）**：`participant_binding.sig` MUST 是 issuer 私钥（对应 `issuer_kid`）对下列字节串的 Ed25519 签名：
@@ -253,7 +250,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 
 1. 从 backend 通知中提取 `participant_id`。
 2. 在当前 `ak.component.call.roster.v1` 已确认活跃集合 中查找同一 `participant_id`。
-3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖与 §3 签发侧完全相同的权威元组 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)`（此处当前 `session_focus` 即 §3 元组中的 `focus_id`；签名输入字段集合与名称以 §3 为准，不得省略 `expires_at`）。
+3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖与 §3 签发侧完全相同的权威元组 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)`（此处使用该 roster entry 冻结的 `focus_id`，不得以后来变更的 session_focus 替代；签名输入字段集合与名称以 §3 为准，不得省略 `expires_at`）。
 4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_id_unrecognised`。
 
 这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Arkret-side `ak.component.call.roster.v1` 真源。
@@ -306,9 +303,8 @@ Conformance vectors for the full media binding framework：
 
 1. **进入 `ak.realm.policy_bundle`**：`media_service_decrypts=true` MUST 由一条 `ak.realm.policy_bundle` 显式写入，受 capability `ak.policy.manage` 控制；当前 accepted bundle 未包含该开关时 MUST 视为未开启。
 2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，且该条目的机器可判定 `data_classes[]` MUST 包含 `media_plaintext`。自由文本 `purposes` 只作解释，MUST NOT 单独授权明文。仅出现在 `media_services[]`、仅在 `purposes` 中声称媒体处理用途，或未获 `media_plaintext` data class 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
-3. **MLS Security Frontier 覆盖**：成员在 join 前 MUST 独立重算当前 epoch 的 `security_frontier_digest`，确认它覆盖前两条规则产生的实际 key-access value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
+3. **MLS Security Frontier 覆盖**：成员在 join 前 MUST 核对自己 Station 从当前 accepted policy 求出的 key-access frontier 与实际 MLS GroupContext 的绑定，确认它覆盖前两条规则产生的实际 key-access value；policy cell 自动进入该闭合 frontier 的注册规则保留；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
 4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。由于该事实改变谁可取得媒体密钥，它必须改变 media scope 的 `security_frontier_digest`；新 Commit accepted 前客户端沿用旧视图并禁止按 OOB 字段提前授权。
-5. **进入密钥访问前沿**：`media_service_decrypts=true` 这一事实 MUST 从前 1–3 条所覆盖的 policy cell value 确定性进入 media security frontier，使任意成员无需依赖客户端 UI 即可从 MLS transcript 独立复算。成员本地重算结果与 exact current winning group-state digest 不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商；该规则不把普通 discussion metadata 加入消息 MLS frontier。
-6. **Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) security frontier 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入；(d) 成员从 accepted policy 独立复算的 media key-access fact 与 exact current winning group-state digest 不一致 ⇒ 拒绝媒体协商。
+**Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) security frontier 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
 
 实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来“切换成功”但未被 security frontier 覆盖的状态都是 attack，必须 fail closed。

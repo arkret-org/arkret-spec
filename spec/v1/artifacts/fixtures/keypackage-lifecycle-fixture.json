@@ -609,7 +609,7 @@
         "when the holder comes online, the old last-resort package is rotated out",
         "new claims receive the replacement last-resort KeyPackage",
         "every group joined through the old last-resort package gets an MLS self-update Commit",
-        "the forward-secrecy weakening window is closed by the rotation and update sequence"
+        "Future epoch confidentiality requires an effective secret update unknown to the attacker and the applicable MLS recovery conditions; rotation and expiry do not restore confidentiality of captured old Welcome ciphertext."
       ]
     },
     {
@@ -878,6 +878,47 @@
         "a Welcome requiring capabilities outside the claimed subset is rejected with the same reason",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]
+    },
+    {
+      "name": "last_resort_expiry_blocks_new_claim_not_old_decryption",
+      "vector_id": "ak.vector.keypackage.last_resort_forced_rotation.v1",
+      "kind": "last_resort_expiry_security",
+      "created_day": 0,
+      "welcome_day": 1,
+      "expires_day": 30,
+      "compromise_day": 40,
+      "expected": {
+        "state_after_expiry": "revoked",
+        "revocation_reason": "keypackage_expired",
+        "new_claim_returns_old_package": false,
+        "captured_welcome_decryptable_with_matching_private_key": true,
+        "later_epochs": "dependent_on_effective_secret_updates_and_attacker_material"
+      },
+      "assertions": [
+        "Station MUST reject a new claim for an expired last-resort package",
+        "An attacker with captured Welcome ciphertext and the matching compromised key can recover its encrypted GroupSecrets after expiry",
+        "A subsequent effective secret update cannot retroactively restore old Welcome confidentiality"
+      ]
     }
-  ]
+  ],
+  "expiry_security_case": {
+    "evidence_scope": "HPKE base-mode X25519/HKDF-SHA256/AES-128-GCM encrypted GroupSecrets layer with MLS EncryptWithLabel context; synthetic encrypted_group_info context. This is not a complete Welcome/group or a live Station expiry test.",
+    "created_day": 0,
+    "welcome_day": 1,
+    "expires_day": 30,
+    "compromise_day": 40,
+    "recipient_private_key_hex": "1111111111111111111111111111111111111111111111111111111111111111",
+    "ephemeral_private_key_hex": "2222222222222222222222222222222222222222222222222222222222222222",
+    "encrypt_context_hex": "0f4d4c5320312e302057656c636f6d65205555555555555555555555555555555555555555555555555555555555555555",
+    "group_secrets_hex": "2033333333333333333333333333333333333333333333333333333333333333330000",
+    "captured_ciphertext_hex": "ebe2104ef9d5de038ab0b870a1d0968e35fac373dae70fb6380c29e0f885d95d84d94142249a823d40978b3d1d3cbbd85c9269",
+    "expected": {
+      "new_claim_at_or_after_expiry": "reject",
+      "matching_private_key_recovers_captured_group_secrets": true,
+      "expiry_revokes_historical_decryption": false,
+      "future_epoch_recovery": "conditional_on_effective_unknown_secret_update",
+      "historical_confidentiality_restored": false
+    },
+    "runner": "python -m tools.test_residual_simplification"
+  }
 }

@@ -59,7 +59,7 @@
     "notary_seq": {
       "type": "integer",
       "minimum": 0,
-      "description": "Domain sequence height, zero at genesis and exactly predecessor.notary_seq + 1. It is independent of individual signer counters.",
+      "description": "Unique monotonically increasing confirmed position within this Realm lineage; genesis is zero. The sole authority must durably refuse a second distinct body at the same position.",
       "maximum": 9007199254740991
     },
     "availability_receipt_digests": {
@@ -89,8 +89,8 @@
       "description": "Canonical active digest-suite id used for previous_state_root. Required iff previous_state_root is present, absent on non-transition Seals, and byte-equal to the transition Move from_digest_algorithm. A profile id is invalid here."
     },
     "notary_signature": {
-      "$ref": "#/$defs/multi_signature",
-      "description": "A commit certificate over a stable Seal body. Certificate view is outside the Seal identity. Each JWS signs canonical {context:ak.seal.commit.v1,seal_digest,configuration_ref,notary_seq,view}; the digest is H(seal_canonical_bytes). Only 2f+1 distinct exact-configuration votes in this same view count."
+      "$ref": "#/$defs/signature",
+      "description": "The sole configured authority signs JCS({context:\"ak.seal.commit.v1\",seal_digest}); seal_digest authenticates the complete canonical unsigned Seal body, including Realm, configuration, sequence, predecessor and results."
     },
     "sealed_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
@@ -128,16 +128,6 @@
         "$ref": "#/$defs/existence_anchor"
       },
       "description": "Optional, explicitly finite-authorization existence evidence. Every included Event and ancestor is fully available and verified before prepare. Its safe existence interval is sealed_at +/- 2*configuration.max_clock_error_ms. The entire interval must lie in the exact authorization window. It is not a lease for unbounded ordinary data."
-    },
-    "transaction_records": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 4096,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/transaction_record"
-      },
-      "description": "Ordered cross-Realm safety protocol records, validated under the confirming Realm configuration. Ordinary data cannot produce them. Replay preserves prepared manifests, locks and terminal decisions across restart/handoff. They are authenticated by the full Seal body, not encoded as ordinary Cell writes."
     }
   },
   "additionalProperties": false,
@@ -204,36 +194,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed compact JWS carrier for the exact enclosing phase transcript. Final multi_signature requires ak.seal.commit.v1; prepared_certificate requires ak.seal.prepare.v1; view_change_vote requires ak.seal.view_change.v1 and the full statement. The protected alg/kid match the frozen configured key, payload_digest hashes that whole phase transcript, and unknown crit or noncanonical bytes reject. The Seal identity separately hashes only the stable body. Quorum read conclusions and configuration handoffs reuse this carrier with their distinct contexts and fixed SHA-256 payload_digest, defined in cbs-profiles section 9; they never count as PBFT phase votes."
-    },
-    "multi_signature": {
-      "type": "object",
-      "required": [
-        "kind",
-        "signatures",
-        "view"
-      ],
-      "properties": {
-        "kind": {
-          "const": "multi_sig"
-        },
-        "signatures": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/signature"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Sorted by verification_method, with exactly 2f+1 distinct configured signers where n=3f+1. The predecessor configuration determines f. All entries bind the same canonical body."
-        },
-        "view": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991,
-          "description": "Consensus view for this height. Changing views preserves every prepared lock and confirmed prefix."
-        }
-      },
-      "additionalProperties": false
+      "description": "One canonical JWS from the exact frozen authority. The protected alg and kid match the descriptor; payload_digest is the digest of the domain-separated commit or read-proof transcript, never an alternative authority. Reject noncanonical encoding and unknown critical headers."
     },
     "unsigned_seal": {
       "type": "object",
@@ -286,7 +247,7 @@
         "notary_seq": {
           "type": "integer",
           "minimum": 0,
-          "description": "Domain sequence height, zero at genesis and exactly predecessor.notary_seq + 1. It is independent of individual signer counters.",
+          "description": "Unique monotonically increasing confirmed position within this Realm lineage; genesis is zero. The sole authority must durably refuse a second distinct body at the same position.",
           "maximum": 9007199254740991
         },
         "availability_receipt_digests": {
@@ -351,16 +312,6 @@
             "$ref": "#/$defs/existence_anchor"
           },
           "description": "Optional, explicitly finite-authorization existence evidence. Every included Event and ancestor is fully available and verified before prepare. Its safe existence interval is sealed_at +/- 2*configuration.max_clock_error_ms. The entire interval must lie in the exact authorization window. It is not a lease for unbounded ordinary data."
-        },
-        "transaction_records": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 4096,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/transaction_record"
-          },
-          "description": "Ordered cross-Realm safety protocol records, validated under the confirming Realm configuration. Ordinary data cannot produce them. Replay preserves prepared manifests, locks and terminal decisions across restart/handoff. They are authenticated by the full Seal body, not encoded as ordinary Cell writes."
         }
       },
       "additionalProperties": false,
@@ -523,328 +474,6 @@
       },
       "additionalProperties": false
     },
-    "transaction_participant": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "basis_ref",
-        "read_cell_refs",
-        "write_cell_refs"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "basis_ref": {
-          "$ref": "#/$defs/seal_ref"
-        },
-        "read_cell_refs": {
-          "type": "array",
-          "minItems": 0,
-          "maxItems": 4096,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/cell_ref"
-          }
-        },
-        "write_cell_refs": {
-          "type": "array",
-          "minItems": 0,
-          "maxItems": 4096,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/cell_ref"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "description": "One exact safety domain and frozen read/write resource set. Arrays are canonical sorted and unique. At least one read or write is required. The complete set is independently rederived from registry execution and authorization evaluation; producer-supplied omissions or surplus reject.",
-      "anyOf": [
-        {
-          "properties": {
-            "read_cell_refs": {
-              "minItems": 1
-            }
-          }
-        },
-        {
-          "properties": {
-            "write_cell_refs": {
-              "minItems": 1
-            }
-          }
-        }
-      ]
-    },
-    "transaction_manifest": {
-      "type": "object",
-      "required": [
-        "command_event_id",
-        "participants",
-        "decision_realm_id"
-      ],
-      "properties": {
-        "command_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "participants": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/transaction_participant"
-          }
-        },
-        "decision_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Immutable manifest for one cross-Realm security command. Participants are sorted by canonical RealmId, unique by realm_id; decision_realm_id equals the first participant. Every participant basis appears in the original signed command seal_basis. The complete original command and all dependencies must be available before preparing. This manifest is never a free-form extension or an ordinary data submission."
-    },
-    "transaction_record": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "manifest"
-          ],
-          "properties": {
-            "kind": {
-              "const": "prepare"
-            },
-            "manifest": {
-              "$ref": "#/$defs/transaction_manifest"
-            }
-          },
-          "additionalProperties": false,
-          "description": "This Seal realm must be a participant. Revalidate the exact basis and complete read set, durably lock conflicting resources, and stage deterministic effects. No command outcome, secret release or external effect occurs."
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "manifest",
-            "prepare_seal_refs"
-          ],
-          "properties": {
-            "kind": {
-              "const": "commit"
-            },
-            "manifest": {
-              "$ref": "#/$defs/transaction_manifest"
-            },
-            "prepare_seal_refs": {
-              "type": "array",
-              "minItems": 2,
-              "maxItems": 64,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/seal_ref"
-              }
-            }
-          },
-          "additionalProperties": false,
-          "description": "Only the decision Realm can confirm commit. Exactly one valid same-manifest prepare Seal per participant, in participant order, is required. Commit and abort are mutually exclusive durable terminal decisions."
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "manifest"
-          ],
-          "properties": {
-            "kind": {
-              "const": "abort"
-            },
-            "manifest": {
-              "$ref": "#/$defs/transaction_manifest"
-            }
-          },
-          "additionalProperties": false,
-          "description": "Only the decision Realm can confirm abort before any commit. This terminal decision forbids late prepare or commit for the manifest. Missing participants do not block an authorized abort."
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "manifest",
-            "decision_seal_ref"
-          ],
-          "properties": {
-            "kind": {
-              "const": "apply"
-            },
-            "manifest": {
-              "$ref": "#/$defs/transaction_manifest"
-            },
-            "decision_seal_ref": {
-              "$ref": "#/$defs/seal_ref"
-            }
-          },
-          "additionalProperties": false,
-          "description": "A participant applies the exact confirmed commit/abort and releases its durable locks. Commit applies staged registered local effects once; abort applies none. Missing decision evidence remains pending and timeout never unlocks."
-        }
-      ]
-    },
-    "vote_transcript": {
-      "type": "object",
-      "required": [
-        "context",
-        "seal_digest",
-        "configuration_ref",
-        "notary_seq",
-        "view"
-      ],
-      "properties": {
-        "context": {
-          "enum": [
-            "ak.seal.prepare.v1",
-            "ak.seal.commit.v1"
-          ]
-        },
-        "seal_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "configuration_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "notary_seq": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "view": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        }
-      },
-      "additionalProperties": false
-    },
-    "prepared_certificate": {
-      "type": "object",
-      "required": [
-        "seal_body",
-        "view",
-        "signatures"
-      ],
-      "properties": {
-        "seal_body": {
-          "$ref": "#/$defs/unsigned_seal"
-        },
-        "view": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "signatures": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/signature"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "description": "Exactly 2f+1 canonical-sorted distinct configured prepare signatures over one complete body and view. Same-view body equivocation rejects; the final certificate accepts commit signatures only."
-    },
-    "view_change_statement": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "configuration_ref",
-        "notary_seq",
-        "new_view",
-        "confirmed_predecessor_ref",
-        "prepared"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "configuration_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "notary_seq": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "new_view": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
-        },
-        "confirmed_predecessor_ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/seal_ref"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "prepared": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/prepared_certificate"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "view_change_transcript": {
-      "type": "object",
-      "required": [
-        "context",
-        "statement"
-      ],
-      "properties": {
-        "context": {
-          "const": "ak.seal.view_change.v1"
-        },
-        "statement": {
-          "$ref": "#/$defs/view_change_statement"
-        }
-      },
-      "additionalProperties": false
-    },
-    "view_change_vote": {
-      "type": "object",
-      "required": [
-        "statement",
-        "signature"
-      ],
-      "properties": {
-        "statement": {
-          "$ref": "#/$defs/view_change_statement"
-        },
-        "signature": {
-          "$ref": "#/$defs/signature"
-        }
-      },
-      "additionalProperties": false
-    },
-    "new_view_certificate": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 256,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/view_change_vote"
-      },
-      "description": "Exactly 2f+1 distinct configured voters sorted by verification_method; all coordinates must match, every prepared view is lower than new_view, and the highest prepared view fixes the entire next body. No prepared certificate permits a fresh valid proposal."
-    },
     "command_result_effect": {
       "type": "object",
       "required": [
@@ -954,6 +583,22 @@
           }
         }
       ]
+    },
+    "commit_transcript": {
+      "type": "object",
+      "required": [
+        "context",
+        "seal_digest"
+      ],
+      "properties": {
+        "context": {
+          "const": "ak.seal.commit.v1"
+        },
+        "seal_digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

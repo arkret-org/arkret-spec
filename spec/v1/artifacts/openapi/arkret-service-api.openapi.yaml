@@ -841,10 +841,6 @@ components:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome
     DirectoryPrivateContactDiscoveryRequestBody:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body
-    DirectoryPushRegisterOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome
-    DirectoryPushRegisterRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body
     DirectoryRealmResolutionOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome
     DirectoryRealmSearchOutcome:
@@ -1190,10 +1186,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest
     HumanSessionGrantRequest:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRequest
-    IdentityAbandonmentChallengeOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome
-    IdentityAbandonmentChallengeRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body
     IdentityAbandonmentOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome
     IdentityAbandonmentRequestBody:
@@ -1292,10 +1284,6 @@ components:
       $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_outcome
     MediaServiceBindingRequestBody:
       $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body
-    MembershipAuthorityOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_outcome
-    MembershipAuthorityRequestBody:
-      $ref: ../schemas/history-key.schema.json#/$defs/membership_authority_request_body
     MessagePrepareOutcome:
       $ref: '../schemas/message-authoring.schema.json#/$defs/message_prepare_outcome'
     MessagePrepareRequestBody:
@@ -9508,36 +9496,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectorySearchUsersRequestBody'
-  /_arkret/find/directory/push/register:
-    post:
-      operationId: ak.find.directory.push.command.register
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.push.command.register.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Directory push webhook registration created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryPushRegisterOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryPushRegisterRequestBody'
   /_arkret/self/authz/invites:
     get:
       operationId: ak.self.authz.invites.read.list
@@ -10863,76 +10821,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DidBindingChallengeRequestBody'
-  /_arkret/gate/account/identity-abandonment-challenges:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.command.issue_identity_abandonment_challenge
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.command.issue_identity_abandonment_challenge.v1
-      security:
-      - accountHandoffAuth: []
-        dpopProof: []
-      x-arkret-auth:
-        public_metadata: false
-        holder_bound_authorization: true
-        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key, current lease
-          holder, and lease fence. The PCR was never accepted, so the holder has no principal and no principal-bound
-          ak.session.grant can exist.
-      summary: Issue a challenge that makes abandoning a provisional identity explicit.
-      description: 'Issues a server-generated single-use challenge for giving up a
-
-        provisional identity whose Principal Control Realm was never accepted
-
-        and whose identity root is lost. The Account Authority requires the
-
-        supplied principal_id and did_version_id to equal the
-
-        holder-authenticated reserved_identity_creation checkpoint, and MUST
-
-        refuse once that PCR is accepted.
-
-
-        The challenge binds the authenticated service account, handoff holder
-
-        key, lease and fence, the abandoned principal and DID entry, the closed
-
-        consequence disclosure, audience, origin, trust domain, purpose, and an
-
-        expiry no more than 300 seconds out. Challenge state is durable shared
-
-        state; expiry and prior consumption are distinct terminal states.
-
-
-        This operation abandons nothing on its own. Ordinary login, session
-
-        resume, lease fence advance and any other automated flow never fetch a
-
-        challenge, which is what makes the abandonment structurally explicit.
-
-        '
-      responses:
-        '200':
-          description: Persisted identity-abandonment challenge transcript.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IdentityAbandonmentChallengeOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IdentityAbandonmentChallengeRequestBody'
   /_arkret/gate/account/identity-abandonments:
     servers:
     - url: https://{host}
@@ -12307,34 +12195,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsWelcomeRefsOutcome'
-  /_arkret/self/seals/membership-authority:
-    post:
-      operationId: ak.self.seals.read.membership_authority
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.membership_authority.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read current exact membership incarnation from the Account Station.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MembershipAuthorityRequestBody'
-      responses:
-        '200':
-          description: One current membership, bounded to 64 KiB without a historical proof.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MembershipAuthorityOutcome'
   /_arkret/self/seals/mls-membership-removal:
     post:
       operationId: ak.self.seals.read.mls_membership_removal

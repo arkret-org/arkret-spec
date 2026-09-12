@@ -85,7 +85,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 9
+        "did_core_id": 8
       },
       "reason": "Contact continuity signs as an exact actor; general proof evidence binds the stable DID core."
     },
@@ -663,36 +663,6 @@
       ]
     },
     {
-      "schema_path": "account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome/properties/audience_id",
-      "property_name": "audience_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "account-operations.schema.json#/$defs/identity_abandonment_outcome/properties/principal_id",
       "property_name": "principal_id",
       "semantic_category": "responsibility_identity_material",
@@ -704,36 +674,6 @@
     },
     {
       "schema_path": "account-operations.schema.json#/$defs/identity_abandonment_request_body/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-operations.schema.json#/$defs/identity_binding_challenge_outcome/properties/audience_id",
-      "property_name": "audience_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-operations.schema.json#/$defs/identity_binding_challenge_outcome/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
-      ]
-    },
-    {
-      "schema_path": "account-operations.schema.json#/$defs/identity_binding_challenge_outcome/properties/principal_id",
       "property_name": "principal_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -3104,16 +3044,6 @@
       ]
     },
     {
-      "schema_path": "directory-operations.schema.json#/$defs/directory_push_register_request_body/properties/subscriber_id",
-      "property_name": "subscriber_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body/properties/expected_actor_id",
       "property_name": "expected_actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -4654,16 +4584,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/participant_binding/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/participant_binding/properties/issuer_kid",
       "property_name": "issuer_kid",
       "semantic_category": "responsibility_identity_material",
@@ -5304,26 +5224,6 @@
       ]
     },
     {
-      "schema_path": "history-key.schema.json#/$defs/membership_authority_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/membership_authority_request_body/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "history-key.schema.json#/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/pairwise_actor_id",
       "property_name": "pairwise_actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -5726,26 +5626,6 @@
     {
       "schema_path": "identity-resolution.schema.json#/$defs/service_route_projection/properties/service_id",
       "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "inclusion-list.schema.json#/$defs/proof/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "inclusion-list.schema.json#/properties/signer_id",
-      "property_name": "signer_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -8284,23 +8164,13 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome/properties/participant_binding/properties/actor_id",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome/properties/participant_binding/properties/issuer_kid",
-      "property_name": "issuer_kid",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
       ]
     },
     {
@@ -9305,16 +9175,6 @@
     },
     {
       "schema_path": "signer-key-operations.schema.json#/$defs/historical_agent_selector/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "signer-key-operations.schema.json#/$defs/historical_device_signing_key/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",

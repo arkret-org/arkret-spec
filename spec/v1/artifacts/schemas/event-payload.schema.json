@@ -2333,9 +2333,30 @@
             }
           },
           "additionalProperties": false
+        },
+        "focus_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^(?!ak:)",
+          "description": "Required with an SFU/MCU participant binding, absent for P2P/mesh. Freeze the selected focus in this roster entry so later focus changes cannot alter its signature input."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "participant_binding": [
+          "participant_id",
+          "focus_id"
+        ],
+        "participant_id": [
+          "participant_binding",
+          "focus_id"
+        ],
+        "focus_id": [
+          "participant_binding",
+          "participant_id"
+        ]
+      }
     },
     "call_recording_retention": {
       "$ref": "./call-recording-artifact.schema.json#/$defs/call_recording_retention"
@@ -3439,7 +3460,6 @@
           "type": "string",
           "enum": [
             "invite",
-            "direct_message",
             "voice_call",
             "video_call",
             "presence",
@@ -6764,7 +6784,6 @@
         "commit_ref",
         "epoch",
         "failure_stage",
-        "reporter_device_id",
         "failed_at"
       ],
       "properties": {
@@ -6801,9 +6820,6 @@
             "other"
           ]
         },
-        "reporter_device_id": {
-          "$ref": "#/$defs/device_id"
-        },
         "error_code": {
           "$ref": "#/$defs/non_empty_string"
         },
@@ -6816,11 +6832,8 @@
     "mls_commit_payload": {
       "type": "object",
       "required": [
-        "mls_group_id",
-        "base_epoch",
         "base_epoch_ref",
         "proposal_refs",
-        "next_epoch",
         "commit_bytes_b64",
         "governance_binding"
       ],
@@ -6830,16 +6843,6 @@
         ]
       },
       "properties": {
-        "mls_group_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1
-        },
-        "base_epoch": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Expected previous MLS epoch. MUST equal governance_binding.previous_epoch."
-        },
         "base_epoch_ref": {
           "$ref": "#/$defs/object_ref"
         },
@@ -6849,11 +6852,6 @@
             "$ref": "#/$defs/event_ref"
           },
           "uniqueItems": true
-        },
-        "next_epoch": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Committed next MLS epoch. MUST equal governance_binding.next_epoch."
         },
         "commit_bytes_b64": {
           "type": "string",
@@ -6907,6 +6905,17 @@
               ]
             }
           }
+        },
+        {
+          "properties": {
+            "governance_binding": {
+              "properties": {
+                "next_epoch": {
+                  "minimum": 1
+                }
+              }
+            }
+          }
         }
       ],
       "additionalProperties": false
@@ -6932,29 +6941,14 @@
     "mls_genesis_payload": {
       "type": "object",
       "required": [
-        "mls_group_id",
-        "effective_scope",
-        "epoch",
         "cipher_suite",
         "group_info_ref",
         "ratchet_tree_ref",
         "governance_binding",
         "created_at"
       ],
-      "$comment": "Schema requires both effective_scope and governance_binding. Reducers/verifiers must additionally compare effective_scope with governance_binding.effective_scope; JSON Schema cannot express deep cross-field equality. v1 Genesis has exactly one initial principal leaf: the creator. Creator coordinates are not payload fields: the creator principal is Event.actor_id and the creator device is projected from the fragment of the sole producer proof verification_method, so carrying creator_principal_id, creator_device_id, initial_keypackage_refs or another initial-member list is a schema_violation. Every non-creator joins through a later Add/Commit/Welcome. Realm/Circle Genesis admission parses the exact digest-checked public GroupInfo/tree before atomically publishing the accepted initial leaf provenance. Public trackers do not verify secret confirmation tags or receive tree/path/epoch secrets.",
+      "$comment": "Genesis binding epochs are exactly 0/0. Creator principal is Event.actor_id and creator device is the sole producer proof method fragment. Parse exact public GroupInfo/tree and authenticate initial leaf provenance before atomic acceptance. No outer scope/group/epoch mirror is carried.",
       "properties": {
-        "mls_group_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1
-        },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "description": "Tagged scope of the MLS group created at epoch 0. MUST match governance_binding.effective_scope."
-        },
-        "epoch": {
-          "const": 0
-        },
         "cipher_suite": {
           "$ref": "#/$defs/non_empty_string"
         },
@@ -7013,6 +7007,20 @@
               "required": [
                 "organization_recovery_archive"
               ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "governance_binding": {
+              "properties": {
+                "previous_epoch": {
+                  "const": 0
+                },
+                "next_epoch": {
+                  "const": 0
+                }
+              }
             }
           }
         }
@@ -7230,9 +7238,7 @@
       "required": [
         "binding_version",
         "encoding_profile",
-        "realm_id",
         "effective_scope",
-        "mls_group_id",
         "previous_epoch",
         "next_epoch",
         "security_frontier_digest",
@@ -7247,26 +7253,9 @@
         "encoding_profile": {
           "const": "cbor-deterministic-rfc8949-v1"
         },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Parent Realm identifier. MUST equal effective_scope.realm_id."
-        },
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id",
-          "description": "Present only when effective_scope.kind='circle'. MUST equal effective_scope.circle_id."
-        },
-        "sidecar_id": {
-          "$ref": "./common-ids.schema.json#/$defs/sidecar_id",
-          "description": "Present only when effective_scope.kind='sidecar'. MUST equal effective_scope.sidecar_id."
-        },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope",
           "description": "Tagged MLS governance scope. Realm-default groups use {kind:'realm', realm_id}; Circle groups use {kind:'circle', realm_id, circle_id}; Sidecar groups use {kind:'sidecar', realm_id, sidecar_id}. This field, not Strand id or track, determines key and participant scope."
-        },
-        "mls_group_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1
         },
         "previous_epoch": {
           "type": "integer",
@@ -7334,83 +7323,6 @@
         },
         {
           "if": {
-            "required": [
-              "sidecar_binding"
-            ]
-          },
-          "then": {
-            "properties": {
-              "effective_scope": {
-                "properties": {
-                  "kind": {
-                    "const": "sidecar"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "effective_scope": {
-                "properties": {
-                  "kind": {
-                    "const": "realm"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            },
-            "required": [
-              "effective_scope"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "circle_id",
-                "sidecar_id"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "effective_scope": {
-                "properties": {
-                  "kind": {
-                    "const": "circle"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            },
-            "required": [
-              "effective_scope"
-            ]
-          },
-          "then": {
-            "required": [
-              "circle_id"
-            ],
-            "not": {
-              "required": [
-                "sidecar_id"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
             "properties": {
               "effective_scope": {
                 "properties": {
@@ -7429,18 +7341,19 @@
           },
           "then": {
             "required": [
-              "sidecar_id",
               "sidecar_binding"
-            ],
+            ]
+          },
+          "else": {
             "not": {
               "required": [
-                "circle_id"
+                "sidecar_binding"
               ]
             }
           }
         }
       ],
-      "$comment": "Schema requires tagged scope ID presence rules. Reducers/verifiers additionally compare realm_id and the circle_id/sidecar_id value against effective_scope; JSON Schema cannot express those cross-field string equalities.",
+      "$comment": "The only scope carrier is effective_scope. Parse and compare the MLS GroupContext group identity and epoch against its deterministic derivation and this binding; removing outer mirrors never removes cryptographic checks.",
       "additionalProperties": false
     },
     "mls_keypackage_payload": {
@@ -7685,8 +7598,6 @@
     "mls_welcome_payload": {
       "type": "object",
       "required": [
-        "mls_group_id",
-        "epoch",
         "keypackage_ref",
         "claim_id",
         "claim_ref",
@@ -7797,20 +7708,6 @@
         }
       ],
       "properties": {
-        "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
         "recipient_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
@@ -8961,52 +8858,11 @@
       "type": "object",
       "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at) for a media participant. See crypto-media/media-service-binding.md §3 and crypto-media/call-state.md §4.1. v1 uses the single scheme ak.media.participant_binding.v1.",
       "required": [
-        "scheme",
-        "realm_id",
-        "call_id",
-        "focus_id",
-        "actor_id",
-        "device_id",
-        "participant_id",
-        "issued_at",
         "expires_at",
         "issuer_kid",
         "sig"
       ],
       "properties": {
-        "scheme": {
-          "type": "string",
-          "const": "ak.media.participant_binding.v1"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "call_id": {
-          "type": "string",
-          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
-        },
-        "focus_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "participant_id": {
-          "$ref": "#/$defs/rtc_participant_id"
-        },
-        "issued_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },

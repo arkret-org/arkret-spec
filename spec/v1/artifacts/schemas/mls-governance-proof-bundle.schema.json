@@ -879,7 +879,7 @@
           "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "transition_head": {
-          "$ref": "#/$defs/mls_epoch_head"
+          "$ref": "#/$defs/accepted_transition"
         },
         "governance_binding": {
           "$ref": "./event-payload.schema.json#/$defs/mls_governance_binding"
@@ -899,14 +899,14 @@
     },
     "membership_removal_request_body": {
       "type": "object",
-      "description": "Current own-Station reconciliation of exact local MLS leaves. Complete canonical request <=8 MiB; Realm/Circle only; no history, pending tree or continuation.",
+      "description": "Current own-Station reconciliation against the complete accepted MLS ledger. Canonical request <=64 KiB; the caller supplies SHA-256(JCS(canonical sorted local leaves)) and the Station compares its independently reconstructed digest before returning indices. Realm/Circle only; no pending tree or continuation.",
       "required": [
         "effective_scope",
         "mls_group_id",
-        "local_mls_leaves",
         "seal_basis",
         "base_group_state_ref",
-        "epoch"
+        "epoch",
+        "mls_leaf_set_digest"
       ],
       "properties": {
         "effective_scope": {
@@ -916,19 +916,9 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$"
         },
-        "local_mls_leaves": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 65536,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/mls_security_frontier_leaf"
-          },
-          "description": "Complete strictly leaf-index-ordered occupied leaves of the locally verified current base tree, not a pending tree. Must exactly equal the accepted base transition public leaf ledger. No duplicate credential_ref."
-        },
         "seal_basis": {
           "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Exactly one confirmed head in the group enclosing Realm. Base is equal to or an ancestor of target; incomparable same-Realm heads are invalid.",
+          "description": "Exactly the one confirmed enclosing-Realm head used for this atomic accepted-ledger evaluation; must equal the request basis.",
           "properties": {
             "leaves": {
               "minItems": 1,
@@ -942,17 +932,26 @@
         },
         "epoch": {
           "$ref": "#/$defs/epoch"
+        },
+        "mls_leaf_set_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest",
+          "description": "Canonical public leaf-set digest independently computed from the exact accepted base_group_state_ref ledger; never upload the leaf set again.",
+          "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 65536
     },
     "membership_removal_outcome": {
       "type": "object",
-      "description": "Atomic current leaf-removal result bound to the full authenticated AccountId and exact query. Complete canonical response <=1 MiB. Missing admission incarnations or unresolved current authority fail instead of producing empty or partial results.",
+      "description": "Complete sorted removal indices at the exact evaluated seal_basis, accepted base_group_state_ref and epoch; the server resolves its atomic accepted leaf ledger and compares the submitted digest before evaluation.",
       "required": [
         "account_id",
         "query_digest",
-        "remove_leaf_indices"
+        "remove_leaf_indices",
+        "seal_basis",
+        "base_group_state_ref",
+        "epoch"
       ],
       "properties": {
         "account_id": {
@@ -971,9 +970,27 @@
             "maximum": 4294967295
           },
           "description": "Strictly increasing subset of the exact requested occupied leaf indices. Empty only after complete successful evaluation; no Actor-wide removal."
+        },
+        "seal_basis": {
+          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
+          "description": "Exactly the one confirmed enclosing-Realm head used for this atomic accepted-ledger evaluation; must equal the request basis.",
+          "properties": {
+            "leaves": {
+              "minItems": 1,
+              "maxItems": 1
+            }
+          }
+        },
+        "base_group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact current winning accepted Genesis/Commit whose post-transition tree is the supplied local leaf set."
+        },
+        "epoch": {
+          "$ref": "#/$defs/epoch"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 1048576
     },
     "merkle_frontier_projection": {
       "type": "object",
@@ -999,6 +1016,26 @@
       },
       "additionalProperties": false,
       "description": "Per-target-leaf signed projections. The verifier checks the single target Realm head, exact quorum and proof cells before deriving security_frontier_digest. No merge of competing safety states is defined."
+    },
+    "accepted_transition": {
+      "type": "object",
+      "required": [
+        "transition_ref",
+        "transition_event_digest",
+        "mls_transition_digest"
+      ],
+      "properties": {
+        "transition_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "transition_event_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "mls_transition_digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

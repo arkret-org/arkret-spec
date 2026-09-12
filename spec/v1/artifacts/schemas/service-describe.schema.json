@@ -19,7 +19,6 @@
     "auth_metadata",
     "limits",
     "plaintext_visibility",
-    "claimed_profiles",
     "verified_profiles",
     "interop_surfaces",
     "development_mode",
@@ -71,7 +70,8 @@
         "type": "string",
         "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "description": "The sole complete-profile self-declaration for this exact build and role endpoint. Every declared profile MUST satisfy its full applicable contract. Feature-only support belongs in supported_features. verified_profiles supplies independent evidence, never an alternate activation set; each verified profile MUST also occur here."
     },
     "supported_reducer_profiles": {
       "type": "array",
@@ -144,9 +144,14 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 1
+            "enum": [
+              "session_dpop",
+              "session_http_signature",
+              "did_http_signature"
+            ]
           },
-          "uniqueItems": true
+          "uniqueItems": true,
+          "description": "session_dpop is the mandatory default SessionGrant presentation; session_http_signature is only an additional high-security body/transcript binding layer. did_http_signature denotes separately registered DID proofs and is never a SessionGrant fallback."
         }
       },
       "additionalProperties": false
@@ -622,19 +627,6 @@
       "type": "boolean",
       "description": "Whether the directory requires holder-approved proof for restricted or privacy-sensitive query classes."
     },
-    "ingest_modes": {
-      "type": "array",
-      "description": "Directory ingest modes supported by this instance.",
-      "items": {
-        "type": "string",
-        "enum": [
-          "push",
-          "pull"
-        ]
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
     "accept_policy_kind": {
       "type": "string",
       "description": "Directory resource acceptance policy advertised by ak.find.directory.read.describe.v1.",
@@ -697,40 +689,9 @@
       "description": "Readable per-DID, per-organization or per-IP directory quota limits.",
       "additionalProperties": true
     },
-    "claimed_profiles": {
-      "type": "array",
-      "description": "Profiles the service self-claims membership in. `claim_kind` MUST be `self_claimed`; verified-only assertions belong under `verified_profiles` and MUST NOT appear here.",
-      "items": {
-        "type": "object",
-        "required": [
-          "profile_id",
-          "claim_kind"
-        ],
-        "additionalProperties": true,
-        "properties": {
-          "profile_id": {
-            "type": "string",
-            "pattern": "^ak\\.profile\\.[a-z0-9._-]+\\.v[0-9]+$"
-          },
-          "claim_kind": {
-            "type": "string",
-            "enum": [
-              "self_claimed"
-            ]
-          },
-          "claimed_at": {
-            "$ref": "./time.schema.json#/$defs/timestamp"
-          },
-          "notes": {
-            "type": "string"
-          }
-        }
-      },
-      "uniqueItems": true
-    },
     "verified_profiles": {
       "type": "array",
-      "description": "Profiles for which a Conformance Verifier run (conformance-suite.md §6.2) has produced a passing verification artifact. Each entry MUST identify the verification run, artifact hash, artifact retrieval reference, verifier DID, verifier signature, and verification timestamp. When the service is in `development_mode=true` this array MUST be empty.",
+      "description": "Profiles for which a Conformance Verifier run (conformance-suite.md §6.2) has produced a passing verification artifact. Each entry MUST identify the verification run, artifact hash, artifact retrieval reference, verifier DID, verifier signature, and verification timestamp. When the service is in `development_mode=true` this array MUST be empty. Each profile_id MUST occur in supported_profiles and be unique within verified_profiles; consumers MUST verify this relationship and applicable artifact evidence before displaying a verified badge. Evidence alone MUST NOT activate a profile.",
       "items": {
         "type": "object",
         "required": [
@@ -858,14 +819,14 @@
           "type": "array",
           "items": {
             "type": "string",
-          "enum": [
-            "locator_ref",
-            "consent_grant",
-            "shared_realm",
-            "handle_claim",
-            "same_station",
-            "explicit_address"
-          ]
+            "enum": [
+              "locator_ref",
+              "consent_grant",
+              "shared_realm",
+              "handle_claim",
+              "same_station",
+              "explicit_address"
+            ]
           },
           "minItems": 1,
           "uniqueItems": true
@@ -893,17 +854,27 @@
   "allOf": [
     {
       "if": {
-        "required": ["supported_operation_bundles"],
+        "required": [
+          "supported_operation_bundles"
+        ],
         "properties": {
           "supported_operation_bundles": {
-            "contains": {"const": "ak.operation_bundle.station.http_core.v1"}
+            "contains": {
+              "const": "ak.operation_bundle.station.http_core.v1"
+            }
           }
         }
       },
       "then": {
-        "required": ["limits"],
+        "required": [
+          "limits"
+        ],
         "properties": {
-          "limits": {"required": ["mls_governance_proof"]}
+          "limits": {
+            "required": [
+              "mls_governance_proof"
+            ]
+          }
         }
       }
     },
@@ -1010,7 +981,6 @@
       "then": {
         "required": [
           "resource_kinds",
-          "ingest_modes",
           "accept_policy_kind",
           "default_ttl_seconds",
           "max_ttl_seconds",
@@ -1068,28 +1038,20 @@
       }
     },
     {
-      "$comment": "A service that claims or verifies a calendar profile MUST publish the TZDB releases it can execute; see zh/models/calendar-event.md.",
+      "$comment": "Calendar support or attached verification evidence requires executable TZDB releases. Verified entries MUST additionally be a subset of supported_profiles (semantic validation).",
       "if": {
         "anyOf": [
           {
             "required": [
-              "claimed_profiles"
+              "supported_profiles"
             ],
             "properties": {
-              "claimed_profiles": {
+              "supported_profiles": {
                 "contains": {
-                  "type": "object",
-                  "required": [
-                    "profile_id"
-                  ],
-                  "properties": {
-                    "profile_id": {
-                      "enum": [
-                        "ak.profile.calendar_event.v1",
-                        "ak.profile.calendar_notification_dispatch.v1"
-                      ]
-                    }
-                  }
+                  "enum": [
+                    "ak.profile.calendar_event.v1",
+                    "ak.profile.calendar_notification_dispatch.v1"
+                  ]
                 }
               }
             }
@@ -1173,7 +1135,11 @@
       ],
       "properties": {
         "origin": {
-          "allOf": [{ "$ref": "./common-ids.schema.json#/$defs/web_origin" }],
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/web_origin"
+            }
+          ],
           "description": "Absolute origin of the client-visible Account Authority."
         },
         "gate_account_base_url": {

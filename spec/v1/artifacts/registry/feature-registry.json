@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.3",
+  "version": "2026-09-08.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-08T11:03:00+08:00",
+  "generated_at": "2026-09-12T20:14:25+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -264,7 +264,7 @@
       "required_profiles": [],
       "required_limits": [],
       "semantic_guarantees": [
-        "Last-resort KeyPackages follow the replay, consumption, and rotation rules of the normative MLS contract."
+        "Last-resort KeyPackages follow the replay, consumption, and rotation rules of the normative MLS contract. Expiry bounds new distribution eligibility only; captured Welcome confidentiality is not restored by expiry or rotation, and future epoch recovery depends on effective secret updates and the MLS threat conditions."
       ],
       "conflicts": []
     },

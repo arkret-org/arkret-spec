@@ -573,7 +573,7 @@
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
         "surface_kind": "consent_request",
-        "consent_scope": "direct_message",
+        "consent_scope": "presence",
         "received_at": "2026-08-31T00:00:00.000Z",
         "expires_at": "2026-08-31T01:00:00.000Z"
       }
@@ -591,7 +591,7 @@
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
         "surface_kind": "consent_request",
-        "consent_scope": "direct_message",
+        "consent_scope": "presence",
         "received_at": "2026-08-31T00:00:00.000Z",
         "expires_at": "2026-08-31T01:00:00.000Z",
         "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -611,7 +611,7 @@
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
         "surface_kind": "consent_request",
-        "consent_scope": "direct_message",
+        "consent_scope": "presence",
         "received_at": "2026-08-31T00:00:00.000Z",
         "expires_at": "2026-08-31T01:00:00.000Z",
         "introduction_kind": "explicit_address"
@@ -650,7 +650,7 @@
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
         "surface_kind": "invite_delivery",
-        "consent_scope": "direct_message",
+        "consent_scope": "presence",
         "introduction_kind": "explicit_address",
         "effective_kind": "explicit_address",
         "trust_tier": "low",
@@ -699,7 +699,7 @@
         "source_peer_principal_id": "ak:did_core:webvh:z6mkpeer",
         "source_id": "ak:did_core:web:sender.example",
         "surface_kind": "contact_delivery",
-        "consent_scope": "direct_message",
+        "consent_scope": "presence",
         "received_at": "2026-08-31T00:00:00.000Z",
         "expires_at": "2026-08-31T01:00:00.000Z"
       },
@@ -1040,21 +1040,16 @@
         "security_class": "high_assurance",
         "encryption_profile": "mls_rfc9420",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
-              },
-              "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
+            },
+            "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         },
         "founding_device_descriptor": {
@@ -1200,7 +1195,7 @@
             }
           ],
           "did_binding_methods": [
-            "session_grant",
+            "session_dpop",
             "did_http_signature"
           ]
         },
@@ -1211,7 +1206,6 @@
         },
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
@@ -1448,7 +1442,6 @@
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
@@ -1476,10 +1469,6 @@
           }
         },
         "restricted_query_proof": true,
-        "ingest_modes": [
-          "push",
-          "pull"
-        ],
         "accept_policy_kind": "open",
         "default_ttl_seconds": 86400,
         "max_ttl_seconds": 604800,
@@ -1546,7 +1535,7 @@
             }
           ],
           "did_binding_methods": [
-            "session_grant",
+            "session_dpop",
             "did_http_signature"
           ]
         },
@@ -1557,7 +1546,6 @@
         },
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "supported_operation_bundles": [
@@ -1606,7 +1594,7 @@
             }
           ],
           "did_binding_methods": [
-            "session_grant",
+            "session_dpop",
             "did_http_signature"
           ]
         },
@@ -1617,7 +1605,6 @@
         },
         "plaintext_visibility": {},
         "rate_limit_policy": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
@@ -1660,21 +1647,16 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
-              },
-              "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
+            },
+            "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         },
         "created_at": "2026-04-26T00:00:00.000Z"
@@ -1707,21 +1689,16 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixture"
-              },
-              "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
+            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         },
         "fields": {
@@ -1758,21 +1735,16 @@
         "history_access": "since_join",
         "encryption_profile": "none",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixture"
-              },
-              "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixture"
+            },
+            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         },
         "fields": {
@@ -1860,21 +1832,16 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
-              },
-              "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturenotaryacmeexample"
+            },
+            "verification_method": "did:webvh:z6mkfixturenotaryacmeexample:acme.example#key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         },
         "created_at": "2026-04-26T00:00:00.000Z",
@@ -1909,21 +1876,16 @@
         "encryption_profile": "mls_rfc9420",
         "content_scheme": "mls_rfc9420",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
-              },
-              "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
+            },
+            "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
           "max_clock_error_ms": 1000
         },
         "fields": {
@@ -2184,21 +2146,16 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "quorum",
-              "signers": [
-                {
-                  "actor_id": {
-                    "kind": "service",
-                    "service_id": "ak:did_core:webvh:z6mkfixture"
-                  },
-                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                  "key_kind": "ed25519_raw32",
-                  "jose_algorithm": "Ed25519",
-                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-                }
-              ],
-              "fault_tolerance": 0,
+              "signer": {
+                "actor_id": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixture"
+                },
+                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                "key_kind": "ed25519_raw32",
+                "jose_algorithm": "Ed25519",
+                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
               "max_clock_error_ms": 1000
             },
             "founding_device_descriptor": {
@@ -2277,21 +2234,16 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "quorum",
-              "signers": [
-                {
-                  "actor_id": {
-                    "kind": "service",
-                    "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
-                  },
-                  "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
-                  "key_kind": "ed25519_raw32",
-                  "jose_algorithm": "Ed25519",
-                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-                }
-              ],
-              "fault_tolerance": 0,
+              "signer": {
+                "actor_id": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixtureagentexample"
+                },
+                "verification_method": "did:webvh:z6mkfixtureagentexample:agent.example#key-1",
+                "key_kind": "ed25519_raw32",
+                "jose_algorithm": "Ed25519",
+                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
               "max_clock_error_ms": 1000
             }
           }
@@ -2356,21 +2308,16 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "quorum",
-              "signers": [
-                {
-                  "actor_id": {
-                    "kind": "service",
-                    "service_id": "ak:did_core:webvh:z6mkfixture"
-                  },
-                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                  "key_kind": "ed25519_raw32",
-                  "jose_algorithm": "Ed25519",
-                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-                }
-              ],
-              "fault_tolerance": 0,
+              "signer": {
+                "actor_id": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixture"
+                },
+                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                "key_kind": "ed25519_raw32",
+                "jose_algorithm": "Ed25519",
+                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
               "max_clock_error_ms": 1000
             },
             "founding_device_descriptor": {
@@ -2442,21 +2389,16 @@
             "security_class": "standard",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "quorum",
-              "signers": [
-                {
-                  "actor_id": {
-                    "kind": "service",
-                    "service_id": "ak:did_core:webvh:z6mkfixture"
-                  },
-                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                  "key_kind": "ed25519_raw32",
-                  "jose_algorithm": "Ed25519",
-                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-                }
-              ],
-              "fault_tolerance": 0,
+              "signer": {
+                "actor_id": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixture"
+                },
+                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                "key_kind": "ed25519_raw32",
+                "jose_algorithm": "Ed25519",
+                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
               "max_clock_error_ms": 1000
             }
           }
@@ -2734,15 +2676,9 @@
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "notary_seq": 1,
         "notary_signature": {
-          "kind": "multi_sig",
-          "view": 0,
-          "signatures": [
-            {
-              "verification_method": "did:webvh:z6mkfixturenotaryexample:notary.example#key-1",
-              "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-              "jws": "a..b"
-            }
-          ]
+          "verification_method": "did:webvh:z6mkfixturenotaryexample:notary.example#key-1",
+          "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "jws": "a..b"
         },
         "sealed_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
@@ -3470,8 +3406,7 @@
         },
         "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller"
       }
     },
     {
@@ -3489,7 +3424,6 @@
         },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "pairing_request_id": "pairing-request-001",
         "expires_at": "2026-05-20T00:05:00.000Z"
       }
@@ -3511,7 +3445,6 @@
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
         "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "pcr_recovery": {
           "status": "pending"
         },
@@ -3534,8 +3467,7 @@
         },
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller"
       }
     },
     {
@@ -3555,7 +3487,6 @@
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
         "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "pairing_request_id": "pairing-request-001",
         "expires_at": "2026-05-20T00:05:00.000Z"
       }
@@ -3577,8 +3508,7 @@
         "principal_control_realm_id": "ak:realm:AYegvjt5dxDDhM6FaJhR5V-QDjLmD-ZH9cHcyM31k9WI",
         "controller_realm_id": "ak:realm:AYBGpqDYene9KtftYqWtL5_FQo0mOXnIfmxo68YdgJ_A",
         "allocation_handle": "agent-provision-allocation.fixture.signature",
-        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "controller_authorization_ref": "did:webvh:z6mkfixtureagentexample:agent.example#managed-controller"
       }
     },
     {
@@ -5216,24 +5146,16 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_payload",
       "expect_valid": true,
       "instance": {
-        "mls_group_id": "Z3JvdXAtYmxha2Uz",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
-        },
-        "epoch": 0,
         "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
         "group_info_ref": "ak:blob:blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "ratchet_tree_ref": "ak:blob:blake3:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "governance_binding": {
           "binding_version": 1,
           "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY",
           "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
           },
-          "mls_group_id": "Z3JvdXAtYmxha2Uz",
           "previous_epoch": 0,
           "next_epoch": 0,
           "security_frontier_digest": "blake3:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -5251,24 +5173,16 @@
       "expect_valid": false,
       "first_expected_error": "$: Additional properties are not allowed ('group_info_digest' was unexpected)",
       "instance": {
-        "mls_group_id": "Z3JvdXAtYmxha2Uz",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
-        },
-        "epoch": 0,
         "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
         "group_info_ref": "ak:blob:blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "ratchet_tree_ref": "ak:blob:blake3:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "governance_binding": {
           "binding_version": 1,
           "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY",
           "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AZTruRZLBYYwBOLe5b25amluwq47zOpHlwKd8Op7_KpY"
           },
-          "mls_group_id": "Z3JvdXAtYmxha2Uz",
           "previous_epoch": 0,
           "next_epoch": 0,
           "security_frontier_digest": "blake3:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -5407,22 +5321,18 @@
         "backend_token": "signed.jwt.token",
         "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
-          "scheme": "ak.media.participant_binding.v1",
-          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-          "focus_id": "fra-1",
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
-          },
-          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
           "sig": "AA"
         },
-        "expires_at": "2026-08-16T00:05:00.000Z"
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
+        },
+        "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001"
       }
     },
     {
@@ -5472,7 +5382,7 @@
       "mutations": [
         {
           "op": "replace",
-          "path": "/participant_binding/actor_id",
+          "path": "/actor_id",
           "value": "ak:did_core:webvh:z6mkfixture"
         }
       ],
@@ -5506,22 +5416,18 @@
         },
         "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
-          "scheme": "ak.media.participant_binding.v1",
-          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-          "focus_id": "fra-1",
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
-          },
-          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
           "sig": "AA"
         },
-        "expires_at": "2026-08-16T00:05:00.000Z"
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
+        },
+        "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001"
       }
     },
     {
@@ -5536,22 +5442,18 @@
         "backend_token": "{\"kid\":\"did:webvh:z6mkfixture:media.example#key-1\"}",
         "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
-          "scheme": "ak.media.participant_binding.v1",
-          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-          "focus_id": "fra-1",
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
-          },
-          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
           "sig": "AA"
         },
-        "expires_at": "2026-08-16T00:05:00.000Z"
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
+        },
+        "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001"
       }
     },
     {
@@ -5566,22 +5468,18 @@
         "backend_token": {},
         "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
-          "scheme": "ak.media.participant_binding.v1",
-          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-          "focus_id": "fra-1",
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
-          },
-          "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001",
-          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-08-16T00:00:00.000Z",
           "expires_at": "2026-08-16T00:05:00.000Z",
           "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
           "sig": "AA"
         },
-        "expires_at": "2026-08-16T00:05:00.000Z"
+        "expires_at": "2026-08-16T00:05:00.000Z",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR"
+        },
+        "device_id": "ak:device:0198c2f4-0000-7000-8000-000000000001"
       }
     },
     {
@@ -6353,7 +6251,6 @@
         },
         "limits": {},
         "plaintext_visibility": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
@@ -6397,7 +6294,6 @@
         },
         "limits": {},
         "plaintext_visibility": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
@@ -6442,7 +6338,6 @@
         },
         "limits": {},
         "plaintext_visibility": {},
-        "claimed_profiles": [],
         "verified_profiles": [],
         "interop_surfaces": [],
         "development_mode": false,
@@ -6918,8 +6813,7 @@
       "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome",
       "expect_valid": true,
       "instance": {
-        "welcome_refs": [],
-        "limited": false
+        "welcome_refs": []
       }
     },
     {
@@ -6928,21 +6822,19 @@
       "expect_valid": false,
       "instance": {
         "welcome_refs": [],
-        "limited": true,
         "next_cursor": "opaque"
       },
       "first_expected_error": "contains:non-empty"
     },
     {
-      "name": "welcome_refs_final_with_cursor",
+      "name": "welcome_refs_rejects_removed_limited",
       "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome",
       "expect_valid": false,
       "instance": {
         "welcome_refs": [],
-        "limited": false,
-        "next_cursor": "opaque"
+        "limited": false
       },
-      "first_expected_error": "contains:should not be valid"
+      "first_expected_error": "contains:Additional properties"
     },
     {
       "name": "current_result_typed_freeze",
@@ -7325,23 +7217,17 @@
           "principal_id": "ak:did_core:web:alice.example",
           "station_id": "ak:did_core:web:station.example"
         },
-        "intended_purpose": "collaboration",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:web:station.example"
-              },
-              "verification_method": "did:web:station.example#seal-key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:station.example"
+            },
+            "verification_method": "did:web:station.example#seal-key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
           "max_clock_error_ms": 1000
         }
       }
@@ -7355,8 +7241,7 @@
         "account_id": {
           "principal_id": "ak:did_core:web:alice.example",
           "station_id": "ak:did_core:web:station.example"
-        },
-        "intended_purpose": "collaboration"
+        }
       },
       "first_expected_error": "contains:'notary' is a required property"
     },
@@ -7370,23 +7255,17 @@
           "principal_id": "ak:did_core:web:alice.example",
           "station_id": "ak:did_core:web:station.example"
         },
-        "intended_purpose": "collaboration",
         "notary": {
-          "kind": "quorum",
-          "signers": [
-            {
-              "actor_id": {
-                "kind": "service",
-                "service_id": "ak:did_core:web:station.example"
-              },
-              "verification_method": "did:web:station.example#seal-key-1",
-              "key_kind": "ed25519_raw32",
-              "jose_algorithm": "Ed25519",
-              "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "frozen_public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-            }
-          ],
-          "fault_tolerance": 0,
+          "signer": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:station.example"
+            },
+            "verification_method": "did:web:station.example#seal-key-1",
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
           "max_clock_error_ms": 1000
         },
         "method_history_evidence": {}
@@ -8077,21 +7956,16 @@
             "security_class": "high_assurance",
             "encryption_profile": "mls_rfc9420",
             "notary": {
-              "kind": "quorum",
-              "signers": [
-                {
-                  "actor_id": {
-                    "kind": "service",
-                    "service_id": "ak:did_core:webvh:z6mkfixture"
-                  },
-                  "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
-                  "key_kind": "ed25519_raw32",
-                  "jose_algorithm": "Ed25519",
-                  "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                  "frozen_public_key_digest": "sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-                }
-              ],
-              "fault_tolerance": 0,
+              "signer": {
+                "actor_id": {
+                  "kind": "service",
+                  "service_id": "ak:did_core:webvh:z6mkfixture"
+                },
+                "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
+                "key_kind": "ed25519_raw32",
+                "jose_algorithm": "Ed25519",
+                "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
               "max_clock_error_ms": 1000
             },
             "founding_device_descriptor": {
@@ -8594,23 +8468,11 @@
                 }
               ]
             },
-            "signatures": [
-              {
-                "verification_method": "did:web:notary0.example#seal",
-                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.MchRuckf610dtTcfp-gf9o8kvbtB5UYgmThnSFHG13WJPDpkiqCFn8WxWajt9DIfwh9wfKrJZ0uoIpaJ8SG8Dw"
-              },
-              {
-                "verification_method": "did:web:notary1.example#seal",
-                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.KZPGyXHy84oePPEOaB2Lep1dx09JLMzGphUQQeMUG3kLe59-HNFFhFN-ERnm3XAf16DIC68JPpvezZPnp_VABw"
-              },
-              {
-                "verification_method": "did:web:notary2.example#seal",
-                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.tHMqVUtuLRUdJUywxBZMQx68TN2v1kK_4czfUzpCOK2sdVWksflKgrvqx-QS33QhVSphMtmMMO36mLQh-SyFCg"
-              }
-            ]
+            "signature": {
+              "verification_method": "did:web:notary0.example#seal",
+              "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+              "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.MchRuckf610dtTcfp-gf9o8kvbtB5UYgmThnSFHG13WJPDpkiqCFn8WxWajt9DIfwh9wfKrJZ0uoIpaJ8SG8Dw"
+            }
           }
         ]
       }
@@ -8641,23 +8503,11 @@
                 }
               ]
             },
-            "signatures": [
-              {
-                "verification_method": "did:web:notary0.example#seal",
-                "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.XKULnJ04YT_lQns78KuQFhgGlcTcadbVXXAvfmIo4RufB1MPS1f4ITtp9SoSErmKnOcRepC0Cco7lCyWKSO5CA"
-              },
-              {
-                "verification_method": "did:web:notary1.example#seal",
-                "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.SBOlJ4D0aausxMBcExxH-UCr8Rtk-cKC2u3TVAv_G1ZfUM2iZGaXiFKH15Ub-ebupE54cEJmEJAI-ujgnl-PDw"
-              },
-              {
-                "verification_method": "did:web:notary2.example#seal",
-                "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.YC8bfzSSZY6n8ZkmJjuFVm1Y8VMTfGyxMhHPRs_J2tRS5EKw18QRWYCMzrSl-7_WkF90H3zJxL5x_VM_vB2SBA"
-              }
-            ]
+            "signature": {
+              "verification_method": "did:web:notary0.example#seal",
+              "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
+              "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.XKULnJ04YT_lQns78KuQFhgGlcTcadbVXXAvfmIo4RufB1MPS1f4ITtp9SoSErmKnOcRepC0Cco7lCyWKSO5CA"
+            }
           }
         ]
       }
@@ -8685,23 +8535,11 @@
                 }
               ]
             },
-            "signatures": [
-              {
-                "verification_method": "did:web:notary0.example#seal",
-                "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.C8S9c1O63i3ouyKTcZv-dpAQqpdw1IWEAQvBji7nRQTqLvMek6UwuuDqlY9nE-rvHENXnxtjc1nsFcGs0cOLCA"
-              },
-              {
-                "verification_method": "did:web:notary1.example#seal",
-                "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.uX17kc-Le5zNA-HsTTauskcgAm_lWSadzBD6LWg4PMQ1h8j5PVGI7FM-LOOw-Vr2VI4N4riCI_PIG-sN61KMDw"
-              },
-              {
-                "verification_method": "did:web:notary2.example#seal",
-                "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
-                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.CcKQsZ5YAgezZ96d8iB83Birq9wDm1mlTSrpYH_iYs9KoQkaR9wd-q6oPFKYYsDhs2q6MT3_iD5MC3-36-sUBw"
-              }
-            ]
+            "signature": {
+              "verification_method": "did:web:notary0.example#seal",
+              "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
+              "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.C8S9c1O63i3ouyKTcZv-dpAQqpdw1IWEAQvBji7nRQTqLvMek6UwuuDqlY9nE-rvHENXnxtjc1nsFcGs0cOLCA"
+            }
           }
         ]
       },
@@ -8732,23 +8570,11 @@
                   }
                 ]
               },
-              "signatures": [
-                {
-                  "verification_method": "did:web:notary0.example#seal",
-                  "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
-                  "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.MchRuckf610dtTcfp-gf9o8kvbtB5UYgmThnSFHG13WJPDpkiqCFn8WxWajt9DIfwh9wfKrJZ0uoIpaJ8SG8Dw"
-                },
-                {
-                  "verification_method": "did:web:notary1.example#seal",
-                  "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
-                  "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.KZPGyXHy84oePPEOaB2Lep1dx09JLMzGphUQQeMUG3kLe59-HNFFhFN-ERnm3XAf16DIC68JPpvezZPnp_VABw"
-                },
-                {
-                  "verification_method": "did:web:notary2.example#seal",
-                  "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
-                  "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.tHMqVUtuLRUdJUywxBZMQx68TN2v1kK_4czfUzpCOK2sdVWksflKgrvqx-QS33QhVSphMtmMMO36mLQh-SyFCg"
-                }
-              ]
+              "signature": {
+                "verification_method": "did:web:notary0.example#seal",
+                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.MchRuckf610dtTcfp-gf9o8kvbtB5UYgmThnSFHG13WJPDpkiqCFn8WxWajt9DIfwh9wfKrJZ0uoIpaJ8SG8Dw"
+              }
             }
           ]
         }
@@ -8794,6 +8620,262 @@
           }
         ]
       }
+    },
+    {
+      "name": "calendar_event_supported_only_tzdb_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1"
+        },
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ak.profile.calendar_event.v1"
+        ],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_dpop",
+            "did_http_signature"
+          ]
+        },
+        "limits": {
+          "mls_governance_proof": {
+            "max_exact_response_bytes": 1048576
+          }
+        },
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ],
+        "calendar_tzdb_versions": [
+          "2025a"
+        ]
+      }
+    },
+    {
+      "name": "calendar_event_supported_only_tzdb_missing",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1"
+        },
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ak.profile.calendar_event.v1"
+        ],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_dpop",
+            "did_http_signature"
+          ]
+        },
+        "limits": {
+          "mls_governance_proof": {
+            "max_exact_response_bytes": 1048576
+          }
+        },
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ]
+      },
+      "first_expected_error": "contains:calendar_tzdb_versions"
+    },
+    {
+      "name": "calendar_notification_dispatch_supported_only_tzdb_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1"
+        },
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ak.profile.calendar_notification_dispatch.v1"
+        ],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_dpop",
+            "did_http_signature"
+          ]
+        },
+        "limits": {
+          "mls_governance_proof": {
+            "max_exact_response_bytes": 1048576
+          }
+        },
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ],
+        "calendar_tzdb_versions": [
+          "2025a"
+        ]
+      }
+    },
+    {
+      "name": "calendar_notification_dispatch_supported_only_tzdb_missing",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1"
+        },
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ak.profile.calendar_notification_dispatch.v1"
+        ],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_dpop",
+            "did_http_signature"
+          ]
+        },
+        "limits": {
+          "mls_governance_proof": {
+            "max_exact_response_bytes": 1048576
+          }
+        },
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          }
+        ]
+      },
+      "first_expected_error": "contains:calendar_tzdb_versions"
     }
   ]
 }

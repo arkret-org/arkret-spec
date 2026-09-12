@@ -468,13 +468,6 @@
         "https"
       ],
       "reason": "complete presigned blob download locator"
-    },
-    {
-      "field": "webhook_url",
-      "schemes": [
-        "https"
-      ],
-      "reason": "dereferenceable webhook delivery locator"
     }
   ],
   "registered_uri_reference_fields": [
@@ -519,22 +512,12 @@
     },
     {
       "file": "account-operations.schema.json",
-      "pointer": "/$defs/identity_binding_challenge_outcome/properties/origin",
-      "reason": "complete Web Origin role defined by scheme, host and port"
-    },
-    {
-      "file": "account-operations.schema.json",
       "pointer": "/$defs/identity_creation_control_proof/properties/origin",
       "reason": "complete Web Origin role defined by scheme, host and port"
     },
     {
       "file": "account-operations.schema.json",
       "pointer": "/$defs/did_binding_challenge_outcome/properties/origin",
-      "reason": "complete Web Origin role defined by scheme, host and port"
-    },
-    {
-      "file": "account-operations.schema.json",
-      "pointer": "/$defs/identity_abandonment_challenge_outcome/properties/origin",
       "reason": "complete Web Origin role defined by scheme, host and port"
     },
     {

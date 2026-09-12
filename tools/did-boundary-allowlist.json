@@ -32,10 +32,6 @@
       "category": "registration_or_binding"
     },
     {
-      "pointer": "account-operations.schema.json#/$defs/identity_binding_challenge_outcome/properties/did/$ref",
-      "category": "registration_or_binding"
-    },
-    {
       "pointer": "account-operations.schema.json#/$defs/identity_binding_challenge_request_body/properties/did/$ref",
       "category": "registration_or_binding"
     },

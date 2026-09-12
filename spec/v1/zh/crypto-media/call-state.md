@@ -110,23 +110,12 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
         },
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
-        "foci_preferred": ["fra-1", "us-east-1"],
+        "foci_preferred": [
+          "fra-1",
+          "us-east-1"
+        ],
         "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
-          "scheme": "ak.media.participant_binding.v1",
-          "realm_id": "ak:realm:...",
-          "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-          "focus_id": "fra-1",
-          "actor_id": {
-            "kind": "account",
-            "account_id": {
-              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-            }
-          },
-          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
-          "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
           "sig": "base64url..."
@@ -135,7 +124,10 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
           "audio": true,
           "video": true,
           "screen": false
-        }
+        },
+        "realm_id": "ak:realm:...",
+        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
+        "focus_id": "fra-1"
       }
     }
   }
@@ -173,7 +165,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - `roster_delta.participant.participant_id`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
 - `roster_delta.participant.participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)` 的签名承诺。reducer **MUST** 验证：
   1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ak.realm.media_service.service_id`；
-  2. binding `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_id` 与 participant entry 一致；
+  2. 从 enclosing Event/Call 取得 `realm_id` / `call_id`，从该 participant entry 取得 `focus_id` / 完整 `actor_id` / `device_id` / `participant_id`，并与 binding 的 `expires_at` 重建唯一签名七元组；写入时 entry 的 `focus_id` 必须等于已接受的 selected focus，后续 focus 变化不得重解释旧 entry；
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。

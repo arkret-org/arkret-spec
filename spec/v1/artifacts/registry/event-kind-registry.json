@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.13",
+  "version": "2026-09-12.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T15:42:00+08:00",
+  "generated_at": "2026-09-12T19:42:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -214,10 +214,10 @@
       "plane": "control",
       "sealed": true,
       "admission_checks": [
-        "payload.object.notary.kind is the sole notary profile discriminator; top-level notary_profile is forbidden",
-        "every signer descriptor controller projects to actor_id, decoded key bytes/digest match key_kind, and jose_algorithm is the exact registered algorithm",
-        "signers are field-wise unique by actor_id, verification_method and frozen_public_key_digest; one actor or key cannot occupy multiple voting slots",
-        "kind is quorum, signer count equals 3*fault_tolerance+1, and unsupported key kinds or algorithms are rejected"
+        "payload.object.notary is closed {signer,max_clock_error_ms}; kind, signers, fault_tolerance and top-level notary_profile are forbidden",
+        "the unique signer descriptor controller projects to actor_id, canonical decoded key bytes match key_kind, and jose_algorithm is the exact registered algorithm",
+        "collaboration/direct_conversation require the selected governance Station service signer; identity-control genesis preserves its registered device/controller/root signing authority",
+        "exactly one signer is configured; unsupported key kinds or algorithms are rejected"
       ],
       "cell_writes": [
         {
@@ -985,8 +985,8 @@
       "sealed": true,
       "admission_checks": [
         "the predecessor-state frozen descriptors authorize this Move before the replacement value is installed",
-        "payload.notary.kind is the sole discriminator and every closed branch satisfies the same actor_id, verification_method and frozen_public_key_digest field-wise uniqueness rules as Realm create",
-        "every descriptor controller, decoded key bytes/digest, key_kind and jose_algorithm validate exactly; kind is quorum and signer count equals 3*fault_tolerance+1"
+        "payload.notary is the same closed single-signer configuration as Realm create; the old authorized signer freezes its final position before the successor can write",
+        "the unique descriptor controller, canonical decoded key bytes, key_kind and jose_algorithm validate exactly"
       ],
       "cell_writes": [
         {
@@ -2356,7 +2356,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Authorized event sibling-bucket or full-hash collision resolution. A normally quorum-confirmed fork-resolution Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by exactly one critical recovery_capability reference; state_witness is forbidden. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already confirmed adjudication cannot be silently overwritten by a later safety write.",
+      "payload": "Authorized event sibling-bucket or full-hash collision resolution. A normally single-authority-confirmed fork-resolution Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by exactly one critical recovery_capability reference; state_witness is forbidden. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already confirmed adjudication cannot be silently overwritten by a later safety write.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/fork_resolution_payload",
       "admission": "capability_gated",
       "admission_checks": [
@@ -2457,7 +2457,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
+      "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds governance alerts and explicitly authorized recovery, and is evaluated by governance or the genesis recovery path.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/notary_fault_censorship_payload",
       "admission": "crypto_verifiable",
       "id_source": "not_an_object_id",
@@ -5578,20 +5578,35 @@
             "components": [
               {
                 "kind": "select",
-                "selector": "payload.effective_scope.kind",
+                "selector": "payload.governance_binding.effective_scope.kind",
                 "branches": {
                   "realm": {
-                    "field": "payload.effective_scope.realm_id"
+                    "field": "payload.governance_binding.effective_scope.realm_id"
                   },
                   "circle": {
-                    "field": "payload.effective_scope.circle_id"
+                    "field": "payload.governance_binding.effective_scope.circle_id"
                   },
                   "sidecar": {
-                    "field": "payload.effective_scope.sidecar_id"
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
                   }
                 }
               },
-              "payload.mls_group_id"
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              }
             ]
           },
           "effect_projection": {
@@ -5617,11 +5632,11 @@
               },
               {
                 "name": "effective_scope",
-                "field": "payload.effective_scope"
+                "field": "payload.governance_binding.effective_scope"
               },
               {
                 "name": "mls_group_id",
-                "field": "payload.mls_group_id"
+                "derivation": "mls_group_id_from_effective_scope"
               },
               {
                 "name": "previous_epoch",
@@ -5629,7 +5644,7 @@
               },
               {
                 "name": "next_epoch",
-                "field": "payload.epoch"
+                "field": "payload.governance_binding.next_epoch"
               },
               {
                 "name": "content_scheme",
@@ -5649,20 +5664,35 @@
             "components": [
               {
                 "kind": "select",
-                "selector": "payload.effective_scope.kind",
+                "selector": "payload.governance_binding.effective_scope.kind",
                 "branches": {
                   "realm": {
-                    "field": "payload.effective_scope.realm_id"
+                    "field": "payload.governance_binding.effective_scope.realm_id"
                   },
                   "circle": {
-                    "field": "payload.effective_scope.circle_id"
+                    "field": "payload.governance_binding.effective_scope.circle_id"
                   },
                   "sidecar": {
-                    "field": "payload.effective_scope.sidecar_id"
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
                   }
                 }
               },
-              "payload.mls_group_id"
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              }
             ]
           },
           "effect_projection": {
@@ -5712,7 +5742,22 @@
                   }
                 }
               },
-              "payload.mls_group_id"
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              }
             ]
           },
           "effect_projection": {
@@ -5742,7 +5787,7 @@
               },
               {
                 "name": "mls_group_id",
-                "field": "payload.mls_group_id"
+                "derivation": "mls_group_id_from_effective_scope"
               },
               {
                 "name": "previous_epoch",
@@ -5750,7 +5795,7 @@
               },
               {
                 "name": "next_epoch",
-                "field": "payload.next_epoch"
+                "field": "payload.governance_binding.next_epoch"
               },
               {
                 "name": "content_scheme",
@@ -5783,7 +5828,22 @@
                   }
                 }
               },
-              "payload.mls_group_id"
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              }
             ]
           },
           "effect_projection": {
@@ -5889,7 +5949,22 @@
                   }
                 }
               },
-              "payload.mls_group_id",
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              },
               "payload.recipient_principal_id",
               "payload.recipient_device_id"
             ]
@@ -5931,7 +6006,22 @@
                   }
                 }
               },
-              "payload.mls_group_id",
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              },
               "payload.recipient_agent_id",
               "payload.recipient_agent_verification_method"
             ]
@@ -5959,7 +6049,22 @@
             "kind": "composite",
             "components": [
               "payload.claim_envelope.intended_realm_id",
-              "payload.mls_group_id",
+              {
+                "kind": "select",
+                "selector": "payload.governance_binding.effective_scope.kind",
+                "branches": {
+                  "realm": {
+                    "field": "payload.governance_binding.effective_scope.realm_id"
+                  },
+                  "circle": {
+                    "field": "payload.governance_binding.effective_scope.circle_id"
+                  },
+                  "sidecar": {
+                    "field": "payload.governance_binding.effective_scope.sidecar_id"
+                  }
+                },
+                "transform": "base64url_utf8"
+              },
               "payload.recipient_pairwise_actor_id",
               "payload.recipient_pairwise_verification_method"
             ]
@@ -8817,9 +8922,7 @@
       "conflict_reason": "realm_alias_taken"
     },
     "replication_schema_refs": [
-      "schemas/seal.schema.json#/$defs/vote_transcript",
-      "schemas/seal.schema.json#/$defs/view_change_transcript",
-      "schemas/seal.schema.json#/$defs/new_view_certificate"
+      "schemas/seal.schema.json#/$defs/commit_transcript"
     ]
   },
   "bootstrap_event_kinds": [

@@ -409,6 +409,7 @@ NORMALIZED_STRING_SET_CONTEXTS = {
 
 
 VALUE_PROJECTION_DERIVATIONS = {
+    "mls_group_id_from_effective_scope",
     "event_digest_from_event_id",
     "mls_commit_transition_digest",
     "mls_genesis_transition_digest",

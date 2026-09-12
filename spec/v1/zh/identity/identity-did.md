@@ -965,7 +965,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 - **application-level multi-proof**：DID method 不支持阈值签名时，治理事件携带多个独立 proof；Arkret / governance service 按 `threshold.required`、eligible methods、purpose、expiry 和 history head 检查 quorum。
 - **governance service attestation**：组织 DID 委派的 service DID 聚合审批并签发 attestation。该 service 本身必须由 organization DID 委派，attestation 必须保留参与 signer、policy version、decision id 和 audit digest。
 
-实现不得仅因为 DID method 支持 witness（例如 `did:webvh` witness）就把 witness 当作 threshold signature。Witness 证明历史可见性或日志一致性；quorum 证明治理授权。
+实现不得仅因为 DID method 支持 witness（例如 `did:webvh` witness）就把 witness 当作 threshold signature。Witness 证明历史可见性或日志一致性；治理结果证明治理授权。
 
 ### 8.2 组织治理流程示例
 
@@ -1116,7 +1116,7 @@ organization_id, organization_did, local_admin_subject, version_id, log_head_dig
 `resolved_verification_method` 与 `governance_quorum`，二者都描述**已发布的成熟 DID**。
 新建 Organization DID 属独立的 organization inception / governance ceremony，
 在本 family 中没有成员——接收方不必猜测某个 proof 主张的是既有控制权还是新建。
-按 §8.1，witness 不是 quorum：witness 证明历史可见性，quorum 证明治理授权，
+按 §8.1，witness 不是 quorum：witness 证明历史可见性，治理结果证明治理授权，
 `governance_quorum` 分支 MUST NOT 用 witness attestation 充数。
 
 **生命周期唯一。** receipt 的 `status` 是封闭三值：

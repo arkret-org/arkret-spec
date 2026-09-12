@@ -60,10 +60,6 @@
       "new": "ak.find.directory.command.withdraw.v1"
     },
     {
-      "old": "ak.find.directory.push.command.register",
-      "new": "ak.find.directory.push.command.register.v1"
-    },
-    {
       "old": "ak.find.directory.read.describe",
       "new": "ak.find.directory.read.describe.v1"
     },
@@ -126,10 +122,6 @@
     {
       "old": "ak.gate.account.command.issue_did_binding_challenge",
       "new": "ak.gate.account.command.issue_did_binding_challenge.v1"
-    },
-    {
-      "old": "ak.gate.account.command.issue_identity_abandonment_challenge",
-      "new": "ak.gate.account.command.issue_identity_abandonment_challenge.v1"
     },
     {
       "old": "ak.gate.account.command.issue_identity_binding_challenge",
@@ -954,10 +946,6 @@
     {
       "old": "ak.self.seals.read.history_authority",
       "new": "ak.self.seals.read.history_authority.v1"
-    },
-    {
-      "old": "ak.self.seals.read.membership_authority",
-      "new": "ak.self.seals.read.membership_authority.v1"
     },
     {
       "old": "ak.self.seals.read.mls_accepted_artifact",

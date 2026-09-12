@@ -48,12 +48,12 @@
     {
       "name": "realm_genesis_id_is_derived_and_self_certifying",
       "vector_id": "ak.vector.object_identity.event_derived.v1",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"actor_seq\":0,\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"content_scheme\":\"mls_rfc9420\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkfixture\",\"default_discoverability\":\"invite_only\",\"default_join_rule\":\"invite\",\"encryption_profile\":\"mls_rfc9420\",\"fields\":{},\"history_access\":\"since_join\",\"notary\":{\"fault_tolerance\":0,\"kind\":\"quorum\",\"max_clock_error_ms\":1000,\"signers\":[{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"frozen_public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"frozen_public_key_digest\":\"sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925\",\"jose_algorithm\":\"Ed25519\",\"key_kind\":\"ed25519_raw32\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#key-1\"}]},\"reducer_profile\":\"ak.reducer.core.v1\",\"schema\":\"ak.schema.realm.v1\",\"schema_refs\":[\"ak.schema.realm.v1\"],\"title\":\"Vector Realm\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"prev_refs\":[],\"refs\":[],\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:86a279bf3300127c118fca28b764cb3c10be2a7f620a682e94991521f1ff572b",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"actor_seq\":0,\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"content_scheme\":\"mls_rfc9420\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkfixture\",\"default_discoverability\":\"invite_only\",\"default_join_rule\":\"invite\",\"encryption_profile\":\"mls_rfc9420\",\"fields\":{},\"history_access\":\"since_join\",\"notary\":{\"max_clock_error_ms\":1000,\"signer\":{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"frozen_public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"jose_algorithm\":\"Ed25519\",\"key_kind\":\"ed25519_raw32\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#key-1\"}},\"reducer_profile\":\"ak.reducer.core.v1\",\"schema\":\"ak.schema.realm.v1\",\"schema_refs\":[\"ak.schema.realm.v1\"],\"title\":\"Vector Realm\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"prev_refs\":[],\"refs\":[],\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:f0aec80ee2a011ad3078eb7c90121bd07354065c15bdef1dba317a4449db3ae0",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "0186a279bf3300127c118fca28b764cb3c10be2a7f620a682e94991521f1ff572b",
-      "derived_event_id": "ak:event:AYaieb8zABJ8EY_KKLdkyzwQvip_YgpoLpSZFSHx_1cr",
-      "derived_realm_id": "ak:realm:AYaieb8zABJ8EY_KKLdkyzwQvip_YgpoLpSZFSHx_1cr",
+      "event_id_bytes_hex": "01f0aec80ee2a011ad3078eb7c90121bd07354065c15bdef1dba317a4449db3ae0",
+      "derived_event_id": "ak:event:AfCuyA7ioBGtMHjrfJASG9BzVAZcFb3vHboxekRJ2zrg",
+      "derived_realm_id": "ak:realm:AfCuyA7ioBGtMHjrfJASG9BzVAZcFb3vHboxekRJ2zrg",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -74,12 +74,12 @@
       "realm_purpose": "agent_control",
       "step": 1,
       "note": "Constructibility proof for the encoding.md 6.0.1 class C exemption, step 1: the controller freezes the Agent PCR genesis envelope and derives its realm id before anything is submitted. Nothing in this preimage names the provision Event.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkagent\",\"actor_seq\":0,\"authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"executed_by\":\"ak:did_core:webvh:z6mkcontroller\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkagent\",\"digest_algorithm\":\"sha256\",\"encryption_profile\":\"mls_rfc9420\",\"genesis_salt\":\"Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMDA\",\"notary\":{\"fault_tolerance\":0,\"kind\":\"quorum\",\"max_clock_error_ms\":1000,\"signers\":[{\"actor_id\":\"ak:did_core:webvh:z6mkagent\",\"frozen_public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"frozen_public_key_digest\":\"sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925\",\"jose_algorithm\":\"Ed25519\",\"key_kind\":\"ed25519_raw32\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#key-1\"}]},\"purpose\":\"agent_control\",\"reducer_profile\":\"ak.reducer.core.v1\",\"schema\":\"ak.schema.realm_genesis.v1\",\"schema_refs\":[\"ak.profile.principal_control_realm.v1\"],\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"prev_refs\":[],\"refs\":[],\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:96bd898fb74d57342fbaa13b1805c7b4443c40d9a3001d5d4c5b3661309cca39",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkagent\",\"actor_seq\":0,\"authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"executed_by\":\"ak:did_core:webvh:z6mkcontroller\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkagent\",\"digest_algorithm\":\"sha256\",\"encryption_profile\":\"mls_rfc9420\",\"genesis_salt\":\"Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMDA\",\"notary\":{\"max_clock_error_ms\":1000,\"signer\":{\"actor_id\":\"ak:did_core:webvh:z6mkagent\",\"frozen_public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"jose_algorithm\":\"Ed25519\",\"key_kind\":\"ed25519_raw32\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#key-1\"}},\"purpose\":\"agent_control\",\"reducer_profile\":\"ak.reducer.core.v1\",\"schema\":\"ak.schema.realm_genesis.v1\",\"schema_refs\":[\"ak.profile.principal_control_realm.v1\"],\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"prev_refs\":[],\"refs\":[],\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:5f04a0fd0c887179f7559647949f1d99e64102612853a0f9eaf27826ba10d457",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "0196bd898fb74d57342fbaa13b1805c7b4443c40d9a3001d5d4c5b3661309cca39",
-      "derived_event_id": "ak:event:AZa9iY-3TVc0L7qhOxgFx7REPEDZowAdXUxbNmEwnMo5",
-      "derived_realm_id": "ak:realm:AZa9iY-3TVc0L7qhOxgFx7REPEDZowAdXUxbNmEwnMo5",
+      "event_id_bytes_hex": "015f04a0fd0c887179f7559647949f1d99e64102612853a0f9eaf27826ba10d457",
+      "derived_event_id": "ak:event:AV8EoP0MiHF591WWR5SfHZnmQQJhKFOg-eryeCa6ENRX",
+      "derived_realm_id": "ak:realm:AV8EoP0MiHF591WWR5SfHZnmQQJhKFOg-eryeCa6ENRX",
       "envelope_omits": [
         "event_id",
         "realm_id"

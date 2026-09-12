@@ -411,12 +411,10 @@ def build_traversal_replay_kat() -> dict[str, Any]:
         "key_kind": "ed25519_raw32",
         "jose_algorithm": "Ed25519",
         "frozen_public_key_b64u": historical_public_key_b64u,
-        "frozen_public_key_digest": "sha256:10ba682c8ad13513971e8b56881aab8bd702bb807796eca81932c735a94d6e6d",
     }
     current_descriptor = {
         **historical_descriptor,
         "frozen_public_key_b64u": current_public_key_b64u,
-        "frozen_public_key_digest": "sha256:1325b850c2871916eae203f0efc3c8987f64e5e3cdb27679e6d1fa97808357e6",
     }
     return {
         "version": "2026-08-31",
@@ -1140,9 +1138,7 @@ def build_rhrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
     governance_binding = {
         "binding_version": 1,
         "encoding_profile": "cbor-deterministic-rfc8949-v1",
-        "realm_id": REALM,
         "effective_scope": effective_scope,
-        "mls_group_id": GROUP,
         "previous_epoch": epoch - 1,
         "next_epoch": epoch,
         "security_frontier_digest": digest_marker(0x71),
@@ -1152,11 +1148,8 @@ def build_rhrk_durable_before_gc_kat(schemas: SchemaSet) -> dict[str, Any]:
         "reducer_profile": "ak.reducer.default.v1",
     }
     container_payload = {
-        "mls_group_id": GROUP,
-        "base_epoch": epoch - 1,
         "base_epoch_ref": event_id("rhrk-base-epoch"),
         "proposal_refs": [],
-        "next_epoch": epoch,
         "commit_bytes_b64": b64u(transition_bytes),
         "commit_message_ref": "ak:blob:" + transition_digest,
         "governance_binding": governance_binding,

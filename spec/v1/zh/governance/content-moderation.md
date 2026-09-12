@@ -276,7 +276,7 @@ Franking 信任链：
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
 5. 按上述唯一 JCS transcript 验证签名，并对 `replay_nonce` 执行有界跨举报去重。
-6. 若需要证明 franking proof 在服务 key 有效期内已存在，取得 byte-identical proof Event、一个确认安全 Seal 中的确切 `existence_anchor` 和完整普通 Event frontier 祖先依赖。验证确切 franking grant/generation、原 producer proof/authority refs、target、服务 key、Seal quorum 与有界时间；整个 anchor 不确定区间必须位于 key 有效期且不早于 `proof.received_at`。proof Event 不进入 Seal.delta，anchor 只对其已存在这一安全事实作承诺。它不证明自报 received_at 恰为真实投递时间。缺证据时只保留服务签名声明，不宣称有独立时间证明；普通聊天不等待该可选证明。
+6. 若需要证明 franking proof 在服务 key 有效期内已存在，取得 byte-identical proof Event、一个确认安全 Seal 中的确切 `existence_anchor` 和完整普通 Event frontier 祖先依赖。验证确切 franking grant/generation、原 producer proof/authority refs、target、服务 key、Seal 唯一签名 与有界时间；整个 anchor 不确定区间必须位于 key 有效期且不早于 `proof.received_at`。proof Event 不进入 Seal.delta，anchor 只对其已存在这一安全事实作承诺。它不证明自报 received_at 恰为真实投递时间。缺证据时只保留服务签名声明，不宣称有独立时间证明；普通聊天不等待该可选证明。
 
 ## 4. 用户屏蔽 (Ignore/Block)
 

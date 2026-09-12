@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.23",
+  "version": "2026-09-12.25",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T20:45:44+08:00",
+  "generated_at": "2026-09-12T22:13:28+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -3173,7 +3173,22 @@
                     }
                   }
                 },
-                "payload.mls_group_id"
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                }
               ]
             },
             "effect_projection": {
@@ -3203,7 +3218,7 @@
                 },
                 {
                   "name": "mls_group_id",
-                  "field": "payload.mls_group_id"
+                  "derivation": "mls_group_id_from_effective_scope"
                 },
                 {
                   "name": "previous_epoch",
@@ -3211,7 +3226,7 @@
                 },
                 {
                   "name": "next_epoch",
-                  "field": "payload.next_epoch"
+                  "field": "payload.governance_binding.next_epoch"
                 },
                 {
                   "name": "content_scheme",
@@ -3244,7 +3259,22 @@
                     }
                   }
                 },
-                "payload.mls_group_id"
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                }
               ]
             },
             "effect_projection": {
@@ -3314,20 +3344,35 @@
               "components": [
                 {
                   "kind": "select",
-                  "selector": "payload.effective_scope.kind",
+                  "selector": "payload.governance_binding.effective_scope.kind",
                   "branches": {
                     "realm": {
-                      "field": "payload.effective_scope.realm_id"
+                      "field": "payload.governance_binding.effective_scope.realm_id"
                     },
                     "circle": {
-                      "field": "payload.effective_scope.circle_id"
+                      "field": "payload.governance_binding.effective_scope.circle_id"
                     },
                     "sidecar": {
-                      "field": "payload.effective_scope.sidecar_id"
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
                     }
                   }
                 },
-                "payload.mls_group_id"
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                }
               ]
             },
             "effect_projection": {
@@ -3353,11 +3398,11 @@
                 },
                 {
                   "name": "effective_scope",
-                  "field": "payload.effective_scope"
+                  "field": "payload.governance_binding.effective_scope"
                 },
                 {
                   "name": "mls_group_id",
-                  "field": "payload.mls_group_id"
+                  "derivation": "mls_group_id_from_effective_scope"
                 },
                 {
                   "name": "previous_epoch",
@@ -3365,7 +3410,7 @@
                 },
                 {
                   "name": "next_epoch",
-                  "field": "payload.epoch"
+                  "field": "payload.governance_binding.next_epoch"
                 },
                 {
                   "name": "content_scheme",
@@ -3385,20 +3430,35 @@
               "components": [
                 {
                   "kind": "select",
-                  "selector": "payload.effective_scope.kind",
+                  "selector": "payload.governance_binding.effective_scope.kind",
                   "branches": {
                     "realm": {
-                      "field": "payload.effective_scope.realm_id"
+                      "field": "payload.governance_binding.effective_scope.realm_id"
                     },
                     "circle": {
-                      "field": "payload.effective_scope.circle_id"
+                      "field": "payload.governance_binding.effective_scope.circle_id"
                     },
                     "sidecar": {
-                      "field": "payload.effective_scope.sidecar_id"
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
                     }
                   }
                 },
-                "payload.mls_group_id"
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                }
               ]
             },
             "effect_projection": {
@@ -3513,7 +3573,22 @@
                     }
                   }
                 },
-                "payload.mls_group_id",
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                },
                 "payload.recipient_principal_id",
                 "payload.recipient_device_id"
               ]
@@ -3555,7 +3630,22 @@
                     }
                   }
                 },
-                "payload.mls_group_id",
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                },
                 "payload.recipient_agent_id",
                 "payload.recipient_agent_verification_method"
               ]
@@ -3583,7 +3673,22 @@
               "kind": "composite",
               "components": [
                 "payload.claim_envelope.intended_realm_id",
-                "payload.mls_group_id",
+                {
+                  "kind": "select",
+                  "selector": "payload.governance_binding.effective_scope.kind",
+                  "branches": {
+                    "realm": {
+                      "field": "payload.governance_binding.effective_scope.realm_id"
+                    },
+                    "circle": {
+                      "field": "payload.governance_binding.effective_scope.circle_id"
+                    },
+                    "sidecar": {
+                      "field": "payload.governance_binding.effective_scope.sidecar_id"
+                    }
+                  },
+                  "transform": "base64url_utf8"
+                },
                 "payload.recipient_pairwise_actor_id",
                 "payload.recipient_pairwise_verification_method"
               ]
@@ -4275,10 +4380,10 @@
         "plane": "control",
         "sealed": true,
         "admission_checks": [
-          "payload.object.notary.kind is the sole notary profile discriminator; top-level notary_profile is forbidden",
-          "every signer descriptor controller projects to actor_id, decoded key bytes/digest match key_kind, and jose_algorithm is the exact registered algorithm",
-          "signers are field-wise unique by actor_id, verification_method and frozen_public_key_digest; one actor or key cannot occupy multiple voting slots",
-          "kind is quorum, signer count equals 3*fault_tolerance+1, and unsupported key kinds or algorithms are rejected"
+          "payload.object.notary is closed {signer,max_clock_error_ms}; kind, signers, fault_tolerance and top-level notary_profile are forbidden",
+          "the unique signer descriptor controller projects to actor_id, canonical decoded key bytes match key_kind, and jose_algorithm is the exact registered algorithm",
+          "collaboration/direct_conversation require the selected governance Station service signer; identity-control genesis preserves its registered device/controller/root signing authority",
+          "exactly one signer is configured; unsupported key kinds or algorithms are rejected"
         ],
         "cell_writes": [
           {
@@ -4860,8 +4965,8 @@
         "sealed": true,
         "admission_checks": [
           "the predecessor-state frozen descriptors authorize this Move before the replacement value is installed",
-          "payload.notary.kind is the sole discriminator and every closed branch satisfies the same actor_id, verification_method and frozen_public_key_digest field-wise uniqueness rules as Realm create",
-          "every descriptor controller, decoded key bytes/digest, key_kind and jose_algorithm validate exactly; kind is quorum and signer count equals 3*fault_tolerance+1"
+          "payload.notary is the same closed single-signer configuration as Realm create; the old authorized signer freezes its final position before the successor can write",
+          "the unique descriptor controller, canonical decoded key bytes, key_kind and jose_algorithm validate exactly"
         ],
         "cell_writes": [
           {
@@ -6980,7 +7085,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Authorized event sibling-bucket or full-hash collision resolution. A normally quorum-confirmed fork-resolution Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by exactly one critical recovery_capability reference; state_witness is forbidden. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already confirmed adjudication cannot be silently overwritten by a later safety write.",
+        "payload": "Authorized event sibling-bucket or full-hash collision resolution. A normally single-authority-confirmed fork-resolution Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by exactly one critical recovery_capability reference; state_witness is forbidden. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already confirmed adjudication cannot be silently overwritten by a later safety write.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/fork_resolution_payload",
         "admission": "capability_gated",
         "admission_checks": [
@@ -7009,7 +7114,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
+        "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds governance alerts and explicitly authorized recovery, and is evaluated by governance or the genesis recovery path.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/notary_fault_censorship_payload",
         "admission": "crypto_verifiable",
         "id_source": "not_an_object_id"
@@ -8721,8 +8826,8 @@
         }
       }
     },
-    "version": "2026-09-12.13",
-    "generated_at": "2026-09-12T20:45:44+08:00",
+    "version": "2026-09-12.15",
+    "generated_at": "2026-09-12T19:38:00+08:00",
     "history_admission_contract": {
       "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
       "consumer_contexts": [
@@ -9503,9 +9608,7 @@
         "conflict_reason": "realm_alias_taken"
       },
       "replication_schema_refs": [
-        "schemas/seal.schema.json#/$defs/vote_transcript",
-        "schemas/seal.schema.json#/$defs/view_change_transcript",
-        "schemas/seal.schema.json#/$defs/new_view_certificate"
+        "schemas/seal.schema.json#/$defs/commit_transcript"
       ]
     },
     "bootstrap_event_kinds": [
@@ -9990,7 +10093,7 @@
         "schema_id": "ak.schema.control_proposal_decision.v1",
         "file": "schemas/control-proposal-decision.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for quorum-capable Control Proposal Acks and signed deferrals (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
+        "description": "Closed request/response DTO bundle for single-authority Control Proposal Acks and signed deferrals (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
       },
       {
         "schema_id": "ak.schema.controller_account_gate_attestation.v1",
@@ -10296,17 +10399,6 @@
           "kind": "standalone_schema_alias",
           "selector": "principal resolution evidence or service resolution record",
           "normative_ref": "zh/identity/identity-did.md"
-        }
-      },
-      {
-        "schema_id": "ak.schema.inclusion_list.v1",
-        "file": "schemas/inclusion-list.schema.json",
-        "status": "active",
-        "description": "Inclusion-list accountability for a configuration with a distinct non-proposer signer. Each obliged proposal requires its explicit committed or rejected result in the unique confirmed Seal; a standalone verification-failure claim is insufficient.",
-        "consumer_binding": {
-          "kind": "standalone_schema_alias",
-          "selector": "control-plane inclusion list",
-          "normative_ref": "zh/authz/event-auth-state-resolution.md"
         }
       },
       {
@@ -10906,7 +10998,7 @@
         "schema_id": "ak.schema.seal_conclusion.v1",
         "file": "schemas/seal-conclusion.schema.json",
         "status": "active",
-        "description": "Scope-authorized quorum conclusions and frozen configuration handoffs for non-voting receivers."
+        "description": "Scope-authorized single-authority governance conclusions and frozen configuration handoffs for governance-result receivers."
       },
       {
         "schema_id": "ak.schema.seal_transparency.v1",
@@ -10947,7 +11039,7 @@
         "schema_id": "ak.schema.service_describe.v1",
         "file": "schemas/service-describe.schema.json",
         "status": "active",
-        "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / claimed_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+        "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / supported_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
       },
       {
         "schema_id": "ak.schema.service_identity_bundle.v1",
@@ -11208,8 +11300,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-12.15",
-    "generated_at": "2026-09-12T20:45:44+08:00"
+    "version": "2026-09-12.16",
+    "generated_at": "2026-09-12T21:15:06+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -12330,7 +12422,6 @@
           "ak.self.seals.read.mls_governance_proof.v1",
           "ak.self.seals.read.mls_accepted_artifact.v1",
           "ak.self.seals.read.mls_welcome_refs.v1",
-          "ak.self.seals.read.membership_authority.v1",
           "ak.self.seals.read.mls_membership_removal.v1",
           "ak.self.seals.read.history_authority.v1",
           "ak.self.seals.read.governance_dependencies.v1",
@@ -12420,8 +12511,7 @@
           "ak.find.directory.read.list_handles_for_subject.v1",
           "ak.find.directory.read.private_contact_discovery.v1",
           "ak.find.directory.command.announce.v1",
-          "ak.find.directory.command.withdraw.v1",
-          "ak.find.directory.push.command.register.v1"
+          "ak.find.directory.command.withdraw.v1"
         ],
         "surface_class": "extension"
       },
@@ -12687,7 +12777,6 @@
           "ak.gate.account.command.issue_controller_gate_attestation.v1",
           "ak.gate.account.command.issue_identity_binding_challenge.v1",
           "ak.gate.account.command.issue_did_binding_challenge.v1",
-          "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
           "ak.gate.account.command.abandon_identity_creation.v1",
           "ak.gate.account.command.register.v1",
           "ak.gate.account.command.pair_device.v1",
@@ -12911,7 +13000,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": ""
+        "notes": "Provided by the push_gateway role. The source Station or delegated notification service must be authorized by the exact durable registration. Notification devices carry only device_id; registration routes and tokens are not supplied by this request. See push-notifications.md sections 3.3 and 5.1 for the shared-deployment prerequisite and the absent independent-store handoff contract."
       },
       {
         "operation_id": "ak.edge.push.command.register_device.v1",
@@ -12931,7 +13020,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": ""
+        "notes": "Provided only by the authenticated AccountId.station_id Station role. The optional station.push bundle contains both registration operations; a push_gateway role does not acquire Account registration authority."
       },
       {
         "operation_id": "ak.edge.push.command.unregister_device.v1",
@@ -12950,7 +13039,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": ""
+        "notes": "Provided only by the authenticated AccountId.station_id Station role. The optional station.push bundle contains both registration operations; a push_gateway role does not acquire Account registration authority."
       },
       {
         "operation_id": "ak.find.directory.command.announce.v1",
@@ -12997,26 +13086,6 @@
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        },
-        "notes": ""
-      },
-      {
-        "operation_id": "ak.find.directory.push.command.register.v1",
-        "http": "POST /_arkret/find/directory/push/register",
-        "grpc": "FindDirectory/PushRegister",
-        "mq": "find.directory.push.command.register",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "manual_confirmation"
-        },
-        "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
-        "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
@@ -13158,7 +13227,7 @@
         "operation_id": "ak.gate.account.command.abandon_identity_creation.v1",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/identity-abandonments",
-        "notes": "Consume an identity-abandonment challenge and explicitly abandon the provisional identity. Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header; the presented handoff MUST be a fresh one and MUST NOT be the grant that was presented when the challenge was issued. Whether that fresh handoff required re-authentication, which risk checks ran and how long any cooldown lasts are deployment governance and are deliberately not specified. One transaction consumes the challenge, records the orphan anchor tombstone / audit reservation, suppresses the reserved_identity_creation checkpoint on every holder-readable surface and releases the identity-creation lease; any step failing means zero writes. If the PCR was accepted between issuance and confirmation the request MUST fail with identity_creation_already_accepted and MUST NOT abandon anything, because removing an established identity is the account deletion path. Replaying the same request_id returns the same terminal outcome and MUST NOT produce a second tombstone. The abandoned entry 0 stays a permanently unusable orphan anchor; its later handling is deployment governance.",
+        "notes": "Explicit one-step abandonment with a fresh holder-bound account handoff obtained for this confirmation. Validate exact request_id, principal_id, did_version_id, live lease/fence against the durable onboarding checkpoint and confirm PCR was never accepted. The client displays the fixed consequences before sending. Atomically record one orphan tombstone, suppress the checkpoint and release the lease; exact replay returns the same terminal outcome, while an accepted-PCR race returns identity_creation_already_accepted with zero writes.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -13221,22 +13290,6 @@
         "retry_safe": true,
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_request_body",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "persists_only_a_service_local_single_use_challenge_no_event_is_authored"
-        }
-      },
-      {
-        "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
-        "http_only_variant": true,
-        "http": "POST /_arkret/gate/account/identity-abandonment-challenges",
-        "notes": "Issue a single-use challenge that authorizes explicitly abandoning a provisional identity whose PCR was never accepted (zh/identity/key-management.md §5.0.2). Authenticated by Authorization: DPoP <account_handoff_grant> plus a matching DPoP header, and by nothing else: the PCR was never accepted, so the holder has no principal and therefore no principal-bound ak.session.grant. The Account Authority verifies the current lease holder and fence, requires principal_id and did_version_id to equal the holder-authenticated reserved_identity_creation checkpoint, and MUST refuse to issue a challenge once that PCR is accepted. The <=300s single-use challenge is bound to account_subject, holder cnf.jkt, the abandoned principal_id, did_version_id, lease id and fence, the closed consequence disclosure, audience, origin, trust domain, purpose and expiry. Repeating the same request_id returns the same unconsumed challenge. Challenge state MUST be shared durable state, not process-local memory; expiry and prior consumption are distinct terminal states. This operation abandons nothing by itself and MUST NOT be reachable from ordinary login, session resume, lease fence advance or any automated flow.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "request_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_request_body",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_abandonment_challenge_outcome",
         "durable_effect": {
           "kind": "none",
           "rationale": "persists_only_a_service_local_single_use_challenge_no_event_is_authored"
@@ -14329,7 +14382,7 @@
         "http": "QUERY /_arkret/peer/seals/resolve",
         "grpc": "PeerSeals/Resolve",
         "mq": "peer.seals.read.resolve",
-        "notes": "Exact raw seal_refs OR bounded conclusion_queries, never both. Same existing authorization and retained history access; quorum conclusions follow cbs-profiles section 9. No generic private-scope grant. Unknown, unauthorized and unavailable conclusion queries share missing treatment. Request <=64 KiB; response <=8 MiB.",
+        "notes": "Exact raw seal_refs OR bounded conclusion_queries, never both. Same existing authorization and retained history access; single-authority governance conclusions follow cbs-profiles section 9. No generic private-scope grant. Unknown, unauthorized and unavailable conclusion queries share missing treatment. Request <=64 KiB; response <=8 MiB.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
@@ -15566,7 +15619,7 @@
         "http": "POST /_arkret/self/control-proposal-acks",
         "grpc": "SelfControlProposalAcks/Issue",
         "mq": "self.control_proposal_acks.command.issue",
-        "notes": "Issue one immutable current-authority authority Ack for a fully signed Control Move. Local device/Agent authorities use the same typed request and outcome without an HTTP hop. A caller canonically sorts distinct authority Acks and may submit the resulting receipt set only when the current notary profile quorum and common-window rules are satisfied.",
+        "notes": "Issue one immutable Ack signed by the sole configured authority for a fully signed Control Move. Local device/Agent authorities use the same typed request and outcome without an HTTP hop. The Ack binds the exact unsigned receipt including kind and defer_count; retries preserve its original deadlines and signature.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "canonical_hash",
@@ -15584,7 +15637,7 @@
         "http": "POST /_arkret/self/control-proposal-decisions",
         "grpc": "SelfControlProposalDecisions/Submit",
         "mq": "self.control_proposal_decisions.command.submit",
-        "notes": "Authenticated submission of one complete signed_defer for a still-pending proposal. Resolve the durable proposal and immutable canonical Ack, recompute proposal_ack_digest, verify exact Realm/proposal/authority/deadline chain and quorum, then atomically store the deferral. Exact replay returns the first durable result even after the proposal is terminal; a new deferral after a terminal Seal is rejected. This operation cannot decide acceptance, rejection or clear a device pending gate; only the unique confirmed Seal command_result can do that.",
+        "notes": "Authenticated submission of one complete signed_defer for a still-pending proposal. Resolve the durable proposal and immutable canonical Ack, recompute proposal_ack_digest, verify exact Realm/proposal/authority/deadline chain and sole configured authority signature, then atomically store the deferral. Exact replay returns the first durable result even after the proposal is terminal; a new deferral after a terminal Seal is rejected. This operation cannot decide acceptance, rejection or clear a device pending gate; only the unique confirmed Seal command_result can do that.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -16529,7 +16582,7 @@
         "http": "POST /_arkret/self/seals",
         "grpc": "SelfSeals/Submit",
         "mq": "self.seals.command.submit",
-        "notes": "Submit a complete Seal and its commit quorum certificate directly. Recompute stable body identity, single predecessor continuity, ordered command results, registered effects, safety roots, configuration and ak.seal.commit.v1 signatures. Ordinary data cannot enter the safety delta.",
+        "notes": "Submit a complete Seal and its single commit signature directly. Recompute stable body identity, single predecessor continuity, ordered command results, registered effects, safety roots, configuration and ak.seal.commit.v1 signatures. Ordinary data cannot enter the safety delta.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "canonical_hash",
@@ -16570,24 +16623,12 @@
         "http": "POST /_arkret/self/seals/history-authority",
         "grpc": "SelfSeals/HistoryAuthority",
         "mq": "self.seals.read.history_authority",
-        "notes": "Current exact membership, MLS join epoch and scope policy floor. Request and complete response each at most 64 KiB. No client governance checkpoint or replay; not a key release grant.",
+        "notes": "Return exact current membership incarnation at the supplied accepted basis. Include join_epoch and history_floor_epoch together only when a unique MLS lineage is available; membership-only success remains valid. History consumers treat absent epoch fields as frontier_unavailable. Request and outcome <=64 KiB.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request_body",
         "response_schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome"
-      },
-      {
-        "operation_id": "ak.self.seals.read.membership_authority.v1",
-        "http": "POST /_arkret/self/seals/membership-authority",
-        "grpc": "SelfSeals/MembershipAuthority",
-        "mq": "self.seals.read.membership_authority",
-        "notes": "Current accepted membership incarnation for one exact Realm/Circle and ActorId at the current confirmed basis. Recheck current requester visibility and target membership; no client replay, all-members list or history closure. Request and complete response each at most 64 KiB.",
-        "body_class": "non_streaming_json",
-        "max_canonical_body_bytes": 65536,
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_request_body",
-        "response_schema_ref": "schemas/history-key.schema.json#/$defs/membership_authority_outcome"
       },
       {
         "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
@@ -16618,9 +16659,9 @@
         "http": "POST /_arkret/self/seals/mls-membership-removal",
         "grpc": "SelfSeals/MlsMembershipRemoval",
         "mq": "self.seals.read.mls_membership_removal",
-        "notes": "Own-Station exact current MLS base-tree reconciliation. Current authorization and per-leaf retained admission incarnation/key binding determine a complete sorted removal subset; no client governance history. Request <=8 MiB, complete response <=1 MiB; no continuation.",
+        "notes": "Compare the submitted canonical leaf-set digest with the exact durable accepted public base ledger, then return complete removal indices plus evaluated basis/base/epoch. Request <=64 KiB; outcome <=1 MiB. Current disclosure and per-leaf admission provenance checks remain mandatory.",
         "body_class": "non_streaming_json",
-        "max_canonical_body_bytes": 8388608,
+        "max_canonical_body_bytes": 65536,
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_request_body",
         "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome"
@@ -16653,7 +16694,7 @@
         "http": "QUERY /_arkret/self/seals/resolve",
         "grpc": "SelfSeals/Resolve",
         "mq": "self.seals.read.resolve",
-        "notes": "Exact raw seal_refs OR bounded conclusion_queries, never both. Same existing authorization and retained history access; quorum conclusions follow cbs-profiles section 9. No generic private-scope grant. Unknown, unauthorized and unavailable conclusion queries share missing treatment. Request <=64 KiB; response <=8 MiB.",
+        "notes": "Exact raw seal_refs OR bounded conclusion_queries, never both. Same existing authorization and retained history access; single-authority governance conclusions follow cbs-profiles section 9. No generic private-scope grant. Unknown, unauthorized and unavailable conclusion queries share missing treatment. Request <=64 KiB; response <=8 MiB.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
@@ -16800,7 +16841,7 @@
       "empty_response": "No success body is defined."
     },
     "version": "2026-09-12.18",
-    "generated_at": "2026-09-12T20:45:44+08:00",
+    "generated_at": "2026-09-12T19:38:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17066,10 +17107,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.gate.account.command.request_erasure.v1",
             "binding_kind": "http_json"
           },
@@ -17150,10 +17187,6 @@
           },
           {
             "operation_id": "ak.find.directory.command.withdraw.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.find.directory.push.command.register.v1",
             "binding_kind": "http_json"
           },
           {
@@ -18110,10 +18143,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.seals.read.membership_authority.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
             "binding_kind": "http_json"
           },
@@ -18227,10 +18256,6 @@
           "ak.deployment_prototype.soland_station.v1#push"
         ],
         "members": [
-          {
-            "operation_id": "ak.edge.push.command.notify.v1",
-            "binding_kind": "http_json"
-          },
           {
             "operation_id": "ak.edge.push.command.register_device.v1",
             "binding_kind": "http_json"
@@ -21398,7 +21423,7 @@
         "required_profiles": [],
         "required_limits": [],
         "semantic_guarantees": [
-          "Last-resort KeyPackages follow the replay, consumption, and rotation rules of the normative MLS contract."
+          "Last-resort KeyPackages follow the replay, consumption, and rotation rules of the normative MLS contract. Expiry bounds new distribution eligibility only; captured Welcome confidentiality is not restored by expiry or rotation, and future epoch recovery depends on effective secret updates and the MLS threat conditions."
         ],
         "conflicts": []
       },
@@ -21448,8 +21473,8 @@
         "conflicts": []
       }
     ],
-    "version": "2026-09-08.3",
-    "generated_at": "2026-09-12T20:45:44+08:00"
+    "version": "2026-09-08.4",
+    "generated_at": "2026-09-12T20:15:07+08:00"
   },
   "current_result_registry": {
     "version": "2026-09-12.6",

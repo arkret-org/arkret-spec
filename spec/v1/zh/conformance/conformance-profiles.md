@@ -123,7 +123,7 @@ assertion 名补前缀、映射为 feature，或为缺失项生成兼容 alias�
 
 §2.1 的"实现只声明自己实际支持的 profile"对可裁剪模块构建（Cargo feature、编译开关、插件拆分等形态的实现或 SDK）有一条显式推论：
 
-- 以可裁剪模块构建的实现 / SDK MUST 保证其 profile 声明面（`ServiceDescribe.claimed_profiles`、`supported_profiles`、SDK 静态导出的 conformance 声明常量等）与**当前构建产物的实际编译能力**一致，而不是与全功能构建的能力一致。
+- 以可裁剪模块构建的实现 / SDK MUST 保证其 profile 声明面（`ServiceDescribe.supported_profiles`、SDK 静态导出的 conformance 声明常量等）与**当前构建产物的实际编译能力**一致，而不是与全功能构建的能力一致。
 - 构建期裁剪掉某 profile 的任一 MUST 能力（对应 `profile_requirements` 中 `operation_requirements` / `required_event_kinds` / `required_schemas` 的实现模块）时，该构建 MUST 同时摘除该 profile 的声明——通过构建期对账（feature gate 与声明常量联动）或等效守卫实现。裁剪构建（例如 `--no-default-features`）继续静态声明完整 required 面（如 `e2ee_client` 的 required 集合）即违反本条与 §2.1 的声明纪律。
 - 对端按 §1 的能力交集原则信任声明面；声明面与编译能力脱钩会把 fail-closed 协商变成 fail-open，因此本条按声明纪律缺陷处理，而非文档瑕疵。
 
@@ -410,20 +410,20 @@ SHOULD 支持：
 
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
 | --- | --- | --- | --- | --- |
-| `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`ak.schema.notification.v1`，service DID 校验，notify 响应对 `notification.devices[]` 逐项守恒的 `outcomes[]`（见 [`../discovery/push-notifications.md` §5.2](../discovery/push-notifications.md)），按 `(push_target_id, device_id)` 回收失效注册 | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `notify` 操作（注册/注销由 Account Station 提供，见 Push §3.3），`ak.schema.notification.v1`，service DID 校验，notify 响应对 `notification.devices[]` 逐项守恒的 `outcomes[]`（见 [`../discovery/push-notifications.md` §5.2](../discovery/push-notifications.md)），按 `(push_target_id, device_id)` 回收失效注册 | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device verification-method DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ak.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_id, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_id, device)` 元组。 | `privacy-security-fixture.json` |
 
+Station Push 保持可选；声明 `ak.operation_bundle.station.push.v1` MUST 同时提供 `register_device` / `unregister_device`。同部署的 Gateway 单独声明 `push_gateway` 角色，不能把 Gateway profile 作为 Station 的同角色能力扩展。独立存储 Gateway 的注册交接仍须先闭合 [Push §3.3](../discovery/push-notifications.md#33-station-与-push-gateway-的职责边界normative) 的缺失契约。
+
 MUST 支持（在所有变体上）：
 
-- `register_device`
-- `unregister_device`
-- `notify`
+- `notify`（精确注册授权；不取得 Account self-service 权限）
 - blind wakeup payload 最小化（默认基线）
 - service DID 或等价受信服务签名校验
 - 失效 token 回收
-- `rejected[]` 结果回传
+- 按输入设备逐项守恒的 `outcomes[]` 结果回传
 
 MUST NOT：
 
@@ -441,7 +441,7 @@ SHOULD 支持：
 
 ### 11.1 Traffic Metadata Hardening
 
-`ak.profile.traffic_metadata_hardened.v1` 是 service/deployment 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务 MUST 在 `ServiceDescribe.claimed_profiles` 中暴露支持面，并对部署配置选中的适用 route 按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。v1 不定义 Realm 级 activation carrier；Realm `schema_refs`、policy bundle 与私有 active-profile 集合均不得声明本 profile。
+`ak.profile.traffic_metadata_hardened.v1` 是 service/deployment 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务 MUST 在 `ServiceDescribe.supported_profiles` 中暴露支持面，并对部署配置选中的适用 route 按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。v1 不定义 Realm 级 activation carrier；Realm `schema_refs`、policy bundle 与私有 active-profile 集合均不得声明本 profile。
 
 MUST 支持：
 
@@ -993,7 +993,7 @@ Feature discovery MUST 使用
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)
 的 closed `ServiceDescribe` DTO。完整且可校验的响应示例见
 [`service-surface.md` §3](../sync/service-surface.md)；profile 通过
-`supported_profiles` / `claimed_profiles` / `verified_profiles` 表达，reducer 与 schema
+`supported_profiles` / `verified_profiles` 表达，reducer 与 schema
 版本不得伪装成独立的顶层 profile 字段。
 
 ## 22. 基线 Profile

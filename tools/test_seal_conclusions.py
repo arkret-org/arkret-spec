@@ -1,8 +1,8 @@
-"""Quorum read-conclusion schema and adversarial signature vectors.
+"""Single-authority read-conclusion schema and adversarial signature vectors.
 
-This is a consumer reference model, not a production PBFT implementation.
+This is a consumer reference model, not a production governance executor.
 It verifies attestation authority and binding; it deliberately does not replay
-the state machine whose facts the configured quorum attests.
+the state machine whose facts the configured authority attests.
 """
 from __future__ import annotations
 
@@ -52,20 +52,18 @@ def sign(statement, keys, context=CONTEXT):
         signatures.append({'verification_method': method,
                            'payload_digest': 'sha256:' + hashlib.sha256(payload).hexdigest(),
                            'jws': message.decode() + '.' + b64(key.sign(message))})
-    return {'statement': copy.deepcopy(statement), 'signatures': signatures}
+    if len(signatures) != 1:
+        raise ValueError('single signing authority required')
+    return {'statement': copy.deepcopy(statement), 'signature': signatures[0]}
 
 
 def verify_signatures(certificate, keys, expected_config, realm, context=CONTEXT):
     statement = certificate['statement']
     if statement['realm_id'] != realm or statement['configuration_ref'] != expected_config:
         raise ValueError('authority binding')
-    n = len(keys)
-    if (n - 1) % 3:
-        raise ValueError('configuration size')
-    signatures = certificate['signatures']
-    methods = [s['verification_method'] for s in signatures]
-    if len(methods) != 2 * ((n - 1) // 3) + 1 or methods != sorted(set(methods)):
-        raise ValueError('quorum')
+    if len(keys) != 1 or set(certificate) != {'statement', 'signature'}:
+        raise ValueError('single signing authority required')
+    signatures = [certificate['signature']]
     payload = canonical_json({'context': context, 'statement': statement})
     for signature in signatures:
         method = signature['verification_method']
@@ -108,12 +106,12 @@ class SealConclusionTests(unittest.TestCase):
 
     def setUp(self):
         self.keys = {f'did:web:notary{i}.example#seal': Ed25519PrivateKey.from_private_bytes(bytes([i+1])*32)
-                     for i in range(4)}
-        self.voters = dict(list(self.keys.items())[:3])
+                     for i in range(1)}
+        self.signer_keys = dict(list(self.keys.items())[:3])
         self.query = {'target_seal_ref': TARGET, 'selectors': [{'kind': 'cell', 'cell_id': CELL}]}
         self.statement = {'realm_id': REALM, 'configuration_ref': CONFIG, 'authority_seal_ref': TARGET,
                           'target_seal_ref': TARGET, 'results': [{'selector': self.query['selectors'][0], 'state': None}]}
-        self.certificate = sign(self.statement, self.voters)
+        self.certificate = sign(self.statement, self.signer_keys)
 
     def valid(self, fragment, instance, expected=True, file='seal-conclusion.schema.json'):
         validator = Draft202012Validator({'$ref': 'https://arkret.org/v1/schemas/' + file + fragment}, registry=self.registry)
@@ -132,12 +130,12 @@ class SealConclusionTests(unittest.TestCase):
     def test_written_null_is_not_absence(self):
         statement = copy.deepcopy(self.statement)
         statement['results'][0]['state'] = {'revision_event_id': CONFIG, 'value': None}
-        cert = sign(statement, self.voters)
+        cert = sign(statement, self.signer_keys)
         self.valid('#/$defs/certificate', cert)
         verify_query(cert, self.query, self.keys)
         self.assertNotEqual(cert['statement']['results'][0]['state'], None)
         statement['results'][0]['state'].pop('revision_event_id')
-        self.valid('#/$defs/certificate', sign(statement, self.voters), False)
+        self.valid('#/$defs/certificate', sign(statement, self.signer_keys), False)
 
     def test_unknown_fact_and_extra_state_fields_rejected(self):
         bad = copy.deepcopy(self.certificate)
@@ -147,18 +145,18 @@ class SealConclusionTests(unittest.TestCase):
         bad['statement']['latest'] = True
         self.valid('#/$defs/certificate', bad, False)
 
-    def test_single_voter_does_not_replace_quorum(self):
-        with self.assertRaises(ValueError):
-            verify_query(sign(self.statement, dict(list(self.keys.items())[:1])), self.query, self.keys)
-
-    def test_f_zero_uses_same_structure(self):
-        one = dict(list(self.keys.items())[:1])
-        verify_query(sign(self.statement, one), self.query, one)
-
-    def test_duplicate_voter_rejected(self):
+    def test_additional_signatures_and_legacy_arrays_rejected(self):
         cert = copy.deepcopy(self.certificate)
-        cert['signatures'][2] = cert['signatures'][0]
+        cert['signatures'] = [cert['signature'], cert['signature']]
+        self.valid('#/$defs/certificate', cert, False)
         with self.assertRaises(ValueError): verify_query(cert, self.query, self.keys)
+        cert.pop('signature')
+        self.valid('#/$defs/certificate', cert, False)
+
+    def test_multiple_authority_configuration_rejected(self):
+        keys = dict(self.keys)
+        keys['did:web:second.example#seal'] = Ed25519PrivateKey.from_private_bytes(b'\x55' * 32)
+        with self.assertRaises(ValueError): verify_query(self.certificate, self.query, keys)
 
     def test_foreign_configuration_cannot_self_authorize(self):
         foreign = {f'did:web:attacker{i}.example#seal': key for i, key in enumerate(self.keys.values())}
@@ -168,7 +166,7 @@ class SealConclusionTests(unittest.TestCase):
     def test_signature_and_phase_substitution_rejected(self):
         for context in ['ak.seal.commit.v1', HANDOFF]:
             with self.subTest(context=context), self.assertRaises(ValueError):
-                verify_query(sign(self.statement, self.voters, context), self.query, self.keys)
+                verify_query(sign(self.statement, self.signer_keys, context), self.query, self.keys)
         cert = copy.deepcopy(self.certificate)
         cert['statement']['results'][0]['state'] = {'revision_event_id': CONFIG, 'value': 'join'}
         with self.assertRaises((ValueError, InvalidSignature)): verify_query(cert, self.query, self.keys)
@@ -178,12 +176,12 @@ class SealConclusionTests(unittest.TestCase):
             body = copy.deepcopy(self.statement)
             body[field] = body[field][:-1] + ('A' if body[field][-1] != 'A' else 'B')
             with self.subTest(field=field), self.assertRaises(ValueError):
-                verify_query(sign(body, self.voters), self.query, self.keys)
+                verify_query(sign(body, self.signer_keys), self.query, self.keys)
 
     def test_query_omission_or_extra_result_rejected(self):
         for results in [[], self.statement['results'] * 2]:
             body = {**self.statement, 'results': results}
-            with self.assertRaises(ValueError): verify_query(sign(body, self.voters), self.query, self.keys)
+            with self.assertRaises(ValueError): verify_query(sign(body, self.signer_keys), self.query, self.keys)
 
     def test_account_selector_substitution_rejected(self):
         query = copy.deepcopy(self.query)
@@ -194,11 +192,11 @@ class SealConclusionTests(unittest.TestCase):
         selector = {'kind': 'cell_range', 'lower_cell_id': CELL, 'upper_cell_id': CELL+'z'}
         query = {'target_seal_ref': TARGET, 'selectors': [selector]}
         body = {**self.statement, 'results': [{'selector': selector, 'cells': []}]}
-        cert = sign(body, self.voters)
+        cert = sign(body, self.signer_keys)
         self.valid('#/$defs/certificate', cert)
         verify_query(cert, query, self.keys)
         body['results'][0]['cells'] = [{'cell_id': CELL+'zz', 'state': {'revision_event_id': CONFIG, 'value': None}}]
-        with self.assertRaises(ValueError): verify_query(sign(body, self.voters), query, self.keys)
+        with self.assertRaises(ValueError): verify_query(sign(body, self.signer_keys), query, self.keys)
 
     def test_command_effect_is_separate_from_final_cell(self):
         effect = {'selector': {'kind': 'command_effect', 'event_digest': 'sha256:'+'a'*64, 'cell_id': CELL},
@@ -207,7 +205,7 @@ class SealConclusionTests(unittest.TestCase):
         final = {'selector': {'kind': 'cell', 'cell_id': CELL}, 'state': {'revision_event_id': CONFIG, 'value': 'join'}}
         query = {'target_seal_ref': TARGET, 'selectors': [effect['selector']]}
         with self.assertRaises(ValueError):
-            verify_query(sign({**self.statement, 'results': [final]}, self.voters), query, self.keys)
+            verify_query(sign({**self.statement, 'results': [final]}, self.signer_keys), query, self.keys)
 
     def test_raw_resolve_and_conclusion_queries_are_exclusive(self):
         shape = {'realm_id': REALM, 'conclusion_queries': [self.query]}
@@ -234,18 +232,17 @@ class SealConclusionTests(unittest.TestCase):
 
     def test_handoff_is_signed_by_old_configuration(self):
         new = {f'did:web:new{i}.example#seal': Ed25519PrivateKey.from_private_bytes(bytes([i+10])*32)
-               for i in range(4)}
+               for i in range(1)}
         descriptors = []
         for method, key in new.items():
             public = key.public_key().public_bytes_raw()
             descriptors.append({'actor_id': {'kind': 'service', 'service_id': 'ak:did_core:' + method[4:].split('#')[0]},
                                 'verification_method': method, 'key_kind': 'ed25519_raw32', 'jose_algorithm': 'Ed25519',
-                                'frozen_public_key_b64u': b64(public),
-                                'frozen_public_key_digest': 'sha256:' + hashlib.sha256(public).hexdigest()})
+                                'frozen_public_key_b64u': b64(public)})
         statement = {'realm_id': REALM, 'configuration_ref': CONFIG, 'handoff_seal_ref': TARGET,
                      'next_configuration_ref': 'ak:event:'+b64(b'\x01'+b'\x88'*32),
-                     'next_configuration': {'kind': 'quorum', 'signers': descriptors, 'fault_tolerance': 1, 'max_clock_error_ms': 1000}}
-        cert = sign(statement, self.voters, HANDOFF)
+                     'next_configuration': {'signer': descriptors[0], 'max_clock_error_ms': 1000}}
+        cert = sign(statement, self.signer_keys, HANDOFF)
         self.valid('#/$defs/handoff_certificate', cert)
         verify_signatures(cert, self.keys, CONFIG, REALM, HANDOFF)
         with self.assertRaises(ValueError):
@@ -270,7 +267,7 @@ class SealConclusionTests(unittest.TestCase):
         query['known_configuration_ref'] = 'ak:event:'+b64(b'\x01'+b'\x99'*32)
         foreign = {**self.statement, 'configuration_ref': query['known_configuration_ref']}
         with self.assertRaises(ValueError):
-            verify_query(sign(foreign, self.voters), query, self.keys)
+            verify_query(sign(foreign, self.signer_keys), query, self.keys)
 
 
 if __name__ == '__main__':

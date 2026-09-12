@@ -1081,3 +1081,6 @@ content_aad = JCS(pre_encryption_header)
 exact historical group state、derived group id、active leaf 与 current history frontier 逐字段对齐。Envelope 不
 重复 purpose/scheme/scope/kind/group/nonce。当前 EventId、ciphertext/tag、由当前 payload 派生的 digest 或 receipt 不得进入
 同一次 AAD。构造顺序是 header→AAD→ciphertext→Event→EventId→proof；不存在置零、固定点或兼容解密分支。
+
+
+用于 MLS cell subject 的 `select` component 可声明唯一变换 `transform="base64url_utf8"`：先按 discriminator 选择已登记的 scope ID 字符串，再取其 UTF-8 bytes 作无 padding base64url；结果必须与 RFC 9420 GroupContext.group_id 的 Arkret wire 表示逐字相同。它不哈希、不编码整个 scope JSON，也不读取已删除的 payload.mls_group_id。`mls_group_id_from_effective_scope` value derivation 执行相同函数；因而删除镜像字段不会改变现有 cell subject 或投影值。

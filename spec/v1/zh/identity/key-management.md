@@ -441,7 +441,7 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
    不代签 Agent DID 私钥。只有 entry 0 已 accepted 才进入下一步。
 2. **prepare 钉死 accepted inception 与 controller account pair**。controller 以该 `did` 和当前 `controller_station_id` 调用 `phase=prepare`；服务端将它与 session principal 组成的 pair 逐字匹配 authenticated session 的 `(principal_id, station_id)`，并只从该 pair 的本地唯一 PCR lineage 取得后续材料。随后服务端
    独立解析并验证 entry 0、`project(did)=agent_id`、controller delegation 与“尚无 PCR binding”，返回 exact
-   `initial_resolution`、allocation、authorization ref 与 `requested_scope_digest`。controller MUST 把返回的
+   `initial_resolution`、allocation 与 authorization ref。`requested_scope_digest` 由 controller 按 §9.1 的既有域分隔算法对自己冻结的 exact requested_scope 重算，outcome 不回显。controller MUST 把返回的
    history head/version 与自己提交的 entry 0 逐字比较。
 3. **controller 本地冻结 genesis 信封**。controller 把该 exact `initial_resolution` 连同
    `purpose="agent_control"`、`genesis_salt`、`executed_by`、`authorization_ref` 等一次写入完整
@@ -617,45 +617,7 @@ PCR accepted 前，账号只有 provisional reservation。新设备通过同一�
 
 PCR 尚未 accepted 且 identity root 也丢失时，可以显式放弃 provisional identity，以全新 root/DID/PCR 开始。放弃 provisional identity MUST 是显式用户动作，MUST NOT 由普通账号登录、session 恢复、lease fence 递增或任何自动流程触发；MUST 在执行前向用户明示后果——旧 entry 0 将永久不可用且**无法注销**，其上不存在可延续的业务状态。重认证强度、风险检查项与冷却期时长属**部署治理**，实现 SHOULD 施加与账号敏感操作同级的重认证与冷却，具体由部署自定，本规范不规定也不强制。放弃后：已发布 entry 0 作为 orphan anchor，不得复用或声称连续性，registry 必须保留 tombstone/audit reservation。显式放弃处置的是同一账号/audience 下已冻结、可能已发布的那一份 reservation；它不承担清理由并发实现错误额外制造的第二份 DID 的职责——registry 唯一性由 [`account-lifecycle.md` §2.1.2](./account-lifecycle.md) 的 frozen-reservation barrier 保证。
 
-**执行放弃的唯一 operation 对（normative）**：显式放弃由封闭的两步 operation 承载，
-`ak.gate.account.command.issue_identity_abandonment_challenge.v1` 取 challenge，
-`ak.gate.account.command.abandon_identity_creation.v1` 确认；形状对位既有的
-`issue_identity_binding_challenge` + `register`。实现 MUST NOT 另造 abandon 入口，也 MUST NOT
-用 lease expiry、fence takeover 或垃圾回收模拟显式放弃。
-
-- **凭据被逼定**：PCR 从未被 accepted ⇒ 用户没有 principal ⇒ 不存在绑定 principal 的 `ak.session.grant`。
-  两个 operation 因此都只能由 account handoff grant 授权，并已加入
-  `ak.gate.account.exchange.create_handoff.v1` 的封闭 operation 白名单。
-- **"显式"由 challenge 结构保证**：根已丢失，用户签不了确认书，客户端自报的"我已阅读"可伪造。
-  challenge 单次使用、≤300 秒、保存在 shared durable state（不是进程内存），并钉死 `account_subject`、
-  holder `cnf.jkt`、本次要放弃的 `principal_id` 与 `did_version_id`、当前 lease id 与 fence、必须向用户
-  展示的封闭后果集合 `consequence_disclosure`、audience、origin、trust domain、purpose 与 expiry；
-  重复同一 `request_id` 返回同一未消费 challenge，expiry 与已消费是不同终态。上一段"MUST NOT 由
-  登录 / session 恢复 / fence 递增 / 任何自动流程触发"正落在这里：自动流程不会先取 challenge，
-  因此结构上做不到。
-- **确认必须新鲜**：确认调用 MUST 出示一份新鲜的 handoff grant，MUST NOT 复用签发 challenge 时那一份。
-  "要不要重认证"是协议保证；**重认证强度、风险检查项与冷却期时长仍属部署治理，本规范不规定**。
-- **并发**：challenge 签发与确认之间 PCR 被 accepted 时，确认 MUST 以 `identity_creation_already_accepted`
-  失败且 MUST NOT 执行放弃——身份既已成立，该走的是账号删除流程。判定依据是 challenge 钉死的
-  `did_version_id` 与 lease fence，不是本地推断。
-- **原子边界**：消费 challenge、写 orphan anchor tombstone/audit reservation、从**所有** holder 可读面
-  抑制 `reserved_identity_creation` checkpoint、释放 identity-creation lease，MUST 在一个事务内完成，
-  任一步失败零写入。同 `request_id` 重放 MUST 返回同一终态，MUST NOT 产生第二条 tombstone。
-
-放弃后该 reservation 的 `reserved_identity_creation` checkpoint **MUST NOT** 继续作为"某账号曾尝试创建身份"
-的可读痕迹对外提供——包括后续 handoff 的 `identity_creation_lease.reserved_identity`——只保留 tombstone/audit
-所需的最小记录。这是安全性质，不是清理策略。
-
-**orphan anchor 的后续处置属部署治理，不由本规范定义（normative 边界）**：该 entry 0 的 root 已丢失，
-而 did:webvh 的 deactivation 需要 controller 签名，因此它**永久不可注销且公开可解析**。
-托管方 MUST NOT 代签任何 log entry 来标记它（[`identity-did.md` §3.7](./identity-did.md) I-1：
-hosting 不等于 control）。是否在部署自有的发现面上标注、handle 与 namespace 何时释放、
-保留多久，都由该部署的运营方按自身治理策略决定，本规范不规定，也**不要求**实现具备该能力。
-
-**但有一条协议层约束必须保持**：某个 Station 上没有该 `did_core_id` 的 accepted PCR
-**只是本地事实**。PCR 的作用域是 (`did_core_id`, Station)，同一主体在别的 Station 上
-可能完全正常。解析方与联邦对端 MUST NOT 把"某个部署报告无账号"推断为"该主体已失效"
-或据此拒绝其在其它 Station 上的有效证据。PCR 已 accepted 时账号认证绝不能替代 recovery proof。
+**执行放弃（normative）**：仅调用 `ak.gate.account.command.abandon_identity_creation.v1`，携带稳定 request_id、principal_id、did_version_id、lease id/fence 和为此次显式确认新取得的 holder-bound handoff。字段顺序、固定后果、当前 checkpoint 重验、PCR 竞态、单 tombstone 与 exact replay 由 [account-lifecycle §2.1.2](./account-lifecycle.md) 唯一规定。不存在前置 abandonment challenge；该删除不降低 fresh handoff、明确用户动作或零写入原子边界。身份已经 accepted 必须拒绝放弃并走其既有生命周期，不能通过 lease expiry、fence takeover 或垃圾回收模拟显式放弃。
 
 #### 5.0.3 PCR-Policy Re-anchor Unit（normative）
 
@@ -963,7 +925,7 @@ endpoint；§2.7 对 Realm 及其它成员的不可关联性照旧成立。消�
 `history_secret_ranges` index（exact scope 与 ranges）；解密后的
 [`key-backup-plaintext.schema.json`](../../artifacts/schemas/key-backup-plaintext.schema.json) items 只包含 packed
 `HistorySecretRange {from_epoch,to_epoch,secrets_b64u}`。Decoded bytes 严格等于按 epoch 升序拼接的 secrets，总长
-`(to-from+1)*KDF.Nh`；suite 必须从 receipt-bound 认证的 exact winning transition 解析（非投票消费者按 cbs-profiles §9，不重放完整控制历史），不得在 backup 自报。
+`(to-from+1)*KDF.Nh`；suite 必须从 receipt-bound 认证的 exact winning transition 解析（治理结果消费 Station按 cbs-profiles §9，不重放完整控制历史），不得在 backup 自报。
 每个被写入的 secret 必须是本 endpoint 从已完整验证并实际应用的 MLS state 直接导出的 `local_authoritative` 项。History response、
 RHRK open 或其它外部 carrier 收到的 candidate 即使已成功解密某个 Event，也不得写入 portable backup；它只能留在 device-bound
 multi-candidate store。
@@ -1420,8 +1382,8 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Backup series MUST 满足 §7.6：客户端检查自己 Station 列表结果的 exact AccountId、PCR 与当前 active pointer，按 immutable envelope 的 `supersedes_id` 链选择对应尾部并解密；不得以下载或重放 PCR/control stream 历史作为普通备份读取的前置条件。
 
 
-PCR 治理事实的非投票消费按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative)：
-key authorization/lifecycle/generation 的确认性可由合法 PCR quorum 结论证明，不重放整条 PCR 控制流。
+PCR 治理事实的非投票消费按 [cbs-profiles §9](../authz/cbs-profiles.md#9-治理结果证明normative)：
+key authorization/lifecycle/generation 的确认性可由合法 PCR 治理结果证明证明，不重放整条 PCR 控制流。
 本章原始 genesis/controller delegation、实际 producer 历史公钥与签名、method-native 身份根、独立 Account gate
 和 Agent authority attestation 仍各自验证；目标 Realm notary 或普通 Station service key 不因此取得 PCR 签名资格。
 稳定材料耐久共享，只验证新增事实；已知撤销立即失效相应当前资格，历史签名事实不由 current resolver 重建。

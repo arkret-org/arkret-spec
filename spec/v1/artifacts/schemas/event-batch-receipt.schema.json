@@ -241,7 +241,6 @@
         "principal_id",
         "realm_id",
         "did_version_id",
-        "log_head_digest",
         "control_key_digest",
         "registration_evidence_digest",
         "accepted_device_id",
@@ -265,10 +264,6 @@
           "pattern": "^(?!ak:)",
           "minLength": 1,
           "description": "The exact method-native version identifier pinned by the identity-root control proof. It identifies verified DID control evidence and MUST NOT initialize or otherwise determine the PCR-local device generation."
-        },
-        "log_head_digest": {
-          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-          "description": "The exact verified DID history head digest accepted for this PCR genesis. It is a cross-Realm identity-root commitment and is always SHA-256."
         },
         "control_key_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
@@ -296,7 +291,8 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "event_receipt_item": {
       "type": "object",

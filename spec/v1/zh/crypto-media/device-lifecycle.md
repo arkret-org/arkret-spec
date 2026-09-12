@@ -36,7 +36,7 @@ Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 - `ak.device.authorize`：把新设备公钥加入当前设备集合。
 - 满足 `recovery_policy` 的 `recover` / key-log event。
 
-`session_public_key` 不仅是会话身份标记，还是会话请求的 proof-of-possession 出示密钥：日常受保护请求 SHOULD 用该 key 对请求做 RFC 9421 HTTP Message Signature（sender-constrained 出示），使会话出示与该 key 绑定，仅截获 `ak.session.grant` 不足以重放。行使该 key 出示的具体形态、覆盖的 components 与 replay window 见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md) 与 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)；高安全 deployment profile 下该 PoP 出示对所有受保护 `ak.self.*` operation 升为 MUST。
+`session_public_key` 不仅是会话身份标记，还是会话请求的 proof-of-possession 出示密钥：日常受保护请求 MUST 使用 grant + RFC 9449 DPoP proof；高安全 profile 在此基础上追加 RFC 9421 HTTP Message Signature，使会话出示与该 key 绑定，仅截获 `ak.session.grant` 不足以重放。行使该 key 出示的具体形态、覆盖的 components 与 replay window 见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md) 与 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)；高安全 deployment profile 下该 PoP 出示对所有受保护 `ak.self.*` operation 升为 MUST。
 
 资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Realm policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
 
@@ -131,7 +131,7 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 | `revocation_rejected` | 唯一已确认 Seal 的 command_results 拒绝 exact proposal unit；验证完整 proposal 与原始 device/generation 绑定 | 仅清除该 proposal 的 pending gate；独立设备授权状态仍决定是否 active；记录 deciding_seal_id | terminal；相同结果重放无额外效果 |
 | `revoked` | 已确认 Seal 的 command_results 对该 proposal unit 为 committed | 永久撤销；后续 reject 无效 | terminal |
 
-`ak.device.revoke` **不是** §7.2 authority-authored human self-principal PCR Move 的 Ack-less 例外。每个 accepted revoke MUST 具有 canonical `ControlProposalAck`：本地 authority 可在首次接受事务中签发，外部 authority 必须随 submission 提供满足 quorum 的 Ack。无有效 Ack 时整笔零写入且不得进入 pending。这里的“不等待 Ack”表示 Ack 不是 accepted 之后的第二个安全门槛：accepted Event、Ack 与 `revocation_pending` 必须同一原子 commit 可见；不等待后续 decision、quorum 重收集或 covering Seal。pending record 的 `accepted_at` 与 `acceptance_seq` 必须由该原子 commit 实际分配；不得复制外部预签 Ack 的 `received_at`，两者也不要求相等。
+`ak.device.revoke` **不是** §7.2 authority-authored human self-principal PCR Move 的 Ack-less 例外。每个 accepted revoke MUST 具有 canonical `ControlProposalAck`：本地 authority 可在首次接受事务中签发，外部 authority 必须随 submission 提供唯一签名 Ack。无有效 Ack 时整笔零写入且不得进入 pending。这里的“不等待 Ack”表示 Ack 不是 accepted 之后的第二个安全门槛：accepted Event、Ack 与 `revocation_pending` 必须同一原子 commit 可见；不等待后续 decision、Ack 重签或 covering Seal。pending record 的 `accepted_at` 与 `acceptance_seq` 必须由该原子 commit 实际分配；不得复制外部预签 Ack 的 `received_at`，两者也不要求相等。
 
 目标 `target_device_authorize_event_id` 与 `target_device_generation_ref` MUST 由 receiver 从 exact `(principal_id, station_id)` 的本地 durable current device projection 派生；producer payload 不得自报。未获 revoke authority 的 caller MUST 在读取任何 device-private state 之前拒绝，且零 Event / Ack / pending 写入。获得合法 revoke authority 的主体也同时获得制造 pending 阻断的能力；这是该高权限的显式 DoS 能力，不得以超时自动解封来掩盖。
 
@@ -177,7 +177,7 @@ gate receipt 的 proof context 固定为 `ak.device_revocation_gate_decision_pro
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
 3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，在自己的 durable issuer ledger 中建立 immutable issuance record，并用 issuer key 签发短期、受众绑定、scope 受限的 `ak.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。Gateway 不持有用户 principal/device/recovery 私钥，不得为该 grant 代签或提交 principal Event。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ak:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:arkret:client:device:<id>` scope 透传到 introspection 的 `org.arkret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。
-4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。受保护 `ak.self.*` operation SHOULD 进一步用 `session_key`（即 grant 委托的 `session_public_key`）对每个请求做 RFC 9421 HTTP Message Signature 出示（sender-constrained / PoP，见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)），使会话请求与该 key 绑定，截获 token 不足以重放；高安全 deployment profile 下该出示升为 MUST。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
+4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。高安全 profile 的受保护 `ak.self.*` operation MUST 进一步用 `session_key`（即 grant 委托的 `session_public_key`）对每个请求做 RFC 9421 HTTP Message Signature 出示（sender-constrained / PoP，见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)），使会话请求与该 key 绑定，截获 token 不足以重放；高安全 deployment profile 下该出示升为 MUST。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
 5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。
 
 ### 3.3 设备持有绑定与 grant 轮换（normative）

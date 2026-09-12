@@ -7,129 +7,70 @@
     "entrypoint": "ak.suite.cbs.control_proposal_ack.v1"
   },
   "covers_vectors": [
-    "ak.vector.cbs.external_control_proposal_ack_quorum.v1",
+    "ak.vector.cbs.single_authority_ack.v1",
     "ak.vector.cbs.proposal_window_configuration.v1"
   ],
   "cases": [
     {
-      "name": "quorum_ack_set_uses_distinct_current_members",
-      "notary": {
-        "kind": "quorum",
-        "fault_tolerance": 1,
-        "signer_verification_methods": [
-          "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
-          "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary",
-          "did:webvh:z6mkfixtureauthoritydexample:authority-d.example#notary"
-        ]
-      },
-      "authority_acks": [
-        {
-          "verification_method": "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-          "received_at": "2026-07-29T00:00:00.000Z",
-          "decision_due_at": "2026-07-29T00:00:30.000Z",
-          "absolute_due_at": "2026-07-29T00:01:30.000Z"
-        },
-        {
-          "verification_method": "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
-          "received_at": "2026-07-29T00:00:02.000Z",
-          "decision_due_at": "2026-07-29T00:00:32.000Z",
-          "absolute_due_at": "2026-07-29T00:01:32.000Z"
-        },
-        {
-          "verification_method": "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary",
-          "received_at": "2026-07-29T00:00:01.000Z",
-          "decision_due_at": "2026-07-29T00:00:31.000Z",
-          "absolute_due_at": "2026-07-29T00:01:31.000Z"
+      "name": "sole_authority_ack_valid",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+      "instance": {
+        "kind": "signed_ack",
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "received_at": "2026-07-28T00:00:00.000Z",
+        "decision_due_at": "2026-07-28T00:00:30.000Z",
+        "absolute_due_at": "2026-07-28T00:01:30.000Z",
+        "defer_count": 0,
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "signature": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#notary-1",
+          "payload_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "created_at": "2026-07-28T00:00:00.000Z",
+          "jws": "e30..c2ln"
         }
-      ],
-      "expected": {
-        "decision": "accept",
-        "received_at": "2026-07-29T00:00:02.000Z",
-        "decision_due_at": "2026-07-29T00:00:30.000Z",
-        "absolute_due_at": "2026-07-29T00:01:30.000Z",
-        "member_order": [
-          "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
-          "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary"
-        ]
-      }
+      },
+      "expect_valid": true
     },
     {
-      "name": "duplicate_member_does_not_count_twice",
-      "notary": {
-        "kind": "quorum",
-        "fault_tolerance": 1,
-        "signer_verification_methods": [
-          "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-          "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary",
-          "did:webvh:z6mkfixtureauthoritycexample:authority-c.example#notary",
-          "did:webvh:z6mkfixtureauthoritydexample:authority-d.example#notary"
+      "name": "aggregated_ack_rejected",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+      "instance": {
+        "kind": "signed_ack",
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "received_at": "2026-07-28T00:00:00.000Z",
+        "decision_due_at": "2026-07-28T00:00:30.000Z",
+        "absolute_due_at": "2026-07-28T00:01:30.000Z",
+        "defer_count": 0,
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "authority_acks": [
+          {
+            "signature": {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#notary-1",
+              "payload_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "created_at": "2026-07-28T00:00:00.000Z",
+              "jws": "e30..c2ln"
+            }
+          }
         ]
       },
-      "authority_ack_verification_methods": [
-        "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-        "did:webvh:z6mkfixtureauthorityaexample:authority-a.example#notary",
-        "did:webvh:z6mkfixtureauthoritybexample:authority-b.example#notary"
-      ],
-      "expected": {
-        "decision": "reject",
-        "reason": "quorum_unreachable"
-      }
+      "expect_valid": false
     },
     {
-      "name": "mixed_authority_set_and_out_of_window_rejected",
-      "member_authority_set_refs": [
-        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-      ],
-      "received_at_span_ms": 60001,
-      "proposal_intake_sla_ms": 60000,
-      "expected": {
-        "decision": "reject",
-        "reason": "failed_precondition"
-      }
-    },
-    {
-      "name": "proposal_intake_sla_wire_maximum_is_inclusive",
-      "received_at_span_ms": 86400000,
-      "proposal_intake_sla_ms": 86400000,
-      "expected": {
-        "decision": "accept"
-      }
-    },
-    {
-      "name": "proposal_intake_sla_above_wire_maximum_is_rejected",
-      "received_at_span_ms": 86400001,
-      "proposal_intake_sla_ms": 86400001,
-      "expected": {
-        "decision": "reject",
-        "reason": "schema_violation"
-      }
-    },
-    {
-      "name": "exact_member_retry_is_byte_identical_and_conflict_cannot_extend",
-      "same_proposal_digest": true,
-      "same_authority_set_ref": true,
-      "second_request_bytes_equal": true,
-      "conflicting_second_deadline": "2026-07-29T00:02:00.000Z",
-      "expected": {
-        "exact_retry": "original_authority_ack",
-        "conflicting_retry": "duplicate_conflict",
-        "deadline_extended": false
-      }
-    },
-    {
-      "name": "decision_proofs_cannot_cross_ack_sets",
-      "ack_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "decision_proof_proposal_ack_digests": [
-        "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-      ],
-      "expected": {
-        "decision": "reject",
-        "reason": "failed_precondition"
-      }
+      "name": "unsigned_ack_rejected",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack",
+      "instance": {
+        "kind": "signed_ack",
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "received_at": "2026-07-28T00:00:00.000Z",
+        "decision_due_at": "2026-07-28T00:00:30.000Z",
+        "absolute_due_at": "2026-07-28T00:01:30.000Z",
+        "defer_count": 0,
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expect_valid": false
     },
     {
       "name": "proposal_decision_window_after_absolute_deadline_rejected",

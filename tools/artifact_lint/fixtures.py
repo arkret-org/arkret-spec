@@ -2177,20 +2177,18 @@ def check_cbs_seal_canonical_fixture(lint: Lint) -> None:
     certificate = vector.get("certificate", {})
     transcript = {
         "context": "ak.seal.commit.v1", "seal_digest": digest,
-        "configuration_ref": body.get("configuration_ref"),
-        "notary_seq": body.get("notary_seq"), "view": certificate.get("view"),
     }
     transcript_bytes = canonical_json(transcript).encode("utf-8")
     payload_digest = "sha256:" + hashlib.sha256(transcript_bytes).hexdigest()
     if vector.get("commit_transcript") != transcript:
-        lint.fail(path, "Seal commit transcript does not bind its exact body and view")
+        lint.fail(path, "Seal commit transcript does not bind its exact body")
     if expected.get("notary_signature_payload_digest") != payload_digest:
         lint.fail(path, f"Seal signature payload digest must be {payload_digest}")
     try:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
         key = vector["test_key"]
         public_key = Ed25519PublicKey.from_public_bytes(base64.urlsafe_b64decode(key["public_key"] + "="))
-        for signature in certificate["signatures"]:
+        for signature in [certificate]:
             protected, detached, encoded_signature = signature["jws"].split(".")
             header = json.loads(base64.urlsafe_b64decode(protected + "=" * (-len(protected) % 4)))
             if detached or header != {"alg": "Ed25519", "kid": key["kid"]}:
@@ -4726,9 +4724,8 @@ def check_history_scale_fixture(lint: Lint) -> None:
                 key_bytes = b""
             if len(key_bytes) != 32:
                 lint.fail(path, f"replay KAT {label} Ed25519 public key must decode to 32 bytes")
-            expected_digest = "sha256:" + hashlib.sha256(key_bytes).hexdigest()
-            if descriptor.get("frozen_public_key_digest") != expected_digest:
-                lint.fail(path, f"replay KAT {label} frozen public-key digest drifted")
+            if "frozen_public_key_digest" in descriptor:
+                lint.fail(path, f"replay KAT {label} carries a removed derived key digest")
         for seed_name in ("historical_seed_b64u", "current_seed_b64u"):
             try:
                 seed = base64.urlsafe_b64decode(signing.get(seed_name, "") + "==")

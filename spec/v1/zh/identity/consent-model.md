@@ -203,7 +203,6 @@ Reducer projection 的 `observed_dot_ids[]` MUST 逐字等于 payload 的 `obser
 | Scope | 语义 |
 | --- | --- |
 | `invite` | peer 可发送 Realm / Strand invite |
-| `direct_message` | peer 可发起 1:1 消息（DM Realm）|
 | `voice_call` | peer 可发起 WebRTC 语音通话 |
 | `video_call` | peer 可发起 WebRTC 视频通话 |
 | `presence` | peer 可观察 holder presence |
@@ -243,7 +242,7 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 | Invite admission gate cache（§6.1 invite 前置 gate） | 按 `(holder_account_id, JCS(peer), scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 在提交目标 Realm Control Move 前重判；旧 cache MUST NOT 让 facade / invite service 放行。 |
 | In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 撤销 Seal 覆盖前不追溯的规则一致）；如需撤销，单独发 `ak.invite.revoke` / member remove。 | 不自动级联撤销已生效邀请或 DM Realm。 |
 
-`consent_scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 consent_scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
+`consent_scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 consent_scope 的 entry 必须一起失效，包括 `invite`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
 
 `ak.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 private contact discovery / invite handoff 立即不返回该 peer；(b) revoke 后下一次 invite 在目标 Realm Control Move 提交前被 admission gate 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 consent_scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
 
@@ -468,3 +467,5 @@ consent 的去重 / 撤销键含 `intent.peer`（见 §3.2 的两个封闭分支
 ## 9. 与未来 Capability Constraint 的关系
 
 扩展profile MAY引入`consent_required` capability constraint，使非Contact action在Control Move验证时检查holder consent。本cell是其查询源；Contact/Personal DM不得使用该constraint替代directional Contact authority。
+
+请求的 consent_scope MUST 显式携带且无默认值。Personal DM 不查询 Consent，不从缺失 scope 推断 direct_message；MIMI、Contact cascade 与 quota 使用同一保留枚举。

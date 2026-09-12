@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.16",
+  "version": "2026-09-12.19",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T19:17:55+08:00",
+  "generated_at": "2026-09-12T21:15:06+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1342,19 +1342,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cbs.external_control_proposal_ack_quorum.v1",
-      "status": "active",
-      "domain": "cbs",
-      "applies_to_fixtures": [
-        "control-proposal-ack-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/zh/authz/event-auth-state-resolution.md",
-        "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json"
-      ],
-      "description": "External authority authority Ack issuance, canonical receipt-set assembly, common-window calculation, threshold deduplication, exact replay and decision-chain binding."
-    },
-    {
       "vector_id": "ak.vector.cbs.proposal_bounded_decision.v1",
       "status": "active",
       "domain": "cbs",
@@ -1378,6 +1365,19 @@
         "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json"
       ],
       "description": "Realm proposal decision windows are ordered and realizable: decision <= absolute, equality is accepted only with zero defers, and invalid configurations fail before any Realm state write."
+    },
+    {
+      "vector_id": "ak.vector.cbs.single_authority_ack.v1",
+      "status": "active",
+      "domain": "cbs",
+      "applies_to_fixtures": [
+        "control-proposal-ack-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/artifacts/fixtures/control-proposal-ack-fixture.json"
+      ],
+      "description": "One configured authority signs the exact Ack; reject old aggregation and missing signature. Immutable deadlines, exact replay and decision-chain binding remain."
     },
     {
       "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1",
@@ -1428,30 +1428,6 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.ordinary_event_accepts_without_seal_finality.v1",
-      "status": "active",
-      "domain": "cbs_lattice",
-      "applies_to_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ],
-      "description": ""
-    },
-    {
-      "vector_id": "ak.vector.cbs_lattice.ordinary_event_observation_does_not_seal.v1",
-      "status": "active",
-      "domain": "cbs_lattice",
-      "applies_to_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
-      ],
-      "description": ""
-    },
-    {
       "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
       "status": "active",
       "domain": "cbs_lattice",
@@ -1476,7 +1452,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.inclusion_list_obligation.v1",
+      "vector_id": "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -1488,7 +1464,19 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1",
+      "vector_id": "ak.vector.cbs_lattice.ordinary_event_accepts_without_seal_finality.v1",
+      "status": "active",
+      "domain": "cbs_lattice",
+      "applies_to_fixtures": [
+        "cbs-lattice-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
+      ],
+      "description": ""
+    },
+    {
+      "vector_id": "ak.vector.cbs_lattice.ordinary_event_observation_does_not_seal.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -1584,7 +1572,7 @@
       "description": ""
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.quorum_geometry.v1",
+      "vector_id": "ak.vector.cbs_lattice.single_authority_configuration.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
@@ -1593,7 +1581,7 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ],
-      "description": "Fixed PBFT notary geometry: n=3f+1 and exact confirmation quorum 2f+1, including f=0 and invalid replica/quorum counts."
+      "description": "Exactly one frozen signer; missing signer and all legacy multi-signer configurations are rejected."
     },
     {
       "vector_id": "ak.vector.circle.content_floor_below_realm_rejected.v1",
@@ -2244,19 +2232,6 @@
     },
     {
       "vector_id": "ak.vector.directory.public_realm_search.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ],
-      "description": ""
-    },
-    {
-      "vector_id": "ak.vector.directory.pull_mode_refresh_verification.v1",
       "status": "active",
       "domain": "directory",
       "applies_to_fixtures": [
@@ -4104,7 +4079,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST publish fresh init key material, transition the old package to revoked with revocation_reason=keypackage_rotated, and trigger an MLS self-update Commit on every group joined via it to advance the epoch and close the forward-secrecy weakening window.",
+      "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST publish fresh init key material, transition the old package to revoked with revocation_reason=keypackage_rotated, and trigger an MLS self-update Commit on every group joined via it to advance the epoch; future confidentiality recovery is conditional on effective unknown secret updates, and neither expiry nor rotation revokes captured historical Welcome decryption.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -4875,7 +4850,7 @@
       "applies_to_fixtures": [
         "state-reducer-hardening-fixture.json"
       ],
-      "description": "Pins the event-and-patch.md §4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
+      "description": "Pins the event-and-patch.md Â§4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
       "source_refs": [
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/zh/conformance/conformance-vectors.md",

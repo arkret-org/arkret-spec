@@ -1373,7 +1373,9 @@ def cmd_check(_: argparse.Namespace) -> int:
     checks = (
         ("Seal commit certificate KAT", lambda: subprocess.run([sys.executable, "tools/regenerate_seal_certificate_fixture.py", "--check"], cwd=ROOT).returncode),
         ("snapshot state digest KAT", lambda: subprocess.run([sys.executable, "tools/regenerate_snapshot_state_fixture.py", "--check"], cwd=ROOT).returncode),
-        ("quorum read conclusions", lambda: subprocess.run([sys.executable, "-m", "tools.test_seal_conclusions"], cwd=ROOT).returncode),
+        ("single-authority read conclusions", lambda: subprocess.run([sys.executable, "-m", "tools.test_seal_conclusions"], cwd=ROOT).returncode),
+        ("residual simplification", lambda: subprocess.run([sys.executable, "-m", "tools.test_residual_simplification"], cwd=ROOT).returncode),
+        ("protocol simplification", lambda: subprocess.run([sys.executable, "-m", "tools.test_protocol_simplification"], cwd=ROOT).returncode),
         ("scoped execution and causal state", lambda: subprocess.run([sys.executable, "-m", "tools.test_seal_scope_contract"], cwd=ROOT).returncode),
         ("independent admission and historical eligibility", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_event_admission_contract.py")], cwd=ROOT).returncode),
         ("current result atomic budget", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_result_budget.py")], cwd=ROOT).returncode),

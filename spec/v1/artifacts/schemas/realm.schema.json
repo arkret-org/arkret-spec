@@ -745,8 +745,7 @@
             "verification_method",
             "key_kind",
             "jose_algorithm",
-            "frozen_public_key_b64u",
-            "frozen_public_key_digest"
+            "frozen_public_key_b64u"
           ],
           "properties": {
             "actor_id": {
@@ -764,10 +763,6 @@
             "frozen_public_key_b64u": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{43}$"
-            },
-            "frozen_public_key_digest": {
-              "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$"
             }
           },
           "additionalProperties": false
@@ -779,8 +774,7 @@
             "verification_method",
             "key_kind",
             "jose_algorithm",
-            "frozen_public_key_b64u",
-            "frozen_public_key_digest"
+            "frozen_public_key_b64u"
           ],
           "properties": {
             "actor_id": {
@@ -798,42 +792,22 @@
             "frozen_public_key_b64u": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{44}$"
-            },
-            "frozen_public_key_digest": {
-              "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$"
             }
           },
           "additionalProperties": false
         }
       ],
-      "description": "Historical Seal signer truth. verification_method controller must project to actor_id; frozen_public_key_digest is SHA-256 of decoded frozen_public_key_b64u, while key_kind and jose_algorithm determine exact parsing and signature verification. Genesis freezes the first descriptors. A successor ak.realm.notary Move is authorized by predecessor-state descriptors and then installs new descriptors."
+      "description": "Historical Seal signing authority. The verification method controller projects to actor_id. Canonical key bytes are decoded from frozen_public_key_b64u according to key_kind and jose_algorithm; any local digest is SHA-256 of those bytes and is not transmitted. User/controller authority and Station execution authority remain distinct."
     },
     "notary_configuration": {
       "type": "object",
       "required": [
-        "kind",
-        "signers",
-        "fault_tolerance",
+        "signer",
         "max_clock_error_ms"
       ],
       "properties": {
-        "kind": {
-          "const": "quorum"
-        },
-        "signers": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/notary_signer_descriptor"
-          }
-        },
-        "fault_tolerance": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 85
+        "signer": {
+          "$ref": "#/$defs/notary_signer_descriptor"
         },
         "max_clock_error_ms": {
           "type": "integer",
@@ -842,7 +816,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "One fixed consensus configuration: n=3*fault_tolerance+1 distinct replicas and quorum=2*fault_tolerance+1. Actor identities, methods and frozen key digests are each unique. f=0 requires one signer and offers no replica fault tolerance. Reconfiguration requires confirmed handoff of the full prefix and prepared locks. max_clock_error_ms is the declared bound for honest voting clocks, not an authority freshness lease."
+      "description": "One frozen Seal signing authority and one durable governance executor per Realm. No quorum, threshold, leader election or view-change configuration exists. Identity-control signing authority remains fixed by the accepted user/controller rules; a Station never acquires those private keys. Authorized replacement requires the previous authority to close its write position and the successor to inherit the complete accepted prefix."
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

@@ -83,6 +83,7 @@ POST /_arkret/edge/push/register-device
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
 | `display_name` | string | MAY | 用户可读设备名 |
+| `visible_notification_opt_in` | boolean | optional（默认 false） | 同一已认证 Account/device 对 visible 通知的显式授权；仅由设备注册更新，不从 notify 取得。 |
 
 Push registration 的作用域是认证 session 的完整 `AccountId`。客户端以同一 principal 在两个 Station 登录时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个账号的 push token 或伪名复制到另一个账号。self-service 注册请求不重复携带 `account_id`、`principal_id` 或 `recipient_id`，服务端必须从 session grant 取得 exact `AccountId`，并要求当前服务 DID 等于 `account_id.station_id`。
 
@@ -113,6 +114,16 @@ POST /_arkret/edge/push/unregister-device
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
 成功响应固定为 HTTP 204 且没有 entity body；注册不存在也必须按同一幂等成功处理。不得返回 JSON 占位对象。
+
+### 3.3 Station 与 Push Gateway 的职责边界（normative）
+
+设备注册和注销由认证 `AccountId.station_id` 对应的 Station 提供；Gateway 的服务身份、`service_signature` 或 `push_gateway` profile 不授予账号 self-service 注册权。Push 对 Station 仍是可选能力；声明 `ak.operation_bundle.station.push.v1` 时 MUST 同时实现 §3.1 与 §3.2，不提供 `notify`。`push_gateway` 角色通过 `ak.operation_bundle.push_gateway.http_notify.v1` 提供 §5 的 `notify`。同一部署可以同时运行两种角色，但 MUST 按 `ServiceDescribe.service_kind` 分别声明角色及操作束；共享进程或 URL 不合并两种授权。
+
+Gateway MUST 在 durable 接管前取得与 `(push_target_id, device_id)` 精确匹配的有效注册、注册 Station 身份、被授权的通知来源、provider 路由与设备 opt-in；不得把请求中的 `device_id`、`push_target_id` 或 `Destination-Service-ID` 当成注册证明。`notification.devices[]` 仍仅携带 `device_id`，不得恢复 provider token、app id、注册身份或 opt-in 镜像。
+
+current-v1 可由同一受信部署中的 Station 与 Gateway 访问同一权威耐久注册状态来满足该前提；这属于部署内部存储边界，不是跨 Station 复制账号私有状态，也不要求使用特定数据库。注册更新、注销、设备撤销、过期与 provider 失效回收 MUST 对 gateway 的后续接管生效；旧注册不得因 gateway 缓存而复活。该访问 MUST 保持 exact AccountId 的隔离与 §2.2 的 pairwise pseudonym 隐私边界。
+
+current-v1 **尚未定义**向独立存储的第三方 Gateway 交付、授权和撤销注册状态的互操作契约。仅填写 `push_gateway_url` 不完成该交接；无法取得上述权威状态时，Station MUST NOT 报告该路由已可用，Gateway MUST NOT 接管通知。实现不得以转发用户 session grant、私有 HTTP 端点、notify 回填 token 或自行推断账号身份补足缺失契约。此限制不改变普通聊天发送或同步的离线可用性：缺失 push 路由不得变成普通 Event 准入依赖。
 
 ## 4. 推送规则引擎
 
@@ -354,14 +365,9 @@ POST /_arkret/edge/push/notify
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Strand / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
 | `notification.evaluation_locus_unresolved` | boolean | optional | 客户端规则待求值信号（见 §4.5 第 3 步）：为 `true` 表示设备已被唤醒，但完整用户规则链尚未在客户端求值。纯本地评估信号，不携带 metadata。 |
-| `notification.timing_profile_hint` | string | required | Station sync surface 提供的闭合时序 / profile hint，封闭枚举 `default` / `traffic_metadata_hardened`。当值为 `traffic_metadata_hardened` 时，表示来源服务已在 ServiceDescribe 声明支持并由部署配置对该 route 应用 `ak.profile.traffic_metadata_hardened.v1`；Push Gateway MUST 对 provider 可见出向 push 使用 300s 或更粗 timing bucket。该字段只驱动 gateway 内部时序，不得转发给 provider，也不得替代 `wakeup_default`、Realm policy 或 payload disclosure profile。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数。**封闭默认 bucket grid（normative）**：采用 bucket 化形态时，未声明 policy grid 的实现 MUST 使用封闭默认 grid `1` / `2-5` / `6-20` / `21+`（与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同为协议固定枚举，使迟滞带宽有可计算基准）。policy MAY 声明更细或更粗的自定义 grid，但 MUST 是封闭枚举（请求方收到不在 grid 内的 bucket 字符串 MUST 视作不合规并丢弃），不得使用开放 / 无界粒度——否则下方迟滞带宽公式（依赖"相邻有限 bucket 跨度"）无可计算基准。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。**边界振荡侧信道（normative）**：与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同理，真实未读数在两个 bucket 边界附近抖动时，provider 反复观察 bucket 翻转可逼近精确计数。因此采用 bucket 化形态时，bucket 输出 MUST 带迟滞（hysteresis）且最小驻留时间：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 notify 即翻转；实现 MUST 仅在真实计数越过 bucket 边界并持续超过 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认最小驻留窗口与默认迟滞带宽复用 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 口径：最小驻留窗口 MUST ≥ max(当前通知聚合窗口、provider 可观察刷新间隔)；默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))，其中 bucket"跨度"按**含端点计数**（`upper − lower + 1`）计算，与 [`discovery-directory.md` §3](./discovery-directory.md) 同口径（如 `501-2000` 跨度 = 1500）；开放上界 bucket（如 `21+`）以前一个有限 bucket 的跨度为参照基数（默认 grid 下 `6-20` 跨度 = 15，故 `21+` 参照基数 = 15）。policy MAY 声明更大的绝对值或比例，但不得低于该默认值；声明 0 或更小值 MUST 按不合规处理。`unread_increment` 与布尔 badge 形态不受 bucket 迟滞约束（前者只传增量、后者不暴露绝对量级）。 |
-| `notification.devices` | object[] | required | 目标设备路由数组，`minItems=1`。**`device_id` MUST 在数组内唯一（normative）**：输入是集合而非多重集。schema 的 `uniqueItems` 只能拒绝逐字节相同的条目，因此 gateway MUST 另行拒绝仅 `push_key` 或其它字段不同、但 `device_id` 重复的请求（`schema_violation`）。该唯一性是 §5.2 响应能对输入逐项守恒的前提，也使 `gateway_status=duplicate` 只表示"此前请求已接管"，不与请求内重复混淆。 |
+| `notification.devices` | object[] | required | 非空且唯一的 `{device_id}` 集合；重复 device_id MUST `schema_violation`。路由参数和 visible opt-in 仅从当前已认证设备注册解析，不接受 notify 覆盖。 |
 | `notification.devices[].device_id` | id:device | required | 目标设备的 typed device id，与 `ak.edge.push.command.register_device.v1` 注册时使用的同一 id。它与 `notification.push_target_id` 组成本次 notify 的逐项身份，§5.2 响应即以此定址；协议不存在第三套 route identity。 |
-| `notification.devices[].push_key` | string | optional | 目标平台 push token。Push Gateway 已在 register_device 时持有该设备的 route，正常情况下 SHOULD 省略本字段，由 gateway 依 `device_id` 解析已注册 route；携带它只会把原始 provider token 多复制一份到 wire 上。本字段 MUST NOT 出现在任何响应中（见 §5.2）。 |
-| `notification.devices[].app_id` | string | optional | 目标应用标识。 |
-| `notification.devices[].platform` | string | optional | 目标平台标识，供 gateway 选择 provider adapter。 |
-| `notification.devices[].visible_notification_opt_in` | boolean | optional（默认 `false`；routing-stripped） | 接收设备授权状态中的 `visible_notification` opt-in 投影。仅当 Realm policy、调用服务 visible profile 与该字段三者同时允许时，Push Gateway 才可处理本表 visible-only 字段；缺失或 `false` 时该设备 MUST 回退到 `blind_wakeup`，不得接收明文标题、发送者显示名或 typed-id preview。MUST NOT 转发给 provider。 |
 | `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定完整 `account_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
 | `notification.route_tokens.realm_route_token` | string | optional（routing-stripped） | Realm 级路由 / 去重 / 熔断 token；不得是 Realm id 或可逆 Realm id 编码。 |
 | `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
@@ -388,7 +394,7 @@ POST /_arkret/edge/push/notify
 
 1. `/_arkret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
 2. Product-private body 是调用方服务内部状态，不是 Arkret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ak.edge.push.command.notify.v1` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
-3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`timing_profile_hint`、`route_tokens`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
+3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`route_tokens`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ak.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
 `notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ak.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用顶层 pairwise `push_target_id` 与 `route_tokens`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_arkret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ak.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
@@ -410,19 +416,16 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
   "notification": {
     "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
     "wakeup_kind": "message",
-    "timing_profile_hint": "default",
     "counts": {
       "badge": "2-5",
       "missed_call": false
     },
     "devices": [
       {
-        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
-        "app_id": "com.arkret.client"
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f"
       },
       {
-        "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
-        "app_id": "com.arkret.client"
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b"
       }
     ]
   }
@@ -503,7 +506,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 1. Alice 发送加密消息到 Realm S
 2. Alice 的客户端不在 Event 明文元数据中附加 sender / Realm 可识别 `push_hint`；若需要提示，只能使用 `push_hint: "new_message"` 或 `l10n_key`
 3. Station sync surface 收到 Event，匹配推送规则
-4. Station sync surface 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、`timing_profile_hint`、可选计数和 opaque route token）
+4. Station sync surface 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、可选计数和 opaque route token）
 5. Bob 的设备收到推送，唤醒客户端
 6. 客户端从 Station sync surface 拉取加密 Event 并解密
 7. 客户端在本地展示完整的消息内容
@@ -565,3 +568,5 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 - Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read cursor / read receipt profile 表达。Delivery Receipt 属于 gateway 接管**之后**的 provider 投递阶段，**MUST NOT** 出现在 `ak.edge.push.command.notify.v1` 的同步响应中（见 §5.2）；v1 也未定义把它暴露给调用方的 canonical rail。若某部署需要该能力，MUST 另行定义独立的 query/stream operation 并裁决其定址、保留期、可见性与不可枚举要求，不得借 notify 响应或私有扩展字段承载。
 - 语音/视频通话推送使用 `ak.call.signal` 的 invite hint；payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Realm policy 明确允许。
 - Push Gateway 高可用不得通过共享长期 device token 实现。多网关部署 MUST 使用 service DID、短期授权、token 分片或 per-gateway registration，并支持撤销。
+
+网关 MUST 从已认证 source、当前 device registration 与部署 route policy 决定时序策略。适用 `ak.profile.traffic_metadata_hardened.v1` 时 provider 出向 push 使用 300s 或更粗 bucket；notify 不携带 timing hint，不能覆盖该政策。visible 通知仍同时需要 Realm policy、来源服务 profile 与注册设备 opt-in 许可。

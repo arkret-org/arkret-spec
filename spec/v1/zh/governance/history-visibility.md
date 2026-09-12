@@ -199,8 +199,8 @@ history_secret[N] = MLS-Exporter(
 incarnation 或 RHRK tuple、registry digests 与 retention。`traversal_intent_digest = SHA-256(UTF8("ak.history-governance-traversal-intent-v1")
 ||0x00||JCS(traversal_intent))`。服务不得替换 caller 的 base/current、缩成单一 head 或在 retry 中换 target。
 
-v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的从合法 Realm 起点认证的安全依据（包括 quorum 结论路径）；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器必须认证 pre-base provenance 与 confirmed state；later basis 可按 cbs-profiles §9 的配置与 ancestry/状态结论认证，不能使用自报 checkpoint。
-非投票 admission/联邦/恢复消费者按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证必要 epoch/transition、suite、Realm/Circle incarnation、join floor、T0 policy ceiling 与 current ratchet，并用 ancestry 结论验证冻结 bases 关系；不承担完整 cut 重放。以下完整 cut 遍历、root/coverage 重算只适用于实际投票/执行和选择独立重放的 auditor，不适用于普通客户端。
+v1 member history recovery 的 `trusted_history_base_basis` 是自己 Station 独立验证并耐久保存的从合法 Realm 起点认证的安全依据（包括 治理结果证明路径）；普通客户端只核对准备结果的账号、scope、请求与待签字段，不独立建立 bootstrap pin。服务器必须认证 pre-base provenance 与 confirmed state；later basis 可按 cbs-profiles §9 的配置与 ancestry/状态结论认证，不能使用自报 checkpoint。
+治理结果消费 Station按 [cbs-profiles §9](../authz/cbs-profiles.md#9-治理结果证明normative) 认证必要 epoch/transition、suite、Realm/Circle incarnation、join floor、T0 policy ceiling 与 current ratchet，并用 ancestry 结论验证冻结 bases 关系；不承担完整 cut 重放。以下完整 cut 遍历、root/coverage 重算只适用于治理执行和选择独立重放的 auditor，不适用于普通客户端。
 从每个 target leaf 反向沿 signed `predecessor_ref` 遍历，只能在 exact base leaf 终止；每个区间 Seal 的唯一 direct predecessor 必须仍在
 区间或恰为 base leaf，每个 base leaf 至少被一条 target 路径消费，且 target 必须支配 trusted current 的每个 leaf。隐藏 predecessor、无法从
 base 到达的并发 branch、missing object 或 fork-quarantine 均 fail closed。
@@ -360,7 +360,7 @@ history_chunk_context = JCS({
 request、receipt、manifest、effective scope、authorized ranges 与 expiry 已由 `manifest_admission_digest` 闭包承诺，不得重复进入
 context。recipient public key 来自已签 request 而不是 transport route，仅用于 HPKE `SetupBaseS`，不是 context 成员。manifest descriptor 只绑定 `chunk_response_id,chunk_index,covered_epoch_range`；
 不存在 selection digest、range key 或 page root。sealed chunk wire 仅携
-`{kind,manifest_digest,manifest_admission_digest,chunk_index,enc,ciphertext}`，不得重复 range。Manifest 首次 admission 的非投票服务器 MUST 对每个请求 epoch 取得认证的 winning transition/suite 与全部 join/profile floor、incarnation、T0/current ratchet 事实，并证明冻结 base/current/target 的 ancestry 关系；不得只验范围端点、猜中间 epoch 或省略 parent Circle 条件。实际重放角色仍从 receipt target 发现完整 cut 并从 base apply_seal 到 target；任一失败时整个 manifest 零 record、
+`{kind,manifest_digest,manifest_admission_digest,chunk_index,enc,ciphertext}`，不得重复 range。Manifest 首次 admission 的治理结果消费 Station MUST 对每个请求 epoch 取得认证的 winning transition/suite 与全部 join/profile floor、incarnation、T0/current ratchet 事实，并证明冻结 base/current/target 的 ancestry 关系；不得只验范围端点、猜中间 epoch 或省略 parent Circle 条件。实际重放角色仍从 receipt target 发现完整 cut 并从 base apply_seal 到 target；任一失败时整个 manifest 零 record、
 零 admission。成功事务耐久写 `HistoryManifestAdmission`，其 digest 绑定 manifest/request/receipt、exact `traversal_intent_digest`、
 authorized ranges 和 T0 pass marker。Source 必须先取得该首次 accepted manifest receipt；在此之前提交 chunk 或提交错误
 admission digest 必须 dependency reject 且零 pending、零 response record、零 attestation。
@@ -682,7 +682,7 @@ retained Event/Seal/dependency bytes。Holder service 由此投影 archive read/
 Winning Genesis/Commit 被 accepted Seal 激活时，activation consumer 必须在同一个 durable checkpoint 事务中按
 `(effective_scope,mls_group_id,epoch,container_event_ref,archive_tuple_digest)` upsert replication obligation 与 exact-byte
 outbox。启动、重连和 projection checkpoint 恢复都必须扫描已激活 archive 并补建遗漏 obligation。Replica 首次生成后不得重新
-HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原 bytes，exact duplicate 返回首次 accepted receipt。Archive 与该角色验证所必需的认证配置、quorum 结论、精确 epoch/transition 和原始来源依赖必须长期同寿命；独立投票/审计义务另保留完整 Seal cut、全部命令与 registered replay dependencies；旧 key rotation
+HPKE、换 base/current/target 或改 intent；失败/receipt 丢失只重放原 bytes，exact duplicate 返回首次 accepted receipt。Archive 与该角色验证所必需的认证配置、治理结果证明、精确 epoch/transition 和原始来源依赖必须长期同寿命；治理执行/独立审计义务另保留完整 Seal cut、全部命令与 registered replay dependencies；旧 key rotation
 不缩短寿命。v1 不定义 RHRK 远端 GC、renewal 或双方销毁协调 surface；部署在规范外本地销毁后不得再声称对应历史可恢复。
 
 对选择 `organization_recovery_key` durability 的 scope，source 在删除本地 epoch history secret 前 **MUST**
@@ -707,7 +707,7 @@ RHRK holder 唯一读取面是 recipient-bound、按 canonical bytes 分页的
 archive-lifetime traversal retention。非投票 holder 按 cbs-profiles §9 认证 exact archive tuple、winning epoch/transition、suite/key evidence 与必要 ancestry，不要求完整 cut 重放；
 不存在 `ArchiveId` 或第二个 archive-get surface。服务只返回历史 tuple 中
 `holder_service_id` 与当前认证 holder service authority 逐字节相符，且 `holder_signing_ref` 的当前 method-controller 投影仍等于 `method_controller_principal_id` 的行；unknown scope、无匹配、tuple 失配、过期/无权 holder
-均使用同形 `not_found`。Organization Recovery holder 的正常消费使用有权读取的最小 quorum 结论，不因持有恢复密钥而自动取得无关私有控制历史。需要独立重放审计时必须另外满足原始对象的 scope 披露政策；不能使用普通 service attestation 代替 quorum。archive 真实持久化、receipt、holder key 绑定与 GC gate 保持不变。
+均使用同形 `not_found`。Organization Recovery holder 的正常消费使用有权读取的最小 治理结果证明，不因持有恢复密钥而自动取得无关私有控制历史。需要独立重放审计时必须另外满足原始对象的 scope 披露政策；不能使用非配置签署者的 service attestation 代替治理签名。archive 真实持久化、receipt、holder key 绑定与 GC gate 保持不变。
 Traversal access 仍只允许 target→base cut 的 Seal、其 delta Control Move 与 registered dependencies：不得读取无关 ordinary Event、执行 generic timeline scan、获得 membership 或 send 权。
 Holder service 首次 durable accept replica 时分配严格单调
 `archive_sequence`；list 按 `(archive_sequence,container_event_ref)` 升序，cursor 绑定 exact `holder_service_id`、`method_controller_principal_id`、完整 query digest

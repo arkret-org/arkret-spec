@@ -15,8 +15,6 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_welcome_payload",
       "expect_valid": true,
       "instance": {
-        "mls_group_id": "fixture-group",
-        "epoch": 1,
         "recipient_pairwise_actor_id": "ak:did_core:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "recipient_pairwise_verification_method": "did:key:z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE#z6MkhY7Wy7A25S8kBn4VxVZPSJb6kWZgVvr1e8QZweU5X4hE",
         "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
@@ -77,12 +75,10 @@
         "governance_binding": {
           "binding_version": 1,
           "encoding_profile": "cbor-deterministic-rfc8949-v1",
-          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
           },
-          "mls_group_id": "fixture-group",
           "previous_epoch": 0,
           "next_epoch": 1,
           "security_frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",

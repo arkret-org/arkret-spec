@@ -56,9 +56,9 @@
       }
     },
     {
-      "name": "stale_basis_and_quorum_failure_fail_closed",
+      "name": "stale_basis_and_authority_failure_fail_closed",
       "basis_current": false,
-      "authority_quorum_satisfied": false,
+      "frozen_authority_verified": false,
       "expected": {
         "decision": "reject",
         "network_submit_attempted": false

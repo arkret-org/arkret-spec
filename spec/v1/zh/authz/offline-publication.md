@@ -56,7 +56,7 @@ closed unit、root/founding authority proof、creator/session/device、notary de
 chain 与目标 Realm 不存在；提交时 unit、顺序、数量或任一 digest 不同都 MUST 零写入拒绝。
 该例外不得用于普通未接受 Event，也不得把 prospective/fabricated Seal 当作 accepted basis。
 
-`authority_set_ref` 是 CBS 各 authority/quorum 场景共用的闭合对象
+`authority_set_ref` 是 CBS 各 authority 场景共用的闭合对象
 `{authority_set_id, authority_set_digest}`。`authority_set_id` 必须是登记的
 `ak.authority_set.*.v1` policy symbol；`authority_set_digest` 必须等于该 policy 在 `basis_ref`
 控制面视图中的 canonical digest。verifier MUST 同时校验 id、digest、quorum、delegation 与
@@ -73,7 +73,7 @@ revocation authority，不得只按可变 registry 名称解析当前值。
 3. policy 的 kind、source kind与ordered `authorization_rules[]` MUST 命中
    [`authority-set-policy-registry.json`](../../artifacts/registry/authority-set-policy-registry.json)
    中同 id 的 template；
-4. verifier MUST 从 `basis_ref` 的认证安全事实派生 source ref/digest/generation、每个 rule 的 issuer methods、scope、actions 与 threshold。非投票消费者使用 `CbsProofBundle.conclusion_evidence` 或既有确切证明，按 [cbs-profiles §9](./cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 验证，不重放完整控制历史；实际执行/投票者仍验证完整前态。Seal quorum 不替代所选 lease rule 的 issuer quorum，lease 签名、有限期与撤销检查不变。
+4. verifier MUST 从 `basis_ref` 的认证安全事实派生 source ref/digest/generation、每个 rule 的 issuer methods、scope、actions 与 threshold。治理结果消费 Station使用 `CbsProofBundle.conclusion_evidence` 或既有确切证明，按 [cbs-profiles §9](./cbs-profiles.md#9-治理结果证明normative) 验证，不重放完整控制历史；治理执行者仍验证完整前态。Seal 唯一签名 不替代所选 lease rule 的 issuer quorum，lease 签名、有限期与撤销检查不变。
 
 `authorization_rules[]` 是替代分支，不是一个可合并的全局issuer set。每个rule独立固定
 `rule_id + issuer_role + allowed_actions + issuers + threshold`；lease必须携带
@@ -237,7 +237,7 @@ cache清除由`ak.vector.authz.authorization_lease_issuance.v1`固定，至少�
 
 ## 3. Issuer 与证明边界
 
-lease proof 必须满足 exact basis 派生的 `authority_set_policy` 和选定 `authorization_rule_id`，不能跨 rule 拼门限。issuer 授权门限与安全日志的 PBFT voter quorum 是不同合同，不能把“足够多服务签字”当成安全决定。
+lease proof 必须满足 exact basis 派生的 `authority_set_policy` 和选定 `authorization_rule_id`，不能跨 rule 拼门限。issuer 授权门限与安全日志的唯一治理签署权 是不同合同，不能把“足够多服务签字”当成安全决定。
 
 ## 4. 撤销窗口
 

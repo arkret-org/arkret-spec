@@ -14,12 +14,12 @@
     {
       "name": "advertised_profile_closure",
       "generator": "for_each_claimable_profile",
-      "expected": "All inherited required endpoints, schemas, event kinds, bindings, fixtures, and required feature-discovery tokens are advertised or locally available."
+      "expected": "All inherited required endpoints, schemas, event kinds, bindings, fixtures, and required feature-discovery tokens are advertised or locally available. push_gateway requires only notify plus its blind-wakeup dependency, not Account registration operations or PCR Event execution."
     },
     {
       "name": "surface_tier_does_not_overclaim",
       "generator": "for_each_surface_tier",
-      "expected": "The service does not advertise an operation, profile, or schema excluded by its declared surface tier."
+      "expected": "The service does not advertise an operation, profile, or schema excluded by its declared surface tier or role. station.push contains exactly register_device and unregister_device; push_gateway.http_notify contains exactly notify. Co-located roles retain separate role-scoped describe claims."
     },
     {
       "name": "unknown_required_profile_fails_closed",
