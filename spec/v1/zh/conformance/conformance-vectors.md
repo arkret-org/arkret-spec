@@ -1108,8 +1108,8 @@ ak.vector.state_root.incremental.v1
 
 输入：
 
-- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 缓存 `cell → leaf_digest` 表。
-- 一个新的 Seal `A1`（`predecessor_ref=A0`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
+- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 `sequenced_state` cell（`cell_1 … cell_N`，N ≥ 8）；每项初值必须携带最后成功写入的 `revision_event_id` 与完整 `value`，实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 缓存 `cell → leaf_digest` 表。
+- 一个新的 Seal `A1`（`predecessor_ref=A0`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）；每个成功写入携带该命令的确切 `revision_event_id`，不能从业务值、序号或接收顺序合成 revision。
 - 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control write）。
 - 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 write），并通过已登记的安全领域终态写终止一个旧 cell。
 
@@ -1118,7 +1118,7 @@ ak.vector.state_root.incremental.v1
 每个 case MUST 同时计算：
 
 - `state_root_incremental`：仅对受影响 cell 重算 leaf_digest 与 Merkle 分支，复用 `A0` 缓存。
-- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 / §11 从 Seal 覆盖集全量重算所有 cell 的 leaf_digest 与 Merkle root。
+- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 从唯一确认序列全量重算所有 cell 的 `state={revision_event_id,value}` leaf digest 与 Merkle root。
 
 判定要求：
 
@@ -1134,7 +1134,7 @@ ak.vector.state_root.incremental.v1
 - 受影响 cell 集合按 receive order 而非 `cell_wire` lex order 排序。
 - A2 case 下错把 `state_root` 重置为空摘要。
 
-实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 / §11 中"增量与全量必须等价"的要求。
+实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11 中“增量与全量必须等价”的要求。
 
 ### 2.10 Vector: `ak.strand.tracks.update` 原子 patch
 
@@ -1345,30 +1345,30 @@ ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1
 
 失败条件：first-row-wins 或较早 accepted 者胜出；接受只按 digest 指认的归一裁决；碰撞区间被 compaction 跨越；把重算的 `state_root` 当作原 Seal 承诺。
 
-### 2.18 Vector: threshold forensic attribution 声明
+### 2.18 Vector: 固定 PBFT quorum 几何
 
 向量名称：
 
 ```text
-ak.vector.cbs_lattice.threshold_forensic_attribution.v1
+ak.vector.cbs_lattice.quorum_geometry.v1
 ```
 
-本向量固化 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary.forensic_attribution` 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.1 的算术规则。
+本向量固化 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 唯一 `notary.kind=quorum` 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §8 的 PBFT 算术规则。
 
 输入：
 
-- **Case A**：threshold notary,n=5,k=3（2k>n），`forensic_attribution="quorum_intersection"`。
-- **Case B**：n=5,k=3,`forensic_attribution="waived"`。
-- **Case C**：n=4,k=2（2k≤n），`forensic_attribution="quorum_intersection"`。
-- **Case D**：threshold notary 缺 `forensic_attribution` 字段。
+- **Case A**：`f=0,n=1`，携 1 份合法 commit 签名。
+- **Case B**：`f=1,n=4`，携 3 份不同配置 voter 的合法 commit 签名。
+- **Case C**：`f=1,n=3`，违反 `n=3f+1`。
+- **Case D**：`f=1,n=4`，只携 2 份 commit 签名，未达到 `2f+1`。
 
 期望：
 
-- Case A：accept。
-- Case B / Case C：reducer MUST 在 `ak.realm.create` 拒绝（取值与 2k>n 算术关系不符）。
-- Case D：schema 校验失败（threshold 变体必填该字段）。
+- Case A / Case B：accept，确认 quorum 分别为 1 与 3。
+- Case C：notary 配置必须拒绝；schema 的字段形状通过不能替代跨字段 `n=3f+1` 校验。
+- Case D：Seal 必须以签名 quorum 不足拒绝，零安全状态效果。
 
-失败条件：Case B/C 被接受；Case D 通过 schema 校验。
+失败条件：接受任意其它 notary kind、自选 k-of-n、把同一 voter 的多把 key 计多票，或让不足 `2f+1` 的签名确认 Seal。
 
 ### 2.19 Vector: 分区撤销传播
 

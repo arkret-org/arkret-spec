@@ -1248,10 +1248,10 @@
           "expected": "requarantine_peer"
         },
         {
-          "name": "recovery_seal_covering_only_fork_resolution_accepted",
-          "description": "The dedicated fork-resolution Seal is a closed member of the step 2b recovery allow-list.",
+          "name": "quorum_fork_resolution_seal_accepted",
+          "description": "The dedicated fork-resolution Seal uses the current fixed quorum and contains only fork-resolution commands.",
           "event_kind": "ak.fork.resolution",
-          "seal_signer_descriptor": "recovery_members",
+          "seal_signer_configuration": "current_quorum",
           "seal_delta_kinds": [
             "ak.fork.resolution",
             "ak.fork.resolution"
@@ -1259,10 +1259,10 @@
           "expected": "accept_and_project_exact_scope"
         },
         {
-          "name": "recovery_seal_mixing_an_ordinary_move_rejected",
-          "description": "A recovery signer that could attach an ordinary Control Move to a fork-resolution Seal would hold a general signing authority rather than a recovery one.",
+          "name": "fork_resolution_seal_mixing_an_unrelated_move_rejected",
+          "description": "The special quarantine-bypass Seal is confirmed by the current quorum but cannot attach an unrelated Control Move to the fork-resolution batch.",
           "event_kind": "ak.fork.resolution",
-          "seal_signer_descriptor": "recovery_members",
+          "seal_signer_configuration": "current_quorum",
           "seal_delta_kinds": [
             "ak.fork.resolution",
             "ak.member.state"

@@ -747,56 +747,64 @@
             "value": {
               "seq": 1,
               "state": "alpha"
-            }
+            },
+            "revision_event_id": "ak:event:AZgm4MbBSUyX5zICP5GyYYKt7GLnHW-IlHjxd2kuQlr4"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
             "value": {
               "seq": 2,
               "state": "bravo"
-            }
+            },
+            "revision_event_id": "ak:event:AYW3TqRLlsPSr7O9HjQP7mweEQ8LAxa0dm9olSqiC6M_"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.003",
             "value": {
               "seq": 3,
               "state": "charlie"
-            }
+            },
+            "revision_event_id": "ak:event:AeVjqBIu-1FlwBufdWhGsmLsYPufIQRNvSkYZe6yUcYG"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.004",
             "value": {
               "seq": 4,
               "state": "delta"
-            }
+            },
+            "revision_event_id": "ak:event:AdoBt-9RCl2KT4syOHNvyy39Dn6z-fAJJRbbyGce3LlQ"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.005",
             "value": {
               "seq": 5,
               "state": "echo"
-            }
+            },
+            "revision_event_id": "ak:event:AdBGNE3uy8BstzQCA4AWMgyUv_qaNQMRmqTWG5HKghAm"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.006",
             "value": {
               "seq": 6,
               "state": "foxtrot"
-            }
+            },
+            "revision_event_id": "ak:event:Adavq5Nb3riiTt32uJSpmtfwognL_tgriZBL3KVGO4Kr"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.007",
             "value": {
               "seq": 7,
               "state": "golf"
-            }
+            },
+            "revision_event_id": "ak:event:AemGtTr8J1EcgWhM7fpbthm7iqGNWCw07zM1YmD-w0Ej"
           },
           {
             "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.008",
             "value": {
               "seq": 8,
               "state": "hotel"
-            }
+            },
+            "revision_event_id": "ak:event:AYepKXJkG3fbyYWrCaPcyrGKY_wWY-L4s7c5t0xuVeCo"
           }
         ],
         "transitions": [
@@ -809,7 +817,8 @@
                 "value": {
                   "seq": 9,
                   "state": "charlie-updated"
-                }
+                },
+                "revision_event_id": "ak:event:AfxnQhZl9map8QZGitIWDBKfl5p1XKIYrOrDI47MScG_"
               }
             ],
             "expected": {
@@ -827,7 +836,8 @@
                 "value": {
                   "seq": 10,
                   "state": "bravo-updated"
-                }
+                },
+                "revision_event_id": "ak:event:AYIvT8DtbKVe2YJ6_8khrwN2ktZbAlk2R7BFS2WAsqVR"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.004",
@@ -835,7 +845,8 @@
                 "value": {
                   "seq": 11,
                   "state": "delta-updated"
-                }
+                },
+                "revision_event_id": "ak:event:AfqAb_MkooZlbA9ApZ-qdwPc7z565OkHxav33J07Ozef"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.006",
@@ -843,7 +854,8 @@
                 "value": {
                   "seq": 12,
                   "state": "foxtrot-updated"
-                }
+                },
+                "revision_event_id": "ak:event:AaCY-XULMKoX7D7zkKYB6BEoNCjRtXRQyiFZW5vk_tqs"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.008",
@@ -851,7 +863,8 @@
                 "value": {
                   "seq": 13,
                   "state": "hotel-updated"
-                }
+                },
+                "revision_event_id": "ak:event:ARyDoasRdj_jqnjDXs5Q2SR5tb0dzoMR8erw6aDVDMLt"
               }
             ],
             "expected": {
@@ -869,7 +882,8 @@
                 "value": {
                   "seq": 21,
                   "state": "alpha-all"
-                }
+                },
+                "revision_event_id": "ak:event:AR8cLMb_hDJHaEUlaP_mmFaNN4i_teRUt6t-Y0g35WZi"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
@@ -877,7 +891,8 @@
                 "value": {
                   "seq": 22,
                   "state": "bravo-all"
-                }
+                },
+                "revision_event_id": "ak:event:ARQ8TwuAXq9yEKyg3NqOFPUy-0a6VyXhETRVQfWO--X7"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.003",
@@ -885,7 +900,8 @@
                 "value": {
                   "seq": 23,
                   "state": "charlie-all"
-                }
+                },
+                "revision_event_id": "ak:event:AbB8_mlLWdyeAN0ChjotMjf0AguJfIoXj9d5maeLdvHV"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.004",
@@ -893,7 +909,8 @@
                 "value": {
                   "seq": 24,
                   "state": "delta-all"
-                }
+                },
+                "revision_event_id": "ak:event:Abtr6_LE5fGv-NMkpds6zMgjQqTTZdBwNlPB2XEViGC7"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.005",
@@ -901,7 +918,8 @@
                 "value": {
                   "seq": 25,
                   "state": "echo-all"
-                }
+                },
+                "revision_event_id": "ak:event:AS1eVD8pi651-imRPn8fKC3YMWJYzMzl29LtjFzSadF6"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.006",
@@ -909,7 +927,8 @@
                 "value": {
                   "seq": 26,
                   "state": "foxtrot-all"
-                }
+                },
+                "revision_event_id": "ak:event:AW8Q0o96yW1N7Je6YL569PtVjRLNURb8ticxCF8sSvDt"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.007",
@@ -917,7 +936,8 @@
                 "value": {
                   "seq": 27,
                   "state": "golf-all"
-                }
+                },
+                "revision_event_id": "ak:event:ARsUOFh62iSueMxvPCgTocFqIeyKToMC2VVrF2phlZA1"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.008",
@@ -925,7 +945,8 @@
                 "value": {
                   "seq": 28,
                   "state": "hotel-all"
-                }
+                },
+                "revision_event_id": "ak:event:ARZOgxmcPalGPh9wJ8onFNcHGY_i-7wvLESnDMrCJ7uT"
               }
             ],
             "expected": {
@@ -951,7 +972,8 @@
                 "value": {
                   "seq": 31,
                   "state": "india-new"
-                }
+                },
+                "revision_event_id": "ak:event:Ae2kuvDqeNqCEVobTZchkEcMFwBOqhCCgHRno1gQZ5mZ"
               },
               {
                 "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
@@ -959,7 +981,8 @@
                 "value": {
                   "deleted": true,
                   "reason": "schema_evolution"
-                }
+                },
+                "revision_event_id": "ak:event:AffRqIsEYvV4gqo1M9t2QTndvQj2GNrc069sDU2QpU3i"
               }
             ],
             "expected": {

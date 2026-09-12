@@ -4338,8 +4338,8 @@
         "admission_checks": [
           "payload.object.notary.kind is the sole notary profile discriminator; top-level notary_profile is forbidden",
           "every signer descriptor controller projects to actor_id, decoded key bytes/digest match key_kind, and jose_algorithm is the exact registered algorithm",
-          "members, recovery_members and their union are each field-wise unique by actor_id, verification_method and frozen_public_key_digest; primary/recovery slots are disjoint",
-          "threshold does not exceed members length; unsupported key kinds or algorithms are rejected"
+          "signers are field-wise unique by actor_id, verification_method and frozen_public_key_digest; one actor or key cannot occupy multiple voting slots",
+          "kind is quorum, signer count equals 3*fault_tolerance+1, and unsupported key kinds or algorithms are rejected"
         ],
         "cell_writes": [
           {
@@ -4922,7 +4922,7 @@
         "admission_checks": [
           "the predecessor-state frozen descriptors authorize this Move before the replacement value is installed",
           "payload.notary.kind is the sole discriminator and every closed branch satisfies the same actor_id, verification_method and frozen_public_key_digest field-wise uniqueness rules as Realm create",
-          "every descriptor controller, decoded key bytes/digest, key_kind and jose_algorithm validate exactly; threshold does not exceed members length"
+          "every descriptor controller, decoded key bytes/digest, key_kind and jose_algorithm validate exactly; kind is quorum and signer count equals 3*fault_tolerance+1"
         ],
         "cell_writes": [
           {
@@ -7043,7 +7043,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Authorized event sibling-bucket or full-hash collision resolution. The recovery Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by exactly one critical recovery_capability reference; state_witness is forbidden. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already settled adjudication cannot be silently re-adjudicated by a causal successor.",
+        "payload": "Authorized event sibling-bucket or full-hash collision resolution. A normally quorum-confirmed fork-resolution Seal covers this Control Move in delta; the typed payload identifies the original evidence scope and either one canonical winner or void_all. Authorization is carried only by exactly one critical recovery_capability reference; state_witness is forbidden. The Move MUST carry a head_eq: null precondition for the ak.component.fork_resolution.v1 cell its subject addresses, so an already settled adjudication cannot be silently re-adjudicated by a causal successor.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/fork_resolution_payload",
         "admission": "capability_gated",
         "admission_checks": [
