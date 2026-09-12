@@ -244,7 +244,15 @@ H(label, x) = "sha256:" + lowerhex(SHA256(UTF8(label + "\n") || RFC8785_JCS(x)))
 ```
 
 若某字段定义显式指定 decoded ciphertext bytes，则改为 `SHA256(UTF8(label + "\n") || decoded_bytes)` 且不做 JCS。
-receipt 中的完整 Event ref、lineage 中的 Event ref 与 current proof head 都必须与同一内层 Event 及分支逐字交叉匹配。所有完整 Event ref 的 digest 都按
+receipt 与 lineage 中的完整 Event ref 必须与内层 Event 及分支逐字交叉匹配。`current_proof` 独立证明同一方向
+在签发时的真实已确认 head：可以恰为该内层 Event，也可以是通过完整已认证 predecessor 链覆盖该 Event 的
+后继；whole-round terminal 另按 §3 的真实源 tombstone 及对端 fence 规则验证。不能只凭较大
+`complete_through`、相同 round、接收顺序或一张 mirror receipt 推断覆盖关系。缺少必要链时，接收方保留原事实
+并保持非授权 pending；已认证收窄/terminal 先安装 live fence，不能先凭旧内层 scopes 放行再等补齐。
+同一规则适用于 self `accepted` 中的 current proof 和 `proof_refresh`。多个命令已确认或同一原子 unit 含多个
+方向更新时，source 必须在全部 effects 安装后对真实当前 head 签名，不能为较早命令倒填签名时间、重新签发
+假 fresh head 或更改该命令的原始 receipt/lineage。首次终局固定后 exact retry 保留首次 bytes，后续 freshness
+从独立 refresh/read 路径取得；普通聊天仍按 §3 消费耐久历史区间。所有完整 Event ref 的 digest 都按
 [`../conformance/encoding.md` §4.0](../conformance/encoding.md) 从 suite-tagged full-digest EventId 解码，wire **MUST NOT** 再携同源 digest 镜像；验证方仍必须从内层 Event canonical preimage 重算 digest 并与 EventId 比较。carrier只承载
 `ak.contact.*`，不得承载 `ak.direct_conversation.bound` 或 Realm Event；Direct Conversation binding 只能走
 §5–§7 的 founding admission 与 bootstrap authority。carrier 必须使用 peer Message Signature，并逐字保留内层 bytes；relay
@@ -262,7 +270,8 @@ slot仍未消费时返回自己的 attestation，并在双方 attestation齐备�
 remote mirror receipt只能是`accepted|duplicate`，`deferred`从不构成authority。无签名 bundle本身永远
 不是 authority。`proof_refresh` 必须使用 fresh idempotency key，携目标先前签发的 mirror receipt锁定同一 immutable
 inner fact；该prior mirror receipt也只能是`accepted|duplicate`。receiver只可用更鲜且逐字段匹配的
-source-signed proof替换旧 proof，不能修改 fact/receipt/round；成功响应必须返回匹配的current proof。
+source-signed proof替换旧 proof，不能修改 fact/receipt/round；新 proof 的方向、round 与对原事实的确切覆盖关系
+必须满足上述完整链规则，成功响应必须返回匹配的 current proof。
 任何不匹配当前 closed XOR 的请求
 都必须 schema reject；实现不得协商第二种 carrier，也不得以缺少必需 branch receipt 或 proof 的自定义结构进入
 projection。

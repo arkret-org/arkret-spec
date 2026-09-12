@@ -477,7 +477,7 @@
             "duplicate",
             "rejected"
           ],
-          "description": "Closed gateway acceptance result. accepted = this request durably took the device route over. duplicate = an earlier request already took it over and this request produced no new delivery. rejected = the gateway did not take it over. accepted and duplicate both mean the caller MUST NOT resend this device; only rejected may be resent, and only when retry_after_ms is present. See push-notifications.md §5.2."
+          "description": "Closed gateway acceptance result. accepted = this request durably took the device route over. duplicate = an earlier request already took it over, or the operation explicitly requires a no-fanout acknowledgement, and this request produced no new delivery. A no-fanout acknowledgement does not assert provider acceptance, queueing or new durable route ownership. rejected = the gateway did not take it over. accepted and duplicate both mean the caller MUST NOT resend this device; only rejected may be resent, and only when retry_after_ms is present. See push-notifications.md §5.2."
         },
         "reason_code": {
           "type": "string",

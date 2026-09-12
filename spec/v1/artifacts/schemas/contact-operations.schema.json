@@ -663,7 +663,7 @@
         },
         "head_event_ref": {
           "$ref": "#/$defs/event_id",
-          "description": "Complete identity of the signed current-head Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel head_digest is carried."
+          "description": "Complete identity of the actual confirmed current-head Event at proof issuance. It may equal the carrier's original fact or be its authenticated same-direction successor; exact coverage requires the complete verified predecessor chain, never only a larger complete_through. A round-wide terminal uses the separately verified source tombstone and counterpart fence rules. Missing chain material stays non-authorizing pending. A source MUST NOT sign a superseded fact as a fresh head or backdate a proof. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel head_digest is carried."
         },
         "terminal": {
           "type": "boolean",

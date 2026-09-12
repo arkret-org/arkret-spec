@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.28",
+  "version": "2026-09-13.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T23:11:51+08:00",
+  "generated_at": "2026-09-13T00:03:07+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -151,7 +151,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:4ed4fa550f5ba33dce8bbbd2c46982a84f67d59236a383b0f5e0a0b11060462f",
+      "section_digest": "sha256:5e3de214f778ca48e3097fd00cadc3e9dd71cc7a627eefcca1b6eabc8653b121",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -585,7 +585,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:91bcead0dcc3712bc0ee86de0dcabb5fb5eea9f965861070ec95c28c3b12bf1b",
+      "section_digest": "sha256:b6be2fe5f2bd527dc7c9b9ecc3a5bd32dffae5d69d9bc144d9f52a7341de2ecd",
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."

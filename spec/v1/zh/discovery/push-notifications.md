@@ -382,7 +382,7 @@ POST /_arkret/edge/push/notify
 | `notification.user_is_target` | boolean | visible-only | profile-gated：当前接收用户是否为定向目标。绝不进 blind。 |
 | `notification.priority` | string | visible-only | profile-gated 优先级提示（如 `low`）。绝不进 blind。 |
 | `notification.membership` | string | visible-only | profile-gated 接收用户的成员关系状态。绝不进 blind。 |
-| `event_kind` | string | optional | 顶层（与 `notification` 并列）：源 Event kind（如 `ak.message.create`），供 gateway 将 Phase-P2 `ak.agent.*` 生命周期 / actor-private kind 路由为 no-fanout ack。粗粒度路由选择器，不带 Realm / sender / event 识别字段。 |
+| `event_kind` | string | optional | 顶层（与 `notification` 并列）：源 Event kind（如 `ak.message.create`），供 gateway 将已登记的 Agent 生命周期 / actor-private kind 路由为 no-fanout ack。该分支 MUST 返回 200 且逐 device 返回 `gateway_status="duplicate"`，表示本次无需新投递；首次收到也不得伪报新 durable route 接管或触发 provider。粗粒度路由选择器，不带 Realm / sender / event 识别字段。 |
 | `reason_code` | string | optional | 顶层：caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记诊断重放（非新事件），**MUST NOT** 触发新 push fanout。gateway 仍返回 200，且响应 **MUST 满足 §5.2 的逐项守恒**：`notification.devices[]` 的每个 `device_id` 恰好对应一条 `outcomes[]` 项，其 `gateway_status="duplicate"`（未产生新投递的幂等 ack），MUST NOT 返回空 `outcomes[]`。其它取值仅在操作显式定义处被接受。 |
 | `audit_envelope` | object | optional | 顶层：`ak.audit.accessed` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
 
@@ -460,7 +460,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 | `push_target_id` | `PushTargetId` | required | 回显 `notification.push_target_id`，MUST 与请求一致。 |
 | `outcomes` | object[] | required | 逐 device 的 gateway 接管结论，`minItems=1`。 |
 | `outcomes[].device_id` | id:device | required | 对应 `notification.devices[].device_id`。逐项身份是 `(push_target_id, device_id)` 复合键——请求侧已经承载它，响应不引入第三套 route identity。 |
-| `outcomes[].gateway_status` | string | required | 封闭枚举 `accepted` / `duplicate` / `rejected`。`accepted`=本次请求 durable 接管该 device route；`duplicate`=此前请求已接管，本次不产生新投递；`rejected`=未接管。 |
+| `outcomes[].gateway_status` | string | required | 封闭枚举 `accepted` / `duplicate` / `rejected`。`accepted`=本次请求 durable 接管该 device route；`duplicate`=此前请求已接管，或本操作明确规定 no-fanout ack，本次不产生新投递；`rejected`=未接管。 |
 | `outcomes[].reason_code` | string | conditional | 封闭枚举，`gateway_status=rejected` 时 MUST 出现，否则 MUST 缺席。取值见下表，全部登记于 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。 |
 | `outcomes[].retry_after_ms` | integer | optional | caller 退避毫秒数。仅当 gateway 未接管且 `reason_code` 属 caller-retryable 子集时出现；它的出现是"下一次尝试归调用方"的唯一 wire 信号。 |
 
@@ -472,7 +472,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 **两阶段责任（normative）**：
 
-1. `gateway_status ∈ {accepted, duplicate}` 表示 Push Gateway 已 durable 接管该 device route。此后 provider 侧的 429、临时失败与重试**由 gateway 负责**，调用方 MUST NOT 因 provider 失败重发该 device。
+1. `gateway_status ∈ {accepted, duplicate}` 表示调用方无需再次提交该 device。普通投递分支表示 Push Gateway 已 durable 接管该 device route，此后 provider 侧的 429、临时失败与重试**由 gateway 负责**，调用方 MUST NOT 因 provider 失败重发该 device。§5.1 明确的 no-fanout ack（包括 `historical_only`、Agent 生命周期 / actor-private 路由）只返回 `duplicate`，不表示 provider 接收、排队或新 route 接管。
 2. `gateway_status=rejected` 表示未接管。只有登记为 caller-retryable 的 reason 才可携带 `retry_after_ms`；其余 rejection 是 terminal，重发同一请求不会改变结果。
 3. provider 侧的 pending / accepted / rejected / expired 属于接管之后的 delivery state，由 gateway 内部推进，**不进入本同步响应**。
 4. provider 状态更新 MUST NOT 反向改写首次 gateway 接管结论。
