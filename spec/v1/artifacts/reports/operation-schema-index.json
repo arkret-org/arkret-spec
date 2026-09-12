@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.15",
+  "version": "2026-09-12.16",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T13:20:00+08:00",
+  "generated_at": "2026-09-12T13:50:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3981,7 +3981,8 @@
           "event_id",
           "realm_state",
           "decision",
-          "observed_at"
+          "observed_at",
+          "conclusion_set"
         ],
         "closed": true
       }
@@ -4210,16 +4211,31 @@
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "properties": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+            "schema_kind": null,
+            "required": [
+              "seals",
+              "missing_seal_refs"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+            "schema_kind": null,
+            "required": [
+              "missing_conclusion_queries"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       }
     },
     {
@@ -10047,16 +10063,31 @@
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "properties": [
-          "seals",
-          "missing_seal_refs"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+            "schema_kind": null,
+            "required": [
+              "seals",
+              "missing_seal_refs"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+            "schema_kind": null,
+            "required": [
+              "missing_conclusion_queries"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       }
     },
     {

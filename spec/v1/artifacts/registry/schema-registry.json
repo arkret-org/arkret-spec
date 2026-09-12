@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.11",
+  "version": "2026-09-12.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T10:44:58+08:00",
+  "generated_at": "2026-09-12T11:52:50+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1367,6 +1367,12 @@
       "file": "schemas/seal.schema.json",
       "status": "active",
       "description": "Seal control-plane finality commitment schema"
+    },
+    {
+      "schema_id": "ak.schema.seal_conclusion.v1",
+      "file": "schemas/seal-conclusion.schema.json",
+      "status": "active",
+      "description": "Scope-authorized quorum conclusions and frozen configuration handoffs for non-voting receivers."
     },
     {
       "schema_id": "ak.schema.seal_transparency.v1",

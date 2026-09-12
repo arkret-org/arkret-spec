@@ -3075,8 +3075,7 @@
     "SealResolveRequestCore": {
       "type": "object",
       "required": [
-        "realm_id",
-        "seal_refs"
+        "realm_id"
       ],
       "properties": {
         "realm_id": {
@@ -3090,9 +3089,40 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
           }
+        },
+        "conclusion_queries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "./seal-conclusion.schema.json#/$defs/query"
+          },
+          "uniqueItems": true
         }
       },
-      "description": "Exact Seal-only resolve core. Event ids/digests are forbidden and remain on Event resolve."
+      "description": "Exact raw Seal resolve OR bounded quorum conclusion queries, never both. Conclusions do not grant extra visibility; they use cbs-profiles section 9 and existing operation authorization. No Event resolve or new online publication authority.",
+      "oneOf": [
+        {
+          "required": [
+            "seal_refs"
+          ],
+          "not": {
+            "required": [
+              "conclusion_queries"
+            ]
+          }
+        },
+        {
+          "required": [
+            "conclusion_queries"
+          ],
+          "not": {
+            "required": [
+              "seal_refs"
+            ]
+          }
+        }
+      ]
     },
     "SelfSealResolveRequestBody": {
       "allOf": [
@@ -3130,10 +3160,7 @@
     },
     "SealResolveOutcome": {
       "type": "object",
-      "required": [
-        "seals",
-        "missing_seal_refs"
-      ],
+      "required": [],
       "properties": {
         "seals": {
           "type": "array",
@@ -3147,10 +3174,83 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
           }
+        },
+        "conclusion_set": {
+          "$ref": "./seal-conclusion.schema.json"
+        },
+        "missing_conclusion_queries": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 128,
+          "items": {
+            "$ref": "./seal-conclusion.schema.json#/$defs/query"
+          }
         }
       },
       "additionalProperties": false,
-      "description": "Every canonical input selector is accounted for exactly once by a verified Seal or same-shape missing ref. Returned Seals are sorted by seal_ref. Unknown and unauthorized are indistinguishable; no Event is returned."
+      "description": "Raw selectors are accounted for by seals/missing_seal_refs. Conclusion queries are accounted for exactly once by a certificate whose result selectors exactly match the query or by the unchanged missing_conclusion_queries item. If all queries are missing, omit conclusion_set. Unknown, unauthorized and unavailable conclusions share missing treatment. No empty fabricated evidence and no partial successful query. All arrays use canonical query/selector order.",
+      "oneOf": [
+        {
+          "required": [
+            "seals",
+            "missing_seal_refs"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "conclusion_set"
+                ]
+              },
+              {
+                "required": [
+                  "missing_conclusion_queries"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "missing_conclusion_queries"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "seals"
+                ]
+              },
+              {
+                "required": [
+                  "missing_seal_refs"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "missing_conclusion_queries"
+            ],
+            "not": {
+              "required": [
+                "conclusion_set"
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "missing_conclusion_queries": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "EventsFrontierView": {
       "oneOf": [

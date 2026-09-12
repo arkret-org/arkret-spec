@@ -20,7 +20,7 @@ v1 的安全域标识就是 RealmId。一个 Realm 的权限、成员、硬唯�
 
 Seal 的 `realm_id/configuration_ref/notary_seq/predecessor_refs` 唯一绑定安全位置。`view` 只在 `notary_signature` certificate 内，不能改变 Seal identity。genesis 高度 0、无 predecessor；其它高度恰为已确认 predecessor 加一。predecessor 必须是同 Realm 的唯一确认 Seal。Seal 的内容地址输入是去除 `id` 与 `notary_signature` 后的完整 canonical body；更改 command 顺序、结果、前态、配置或任何关闭证据都会改变 Seal digest。commit JWS 签 `JCS({context:"ak.seal.commit.v1",seal_digest,configuration_ref,notary_seq,view})`，其中 seal_digest 是 canonical body 摘要。不同 view 对同一 body 的证书不产生两个 Seal 身份。
 
-`command_results` 给出原子 command unit 的实际执行顺序。每项 `unit_event_digests` 是已登记 unit 的确切成员顺序，`event_digest` 等于首成员；单命令为单元素数组。bootstrap/cascade 只能使用各自已登记的 unit 验证器，任意批次不能自行组成 unit。整个确认历史中同一 Event 只进入一个 unit。所有命令的原始 Event、依赖与结果内容必须可用并独立验证。`result_digest` 按 seal schema 的封闭投影从实际注册写入后的完整状态与 reason_code 重算，禁止哈希任意 HTTP response。失败 effects 为空；成功 effects 按 CellRef 排序，每个触及 Cell 只保留执行完该 unit 全部有序 write 后的一个完整 state，包括 bootstrap D 初始值。命令在其顺序位置重新执行授权、确切前置 revision、领域约束和全部写入。`delta` 恰为本 Seal committed units 内所有 security 成员摘要的 canonical sorted set；bootstrap D 成员共享原子 outcome 但不进入该集合；普通数据与失败命令不在其中。
+`command_results` 给出原子 command unit 的实际执行顺序。每项 `unit_event_digests` 是已登记 unit 的确切成员顺序，`event_digest` 等于首成员；单命令为单元素数组。bootstrap/cascade 只能使用各自已登记的 unit 验证器，任意批次不能自行组成 unit。整个确认历史中同一 Event 只进入一个 unit。实际投票/执行副本与选择独立重放的审计者必须取得并验证所有命令的原始 Event、依赖与结果；非投票消费者按 §9 认证所需结论，不重算已经确认的历史执行。`result_digest` 按 seal schema 的封闭投影从实际注册写入后的完整状态与 reason_code 重算，禁止哈希任意 HTTP response。失败 effects 为空；成功 effects 按 CellRef 排序，每个触及 Cell 只保留执行完该 unit 全部有序 write 后的一个完整 state，包括 bootstrap D 初始值。命令在其顺序位置重新执行授权、确切前置 revision、领域约束和全部写入。`delta` 恰为本 Seal committed units 内所有 security 成员摘要的 canonical sorted set；bootstrap D 成员共享原子 outcome 但不进入该集合；普通数据与失败命令不在其中。
 
 没有有效 security write 的普通命令禁止送入 Seal。bootstrap 的 D 初始值作为已登记安全创建事务的原子结果存在，不能把后续普通更新借此升级为安全命令。普通提交不得等待新的 Seal、KeyView、完整性根、周期签名或原账号 Station。
 
@@ -78,7 +78,7 @@ Seal 的 `transaction_records` 是唯一事务载体，kind 恰为 prepare/commi
 
 commit Seal 只由固定 decision 域签发，必须携按 participant 顺序排列、每域恰一个 same-manifest prepare Seal；缺任一不能 commit。abort 可以在未集齐 prepare 时确认，但不得与已有 commit 竞争成两个终态。participant 收到决定后以 apply 记录原子落实 staged 效果或丢弃候选并释放锁；重复 apply 无额外效果。迟到 prepare 在已知 abort 下拒绝，尚未知终态的锁必须待确切决定补齐。
 
-逻辑事务终态在 decision Seal 确认时唯一确定，participant 的异步 apply 不创造另一个业务决定。读取尚未物化的安全结果时必须补齐并应用该决定或返回 pending，不能拿部分 apply 宣称事务部分成功。command_results/delta 只在原命令的效果所属域 apply 成功时包含该命令；读取参与域不会凭空产生业务 write。所有 auxiliary records 由完整 Seal body 认证并随连续安全 prefix 重放，不能用只含 Cell 的 state_root 冒充 prepared-lock 完整证明。
+逻辑事务终态在 decision Seal 确认时唯一确定，participant 的异步 apply 不创造另一个业务决定。读取尚未物化的安全结果时必须补齐并应用该决定或返回 pending，不能拿部分 apply 宣称事务部分成功。command_results/delta 只在原命令的效果所属域 apply 成功时包含该命令；读取参与域不会凭空产生业务 write。所有 auxiliary records 由完整 Seal body 认证，实际参与执行者随连续安全 prefix 重放；非参与消费者也可按 §9 的 transaction 结论验证 exact manifest/phase。不能用只含 Cell 的 state_root 冒充 prepared-lock 完整证明。
 
 ### 6.2 依赖、隔离与取得证明
 
@@ -105,3 +105,125 @@ CbsProofBundle、exact Seal resolve、governance dependency resolve 继续承载
 确认后原 Event 按 D 模型发布，发送及重试保持 exact bytes。接收者用现有 cbs_proof_bundles 携带/解析该批准命令的 covering Seal 和确切消费 Cell 证明；这是允许的相关依赖，即使其 Seal 晚于原 Event 的 auth_context。必须校验消费值等于当前 EventId，不能用同内容、同 nonce 或同 Agent 的其它 Event 代替。cbs_proof_bundles 本身不授权。存储者必须与原 Event 一并保留这份证明，历史分类仍执行其它适用关闭约束。
 
 批准确认和待发布 outbox 必须原子持久化，崩溃只恢复原 Event；目标数据缺失时 pending，不换身份重建。私有 draft 的 published 状态从已确认批准与确切发布结果派生，不是共享准入权威。外部副作用仍要求唯一 command outcome 与下游幂等/fencing。未要求单次批准的普通 Agent 消息完全不走此流程。
+
+## 9. 非投票接收者的 quorum 结论（normative）
+
+### 9.1 责任与唯一载体
+
+非投票 Station MUST 接受本节认证的确切安全事实作为相应治理验证依据，不得仅因自己没有重放完整历史而拒绝。
+“独立验证”在该角色指验证信任起点、配置、quorum、事实与操作绑定；实际执行/投票副本和明确进行独立重放的 auditor
+继续完整验证命令、历史授权、CAS、结果、事务与根。承担多个角色的进程必须分别满足各角色义务。
+普通客户端仍消费自己 Station 的结果，不取得本节证明。注册/genesis 尚无先验 Seal，仍验证完整原子 anchor unit、
+外部身份根和精确 RealmId；不能由待证明的 notary 自证其起点、PCR/controller delegation 或外部 DID。
+
+唯一新增的公共证据是 [seal-conclusion.schema.json](../../artifacts/schemas/seal-conclusion.schema.json)。
+它认证已确认事实，不修改 Seal canonical bytes、PBFT commit transcript、state_root 或既有 Merkle 树，
+不引入安全命令、独立授权、controller 权力、witness 服务或新的确认序列。原 Seal/证明可按既有方式离线验证；
+其中未获授权的正文、整 Cell、相邻叶或辅助记录不得为满足消费者重放而披露。
+
+### 9.2 签名与配置认证
+
+`certificate` 字段顺序为 `statement, signatures`。statement 顺序为
+`realm_id, configuration_ref, authority_seal_ref, target_seal_ref, results`。
+每个 signature 使用 Seal 的 closed JWS carrier，payload 为
+`JCS({context:"ak.seal.conclusion.v1",statement:<完整 statement>})`；`payload_digest` 固定为该 payload
+的 SHA-256 typed digest。JWS protected alg/kid 必须匹配配置 frozen key；payload 必须是 exact canonical bytes，
+拒绝 unknown crit、非 canonical 编码及跨 context 签名。恰好 `2f+1` 个不同 configured voters 的签名才有效，
+按 verification_method UTF-8 顺序排列；actor、method、frozen key 三维唯一，不混不同配置、不把一个 voter 的多把 key 算多票。
+`f=0` 使用同一结构的一票 quorum。此签名不是 commit/prepare/view-change，不能在这些阶段计票；反之亦然。
+
+签署者 MUST 已完整验证并耐久接纳 authority_seal_ref；该 Seal 在其合法配置的确认位置上，target_seal_ref 必须是
+同一已确认 lineage 上的祖先或自身。结论可针对交接前的历史 target，但签署者必须实际持有并验证该目标状态与结果，
+不得仅对另一服务的查询结果重签。结论没有自报 current、TTL 或“全网最新”含义；authority_seal_ref 是签署时已有的
+确认状态坐标，不是新的 Seal。派生读签名不需要创建空 Seal 或为查询启动一次新的 PBFT 决定。
+
+消费者 MUST 从已验证 Realm genesis 配置或已耐久认证的配置开始。`configuration_handoffs` 只含实际必需的连续交接，
+不得用 candidate 自报配置、当前 DID key、裸 service signer 或新组自签替代。首次起点及历史 producer signer 的
+不可变原始依赖仍走既有 exact resolve，不因本节删除。冷缓存缺这些材料则未决，不能用同 Realm 名称猜起点。
+
+`handoff_certificate` 同样为 `statement, signatures`；statement 顺序为
+`realm_id, configuration_ref, handoff_seal_ref, next_configuration_ref, next_configuration`。
+签名 payload 为 `JCS({context:"ak.seal.configuration_handoff.v1",statement})`，payload_digest 同样使用 SHA-256。
+旧配置在其最终 handoff Seal 已确认后才签，逐项认证其中 exact realm.notary Event 安装的新配置，以及旧组后继写权冻结。
+签署与存储这份结论不另产生控制决定。旧组 MUST 将完整 quorum 交接结论耐久交付并复制到新组后才允许新组激活；
+新组仍必须按 §4 取得完整已确认前缀、未决事务及锁。新组首次后继 Seal 的 commit quorum 仍是执行层就绪确认。
+
+消费者按链顺序用当前可信旧配置验 handoff quorum，检查 Realm、配置引用及 descriptor 合法性，再安装 exact 新配置。
+后一个交接或最终结论由新配置 quorum 签署，签署资格包含其已完成 §4 就绪。拒绝跳步、循环、重复/竞争配置、
+混票、已知不连续前缀和与耐久可信状态相冲突的交接。证书链不得扩大为读取各配置时期的全部私有历史。
+配置交接之后，旧组不得为新查询签署结论；已有历史结论不因正常交接、key 轮换或转交而追溯失效。
+新组可为已完整继承并验证的历史 target 签结论，不要求退役旧组上线。
+
+本节依赖各配置不超过 f 个 Byzantine 副本的故障假设。超过该界限时不能靠结论验签证明计算正确；已知双确认或
+配置冲突仍停止受影响安全域。不能以“信任 quorum”为由忽略已知反证或让不具备完整验证能力的副本投票/签结论。
+
+### 9.3 封闭查询与确定性结果
+
+query 顺序为 `target_seal_ref, selectors, known_configuration_ref`（最后一项可选，仅为接收方已认证配置的传输提示，不能创造信任或读取权；其省略/变化不改变 target/selector 事实的签名）；selectors 为 1..64 个 closed 分支，按其 JCS UTF-8 bytes 严格排序、去重。
+result 顺序为 `selector` 后接该分支的结果字段；results 必须 every-and-only 对应 query，使用相同顺序。
+结论只在这个目标求值，不接受 caller 自报计算式、任意 allowed 布尔值或服务自行选择“更方便”的 basis。
+
+| selector kind 与字段顺序 | 结果字段 | 必须认证的事实 |
+| --- | --- | --- |
+| `cell, cell_id` | `state` | target 结束状态的 exact Cell；未写入为 null；已写入为 `{revision_event_id,value}`，即使 value 为 null 仍保留对象和 revision。 |
+| `cell_range, lower_cell_id, upper_cell_id` | `cells` | 按完整 CellRef Unicode code point 顺序，半开区间 `[lower_cell_id,upper_cell_id)` 中 every-and-only 已写入的安全 Cell，按 cell_id 严格排序；每项 `{cell_id,state}`。lower_cell_id 必须小于 upper_cell_id。空数组是该精确区间的不存在结论，不暴露邻居。 |
+| `command, event_digest` | `result` | 该 exact target Seal.command_results 中包含此 Event 的 unit 的完整 command_result；null 仅表示该 Seal 没有该命令，不能推出整个历史不存在。 |
+| `command_effect, event_digest, cell_id` | `state` | 此 Event 所属 unit 在 target 中完成时对这个 Cell 的最终成功写入；无成功写入为 null。不是整 Seal 结束状态，不能由后续写入替代。 |
+| `transaction, record_index` | `record` | target.transaction_records 中该零起始位置的完整登记记录；越界为 null。消费者另验 expected phase、manifest、participants、command 与 decision Realm。 |
+| `ancestry, ancestor_seal_ref` | `is_ancestor` | 该 Seal 是否属于 target 的同 Realm 确认前缀，含自身；不涉及普通 Event、全网观察或 current。 |
+
+Cell 的 value 必须通过 canonical cell contract 的完整类型与语义校验；普通 D Cell 不得作为安全状态结论。
+为新命令准备状态或解释治理政策时，消费者 MUST 同时认证目标 basis 的 ak.component.realm.reducer_profile.v1 与 ak.component.realm.digest_suite.v1（或其已认证的 immutable genesis 初值），按该确切 profile 和本地已登记规则求值；未知 profile 使用既有 unsupported_profile，不能用软件 latest 默认或服务自报 registry 替代。消费已确认 command outcome 不再重新判断当时业务规则；历史原文/密码材料仍按其原已认证 suite 与签名上下文解释，不重哈希旧引用。
+command_effect 的非空状态必须属于已 committed unit，revision 是其最后成功写入的 Event；拒绝命令不得产生效果。
+签署者按实际已保存的执行位置求值，消费者不重新构造同 Seal 中间前态。只消费“已 committed/rejected”可直接使用
+command result；需要 effects/current membership 时分别取得相应事实。result_digest 不构成局部 effect 的 Merkle 证明。
+
+cell_range 仅服务现有注册操作的确定性证明义务，不增加通用枚举权限。由调用操作的 registry、精确 scope/group/ActorId
+与 basis 派生必要区间/Cell，不能让远端通过自选一个较小集合证明完整性。消费者必须核验其实际需要的全部区间/Cell
+都已覆盖；多个子区间必须无缝覆盖所需区间，不能由“首尾存在”推断中间完整。区间过大时按有界区间分割为多次
+既有查询；每个结果是完整子区间，不在 certificate 内截断、伪造终页或增加未登记 cursor。不能证明完整就未决。
+
+### 9.4 披露、传输与失败
+
+证书认证事实，不授予读取权。每次交付（包括缓存重放）MUST 按原 operation 的 authenticated requester、Source/Destination、
+完整账号、scope、intent 和当前披露政策重新授权。证书、整值、command unit 成员、事务记录、配置交接以及外层错误/大小
+都纳入披露检查；任一必要结果不可披露则整个 query 不成功，不得删字段、隐藏部分 cell_range 结果后声称完整。
+未写入的 Cell 与存在的 Cell 使用相同 scope 授权判定，禁止借 absence 查询探测私有对象。
+
+查询复用 `ak.self.seals.read.resolve.v1` 与 `ak.peer.seals.read.resolve.v1` 的 `conclusion_queries` 分支，
+与原 `seal_refs` 互斥。既有 self/peer 授权与 history_traversal_access 边界不变；普通 self 客户端不以此取得治理证明。
+response 使用 `conclusion_set, missing_conclusion_queries`，每个 query 恰对应一份匹配全部 selectors 的结论
+或原样 missing query。全部 missing 时省略 conclusion_set；unknown、无权、缺材料/无 quorum 共用 missing，不返回部分成功 query。
+每次最多 128 个 query，每 query 64 个 selector，每 range 512 个 cell，每 certificate 的 canonical bytes 最多 8 MiB；
+请求 ≤64 KiB，response ≤8 MiB。超限用既有 limit_exceeded，不拆签名对象。handoff 最多 256 项、每次 conclusion_set 最多
+128 份 conclusion；可按 known_configuration_ref 省去接收方已独立认证的交接前缀；完整必要链仍超预算则 limit_exceeded，不声称存在未登记的配置分页，也不截断成“已认证最新”。不对外细分私有依赖缺失原因。
+
+首次加入继续走有 intent gate 的 bootstrap，不开放成员级 resolve。bootstrap 的 `seal_conclusion` typed record 承载
+同一 conclusion_set；来源站从已注册加入规则机械求完整事实集合，outer governance_facts 与 preconditions 必须与认证值一致。
+受限 application-status 在 sealed 时 MUST 携同一 conclusion_set，仅证明此申请的 command 与成员结果；它不授权读取其他 Seal 正文。
+CbsProofBundle 的 conclusion_set 为同一载体，非投票消费可令 replay arrays 为空；容器本身不签名、不产生权威。
+
+结论可跨请求缓存和由获授权持有者转交，历史 statement 不绑定 request_id 或重新计时。只允许无副作用地复用同一
+事实；逐请求授权、已知撤销、有限期和实际动作检查不缓存成永久许可。冷查询确需新 quorum 读签名时，若 quorum
+不可用则明确未决；不保证任意未缓存 selector 在 quorum 离线时可取得。不得将该读签名变成普通消息、重复读取或
+已有证据消费的强制在线依赖。后台预取不扩张授权，也不得要求周期空 Seal。
+
+### 9.5 业务消费与保留
+
+非投票站 MUST 保存所用信任起点、认证配置、结论、必要 canonical bytes、实际语义/作用域与已知撤销依赖，
+并与其局部接纳/投影原子持久化；不能把局部事实标记为整 Realm 已重放、投票 ready、全量 roster/历史完整或 GC 依据。
+对同一不可变 target/selector 的计算和验签持久共享；每请求分别授权。收到原始 Seal 时仍按完整原始 bytes 验
+其内容地址与签名，不把 conclusion 的 target 引用当成验过该 Seal 原文。
+
+安全命令新执行仍在实际执行位置检查业务值与 signed basis 派生的 revision/锁；源站 accepted、authority intake、
+committed、成员投影及 MLS Welcome 仍是不同阶段。配置已认证不表示全网最新，已知相关撤销立即阻止新的 live 效果，
+普通消息保留未知撤销的传播窗口。普通 Event 签名/actor chain/CRDT、MLS transcript/秘密 MAC、HPKE/AEAD、
+AvailabilityReceipt、archive 真正持久化和外部副作用幂等不由 quorum 结论替代。
+
+跨域消费者按各域独立配置验证所需 transaction/Cell/command 结论，必须覆盖同一 manifest 全体 participants，
+只在固定 decision Realm 使用唯一 commit/abort；实际参与执行者继续本域锁、完整求值与 apply。未物化的结果仍须
+完成 apply 或 pending。一个域不能通过签自己的结论取得另一个域的身份、状态或授权权威。
+
+历史恢复可用 exact epoch/transition、incarnation、T0 上界与 current ratchet 事实和必要 ancestry 结论替代治理 cut
+重放，但每个请求 epoch 与区间必须完整认证；T1 首次入队、来源签名、接收密钥及解密检查不变。投票接管、独立审计、
+内容恢复或 archive 耐久所需原始材料仍按其职责保留，不能因 reader 改用结论而删除唯一资料。

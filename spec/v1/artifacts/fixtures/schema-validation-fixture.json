@@ -8570,6 +8570,230 @@
         "freeze_expires_at": "2026-09-12T00:00:00.000Z"
       },
       "first_expected_error": "contains:Additional properties are not allowed"
+    },
+    {
+      "name": "seal_conclusion_private_absence_valid",
+      "schema_ref": "schemas/seal-conclusion.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "configuration_handoffs": [],
+        "conclusions": [
+          {
+            "statement": {
+              "realm_id": "ak:realm:ARERERERERERERERERERERERERERERERERERERERERER",
+              "configuration_ref": "ak:event:ASIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi",
+              "authority_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "target_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "results": [
+                {
+                  "selector": {
+                    "kind": "cell",
+                    "cell_id": "ak:cell:ak.component.member.state.v1:bob"
+                  },
+                  "state": null
+                }
+              ]
+            },
+            "signatures": [
+              {
+                "verification_method": "did:web:notary0.example#seal",
+                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.MchRuckf610dtTcfp-gf9o8kvbtB5UYgmThnSFHG13WJPDpkiqCFn8WxWajt9DIfwh9wfKrJZ0uoIpaJ8SG8Dw"
+              },
+              {
+                "verification_method": "did:web:notary1.example#seal",
+                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.KZPGyXHy84oePPEOaB2Lep1dx09JLMzGphUQQeMUG3kLe59-HNFFhFN-ERnm3XAf16DIC68JPpvezZPnp_VABw"
+              },
+              {
+                "verification_method": "did:web:notary2.example#seal",
+                "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.tHMqVUtuLRUdJUywxBZMQx68TN2v1kK_4czfUzpCOK2sdVWksflKgrvqx-QS33QhVSphMtmMMO36mLQh-SyFCg"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "seal_conclusion_written_null_valid",
+      "schema_ref": "schemas/seal-conclusion.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "configuration_handoffs": [],
+        "conclusions": [
+          {
+            "statement": {
+              "realm_id": "ak:realm:ARERERERERERERERERERERERERERERERERERERERERER",
+              "configuration_ref": "ak:event:ASIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi",
+              "authority_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "target_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "results": [
+                {
+                  "selector": {
+                    "kind": "cell",
+                    "cell_id": "ak:cell:ak.component.member.state.v1:bob"
+                  },
+                  "state": {
+                    "revision_event_id": "ak:event:ASIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi",
+                    "value": null
+                  }
+                }
+              ]
+            },
+            "signatures": [
+              {
+                "verification_method": "did:web:notary0.example#seal",
+                "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.XKULnJ04YT_lQns78KuQFhgGlcTcadbVXXAvfmIo4RufB1MPS1f4ITtp9SoSErmKnOcRepC0Cco7lCyWKSO5CA"
+              },
+              {
+                "verification_method": "did:web:notary1.example#seal",
+                "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.SBOlJ4D0aausxMBcExxH-UCr8Rtk-cKC2u3TVAv_G1ZfUM2iZGaXiFKH15Ub-ebupE54cEJmEJAI-ujgnl-PDw"
+              },
+              {
+                "verification_method": "did:web:notary2.example#seal",
+                "payload_digest": "sha256:5b1d6e7f756b9285b3fcecf9b0873b5be1af98cbc0974f6b46fda855665081a5",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOnsicmV2aXNpb25fZXZlbnRfaWQiOiJhazpldmVudDpBU0lpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaSIsInZhbHVlIjpudWxsfX1dLCJ0YXJnZXRfc2VhbF9yZWYiOiJhazpzZWFsOnNoYTI1NjozMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIn19.YC8bfzSSZY6n8ZkmJjuFVm1Y8VMTfGyxMhHPRs_J2tRS5EKw18QRWYCMzrSl-7_WkF90H3zJxL5x_VM_vB2SBA"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "seal_conclusion_unknown_predicate_invalid",
+      "schema_ref": "schemas/seal-conclusion.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "configuration_handoffs": [],
+        "conclusions": [
+          {
+            "statement": {
+              "realm_id": "ak:realm:ARERERERERERERERERERERERERERERERERERERERERER",
+              "configuration_ref": "ak:event:ASIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi",
+              "authority_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "target_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "results": [
+                {
+                  "selector": {
+                    "kind": "any_permission",
+                    "cell_id": "ak:cell:ak.component.member.state.v1:bob"
+                  },
+                  "state": null
+                }
+              ]
+            },
+            "signatures": [
+              {
+                "verification_method": "did:web:notary0.example#seal",
+                "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.C8S9c1O63i3ouyKTcZv-dpAQqpdw1IWEAQvBji7nRQTqLvMek6UwuuDqlY9nE-rvHENXnxtjc1nsFcGs0cOLCA"
+              },
+              {
+                "verification_method": "did:web:notary1.example#seal",
+                "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.uX17kc-Le5zNA-HsTTauskcgAm_lWSadzBD6LWg4PMQ1h8j5PVGI7FM-LOOw-Vr2VI4N4riCI_PIG-sN61KMDw"
+              },
+              {
+                "verification_method": "did:web:notary2.example#seal",
+                "payload_digest": "sha256:b384632152bb8052d0c07ec7d15870bb6f7bbe629c7b51925ade7502d8e7ad11",
+                "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImFueV9wZXJtaXNzaW9uIn0sInN0YXRlIjpudWxsfV0sInRhcmdldF9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMifX0.CcKQsZ5YAgezZ96d8iB83Birq9wDm1mlTSrpYH_iYs9KoQkaR9wd-q6oPFKYYsDhs2q6MT3_iD5MC3-36-sUBw"
+              }
+            ]
+          }
+        ]
+      },
+      "first_expected_error": "$.conclusions[0].statement.results[0]: {'selector': {'kind': 'any_permission', 'cell_id': 'ak:cell:ak.component.member.state.v1:bob'}, 'state': None} is not valid under any of the given schemas"
+    },
+    {
+      "name": "seal_conclusion_bootstrap_record_valid",
+      "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/realm_join_bootstrap_record",
+      "expect_valid": true,
+      "instance": {
+        "kind": "seal_conclusion",
+        "conclusion_set": {
+          "configuration_handoffs": [],
+          "conclusions": [
+            {
+              "statement": {
+                "realm_id": "ak:realm:ARERERERERERERERERERERERERERERERERERERERERER",
+                "configuration_ref": "ak:event:ASIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi",
+                "authority_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+                "target_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+                "results": [
+                  {
+                    "selector": {
+                      "kind": "cell",
+                      "cell_id": "ak:cell:ak.component.member.state.v1:bob"
+                    },
+                    "state": null
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "verification_method": "did:web:notary0.example#seal",
+                  "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                  "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkwLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.MchRuckf610dtTcfp-gf9o8kvbtB5UYgmThnSFHG13WJPDpkiqCFn8WxWajt9DIfwh9wfKrJZ0uoIpaJ8SG8Dw"
+                },
+                {
+                  "verification_method": "did:web:notary1.example#seal",
+                  "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                  "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkxLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.KZPGyXHy84oePPEOaB2Lep1dx09JLMzGphUQQeMUG3kLe59-HNFFhFN-ERnm3XAf16DIC68JPpvezZPnp_VABw"
+                },
+                {
+                  "verification_method": "did:web:notary2.example#seal",
+                  "payload_digest": "sha256:7082bdf493920bd51fb35f3425d3a806eec8fa7cab12c8dab0eb9c087329624d",
+                  "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYjpub3RhcnkyLmV4YW1wbGUjc2VhbCJ9.eyJjb250ZXh0IjoiYWsuc2VhbC5jb25jbHVzaW9uLnYxIiwic3RhdGVtZW50Ijp7ImF1dGhvcml0eV9zZWFsX3JlZiI6ImFrOnNlYWw6c2hhMjU2OjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJjb25maWd1cmF0aW9uX3JlZiI6ImFrOmV2ZW50OkFTSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpIiwicmVhbG1faWQiOiJhazpyZWFsbTpBUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUiIsInJlc3VsdHMiOlt7InNlbGVjdG9yIjp7ImNlbGxfaWQiOiJhazpjZWxsOmFrLmNvbXBvbmVudC5tZW1iZXIuc3RhdGUudjE6Ym9iIiwia2luZCI6ImNlbGwifSwic3RhdGUiOm51bGx9XSwidGFyZ2V0X3NlYWxfcmVmIjoiYWs6c2VhbDpzaGEyNTY6MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyJ9fQ.tHMqVUtuLRUdJUywxBZMQx68TN2v1kK_4czfUzpCOK2sdVWksflKgrvqx-QS33QhVSphMtmMMO36mLQh-SyFCg"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "seal_conclusion_empty_unsigned_bundle_invalid",
+      "schema_ref": "schemas/cbs-proof-bundle.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "target_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "seals": [],
+        "control_moves": [],
+        "inclusion_proofs": [],
+        "availability_proofs": []
+      },
+      "first_expected_error": "$: {'target_seal_ref': 'ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333', 'seals': [], 'control_moves': [], 'inclusion_proofs': [], 'availability_proofs': []} is not valid under any of the given schemas"
+    },
+    {
+      "name": "seal_conclusion_empty_missing_outcome_invalid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
+      "expect_valid": false,
+      "instance": {
+        "missing_conclusion_queries": []
+      },
+      "first_expected_error": "$.missing_conclusion_queries: [] should be non-empty"
+    },
+    {
+      "name": "seal_conclusion_resolve_query_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:ARERERERERERERERERERERERERERERERERERERERERER",
+        "conclusion_queries": [
+          {
+            "target_seal_ref": "ak:seal:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "selectors": [
+              {
+                "kind": "cell",
+                "cell_id": "ak:cell:ak.component.member.state.v1:bob"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

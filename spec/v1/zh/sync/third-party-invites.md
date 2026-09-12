@@ -181,9 +181,11 @@ Reducer 处理 `ak.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
 在线初检与 Seal finality 是两个时点：接收站初检及新 notary proposal intake MUST 在适用的
 serializable gate 读取 current invite/policy 与 barrier，阻断新的无效 claim；通过本地 producer proof 与授权验证仍仅是
 `control_pending`。以下 reducer 步骤在覆盖 claim 的 Seal 内执行该命令之前的**确切安全前态**（包含本 Seal 先前成功命令）上执行，并校验
-claim 的签名 CBS basis 与该 view 的关系。历史重放 MUST 使用同一确切安全前态，禁止读取 receiver 当前
+claim 的签名 CBS basis 与该 view 的关系。实际执行/投票或独立审计的历史重放 MUST 使用同一确切安全前态，禁止读取 receiver 当前
 invite/policy、当前终态或墙钟。初检之后、covering Seal 之前已生效的 revoke/policy change 可以阻断该
 Seal 对 claim 的纳入；claim 已经合法 sealed 之后的变更则不得追溯改判。
+
+非投票消费者可按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 认证 exact claim 的 command/command_effect，不重算以下历史 reducer 判断；初始 producer/subject/binding 签名、当前新动作与最终成员确认不变。
 
 1. 从该 covering Seal 内该命令的确切安全前态 读取目标 invite cell，按 `invite_id` 与 `token_commitment` 匹配一条 `state="pending"` 的 `ak.invite.third_party`；不匹配、不存在、不是 3PID invite 或该 view 中已是终态时 MUST reject，且不得创建 membership proposal。依赖闭包不全时 MUST `frontier_unavailable` / pending，MUST NOT 用缓存、caller 旧 basis 或 receiver 当前投影替代该 view。
 2. 在任何签名接受前重算过期前置条件。**判定时点是 canonical、签名覆盖的量，MUST NOT 使用 receiver 本地墙钟 `now`（normative）**：

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/cbs-proof-bundle.schema.json",
   "title": "Arkret CBS Proof Bundle",
-  "description": "Unsigned receiver-relative dependency container for exactly one target_seal_ref. Every embedded object MUST belong to the target Realm, be reachable from the target Seal dependency graph, appear in canonical id/digest bytewise order without duplicates, and be independently verified; the bundle itself is not authoritative. A bounded verifiable superset is allowed, but unrelated objects are a schema violation. inclusion_proofs and availability_proofs together MUST contain no more than 2048 items; this cross-property aggregate and the dependency path depth limit of 4096 are semantic validation rules in addition to each array's local JSON Schema bound.",
+  "description": "Unsigned receiver-relative container for one target Realm. Voting replicas and replay auditors require full original dependencies. Non-voting consumers may use authenticated conclusion_set under cbs-profiles section 9, with empty replay arrays. Every supplied original object remains independently validated and authorized; omitted irrelevant history is not required by conclusion consumption. The exact target must be covered by a certificate; certificates for historical prerequisites remain independently scoped. Existing proof/depth/byte budgets still apply.",
   "type": "object",
   "required": [
     "target_seal_ref",
@@ -17,7 +17,7 @@
     },
     "seals": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "maxItems": 256,
       "uniqueItems": true,
       "items": {
@@ -39,7 +39,7 @@
       "description": "Inclusion proofs. The combined item count of this array and availability_proofs MUST be no greater than 2048.",
       "uniqueItems": true,
       "items": {
-      "$ref": "./event-envelope.schema.json#/$defs/semantic_ref_merkle_proof"
+        "$ref": "./event-envelope.schema.json#/$defs/semantic_ref_merkle_proof"
       }
     },
     "availability_proofs": {
@@ -50,7 +50,24 @@
       "items": {
         "$ref": "./availability-receipt.schema.json"
       }
+    },
+    "conclusion_set": {
+      "$ref": "./seal-conclusion.schema.json"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "properties": {
+        "seals": {
+          "minItems": 1
+        }
+      }
+    },
+    {
+      "required": [
+        "conclusion_set"
+      ]
+    }
+  ]
 }

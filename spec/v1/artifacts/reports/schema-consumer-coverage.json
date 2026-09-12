@@ -41,7 +41,7 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 227,
+    "total_schemas": 228,
     "by_consumer": {
       "declared_wire": 59,
       "event_kind": 3,
@@ -49,14 +49,14 @@
       "outbound": 67,
       "prose": 108,
       "prose_only": 2,
-      "schema_reference": 141,
-      "startup_compile": 227,
+      "schema_reference": 142,
+      "startup_compile": 228,
       "vectors": 124
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 103,
+    "without_vector_coverage": 104,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -165,6 +165,7 @@
     "ak.schema.registration_did_evidence.v1",
     "ak.schema.resource_discovery_state.v1",
     "ak.schema.sdk_conformance_claim.v1",
+    "ak.schema.seal_conclusion.v1",
     "ak.schema.seal_transparency.v1",
     "ak.schema.service_describe.v1",
     "ak.schema.service_identity_bundle.v1",
@@ -1361,6 +1362,7 @@
           "ak.schema.resource_selector.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.seal.v1",
+          "ak.schema.seal_conclusion.v1",
           "ak.schema.seal_transparency.v1",
           "ak.schema.search_service.v1",
           "ak.schema.security_rotation_local_commit.v1",
@@ -3812,6 +3814,36 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      }
+    },
+    {
+      "schema_id": "ak.schema.seal_conclusion.v1",
+      "file": "schemas/seal-conclusion.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.cbs_proof_bundle.v1",
+          "ak.schema.mls_governance_proof_bundle.v1",
+          "ak.schema.realm_join_bootstrap_outcome.v1",
+          "ak.schema.realm_join_bootstrap_request.v1",
+          "ak.schema.realm_join_peer_application_status_outcome.v1",
+          "ak.schema.realm_join_peer_application_status_request.v1",
+          "ak.schema.realm_join_peer_preview_outcome.v1",
+          "ak.schema.realm_join_peer_preview_request.v1",
+          "ak.schema.realm_join_prepare_outcome.v1",
+          "ak.schema.realm_join_prepare_request.v1",
+          "ak.schema.realm_join_self_application_status_outcome.v1",
+          "ak.schema.realm_join_self_application_status_request.v1",
+          "ak.schema.realm_join_self_preview_outcome.v1",
+          "ak.schema.realm_join_self_preview_request.v1",
+          "ak.schema.service_operation_dtos.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {

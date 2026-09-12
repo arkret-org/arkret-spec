@@ -898,7 +898,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Packed history_secret[from] || ... || history_secret[to]. The receiver resolves KDF.Nh from each exact winning transition reconstructed by the receipt-bound direct Seal replay and requires decoded length=(to-from+1)*KDF.Nh."
+      "description": "Packed history_secret[from] || ... || history_secret[to]. The receiver resolves KDF.Nh from each exact winning transition reconstructed by the receipt-bound certified exact safety-fact verification under cbs-profiles section 9 (full replay only for executing/voting replicas and replay auditors) and requires decoded length=(to-from+1)*KDF.Nh."
     },
     "history_chunk_plaintext": {
       "type": "object",
@@ -1343,7 +1343,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Closed direct-Seal traversal intent. target_basis must dominate every trusted_current_basis and trusted_history_base_basis leaf; reverse traversal follows signed predecessor_refs until the exact base cut, consumes every base leaf, and admits no predecessor outside the cut. requested_ranges are canonical. RHRK requires one singleton range."
+      "description": "Frozen receipt-bound verification coordinates and exact ranges. Non-voting consumers authenticate every required epoch/transition, suite, incarnation, policy and base/current/target ancestry using cbs-profiles section 9. Executing/voting replicas and replay auditors retain complete direct traversal. No client checkpoint or global latest assertion."
     },
     "history_governance_traversal_retention": {
       "type": "object",
@@ -1361,7 +1361,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Retention commitment for the exact target-to-base accepted Seal cut, base Seals and their delta, each interval Seal.delta Control Move canonical byte string, every AvailabilityReceipt, SemanticRef external evidence, AuthenticatedSignerResolutionEvidence, method-native DID material and registry snapshot required by registered apply_seal replay. Base predecessors are outside the cut and are never fetched. The service atomically pins the complete closure before signing the request receipt or archive-replica acknowledgement. Member retention ends at request expiry; RHRK retention equals archive lifetime. This is not a proof package, snapshot, checkpoint or authority result set."
+      "description": "Role-specific retention for the frozen intent. Non-voting consumers durably pin authenticated configurations, quorum conclusions, exact epoch/transition bytes and necessary source dependencies before signing the receipt; full replay roles pin the complete cut, all command results and registered dependencies. Member retention ends at request expiry; RHRK retention equals archive lifetime. No proof package, new profile or client checkpoint. A reader role does not remove independent audit, voting, archive durability or GC obligations."
     },
     "self_history_traversal_access": {
       "oneOf": [
@@ -1943,7 +1943,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "manifest_digest = H(UTF8('ak.history-response-manifest-v1') || 0x00 || JCS(the closed HistoryKeyResponseSigningInput whose content.kind is ak.history_key.response_manifest)). Descriptors are sorted by chunk_index and are the sole truth for response id and one continuous range. covered_epoch_range must be a canonical subset of the request ranges authorized by direct Seal traversal replay; no proof/package selection is carried. A chunk repeats only manifest_digest and chunk_index. The canonical manifest source record is at most 256 KiB. Its first accepted send receipt, or the byte-identical receipt returned by an exact retry, must be durable before any named chunk is submitted."
+      "description": "manifest_digest = H(UTF8('ak.history-response-manifest-v1') || 0x00 || JCS(the closed HistoryKeyResponseSigningInput whose content.kind is ak.history_key.response_manifest)). Descriptors are sorted by chunk_index and are the sole truth for response id and one continuous range. covered_epoch_range must be a canonical subset of the request ranges authorized by certified exact safety-fact verification; no proof/package selection is carried. A chunk repeats only manifest_digest and chunk_index. The canonical manifest source record is at most 256 KiB. Its first accepted send receipt, or the byte-identical receipt returned by an exact retry, must be durable before any named chunk is submitted."
     },
     "history_manifest_admission": {
       "type": "object",
@@ -1981,7 +1981,7 @@
           "items": {
             "$ref": "#/$defs/epoch_range"
           },
-          "description": "Canonical sorted, disjoint exact descriptor ranges that passed the current scope history-access ratchet, requester current incarnation and join/profile floor after complete direct Seal replay. It must equal the complete manifest descriptor range union; partial admission is forbidden."
+          "description": "Canonical sorted, disjoint exact descriptor ranges that passed the current scope history-access ratchet, requester current incarnation and join/profile floor after complete certified exact safety-fact verification under cbs-profiles section 9 (full replay only for executing/voting replicas and replay auditors). It must equal the complete manifest descriptor range union; partial admission is forbidden."
         },
         "t0_pass": {
           "const": "all_manifest_ranges_authorized"
@@ -1992,7 +1992,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Deterministic service-authenticated T0 result written only after resolving the receipt-bound target-to-base Seal cut and replaying standard apply_seal in topological order. The traversal verifies notary authority, every predecessor edge, delta Control Move and registered dependency, target dominance, requester incarnation/join floor, the scope's current monotone history-access ratchet, every winning MLS transition and exact descriptor range. Any missing dependency, predecessor outside the exact cut, unconsumed base leaf, hidden branch, failed Seal/root/reducer check, profile/join failure or exact-range mismatch rejects the entire manifest with zero response record/admission write."
+      "description": "Deterministic service-authenticated T0 result written atomically after authenticating every required epoch/transition, suite, incarnation, join floor, T0 ceiling, current ratchet and frozen base/current/target ancestry under cbs-profiles section 9. Non-voting admission does not replay unrelated control history. Missing middle epochs, wrong lineage/scope/incarnation or range mismatch rejects the entire manifest with zero admission writes. Execution/replay audit roles retain full apply_seal checks."
     },
     "sealed_history_chunk": {
       "type": "object",
@@ -2031,7 +2031,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Minimal chunk wire. The exact accepted manifest descriptor and manifest_admission_digest reconstruct the continuous range and HPKE context. T0 is the receipt-bound direct Seal replay recorded by the accepted manifest admission; the chunk carries no independent proof, selector, segment or range-key duplicate. Source submit before that manifest admission is accepted is dependency_missing with zero pending state, zero response record and zero release attestation. The complete canonical chunk source record MUST be at most 2 MiB."
+      "description": "Minimal chunk wire. The exact accepted manifest descriptor and manifest_admission_digest reconstruct the continuous range and HPKE context. T0 is the receipt-bound certified exact safety-fact verification under cbs-profiles section 9 (full replay only for executing/voting replicas and replay auditors) recorded by the accepted manifest admission; the chunk carries no independent proof, selector, segment or range-key duplicate. Source submit before that manifest admission is accepted is dependency_missing with zero pending state, zero response record and zero release attestation. The complete canonical chunk source record MUST be at most 2 MiB."
     },
     "history_key_response_signing_input": {
       "type": "object",

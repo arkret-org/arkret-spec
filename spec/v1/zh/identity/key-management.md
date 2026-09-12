@@ -961,7 +961,7 @@ endpoint；§2.7 对 Realm 及其它成员的不可关联性照旧成立。消�
 `history_secret_ranges` index（exact scope 与 ranges）；解密后的
 [`key-backup-plaintext.schema.json`](../../artifacts/schemas/key-backup-plaintext.schema.json) items 只包含 packed
 `HistorySecretRange {from_epoch,to_epoch,secrets_b64u}`。Decoded bytes 严格等于按 epoch 升序拼接的 secrets，总长
-`(to-from+1)*KDF.Nh`；suite 必须从 receipt-bound direct Seal replay 得到的 exact winning transition 解析，不得在 backup 自报。
+`(to-from+1)*KDF.Nh`；suite 必须从 receipt-bound 认证的 exact winning transition 解析（非投票消费者按 cbs-profiles §9，不重放完整控制历史），不得在 backup 自报。
 每个被写入的 secret 必须是本 endpoint 从已完整验证并实际应用的 MLS state 直接导出的 `local_authoritative` 项。History response、
 RHRK open 或其它外部 carrier 收到的 candidate 即使已成功解密某个 Event，也不得写入 portable backup；它只能留在 device-bound
 multi-candidate store。
@@ -1416,3 +1416,10 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Recovery policy publication 的 `ak.vector.identity.recovery_policy_publication.v1` MUST 由至少两个独立 runner 覆盖 canonical `EventInitialSubmission`、PCR allowlist/reducer/Seal admission、threshold recovery signing/HPKE key 闭包、issuer projection、跨字段不一致、未 Seal retry 与特殊写路径绕过拒绝。
 - Recovery receipt 由 `ak.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；签名输入固定为 `UTF8("ak.identity.recovery_receipt.signature.v1\n") || RFC8785_JCS(receipt 的全部实际存在顶层成员，排除 auth_data)`，不携字段名清单。`crypto-media/device-lifecycle.md` §14 finalize 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `identity_model` / `previous_model_generation_ref` / `result_model_generation_ref` / authorization path refs / `proof_summary` / `unlocked_backups` / `welcome_count` / `outcome`。
 - Backup series MUST 满足 §7.6：客户端检查自己 Station 列表结果的 exact AccountId、PCR 与当前 active pointer，按 immutable envelope 的 `supersedes_id` 链选择对应尾部并解密；不得以下载或重放 PCR/control stream 历史作为普通备份读取的前置条件。
+
+
+PCR 治理事实的非投票消费按 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative)：
+key authorization/lifecycle/generation 的确认性可由合法 PCR quorum 结论证明，不重放整条 PCR 控制流。
+本章原始 genesis/controller delegation、实际 producer 历史公钥与签名、method-native 身份根、独立 Account gate
+和 Agent authority lease 仍各自验证；目标 Realm notary 或普通 Station service key 不因此取得 PCR 签名资格。
+稳定材料耐久共享，只验证新增事实；已知撤销立即失效相应当前资格，历史签名事实不由 current resolver 重建。

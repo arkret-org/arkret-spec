@@ -589,29 +589,28 @@
       "description": "One independently signed target-branch projection. It never claims that a joined multi-leaf state root was signed by one Seal."
     },
     "frontier_projection": {
-      "type": "object",
-      "required": [
-        "frontier_registry_digest",
-        "branches"
-      ],
-      "properties": {
-        "frontier_registry_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "sha256(RFC 8785 JCS bytes of the exact mls-security-frontier-registry.json artifact used for this projection). The verifier compares it with its locally pinned artifact digest; the service cannot select registry semantics."
+      "oneOf": [
+        {
+          "$ref": "#/$defs/merkle_frontier_projection"
         },
-        "branches": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/frontier_branch_projection"
+        {
+          "type": "object",
+          "required": [
+            "frontier_registry_digest",
+            "conclusion_set"
+          ],
+          "properties": {
+            "frontier_registry_digest": {
+              "$ref": "./event-envelope.schema.json#/$defs/digest"
+            },
+            "conclusion_set": {
+              "$ref": "./seal-conclusion.schema.json"
+            }
           },
-          "description": "Canonical UTF-8 order by target_seal_ref and every-and-only the query proof_target_basis leaves.",
-          "maxItems": 1
+          "additionalProperties": false,
+          "description": "Every-and-only frontier cells/ranges derived from the pinned registry and exact query, authenticated by quorum conclusions; no unsigned sparse subset or neighbor disclosure. Missing required ranges fail closed."
         }
-      },
-      "additionalProperties": false,
-      "description": "Per-target-leaf signed projections. The verifier checks the single target Realm head, exact quorum and proof cells before deriving security_frontier_digest. No merge of competing safety states is defined."
+      ]
     },
     "group_security_frontier_outcome": {
       "type": "object",
@@ -975,6 +974,31 @@
         }
       },
       "additionalProperties": false
+    },
+    "merkle_frontier_projection": {
+      "type": "object",
+      "required": [
+        "frontier_registry_digest",
+        "branches"
+      ],
+      "properties": {
+        "frontier_registry_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "sha256(RFC 8785 JCS bytes of the exact mls-security-frontier-registry.json artifact used for this projection). The verifier compares it with its locally pinned artifact digest; the service cannot select registry semantics."
+        },
+        "branches": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/frontier_branch_projection"
+          },
+          "description": "Canonical UTF-8 order by target_seal_ref and every-and-only the query proof_target_basis leaves.",
+          "maxItems": 1
+        }
+      },
+      "additionalProperties": false,
+      "description": "Per-target-leaf signed projections. The verifier checks the single target Realm head, exact quorum and proof cells before deriving security_frontier_digest. No merge of competing safety states is defined."
     }
   }
 }

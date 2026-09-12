@@ -162,7 +162,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
   proposal 或 sender counter 当作恢复材料。
 - 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
 - `history_access` 只授予历史范围资格，不自动授予旧 epoch key。Exporter 交付必须执行
-  [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 的 receipt-bound direct Seal traversal，重放 winning transition、current 单向收紧 history_access 与 current incarnation/join floor，并执行首次入队 T1 gate；v1 不存在
+  [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 的 receipt-bound 认证事实消费（cbs-profiles §9），核验每个 winning transition、current 单向收紧 history_access 与 current incarnation/join floor，并执行首次入队 T1 gate；v1 不存在
   第二套 key-sharing policy 或公开 share/withheld Event。
 
 服务端和 Station sync surface 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
@@ -966,3 +966,10 @@ Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted
 使用绑定 accepted Commit 的有效 Welcome 完成入组，已移除成员不获得移除后 epoch 新密钥。
 接收者长期离线不是要求其确认收件的理由，但现行 durable Welcome 投递责任仍须满足。
 必要私钥或交付材料永久丢失、没有可用恢复权威等情况必须明确报告，不能宣称无损恢复旧密文。
+
+
+非投票接收者的治理判定统一遵循 [cbs-profiles §9](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative)：
+可消费已确认 winning transition、成员实例与 every-and-only frontier Cell/range 结论，不重复重放无关控制历史。
+生产者、实际投票/执行者仍验证公开 staged tree、consumed proposals、mls_frontier_leaves 和 security_frontier_digest。
+端点仍按 RFC MLS 顺序应用真实 Commit，核对 credential/Leaf key、Welcome、transcript、MAC/AEAD；
+quorum 不持有成员秘密，不能代替这些端到端检查。普通未确认 MLS 提交不能借一个旧的治理结论跳过公开输入校验。

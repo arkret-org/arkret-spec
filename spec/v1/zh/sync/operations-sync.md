@@ -116,7 +116,7 @@ DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 
 5. 从注册 reducer 的条件重算有效 write，确认至少一个 security write，且全部效果构成注册的同一原子命令。仅登记的 bootstrap unit 可携带 D 初始效果。
 6. 将该 Control Move 放入控制面 pending set，等待 Seal 覆盖。
 
-Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 结果；只有 committed 的安全效果进入 delta 与 state_root。投票副本必须重放并验证结果；非投票接收者按已验证配置 quorum 和有权读取的确切状态证明验证。结构、签名、顺序或 root 不成立时拒绝该 Seal。
+Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 结果；只有 committed 的安全效果进入 delta 与 state_root。投票副本必须重放并验证结果；非投票接收者按已验证配置 quorum 和有权读取的确切状态证明或 [quorum 结论](../authz/cbs-profiles.md#9-非投票接收者的-quorum-结论normative) 验证，不重算已确认历史执行。结构、签名、顺序或 root 不成立时拒绝该 Seal。
 
 #### 3.2.1 Anchor Unit 验证
 
