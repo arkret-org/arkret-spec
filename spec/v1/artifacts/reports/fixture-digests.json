@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "03a75a98806e139fdd79017cf476c181d0ac27954ddd289e2b88b75ddef0e2d2"
+      "sha256": "64b7e0ab989f70b997ec82ceea1b46306b493312806d5735757e76cb38bcdda5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/independent-admission-fixture.json",

@@ -220,18 +220,6 @@
       }
     },
     {
-      "name": "reject_ordinary_admission_while_generation_conflicted",
-      "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {
-        "device_generation_status": "conflicted",
-        "event_kind": "ak.message.create"
-      },
-      "expected": {
-        "decision": "reject",
-        "error_code": "device_generation_fenced"
-      }
-    },
-    {
       "name": "reject_first_new_generation_seal_wrong_predecessors_or_delta",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
@@ -318,7 +306,7 @@
       }
     },
     {
-      "name": "reject_principal_control_genesis_matching_both_root_anchor_and_delegated_branches",
+      "name": "accept_root_anchor_genesis_matching_only_root_branch",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
       "input": {
         "event_kind": "ak.realm.create",
@@ -728,12 +716,14 @@
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {
         "generation_cas_succeeds": false,
-        "previous_winner_has_accepted_receipt": true
+        "previous_winner_command_result": "committed"
       },
       "expected": {
         "decision": "reject",
         "error_code": "device_generation_fenced",
-        "durable_effects": 0
+        "durable_effects": 0,
+        "winner_generation_unchanged": true,
+        "rival_command_result": "rejected"
       }
     },
     {
@@ -742,6 +732,138 @@
       "input": {
         "policy_enables_did_root_factor": true,
         "factor_current_update_authority_valid": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "durable_effects": 0
+      }
+    },
+    {
+      "name": "preserve_committed_generation_with_pending_rival_arriving_before",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "confirmed_generation": 2,
+        "confirmed_unit_outcome": "committed",
+        "rival_previous_generation": 1,
+        "rival_new_generation": 2,
+        "rival_unit_outcome": "pending",
+        "rival_arrival": "before_committed_unit"
+      },
+      "expected": {
+        "decision": "preserve_committed_generation",
+        "current_generation": 2,
+        "quarantined_confirmed_units": 0,
+        "quarantined_successor_seals": 0
+      }
+    },
+    {
+      "name": "preserve_committed_generation_with_pending_rival_arriving_after",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "confirmed_generation": 2,
+        "confirmed_unit_outcome": "committed",
+        "rival_previous_generation": 1,
+        "rival_new_generation": 2,
+        "rival_unit_outcome": "pending",
+        "rival_arrival": "after_committed_unit"
+      },
+      "expected": {
+        "decision": "preserve_committed_generation",
+        "current_generation": 2,
+        "quarantined_confirmed_units": 0,
+        "quarantined_successor_seals": 0
+      }
+    },
+    {
+      "name": "preserve_committed_generation_with_rejected_rival_arriving_before",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "confirmed_generation": 2,
+        "confirmed_unit_outcome": "committed",
+        "rival_previous_generation": 1,
+        "rival_new_generation": 2,
+        "rival_unit_outcome": "rejected",
+        "rival_arrival": "before_committed_unit"
+      },
+      "expected": {
+        "decision": "preserve_committed_generation",
+        "current_generation": 2,
+        "quarantined_confirmed_units": 0,
+        "quarantined_successor_seals": 0
+      }
+    },
+    {
+      "name": "preserve_committed_generation_with_rejected_rival_arriving_after",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "confirmed_generation": 2,
+        "confirmed_unit_outcome": "committed",
+        "rival_previous_generation": 1,
+        "rival_new_generation": 2,
+        "rival_unit_outcome": "rejected",
+        "rival_arrival": "after_committed_unit"
+      },
+      "expected": {
+        "decision": "preserve_committed_generation",
+        "current_generation": 2,
+        "quarantined_confirmed_units": 0,
+        "quarantined_successor_seals": 0
+      }
+    },
+    {
+      "name": "pending_complete_recovery_unit_does_not_advance_generation",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "current_generation": 1,
+        "complete_recovery_unit": true,
+        "candidate_new_generation": 2,
+        "command_result": null
+      },
+      "expected": {
+        "decision": "pending",
+        "current_generation": 1,
+        "durable_generation_effects": 0
+      }
+    },
+    {
+      "name": "did_update_does_not_resolve_or_advance_device_generation",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "current_generation": 2,
+        "verified_did_successor": true,
+        "committed_recovery_unit": false
+      },
+      "expected": {
+        "decision": "preserve_committed_generation",
+        "current_generation": 2
+      }
+    },
+    {
+      "name": "reject_equivocating_seals_at_same_authority_position",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "same_account_pcr_lineage": true,
+        "same_authority": true,
+        "same_notary_sequence": true,
+        "same_predecessor": true,
+        "both_seal_signatures_valid": true,
+        "different_seal_bodies": true
+      },
+      "expected": {
+        "decision": "reject_non_unique_seal_lineage",
+        "candidate_generation_arbitration": false,
+        "did_update_resolves_equivocation": false
+      }
+    },
+    {
+      "name": "reject_root_signed_reanchor_even_with_did_root_policy_factor",
+      "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
+      "input": {
+        "event_kind": "ak.device.reanchor",
+        "proof_key_role": "identity_root",
+        "policy_enables_did_root_factor": true,
+        "session_key_matches_both_event_signers": false
       },
       "expected": {
         "decision": "reject",

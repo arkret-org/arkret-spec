@@ -446,20 +446,20 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 
 `event_id` 不再包含时间段。本节下界仅证明因果单调性、CBS basis 时序与 future-skew admission，不给完整 256-bit digest 增加额外密码学位数，也不能阻止攻击者为可预测的未来时间预计算。真正限制预计算需要事前不可预测的 recent Seal/head/beacon 加可信首次准入窗口；本节不声称单独提供该性质。
 
-判据 (a) / (b) 是**签名值对签名值的比较，不使用本地时钟**；(c) 是既有的未来一侧 skew 上界，它按定义使用 receiver 本地时钟，因此只作用于 admission 窗口，不参与因果或收敛判定，因此无时钟依赖、跨 receiver 收敛、与到达顺序无关，且对经 submit 还是 federation 路径到达的 Event 一律成立：
+判据 (a) / (b) 是**签名值对签名值的比较，不使用接收时本地时钟**，对 submit 与 federation 使用相同的已签因果和授权材料；(c) 是既有未来一侧 skew 上界，按定义使用 receiver 本地时钟，只作用于 admission 窗口，不作为历史授权资格或关闭集合的排序规则：
 
 ```text
 (a) created_at ≥ max( prev_refs[] 中每条已接受 Event 的 created_at )
         reason_code = created_at_before_causal_predecessor
 (b) created_at ≥ 本 Event 绑定 Seal 的 sealed_at
-        ordinary Event    取 auth_context.authority_refs 中全部 Seal 的最大 sealed_at
+        ordinary Event    仅取已签 auth_context.authority_refs 实际引用的 Seal 的最大 sealed_at；无 Seal 引用时本项不适用
         Control Move 取 max(seal_basis.leaves[].sealed_at)
         reason_code = created_at_before_basis_seal
 (c) created_at ≤ now + hard_future_skew_ms   （既有规则，未来一侧）
 ```
 
 - **(a)** 的输入是 `prev_refs`——因果前沿，其中每条在因果上都早于本 Event，取 `max` 天然正确。它同时消除了 `actor_seq-1` 处存在 sibling fork（§2.6 单桶上限 16）时"以哪一条为准"的歧义：producer 按 §2.6 必须把观察到的完整 frontier 合入 `prev_refs`，所以 `max` 的输入集合就是签名覆盖的那个集合。`prev_refs` 为空（genesis）时本条不适用。
-- **(b)** 绑定所有主体，包括在该 Realm 内 `actor_seq=0` 的新成员——他们仍然必须绑定一个已接受的 Seal。该时间下界只约束 Event 自报时间不能早于其签名 basis，不决定 Event 与后续撤销的先后。撤销按精确授权实例和已确认关闭集合判断；普通未知撤销允许传播窗口，接收站已知关闭后立即限制新 live 效果。
+- **(b)** 只比较本 Event 已签载体实际依赖的 Seal：Control Move 使用 `seal_basis`，普通 Event 使用 `auth_context.authority_refs` 已引用的历史授权材料。普通 Event（包括该 Realm 内 `actor_seq=0` 的新成员）不得仅为满足时间下界追加 Seal、推进 Seal、取得当前 Seal 或联系 origin Station；没有 Seal 引用时不产生该下界。该时间下界只约束 Event 自报时间不能早于其实际签名依赖，不决定 Event 与后续撤销的先后。撤销按精确授权实例和已确认关闭集合判断；普通未知撤销允许传播窗口，接收站已知关闭后立即限制新 live 效果。
 - **(b)** 的比较跨两台机器的墙钟，MUST 允许 `hard_future_skew_ms` 的对称容差；MUST NOT 为此新增阈值。
 
 **anchor unit 例外（normative）**：`ak.realm.create` 与 `ak.device.reanchor` 无 `seal_ref` / `seal_basis`，(b) 不适用；`ak.realm.create` 的 `prev_refs` 为空，(a) 也不适用。这只是因果/CBS 时间约束例外，不改变 §4.0 的完整 256-bit digest identity 强度。genesis 批次内免 `seal_basis` 的白名单 follow-up 因 `actor_seq > 0` 且 `prev_refs` 非空，仍受 (a) 覆盖。
@@ -467,10 +467,11 @@ Create 类 Event 的 `payload.object` MAY 使用其登记的对象或 genesis sc
 **producer 义务**：
 
 ```text
-created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
+created_at = max(本地时钟, prev_refs 实际前驱的 created_at, (b) 实际适用的已引用 Seal 下界)
+空前驱集合或不适用的 Seal 下界从 max 输入中省略
 ```
 
-否则时钟回拨的设备会把自己卡死。`created_at` MUST 是**本 Event 的提交时刻**；桥接外部平台消息时，外部原始时间戳只能进 `metadata` / `external_ref`，写入 `created_at` 会被 (b) 拒。
+否则时钟回拨的设备会把自己卡死。`created_at` MUST 是**本 Event 的提交时刻**；桥接外部平台消息时，外部原始时间戳只能进 `metadata` / `external_ref`，写入 `created_at` 若违反实际适用的 (a)/(b) 下界必须拒绝；不得为普通 Event 新增 Seal 时间依赖。
 
 同型先例见 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md) 的 “`sealed_at` MUST 不早于 predecessor 的 `sealed_at`”：同样是签名值对签名值、沿唯一确认序列单调、无本地时钟。
 
@@ -492,9 +493,9 @@ created_at = max(本地时钟, predecessor.created_at, seal.sealed_at)
 
 跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 digest 与确定性 reducer 输出 MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move仍按上段移除。
 
-`ak.device.reanchor` 使用 account-local 冲突槽 `(account_id, new_device_generation)`。Station 的 create-once 合同保证该 pair 只有一条 PCR lineage；同槽 re-anchor 与 replacement-authorize digest 全同才是幂等重试，任一不同则 quarantine 全部候选及后继 generation Seal。该槽不暴露 PCR digest 为第二套身份，也不能用 first-seen 或数据库唯一约束丢弃冲突证据。
+`ak.device.reanchor` 不另设候选冲突槽。完整 closed recovery unit 只有在该完整 AccountId 唯一合法 PCR Seal 确认序列中获得 `command_results.outcome=committed`，才原子推进 `new_device_generation` 并 fence 旧 generation。执行位置按已签 basis 与当前安全状态验证 generation revision/CAS、完整 frontier、policy、session 与两条 Event；同一旧 generation 的另一候选只能保持 pending 或取得该序列中的 rejected 结果，不得仅因其出现而 quarantine 已 committed unit、当前 generation 或后继合法 Seal。exact Event bytes 与同一 unit identity 的重试复用原唯一命令结果，不新增效果；不同 unit 不得当作同一重试。
 
-上述独立冲突槽、到达顺序无关性与解除路径由 `ak.vector.identity.device_reanchor.v1` 执行验证。
+接收者 MUST 保留真实冲突证据，但候选到达顺序、DID version、数据库 first-seen/唯一键均不是第二套 generation 权威。若同一合法 authority 在同一 Seal 签名位置签出不同完整 body，按 CBS 既有 authority equivocation 与 lineage 验证规则处理；这不同于两个尚未确认或已 rejected 的恢复候选，MUST NOT 以新 DID version 或额外 candidate-slot resolution 代替既有 Seal 处理。上述唯一确认与候选无执行效力的边界由 `ak.vector.identity.device_reanchor.v1` 验证。
 
 ### 2.7 Requirements 与 critical extensions
 

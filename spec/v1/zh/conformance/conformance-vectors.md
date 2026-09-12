@@ -5405,7 +5405,7 @@ Expected：
 
 `ak.vector.identity.device_reanchor.v1` 覆盖已有 accepted policy 与完整 accepted Seal frontier 的恢复入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖旧恢复模型混入、未授权的 root Event 签名、缺失 accepted policy、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、session key/PoP/双 Event key 不匹配、过期或已被其它事务消费的 session、撤销 policy、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
 
-同 `(principal_id,did_version_number)` 的不同 versionId/digest 或同 entry 的不同 re-anchor unit 必须把全集置于 quarantine 并令 `device_generation_status="conflicted"`；不同到达顺序得到相同结果，禁止 first-seen winner。conflicted 期间普通 admission fail closed；只有下一预承诺 authority 的有效 resolution entry + re-anchor unit 可恢复 `active`。
+generation 只能由唯一合法 PCR Seal 序列中完整 unit 的 committed 结果推进。向量 MUST 覆盖 pending 与 rejected 的 rival unit 在 committed winner 之前或之后到达均不改变当前 generation、不隔离 winner 或后继合法 Seal；同旧 generation 的后执行 rival 以 generation revision/CAS 失败取得 rejected，完整 byte-identical 重试只复用原结果。还必须分别覆盖 incomplete unit 无效果、DID update 不推进 generation，以及同一 authority 在同一 Seal 签名位置签出不同 body 的真实 equivocation；后者按既有 CBS lineage 规则拒绝不唯一的确认材料，不能与未确认候选混同，也不能靠下一 DID entry 解除。
 
 ### 22.4 Recovery-secret 泄露 handoff
 

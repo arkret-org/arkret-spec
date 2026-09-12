@@ -323,7 +323,7 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 首设备存在后，新设备必须走 §2 pairing。新设备提供自己的 device/HPKE keys 和 §5.2.2 的 possession attestation；批准方必须是 PCR 当前 generation 中 active、未撤销的 accepted device，并对完整 authorize payload 签名。结果 `authorization_binding_kind="accepted_device"`，`authorized_by` 是**批准设备自己的 `device_id`**（完整 `ak:device:<uuid>`），不是该设备所属 principal 的 DID；authorization evidence 必须能定位批准设备的 accepted authorize Event 与 generation。
 
-服务端可以中继 challenge 和 Event，但不得生成、替换或签署新设备 key material。旧 generation、已撤销或 conflicted device 的批准一律 fail closed。企业额外审批只能作为显式启用的 PCR policy 叠加，不能成为个人账号首次建 PCR 的默认第二方。
+服务端可以中继 challenge 和 Event，但不得生成、替换或签署新设备 key material。旧 generation、已撤销或具有独立已验证冲突证据的 device 的批准一律 fail closed；仅存在同一旧 generation 的另一个 pending/rejected recovery unit 不构成设备冲突，也不得撤销已 committed generation。该边界由 `ak.vector.identity.device_reanchor.v1` 验证。企业额外审批只能作为显式启用的 PCR policy 叠加，不能成为个人账号首次建 PCR 的默认第二方。
 
 #### 5.4.1 目标设备装配前的强制校验（normative）
 
@@ -1422,7 +1422,7 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ### 14.1 Device lifecycle 与 trust 正交状态
 
-设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced | conflicted`；验证状态为 `verified | unresolved | stale`。两维 MUST 分开投影，account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于 current generation 且目标 Event basis 被 accepted Seal 覆盖。任何单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
+设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced | conflicted`；其中 `conflicted` 只报告设备本身的已验证冲突，不得从 pending/rejected re-anchor 候选数目派生，generation 的推进唯一遵循完整 unit 的 Seal committed 结果。验证状态为 `verified | unresolved | stale`。两维 MUST 分开投影，account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于接收方已验证 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 消费自己已签 `auth_context`、已验证的授权依赖与已知关闭集合，不要求目标 Event 自身被 Seal 覆盖，不要求新 Seal basis、Seal 推进或 origin 在线。安全目标则按其 Control Move/unit 的独立确认规则生效。历史资格及撤销传播窗口按 event-auth-state-resolution 的精确授权实例/关闭集合判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
 
 ### 14.2 Recovery UI requirements
 

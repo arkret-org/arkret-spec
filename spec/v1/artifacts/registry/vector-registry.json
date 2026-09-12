@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.19",
+  "version": "2026-09-13.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T21:15:06+08:00",
+  "generated_at": "2026-09-13T02:02:15+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3500,9 +3500,12 @@
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
         "spec/v1/zh/models/event-and-patch.md",
-        "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
+        "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ],
-      "description": ""
+      "description": "Complete recovery units advance device generation only through Committed results in the unique lawful PCR Seal sequence. Pending/rejected rivals never quarantine confirmed generations; actual same-position signed Seal equivocation remains a separate CBS lineage failure."
     },
     {
       "vector_id": "ak.vector.identity.did_webvh_v1_adapter.v1",

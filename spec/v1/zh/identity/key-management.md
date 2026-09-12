@@ -641,9 +641,9 @@ threshold proof；验证通过后原子提交：
 这两个预授权槽位的 producer proof 均 MUST 省略 `signer_resolution_evidence_ref`；否则实现会要求 replacement device 在被该 unit 授权前已经拥有 accepted device signer evidence，形成循环。专用 recovery unit verifier 只能使用 session 冻结的 candidate identity key、create-time possession proof、accepted recovery policy/session 与 unit-local overlay 验两条签名，并在完整验证后原子建立新 generation。任一 Event 脱离完整 recovery unit/receipt closure 都不可进入普通 submit、federation、backfill 或 shared read；其它 device Event 省略 ref 必须 fail closed。
 
 `new_device_generation` 是 PCR-local monotonic generation ref，MUST NOT 等于或派生自 DID `versionId`。
-generation CAS 接受后 fence 全部旧 generation device；resolution cell 不变。两条 Event 共享 session 冻结的
+generation revision/CAS 在唯一合法 PCR Seal 序列的 unit 执行位置校验，只有完整 unit 的 committed 结果才 fence 全部旧 generation device；pending/rejected 候选不推进或冲突化 generation，resolution cell 不变。两条 Event 共享 session 冻结的
 `requesting_device_public_key_did` 与 unit-local candidate overlay；create-time PoP、factor transcript、
-设备 method 和原子消费规则全部按 `crypto-media/device-lifecycle.md` §14，不能以 root Event proof 替代。
+设备 method 和原子消费规则全部按 `crypto-media/device-lifecycle.md` §14，不能以 root Event proof 替代。唯一确认与 rival 无执行效力由 `ak.vector.identity.device_reanchor.v1` 验证。
 
 DID-root recovery 是 accepted policy 可显式启用、可撤销的一种 proof factor。只有 adapter 同时满足
 `verifiable_control_history` 与 `pre_rotation_commitment` 时，re-anchor 才可携带
