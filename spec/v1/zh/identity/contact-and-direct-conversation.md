@@ -232,7 +232,10 @@ service proof 不替代 holder 签名，也不把 peer transport 身份变成 Co
 **Contact producer projection（normative）**：`request_acceptance_receipt_core`、
 `normal_response_acceptance_receipt`、`reject_acceptance_receipt` 与 `contact_lineage` 必须在各自原始
 `request_event_ref` / `response_event_ref` / `reject_event_ref` / `event_ref` 后携带 required
-`producer_signer={verification_method, public_key_b64u}`。它是原 source-signed core/transcript 的成员，
+`producer_signer` 的闭合 direct 分支为 `{verification_method, public_key_b64u}`，delegated 分支为
+`{verification_method, public_key_b64u, delegated_actor_did}`；没有新增 `kind` 标签。只有合法 Agent
+controller-device 原 Event 含 `executed_by` 时 MUST 使用 delegated，human 与 Agent runtime 分支 MUST
+使用 direct 并禁止 `delegated_actor_did`。各分支都是原 source-signed core/transcript 的成员，
 按原 digest/signature 算法完整覆盖，不另加签名、签名 context 或 key digest。`public_key_b64u` 为 canonical
 unpadded base64url 的 Ed25519 raw32；算法固定为既有 Contact Event Ed25519 profile，不携带重复的
 algorithm/key-kind。source 只能冻结该确切已确认 Event 实际通过 producer 验证的 key 与 method，不能从
@@ -249,8 +252,14 @@ source 认证的 exact key 验原签名，拒绝算法替换、同 key 跨 Accou
 
 Agent participant 必须先固定其完整 account ActorId；其 Station 与 controller AccountId 的 Station 相同，
 再从完整已验证 Agent DID native history 确认 controller principal 与 create-locked PCR/delegation tuple。
-runtime method 可定位 Agent DID；controller method 不定位 Agent DID 时，使用已有公开 identity resolution
-取得完整 DID/history，并重算其 core 匹配 Agent principal。没有这些独立材料时保持非授权 pending；不得从
+runtime method 定位 Agent DID。controller-device 分支从原 source-signed `producer_signer.delegated_actor_did`
+取得完整公开 Agent DID locator，再使用既有 DID method history 读取/验证，重算其 core 必须等于原
+`Event.actor_id` 的 principal；不得把它解释为 executor DID、授权断言或私有 PCR 材料。source MUST 在
+原 Event admission 时从其已验证 Agent native identity/create-locked binding 取得并与 producer key 一同
+耐久冻结该 locator；不得由 core 拼 host/path、使用调用方未经验证的字符串、或在 completion 时从稍后的
+当前目录替换。所有 enclosing carrier 与只读/恢复消费者 MUST 复核上述分支 iff 条件，以及 actor、executor、
+controller 完整 Account/Station 与公开历史的绑定；同一 Event 的各个 descriptor 必须逐字相同。
+没有这些独立材料时保持非授权 pending；不得从
 待验 receipt 的 issuer 或未认证 peer 的 controller 反过来选择受信 source。公开 DID 的 requested-scope
 commitment 不是业务许可：完整私有 grant/key/scope 的本地执行校验由源 Station 在该 exact command 确认时
 完成；此处只消费它对该 Event 的窄投影，不要求向 Contact 接收方公开 Agent PCR、notary 或完整私有 scope。

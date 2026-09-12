@@ -855,6 +855,35 @@
               "predecessor_event_ref"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "issuer": {
+                "properties": {
+                  "kind": {
+                    "const": "human"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "issuer"
+            ]
+          },
+          "then": {
+            "properties": {
+              "producer_signer": {
+                "$ref": "#/$defs/contact_direct_producer_signer"
+              }
+            },
+            "required": [
+              "producer_signer"
+            ]
+          }
         }
       ],
       "additionalProperties": false
@@ -2061,7 +2090,52 @@
           "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "request_receipt": {
+                "properties": {
+                  "core": {
+                    "properties": {
+                      "peer": {
+                        "properties": {
+                          "kind": {
+                            "const": "human"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "peer"
+                    ]
+                  }
+                },
+                "required": [
+                  "core"
+                ]
+              }
+            },
+            "required": [
+              "request_receipt"
+            ]
+          },
+          "then": {
+            "properties": {
+              "producer_signer": {
+                "$ref": "#/$defs/contact_direct_producer_signer"
+              }
+            },
+            "required": [
+              "producer_signer"
+            ]
+          }
+        }
+      ]
     },
     "peer_contact_authoritative_mirror_receipt": {
       "allOf": [
@@ -2776,7 +2850,106 @@
               "$ref": "#/$defs/contact_current_proof"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "signed_event": {
+                    "required": [
+                      "executed_by"
+                    ]
+                  }
+                },
+                "required": [
+                  "signed_event"
+                ]
+              },
+              "then": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "request_receipt": {
+                        "properties": {
+                          "core": {
+                            "properties": {
+                              "holder": {
+                                "properties": {
+                                  "kind": {
+                                    "const": "agent"
+                                  }
+                                },
+                                "required": [
+                                  "kind"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "holder"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "core"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "request_receipt"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "request_receipt": {
+                        "properties": {
+                          "core": {
+                            "properties": {
+                              "producer_signer": {
+                                "$ref": "#/$defs/contact_delegated_producer_signer"
+                              }
+                            },
+                            "required": [
+                              "producer_signer"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "core"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "request_receipt"
+                    ]
+                  }
+                ]
+              },
+              "else": {
+                "properties": {
+                  "request_receipt": {
+                    "properties": {
+                      "core": {
+                        "properties": {
+                          "producer_signer": {
+                            "$ref": "#/$defs/contact_direct_producer_signer"
+                          }
+                        },
+                        "required": [
+                          "producer_signer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "core"
+                    ]
+                  }
+                },
+                "required": [
+                  "request_receipt"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2821,7 +2994,99 @@
               "$ref": "#/$defs/contact_current_proof"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "signed_event": {
+                    "required": [
+                      "executed_by"
+                    ]
+                  }
+                },
+                "required": [
+                  "signed_event"
+                ]
+              },
+              "then": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "response_receipt": {
+                        "properties": {
+                          "request_receipt": {
+                            "properties": {
+                              "core": {
+                                "properties": {
+                                  "peer": {
+                                    "properties": {
+                                      "kind": {
+                                        "const": "agent"
+                                      }
+                                    },
+                                    "required": [
+                                      "kind"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "peer"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "core"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "request_receipt"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "response_receipt"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "response_receipt": {
+                        "properties": {
+                          "producer_signer": {
+                            "$ref": "#/$defs/contact_delegated_producer_signer"
+                          }
+                        },
+                        "required": [
+                          "producer_signer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "response_receipt"
+                    ]
+                  }
+                ]
+              },
+              "else": {
+                "properties": {
+                  "response_receipt": {
+                    "properties": {
+                      "producer_signer": {
+                        "$ref": "#/$defs/contact_direct_producer_signer"
+                      }
+                    },
+                    "required": [
+                      "producer_signer"
+                    ]
+                  }
+                },
+                "required": [
+                  "response_receipt"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2863,7 +3128,99 @@
               "$ref": "#/$defs/contact_address"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "signed_event": {
+                    "required": [
+                      "executed_by"
+                    ]
+                  }
+                },
+                "required": [
+                  "signed_event"
+                ]
+              },
+              "then": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "reject_receipt": {
+                        "properties": {
+                          "request_receipt": {
+                            "properties": {
+                              "core": {
+                                "properties": {
+                                  "peer": {
+                                    "properties": {
+                                      "kind": {
+                                        "const": "agent"
+                                      }
+                                    },
+                                    "required": [
+                                      "kind"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "peer"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "core"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "request_receipt"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "reject_receipt"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "reject_receipt": {
+                        "properties": {
+                          "producer_signer": {
+                            "$ref": "#/$defs/contact_delegated_producer_signer"
+                          }
+                        },
+                        "required": [
+                          "producer_signer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "reject_receipt"
+                    ]
+                  }
+                ]
+              },
+              "else": {
+                "properties": {
+                  "reject_receipt": {
+                    "properties": {
+                      "producer_signer": {
+                        "$ref": "#/$defs/contact_direct_producer_signer"
+                      }
+                    },
+                    "required": [
+                      "producer_signer"
+                    ]
+                  }
+                },
+                "required": [
+                  "reject_receipt"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2909,7 +3266,85 @@
               "$ref": "#/$defs/contact_address"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "signed_event": {
+                    "required": [
+                      "executed_by"
+                    ]
+                  }
+                },
+                "required": [
+                  "signed_event"
+                ]
+              },
+              "then": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "lineage": {
+                        "properties": {
+                          "issuer": {
+                            "properties": {
+                              "kind": {
+                                "const": "agent"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "issuer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "lineage"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "lineage": {
+                        "properties": {
+                          "producer_signer": {
+                            "$ref": "#/$defs/contact_delegated_producer_signer"
+                          }
+                        },
+                        "required": [
+                          "producer_signer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "lineage"
+                    ]
+                  }
+                ]
+              },
+              "else": {
+                "properties": {
+                  "lineage": {
+                    "properties": {
+                      "producer_signer": {
+                        "$ref": "#/$defs/contact_direct_producer_signer"
+                      }
+                    },
+                    "required": [
+                      "producer_signer"
+                    ]
+                  }
+                },
+                "required": [
+                  "lineage"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -2955,7 +3390,85 @@
               "$ref": "#/$defs/contact_address"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "signed_event": {
+                    "required": [
+                      "executed_by"
+                    ]
+                  }
+                },
+                "required": [
+                  "signed_event"
+                ]
+              },
+              "then": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "lineage": {
+                        "properties": {
+                          "issuer": {
+                            "properties": {
+                              "kind": {
+                                "const": "agent"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "issuer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "lineage"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "lineage": {
+                        "properties": {
+                          "producer_signer": {
+                            "$ref": "#/$defs/contact_delegated_producer_signer"
+                          }
+                        },
+                        "required": [
+                          "producer_signer"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "lineage"
+                    ]
+                  }
+                ]
+              },
+              "else": {
+                "properties": {
+                  "lineage": {
+                    "properties": {
+                      "producer_signer": {
+                        "$ref": "#/$defs/contact_direct_producer_signer"
+                      }
+                    },
+                    "required": [
+                      "producer_signer"
+                    ]
+                  }
+                },
+                "required": [
+                  "lineage"
+                ]
+              }
+            }
+          ]
         },
         {
           "type": "object",
@@ -3103,7 +3616,52 @@
           "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "request_receipt": {
+                "properties": {
+                  "core": {
+                    "properties": {
+                      "peer": {
+                        "properties": {
+                          "kind": {
+                            "const": "human"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "peer"
+                    ]
+                  }
+                },
+                "required": [
+                  "core"
+                ]
+              }
+            },
+            "required": [
+              "request_receipt"
+            ]
+          },
+          "then": {
+            "properties": {
+              "producer_signer": {
+                "$ref": "#/$defs/contact_direct_producer_signer"
+              }
+            },
+            "required": [
+              "producer_signer"
+            ]
+          }
+        }
+      ]
     },
     "request_acceptance_receipt": {
       "type": "object",
@@ -3197,6 +3755,35 @@
               "slot_predecessor"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "holder": {
+                "properties": {
+                  "kind": {
+                    "const": "human"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "holder"
+            ]
+          },
+          "then": {
+            "properties": {
+              "producer_signer": {
+                "$ref": "#/$defs/contact_direct_producer_signer"
+              }
+            },
+            "required": [
+              "producer_signer"
+            ]
+          }
         }
       ],
       "additionalProperties": false
@@ -3208,6 +3795,17 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "contact_producer_signer": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/contact_direct_producer_signer"
+        },
+        {
+          "$ref": "#/$defs/contact_delegated_producer_signer"
+        }
+      ],
+      "description": "Exact-Event source-signed producer projection. Closed direct and delegated branches are distinguished by delegated_actor_did presence, with no new wire tag. Enclosing carrier validation MUST select delegated if and only if the original Event is a legal Agent controller-device Event with executed_by; human and Agent runtime use direct. Method/raw32 authenticate the original producer, while delegated_actor_did only locates the independently verified Agent public identity. No reusable authorization, new endpoint or private PCR disclosure is created."
+    },
+    "contact_direct_producer_signer": {
       "type": "object",
       "required": [
         "verification_method",
@@ -3226,7 +3824,33 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exact-Event Contact producer projection covered by the enclosing source receipt or lineage signature. verification_method equals the original unique Event proof method. The producer is derived from executed_by when present, otherwise actor_id; the Event proof transcript still binds actor_id. This is not a reusable device, Agent, DID or notary authorization. It carries no PCR history and needs no prior Contact or shared Realm lookup."
+      "description": "Closed direct producer branch for human-device and Agent-runtime Contact Events. The original Event has no executed_by; its producer method already locates its Actor DID. No delegated_actor_did is permitted."
+    },
+    "contact_delegated_producer_signer": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "public_key_b64u",
+        "delegated_actor_did"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "minLength": 43,
+          "maxLength": 43,
+          "description": "Canonical unpadded base64url of the exact Ed25519 raw32 key independently verified by the source for this confirmed Contact Event."
+        },
+        "delegated_actor_did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Complete public DID locator of the exact Agent Event actor, frozen from the source-verified native identity binding when the original Event has executed_by. It is not the executor DID, a core-derived locator, or authorization."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed delegated producer branch, required exactly for a legal Agent controller-device Contact Event with executed_by. The receiver verifies the original producer signature and separately validates this complete Agent DID history against exact actor/controller/Station and the create-locked tuple."
     }
   }
 }

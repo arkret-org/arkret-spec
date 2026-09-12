@@ -72,6 +72,10 @@
       "category": "external_vid_profile"
     },
     {
+      "pointer": "contact-operations.schema.json#/$defs/contact_delegated_producer_signer/properties/delegated_actor_did/$ref",
+      "category": "did_method_log_or_evidence"
+    },
+    {
       "pointer": "did-binding-contracts.schema.json#/$defs/evidence_dependencies/properties/witness_controlling_organization_dids/items/$ref",
       "category": "did_method_log_or_evidence"
     },

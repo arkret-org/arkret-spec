@@ -520,5 +520,184 @@
       "substituted_method",
       "substituted_key"
     ]
+  },
+  "delegated_actor_locator_kat": {
+    "scope": "Closed producer branches, actual peer-carrier conditional schema, locator core binding and original source signature coverage only. Event identity inputs are not full Event proofs; native Agent history authentication, source admission custody and offline direction recovery require production SDK/server tests.",
+    "cases": [
+      {
+        "name": "human",
+        "event_identity": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          }
+        },
+        "signed_request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "human",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              }
+            },
+            "peer": {
+              "kind": "human",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+              }
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "producer_signer": {
+              "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+              "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+            },
+            "source_checkpoint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "accepted_at": "2026-08-31T03:59:00.000Z",
+            "issuer_id": "ak:did_core:webvh:z6mkfixturestationa"
+          },
+          "receipt_digest": "sha256:1e1d9527e9d8ce0f8557d6fa5df351d69a639feb19a5e9f89700495ce820f523",
+          "signature": {
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "created_at": "2026-08-31T03:59:00.000Z",
+            "jws": "q9cXu-Jp9HftTiorgdcGB3ApQT1InCm5xxDO20iGK686m4DhrlOk5ajij_KSTtF20_xRBy2JkMK8i0uiUc6jDQ"
+          }
+        },
+        "canonical_unsigned": "{\"core\":{\"accepted_at\":\"2026-08-31T03:59:00.000Z\",\"holder\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"human\"},\"issuer_id\":\"ak:did_core:webvh:z6mkfixturestationa\",\"peer\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"human\"},\"producer_signer\":{\"public_key_b64u\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\",\"verification_method\":\"did:webvh:z6mkfixturealice:alice.example#device-fixture\"},\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"slot_version\":1,\"source_checkpoint\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"receipt_digest\":\"sha256:1e1d9527e9d8ce0f8557d6fa5df351d69a639feb19a5e9f89700495ce820f523\"}"
+      },
+      {
+        "name": "agent_runtime",
+        "event_identity": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          }
+        },
+        "signed_request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "agent",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "controller_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              }
+            },
+            "peer": {
+              "kind": "human",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+              }
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "producer_signer": {
+              "verification_method": "did:webvh:z6mkfixtureagent:agents.example:assistant#runtime-key",
+              "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+            },
+            "source_checkpoint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "accepted_at": "2026-08-31T03:59:00.000Z",
+            "issuer_id": "ak:did_core:webvh:z6mkfixturestationa"
+          },
+          "receipt_digest": "sha256:80778b7785e7ae99c2b238c9919a63deecfc345cd662981bc2836dcc310fefcb",
+          "signature": {
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "created_at": "2026-08-31T03:59:00.000Z",
+            "jws": "loWIVgk3sdb-TnOJTYKkflIxRwUeJV038E5O_uxV1WLBObHFUgIgiE_2-CTXpxZZuDzIUvwqUneqPu_wmpzPDA"
+          }
+        },
+        "canonical_unsigned": "{\"core\":{\"accepted_at\":\"2026-08-31T03:59:00.000Z\",\"holder\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"agent\"},\"issuer_id\":\"ak:did_core:webvh:z6mkfixturestationa\",\"peer\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"human\"},\"producer_signer\":{\"public_key_b64u\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\",\"verification_method\":\"did:webvh:z6mkfixtureagent:agents.example:assistant#runtime-key\"},\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"slot_version\":1,\"source_checkpoint\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"receipt_digest\":\"sha256:80778b7785e7ae99c2b238c9919a63deecfc345cd662981bc2836dcc310fefcb\"}"
+      },
+      {
+        "name": "agent_controller_device",
+        "event_identity": {
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          "executed_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          }
+        },
+        "signed_request_receipt": {
+          "core": {
+            "holder": {
+              "kind": "agent",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "controller_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+              }
+            },
+            "peer": {
+              "kind": "human",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+              }
+            },
+            "slot_version": 1,
+            "request_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "producer_signer": {
+              "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+              "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+              "delegated_actor_did": "did:webvh:z6mkfixtureagent:agents.example:assistant"
+            },
+            "source_checkpoint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "accepted_at": "2026-08-31T03:59:00.000Z",
+            "issuer_id": "ak:did_core:webvh:z6mkfixturestationa"
+          },
+          "receipt_digest": "sha256:2182acb15f78535c6abb742f34f7d5408a32e635bde1d1c169e2ca8db992d2c7",
+          "signature": {
+            "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+            "created_at": "2026-08-31T03:59:00.000Z",
+            "jws": "-5eqL-OZZwIDnP1IsSnkGxrh6h3NRflA5-gW3QYaltnMkDfM33sAkl_mq7I409FYH1U0EZ5EaJqis2OHbgC7Cw"
+          }
+        },
+        "canonical_unsigned": "{\"core\":{\"accepted_at\":\"2026-08-31T03:59:00.000Z\",\"holder\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"agent\"},\"issuer_id\":\"ak:did_core:webvh:z6mkfixturestationa\",\"peer\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"human\"},\"producer_signer\":{\"delegated_actor_did\":\"did:webvh:z6mkfixtureagent:agents.example:assistant\",\"public_key_b64u\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\",\"verification_method\":\"did:webvh:z6mkfixturealice:alice.example#device-fixture\"},\"request_event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"slot_version\":1,\"source_checkpoint\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"receipt_digest\":\"sha256:2182acb15f78535c6abb742f34f7d5408a32e635bde1d1c169e2ca8db992d2c7\"}"
+      }
+    ],
+    "negative_cases": [
+      "controller_missing_locator",
+      "human_with_locator",
+      "runtime_with_locator",
+      "human_with_executor",
+      "null_locator",
+      "core_instead_of_did",
+      "wrong_agent_principal",
+      "changed_locator_with_original_signature",
+      "unregistered_descriptor_member",
+      "wrong_controller_station",
+      "wrong_executor_account",
+      "wrong_actor_account"
+    ]
   }
 }

@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-round-kat.json",
-      "sha256": "58a52abc9b4cc81f20662fa2edaee2d91be26e7e74422ee8856ee5e3d5810275"
+      "sha256": "d8e2a8f8314947975dd0c5ad94eda6bd8574defab69721179ef8678417d4cc1f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",

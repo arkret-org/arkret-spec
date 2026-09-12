@@ -2394,6 +2394,36 @@
       ]
     },
     {
+      "schema_path": "contact-operations.schema.json#/$defs/contact_delegated_producer_signer/properties/delegated_actor_did",
+      "property_name": "delegated_actor_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
+      "schema_path": "contact-operations.schema.json#/$defs/contact_delegated_producer_signer/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "contact-operations.schema.json#/$defs/contact_direct_producer_signer/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "contact-operations.schema.json#/$defs/contact_introduction_evidence/oneOf/2/properties/resolved_by",
       "property_name": "resolved_by",
       "semantic_category": "responsibility_identity_material",
@@ -2431,16 +2461,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "contact-operations.schema.json#/$defs/contact_producer_signer/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
       ]
     },
     {
