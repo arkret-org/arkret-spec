@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.1",
+  "version": "2026-09-13.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T00:03:07+08:00",
+  "generated_at": "2026-09-13T00:54:06+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -585,7 +585,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:b6be2fe5f2bd527dc7c9b9ecc3a5bd32dffae5d69d9bc144d9f52a7341de2ecd",
+      "section_digest": "sha256:e71a8454d98f9f92c84fc4c14dacca00e04db5888a39066e51728f2c5f049cfa",
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
@@ -661,6 +661,16 @@
       "requirement": "Last-resort expiry bounds new distribution only, not historical Welcome decryption with the matching compromised key. Future confidentiality recovery requires effective unknown secret updates and the MLS threat conditions; old plaintext is not made confidential again.",
       "testability_grade": "audit",
       "test_plan": "Run tools.test_residual_simplification with keypackage-lifecycle-fixture expiry_security_case for deterministic HPKE GroupSecrets decryption after expiry and failure under an independent fresh key. Synthetic encrypted_group_info context means this is not a full MLS/Station test. The lifecycle vector separately requires product-runner rejection of new expired claims and real group self-updates without retrospective secrecy claims."
+    },
+    {
+      "clause_id": "AK-NC-052",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
+      "section_digest": "sha256:e71a8454d98f9f92c84fc4c14dacca00e04db5888a39066e51728f2c5f049cfa",
+      "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key.",
+      "testability_grade": "audit",
+      "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance."
     }
   ]
 }

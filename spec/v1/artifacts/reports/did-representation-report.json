@@ -2434,6 +2434,16 @@
       ]
     },
     {
+      "schema_path": "contact-operations.schema.json#/$defs/contact_producer_signer/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "contact-operations.schema.json#/$defs/contact_round/oneOf/0/properties/sorted_pair_member_ids",
       "property_name": "sorted_pair_member_ids",
       "semantic_category": "responsibility_identity_material",

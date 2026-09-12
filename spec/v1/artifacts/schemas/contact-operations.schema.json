@@ -794,6 +794,7 @@
         "peer",
         "version",
         "event_ref",
+        "producer_signer",
         "granted_to_peer_scopes",
         "signature"
       ],
@@ -816,6 +817,9 @@
         },
         "event_ref": {
           "$ref": "#/$defs/event_id"
+        },
+        "producer_signer": {
+          "$ref": "#/$defs/contact_producer_signer"
         },
         "granted_to_peer_scopes": {
           "$ref": "#/$defs/contact_scopes"
@@ -2023,6 +2027,7 @@
         "contact_round_id",
         "request_receipt",
         "response_event_ref",
+        "producer_signer",
         "outgoing_slot_absence_digest",
         "accepted_at",
         "issuer_id",
@@ -2038,6 +2043,9 @@
         "response_event_ref": {
           "$ref": "#/$defs/event_id",
           "description": "Complete identity of the accepted response Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel response_digest is carried."
+        },
+        "producer_signer": {
+          "$ref": "#/$defs/contact_producer_signer"
         },
         "outgoing_slot_absence_digest": {
           "$ref": "./principal-operations.schema.json#/$defs/digest",
@@ -3069,6 +3077,7 @@
       "required": [
         "request_receipt",
         "reject_event_ref",
+        "producer_signer",
         "accepted_at",
         "issuer_id",
         "signature"
@@ -3080,6 +3089,9 @@
         "reject_event_ref": {
           "$ref": "#/$defs/event_id",
           "description": "Complete identity of the accepted reject Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel reject_digest is carried."
+        },
+        "producer_signer": {
+          "$ref": "#/$defs/contact_producer_signer"
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"
@@ -3121,6 +3133,7 @@
         "peer",
         "slot_version",
         "request_event_ref",
+        "producer_signer",
         "source_checkpoint",
         "accepted_at",
         "issuer_id"
@@ -3146,6 +3159,9 @@
         "request_event_ref": {
           "$ref": "#/$defs/event_id",
           "description": "Complete identity of the accepted request Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel request_digest is carried."
+        },
+        "producer_signer": {
+          "$ref": "#/$defs/contact_producer_signer"
         },
         "source_checkpoint": {
           "$ref": "./principal-operations.schema.json#/$defs/digest"
@@ -3190,6 +3206,27 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "contact_producer_signer": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "public_key_b64u"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "minLength": 43,
+          "maxLength": 43,
+          "description": "Canonical unpadded base64url of the exact Ed25519 raw32 key independently verified by the source for this confirmed Contact Event."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact-Event Contact producer projection covered by the enclosing source receipt or lineage signature. verification_method equals the original unique Event proof method. The producer is derived from executed_by when present, otherwise actor_id; the Event proof transcript still binds actor_id. This is not a reusable device, Agent, DID or notary authorization. It carries no PCR history and needs no prior Contact or shared Realm lookup."
     }
   }
 }

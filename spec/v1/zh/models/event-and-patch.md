@@ -69,6 +69,8 @@ Schema id: `ak.schema.event.v1`
 | `proofs` | yes | `array<Proof>` | 恰有一个 producer proof，所有接收站验证相同的原始证明。 | 生产者签名。 |
 | `requirements` | no | `object` | `requirements.{schema[], features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / feature / critical extension）。Reducer profile 从 Event 的 CBS governance basis 读取，不在 Event 中声明。 |
 
+Contact 五类历史 carrier 的 producer 验签材料按 [Contact §2](../identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round) 的 source-signed exact-Event `producer_signer` 消费。该窄投影保留原 proof bytes 与正常 `seal_basis`，不向原 unit-local proof 补普通历史 signer 引用，也不把 source 断言当原 holder 签名；其它普通 Event、Control admission 和 Agent key 授权仍遵守各自的完整证据规则。
+
 #### 2.2.1 Wire Event 与 producer 的已验证提交态（normative）
 
 `ak.schema.event.v1` 是所有 durable Event 的统一 wire envelope。MLS

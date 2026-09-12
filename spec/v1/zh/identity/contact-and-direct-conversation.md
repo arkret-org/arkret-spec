@@ -221,12 +221,58 @@ proof 即使共同指向同一 tombstone head，仍按 signed peer 覆盖两个�
 的 Station，或 exact Agent 的已认证 controller AccountId 的 Station，独立确定该方向允许的 service issuer，
 验证其在 proof/receipt evidence time 的历史 `assertionMethod`、签名与全部 participant/ref/round 绑定。
 不能从待验 proof 的任意 `issuer_id` 自钉信任，不能将同 core 不同 Station 合并。原始 Event 的 content digest、
-holder producer proof 及该 human device / Agent / controller 分支的完整历史授权材料仍须按既有 producer 规则
-独立认证；service proof 不替代 holder 签名，也不把 peer transport 身份变成 Contact author。
+holder producer proof 必须使用下面的 exact-Event `producer_signer` 验证；source 在自己的确认执行路径按该
+human device / Agent / controller 分支完整验证实际授权，接收方独立验证原 holder 的签名。
+service proof 不替代 holder 签名，也不把 peer transport 身份变成 Contact author。
 接收方通过该已登记的签名投影合同认证 Contact 确认结果，不重新读取源 PCR、认证其初始 notary 或重放其私有
 控制历史；本 carrier 不增加 PCR genesis、registration body、Seal 或通用 CBS conclusion 披露权。source checkpoint
 仍是本节登记的 exact source fact commitment，**不是 Seal ref，也不是 Seal 签名**。本合同不改变
 [CBS §9](../authz/cbs-profiles.md#9-治理结果证明normative) 中其它治理结果操作的独立证明义务。
+
+**Contact producer projection（normative）**：`request_acceptance_receipt_core`、
+`normal_response_acceptance_receipt`、`reject_acceptance_receipt` 与 `contact_lineage` 必须在各自原始
+`request_event_ref` / `response_event_ref` / `reject_event_ref` / `event_ref` 后携带 required
+`producer_signer={verification_method, public_key_b64u}`。它是原 source-signed core/transcript 的成员，
+按原 digest/signature 算法完整覆盖，不另加签名、签名 context 或 key digest。`public_key_b64u` 为 canonical
+unpadded base64url 的 Ed25519 raw32；算法固定为既有 Contact Event Ed25519 profile，不携带重复的
+algorithm/key-kind。source 只能冻结该确切已确认 Event 实际通过 producer 验证的 key 与 method，不能从
+稍后的当前设备目录替换旧 key，也不能用自己的 service/notary key 代替。同一 Event 同时出现在 receipt、
+lineage 或 self outcome 时，各处 descriptor 必须逐字相同。
+
+接收方先验证 expected source 的历史签名及 receipt/lineage 对 exact Event 的绑定，再要求唯一原 Event proof
+的 `verification_method` 与 descriptor 逐字一致。实际 producer 唯一取 `executed_by`（若有），否则取
+`actor_id`；method DID 经已登记 adapter 验证后必须投影为该 producer 的 principal。原 JWS 的 binding actor
+始终为 `Event.actor_id`，禁止改成 executor。human 不得携 `executed_by`；Agent runtime 必须由 Agent 自己
+签名；controller-device 分支的 executor 必须逐字等于该 Agent 的完整 controller AccountId。每个分支均以
+source 认证的 exact key 验原签名，拒绝算法替换、同 key 跨 Account、method 替换、未确认 source 事实和把
+另一 Event 的 descriptor 移用到此 Event。
+
+Agent participant 必须先固定其完整 account ActorId；其 Station 与 controller AccountId 的 Station 相同，
+再从完整已验证 Agent DID native history 确认 controller principal 与 create-locked PCR/delegation tuple。
+runtime method 可定位 Agent DID；controller method 不定位 Agent DID 时，使用已有公开 identity resolution
+取得完整 DID/history，并重算其 core 匹配 Agent principal。没有这些独立材料时保持非授权 pending；不得从
+待验 receipt 的 issuer 或未认证 peer 的 controller 反过来选择受信 source。公开 DID 的 requested-scope
+commitment 不是业务许可：完整私有 grant/key/scope 的本地执行校验由源 Station 在该 exact command 确认时
+完成；此处只消费它对该 Event 的窄投影，不要求向 Contact 接收方公开 Agent PCR、notary 或完整私有 scope。
+接收方以原 Event 的 `created_at` 验证公开 Agent/controller/PCR 的历史身份绑定；完整 native history 仍须认证，
+但该历史点之后的 binding 变更不得追溯抹除此前已确认事实。源 Station 独立负责真实 command 确认时的完整
+授权有效性，producer 自填的旧 `created_at` 不产生新 live 许可。后续失效与收窄按已知 fence/关闭证据处理。
+lineage 的签名时刻只定位 source assertion key，不充当未携带的 command 确认时间，也不要求延后签发时
+原 holder 仍有当前授权；保留旧事实不等于允许它绕过当前撤销。
+
+该材料只在上述五类 Contact 历史 carrier 中补全原 producer 验签，不授权另一 Event、generic Control
+admission、DID 更新、notary 或普通消息新 live。必须保留原 Event bytes 与正常 `seal_basis`，不得改签 Event
+以补 `signer_resolution_evidence_ref`，不得把普通消息或其它 Control Event 放进此例外。已签的 source
+receipt/lineage 同时绑定该 Event 与其 key，是此 carrier 的取材合同，不要求先有 Contact 或共同 Realm，
+不触发关系门控设备查询，也不扩张 `account_device` 历史响应分支的权限。同站与跨站均耐久保留完整原件，
+重放只重验原证据，不以新的查询 TTL 取代历史授权关闭规则。
+
+`accepted_at` 是源业务 slot 的真实确认线性化时刻，不是稍后 completion 签发时刻，也不机械复制任意 Seal
+时间。源事务必须在同一确切 slot 观察点固定 receipt core；normal 分支的 absence core `observed_at`、其
+commitment 与 receipt 的 `accepted_at` 一致。延后签名按该历史时点的已授权 assertion key 签发，旧 key
+缺失时等待恢复实际 custody，不能改 timestamp、重判 normal/glare 或用新 key 倒签。lineage 与 current proof
+各自按真实签发时点验证 key，且 current head 仍满足上面的完整后继覆盖规则。首次耐久终局一经固定，所有
+重试返回相同 receipt/round/bytes。
 
 `glare_concurrency_attestation` 同理签 `subject_id: ActorId`、`peer_id: ActorId` 与
 `issuer_id: DidCoreId`。两张 attestation 必须分别是 `p0 -> p1` 与 `p1 -> p0`，issuer 必须是 subject 在
