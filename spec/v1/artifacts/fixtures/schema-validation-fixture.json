@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-12.1",
+  "version": "2026-09-13.2",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -7777,7 +7777,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission",
       "instance": {
         "event": {
-          "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
+          "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
           "kind": "ak.message.create",
           "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
           "scope_ref": {
@@ -7796,8 +7796,6 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
           "auth_context": {
-            "key_id": "ed25519-2026-05-fixture",
-            "key_epoch": 1,
             "authority_refs": [
               "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ]
@@ -7832,8 +7830,8 @@
               "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
               "created_at": "2026-05-02T00:00:00.000Z",
               "domain": "arkret-event-v1",
-              "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+              "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
               "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ]
@@ -7846,7 +7844,7 @@
       "name": "shared_history_portable_capability_message_valid",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
       "instance": {
-        "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
         "kind": "ak.message.create",
         "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "scope_ref": {
@@ -7865,8 +7863,6 @@
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "auth_context": {
-          "key_id": "ed25519-2026-05-fixture",
-          "key_epoch": 1,
           "authority_refs": [
             "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
           ]
@@ -7901,8 +7897,8 @@
             "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
             "created_at": "2026-05-02T00:00:00.000Z",
             "domain": "arkret-event-v1",
-            "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-            "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
@@ -8001,7 +7997,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission",
       "instance": {
         "event": {
-          "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
+          "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
           "kind": "ak.message.create",
           "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
           "scope_ref": {
@@ -8020,8 +8016,6 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
           "auth_context": {
-            "key_id": "ed25519-2026-05-fixture",
-            "key_epoch": 1,
             "authority_refs": [
               "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ]
@@ -8056,8 +8050,8 @@
               "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
               "created_at": "2026-05-02T00:00:00.000Z",
               "domain": "arkret-event-v1",
-              "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+              "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
               "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ]
@@ -8070,7 +8064,7 @@
       "name": "event_federation_read_row_portable_message_valid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventReadRow",
       "instance": {
-        "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
         "kind": "ak.message.create",
         "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "scope_ref": {
@@ -8089,8 +8083,6 @@
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "auth_context": {
-          "key_id": "ed25519-2026-05-fixture",
-          "key_epoch": 1,
           "authority_refs": [
             "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
           ]
@@ -8125,8 +8117,8 @@
             "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
             "created_at": "2026-05-02T00:00:00.000Z",
             "domain": "arkret-event-v1",
-            "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-            "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
             "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           }
         ]
@@ -8139,7 +8131,7 @@
       "instance": {
         "events": [
           {
-            "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
+            "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
             "kind": "ak.message.create",
             "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
             "scope_ref": {
@@ -8158,8 +8150,6 @@
             "hlc": "01970e589d21-0001-a13f9c2e",
             "prev_refs": [],
             "auth_context": {
-              "key_id": "ed25519-2026-05-fixture",
-              "key_epoch": 1,
               "authority_refs": [
                 "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
               ]
@@ -8194,8 +8184,8 @@
                 "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
                 "created_at": "2026-05-02T00:00:00.000Z",
                 "domain": "arkret-event-v1",
-                "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-                "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+                "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+                "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
                 "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
               }
             ]
@@ -8213,7 +8203,7 @@
         "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
         "cursor": "ak:cursor:fixture",
         "payload": {
-          "event_id": "ak:event:AU8zhdv9qb5YNCn4IpB825xiCAo6UflWz425VZcCA_Mh",
+          "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
           "kind": "ak.message.create",
           "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
           "scope_ref": {
@@ -8232,8 +8222,6 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
           "auth_context": {
-            "key_id": "ed25519-2026-05-fixture",
-            "key_epoch": 1,
             "authority_refs": [
               "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ]
@@ -8268,8 +8256,8 @@
               "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
               "created_at": "2026-05-02T00:00:00.000Z",
               "domain": "arkret-event-v1",
-              "jws": "eyJhbGciOiJFZDI1NTE5In0..pzTUqS5xq2cBGjomVRKMHLjPnfK4l-S8NG198ri_get7EkFke5gdBOq38g3TgHmru1wW_lOl3g2hNZX-yhmrDw",
-              "event_digest": "sha256:4f3385dbfda9be583429f822907cdb9c62080a3a51f956cf8db955970203f321",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+              "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
               "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
           ]
@@ -8876,6 +8864,333 @@
         ]
       },
       "first_expected_error": "contains:calendar_tzdb_versions"
+    },
+    {
+      "name": "ordinary_auth_context_rejects_removed_key_id",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
+      "instance": {
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00.000Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "auth_context": {
+          "authority_refs": [
+            "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "key_id": "ed25519-removed-coordinate"
+        },
+        "payload": {
+          "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+          "track_name": "discussion",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ak.profile.chat_mvp.v1"
+          ],
+          "features": [
+            "ak.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ak.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ak.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "domain": "arkret-event-v1",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.auth_context: Additional properties are not allowed ('key_id' was unexpected)"
+    },
+    {
+      "name": "ordinary_auth_context_rejects_removed_key_epoch",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
+      "instance": {
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00.000Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "auth_context": {
+          "authority_refs": [
+            "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "key_epoch": 1
+        },
+        "payload": {
+          "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+          "track_name": "discussion",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ak.profile.chat_mvp.v1"
+          ],
+          "features": [
+            "ak.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ak.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ak.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "domain": "arkret-event-v1",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.auth_context: Additional properties are not allowed ('key_epoch' was unexpected)"
+    },
+    {
+      "name": "ordinary_auth_context_rejects_removed_credential_epoch",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
+      "instance": {
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00.000Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "auth_context": {
+          "authority_refs": [
+            "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "credential_epoch": 1
+        },
+        "payload": {
+          "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+          "track_name": "discussion",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ak.profile.chat_mvp.v1"
+          ],
+          "features": [
+            "ak.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ak.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ak.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "domain": "arkret-event-v1",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.auth_context: Additional properties are not allowed ('credential_epoch' was unexpected)"
+    },
+    {
+      "name": "ordinary_auth_context_rejects_empty_authority_refs",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
+      "instance": {
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00.000Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "auth_context": {
+          "authority_refs": []
+        },
+        "payload": {
+          "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+          "track_name": "discussion",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ak.profile.chat_mvp.v1"
+          ],
+          "features": [
+            "ak.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ak.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ak.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "domain": "arkret-event-v1",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.auth_context.authority_refs: [] should be non-empty"
+    },
+    {
+      "name": "ordinary_auth_context_rejects_missing_authority_refs",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
+      "instance": {
+        "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00.000Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "auth_context": {},
+        "payload": {
+          "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+          "track_name": "discussion",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ak.profile.chat_mvp.v1"
+          ],
+          "features": [
+            "ak.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ak.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ak.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "domain": "arkret-event-v1",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+            "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193",
+            "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ]
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.auth_context: 'authority_refs' is a required property"
     }
   ]
 }

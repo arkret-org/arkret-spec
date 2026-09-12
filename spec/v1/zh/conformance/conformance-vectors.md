@@ -318,8 +318,6 @@ preimage 中：
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
   "auth_context": {
-    "key_id": "device-1",
-    "key_epoch": 1,
     "authority_refs": [
       "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"
     ]
@@ -338,14 +336,14 @@ preimage 中：
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":{"kind":"service","service_id":"ak:did_core:webvh:z6mkfixture"},"actor_seq":1,"auth_context":{"authority_refs":["ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"],"key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"}}
+{"actor_id":{"kind":"service","service_id":"ak:did_core:webvh:z6mkfixture"},"actor_seq":1,"auth_context":{"authority_refs":["ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"]},"created_at":"2026-04-26T00:00:00.000Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa","scope_ref":{"kind":"realm","realm_id":"ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa"}}
 ```
 
 期望 digest 与由它前向派生的 `event_id`：
 
 ```text
-sha256:ebaf0577d95046f160a97da53227f7b951061c31694b062eca0b3366bccdb472
-ak:event:AeuvBXfZUEbxYKl9pTIn97lRBhwxaUsGLsoLM2a8zbRy
+sha256:56dac514a2baf3f6904b5338dc29f7808ce7b80fb0a0e15ea74404e37bcc4ba4
+ak:event:AVbaxRSiuvP2kEtTONwp94CM57gPsKDhXqdEBON7zEuk
 ```
 
 判定规则：
@@ -1256,7 +1254,7 @@ ak.vector.lattice.ordered_log_gap.v1
 
 ### 2.14 Vector: 缓存授权与关闭集合
 
-`ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1`：原站断连、无期限 grant、已完整验证 signer evidence 的 B 可以接受普通消息，短缓存 TTL 到期和 Seal 年龄不改变这个结论。实际 key 授权尚未生效、显式过期或本地已知撤销阻止新 live 提交。
+`ak.vector.cbs_lattice.auth_context_signer_evidence_binding.v1`：原站断连、无期限 grant、已完整验证 signer evidence 的 B 可以接受普通消息，短缓存 TTL 到期和 Seal 年龄不改变这个结论。实际 key 授权尚未生效、显式过期或本地已知撤销阻止新 live 提交。
 
 同一历史消息在撤销到达前可暂时接纳；关闭集合包含它则保留 eligible，排除它则 quarantine；缺精确关闭/因果依赖 pending。A/B 以相反顺序收到相同完整证据必须得到相同最终分类，接收时间和存储收据不得成为永久资格证据。
 

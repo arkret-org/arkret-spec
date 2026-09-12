@@ -241,7 +241,7 @@ def main() -> None:
                 }
                 event.pop("station_id", None)
                 event.pop("seal_ref", None)
-                event.setdefault("auth_context", {})["authority_refs"] = [authority_ref]
+                event["auth_context"] = {"authority_refs": [authority_ref]}
                 for proof in event.get("proofs", []):
                     proof["signer_resolution_evidence_ref"] = signer_evidence_ref
         proof = vector.get("proof")

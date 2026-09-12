@@ -28,7 +28,7 @@ Event `proofs` 恰有一个 `producer_event_proof`，其 signer evidence 解析�
 
 采用会话的其它消费面通过 audience、nonce 与持钥证明绑定完整 AccountId 和 scope。会话签发与更新遵守其登记的账户服务合同，不是普通 body-proof 提交的依赖。它 MUST NOT 赋予原站备份解锁、私有 push route、账户管理或未授权的数据访问。
 
-普通数据 `auth_context` 绑定生产者 key 坐标和已确认的 `authority_refs`。接收站 MUST 验证全部相关 grant constraints、父委托链、成员、设备、安装授权和 scope。refs 可以长期缓存，MUST NOT 因 Seal 年龄、无 heartbeat 或签署者离线自动过期。显式业务授权的有效期仍执行，见 §5。
+普通数据 `auth_context` 只携带已签名的 `authority_refs`，不重复声明 key 标识或无来源的 epoch。实际 signer/key 由唯一 producer proof 所绑定的确切历史 signer evidence 认证；从 evidence 与授权链派生的实际授权实例 MUST 与原签名 refs 支持的上下文匹配，不能用当前查询结果或同 key 的后来授权替代。proof 不进入 Event 内容摘要，修改 evidence ref 本身不会改变 EventId；其签名绑定不单独阻止持钥者重签。接收者 MUST 保留原完整 Event，拒绝同 EventId 替换 proof 或其它 canonical bytes，不能借重新附证把旧 Event 移入新授权代。接收站 MUST 验证全部相关 grant constraints、父委托链、成员、设备、安装授权和 scope。refs 可以长期缓存，MUST NOT 因 Seal 年龄、无 heartbeat 或签署者离线自动过期。显式业务授权的有效期仍执行，见 §5。
 
 Agent state attestation、controller gate attestation 和设备投影 attestation 的短 TTL 只约束直接消费“当前查询结果”的接口；它们不是普通数据授权租约。普通数据验证这些对象在原 observation 时有效后，可以持久缓存并复用。设备的真实期限从已签 `authorization_window` 读取，Agent 从确切 key/delegation 授权读取，不能把缓存 TTL 当成资格期限。签名 issuer 及其授权证据也按相同的固定历史依据验证，不递归引入每消息在线刷新。安全操作仍执行其注册的当前状态检查。
 

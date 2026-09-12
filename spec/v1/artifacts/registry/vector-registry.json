@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.1",
+  "version": "2026-09-13.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T02:02:15+08:00",
+  "generated_at": "2026-09-13T03:22:11+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1380,16 +1380,17 @@
       "description": "One configured authority signs the exact Ack; reject old aggregation and missing signature. Immutable deadlines, exact replay and decision-chain binding remain."
     },
     {
-      "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1",
+      "vector_id": "ak.vector.cbs_lattice.auth_context_signer_evidence_binding.v1",
       "status": "active",
       "domain": "cbs_lattice",
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
       "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ],
-      "description": ""
+      "description": "The producer proof binds exact historical signer evidence; the actual authorization instance must match signed authority_refs. Proof changes do not change EventId and cannot replace a previously retained exact Event. Receiver signatures and cache freshness are not authority."
     },
     {
       "vector_id": "ak.vector.cbs_lattice.authorized_causal_repair.v1",

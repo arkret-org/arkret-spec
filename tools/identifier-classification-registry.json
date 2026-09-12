@@ -465,14 +465,6 @@
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
-      "name": "key_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "event-envelope.schema.json#/properties/auth_context/properties/key_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "location_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",

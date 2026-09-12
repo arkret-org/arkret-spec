@@ -125,25 +125,11 @@
     },
     "auth_context": {
       "type": "object",
-      "description": "Signed portable producer key coordinates and verified authority references for ordinary data. References may name long-lived accepted security decisions; they have no age lease and require no online origin or new Seal. Receiver-known revocation still blocks new live admission.",
+      "description": "Signed immutable references supporting the ordinary Event's actual authorization dependencies. The unique producer proof binds the exact historical signer evidence; AuthContext carries no duplicate key identifier or epoch. References have no cache-age lease and require no online origin or new Seal. Known revocation still blocks new live admission.",
       "required": [
-        "key_id",
-        "key_epoch",
         "authority_refs"
       ],
       "properties": {
-        "key_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$"
-        },
-        "key_epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "credential_epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
         "authority_refs": {
           "type": "array",
           "items": {

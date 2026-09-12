@@ -490,7 +490,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+  "event_id": "ak:event:AbqvWR4ZXBGaX2bzlwZSJDjU2gUNdlI2OW1ebiR8_j8t",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "scope_ref": {
     "kind": "realm",
@@ -521,8 +521,6 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
   ],
   "auth_context": {
-    "key_id": "device-1",
-    "key_epoch": 1,
     "authority_refs": [
       "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000"
     ]
@@ -540,7 +538,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
       "kind": "detached_jws",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "event_digest": "sha256:baaf591e195c119a5f66f39706522438d4da050d765236396d5e6e247cfe3f2d",
       "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
@@ -552,7 +550,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:AZet3XWvSRcqbhqClDZrTvO3iB2U8jLvJdHGJaZD4ZTa",
+  "event_id": "ak:event:ARFDbqtvFdntG774E1-zHg0a3LlOjlmPQYpYC9BRWOAS",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "scope_ref": {
     "kind": "realm",
@@ -583,8 +581,6 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   ],
   "auth_context": {
-    "key_id": "device-1",
-    "key_epoch": 1,
     "authority_refs": [
       "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000"
     ]
@@ -602,7 +598,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
       "kind": "detached_jws",
       "verification_method": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example#device-1",
       "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "event_digest": "sha256:11436eab6f15d9ed1bbef8135fb31e0d1adcb94e8e598f418a580bd05158e012",
       "created_at": "2026-04-26T00:01:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
@@ -618,7 +614,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:AbxXq2kgnCNX8X5eerT7jjvw-n-ylkJEhAuk2jGoe6CJ",
+  "event_id": "ak:event:ARB855PyxGasgzrMWpV5UhwPn0GTWlaG3TgFRLULl7xW",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "scope_ref": {
     "kind": "realm",
@@ -654,8 +650,6 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
     "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   ],
   "auth_context": {
-    "key_id": "device-2",
-    "key_epoch": 1,
     "authority_refs": [
       "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000"
     ]
@@ -669,7 +663,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
       "kind": "detached_jws",
       "verification_method": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example#device-2",
       "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "event_digest": "sha256:107ce793f2c466ac833acc5a9579521c0f9f41935a5686dd380544b50b97bc56",
       "created_at": "2026-04-26T00:02:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }

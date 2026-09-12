@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11639,
+    "total_properties": 11636,
     "total_schema_documents": 173,
     "by_presence_class": {
-      "optional": 3068,
+      "optional": 3067,
       "optional_defaulted": 62,
-      "required": 7351,
+      "required": 7349,
       "required_nullable": 381,
       "tristate": 777
     },
@@ -8694,9 +8694,6 @@
         "/properties/applet_id": "optional",
         "/properties/auth_context": "optional",
         "/properties/auth_context/properties/authority_refs": "required",
-        "/properties/auth_context/properties/credential_epoch": "optional",
-        "/properties/auth_context/properties/key_epoch": "required",
-        "/properties/auth_context/properties/key_id": "required",
         "/properties/authorization_ref": "optional",
         "/properties/causal_refs": "optional",
         "/properties/created_at": "required",

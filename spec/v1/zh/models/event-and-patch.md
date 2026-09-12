@@ -140,7 +140,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
 
 ```json schema=schemas/event-envelope.schema.json
 {
-  "event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
+  "event_id": "ak:event:Aeti3kC9p1fLIDPvvsdI897so0zCZK1ciRL0AtAxr6_1",
   "kind": "ak.strand.update",
   "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
   "scope_ref": {
@@ -171,8 +171,6 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
   ],
   "auth_context": {
-    "key_id": "device-1",
-    "key_epoch": 7,
     "authority_refs": [
       "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
     ]
@@ -188,7 +186,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
       "kind": "detached_jws",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "event_digest": "sha256:eb62de40bda757cb2033efbec748f3deeca34cc264ad5c8912f402d031afaff5",
       "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }
@@ -725,7 +723,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
+  "event_id": "ak:event:AVa8QuKjxUj4xdWwZzNQlRczjuS5Bh5uyWMpU-7yobGG",
   "kind": "ak.strand.update",
   "realm_id": "ak:realm:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
   "scope_ref": {
@@ -756,8 +754,6 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
   ],
   "auth_context": {
-    "key_id": "device-1",
-    "key_epoch": 7,
     "authority_refs": [
       "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
     ]
@@ -780,7 +776,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
       "kind": "detached_jws",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "event_digest": "sha256:56bc42e2a3c548f8c5d5b06733509517338ee4b9061e6ec9632953eef2a1b186",
       "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZDI1NTE5In0..signature"
     }

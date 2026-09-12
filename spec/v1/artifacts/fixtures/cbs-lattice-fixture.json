@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.cbs_lattice.v1"
   },
   "profile": "ak.vector_group.cbs_lattice.v1",
-  "version": "2026-09-09",
+  "version": "2026-09-13.1",
   "notes": [
     "Abstract semantic vectors use symbolic Event labels unless a schema_ref is declared.",
     "Ordinary state is reduced from a fixed verified eligibility context; safety state is replayed in one confirmed Realm order.",
@@ -414,12 +414,16 @@
       ]
     },
     {
-      "name": "auth_context_epoch_pinning_reject",
-      "vector_id": "ak.vector.cbs_lattice.auth_context_epoch_pinning_reject.v1",
-      "description": "Producer signing coordinates must match authenticated portable historical key evidence. Receiver signatures are not authority.",
+      "name": "auth_context_signer_evidence_binding",
+      "vector_id": "ak.vector.cbs_lattice.auth_context_signer_evidence_binding.v1",
+      "description": "The producer proof binds exact historical signer evidence; the actual authorization instance must match signed authority_refs. Proof changes do not change EventId and cannot replace a previously retained exact Event. Receiver signatures and cache freshness are not authority.",
       "cases": [
         {
-          "name": "key_epoch_mismatch",
+          "name": "signer_evidence_authority_instance_mismatch",
+          "expected": "reject"
+        },
+        {
+          "name": "same_event_id_replaced_producer_proof",
           "expected": "reject"
         },
         {
