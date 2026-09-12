@@ -123,7 +123,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.event_batch_receipt.v1` | Event Batch Receipt |
 | `ak.schema.cursor.v1` | Cursor |
 | `ak.schema.realm_state_snapshot.v1` | Snapshot Manifest |
-| `ak.schema.realm_state_snapshot_chunk.v1` | Snapshot Chunk Payload（reducer cell items，leaf 与 `state_root` 同源） |
+| `ak.schema.realm_state_snapshot_chunk.v1` | Snapshot Chunk Payload（reducer cell items；snapshot leaf 原像为 `JCS({cell,state_model,state})`，独立于 Seal `state_root` leaf） |
 | `ak.schema.grant_constraint.v1` | Grant Constraint |
 | `ak.schema.resource_selector.v1` | Resource Selector |
 | `ak.schema.identity_resolution.v1` | did_core_id/did resolution、PCR evidence 与 AuthenticatedServiceResolution |

@@ -20,7 +20,7 @@
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Detached proof whose payload_digest is the SHA-256 typed digest of the JCS canonical SnapshotWitnessAttestation projection (realm-state-snapshot-schema.md section 5.1). Verifiers MUST recompute the projection from the manifest and this row's witness_id and MUST reject any other transcript.",
+          "description": "Detached proof whose payload_digest is the SHA-256 typed digest of the JCS canonical SnapshotWitnessAttestation projection (realm-state-snapshot-schema.md section 5.1). Verifiers MUST recompute the projection from the manifest and this row's witness_id and MUST reject any other transcript. The exact eligibility_context is included, so a proof cannot be reused across different authority, closure or reducer-contract contexts.",
           "x-canonical-bytes-include": [
             "context",
             "witness_id",
@@ -36,7 +36,8 @@
             "authority_kind",
             "auth_state_digest",
             "auth_frontier",
-            "realm_state_snapshot_created_at"
+            "realm_state_snapshot_created_at",
+            "eligibility_context"
           ],
           "x-canonical-bytes-exclude": [
             "signature",
@@ -103,7 +104,7 @@
     "state_digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-      "description": "RFC 6962 domain-separated Merkle root of the Realm-scope reducer cells carried by the chunk payloads (ak.schema.realm_state_snapshot_chunk.v1). Each leaf is byte-identical to the governance state_root leaf of event-auth-state-resolution.md section 6.2.1: leaf=H(0x00 || canonical_json({\"cell\": id, \"state\": state_object})), node=H(0x01||left||right), odd tail promoted, leaves ordered by cell id code point, H = the Realm's live digest suite. reducer_profile and schema_profile_refs are bound by the manifest signature, not by leaves. This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
+      "description": "RFC 6962 domain-separated Merkle root of the complete registered Realm-scope Cell states in the snapshot chunks. Each leaf is H(0x00 || JCS({cell:item.id,state_model:item.state_model,state:item.state})); internal nodes are H(0x01||left||right), odd tails are promoted, and leaves are ordered by CellRef Unicode code point. H is the authenticated Realm digest suite. Snapshot leaves include the fixed state_model and full causal coverage, tombstones, log entries or safety revision as applicable; they are distinct from Seal security-only state_root leaves. The manifest signature binds reducer_profile, schema_profile_refs and eligibility_context. A verifier resolves original replay evidence, recomputes eligibility at that exact context, and reproduces both state_digest and event_set_commitment. Neither commitment alone proves the snapshot correct."
     },
     "frontier": {
       "type": "object",
@@ -325,7 +326,7 @@
     },
     "signature": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (content-addressed chunk_ref / size_bytes), security_class, verification_hints, created_by, created_at, and authority_binding — including the final sorted authority_binding.witness_attestations list, so a rewritten, truncated or reordered witness set invalidates this signature. Because security_class is signed (and required), a high_assurance -> standard downgrade cannot be performed without invalidating the signature. This transcript uses context ak.realm_state_snapshot_proof.v1; each witness attestation uses the separate ak.realm_state_snapshot_witness_attestation_proof.v1 context and never signs this transcript, which is what keeps the two levels acyclic.",
+      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (content-addressed chunk_ref / size_bytes), security_class, verification_hints, created_by, created_at, and authority_binding — including the final sorted authority_binding.witness_attestations list, so a rewritten, truncated or reordered witness set invalidates this signature. Because security_class is signed (and required), a high_assurance -> standard downgrade cannot be performed without invalidating the signature. This transcript uses context ak.realm_state_snapshot_proof.v1; each witness attestation uses the separate ak.realm_state_snapshot_witness_attestation_proof.v1 context and never signs this transcript, which is what keeps the two levels acyclic. The exact eligibility_context is included, so a proof cannot be reused across different authority, closure or reducer-contract contexts.",
       "x-canonical-bytes-include": [
         "id",
         "realm_id",
@@ -339,7 +340,8 @@
         "verification_hints",
         "created_by",
         "created_at",
-        "authority_binding"
+        "authority_binding",
+        "eligibility_context"
       ],
       "x-canonical-bytes-exclude": [
         "signature"
@@ -373,7 +375,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exact verified authority prefixes, applicable closures and canonical reducer contract. SHA-256(JCS(this object)) is every chunk eligibility_context_digest. Scope visibility is inherited from the manifest and must also agree when comparing projections."
+      "description": "Exact verified authority prefixes, applicable closures and canonical reducer contract. SHA-256(JCS(this object)) is every chunk eligibility_context_digest. The manifest has a fixed Realm-wide scope, including realm_genesis; it grants no access to private Circle or Sidecar events or authority evidence. Digest references do not expand disclosure permissions. Missing required authorized replay material keeps verification pending and cannot be represented as complete state."
     }
   },
   "allOf": [

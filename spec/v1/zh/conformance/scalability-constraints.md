@@ -41,7 +41,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单次 `/_arkret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
-| 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / seal 引用；数组项 MUST 去重。 |
+| 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）；数组项 MUST 去重。`prev_refs` 只承载 EventId，不得以 snapshot / Seal 引用替代。 |
 | 单个 Event 的 `causal_refs` 数量 | 128 | 超过或存在重复项时 MUST reject（`schema_violation`，`reason_code=causal_refs_too_large`）；不得截断因果前驱集。 |
 | `ak.schema.patch.v1` patch path | 16 段；1024 UTF-8 bytes | 超过任一上限 MUST reject（`schema_violation`，`reason_code=patch_path_invalid`）。段数由 `patch.schema.json#/propertyNames/pattern`、长度由同一节点的 `maxLength` 机读承载；因 grammar 仅允许 ASCII，两种长度度量一致。见 [event-and-patch.md](../models/event-and-patch.md) §4.2. |
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
@@ -274,14 +274,14 @@ operation 已定义的有界分页/typed unavailable，不得截断完整事实�
 | 单个 `CbsProofBundle` 对象数 | 256 Seals；1,024 Control Moves；两类 proof 合计 2,048 | 与 `cbs-proof-bundle.schema.json` 及 `cbs-profiles.md` §5 同值。 |
 | 单条 target→genesis dependency path | 4,096 | 超过时 MUST 使用合法 compaction/state-root-assisted recovery，不得无界递归。 |
 | peer dependency resolve 连续轮次 | 8 | 每一成功轮 MUST 严格缩小 typed missing sets；第 9 轮进入 operator diagnostic。 |
-| 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
+| 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误，或按 §4.1 使用验证完整的 snapshot 恢复普通状态。Seal `state_root` + inclusion proof 只证明对应安全状态承诺，不能替代普通状态的资格与覆盖证据。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
 | `proposal_intake_sla_ms` | 86,400,000 ms（24h，default 与 v1 wire maximum）| `realm.schema.json`；pending Control Move 得到 signed Control Proposal Ack / rejection 的截止（[`event-auth-state-resolution.md` §14](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
 | `proposal_decision_window_ms` | 30,000 ms（30s，default）；`minimum=1`；`maximum=86,400,000`（24h） | `realm.schema.json`；Control Proposal Ack 的首个可验证决议窗口。必须满足 `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；违反时 Realm create / policy update MUST `schema_violation`。若 `max_proposal_defers > 0`，必须严格小于。到期前须 include / signed-reject / bounded signed-defer；不是接受或 finality SLA。 |
 | `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 Ack signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`；与 decision window 的相对约束见上一行。 |
 | 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 Ack、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §14](../authz/event-auth-state-resolution.md)）。 |
 
-CBS fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 ordinary Event 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
+CBS fallback 不得选择本地接收顺序或数据库 ID。Snapshot MUST 按 [`realm-state-snapshot-schema.md`](realm-state-snapshot-schema.md) 验证 issuer 签名、独立 `state_digest`、chunk digest、`frontier`、全局 `event_set` 承诺及证明、`eligibility_context` 和逐 Cell 的完整覆盖与原始 replay 材料，并重算模型状态；全局 Event membership 不等于逐 Cell 资格或覆盖，也不证明未知输入已全部取得。普通状态 snapshot 不要求覆盖它的 Seal；恢复安全状态仍须验证其真实 Seal signer authority、唯一 confirmed head 与相应 `state_root`，不得把 snapshot issuer 签名提升为安全决议。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 ordinary Event 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
 
 同一资源的上限只能有一个 canonical 数值：通用 Event 上限约束所有具体 Event kind，具体
 projection / patch / profile 只能声明相同或更低的值，不得扩大它。发布门禁 MUST 解析 registry
@@ -294,16 +294,16 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
 | 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉精确 missing refs；响应 MAY 携带全部可验证的有界超集，不要求字节级最小闭包。 |
-| 单 Realm 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
-| snapshot-assisted recovery 触发 | Seal predecessor 链超过直接回放预算、普通状态 join 预算耗尽或本地预算耗尽 | 必须验证 Seal signer authority、唯一 confirmed head、state_root 和 chunk digest。 |
+| 单 Realm 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或按下述阶段使用已验证的 snapshot / 安全状态承诺恢复。 |
+| snapshot-assisted recovery 触发 | Seal predecessor 链超过直接回放预算、普通状态 join 预算耗尽或本地预算耗尽 | 普通状态必须满足 §4 的完整 snapshot 验证；安全状态恢复另须验证 Seal signer authority、唯一 confirmed head 与相应 `state_root`。snapshot 本身不替代这些安全证据。 |
 | 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `seal_incomplete`，并继续后台恢复。 |
 | retry backoff | 指数退避，有上限 | 响应 SHOULD 带 `retry_after_ms`、`next_retry_at`、缺失 ref 和可用 source。 |
 
 渐进恢复阶段：
 
-1. **Seal probe**：先查询 Realm 唯一 confirmed Seal head、可用 snapshot manifest 和缺失 ref 的 source。
+1. **恢复基线解析**：普通状态可离线验证本地 snapshot manifest、资格上下文与材料，缺失时查询可用 source；不得以在线 Seal probe 为其前提。涉及安全状态恢复时，另行解析并验证 Realm 唯一 confirmed Seal head 及所需证明，缺失时保持相应安全视图 incomplete。
 2. **Targeted dependency fetch**：按精确 missing ordinary Event、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
-3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 ordinary Event 与 Control Move。
+3. **使用已验证基线恢复**：闭包超过预算时，普通状态使用通过完整验证的 snapshot 及其精确逐 Cell 覆盖集合为 base，按模型合入覆盖集合之外的合格 Event，不得按时间或 actor sequence 截断并发分支。安全状态使用经过 authority 与唯一 confirmed head 校验的 Seal `state_root` 及相应状态证明为 base，按已确认的 Control Move 决议顺序恢复；不得由 snapshot frontier 或 ordinary Event 排序推导安全决议。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBS query basis 的只读 projection，并显式标记 query basis incomplete。
 5. **Write revalidation**：任何新 Control Move 必须在提交前以当前 confirmed Seal state 重新验证 preconditions；ordinary Event 必须补齐其已签授权依赖并应用已知关闭，不要求最新 Seal 或定期刷新；不得继承 partial view 的乐观允许结果。
 

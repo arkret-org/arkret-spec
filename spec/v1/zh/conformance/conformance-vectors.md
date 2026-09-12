@@ -1891,16 +1891,11 @@ ak.vector.realm_state_snapshot.state_digest_recompute.v1
 ak.vector.realm_state_snapshot.restore_covered_membership.v1
 ```
 
-本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §3
-「恢复后仍须能精确回答 membership」：从 snapshot 恢复的 receiver 对「某个旧 Event 是否属于该 view 的
-覆盖集 `C`」只有三种合法答复——`covered`、`not_covered`、以及**缺证据时的 hold**。把 hold 折成
-`not_covered` 会让 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)
-的合并式把迟到分支当作「对方从没见过」，复活已被取代的写入；这条向量正是把该折叠固定为拒绝。机器 fixture 是
-[`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块，
-由 `ak.suite.sync.core.v1` runner 承载。它的 `event_set_source` 指向同文件的 `snapshot_inclusion_challenge`：
-两个向量共用同一份 committed entry 集合与同一个 `event_set_commitment.root`，因此 §6 的挑战与本节的
-membership 判定不可能各自漂移。
+本向量固化 [`realm-state-snapshot-schema.md`](./realm-state-snapshot-schema.md) §3 中原始输入集合的 membership 取证路径。这里的 `covered` / `not_covered` / hold 只回答 Event 是否属于 manifest 的全局 `event_set_commitment`，不是某个 Cell 的因果覆盖集 `C`，也不证明该 Event 在特定资格上下文仍有贡献资格。缺证据时不能把 hold 折成 `not_covered`。
 
+Cell 覆盖的独立查询坐标是 `(CellRef, eligibility_context, EventId)`：恢复方还必须验证 registry 写入目标、该上下文中的资格，以及已验证 Cell 状态的 `covered_event_ids`，或从原始材料重放。这些检查不能由本向量的全局 membership 结果替代。
+
+机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块，由 `ak.suite.sync.core.v1` runner 承载。它的 `event_set_source` 指向同文件的 `snapshot_inclusion_challenge`；两个向量共用同一 committed entry 集合和 `event_set_commitment.root`，核对原始材料存在性。
 输入：
 
 1. 一个 manifest 的 `event_set_commitment`（`algorithm`、`root`、`covered_event_count`）与 `frontier.event_ids`。
@@ -1910,7 +1905,7 @@ membership 判定不可能各自漂移。
 
 期望：
 
-- 只有 manifest 时：`frontier.event_ids` 中的 Event MUST 判为 `covered`（它按构造在 `C` 内）；其余任何
+- 只有 manifest 时：`frontier.event_ids` 中的 Event MUST 判为 `covered`（它按构造属于该全局输入集合；不因此属于任意 Cell 的 `C`）；其余任何
   `event_id`——含 committed 集合内的与完全陌生的——MUST 判为 hold，MUST NOT 判为 `not_covered`。
 - `committed_index` MUST 在其按 `algorithm` 重算的 root 等于 manifest `root`、且长度等于 `covered_event_count`
   时才被采纳。前缀（长度不足）与任一 entry 被改动的列表 MUST 以 `inclusion_proof_failed` 拒绝，且拒绝后

@@ -3,7 +3,7 @@ title: Snapshot, Chunk, and Encrypted Envelope Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-06
+updated: 2026-09-12
 sidebar:
   label: Snapshot & Envelope
 ---
@@ -20,60 +20,50 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
 
 ## 2. Snapshot Manifest
 
-```json
+以下是字段齐全的结构示意；尖括号表示由实际状态、原始材料或签名产生的值，不是可接受的 wire 字节或摘要 KAT。可执行字节向量见 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json)。
+
+```text
 {
-  "id": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
-  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+  "id": <RealmStateSnapshotId>,
+  "realm_id": <RealmId>,
   "reducer_profile": "ak.reducer.core.v1",
-  "security_class": "high_assurance",
-  "schema_profile_refs": [
-    "ak.profile.core_event_store.v1"
-  ],
+  "security_class": "standard",
+  "schema_profile_refs": [<SchemaProfileRef>],
+  "eligibility_context": {
+    "authority_refs": [<已确认 SealId>],
+    "closure_command_refs": [<适用关闭命令 EventId>],
+    "reducer_contract_digest": <SHA-256(JCS(完整 canonical contract-registry.json))>
+  },
+  "state_digest": <完整 Cell 状态根>,
   "frontier": {
-    "event_ids": [
-      "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-    ],
-    "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+    "event_ids": [<输入边界上未被覆盖的 EventId>],
+    "timeline_hlc": <Hlc>
   },
   "event_set_commitment": {
     "algorithm": "merkle_event_set_v1",
-    "root": "sha256:...",
-    "covered_event_count": 42000
+    "root": <原始 Event 输入集合根>,
+    "covered_event_count": <输入 Event 数>
   },
-  "state_digest": "sha256:...",
-  "chunks": [
-    {
-      "chunk_ref": "ak:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "size_bytes": 524288
-    }
-  ],
-  "verification_hints": {
-    "verification_profile": "high_assurance",
-    "inclusion_proof_url": "https://server.example/snapshots/0196419a-8000-7000-8000-000000000000/proofs",
-    "challenge_window_seconds": 86400,
-    "conflict_records_digest": "sha256:...",
-    "soft_failed_digest": "sha256:...",
-    "quarantined_digest": "sha256:..."
-  },
-  "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
-  "created_at": "2026-04-26T00:00:00Z",
+  "chunks": [{"chunk_ref": <内容寻址 BlobId>, "size_bytes": <canonical payload 字节数>}],
+  "created_by": <完整 ActorId>,
+  "created_at": <canonical UTC timestamp>,
   "authority_binding": {
     "authority_kind": "realm_policy_state_snapshot_issuer",
-    "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "auth_frontier": [
-      "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-    ],
-    "checked_at": "2026-04-26T00:00:00Z"
+    "auth_state_digest": <签发者授权状态承诺>,
+    "auth_frontier": [<已确认授权 EventId>],
+    "checked_at": <canonical UTC timestamp>
   },
   "signature": {
     "kind": "detached_jws",
-    "verification_method": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#snapshot-key-1",
-    "payload_digest": "sha256:...",
-    "created_at": "2026-04-26T00:00:00Z",
-    "jws": "..."
+    "verification_method": <签发者 DID URL>,
+    "payload_digest": <manifest 签名原像摘要>,
+    "created_at": <canonical UTC timestamp>,
+    "jws": <detached JWS>
   }
 }
 ```
+
+`closure_command_refs` 在没有适用关闭命令时为 `[]`；`verification_hints` 和 witness 列表按下文条件携带，不能用示意中的 `standard` 分支省略 high-assurance 所要求的证据。
 
 ## 3. Chunk Descriptor
 
@@ -88,34 +78,43 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 [`realm-state-snapshot-chunk.schema.json`](../../artifacts/schemas/realm-state-snapshot-chunk.schema.json)
 （`ak.schema.realm_state_snapshot_chunk.v1`，封闭 schema）一个实例的 canonical JSON：
 
-```json
+```text
 {
   "chunk_kind": "realm_state_snapshot_chunk",
-  "realm_state_snapshot_ref": "ak:realm_state_snapshot:0196419a-8000-7000-8000-000000000000",
+  "realm_state_snapshot_ref": <manifest.id>,
   "index": 0,
   "reducer_profile": "ak.reducer.core.v1",
   "items": [
     {
       "kind": "cell",
-      "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
-      "state": {"heads": [{"event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-", "value": null}]}
+      "id": <invite.live_target CellRef>,
+      "state": {"revision_event_id": <确认命令 EventId>, "value": null},
+      "state_model": "sequenced_state"
     },
     {
       "kind": "cell",
-      "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
-      "state": {"value": "archived"}
+      "id": <strand.lifecycle CellRef>,
+      "state": {
+        "covered_event_ids": [<创建 EventId>, <归档 EventId>],
+        "heads": [{"event_id": <归档 EventId>, "value": "archived"}]
+      },
+      "state_model": "causal_register"
     }
   ],
   "conflict_records": [],
   "soft_failed": [],
   "quarantined": [],
-  "erasure_stubs": []
+  "erasure_stubs": [],
+  "eligibility_context_digest": <SHA-256(JCS(manifest.eligibility_context))>,
+  "replay_events": [<完整原始 Event>],
+  "replay_authority_refs": [<所需确切安全历史 SealId>]
 }
 ```
 
-**`items[]` 承载 reducer cell，不承载对象（normative）**。Snapshot 是
-[`../authz/event-auth-state-resolution.md` §12](../authz/event-auth-state-resolution.md) 所说的
-「某个 accepted Seal 的 materialized proof」，它携带的当前态就是 reducer 自己的状态：按
+此结构示意展示两种 Cell；其余模型使用 schema 对应分支。`replay_events` 及授权依赖必须覆盖全部 chunks 的真实重算需求，不得把空证据的摘要序列化 KAT 当成可接受的恢复证明。
+
+**`items[]` 承载 reducer cell，不承载对象（normative）**。Snapshot 是确切资格上下文下的
+Realm 状态缓存，普通 Cell 不需要 covering Seal，安全 Cell 保留实际确认 revision。其内容按
 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) `cell_writes[]` 登记的 cell
 与其注册模型的完整状态。v1 没有登记任何「cell → canonical object」的组装规则——`ak.strand.create` 只把
 `payload.object` 写进 `ak.component.strand.object.v1`，metadata / tracks / lifecycle / stage / position
@@ -123,21 +122,22 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 私有 renderer。consumer 从 cell 派生展示对象的方式与它从 Event 重放派生的方式相同；对象的 `created_by` /
 `created_at` 等 envelope 事实来自 `retype(id)` 指向的 create Event（[`../models/common-fields.md` §6.0](../models/common-fields.md)），不进 snapshot。
 
-`items[]` 是封闭的单分支联合，每个元素逐字为 `{"kind": "cell", "id": <cell_wire_id>, "state": <state_object>}`：
+`items[]` 是封闭的单分支联合，每个元素逐字为 `{"kind": "cell", "id": <cell_wire_id>, "state": <state_object>, "state_model": <registered_model>}`：
 
 - `kind` 逐字为 `"cell"`；`id` 是完整 canonical cell 引用 `ak:cell:<component>:<subject>`（[`encoding.md` §4](./encoding.md)）。
 - 每个 item 必须声明与 canonical family 相同的 `state_model`。`causal_register` 的 state 是 `{covered_event_ids,heads}`，每个 head 是 `{event_id,value}`；覆盖身份与头身份去重，head 必须属于覆盖集合。`sequenced_state` 是 `{revision_event_id,value}`，其它集合/日志/计数模型使用 schema 的完整状态形状。模型不匹配或只给显示值均拒绝。
 - 写过的 null、多值 heads 和已删除 dots 都必须保留；未写入者无 item，不能用缺席表示多头冲突。private family 不进入共享快照。每个 CellRef 在整个 manifest 唯一，按 canonical CellRef 排序分块。
+- **scope 与披露权限（normative）**：Realm snapshot 只承载注册的 Realm 共享 scope（`scope_ref.kind` 为 `realm` 或 `realm_genesis`）的 Cell 与输入边界。Circle、Sidecar、actor-private 或其它受限 scope 的 Cell、原始 `replay_events`、引用及附加列表 MUST NOT 因下载 Realm snapshot 而泄露；依赖某个摘要不赋予读取该摘要所指材料的权限。依赖解析仍 MUST 遵守各既有接口的 scope、history visibility 和 capability 规则。若重算需要的材料不能合法取得，恢复保持 pending/unavailable；issuer MUST NOT 静默删去受限输入后把同一上下文声明为 complete。
 - 每个 chunk 的 `eligibility_context_digest` 必须等于 `SHA-256(JCS(manifest.eligibility_context))`；该上下文精确绑定已确认 authority refs、关闭命令和 reducer 合同；`reducer_contract_digest` 恰为所使用完整 canonical `contract-registry.json` 对象的 `SHA-256(JCS(...))`，不使用语言生成代码或 HTTP 返回值的摘要。相同 scope/上下文才可直接合并普通状态；不同上下文先合并原始证据再重算资格与 coverage。
 - `replay_events` 与 `replay_authority_refs` 是可重算材料，不是可丢弃的附件。恢复方必须取得活跃与未来关闭可能重新显露的旧值、原 producer 证明、因果及授权闭包。缺材料 pending；完整性根不能替代内容可用性。不得只凭快照签名任意删除覆盖历史。
 
-- tombstone / archive / redaction 都是 reducer-input Event，其结果就是普通 cell 状态（普通 lifecycle causal_register cell、`ak.component.object.redaction.v1` 等）；不存在独立的「stub 分支」，也不需要 reducer profile 另行声明。
+- tombstone / archive / redaction 按各自注册 family 归约；普通 lifecycle 与 redaction 使用固定 D 模型，Circle 等关闭安全 scope 的命令仍使用 S 模型。它们不产生独立的 snapshot item stub 分支；hard erasure 另按下一条处理。
 - **hard erasure（normative）**：若某 cell 的 canonical 值已因 hard erasure（存储边界内的删除动作，不是 Event）而无法复现，issuer MUST NOT 伪造或以占位值代替该 leaf；该 cell MUST NOT 出现在 `items[]`，而 MUST 以 `{"cell_ref", "stub"}` 列入 `erasure_stubs[]`，`stub` 是被 erasure receipt `retained_stub_digest` 绑定的 `ak.schema.erasure_verification_stub.v1`（[`erasure-verification-stub.schema.json`](../../artifacts/schemas/erasure-verification-stub.schema.json)）。consumer MUST 把它解释为 `[erased]` 占位，MUST NOT 解释为「从未存在」。含 erasure stub 的 snapshot 的 `state_digest` 与未裁剪 issuer 的不可比，consumer MUST NOT 据此判定分叉。
 - **四个附加列表的承诺（normative）**：`conflict_records[]`、`soft_failed[]`、`quarantined[]`、`erasure_stubs[]` 都不是 `state_digest` 的 leaf。manifest `verification_hints.<list>_digest` = `<suite>:hex(H(canonical_json(<该列表按 chunk index 升序拼接成的数组>)))`，`H` 与 `state_digest` 同 suite。`erasure_stubs_digest` 在任一 chunk 的 `erasure_stubs[]` 非空时 MUST 存在；high-assurance snapshot MUST 通过 `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入或 `⊥` cell。
-- **恢复后仍须能精确回答 membership（normative）**：从 snapshot 恢复的 receiver MUST 仍能精确回答「某个旧 Event 是否属于该 view 的覆盖集 `C`」，否则 因果寄存器 C/H 合并式无法对迟到分支求值（迟到分支会被误当作「对方从没见过」而复活已取代的写入）。实现 MUST 保留共享 membership 索引，或按现有 root 取得有效证明；缺证据时 MUST hold / fail closed，MUST NOT 当成 `false`。未经有权 fence，实现 MUST NOT 只保留最近 N 次写入、删除 `value=null` 的 head，或删除「该 Event 曾被覆盖」这一事实。本条的三值判定（`covered` / `not_covered` / hold）与两条取证路径由 active 向量 `ak.vector.realm_state_snapshot.restore_covered_membership.v1`（[`conformance-vectors.md` §3.8](./conformance-vectors.md)）承载，机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块。
+- **恢复后仍须能精确回答 membership（normative）**：因果寄存器覆盖查询的完整坐标是 `(CellRef, eligibility_context, EventId)`。恢复方 MUST 根据已重算验证的该 Cell `covered_event_ids`，或在同一上下文中重放原始输入，精确判断旧 Event 是否属于该 Cell 的覆盖集 `C`。全局 `event_set_commitment` 的 membership 索引或 inclusion proof 只证明原始 Event 属于 snapshot 输入集合；它不能单独证明该 Event 写入了某个 Cell、在当前上下文有资格贡献，或已进入该 Cell 的 `C`。原始材料的 membership 路径仍是保留索引并重算同一 root/count，或获取该 root 下的有效证明；恢复因果覆盖时还 MUST 校验 registry 目标、资格和该 Cell 状态。缺证据时 MUST hold / fail closed，MUST NOT 当成 `false`。未经有权 fence，实现 MUST NOT 只保留最近 N 次写入、删除 `value=null` 的 head，或删除「该 Event 曾被该 Cell 覆盖」这一事实；否则迟到分支会复活已取代的写入。原始 Event 集的三值 membership 判定（`covered` / `not_covered` / hold）由 active 向量 `ak.vector.realm_state_snapshot.restore_covered_membership.v1`（[`conformance-vectors.md` §3.8](./conformance-vectors.md)）承载，机器 fixture 是 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_restore_covered_membership` 块；该向量不单独证明每 Cell 的资格与覆盖，后者还须验证目标派生、完整状态和上下文重放。
 - content-addressed `chunk_ref` 的内嵌 suite/digest MUST 覆盖 chunk payload 的 canonical JSON bytes，是该 bytes 的唯一 wire commitment；descriptor 不携 sibling `digest`。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 cell leaves。
 
-conformance：`ak.vector.realm_state_snapshot.state_digest_recompute.v1`（[`conformance-vectors.md` §3.7](./conformance-vectors.md)）固定五种 lattice 的 leaf 原像、leaf、root、suite、chunk 边界与全部拒绝路径；两个实现对同一 fixture MUST 算出同一 `state_digest`。
+conformance：`ak.vector.realm_state_snapshot.state_digest_recompute.v1`（[`conformance-vectors.md` §3.7](./conformance-vectors.md)）固定所列注册模型的 leaf 原像、leaf、root、suite、chunk 边界与全部拒绝路径；两个实现对同一 fixture MUST 算出同一 `state_digest`。
 
 Chunk 边界 MAY 由实现按本地传输目标大小选择，但 MUST 以完整 `items[]` 元素为边界；实现 MUST NOT 把单个 item 或 JSON token 切开。每个 chunk payload 仍必须是上方 `ak.schema.realm_state_snapshot_chunk.v1` object 的完整 canonical JSON。把整份 reducer state bytes 先序列化、再按 byte range 切块的 dev bundle 形态不是合法的 `ak.schema.realm_state_snapshot_chunk.v1` chunk payload；这类实现 MUST NOT 把 byte-range chunk 描述为 manifest `chunks[]` 的标准 chunk。
 
@@ -155,7 +155,7 @@ manifest 签名同时绑定 `eligibility_context`、chunk 列表、state_digest 
 
 本节与 §6 的 manifest authority、历史 commitments 和 witness/challenge 验证由接纳外部 snapshot 的服务器或独立审计者执行。普通客户端消费自己 Account Station 已确认的 snapshot，只核对来源、请求 Realm/basis、格式及下载内容 hash/端到端认证；不得下载治理历史、执行 omission challenge 或 raw replay 来认证自己 Station 的结果。相关角色边界见 [服务器可信结果](../sync/server-trusted-results.md)。
 
-Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `id`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（content-addressed `chunk_ref` / `size_bytes`）、`security_class`、`verification_hints`、`created_by`、`created_at` 与 `authority_binding`；字段清单与顺序 MUST 与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) `signature` 的 `x-canonical-bytes-include` 完全对齐。其中 `security_class` 被纳入签名输入，使 `high_assurance → standard` 降级无法在不使签名失效的情况下完成。consumer MUST 先验证该 transcript，再从每个 `chunk_ref` 恢复 suite/digest 并验证 chunk payload。
+Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。被签名 transcript 因此包含 `id`、`realm_id`、`reducer_profile`、`schema_profile_refs`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]` descriptor（content-addressed `chunk_ref` / `size_bytes`）、`security_class`、`verification_hints`、`created_by`、`created_at`、`authority_binding` 与 `eligibility_context`；字段清单与顺序 MUST 与 [`realm-state-snapshot.schema.json`](../../artifacts/schemas/realm-state-snapshot.schema.json) `signature` 的 `x-canonical-bytes-include` 完全对齐。其中 `security_class` 被纳入签名输入，使 `high_assurance → standard` 降级无法在不使签名失效的情况下完成。consumer MUST 先验证该 transcript，再从每个 `chunk_ref` 恢复 suite/digest 并验证 chunk payload。
 
 签名 DID MUST 属于以下之一：
 
@@ -210,7 +210,8 @@ transcript、因而无签名循环的原因：
   "authority_kind": <manifest.authority_binding.authority_kind>,
   "auth_state_digest": <manifest.authority_binding.auth_state_digest>,
   "auth_frontier": <manifest.authority_binding.auth_frontier>,
-  "realm_state_snapshot_created_at": <manifest.created_at>
+  "realm_state_snapshot_created_at": <manifest.created_at>,
+  "eligibility_context": <manifest.eligibility_context>
 }
 ```
 
@@ -260,7 +261,7 @@ signer、未授权 witness、已撤销 witness、阈值不足、错误 context�
 
 Snapshot signer authority 只能证明谁签发了 reduced state；它不能证明签名者已包含本应包含的全部 accepted Event。因此 v1 snapshot manifest MUST 携带 `event_set_commitment`。
 
-`event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。输入 leaf entry MUST 按 `(actor_id, actor_seq, event_id)` 排序；每个 entry 的 canonical JSON object 字段语义为 `{event_id,event_digest,actor_id,actor_seq,hlc}`。实现 MUST 至少支持以下一种算法：
+`event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。输入 leaf entry MUST 按 `(actor_id, actor_seq, event_id)` 排序；每个 entry 的 canonical JSON object 必含 `{event_id,event_digest,actor_id,actor_seq}`；仅当原始签名 Event 携带 `hlc` 时，entry MUST 原样携带该值，原 Event 缺失时 MUST 省略，不能写 null，也不能用 receiver 的接收时间、当前时钟或本地 HLC 补造。实现 MUST 至少支持以下一种算法：
 
 - `ordered_event_id_sha256_v1`：对排序后的 entry array 计算 `sha256(canonical_json(entries))`；空集合输入为 canonical JSON `[]`。
 - `merkle_event_set_v1`：先对每个 entry 计算 `sha256(canonical_json(entry))` 作为 `leaf_data`，再按 [`encoding.md`](./encoding.md) §3.3.1 的统一 RFC 6962 规则计算 `sha256(0x00 || leaf_data)` leaf 与 `sha256(0x01 || left || right)` internal node；空集合 root 为 `sha256` 空字节。无域分隔的 root MUST 拒绝。
@@ -280,10 +281,12 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ### 6.2 High-assurance bootstrap 的额外要求
 
-`security_class=high_assurance` 的 Realm MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。同时，该 security_class 的 接纳服务器 **MUST** 使用下列两个充分路径之一补足 §6.1 的边界缺失；`actor_seq_ranges[]` 只是两个路径都可使用的区间内部一致性材料，不是第三个独立充分路径：
+`security_class=high_assurance` 的 Realm MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。同时，该 security_class 的接纳服务器 **MUST** 使用下列两个验证路径之一检查可取得的边界材料；这不消除 §6.1 的未知输入局限。`actor_seq_ranges[]` 只是两个路径都可使用的区间内部一致性材料，不是第三个独立验证路径：
 
 1. **Independent witness path**：从至少一个独立 witness（部署 policy 明确列出且非 snapshot issuer 控制）拉取该 Realm 在 `manifest.created_at` 时刻的 active actor-set commitment 与 actor sequence upper-bound commitment，接纳服务器用其与 snapshot manifest 中声明的 actor set 比对；不一致 MUST quarantine。`event_set_commitment` MUST 同时携带 schema 中的 `actor_seq_ranges[]`，为每个已见证 actor 绑定 `[from_seq, to_seq]` 与该区间的 commitment `root`；该 commitment 使用 `event_set_commitment.algorithm` 声明的现有算法（`ordered_event_id_sha256_v1` 或 `merkle_event_set_v1`）计算，不引入第三种 wire algorithm。
-2. **Raw replay path**：无独立 witness actor-set commitment 可用时，接纳服务器 **MUST NOT** 把 snapshot 本身作为 high-assurance accepted state；它只能作为加速索引，实际授权决策 MUST 由原始 Event 完整回放得到。回放尚未完成时，snapshot completeness 保持 unverified / degraded；独立 witness 或 federation peer 后续提供 cross-source confirmation 后方可升级。
+2. **Raw replay path**：无独立 witness actor-set commitment 可用时，接纳服务器 **MUST NOT** 把 snapshot 本身作为 high-assurance accepted state；它只能作为加速索引，实际授权决策 MUST 由原始 Event 完整回放得到。回放尚未完成时，snapshot completeness 保持 unverified / degraded。独立 witness 或 federation peer 后续提供可验证的精确 Event 集合证据时，只能对该证据覆盖的授权 scope 和确切集合声明已核对；不能仅凭来源数量、actor 集合或 sequence 上界相同升级为全局完整。
+
+上述检查仍全部必需，但 actor-set 与 sequence upper-bound commitment 只能核对独立 witness 实际见证的 actor/序号边界。同一 `(realm_id, actor_id, actor_seq)` 可以有多个合法 sibling；漏掉其中一条不会改变 actor 集合或最高 sequence。由 issuer 提供且内部自洽的 range root 也不能独立证明这些 sibling 已收齐。没有独立的精确 Event 身份集合证据，任一路径都 MUST NOT 声称全网全部分支完整；原始材料重放只能证明所取得输入的验证和归约。此限制不放松 signature、inclusion challenge、range commitment 或 raw replay 的既有要求，也不新增 witness wire 字段。
 
 仅由 snapshot issuer 自己声明并签发的 `actor_seq_ranges[]`，即使所有已声明 actor 的区间、root 与 count 均自洽，也只能证明这些区间内部无洞；它 MUST NOT 被解释为“没有未知 actor 被整体省略”的证明。整 actor 省略负例由 `ak.vector.realm_state_snapshot.inclusion_challenge.v1` 承载。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.15",
+  "version": "2026-09-12.16",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T16:43:48+08:00",
+  "generated_at": "2026-09-12T19:17:55+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6191,7 +6191,7 @@
       "applies_to_fixtures": [
         "sync-fixture.json"
       ],
-      "description": "A receiver restored from a snapshot answers covered-set membership three ways and only three: covered for a frontier head or an entry proven under the manifest's own event_set_commitment root, not_covered only once the complete committed index has been admitted by recomputing that root at the committed count, and hold whenever it has neither - a missing-evidence answer of not_covered is rejected because section 9.3.1.4 would then revive superseded writes on a late branch. Covers committed-index prefix and mutation rejection, a merkle_event_set_v1 branch verified at the wrong leaf index, the absence of any per-entry branch under ordered_event_id_sha256_v1, and the rule that one admitted branch does not make the set complete.",
+      "description": "Proves global original-input membership only: a verified frontier or inclusion proof gives covered; a complete index verified against the exact root/count permits not_covered; missing evidence gives hold. A branch does not prove the set complete. These proofs do not establish any Cell target, eligibility or covered_event_ids; per-Cell causal recovery needs its exact context and authenticated replay separately.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -6205,7 +6205,7 @@
       "applies_to_fixtures": [
         "sync-fixture.json"
       ],
-      "description": "Snapshot chunk items are reducer cells whose leaf is byte-identical to the section 6.2.1 state_root leaf H(0x00 || canonical_json({cell,state})); state_digest is their RFC 6962 root under the Realm's live digest suite, transparent to chunk boundaries, with the materialized-object and cas_cell branches, lattice-shape drift, empty or unsorted heads, unsorted or duplicate items, actor-private families, reducer_profile drift and declared-digest mismatch all rejected, and bottom cells / erasure stubs committed through their own verification_hints digests rather than as leaves.",
+      "description": "Snapshot digest uses RFC 6962 leaves H(0x00 || JCS({cell,state_model,state})) over complete registered model states, independent of chunk boundaries and distinct from Seal security-only leaves. Invalid model/state shapes, missing causal coverage, empty or unsorted heads, unsorted or duplicate items, private families and mismatched digests are rejected by their respective validation stages. Digest KAT cases alone do not prove authenticated replay or closure reclassification.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.20",
+  "version": "2026-09-12.22",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T18:13:19+08:00",
+  "generated_at": "2026-09-12T19:13:56+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -494,7 +494,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:92f362c1a0998f31c512ab998475985ed2a523c6d83c6530e4b458fe6af1f2f1",
+      "section_digest": "sha256:ab24b7c0b69f75140b8fde143a85a06b3ffc3ce42ee2e0fdebda0907769b90ad",
       "requirement": "Snapshot items contain registered full Cell state with explicit state_model and authenticated eligibility context. Snapshot digest hashes {cell,state_model,state}, independently of the Seal security root. Restore verifies retained original events, coverage and closure evidence; byte-level digest agreement alone is insufficient. Wrong family/model, missing required evidence and context mismatches cannot restore an eligible state.",
       "testability_grade": "audit",
       "test_plan": "Review model-specific carrier and replay validation, run snapshot digest KAT, then require SDK restore tests for closure reclassification and missing membership. The digest KAT does not prove a complete authenticated restore."
@@ -505,7 +505,7 @@
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#4-state-hash",
       "section_digest": "sha256:df5d0fc512b490fa371f93214ab2b4c3b50f8c4d259195e1a4d0a8da99d2335c",
-      "requirement": "state_digest is the RFC 6962 root over the snapshot's cell items where each leaf is byte-identical to the section 6.2.1 state_root leaf, leaf = H(0x00 || canonical_json({cell: id, state: state_object})), node = H(0x01 || left || right), odd tail promoted, leaves in items order (id code point ascending, chunks concatenated by index), H = the Realm's live digest suite, the empty output being H over empty bytes; the kind:id:sha256(object) double wrapping and any composition without the 0x00/0x01 domain separation MUST be rejected as a root mismatch.",
+      "requirement": "state_digest is the RFC 6962 root over complete registered snapshot Cell states. Each leaf is H(0x00 || JCS({cell:item.id,state_model:item.state_model,state:item.state})); nodes use H(0x01 || left || right), odd tails are promoted, and leaves follow CellRef code-point order across indexed chunks. The empty root hashes empty bytes. These leaves are distinct from Seal security-only leaves; missing state_model, lost causal coverage, double wrapping or absent domain separation must fail the root check.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.realm_state_snapshot.state_digest_recompute.v1"
@@ -516,12 +516,10 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:92f362c1a0998f31c512ab998475985ed2a523c6d83c6530e4b458fe6af1f2f1",
-      "requirement": "A receiver restored from a Realm state snapshot MUST still answer exactly whether an old Event belongs to that view's covered set C, and MUST hold or fail closed when it has no evidence rather than answering false - a false answer makes section 9.3.1.4 treat a late branch as unseen and revive superseded writes. Evidence is one of two paths only: retaining the shared membership index, admitted solely when recomputing event_set_commitment.root over it under the declared algorithm reproduces the manifest root at covered_event_count, or obtaining a valid per-entry proof under that same existing root. Absent a fenced authority, an implementation MUST NOT keep only the last N writes, drop value=null heads, or drop the fact that an Event was once covered.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.realm_state_snapshot.restore_covered_membership.v1"
-      ]
+      "section_digest": "sha256:ab24b7c0b69f75140b8fde143a85a06b3ffc3ce42ee2e0fdebda0907769b90ad",
+      "requirement": "Causal coverage is keyed by CellRef, exact eligibility_context and EventId. Restoring a Cell requires its verified covered_event_ids and heads, or equivalent authenticated replay at that context. A proof of global event_set_commitment membership establishes original input presence only and cannot grant eligibility or prove per-Cell coverage. Missing necessary evidence remains pending; never infer a negative membership result, discard null heads or truncate retained coverage in a way that revives superseded writes.",
+      "testability_grade": "audit",
+      "test_plan": "Run the existing global membership vector for its limited input-set claim. Separately verify per-Cell coverage, signed target derivation, absent versus explicit null, changed eligibility contexts, closure reclassification and authenticated replay; global inclusion alone must never satisfy the Cell coverage check."
     },
     {
       "clause_id": "AK-NC-038",

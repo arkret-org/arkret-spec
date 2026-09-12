@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.13",
-  "generated_at": "2026-09-12T15:37:02+08:00",
+  "version": "2026-09-12.15",
+  "generated_at": "2026-09-12T18:21:39+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -937,7 +937,7 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:6b175e7283fcfac53ed99ecd1a7b1ec1e93918e67c3221f4cff04c16a4fd4d8c"
+      "sha256": "sha256:d9ede8c70daa20e1c939a8824aad4990af069e5bd2debcbe71e244bbeec4e58b"
     },
     {
       "operation_id": "ak.self.relation_conflicts.read.candidates.v1",

@@ -278,7 +278,7 @@ Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以
 - `id`（snapshot 自身 id）
 - `realm_id`
 - `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
-- `state_digest`（**必填**）——语义只有一个，由 [`../conformance/realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 给出：对该 Snapshot 全部 chunk `items[]`（封闭的单一 `cell` 分支，每个 item 是一个 Realm-scope reducer cell 与其 §11 `state_object`）求 RFC 6962 Merkle root，每个 leaf 与 [`../authz/event-auth-state-resolution.md` §11](../authz/event-auth-state-resolution.md) 的治理 `state_root` leaf 逐字节相同，`H` 随 Realm 的 live digest suite。`security_class` **MUST NOT** 切换该摘要的算法或承诺对象，也 MUST NOT 把它替换成 Seal 的治理 `state_root`：leaf 定义相同，但 leaf **集合**不同——`state_root` 只覆盖控制面 cell，`state_digest` 覆盖 Realm-scope 的控制面与数据面全部已写入 cell。`state_digest`、`control_event_set_root` 与下面的 `event_set_commitment` 三者承诺三个不同对象，MUST 分别校验，MUST NOT 互相代入。
+- `state_digest`（**必填**）——对 Realm-scope snapshot 全部 chunk 的完整注册 Cell 状态求 RFC 6962 Merkle root，leaf_data 恰为 `JCS({cell:item.id,state_model:item.state_model,state:item.state})`，`H` 使用已认证的 Realm digest suite，完整规则见 [snapshot §4](../conformance/realm-state-snapshot-schema.md#4-state-hash)。该叶子包含固定状态模型与完整 C/H、tombstone 或安全 revision，与只承诺 S 的 Seal `state_root` 叶子不同。`security_class` 不改变算法或承诺对象。`state_digest`、`control_event_set_root` 与 `event_set_commitment` 分别校验，不能互相代入；接收者仍须在确切 `eligibility_context` 下从原始证据重算资格与投影。
 - `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；接纳外部 snapshot 的服务器 MUST 验证它）
 - `frontier`（covered Event frontier / Seal basis）
 - `chunks`（chunk digests）
