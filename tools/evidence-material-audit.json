@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 393,
+  "audited_occurrence_count": 394,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -1075,9 +1075,9 @@
     {
       "file": "keys-operations.schema.json",
       "key": "signer_evidence_ref",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "qualifier",
-      "reason": "Locates the immutable historical signer evidence containing this exact device attestation."
+      "reason": "Locates the immutable historical signer evidence containing this exact device attestation; the client-facing query_device_record and the Station-to-Station peer_query_device_record carry the same reference."
     },
     {
       "file": "moderation-evidence.schema.json",

@@ -196,7 +196,7 @@
     },
     "device_projection_attestation_core": {
       "type": "object",
-      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the cross-principal keys/query surface: the row carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
       "required": [
         "account_id",
         "device_id",
@@ -285,19 +285,84 @@
       },
       "additionalProperties": false
     },
+    "verified_device_projection": {
+      "type": "object",
+      "description": "The device projection a client receives from its own authenticated Station on the self keys/query surface. The values are the ones the Station read out of the origin Station's verified device_projection_attestation; the row therefore carries no origin proof and no wrapper whose only job was to verify that proof, and a client MUST NOT treat this projection as portable evidence about the origin. account_id and device_id are not repeated here: they are the enclosing entry's account_id and the device_keys map key, and the returning Station MUST have checked that the verified attestation named exactly that pair before projecting it. attested_at is the origin's own observation instant, forwarded verbatim; together with authorized_generation_ref it is the cache key of device-lifecycle.md section 8.3. Required device_authorize_event_id and authorized_generation_ref describe the closed shape of a usable row; a device with no current accepted authorization is omitted or reported through the non-enumerating failure shape rather than degraded into a partial projection.",
+      "required": [
+        "device_signing_key_did",
+        "hpke_key",
+        "device_authorize_event_id",
+        "authorized_generation_ref",
+        "device_status",
+        "attested_at",
+        "expires_at",
+        "authorization_window"
+      ],
+      "properties": {
+        "device_signing_key_did": {
+          "$ref": "#/$defs/did_key"
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref"
+        },
+        "device_status": {
+          "const": "active",
+          "description": "This surface projects usable devices only. A revoked, fenced or conflicted device is omitted from device_keys or reported through the non-enumerating failures shape, so the projected status is constant rather than a disclosure channel."
+        },
+        "attested_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Origin observation instant of the verified projection, forwarded verbatim. MUST be strictly earlier than expires_at."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Fresh current-query cache deadline only, forwarded verbatim from the verified origin attestation. The returning Station MUST NOT extend it. Expiry does not revoke the signed device authorization or prohibit ordinary publication with verified cached evidence."
+        },
+        "authorization_window": {
+          "type": "object",
+          "required": [
+            "not_before",
+            "expires_at"
+          ],
+          "properties": {
+            "not_before": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "expires_at": {
+              "anyOf": [
+                {
+                  "$ref": "./time.schema.json#/$defs/timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "description": "Exact source device authorization window, forwarded verbatim. null expiry means no time limit. This is distinct from cache freshness; ordinary publication uses this window and applicable revocation closures."
+        }
+      },
+      "additionalProperties": false
+    },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. principal_id and device_id are the device_keys map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so a relationship-gated third party can verify the row without ever seeing PCR material. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "description": "Per-(account_id, device_id) entry in keys_query_outcome, the client-facing self surface. account_id and device_id are the device_keys entry and map keys, not row fields. The row is the restricted typed result the client's own authenticated Station produces after it verified the origin Station's device_projection_attestation, so it carries the verified projection plus the prekey material and the signer_evidence_ref the client actually uses, and never the origin proof or its verification wrapper. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "signer_evidence_ref",
         "algorithms",
         "trust_algorithms",
-        "device_projection_attestation"
+        "device_projection"
       ],
       "properties": {
         "signer_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Exact account_device signer evidence retained with its Station attester closure before this row is returned. Its embedded attestation equals this row's attestation byte for byte; the ref is not an additional device-authority claim."
+          "description": "Exact account_device signer evidence the origin Station retained with its Station attester closure before the row was returned. It keeps pointing at that complete immutable evidence object: it is neither recomputed from this pruned projection nor an additional device-authority claim."
         },
         "algorithms": {
           "$ref": "#/$defs/algorithm_key_records"
@@ -307,11 +372,10 @@
           "items": {
             "$ref": "#/$defs/non_empty_string"
           },
-          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
+          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the section 5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
         },
-        "device_projection_attestation": {
-          "$ref": "#/$defs/device_projection_attestation",
-          "description": "Origin-Station signature over the authoritative device projection. Consumers read device_signing_key_did, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. Its account_id and device_id MUST match the enclosing result group and device key; its signer MUST project onto account_id.station_id."
+        "device_projection": {
+          "$ref": "#/$defs/verified_device_projection"
         }
       },
       "additionalProperties": false
@@ -344,7 +408,68 @@
         },
         "additionalProperties": false
       },
-      "description": "One device-key result group per exact AccountId. Each signed device projection MUST match this account_id and its enclosing device_id key. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
+      "description": "One device-key result group per exact AccountId on the self surface. The returning Station MUST have matched each verified attestation's account_id and device_id against this account_id and its enclosing device_id key before projecting the row. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
+    },
+    "peer_query_device_record": {
+      "type": "object",
+      "description": "Per-(account_id, device_id) entry in peer_keys_query_outcome, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing query_device_record: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "required": [
+        "signer_evidence_ref",
+        "algorithms",
+        "trust_algorithms",
+        "device_projection_attestation"
+      ],
+      "properties": {
+        "signer_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+          "description": "Exact account_device signer evidence retained with its Station attester closure before this row is returned. Its embedded attestation equals this row's attestation byte for byte; the ref is not an additional device-authority claim."
+        },
+        "algorithms": {
+          "$ref": "#/$defs/algorithm_key_records"
+        },
+        "trust_algorithms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
+        },
+        "device_projection_attestation": {
+          "$ref": "#/$defs/device_projection_attestation",
+          "description": "Origin-Station signature over the authoritative device projection. Consumers read device_signing_key_did, hpke_key, device_status, device_authorize_event_id and authorized_generation_ref from the verified attestation. Its account_id and device_id MUST match the enclosing result group and device key; its signer MUST project onto account_id.station_id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_query_device_keys": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/device_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/peer_query_device_record"
+      }
+    },
+    "peer_query_account_device_entries": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "device_keys"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "./common-ids.schema.json#/$defs/account_id"
+          },
+          "device_keys": {
+            "$ref": "#/$defs/peer_query_device_keys"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "One device-key result group per exact AccountId on the Station-to-Station surface. Each signed device projection MUST match this account_id and its enclosing device_id key. Entries MUST be sorted by RFC 8785 JCS AccountId bytes with no duplicate account identity."
     },
     "device_algorithm_map": {
       "type": "object",
@@ -766,7 +891,7 @@
     },
     "peer_keys_query_outcome": {
       "type": "object",
-      "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station verifies them before handing the client a restricted typed result.",
+      "description": "Verbatim origin-signed rows plus the closed non-enumerating failure shape. The destination does not add a response signature layer: every row carries the origin's own device_projection_attestation and signer_evidence_ref, and the requesting Station MUST verify them before projecting the restricted client-facing query_device_record.",
       "required": [
         "request_id",
         "requester_account_id",
@@ -781,7 +906,7 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "device_keys": {
-          "$ref": "#/$defs/query_account_device_entries"
+          "$ref": "#/$defs/peer_query_account_device_entries"
         },
         "device_generations": {
           "$ref": "#/$defs/account_device_generation_entries"

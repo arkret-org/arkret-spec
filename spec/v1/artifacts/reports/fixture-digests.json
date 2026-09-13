@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/device-revocation-pending-fixture.json",
-      "sha256": "9111e89ce767ee0ee8d4a033d70a5f508ce71d24b38bccb833472c349448959d"
+      "sha256": "bc9ea07a9c0adfb6889e7dd507ad22998ed9ceb46b5c0ecfd6b0f840f5e3a8a8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -302,7 +302,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "eb0805cdc029bde3e5246832d7c50abf7db809aca0cccffb1ba5fd9bf468fd72"
+      "sha256": "d730143adb5f670006b835012c2916950bc2fab7a381053b66ea61dcf70218fd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

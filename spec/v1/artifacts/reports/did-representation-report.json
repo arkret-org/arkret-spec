@@ -2814,16 +2814,6 @@
       ]
     },
     {
-      "schema_path": "device-revocation-state.schema.json#/$defs/device_revocation_gate_decision_receipt/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
       "schema_path": "did-binding-contracts.schema.json#/$defs/evidence_dependencies/properties/witness_controlling_organization_dids",
       "property_name": "witness_controlling_organization_dids",
       "semantic_category": "responsibility_identity_material",
@@ -6496,6 +6486,16 @@
     {
       "schema_path": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/properties/requester_account_id",
       "property_name": "requester_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "keys-operations.schema.json#/$defs/peer_query_account_device_entries/items/properties/account_id",
+      "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
       "external_literal_owner": false,
