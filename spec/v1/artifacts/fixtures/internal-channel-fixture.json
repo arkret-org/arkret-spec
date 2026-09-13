@@ -116,6 +116,28 @@
       }
     },
     {
+      "name": "wrong_authenticated_source_service_is_rejected",
+      "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": true,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:unregistered-account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "dispatch_performed": false,
+        "audit_reason": "internal_channel_source_mismatch"
+      }
+    },
+    {
       "name": "wrong_destination_station_is_rejected",
       "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
       "observed_channel": {

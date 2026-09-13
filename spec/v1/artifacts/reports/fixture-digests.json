@@ -214,7 +214,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/internal-channel-fixture.json",
-      "sha256": "7c8a1f877ca08038537fd708f54091987ba6fb4262752c1a2fcf27a3e1619327"
+      "sha256": "2eeb44772173bcb96171d457ab9a83af3af0c2beadc9938f28e672011355e573"
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
