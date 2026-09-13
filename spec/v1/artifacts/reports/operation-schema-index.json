@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.4",
+  "version": "2026-09-13.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T02:19:04+08:00",
+  "generated_at": "2026-09-13T12:36:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9545,6 +9545,8 @@
           "predecessor_ref",
           "delta",
           "control_event_set_root",
+          "data_delta",
+          "data_event_set_root",
           "state_root",
           "notary_seq",
           "availability_receipt_digests",
@@ -9560,6 +9562,8 @@
           "predecessor_ref",
           "delta",
           "control_event_set_root",
+          "data_delta",
+          "data_event_set_root",
           "state_root",
           "notary_seq",
           "availability_receipt_digests",
@@ -9572,6 +9576,8 @@
           "configuration_ref",
           "command_results",
           "authorization_closures",
+          "data_closure_announcements",
+          "data_closures",
           "existence_anchors"
         ],
         "closed": true

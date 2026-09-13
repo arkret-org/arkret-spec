@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.6",
+  "version": "2026-09-13.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T03:22:11+08:00",
+  "generated_at": "2026-09-13T12:37:41+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -214,8 +214,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#1-权威来源与执行模型",
-      "section_digest": "sha256:caa85b38496fbb1263d92991f027f624706e6eda7fffadc9a99948d1b9c20c31",
-      "requirement": "Execution is derived from all effective registered writes. Any security write makes the whole Event atomic and confirmation-dependent. Closed bootstrap units activate only as complete registered units; ordinary subsequent data requires no new Seal.",
+      "section_digest": "sha256:716362d076bba7d26a7714a3a9b7ab745976b973cc7cd114b071aaafa45ce724",
+      "requirement": "Execution is derived from all effective registered writes. Any security write makes the whole Event atomic and confirmation-dependent. Closed bootstrap units activate only as complete registered units; ordinary subsequent data is independently admitted under a signed open data_basis and later identity publication does not turn it into a security command.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -232,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#11-安全状态根与序列化",
-      "section_digest": "sha256:a8c86b141850181e07233a09523f88a9abab012b135ba02cd962e8cec3a01d6e",
+      "section_digest": "sha256:cd6af7a99b3cf7b2b2a53a05e5174e04f118eb7a3df65f19e6f27d9779ecfd92",
       "requirement": "Seal identity hashes its exact unsigned body; the sole commit transcript is {context,seal_digest}. Configuration, position, predecessor and results are transitively bound through that digest. Security state roots retain exact revisions including written null. The governance Station validates complete execution; consumers verify the configured signature and exact authorized facts. No Byzantine fault tolerance or automatic leader election is promised.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -279,13 +279,11 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-因果寄存器",
-      "section_digest": "sha256:c8f4a0f76737462f3cb084dbc07829220772d55086a347b6eef634890480fada",
-      "requirement": "Ordinary causal_register preserves coverage and every active Event identity, including equal values and explicit null. Join is idempotent, commutative and associative only within the same eligibility context. Apply authorization closure before causal coverage, retain values needed for reclassification, and merge raw evidence before recomputing across contexts. Security sequenced_state has no unordered join; transition tables and CAS remain validation predicates.",
+      "section_digest": "sha256:9de1bee747494013275e64bdde7d33f642c4abd37b657ac0ef320d72212f90fc",
+      "requirement": "Ordinary causal_register preserves coverage and every eligible Event identity, fixes each write depth from authenticated same-Cell parents, and selects the maximum (depth, canonical EventId bytes) as its sole current value. Join is idempotent, commutative and associative only within the same eligibility context. Apply authorization closure before selecting a winner, retain values needed for reclassification, and merge raw evidence before recomputing across contexts. Security sequenced_state has no unordered join; transition tables and CAS remain validation predicates.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.state_model.sequenced_revision_guard.v1",
-        "ak.vector.cbs_lattice.authorized_causal_repair.v1",
-        "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
         "ak.vector.lattice.causal_register_supersession.v1",
         "ak.vector.lattice.counter_join.v1",
         "ak.vector.state_model.causal_transition_heads.v1",
@@ -300,7 +298,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
-      "section_digest": "sha256:8f4fc06927e23612c7e942afcd4b813922fc963f3faa51f481d18cc862bd7997",
+      "section_digest": "sha256:7c2c5488cd2541f5ec2938e25fac6a69ce63df7d353d3496e9b6a763feae04b6",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -318,7 +316,7 @@
       "category": "reducer",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#6-reducer-总则",
       "section_digest": "sha256:f43e3ba049bdd77e421e0bd793ce268d8b60173a069a4d444ede8ed20c88dee6",
-      "requirement": "Every reducer-input event kind declares a closed cell contract (cell family, subject, lattice, bottom, effect projection); an unregistered projection MUST NOT be improvised.",
+      "requirement": "Every reducer-input event kind declares a closed cell contract (cell family, subject, state model and effect projection); an unregistered projection MUST NOT be improvised.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.event_kind.cell_contract_closure.v1",
@@ -331,7 +329,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:c1cf429f2142b0bdaa955e526bde416398ba3e7d5904124fe77acb23d6c9208c",
+      "section_digest": "sha256:1a08eb77c011d684f3dbff893104e26d60e7064e02ea685b1436406642079697",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes. Compact media bindings carry only expires_at/issuer_kid/sig; rebuild the signed seven-tuple from the exact enclosing Event/Call and roster entry, require its frozen focus to match the accepted selection on write, and never reinterpret old signatures using a later focus.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -493,7 +491,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:ab24b7c0b69f75140b8fde143a85a06b3ffc3ce42ee2e0fdebda0907769b90ad",
+      "section_digest": "sha256:6bc6f5d1dab9b3dd74d482b9078db611db69dd9e25be048414456458d11de91f",
       "requirement": "Snapshot items contain registered full Cell state with explicit state_model and authenticated eligibility context. Snapshot digest hashes {cell,state_model,state}, independently of the Seal security root. Restore verifies retained original events, coverage and closure evidence; byte-level digest agreement alone is insufficient. Wrong family/model, missing required evidence and context mismatches cannot restore an eligible state.",
       "testability_grade": "audit",
       "test_plan": "Review model-specific carrier and replay validation, run snapshot digest KAT, then require SDK restore tests for closure reclassification and missing membership. The digest KAT does not prove a complete authenticated restore."
@@ -515,8 +513,8 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:ab24b7c0b69f75140b8fde143a85a06b3ffc3ce42ee2e0fdebda0907769b90ad",
-      "requirement": "Causal coverage is keyed by CellRef, exact eligibility_context and EventId. Restoring a Cell requires its verified covered_event_ids and heads, or equivalent authenticated replay at that context. A proof of global event_set_commitment membership establishes original input presence only and cannot grant eligibility or prove per-Cell coverage. Missing necessary evidence remains pending; never infer a negative membership result, discard null heads or truncate retained coverage in a way that revives superseded writes.",
+      "section_digest": "sha256:6bc6f5d1dab9b3dd74d482b9078db611db69dd9e25be048414456458d11de91f",
+      "requirement": "Causal coverage is keyed by CellRef, exact eligibility_context and EventId. Restoring a Cell requires verified covered_event_ids plus the fixed-depth deterministic winner, or equivalent authenticated replay at that context. A proof of global event-set membership establishes original input presence only and cannot grant eligibility or prove per-Cell coverage. Missing necessary evidence remains pending; never infer a negative membership result, discard explicit null or truncate retained coverage in a way that changes the winner.",
       "testability_grade": "audit",
       "test_plan": "Run the existing global membership vector for its limited input-set claim. Separately verify per-Cell coverage, signed target derivation, absent versus explicit null, changed eligibility contexts, closure reclassification and authenticated replay; global inclusion alone must never satisfy the Cell coverage check."
     },

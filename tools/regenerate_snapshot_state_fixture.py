@@ -39,7 +39,8 @@ def main():
         item["state_model"] = model
         state = item["state"]
         if model == "causal_register":
-            assert set(state) == {"covered_event_ids", "heads"}
+            assert set(state) == {"covered_event_ids", "winner"}
+            assert set(state["winner"]) == {"event_id", "depth", "value"}
         elif model == "sequenced_state":
             assert set(state) == {"revision_event_id", "value"}
         elif model == "or_set":

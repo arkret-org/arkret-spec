@@ -3272,366 +3272,29 @@
                   "$ref": "#/$defs/value_agent_approval_consumption"
                 }
               ]
+            },
+            "source": {
+              "type": "object",
+              "required": [
+                "event_id",
+                "depth"
+              ],
+              "properties": {
+                "event_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/event_id"
+                },
+                "depth": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
             }
           },
           "required": [
             "status",
             "value"
-          ],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "properties": {
-            "status": {
-              "const": "heads"
-            },
-            "heads": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "object",
-                "properties": {
-                  "event_id": {
-                    "$ref": "./common-ids.schema.json#/$defs/event_id"
-                  },
-                  "value": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/$defs/value_actor_discovery"
-                      },
-                      {
-                        "$ref": "#/$defs/value_agent_key"
-                      },
-                      {
-                        "$ref": "#/$defs/value_agent_provision"
-                      },
-                      {
-                        "$ref": "#/$defs/value_identity_accountability"
-                      },
-                      {
-                        "$ref": "#/$defs/value_agent_principal_control_realm_claim"
-                      },
-                      {
-                        "$ref": "#/$defs/value_agent_selector_claim"
-                      },
-                      {
-                        "$ref": "#/$defs/value_applet_discovery"
-                      },
-                      {
-                        "$ref": "#/$defs/value_applet_managed_actor_provision"
-                      },
-                      {
-                        "$ref": "#/$defs/value_applet_registration"
-                      },
-                      {
-                        "$ref": "#/$defs/value_audit_binding"
-                      },
-                      {
-                        "$ref": "#/$defs/value_audit_binding_state"
-                      },
-                      {
-                        "$ref": "#/$defs/value_audit_session"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_recording"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_recording_result"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_transcript"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_transcript_result"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_state"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_focus"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_moderation"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_roster"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_mute_override"
-                      },
-                      {
-                        "$ref": "#/$defs/value_call_summary"
-                      },
-                      {
-                        "$ref": "#/$defs/value_capability_derived"
-                      },
-                      {
-                        "$ref": "#/$defs/value_capability_grant"
-                      },
-                      {
-                        "$ref": "#/$defs/value_circle_lifecycle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_circle_metadata"
-                      },
-                      {
-                        "$ref": "#/$defs/value_circle_history_access"
-                      },
-                      {
-                        "$ref": "#/$defs/value_circle_member"
-                      },
-                      {
-                        "$ref": "#/$defs/value_circle_tombstone"
-                      },
-                      {
-                        "$ref": "#/$defs/value_consent_grant"
-                      },
-                      {
-                        "$ref": "#/$defs/value_container_position"
-                      },
-                      {
-                        "$ref": "#/$defs/value_container_order"
-                      },
-                      {
-                        "$ref": "#/$defs/value_device_authorization"
-                      },
-                      {
-                        "$ref": "#/$defs/value_identity_resolution"
-                      },
-                      {
-                        "$ref": "#/$defs/value_direct_conversation_binding"
-                      },
-                      {
-                        "$ref": "#/$defs/value_handle_discovery"
-                      },
-                      {
-                        "$ref": "#/$defs/value_identity_disclosure_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_invite_lifecycle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_member_state"
-                      },
-                      {
-                        "$ref": "#/$defs/value_invite_live_target"
-                      },
-                      {
-                        "$ref": "#/$defs/value_invite_membership_proposal"
-                      },
-                      {
-                        "$ref": "#/$defs/value_key_backup_active_series"
-                      },
-                      {
-                        "$ref": "#/$defs/value_object_redaction"
-                      },
-                      {
-                        "$ref": "#/$defs/value_message_revision"
-                      },
-                      {
-                        "$ref": "#/$defs/value_mimi_room_binding"
-                      },
-                      {
-                        "$ref": "#/$defs/value_mls_epoch"
-                      },
-                      {
-                        "$ref": "#/$defs/value_mls_key_schedule"
-                      },
-                      {
-                        "$ref": "#/$defs/value_mls_keypackage"
-                      },
-                      {
-                        "$ref": "#/$defs/value_moderation_state"
-                      },
-                      {
-                        "$ref": "#/$defs/value_morph_lifecycle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_morph"
-                      },
-                      {
-                        "$ref": "#/$defs/value_morph_stage"
-                      },
-                      {
-                        "$ref": "#/$defs/value_notary_fault"
-                      },
-                      {
-                        "$ref": "#/$defs/value_organization_discovery"
-                      },
-                      {
-                        "$ref": "#/$defs/value_organization_moderation_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_pin"
-                      },
-                      {
-                        "$ref": "#/$defs/value_policy_definition"
-                      },
-                      {
-                        "$ref": "#/$defs/value_profile_create"
-                      },
-                      {
-                        "$ref": "#/$defs/value_profile_realm_override"
-                      },
-                      {
-                        "$ref": "#/$defs/value_message_reactions"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_alias"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_archive"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_asset_privacy_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_authority_root"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_genesis"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_history_access"
-                      },
-                      {
-                        "$ref": "#/$defs/value_notary"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_reducer_profile"
-                      },
-                      {
-                        "$ref": "#/$defs/value_agent_status"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_profile"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_destroy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_digest_suite"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_discovery"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_freeze"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_organization_recovery_key"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_inheritance_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_join_rule"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_link"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_media_service"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_organization"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_plaintext_visible_services"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_policy_bundle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_preview_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_read_receipt_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_schema"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_search_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_set_default_strand"
-                      },
-                      {
-                        "$ref": "#/$defs/value_realm_tombstone"
-                      },
-                      {
-                        "$ref": "#/$defs/value_relation"
-                      },
-                      {
-                        "$ref": "#/$defs/value_relation_conflict_resolution"
-                      },
-                      {
-                        "$ref": "#/$defs/value_relation_lifecycle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_calendar_rsvp"
-                      },
-                      {
-                        "$ref": "#/$defs/value_schema_definition"
-                      },
-                      {
-                        "$ref": "#/$defs/value_sovereign_did_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_space_lifecycle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_space_metadata"
-                      },
-                      {
-                        "$ref": "#/$defs/value_space_child_scope_policy"
-                      },
-                      {
-                        "$ref": "#/$defs/value_space_parent"
-                      },
-                      {
-                        "$ref": "#/$defs/value_fork_resolution"
-                      },
-                      {
-                        "$ref": "#/$defs/value_strand_lifecycle"
-                      },
-                      {
-                        "$ref": "#/$defs/value_strand_object"
-                      },
-                      {
-                        "$ref": "#/$defs/value_strand_position"
-                      },
-                      {
-                        "$ref": "#/$defs/value_strand_stage"
-                      },
-                      {
-                        "$ref": "#/$defs/value_strand_watch"
-                      },
-                      {
-                        "$ref": "#/$defs/value_view"
-                      },
-                      {
-                        "$ref": "#/$defs/value_agent_approval_consumption"
-                      }
-                    ]
-                  }
-                },
-                "required": [
-                  "event_id",
-                  "value"
-                ],
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": [
-            "status",
-            "heads"
           ],
           "additionalProperties": false
         },
@@ -3655,7 +3318,7 @@
             },
             "reason": {
               "enum": [
-                "bottom",
+                "dependency_missing",
                 "limit_exceeded"
               ]
             }
@@ -3728,7 +3391,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_actor_discovery"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -3768,7 +3432,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_agent_approval_consumption"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -3808,7 +3473,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_agent_key"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -3848,7 +3514,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_agent_principal_control_realm_claim"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -3888,7 +3555,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_agent_provision"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -3928,7 +3596,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_agent_selector_claim"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -3968,7 +3637,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_agent_status"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4008,7 +3678,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_applet_discovery"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4048,7 +3719,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_applet_managed_actor_provision"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4088,7 +3760,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_applet_registration"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4128,7 +3801,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_audit_binding"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4168,7 +3842,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_audit_binding_state"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4208,7 +3883,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_audit_session"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4241,21 +3917,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_calendar_rsvp"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_calendar_rsvp"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -4294,7 +3967,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_focus"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4334,7 +4008,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_moderation"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4374,7 +4049,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_mute_override"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4414,7 +4090,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_recording"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4447,21 +4124,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_call_recording_result"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_call_recording_result"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -4500,7 +4174,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_roster"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4540,7 +4215,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_state"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4573,21 +4249,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_call_summary"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_call_summary"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -4626,7 +4299,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_transcript"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4659,21 +4333,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_call_transcript_result"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_call_transcript_result"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -4712,7 +4383,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_capability_derived"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4752,7 +4424,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_capability_grant"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4792,7 +4465,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_circle_history_access"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4832,7 +4506,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_circle_lifecycle"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4872,7 +4547,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_circle_member"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4905,21 +4581,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_circle_metadata"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_circle_metadata"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -4958,7 +4631,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_circle_tombstone"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -4998,7 +4672,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_consent_grant"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5031,21 +4706,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_container_order"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_container_order"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -5077,21 +4749,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_container_position"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_container_position"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -5130,7 +4799,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_device_authorization"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5170,7 +4840,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_direct_conversation_binding"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5210,7 +4881,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_fork_resolution"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5250,7 +4922,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_handle_discovery"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5290,7 +4963,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_identity_accountability"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5330,7 +5004,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_identity_disclosure_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5370,7 +5045,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_identity_resolution"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5410,7 +5086,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_invite_lifecycle"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5450,7 +5127,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_invite_live_target"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5490,7 +5168,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_invite_membership_proposal"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5530,7 +5209,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_key_backup_active_series"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5570,7 +5250,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_member_state"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5610,7 +5291,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_message_reactions"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5643,21 +5325,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_message_revision"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_message_revision"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -5696,7 +5375,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_mimi_room_binding"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5736,7 +5416,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_mls_epoch"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5776,7 +5457,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_mls_key_schedule"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5816,7 +5498,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_mls_keypackage"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5856,7 +5539,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_moderation_state"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -5889,21 +5573,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_morph_lifecycle"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_morph_lifecycle"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -5935,21 +5616,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_morph_stage"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_morph_stage"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -5981,21 +5659,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_morph"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_morph"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -6034,7 +5709,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_notary"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6074,7 +5750,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_notary_fault"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6116,7 +5793,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_object_redaction"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6156,7 +5834,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_organization_discovery"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6196,7 +5875,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_organization_moderation_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6237,7 +5917,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_pin"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6277,7 +5958,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_policy_definition"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6310,21 +5992,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_profile_create"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_profile_create"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -6356,21 +6035,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_profile_realm_override"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_profile_realm_override"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -6409,7 +6085,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_alias"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6449,7 +6126,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_archive"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6489,7 +6167,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_asset_privacy_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6529,7 +6208,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_authority_root"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6569,7 +6249,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_destroy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6609,7 +6290,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_digest_suite"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6649,7 +6331,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_discovery"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6689,7 +6372,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_freeze"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6729,7 +6413,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_genesis"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6769,7 +6454,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_history_access"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6809,7 +6495,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_inheritance_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6849,7 +6536,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_join_rule"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6889,7 +6577,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_link"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6929,7 +6618,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_media_service"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -6969,7 +6659,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_organization"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7009,7 +6700,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_organization_recovery_key"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7049,7 +6741,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_plaintext_visible_services"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7089,7 +6782,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7129,7 +6823,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_policy_bundle"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7169,7 +6864,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_preview_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7202,21 +6898,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_realm_profile"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_realm_profile"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7255,7 +6948,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_read_receipt_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7295,7 +6989,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_reducer_profile"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7335,7 +7030,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_schema"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7375,7 +7071,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_search_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7408,21 +7105,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_realm_set_default_strand"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_realm_set_default_strand"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7461,7 +7155,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_tombstone"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7494,21 +7189,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_relation_conflict_resolution"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_relation_conflict_resolution"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7540,21 +7232,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_relation_lifecycle"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_relation_lifecycle"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7586,21 +7275,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_relation"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_relation"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7639,7 +7325,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_schema_definition"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7679,7 +7366,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_sovereign_did_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7719,7 +7407,8 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_space_child_scope_policy"
-                  }
+                  },
+                  "source": false
                 }
               }
             }
@@ -7752,21 +7441,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_space_lifecycle"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_space_lifecycle"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7798,21 +7484,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_space_metadata"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_space_metadata"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7844,21 +7527,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_space_parent"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_space_parent"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7890,21 +7570,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_lifecycle"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_lifecycle"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7936,21 +7613,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_object"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_object"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -7982,21 +7656,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_position"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_position"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -8028,21 +7699,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_stage"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_stage"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -8074,21 +7742,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_strand_watch"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_strand_watch"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }
@@ -8120,21 +7785,18 @@
                 "properties": {
                   "status": {
                     "enum": [
-                      "heads",
+                      "value",
                       "removed",
                       "unavailable"
                     ]
                   },
-                  "heads": {
-                    "items": {
-                      "properties": {
-                        "value": {
-                          "$ref": "./account-current-result.schema.json#/$defs/value_view"
-                        }
-                      }
-                    }
+                  "value": {
+                    "$ref": "./account-current-result.schema.json#/$defs/value_view"
                   }
-                }
+                },
+                "required": [
+                  "source"
+                ]
               }
             }
           }

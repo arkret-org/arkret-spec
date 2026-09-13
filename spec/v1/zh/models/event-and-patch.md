@@ -3,7 +3,7 @@ title: Event, Proof, Patch & Receipt
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-13
+updated: 2026-09-13
 ---
 
 ## 0. 规范语言
@@ -60,9 +60,10 @@ Schema id: `ak.schema.event.v1`
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<EventId>` | 可为空。每项是完整 suite-tagged Event ID，仅承载 actor event chain causal predecessors；suite code 与全部 digest bytes 进入本 Event digest preimage。 | Actor event chain 前序的完整密码学身份。 |
 | `refs` | conditional | `array<SemanticRef>` | 没有语义引用时 MUST 省略；出现时至少一项，显式 `[]` 是 `schema_violation`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。需要特定 role 的 Event kind 仍由 schema / reducer 明确要求该字段与对应 `contains`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 可选语义引用集合。 |
-| `causal_refs` | conditional | `array<digest>` | 没有业务因果时 MUST 省略；出现时至少一项，显式 `[]` 是 `schema_violation`。携带 `payload.patch` 的 ordinary Event MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 ordinary Event 可用于声明业务因果。它不提供全局完整性证明。 | 可选数据面因果前驱。 |
+| `causal_refs` | conditional | `array<digest>` | 没有业务因果时 MUST 省略；出现时至少一项，显式 `[]` 是 `schema_violation`。携带 `payload.patch` 的 ordinary Event MUST 为每个 registry 目标 cell 精确引用 current 返回的唯一来源 Event digest，见 §4.3.1；其它后继写同样必须引用至少一个合法同 Cell 来源。它不提供全局完整性证明。 | 可选数据面因果前驱。 |
 | `preconditions` | conditional | `array<Predicate>` | 普通数据在签名因果基底求值；安全命令在实际确认前态求值。普通条件不承诺离线唯一成功。 | 注册业务前置条件。 |
 | `auth_context` | conditional | `object` | 普通数据携带 key 坐标和已确认 `authority_refs`，按注册 admission 分支验证。缓存没有 Seal 年龄租约；已知撤销立即约束 live gate。 | 可携带授权上下文。 |
+| `data_basis` | conditional | `SealId` | 除已登记原子 bootstrap unit 的初始 D 成员外，ordinary Event MUST 携带同 Realm 一个已确认且尚未关闭的数据基准。它标识异步数据收录区间，不授予权限，也不要求为本次写入推进 Seal。 | 普通数据基准。 |
 | `seal_basis` | conditional | `object` | 安全命令的确认基线；每安全域恰一个 head，按 canonical 顺序列入 `leaves`。普通数据不得携带。genesis 按封闭原子起点验证。 | 安全前态。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
@@ -175,6 +176,7 @@ v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperatio
       "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
     ]
   },
+  "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "payload": {
     "target_ref": "ak:strand:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
     "patch": {
@@ -266,7 +268,7 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   实现 MUST NOT 改从别处猜测 binding 字段名，也 MUST NOT 在 registry 未登记本成员时凭空施加
   binding。
 
-  `causal_register` 的 patch MUST 登记并携带 `expected_prestate`，并在 `causal_refs` 中绑定确切有效 base-head。多个同值 head 也不得按值去重；digest 用于核对基底值，Event 身份用于选定基底和计算覆盖。缺字段或基底待证时不得自行选择 head。`sequenced_state` 按实际确认 predecessor 校验该条件；若合同把该额外条件登记为可选，省略不取消命令自身的 revision/CAS 守卫。
+  `causal_register` 的 patch MUST 登记并携带 `expected_prestate`，并在 `causal_refs` 中绑定 current 返回的确切有效来源。digest 用于核对基底值，Event 身份用于选定基底并计算该 Cell 的固定 `depth`。缺字段或基底待证时不得自行选择来源。`sequenced_state` 按实际确认 predecessor 校验该条件；若合同把该额外条件登记为可选，省略不取消命令自身的 revision/CAS 守卫。
 
 - `{"kind":"append","value":source,"issuer_seq":source}` 用于 log 值形状，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 用于 set 值形状。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
@@ -372,7 +374,7 @@ actor-private 只表示状态可见性与归属，不表示可以省略持久化
 high-water；否则离线旧写会复活。它不使用共享 Control Move `preconditions`，也不得被实现成
 arrival-order LWW。
 
-所有 projected write 的目标必须由注册 `cell_family` 与签名 `cell_subject` 派生。v1 不提供 producer 任意指定目标 family 的 reset 操作。普通多头通过有权后继观察并覆盖相关 heads 修复，安全状态只由唯一确认命令推进。
+所有 projected write 的目标必须由注册 `cell_family` 与签名 `cell_subject` 派生。v1 不提供 producer 任意指定目标 family 的 reset 操作。普通 `causal_register` 按固定 `(depth,EventId)` 顺序投影唯一当前值；安全状态只由唯一确认命令推进。
 
 `effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标
 求值 projection。一个 payload delta 需要多个同 family op 时，必须由该 kind 的封闭 contract
@@ -403,7 +405,7 @@ op 次序。
 - **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/artifact_lint` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
 - **自门控目标（normative）**：`condition:{kind:"field_present",field:F}` 与一个完全由同一个 `F` 派生的 `cell_subject`（`F` 本身，或只含 `F` 的单分量 `canonical_json` composite）组合时，可派生性按构造成立：条件命中即 `F` 存在，subject 即可求值；条件未命中即 `F` 缺失，该目标不参与。这是 optional payload 字段承载可选 cell 目标的唯一合法形态——`ak.invite.accept` / `ak.invite.revoke` 的 `payload.invitee_account_id` 与 `ak.component.invite.live_target.v1` 即属此类。实现 MUST NOT 用「字段缺失时退回另一个字段」或「按 payload 形状推断」替代该显式条件。
 - `condition` 只决定该目标是否参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、
-  `state_model`、`execution` 或普通多头展示规则；需要按判别值切换取值字段时使用已登记的 `select` component。
+  `state_model`、`execution` 或普通寄存器排序规则；需要按判别值切换取值字段时使用已登记的 `select` component。
 
 **持久化前态约束（`pre_state_requirements`，normative）**：event contract MAY 登记一个
 封闭的前态准入数组。reducer 先按 `cell_family` 与 `subject` 读取已接受前态，再依次执行：
@@ -758,6 +760,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
       "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
     ]
   },
+  "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "payload": {
     "target_ref": "ak:strand:AdcPn_aBMNmMC47fsF5NbJko5RzJRMTfl7HXJURx64NV",
     "patch": {
@@ -795,18 +798,17 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 冻结 pre-state 的唯一求值规则：
 
 - Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBS frozen-baseline 规则读取。
-- 携带 patch 的 ordinary Event 的 `causal_refs[]` 引用作者实际观察到的 accepted source；receiver 按目标 `(scope_ref, cell_id)` 解析这些来源的完整 post-state。不得读取 receiver 当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
-- 只有一个目标 cell source 且未携带 `expected_state_digest` 时，该来源的完整值就是 pre-state。携带已登记的 `expected_state_digest` 时，以该 digest 精确选取被引用来源中的完整值；多个来源可具有相同完整值，但不得选择不同值。无匹配或有歧义时 MUST `schema_violation` / `reducer_projection_failed`。
-- 显式合并多个来源复用普通 Data patch：作者在 `causal_refs[]` 引用实际观察并决定收敛的来源，并用签名覆盖的 `expected_state_digest` 指定计算基值。patch 表达相对于该基值的合并结果；没有修改的字段明确继承该基值。未被引用的并发来源仍然保留。多来源而无 pre-state digest MUST 拒绝。不得新增与此规则重复的 Strand 专用 resolver 或 authoring 接口。
-- 基于旧来源编写的合法 patch 即使提交时 current 已改变也 MUST 接受为因果后继／并发来源；不得隐式把旧草稿重定位到提交时的 current。无 pre-state 的 create 不使用本 patch 规则。
+- 携带 patch 的 ordinary Event 的 `causal_refs[]` 对每个目标 Cell 精确引用作者实际观察到的唯一 current source；receiver 按目标 `(scope_ref, cell_id)` 解析该来源的完整 post-state。不得读取 receiver 此刻 current、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
+- 该唯一目标 Cell source 的完整值就是 pre-state。携带已登记的 `expected_state_digest` 时，它 MUST 与该值逐字节匹配；无匹配、多于一个同 Cell source 或来源并非可用写入时 MUST `schema_violation` / `reducer_projection_failed`。语义 reply、其它 Cell 因果边仍可同时存在于 `causal_refs`，但不参与此 Cell 基值或 rank。
+- 基于旧来源编写的合法 patch 即使提交时 current 已改变也 MUST 接受为该来源的因果后继；不得隐式把旧草稿重定位到提交时的 current。其当前可见性由固定 `(depth,EventId)` 排序决定，不再产生需要用户合并的通用多头。无 pre-state 的合法初始 create 不使用本 patch 规则；同一 Cell 已有写入后，不得把缺 source 的重复 create 当作另一个 depth=0 重置。
 
-authoring MUST 使用现有 `current` 的 `CurrentResultEntry`：同一 `(scope_ref, cell_id)` 下的
-`heads[{event_id,value}]` 同时提供完整值与来源身份，`event_id` 可无损转换为 Event digest。
-不得另增只返回 head 的镜像读取接口、持久化对象 head 列，或用领域子投影的 frontier 代替对象来源。
-producer MUST 在打开编辑时一起固定完整基值、来源 Event 与 effective scope；后台 current 更新不改变
-未提交草稿的基线。零 head／不可用 entry 等待 current 就绪；多 head 必须显示冲突并由用户显式选择／
-合并，MUST NOT 根据时间、排序或本地最后收到的 Event 猜测 winner。值计算基线与因果观察集合不是
-同一概念：前者唯一，后者可以包含多个来源；此规则同样适用于日历字段更新。
+authoring MUST 使用现有 `current` 的 `CurrentResultEntry`：同一 `(scope_ref, cell_id)` 下
+`status=value` 同时提供完整值以及唯一 `source={event_id,depth}`，`event_id` 可无损转换为 Event digest。
+不得另增只返回来源的镜像读取接口、持久化对象私有 head 列，或用领域子投影的 frontier 代替对象来源。
+producer MUST 在打开编辑时一起固定完整基值、来源 Event、来源 depth、effective scope 与开放
+`data_basis`；后台 current 更新不改变未提交草稿的基线。未写入／不可用 entry 等待 current 就绪。
+客户端不得根据 timeline、到达顺序、HLC 或墙钟另选值；唯一当前来源只能由共享 reducer 的
+`(depth,canonical EventId bytes)` 结果给出。此规则同样适用于日历字段更新。
 
 上述 patch 路由、冻结 pre-state 与失败分支由
 `ak.vector.patch.projection_prestate_binding.v1` 固定。

@@ -1032,7 +1032,7 @@ Expected：
 - 所有拒绝分支 MUST 零 durable 写入、不进入 MLS proposal store、不产生 leaf provenance，也不推进 `ak.component.mls.epoch.v1`。
 - 只做 schema 校验、或只验证发送者是当前成员而不比较 exact base 叶与已验证 producer，不构成通过。
 
-### 2.6 Vector: 数据面冲突返回 Bottom 且不选 Winner
+### 2.6 Vector: 数据面 sibling 按固定 rank 选 Winner
 
 向量名称：
 
@@ -1047,9 +1047,9 @@ ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1
 
 期望：
 
-- `query(cell)` 返回 structured `Bottom{kind="conflict"}`。
-- 需要单值的消费面 MUST `failed_bottom`；有权后继观察并覆盖相关 heads 可以修复，不存在任意 Cell reset Event。
-- 实现不得用 HLC、actor id、event id 或本地接收顺序选择 winner。
+- 两条写的 depth 相同，`query(cell)` 返回完整 typed EventId 字节较大的写及其 `{event_id,depth}` source。
+- 两条身份及值都保留在回放证据中；不产生 `failed_bottom`、repair Event 或人工选择操作。
+- 实现不得用 HLC、actor id、本地接收顺序或 EventId 显示字符串选择 winner；只有固定 depth 相同时才比较完整 typed EventId 字节。
 
 ### 2.7 Vector: Seal Delta 排除 ordinary Event Digest
 
@@ -1218,7 +1218,7 @@ runner MUST 从
 
 `ak.vector.state_model.causal_transition_validation.v1`、`ak.vector.state_model.causal_transition_heads.v1` 检查领域转移表，而不声明另一个共享状态类型。
 
-普通 lifecycle 使用 causal_register：同一 Event 重放幂等；不同身份的同值写保留两头；active→archived→active→archived 的最后一步是新写；有权后继观察多头后可修复；terminal tombstone 不可复活。每次转移对签名因果 basis 检查，合并时不按业务值接因果边。
+普通 lifecycle 使用 causal_register：同一 Event 重放幂等；不同身份的同值写均保留为证据，但 current 按固定 `(depth, EventId)` 全序只发布一个赢家；active→archived→active→archived 的最后一步是新写；正常后继从签名 basis 中同 Cell 来源计算固定深度；terminal tombstone 不可复活。每次转移对签名因果 basis 检查，合并时不按业务值接因果边。
 
 安全 lifecycle 使用 sequenced_state：只按唯一确认顺序执行，真实前态与 revision 不符则持久拒绝；两个相同基底竞争不产生权限多头。`ak.vector.seal.ordered_command_results.v1` 包含同一 Seal 有序两命令，第一成功、第二 stale 拒绝；delta 仅含成功者，command_results 含两个有序结果。伪造第二成功必须整体拒绝该 Seal。
 
@@ -1328,9 +1328,9 @@ ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1
 
 `ak.vector.circle.lifecycle_admission_barrier.v1`：Circle archive/tombstone 与父 Realm 成员 cascade 在同一安全域确认关闭。已知关闭立即 gate；未知关闭允许传播窗口；历史按适用关闭集合重算。普通对象 archive 不生成授权 cut。restore 产生新的有效使用区间，但不复活旧关闭排除的 Event。
 
-### 2.20 Vector: 普通多头修复与安全分叉拒绝
+### 2.20 Vector: 普通固定 winner 与安全分叉拒绝
 
-`ak.vector.cbs_lattice.authorized_causal_repair.v1`：普通有权后继观察精确 heads 并写入新值，覆盖已见身份，保留未见并发分支。隔离写不能覆盖合法旧值；不同资格上下文必须合并原始证据后重算。任意目标 reset 或通用权限恢复 Event 必须拒绝。安全状态只接受唯一确认前缀，发现两个矛盾最终证书时保存故障证据、停止该域安全推进，不能任选一个控制值。
+`ak.vector.cbs_lattice.authorized_causal_repair.v1`：历史向量 ID 保留；普通有权后继观察精确 current source 并写入新值，固定 depth 后必高于该来源与当时视图的全部候选，未观察的并发写仍按 `(depth,EventId)` 比较。隔离写不能覆盖合法旧值；不同资格上下文必须合并原始证据后重算 winner。任意目标 reset 或通用权限恢复 Event 必须拒绝。安全状态只接受唯一确认前缀，发现两个矛盾最终证书时保存故障证据、停止该域安全推进，不能任选一个控制值。
 
 ### 2.21 Vector: `ordered_log` sibling-set join
 
@@ -3203,11 +3203,11 @@ Expected：
 - 补齐后 reducer MUST deterministically 从 soft-fail 转为 accepted，并更新 covered event set。
 - 永久缺失或冲突时 MUST 转为 rejected / failed_precondition，不得无限留在 soft-fail。
 
-### 9.11 Vector: Concurrent Heads Have No Implicit Winner
+### 9.11 Vector: Concurrent Writes Have One Deterministic Winner
 
 `vector_id`: `ak.vector.lattice.concurrent_heads_no_winner.v1`
 
-同一普通 Cell 的两个并发写即使 logical time 相同，也保留两个 Event 身份。交换输入顺序、批次和副本合并顺序均得到相同 heads/coverage。按 HLC、actor、digest 或接收顺序选单一 winner 必须判为不合格；安全 Cell 则使用唯一确认顺序，禁止把这个数据 join 用于权限决定。
+同一普通 Cell 的两个并发写保留两个 Event 身份，并按 `(depth,完整 typed EventId 字节)` 选出唯一 current。交换输入顺序、批次和副本合并顺序均得到相同 winner/coverage。按 HLC、actor 或接收顺序选值必须判为不合格；安全 Cell 仍使用唯一确认顺序，禁止把普通数据排序用于权限决定。
 
 ### 9.12 Vector: E2EE Relaxed Window Exceeds Ceiling
 
@@ -5787,7 +5787,7 @@ Expected:
 - series preimage `["ak:strand:AQN06JbCzCiTJapT_QplYfovK3NG6pdAjNyF23YePDuc",null,"did:webvh:z6mkfixture:alice.example"]` 的 subject MUST 为 `3iBI9bjQLklvfcVhQeaxLajMskSVG4oZ5IMpU62GvRc`；把 JSON null 改写成字符串、空串或 sentinel MUST 失败。
 - 缺失 component、未登记 `envelope.*`、裸字段来源、object/array/小数终点、以及 schema 不允许 null 的字段实际取 null，均 MUST `schema_violation`。
 - payload 中出现同名 `actor_id` 不得遮蔽 `envelope.actor_id`；components 重排 MUST 产生不同 subject。
-- 因果后继 status 支配旧 head；真正并发的不同 status 暴露多个 heads。交换两条并发 Event 的 HLC 大小不得改变 join 结果。
+- 因果后继 status 以更高 depth 支配旧值；真正并发的不同 status 按 `(depth,EventId)` 选择唯一 winner。交换两条并发 Event 的 HLC 大小或到达顺序不得改变结果。
 
 ### 23.12 Federation CBS 前置闭包、dependency resolve 与 partial retry
 
@@ -5930,14 +5930,14 @@ Expected:
 Steps:
 
 1. 修改 `start` 后检查旧 instance 与 series RSVP 的分类。
-2. 构造两个 canonical bytes 不同的并发 schedule head，再构造两个取值相同的并发 head。
-3. 只修改 `metadata.title` 并重算 frontier。
+2. 构造两个 canonical bytes 不同的并发 schedule revision，再构造两个取值相同的并发 revision，并交换到达顺序与 HLC。
+3. 只修改 `metadata.title` 并重算 schedule winner。
 
 Expected:
 
 - identity-affecting 修改 MUST 把旧 instance RSVP 标为 `stale_orphaned` 且 MUST NOT 自动迁移；series RSVP MUST 标 `needs_reconfirmation`。
-- 取值不同 MUST `conflict`，此时 authoring client MUST 以 `calendar_schedule_unsettled` 拒绝构造新 RSVP；取值相同 MUST `settled` 且保留全部 canonical heads。
-- settledness MUST NOT 成为服务端 admission 条件：把同一组 Event 分别喂给 E2EE 与 plaintext 服务端，二者 accepted set MUST 逐项相同。
+- 不论取值相同或不同都 MUST 由固定 `(depth,EventId)` 得到同一唯一 winner；authoring client 只有在 winner 不可解密或不可校验时以 `calendar_schedule_unavailable` 拒绝构造新 RSVP。
+- schedule 可读性 MUST NOT 成为服务端 admission 条件：把同一组 Event 分别喂给 E2EE 与 plaintext 服务端，二者 accepted set MUST 逐项相同。
 - 非 Calendar 子树的 update MUST NOT 产生新 schedule revision。
 
 ### 24.8 RSVP reducer projection
@@ -5959,14 +5959,14 @@ Expected:
 
 Steps:
 
-1. 对同一 occurrence 同时构造 series 与 instance head。
+1. 对同一 occurrence 同时构造 series 与 instance winner。
 2. 构造因果后继并交换到达顺序与 HLC 大小。
-3. 构造缺 key、解密失败、以及 plaintext 相同但 ciphertext 不同的并发 head。
+3. 构造缺 key、解密失败、以及 plaintext 相同但 ciphertext 不同的并发写。
 
 Expected:
 
-- instance MUST 覆盖 series 且二者 MUST NOT union；后继 MUST 支配旧 head 且结果与到达顺序无关。
-- 缺 key MUST 标 `encrypted_unresolved`，MUST NOT 伪造 status；plaintext 相同 MUST NOT 判为 conflict。
+- instance winner MUST 覆盖 series fallback 且二者 MUST NOT union；后继 MUST 支配旧值且结果与到达顺序无关。
+- 缺 key MUST 标 `encrypted_unresolved`，MUST NOT 伪造 status；plaintext 相同的不同 Event 仍保留各自身份并由固定 rank 选 winner。
 
 ### 24.10 RSVP admission
 
@@ -5975,16 +5975,16 @@ Expected:
 Steps:
 
 1. 构造 attendee 无 capability、非 attendee 有 capability 两个对照。
-2. 构造 `status=cancelled`、basis 为空 / 重复 / 乱序 / 不在 `causal_refs[]`、basis 部分未到达、frontier 超 128 的用例。
+2. 构造 `status=cancelled`、basis 为空 / 多项 / 不在 `causal_refs[]`、basis 未到达的用例。
 3. 构造形态匹配但日期不存在的 all-day / timed occurrence（如 `2026-02-30`）以及 target 不存在 / 不可见 / 跨 Realm / 非 Calendar 四种情况。
 4. 把同一组 Event 分别喂给 E2EE Realm 与 plaintext Realm，比较两侧 accepted set。
 
 Expected:
 
 - capability 是唯一授权真源；attendee 身份 MUST NOT 自动授权，非 attendee 持证 MUST 被接受。
-- cancelled MUST 由 authoring client 以 `calendar_event_cancelled` 拒绝（不是服务端 admission，理由同 settledness）；basis shape 违例 MUST `rsvp_basis_not_causal` 且 MUST NOT 进入 pending；不存在的 Gregorian occurrence 日期 MUST `rsvp_occurrence_not_canonical`；被引用 Event 未到达 MUST 以 `dependency_missing` pending；wire 上超过 128 项的 basis MUST 由 schema `maxItems` 以 `schema_violation` 拒绝，而 observed frontier 超限是 authoring 侧的 `schedule_frontier_too_large`。
+- cancelled MUST 由 authoring client 以 `calendar_event_cancelled` 拒绝（不是服务端 admission，理由同 schedule 可读性）；basis shape 违例 MUST `rsvp_basis_not_causal` 或 `schema_violation` 且 MUST NOT 进入 pending；不存在的 Gregorian occurrence 日期 MUST `rsvp_occurrence_not_canonical`；被引用 Event 未到达 MUST 以 `dependency_missing` pending；basis 必须恰好一项。
 - 四种 target 情况的对外错误 MUST 不可区分。
-- 两侧 accepted set MUST 逐项相同：target admission 只读被引用 Event 的明文 envelope，"该 revision 是否真的改了 schedule / 是否等于 authoring frontier"只在授权投影里表现为 `unresolved_basis` 或 stale，能读明文的服务 MUST NOT 因此多拒绝。
+- 两侧 accepted set MUST 逐项相同：target admission 只读被引用 Event 的明文 envelope，"该 revision 是否真的改了 schedule / 是否等于 authoring winner"只在授权投影里表现为 `unresolved_basis` 或 stale，能读明文的服务 MUST NOT 因此多拒绝。
 
 ### 24.11 Attendee roster
 
@@ -6147,19 +6147,19 @@ runner MUST 执行 `privacy-security-fixture.json` 的 Actor Profile accountabil
   条目的 Profile 写入必须拒绝；
 - 任何“接受 Event，但从数组剔除无 grant 条目后再写入”的结果均不符合本向量。
 
-## 30. causal_register 因果 heads join closure vector
+## 30. causal_register 固定因果全序 closure vector
 
 `vector_id`: `ak.vector.lattice.causal_register_supersession.v1`
 
 规则正文见 [因果寄存器](../authz/event-auth-state-resolution.md#6-因果寄存器)。Runner MUST 验证：
 
 1. 未写入与写过 null 可区分；后者保留完整 Event 身份和覆盖集。
-2. 后继只覆盖签名因果上下文中的 heads，业务值不作为写入身份；ABA 与同值并发均保留身份差异。
-3. 并发异值保留多头；同值多头可以显示同值，但不能合并身份或吞掉未观察分支。
+2. 后继从签名因果上下文中的同 Cell source 推导 `1+max(parent depth)`；业务值不作为写入身份，ABA 与同值并发均保留身份差异。
+3. 并发异值与同值写都按固定 rank 投影唯一 current；落选身份与值不能从回放/资格重算证据中吞掉。
 4. 相同身份的 exact replay 幂等；相同身份异 bytes 进入碰撞验证，不按摘要挑选赢家。
-5. 对固定资格上下文中的全部 prefix-closed 子集，C/H 合并满足 ACI，与完整因果图 oracle 一致。
+5. 对固定资格上下文中的全部 prefix-closed 子集，按 rank 取 max 满足 ACI，与完整因果图 oracle 一致；正常后继的 depth 必须高于其所见 current 及同一视图全部候选。
 6. 关闭证据改变资格上下文时先重算 eligible 效果，再归约；被隔离的后继不覆盖仍合法的前态。不同上下文的快照不得直接 join。
-7. D Cell 只进入普通 snapshot state_digest，永远不进入 Seal state_root。snapshot 必须保存 C/H 和足以重分类的历史证据。
+7. D Cell 只进入普通 snapshot state_digest，永远不进入 Seal 的安全 `state_root`。snapshot 必须保存 coverage、winner rank 和足以重分类的历史证据；普通 Event 身份另由 Seal 的数据集合根承诺。
 
 ## 31. Key backup delete authority closure vector
 

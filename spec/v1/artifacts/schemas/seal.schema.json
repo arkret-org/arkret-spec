@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/seal.schema.json",
   "title": "Arkret Seal",
-  "description": "A final certificate for one Realm safety domain. It confirms the ordered outcomes of registered security commands. Ordinary data has no covering Seal. Canonical signing bytes are RFC8785 JSON of every top-level field except id and notary_signature; id is derived from those bytes. A quorum certificate is valid only under the exact predecessor configuration and its durable consensus rules.",
+  "description": "A final certificate for one Realm governance domain. It confirms ordered security-command outcomes and separately commits ordinary Event identities plus data-basis closure. Ordinary business values never enter the security delta or state root. Canonical signing bytes are RFC8785 JSON of every top-level field except id and notary_signature; id is derived from those bytes.",
   "type": "object",
   "required": [
     "id",
@@ -10,6 +10,8 @@
     "predecessor_ref",
     "delta",
     "control_event_set_root",
+    "data_delta",
+    "data_event_set_root",
     "state_root",
     "notary_seq",
     "availability_receipt_digests",
@@ -51,6 +53,19 @@
     "control_event_set_root": {
       "$ref": "#/$defs/digest",
       "description": "Authenticated root over the recursive covered_set of this Seal. Default construction is RFC6962 Merkle root over canonical bytewise-sorted covered_set(S); inclusion uses Merkle audit path and non-membership uses sorted-neighbor proof. The root is not computed over delta[] alone."
+    },
+    "data_delta": {
+      "type": "array",
+      "maxItems": 4096,
+      "description": "Canonical sorted unique ordinary Event digests first published by this Seal. These identities are disjoint from security delta and command_results; registered atomic-bootstrap initial D members are excluded.",
+      "items": {
+        "$ref": "#/$defs/event_digest"
+      },
+      "uniqueItems": true
+    },
+    "data_event_set_root": {
+      "$ref": "#/$defs/digest",
+      "description": "RFC6962 root over the cumulative predecessor data set union data_delta, ordered by complete typed digest wire bytes. It commits ordinary Event identities, not their business values, authorization eligibility, or global history completeness."
     },
     "state_root": {
       "$ref": "#/$defs/digest",
@@ -119,6 +134,24 @@
         "$ref": "#/$defs/authorization_closure"
       },
       "description": "Exactly the closures derived from successful revocation/lifecycle commands in this Seal. Entries cannot be added by notary discretion. Ordinary data does not wait for this field or for new Seals."
+    },
+    "data_closure_announcements": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/data_closure_announcement"
+      },
+      "description": "Durable announcements of old data bases that will close no earlier than not_before. Entries are canonical sorted and unique by data_basis."
+    },
+    "data_closures": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/data_closure"
+      },
+      "description": "Final frozen allowed-set commitments for announced data bases after the fixed grace period. Entries are canonical sorted and unique by data_basis."
     },
     "existence_anchors": {
       "type": "array",
@@ -203,6 +236,8 @@
         "predecessor_ref",
         "delta",
         "control_event_set_root",
+        "data_delta",
+        "data_event_set_root",
         "state_root",
         "notary_seq",
         "availability_receipt_digests",
@@ -239,6 +274,19 @@
         "control_event_set_root": {
           "$ref": "#/$defs/digest",
           "description": "Authenticated root over the recursive covered_set of this Seal. Default construction is RFC6962 Merkle root over canonical bytewise-sorted covered_set(S); inclusion uses Merkle audit path and non-membership uses sorted-neighbor proof. The root is not computed over delta[] alone."
+        },
+        "data_delta": {
+          "type": "array",
+          "maxItems": 4096,
+          "description": "Canonical sorted unique ordinary Event digests first published by this Seal. These identities are disjoint from security delta and command_results; registered atomic-bootstrap initial D members are excluded.",
+          "items": {
+            "$ref": "#/$defs/event_digest"
+          },
+          "uniqueItems": true
+        },
+        "data_event_set_root": {
+          "$ref": "#/$defs/digest",
+          "description": "RFC6962 root over the cumulative predecessor data set union data_delta, ordered by complete typed digest wire bytes. It commits ordinary Event identities, not their business values, authorization eligibility, or global history completeness."
         },
         "state_root": {
           "$ref": "#/$defs/digest",
@@ -304,6 +352,24 @@
           },
           "description": "Exactly the closures derived from successful revocation/lifecycle commands in this Seal. Entries cannot be added by notary discretion. Ordinary data does not wait for this field or for new Seals."
         },
+        "data_closure_announcements": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/data_closure_announcement"
+          },
+          "description": "Durable announcements of old data bases that will close no earlier than not_before. Entries are canonical sorted and unique by data_basis."
+        },
+        "data_closures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/data_closure"
+          },
+          "description": "Final frozen allowed-set commitments for announced data bases after the fixed grace period. Entries are canonical sorted and unique by data_basis."
+        },
         "existence_anchors": {
           "type": "array",
           "minItems": 1,
@@ -341,6 +407,63 @@
           }
         }
       ]
+    },
+    "data_set_commitment": {
+      "type": "object",
+      "required": [
+        "root",
+        "member_count"
+      ],
+      "properties": {
+        "root": {
+          "$ref": "#/$defs/digest"
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete typed-Event-digest set commitment. Members are sorted by decoded digest wire bytes and committed with the RFC6962 leaf/node construction."
+    },
+    "data_closure_announcement": {
+      "type": "object",
+      "required": [
+        "data_basis",
+        "not_before"
+      ],
+      "properties": {
+        "data_basis": {
+          "$ref": "#/$defs/seal_ref"
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Announcement that data_basis will close no earlier than not_before. not_before must be at least the fixed grace interval after this announcing Seal's authenticated sealed_at."
+    },
+    "data_closure": {
+      "type": "object",
+      "required": [
+        "data_basis",
+        "announcement_ref",
+        "allowed_event_set"
+      ],
+      "properties": {
+        "data_basis": {
+          "$ref": "#/$defs/seal_ref"
+        },
+        "announcement_ref": {
+          "$ref": "#/$defs/seal_ref"
+        },
+        "allowed_event_set": {
+          "$ref": "#/$defs/data_set_commitment"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Final closure of one announced data basis. announcement_ref identifies the accepted predecessor Seal carrying the matching announcement; the frozen allowed set is recoverable through the registered paged material surface."
     },
     "command_result": {
       "type": "object",
@@ -2100,7 +2223,7 @@
         "state": {
           "anyOf": [
             {
-              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/heads_state"
+              "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/causal_register_state"
             },
             {
               "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/sequenced_state"
@@ -2115,7 +2238,7 @@
               "$ref": "./realm-state-snapshot-chunk.schema.json#/$defs/counter_state"
             }
           ],
-          "description": "The complete post-unit state selected by the canonical Cell family state_model, with exactly the corresponding snapshot state shape. In particular causal_register retains covered_event_ids and heads; bootstrap ordinary state is never converted into sequenced_state or a display value. The family fixes the model; the producer cannot select another matching branch."
+          "description": "The complete post-unit state selected by the canonical Cell family state_model, with exactly the corresponding snapshot state shape. In particular causal_register retains covered_event_ids and the deterministic winner with fixed depth; bootstrap ordinary state is never converted into sequenced_state or a display-only value. The family fixes the model; the producer cannot select another matching branch."
         }
       },
       "additionalProperties": false

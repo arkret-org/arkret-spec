@@ -624,12 +624,12 @@
           "inline_member_list_absent_when_member_count_at_least": 65
         },
         "fanout_and_repair_bounds": {
-          "ordinary_diagnostic_max_heads": 16,
+          "relation_domain_candidate_diagnostic_max": 16,
           "diagnostic_absent_above": 16,
           "baseline_member_count_max": null,
           "seventeenth_candidate_retained": true,
           "seventeenth_candidate_truncated": false,
-          "repair_of_seventeen_heads": "admitted",
+          "resolution_of_seventeen_candidates": "admitted",
           "further_create_into_a_fanout_exceeded_domain": "failed_precondition/relation_conflict_fanout_exceeded"
         },
         "rejections": [

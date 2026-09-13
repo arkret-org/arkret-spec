@@ -17,7 +17,7 @@
     },
     {
       "id": "bottom_only_for_causal_register",
-      "rule": "Only ordinary causal_register components declare a bottom policy. sequenced_state, or_set, ordered_log and counter never emit Bottom; validators reject invalid transitions separately and legitimate collection/log values remain directly observable."
+      "rule": "No cell write declares a bottom policy. Ordinary causal_register components select a deterministic winner; sequenced_state, or_set, ordered_log and counter likewise never emit generic Bottom. Explicit cross-Cell domain diagnostics remain separate from state-model resolution."
     },
     {
       "id": "family_semantics_present",

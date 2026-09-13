@@ -10617,7 +10617,7 @@
     },
     "rsvp_entry": {
       "type": "object",
-      "description": "Complete RSVP cell value. The whole entry is the causal_register set value, so every head independently carries the schedule the responder observed plus the response itself.",
+      "description": "Complete RSVP cell value. The whole entry is the causal_register set value, so the deterministic winner carries the schedule source the responder observed plus the response itself.",
       "required": [
         "schedule_basis_refs"
       ],
@@ -10625,12 +10625,12 @@
         "schedule_basis_refs": {
           "type": "array",
           "minItems": 1,
-          "maxItems": 128,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/digest"
           },
-          "description": "Non-empty schedule revision frontier the responder actually observed, as event_digest values sorted in ascending canonical UTF-8 byte order. MUST be a subset of the envelope causal_refs[], which caps it at the same 128 entries. A frontier larger than 128 MUST fail closed with schedule_frontier_too_large rather than being truncated."
+          "description": "The unique schedule revision winner the responder actually observed, retained in the existing array wire shape as exactly one event_digest. It MUST also appear in the envelope causal_refs[]."
         },
         "response": {
           "$ref": "#/$defs/rsvp_response",

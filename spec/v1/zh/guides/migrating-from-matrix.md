@@ -243,7 +243,7 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 - 协议事实由普通 Event 或 Control Move 的 `kind + payload` 表达；cell target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
 - `cell_id` 是显式 canonical cell，例如 `ak:cell:ak.component.member.state.v1:<actor-did>`。
-- 每个 cell family 在 registry 中声明 `execution`、`state_model`、`value_shape` 与 `bottom`；`bottom` 只适用于普通 `causal_register` 的真实并发冲突，安全写入使用唯一确认顺序且不得把冲突降格为 `bottom`。
+- 每个 cell family 在 registry 中声明 `execution`、`state_model` 与 `value_shape`；普通 `causal_register` 以固定 `(depth,EventId)` 产生唯一 winner。`bottom` 只保留给另行登记的跨 Cell 领域不变量诊断，安全写入使用唯一确认顺序且不得把安全故障降格为 `bottom`。
 - Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit cell id 与 projected value。
 
 **理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 cell id 与注册状态合同；普通数据按声明的 CRDT 模型收敛，安全状态由 Seal 确认序列推进，轻客户端按各自承诺验证。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
@@ -261,7 +261,7 @@ Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain d
 - 普通数据采用因果寄存器、OR-set、日志或分片计数器；接收站独立验证，未知撤销允许传播窗口。
 - 安全命令在每 Realm 唯一确认序列中执行，实际读取/写入 revision 与授权必须重验，竞争 CAS 至多一个成功。
 - Seal 只确认安全状态，不覆盖普通消息。每个 Realm 同阶段仅一个治理 Station 和唯一冻结 signer；不提供多节点容错。
-- 普通多头通过有权因果后继消解；安全状态不做无序 join，也不存在任意 Cell reset。
+- 普通寄存器按固定因果全序选择唯一 current，有权因果后继可继续编辑；安全状态不做无序 join，也不存在任意 Cell reset。
 
 ### 6.4 Component Lattice
 

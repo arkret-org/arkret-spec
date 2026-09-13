@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.16",
+  "version": "2026-09-13.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T21:15:06+08:00",
+  "generated_at": "2026-09-13T11:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -16,7 +16,7 @@
       "schema_id": "ak.schema.account_current_result.v1",
       "file": "schemas/account-current-result.schema.json",
       "status": "active",
-      "description": "Server-trusted typed current cell results, complete causal heads, versioned removal and exact baseline coverage."
+      "description": "Server-trusted typed current cell results, deterministic causal-register sources, versioned removal and exact baseline coverage."
     },
     {
       "schema_id": "ak.schema.account_data_encrypted_value.v1",

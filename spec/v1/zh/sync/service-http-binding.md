@@ -525,6 +525,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
       "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000"
     ]
   },
+  "data_basis": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "strand_id": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
     "track_name": "discussion",
@@ -585,6 +586,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
       "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000"
     ]
   },
+  "data_basis": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "strand_id": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
     "track_name": "discussion",
@@ -654,6 +656,7 @@ Realm lifecycle 操作以对应 lifecycle Control Move 被 accepted Seal 覆盖�
       "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000"
     ]
   },
+  "data_basis": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "target_ref": "ak:message:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
     "key": "+1"

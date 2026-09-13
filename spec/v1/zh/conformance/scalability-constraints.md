@@ -31,7 +31,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 完整 canonical Event Envelope | 1 MiB（1,048,576 bytes） | 见 §2.1.1。超过时 MUST reject 为 `payload_too_large`（不得改用 `schema_violation`）。正文、附件和大对象必须使用 Blob 或 [`content-types.md`](../models/content-types.md) 的 `ak.content.long_text`。 |
 | 非流式 JSON operation canonical request/response body | 8 MiB（8,388,608 bytes） | 见 §2.1.2。只适用于 operation registry 标注 `body_class=non_streaming_json` 的 operation。 |
 | 非流式 JSON HTTP message content wire bytes | 16 MiB（16,777,216 bytes） | 见 §2.1.3。MUST 在完整解析 / JCS 之前停止读取。 |
-| Account current 完整原子 entry | 7 MiB（7,340,032 bytes） | 包含 selector/target/revision/完整 heads；发布时按固定上限裁决，不能按请求或当前帧余量改变同 revision 结果。单 Realm 必需详情帧封装预留1 MiB，总计≤8 MiB；见 [current-results.md](../sync/current-results.md) §5。 |
+| Account current 完整原子 entry | 7 MiB（7,340,032 bytes） | 包含 selector/target/revision/唯一完整 value 与 causal source（适用时）；发布时按固定上限裁决，不能按请求或当前帧余量改变同 revision 结果。单 Realm 必需详情帧封装预留1 MiB，总计≤8 MiB；见 [current-results.md](../sync/current-results.md) §5。 |
 | 服务端在 read view 上附加的单 Event `unsigned` canonical JSON | 16 KiB（16,384 bytes） | 见 §2.1.1。producer / peer submit 的 Event MUST NOT 携带 `unsigned`；read view 的 service-added `unsigned` 超限 MUST 视为服务端自身错误，不得发出。 |
 | 单个 HTTP header value | 8 KiB（但专用 header 可更小） | 入口 MUST 在解析/复制到业务对象前拒绝超限值。`Idempotency-Key` 与 `X-Arkret-Request-Id` 的专用上限均为 128 ASCII chars；cursor / causal wait token header 的专用上限为 4 KiB。 |
 | HTTP header aggregate | 32 KiB | request line 之外全部 header name/value 的编码总量；超限 MUST 在认证、签名 transcript 构造和幂等缓存分配前以 `payload_too_large` 拒绝。反向代理可声明更小上限，但不得接受超过本上限的请求。 |
@@ -332,7 +332,7 @@ projection / patch / profile 只能声明相同或更低的值，不得扩大它
 | 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。每次展开还 MUST 携带有限 `[range_start, range_end)`。 |
 | 单次 recurrence expansion 扫描的 candidate period 数 | 100,000 | 只返回条数不足以封顶 CPU：永不命中 `by_*` filter 的规则会在有限返回数下无界扫描。预算耗尽时 MUST 返回带 continuation 的 `limit_exceeded` 或 partial result，不得继续扫描。 |
 | recurrence expansion continuation 的有效基线 | schedule revision + `tzdb_version` + range + 排序键 | continuation MUST 绑定这四项；任一改变后旧 cursor MUST 以 `invalid_cursor` 失效，不得在新 schedule 上续跑。见 [`../models/calendar-event.md` §4.3](../models/calendar-event.md)。 |
-| 单条 RSVP `entry.schedule_basis_refs` 数 | 128 | 与本表 `causal_refs` 上限同源：basis MUST 是 `causal_refs[]` 的子集，因此不可能更大。wire 上真的携带超过 128 项时由 schema `maxItems` 以 `schema_violation` 在 ingress 拒绝；authoring client 观察到的 schedule frontier 本身超过 128 时 MUST 以 `schedule_frontier_too_large` 在本地 fail closed，先经 schedule resolution 收敛；两种情形都不得截断 basis 或只列部分 head。见 [`../models/calendar-event.md` §8.1](../models/calendar-event.md)。 |
+| 单条 RSVP `entry.schedule_basis_refs` 数 | 1 | 保留数组 wire 形状，但固定承载唯一 schedule winner；空数组或多项均非法。见 [`../models/calendar-event.md` §8.1](../models/calendar-event.md)。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 | 单个 call 的 effective roster 数 | 1,000 | 接受会使 `ak.component.call.roster.v1` effective OR-Set 超过上限的 join MUST reject（`schema_violation`）；每条 `ak.call.state` 只携带一个 `roster_delta`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
 | `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Station 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |
@@ -421,7 +421,7 @@ Pruning 前置条件：
 
 ### 7.1 内建 cell plane 的 v1 限制
 
-内建 Cell 的 `state_model` 与 `execution` 由 canonical registry 固定。Space parent、Strand position 使用 `causal_register` 普通数据合流；多值和合流环显式 unresolved，不授予访问权。Realm 不能覆盖内建 family 的模型；未知扩展、动态 lattice 配置或私有 sequencer 模式均拒绝。
+内建 Cell 的 `state_model` 与 `execution` 由 canonical registry 固定。Space parent、Strand position 使用 `causal_register` 普通数据合流并固定选出一个 current winner；只有跨 Cell parent 图形成的环显式 `unresolved`，且不授予访问权。Realm 不能覆盖内建 family 的模型；未知扩展、动态 lattice 配置或私有 sequencer 模式均拒绝。
 
 ## 8. 错误语义
 

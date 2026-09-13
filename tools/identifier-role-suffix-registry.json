@@ -775,6 +775,30 @@
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
     },
     {
+      "file": "event-envelope.schema.json",
+      "pointer": "/properties/data_basis",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "data_basis is the protocol term for the exact open Seal against which an ordinary data Event is authored; the closed SealId schema fixes its representation."
+    },
+    {
+      "file": "seal.schema.json",
+      "pointer": "/$defs/data_closure_announcement/properties/data_basis",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "data_basis is the protocol term shared with Event publication and denotes the closed SealId basis being announced for closure."
+    },
+    {
+      "file": "seal.schema.json",
+      "pointer": "/$defs/data_closure/properties/data_basis",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "data_basis is the protocol term shared with Event publication and denotes the closed SealId basis whose grace interval has completed."
+    },
+    {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/mls_welcome_payload/properties/recipient_pairwise_actor_id",
       "terminal_categories": [
@@ -952,14 +976,6 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/result/oneOf/1/properties/heads/items/properties/value",
-      "terminal_categories": [
-        "mixed[did_core_id,typed_object_id]"
-      ],
-      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
-    },
-    {
-      "file": "account-current-result.schema.json",
       "pointer": "/$defs/entry/allOf/1/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
@@ -984,7 +1000,7 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/90/then/properties/result/properties/heads/items/properties/value",
+      "pointer": "/$defs/entry/allOf/90/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"
@@ -992,7 +1008,7 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/100/then/properties/result/properties/heads/items/properties/value",
+      "pointer": "/$defs/entry/allOf/100/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"

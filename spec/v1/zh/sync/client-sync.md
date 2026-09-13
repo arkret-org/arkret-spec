@@ -402,7 +402,7 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
 
 `current` 只按 [current results](./current-results.md) 的 selector/revision 安装。
 旧 `state` / `state_after` 容器已移除；客户端不对 timeline 应用 reducer 来计算当前状态。
-当前治理、ordinary Event 因果 heads、删除、Bottom 和可见性均由自己的 Station 裁决。
+当前治理、ordinary Event 的固定因果 winner、删除、已登记的领域 Bottom 和可见性均由自己的 Station 裁决。
 历史展示上下文不能覆盖当前结果；当前结果也不改写历史消息的端到端认证或密文。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)

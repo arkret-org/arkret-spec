@@ -48,11 +48,11 @@
           }
         }
       ],
-      "description": "An exact eligible profile Event contributing to the current display projection, selected from its active heads in canonical EventId order. It is provenance only: concurrent heads and patch ancestry are not proven complete by this one Event. The service must return profile_unavailable if no eligible and disclosable source Event exists. Its Realm is the owner PCR; this limited disclosure never permits other PCR Events."
+      "description": "The exact eligible profile Event that is the source of the deterministic current display projection. It is provenance only: retained losing writes and patch ancestry are not proven complete by this one Event. The service must return profile_unavailable if no eligible and disclosable source Event exists. Its Realm is the owner PCR; this limited disclosure never permits other PCR Events."
     },
     "resolved_actor_profile": {
       "type": "object",
-      "description": "One actor display projection from the authenticated own Station and an exact accepted profile Event contributing to it. The Station validates ordinary eligibility and causal reduction before serving it. A single patch Event does not prove the full projection, conflict freedom, historical completeness or global freshness. An independent verifier needs the complete authorized causal/evidence closure; this DTO makes no such proof claim. Neither field is a grant, selector authority or identity-resolution authority. Ordinary profile Events have no covering Seal.",
+      "description": "One actor display projection from the authenticated own Station and the exact accepted profile Event sourcing its deterministic current value. The Station validates ordinary eligibility and causal reduction before serving it. A single patch Event does not prove the full retained evidence set, patch ancestry, historical completeness or global freshness. An independent verifier needs the complete authorized causal/evidence closure; this DTO makes no such proof claim. Neither field is a grant, selector authority or identity-resolution authority. Ordinary profile Events have no covering Seal.",
       "required": [
         "actor_id",
         "actor_profile",

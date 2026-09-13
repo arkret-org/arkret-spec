@@ -156,6 +156,38 @@ actual=json.loads(path.read_text(encoding='utf-8'))
 expected=json.loads(json.dumps(actual))
 expected['$defs']={key:value for key,value in expected['$defs'].items() if not key.startswith('value_')}
 expected['$defs']={**value_defs,**expected['$defs']}
+expected['$defs']['result']={
+    'oneOf':[
+        {
+            'type':'object',
+            'properties':{
+                'status':{'const':'value'},
+                'value':{'anyOf':[]},
+                'source':{
+                    'type':'object',
+                    'required':['event_id','depth'],
+                    'properties':{
+                        'event_id':{'$ref':'./common-ids.schema.json#/$defs/event_id'},
+                        'depth':{'type':'integer','minimum':0,'maximum':9007199254740991},
+                    },
+                    'additionalProperties':False,
+                },
+            },
+            'required':['status','value'],
+            'additionalProperties':False,
+        },
+        actual['$defs']['result']['oneOf'][-2],
+        {
+            'type':'object',
+            'properties':{
+                'status':{'const':'unavailable'},
+                'reason':{'enum':['dependency_missing','limit_exceeded']},
+            },
+            'required':['status','reason'],
+            'additionalProperties':False,
+        },
+    ]
+}
 # Derive selector dispatch from the same registry as concrete value schemas.
 subject_tail=r"(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
 conditions=[]
@@ -166,15 +198,14 @@ for family,binding in bindings.items():
     patterns.append(pattern)
     targets={'object':['realm','strand','event'],'pin_scope':['realm','strand']}.get(binding['target_class'],[binding['target_class']])
     value={'$ref':'./'+binding['value_schema_ref'].removeprefix('schemas/')}
-    result={'status':{'enum':['heads' if binding['state_model']=='causal_register' else 'value','removed','unavailable']}}
-    if binding['state_model']=='causal_register':result['heads']={'items':{'properties':{'value':value}}}
-    else:result['value']=value
-    conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'pattern':pattern}}}}},'then':{'properties':{'target':{'properties':{'kind':{'enum':targets}}},'result':{'properties':result}}}})
+    result={'status':{'enum':['value','removed','unavailable']},'value':value}
+    result_constraint={'properties':result}
+    if binding['state_model']=='causal_register':result_constraint['required']=['source']
+    else:result['source']=False
+    conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'pattern':pattern}}}}},'then':{'properties':{'target':{'properties':{'kind':{'enum':targets}}},'result':result_constraint}}})
 conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'$ref':'./event-envelope.schema.json#/$defs/cell_ref','not':{'anyOf':[{'pattern':p} for p in patterns]}}}}}},'then':{'properties':{'result':{'properties':{'status':{'enum':['removed','unavailable']}}}}}})
 expected['$defs']['entry']['allOf']=conditions
-for branch in expected['$defs']['result']['oneOf'][:2]:
-    slot=branch['properties'].get('value') or branch['properties']['heads']['items']['properties']['value']
-    slot['anyOf']=[{'$ref':'#/$defs/'+name} for name in value_defs]
+expected['$defs']['result']['oneOf'][0]['properties']['value']['anyOf']=[{'$ref':'#/$defs/'+name} for name in value_defs]
 
 if '--check' in sys.argv:
     if expected!=actual:raise SystemExit('Current-result value schema drift; run generate_current_result_values.py')
@@ -182,4 +213,3 @@ if '--check' in sys.argv:
 else:
     path.write_text(json.dumps(expected,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
     print(f'Generated {len(value_defs)} closed current-result value mappings')
-

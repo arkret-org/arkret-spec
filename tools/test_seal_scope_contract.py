@@ -148,7 +148,8 @@ class SealScopeContractTest(unittest.TestCase):
 
     def test_space_appearance_and_child_policy_select_different_execution(self):
         appearance = {"kind": "ak.space.update", "payload": {"patch": {"title": "x"}},
-                      "auth_context": {}, "causal_refs": ["base"]}
+                      "auth_context": {}, "data_basis": "ak:seal:sha256:" + "a" * 64,
+                      "causal_refs": ["base"]}
         policy = {"kind": "ak.space.update", "payload": {"child_scope_policy": {}}, "seal_basis": {}}
         self.assert_shape(self.execution, appearance, True)
         self.assert_shape(self.execution, policy, True)
@@ -161,7 +162,8 @@ class SealScopeContractTest(unittest.TestCase):
         self.assert_shape(self.execution, {"kind": "ak.space.update", "payload": {}, "auth_context": {}}, False)
 
     def test_capture_outcome_does_not_reopen_capture_authority(self):
-        outcome = {"kind": "ak.call.state", "payload": {"recording_transition": {"to": "ready", "result": {}}}, "auth_context": {}}
+        outcome = {"kind": "ak.call.state", "payload": {"recording_transition": {"to": "ready", "result": {}}},
+                   "auth_context": {}, "data_basis": "ak:seal:sha256:" + "a" * 64}
         stop = {"kind": "ak.call.state", "payload": {"recording_transition": {"to": "stopped"}}, "seal_basis": {}}
         self.assert_shape(self.execution, outcome, True)
         self.assert_shape(self.execution, stop, True)
@@ -197,7 +199,7 @@ class SealScopeContractTest(unittest.TestCase):
         validator = self.validator("seal.schema.json#/$defs/command_result_digest_input")
         event_id = self.message["event_id"]
         event_digest = "sha256:" + "a" * 64
-        item = {"event_digest": event_digest, "unit_event_digests": [event_digest], "outcome": "committed", "effects": [{"cell_id": "ak:cell:ak.component.realm.profile.v1:null", "state": {"covered_event_ids": [event_id], "heads": [{"event_id": event_id, "value": None}]}}], "reason_code": None}
+        item = {"event_digest": event_digest, "unit_event_digests": [event_digest], "outcome": "committed", "effects": [{"cell_id": "ak:cell:ak.component.realm.profile.v1:null", "state": {"covered_event_ids": [event_id], "winner": {"event_id": event_id, "depth": 0, "value": None}}}], "reason_code": None}
         self.assert_shape(validator, item, True)
         without_coverage = copy.deepcopy(item)
         del without_coverage["effects"][0]["state"]["covered_event_ids"]
@@ -230,8 +232,8 @@ class SealScopeContractTest(unittest.TestCase):
         self.assertNotIn("data_view_root", schema["properties"])
 
     def test_snapshot_causal_state_requires_coverage(self):
-        validator = self.validator("realm-state-snapshot-chunk.schema.json#/$defs/heads_state")
-        state = {"heads": [{"event_id": self.message["event_id"], "value": None}]}
+        validator = self.validator("realm-state-snapshot-chunk.schema.json#/$defs/causal_register_state")
+        state = {"winner": {"event_id": self.message["event_id"], "depth": 0, "value": None}}
         self.assert_shape(validator, state, False)
         state["covered_event_ids"] = [self.message["event_id"]]
         self.assert_shape(validator, state, True)
@@ -240,6 +242,7 @@ class SealScopeContractTest(unittest.TestCase):
         approval = copy.deepcopy(self.message)
         approval['kind'] = 'ak.agent.action_approve'
         approval.pop('auth_context')
+        approval.pop('data_basis')
         approval['seal_basis'] = {'leaves': ['ak:seal:sha256:' + 'a' * 64]}
         approval['payload'] = {
             'approval_id': 'approval-test', 'agent_id': 'ak:did_core:key:z6MkTestAgent',

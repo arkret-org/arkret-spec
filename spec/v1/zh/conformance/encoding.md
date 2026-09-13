@@ -770,11 +770,11 @@ causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 
 `hlc` 缺省时在该排序键上使用 **absent-last**：缺省值大于任何 schema-valid HLC；两个事件都缺省时继续比较 `actor_id`。实现 MUST NOT 用空字符串、零 HLC、本地接收时间或 `created_at` 代填缺省值。
 
-协议状态 MUST NOT 使用 timeline 排序选择 winner。普通 ordinary Event 按其固定 causal_register/or_set/ordered_log/counter 模型求值，普通因果寄存器多头可返回 structured Bottom；安全命令按 Seal 的唯一确认顺序和 revision 检查执行为 committed/rejected，不产生 Bottom。Timeline 展示顺序与 Cell value 是两种不同 projection，不能把 timeline 中最后出现的 Event 直接当作状态 value。
+协议状态 MUST NOT 使用 timeline 排序选择 winner。普通 ordinary Event 按其固定 causal_register/or_set/ordered_log/counter 模型求值；普通因果寄存器只使用同 Cell 业务前驱推导的固定 depth 与完整 typed EventId 选择唯一当前值，不产生通用多头 Bottom。安全命令按 Seal 的唯一确认顺序和 revision 检查执行为 committed/rejected。Timeline 展示顺序与 Cell value 是两种不同 projection，不能把 timeline 中最后出现的 Event 直接当作状态 value。
 
 客户端只有在已知 causal closure 足以判断两个 Event 在 `prev_refs`、`refs[role="after"]`、`causal_refs` 与 payload 物化的 reply/reference edge 图中互不可达时，才可把 HLC 用作最终 timeline tie-breaker。若 backfill、dependency fetch 或 snapshot-assisted verification 尚未补齐到可判断互不可达，客户端 MUST 把排序标记为 provisional（例如 pending/backfilling），或使用 `created_at` / 本地接收序作为临时 UI 占位；MUST NOT 把 HLC 排序结果写入持久 projection、审计导出或任何声称“最终顺序”的视图。
 
-`causal_depth` 只用于 timeline / batch 展示排序。它的 canonical projection 定义为：在已知 causal closure 内，沿 `prev_refs ∪ refs[role="after"] ∪ causal_refs ∪ payload 物化的 reply/reference edge` 计算最长路径长度；genesis depth 为 0。若任一参与排序的 Event 缺失这些边上的 predecessor，接收方 MUST 把该 Event 的 depth 标记为 provisional，不得声称最终 timeline 顺序，也不得把该 depth 输入协议状态收敛、授权或 winner 选择。
+本节 timeline `causal_depth` 只用于 timeline / batch 展示排序，与 causal-register 的 per-Cell 固定 `depth(e,c)` 是不同投影。timeline depth 的 canonical projection 定义为：在已知 causal closure 内，沿 `prev_refs ∪ refs[role="after"] ∪ causal_refs ∪ payload 物化的 reply/reference edge` 计算最长路径长度；genesis depth 为 0。若任一参与排序的 Event 缺失这些边上的 predecessor，接收方 MUST 把该 Event 的 timeline depth 标记为 provisional，不得声称最终 timeline 顺序，也不得把该值输入协议状态收敛、授权或寄存器 winner 选择。
 
 ## 8. Cursor
 

@@ -43,7 +43,7 @@ Strand 顶层字段不承载额外模式或业务分类；默认入口由 track 
 
 一个 Realm MAY 指定**一个**默认讨论 Strand（"general" 式的常驻讨论入口）。该指针的设计裁决如下，实现 MUST 遵循：
 
-- **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ak.realm.set_default_strand` 事件投影得到（cell `ak.component.realm.set_default_strand.v1`、`causal_register`、`bottom=expose`）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。**Null 归一（normative）**：cell 当前无默认时，`default_strand_id` 的 canonical 形态 MUST 为**显式 `null`**（固定二选一，不允许 "absent" 与 "explicit null" 两种语义并存）；reducer 在投影写入与 `expected_default_strand_id` CAS 比较前 MUST 先把缺省与显式 `null` 归一为同一 `null` 值，再做 whole-value 比较。该口径与 [§8.3](#83-cell-basis-与写入事件) watch cell `expected_value` 的 whole-value compare 一致（省略 = `head_eq null`），避免 "absent vs null" 导致 CAS 比较落空。
+- **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ak.realm.set_default_strand` 事件投影得到（cell `ak.component.realm.set_default_strand.v1`、`causal_register`、固定 `(depth,EventId)` 单值 current）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。**Null 归一（normative）**：cell 当前无默认时，`default_strand_id` 的 canonical 形态 MUST 为**显式 `null`**（固定二选一，不允许 "absent" 与 "explicit null" 两种语义并存）；reducer 在投影写入与 `expected_default_strand_id` 比较前 MUST 先把缺省与显式 `null` 归一为同一 `null` 值，再做 whole-value 比较。
 - **Strand 侧只暴露派生标记。** Strand 投影（[`ProjectionStrandRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
 - **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ak.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`，见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ak.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ak.realm.set_default_strand`（risk medium，见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
 - **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。目标 cell 为初始 `null` 时省略 `expected_default_strand_id` 等价于 `head_eq null`；cell 为非初始态时该字段 MUST 提供并编译为 `head_eq`，否则 reducer MUST `failed_precondition`，不得无条件覆盖。
@@ -306,9 +306,9 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 }
 ```
 
-整个变更由单个 ordinary Event 的 reducer projection 原子写入同一 `causal_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
+整个变更由单个 ordinary Event 的 reducer projection 原子写入同一 `causal_register` cell；并发更新按固定 `(depth,EventId)` 得到唯一 current，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用确切 current source，不得依赖接收顺序静默覆盖。
 
-Strand authoring 复用 current 的 `heads[{event_id,value}]`，不定义第二份 head 镜像。
+Strand authoring 复用 current 的 `{value,source:{event_id,depth}}`，不定义第二份来源镜像。
 标题、描述、字段、track、日历都按 [通用 patch 基线规则](./event-and-patch.md#431-patch-reducer-的唯一输入normative)
 固定值与来源；多个已观察来源的显式合并由普通 patch 加签名覆盖的 `expected_state_digest` 完成。
 日历 schedule frontier 仅用于 RSVP 领域投影，不能替代对象 patch 的来源。

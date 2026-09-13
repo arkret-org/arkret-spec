@@ -96,7 +96,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
       "id": <strand.lifecycle CellRef>,
       "state": {
         "covered_event_ids": [<创建 EventId>, <归档 EventId>],
-        "heads": [{"event_id": <归档 EventId>, "value": "archived"}]
+        "winner": {"event_id": <归档 EventId>, "depth": 1, "value": "archived"}
       },
       "state_model": "causal_register"
     }
@@ -125,8 +125,8 @@ Realm 状态缓存，普通 Cell 不需要 covering Seal，安全 Cell 保留实
 `items[]` 是封闭的单分支联合，每个元素逐字为 `{"kind": "cell", "id": <cell_wire_id>, "state": <state_object>, "state_model": <registered_model>}`：
 
 - `kind` 逐字为 `"cell"`；`id` 是完整 canonical cell 引用 `ak:cell:<component>:<subject>`（[`encoding.md` §4](./encoding.md)）。
-- 每个 item 必须声明与 canonical family 相同的 `state_model`。`causal_register` 的 state 是 `{covered_event_ids,heads}`，每个 head 是 `{event_id,value}`；覆盖身份与头身份去重，head 必须属于覆盖集合。`sequenced_state` 是 `{revision_event_id,value}`，其它集合/日志/计数模型使用 schema 的完整状态形状。模型不匹配或只给显示值均拒绝。
-- 写过的 null、多值 heads 和已删除 dots 都必须保留；未写入者无 item，不能用缺席表示多头冲突。private family 不进入共享快照。每个 CellRef 在整个 manifest 唯一，按 canonical CellRef 排序分块。
+- 每个 item 必须声明与 canonical family 相同的 `state_model`。`causal_register` 的 state 是 `{covered_event_ids,winner:{event_id,depth,value}}`；覆盖身份去重，winner 必须属于覆盖集合，depth 必须可由认证依赖重算。`sequenced_state` 是 `{revision_event_id,value}`，其它集合/日志/计数模型使用 schema 的完整状态形状。模型不匹配或只给显示值均拒绝。
+- 写过的 null、落选写身份和已删除 dots 都必须保留；未写入者无 item，不能用缺席表示已写 null。private family 不进入共享快照。每个 CellRef 在整个 manifest 唯一，按 canonical CellRef 排序分块。
 - **scope 与披露权限（normative）**：Realm snapshot 只承载注册的 Realm 共享 scope（`scope_ref.kind` 为 `realm` 或 `realm_genesis`）的 Cell 与输入边界。Circle、Sidecar、actor-private 或其它受限 scope 的 Cell、原始 `replay_events`、引用及附加列表 MUST NOT 因下载 Realm snapshot 而泄露；依赖某个摘要不赋予读取该摘要所指材料的权限。依赖解析仍 MUST 遵守各既有接口的 scope、history visibility 和 capability 规则。若重算需要的材料不能合法取得，恢复保持 pending/unavailable；issuer MUST NOT 静默删去受限输入后把同一上下文声明为 complete。
 - 每个 chunk 的 `eligibility_context_digest` 必须等于 `SHA-256(JCS(manifest.eligibility_context))`；该上下文精确绑定已确认 authority refs、关闭命令和 reducer 合同；`reducer_contract_digest` 恰为所使用完整 canonical `contract-registry.json` 对象的 `SHA-256(JCS(...))`，不使用语言生成代码或 HTTP 返回值的摘要。相同 scope/上下文才可直接合并普通状态；不同上下文先合并原始证据再重算资格与 coverage。
 - `replay_events` 与 `replay_authority_refs` 是可重算材料，不是可丢弃的附件。恢复方必须取得活跃与未来关闭可能重新显露的旧值、原 producer 证明、因果及授权闭包。缺材料 pending；完整性根不能替代内容可用性。不得只凭快照签名任意删除覆盖历史。

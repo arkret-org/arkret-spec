@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.3",
+  "version": "2026-09-13.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T03:22:11+08:00",
+  "generated_at": "2026-09-13T12:36:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -807,7 +807,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "RSVP admission is capability-based rather than attendee-based, refuses cancelled events, and layers basis checks so that e2ee and plaintext Realms accept the identical canonical set: shape admission rejects without resolving anything, target admission reads only the referenced Events plaintext envelope and pends on dependency_missing, and basis validity is projection-only. It also fails closed above the 128-entry frontier bound and keeps missing, invisible, cross-Realm and non-calendar targets externally indistinguishable.",
+      "description": "RSVP admission is capability-based rather than attendee-based, refuses cancelled events, and layers basis checks so that e2ee and plaintext Realms accept the identical canonical set: shape admission requires exactly one causally carried schedule winner without resolving it, target admission reads only the referenced Event plaintext envelope and pends on dependency_missing, and basis validity is projection-only. Missing, invisible, cross-Realm and non-calendar targets remain externally indistinguishable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -820,7 +820,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "RSVP derives a typed composite subject from payload event_ref, nullable occurrence, and the explicitly sourced envelope actor_id; causal successors dominate while concurrent causal_register heads remain exposed independently of HLC.",
+      "description": "RSVP derives a typed composite subject from payload event_ref, nullable occurrence, and the explicitly sourced envelope actor_id; the fixed causal-register rank selects one winner independently of HLC and arrival order.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -833,7 +833,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "Instance heads override series fallback without unioning them into a false conflict, causal successors dominate independently of arrival order and HLC, missing keys project encrypted_unresolved instead of a fabricated status, and equal decrypted plaintext is not a conflict merely because ciphertexts differ.",
+      "description": "The instance winner overrides the series fallback without unioning the two cells, the fixed causal-register rank converges independently of arrival order and HLC, and a missing key projects encrypted_unresolved instead of fabricating a status.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -885,7 +885,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "Identity-affecting schedule edits orphan instance RSVPs and mark series RSVPs needs_reconfirmation, non-calendar updates are not schedule revisions, divergent concurrent heads block RSVP until a resolution Event, and byte-identical concurrent heads settle without picking a winner.",
+      "description": "Identity-affecting schedule edits orphan instance RSVPs and mark series RSVPs needs_reconfirmation, non-calendar updates are not schedule revisions, and concurrent schedule writes select one deterministic causal-register winner without a resolution Event.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1399,7 +1399,7 @@
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "description": "Ordinary conflicting heads remain visible and can be covered by an authorized successor with exact observed causal context. No generic reset, arbitrary Cell rewrite or safety-lineage join is permitted.",
+      "description": "Ordinary losing writes remain retained as evidence while an authorized successor that references the current source advances to a higher fixed depth. No generic reset, arbitrary Cell rewrite or safety-lineage join is permitted.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
@@ -1414,7 +1414,7 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ],
-      "description": ""
+      "description": "Two concurrent ordinary writes retain both Event identities but the fixed (depth, complete typed EventId bytes) rank produces one current winner independently of arrival and merge order; no Bottom or manual repair is produced."
     },
     {
       "vector_id": "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1",
@@ -4187,7 +4187,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "Identity-preserving causal register C/H join under one verified eligibility context. Same-value and written-null identities remain distinct, ABA and partial observation preserve unseen branches, and reclassification recomputes from retained evidence.",
+      "description": "Identity-preserving deterministic causal register under one verified eligibility context. Same-value and written-null identities remain distinct, each candidate retains a fixed causal depth, current selects the maximum (depth, canonical EventId bytes), and reclassification recomputes from retained evidence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md"
@@ -6314,7 +6314,7 @@
       "vector_id": "ak.vector.relation.conflict_resolution.v1",
       "status": "active",
       "domain": "relation",
-      "description": "ak.relation.resolve is the single registered carrier that settles one Relation primary conflict domain: retain_candidate keeps exactly one covered head with its original RelationId, void_all leaves no active edge for the covered set while preserving the facts and permitting a later lawful create. The frozen baseline is an independent data-plane commitment that binds realm, domain, member_count, canonical bytewise-ascending order and every member; a root, a bare count or seventeen inclusion proofs prove nothing. A missing, superseded, duplicate or foreign member and a retained id outside the baseline all reject the whole Move with relation_conflict_baseline_stale and zero cell writes, an update head enters the candidate set while a tombstoned Relation leaves it, and an exact replay stays idempotent. Sixteen bounds only the ordinary diagnostic: a seventeen-head group is repaired through the same carrier, a large group omits the inline list and is verified page by page over the prev_page_digest chain where a gap discards the whole material. Same-outcome concurrent resolutions keep both identities without Bottom, different-outcome ones reach Bottom and keep require_review, and one further authorized resolve heals that Bottom without a generic reset capability.",
+      "description": "ak.relation.resolve is the single registered carrier that settles one Relation primary conflict domain: retain_candidate keeps exactly one covered candidate with its original RelationId, while void_all leaves no active edge for the covered set and preserves the facts. Every resolution binds the complete frozen baseline; missing, duplicate, superseded or foreign members reject the whole Move. The ordinary diagnostic may inline at most sixteen candidates, while larger sets use the same complete paged carrier. Concurrent resolutions retain every Event identity and select one deterministic causal-register winner by (depth,EventId); a later authorized resolution references that winner and produces a higher-depth successor. Newly discovered Relation candidates outside the frozen baseline restore require_review as an explicit cross-Cell domain check, never as generic Bottom.",
       "applies_to_fixtures": [
         "state-reducer-hardening-fixture.json"
       ],
@@ -7125,7 +7125,7 @@
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "description": "The causal register domain-transition validator whose active heads carry the transition's `to`: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis, never join-time edges. Covers input-order permutation and batched merge giving one result, ABA reuse distinguishing A->B->A from A->B->A->B, a registered self-loop on a terminal state leaving later registered transitions legal, concurrent same-`to` writes keeping every identity, a missing dependency holding rather than trusting an unverified `to`, a late branch merging after the fact, concurrent different-`to` recovery still conflicting, and the MLS membership consumer reading the same state as the lattice.",
+      "description": "The causal-register domain-transition validator: `from`, `states` and `allowed_transitions` are admission checks against the write's own signed basis, never join-time edges. Covers input-order permutation, fixed depth, deterministic winner selection, ABA identity preservation, concurrent same- or different-`to` writes retaining evidence, missing dependency holding, late branch merge, and the MLS membership consumer reading the same winner as the lattice. The stable vector ID retains its historical `heads` suffix.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
         "spec/v1/zh/authz/event-auth-state-resolution.md",
@@ -7139,7 +7139,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cbs_lattice.v1"
       ],
-      "description": "Domain-transition validation accepts registered transitions against each write's signed causal basis; concurrent accepted writes remain distinct causal heads and are resolved only by an authorized successor.",
+      "description": "Domain-transition validation accepts registered transitions against each write's signed causal basis; concurrent accepted writes remain distinct retained evidence while current is the deterministic maximum fixed-rank winner.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
@@ -7151,7 +7151,7 @@
       "applies_to_fixtures": [
         "cbs-lattice-fixture.json"
       ],
-      "description": "Safety commands compare exact revisions derived from signed basis, including ABA; ordinary commands validate only their signed causal basis and retain concurrent heads.",
+      "description": "Safety commands compare exact revisions derived from signed basis, including ABA; ordinary commands validate only their signed causal basis, retain concurrent writes as evidence, and expose the fixed causal-register winner.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]

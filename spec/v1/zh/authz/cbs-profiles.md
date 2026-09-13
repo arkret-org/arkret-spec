@@ -3,14 +3,14 @@ title: 安全域确认与跨域事务
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 本文规范关键字按 [规范语言](../conformance/normative-language.md) 解释。
 
 ## 1. 安全域与配置
 
-v1 的安全域标识就是 RealmId。一个 Realm 的权限、成员、硬唯一槽位、密钥访问和 MLS 安全状态共享一条确认序列。Circle 仍按 scope 隔离授权和读权限，但不产生另一条可能与父 Realm 撤销并行生效的安全序列。不同 Realm 的确认独立；普通数据完全不进入该序列。不能根据 Event 名称推测是否需要 Seal，必须对 canonical registry 的有效 write 求值。
+v1 的安全域标识就是 RealmId。一个 Realm 的权限、成员、硬唯一槽位、密钥访问和 MLS 安全状态共享一条确认序列。Circle 仍按 scope 隔离授权和读权限，但不产生另一条可能与父 Realm 撤销并行生效的安全序列。不同 Realm 的确认独立。普通业务值不进入安全序列的 `delta/state_root`，但 ordinary Event 身份按 §5.4 由同一 Seal 序列周期收录并关闭数据基准。不能根据 Event 名称推测是否需要安全执行，必须对 canonical registry 的有效 write 求值。
 
 `notary_configuration` 是 closed `{signer, max_clock_error_ms}`；signer 是唯一冻结 descriptor，没有配置 kind、签署者数组或容错参数。`notary` 保留为治理签署权的机器名称，不表示另一个 service_kind。配置由 `realm.create` 或已确认 `realm.notary` Event 身份引用。每个 Realm 同一阶段只有一个治理 Station 执行安全命令、确定顺序与耐久结果；其它 Station 是该 Realm 的治理结果消费 Station。一个 Station 对不同 Realm 可以承担不同职责。
 
@@ -24,9 +24,9 @@ v1 的安全域标识就是 RealmId。一个 Realm 的权限、成员、硬唯�
 
 Seal 的 `realm_id/configuration_ref/notary_seq/predecessor_ref` 唯一绑定安全位置。genesis 高度 0 且 `predecessor_ref=null`；其它高度必须携同 Realm 唯一已确认 predecessor，且高度恰为 predecessor 加一。Seal 的内容地址输入是去除 `id` 与 `notary_signature` 后的完整 canonical body；更改 command 顺序、结果、前态、配置或任何关闭证据都会改变 Seal digest。`notary_signature` 是一个 closed JWS signature；签名 payload 恰为 `JCS({context:"ak.seal.commit.v1",seal_digest})`。配置与位置已经由完整 body 绑定，不重复携带。没有 view、阶段票据或签名数组。
 
-`command_results` 给出原子 command unit 的实际执行顺序。每项 `unit_event_digests` 是已登记 unit 的确切成员顺序，`event_digest` 等于首成员；单命令为单元素数组。bootstrap/cascade 只能使用各自已登记的 unit 验证器，任意批次不能自行组成 unit。整个确认历史中同一 Event 只进入一个 unit。治理 Station与选择独立重放的审计者必须取得并验证所有命令的原始 Event、依赖与结果；治理结果消费 Station按 §9 认证所需结论，不重算已经确认的历史执行。`result_digest` 按 seal schema 的封闭投影从实际注册写入后的完整状态与 reason_code 重算，禁止哈希任意 HTTP response。失败 effects 为空；成功 effects 按 CellRef 排序，每个触及 Cell 只保留执行完该 unit 全部有序 write 后的一个完整 state，包括 bootstrap D 初始值。每个 effect.state 使用该 Cell 固定模型在 snapshot chunk schema 中的完整 state 形状：S 为 `{revision_event_id,value}`，D causal_register 为 `{covered_event_ids,heads}`，其它 D 模型保留完整集合、墓碑、条目或 issuer 分量；不得把 D 改写成单 revision 或仅业务显示值。封闭摘要输入见 seal schema 的 `command_result_digest_input`，同形空数组仍由 canonical family 唯一解释。命令在其顺序位置重新执行授权、确切前置 revision、领域约束和全部写入。`delta` 恰为本 Seal committed units 内所有 security 成员摘要的 canonical sorted set；bootstrap D 成员共享原子 outcome 但不进入该集合；普通数据与失败命令不在其中。
+`command_results` 给出原子 command unit 的实际执行顺序。每项 `unit_event_digests` 是已登记 unit 的确切成员顺序，`event_digest` 等于首成员；单命令为单元素数组。bootstrap/cascade 只能使用各自已登记的 unit 验证器，任意批次不能自行组成 unit。整个确认历史中同一 Event 只进入一个 unit。治理 Station与选择独立重放的审计者必须取得并验证所有命令的原始 Event、依赖与结果；治理结果消费 Station按 §9 认证所需结论，不重算已经确认的历史执行。`result_digest` 按 seal schema 的封闭投影从实际注册写入后的完整状态与 reason_code 重算，禁止哈希任意 HTTP response。失败 effects 为空；成功 effects 按 CellRef 排序，每个触及 Cell 只保留执行完该 unit 全部有序 write 后的一个完整 state，包括 bootstrap D 初始值。每个 effect.state 使用该 Cell 固定模型在 snapshot chunk schema 中的完整 state 形状：S 为 `{revision_event_id,value}`，D causal_register 为 `{covered_event_ids,winner:{event_id,depth,value}}`，其它 D 模型保留完整集合、墓碑、条目或 issuer 分量；不得把 D 改写成单 revision 或仅业务显示值。封闭摘要输入见 seal schema 的 `command_result_digest_input`，同形空数组仍由 canonical family 唯一解释。命令在其顺序位置重新执行授权、确切前置 revision、领域约束和全部写入。`delta` 恰为本 Seal committed units 内所有 security 成员摘要的 canonical sorted set；bootstrap D 成员共享原子 outcome 但不进入该集合；普通数据与失败命令不在其中。
 
-没有有效 security write 的普通命令禁止送入 Seal。bootstrap 的 D 初始值作为已登记安全创建事务的原子结果存在，不能把后续普通更新借此升级为安全命令。普通提交不得等待新的 Seal、KeyView、完整性根、周期签名或原账号 Station。
+没有有效 security write 的普通命令禁止成为 `command_results`。bootstrap 的 D 初始值作为已登记安全创建事务的原子结果存在，不能把后续普通更新借此升级为安全命令。普通 live 提交不得等待新的 Seal、KeyView 或业务值 root；它绑定一个既有开放 `data_basis`，由治理收录 outbox 异步进入后续数据 publication Seal。
 
 相同基底的竞争命令最多一个通过身份前置条件。相同业务值、释放后重新成为 null、重复 epoch 号不能替代 revision 身份。拒绝无业务效果；exact retry 返回已持久结果。超时只表示结果未知，调用者查询同一命令，不产生另一个可能重复执行的命令。
 
@@ -96,7 +96,23 @@ frontier 必须是该依赖/action 关闭边界的完整 Event heads；其 prev_
 
 设配置声明治理 Station 的可信 UTC 时钟误差至多 ε=`max_clock_error_ms`。冻结 anchor 或带显式期限的安全命令时，治理 Station MUST 确认本机可信时钟与 `sealed_at` 相差不超过 ε，且所有被锚定/批准 Event 已存在；整个 `[sealed_at-2ε,sealed_at+2ε]` 必须落在资格有效窗内。时钟不能保证误差界就不得出具该事实。重试只恢复已耐久冻结的同一 body 和存在观测，不对新到数据倒签。
 
-这仅是对可信治理执行者观测的认证，不证明实际创建时间，也不提供独立多方时间见证。没有合格 anchor 的有限期数据可在 live 有效窗暂时接纳，稳定历史保持待证；完整关闭/到期证据排除其资格时进入 quarantine。producer 时间、普通 IngressReceipt 或期后新建的倒签 Seal 均不能替代。无期限普通聊天不需要 anchor 或周期 Seal。
+这仅是对可信治理执行者观测的认证，不证明实际创建时间，也不提供独立多方时间见证。没有合格 anchor 的有限期数据可在 live 有效窗暂时接纳，稳定历史保持待证；完整关闭/到期证据排除其资格时进入 quarantine。producer 时间、普通 IngressReceipt 或期后新建的倒签 Seal 均不能替代。无期限普通聊天不需要期限 anchor，但仍适用下一节统一的数据身份收录与基准关闭。
+
+### 5.4 普通数据收录与基准关闭
+
+ordinary Event（已登记原子 bootstrap unit 内的初始 D 成员除外）签名携带 `data_basis`，其值是同 Realm 一个已确认 SealId。该 basis 建立数据区间身份，不授予写权、不代替授权来源、也不要求它是 receiver 当时看到的最新 Seal；只要该 basis 尚未由已确认 `data_closures` 关闭，合法离线写仍可接纳。已关闭 basis 上后到 Event 只有在最终允许集合中有 authenticated inclusion 时 eligible，有 authenticated non-membership 时 quarantined，缺完整证明时 pending。
+
+Seal 的数据字段与安全字段严格分离：`data_delta[]` 是本 Seal 新收录 ordinary Event digest；`data_event_set_root` 是 predecessor 累计数据身份集合根；`data_closure_announcements[]` 公告将关闭的旧 basis 与最早关闭时刻；`data_closures[]` 在宽限后冻结该 basis 的 allowed-set commitment。`data_delta` 不进入 `delta`、`control_event_set_root`、`state_root` 或 `command_results`。同一 Event 身份最多首次收录一次，exact retry 返回原结果；已收录身份不得从累计集合移除。
+
+数据目标批次周期固定为 `T=300000 ms`，公告宽限固定为 `G=300000 ms`，二者不得复用或由 Realm 改写为其它 profile。首个已完整验证且尚未收录的 ordinary Event 到达治理 Station 时，在与接收记录同一持久边界登记 dirty 和最迟批次时刻；后续来件不得重置最老时限。正常服务条件下治理 Station在 T 内签发收录 Seal，并可公告关闭一个位于该 Seal 已确认前缀内的旧 basis。公告的最早关闭时刻必须保守证明距公告 Seal 认证时间至少 G；高频安全 Seal 可搭载到期工作但不得缩短 G。
+
+公告与其最终关闭义务必须持久化。即使宽限后没有新 Event，也须产生一个具有关闭效果的收尾 Seal；收尾 Seal 自身不被自动公告关闭，最后义务完成后恢复空闲。无新待收录身份、无未完成公告、无安全/治理工作时不得生成 heartbeat 或整点空 Seal。pending、重复、查询、单纯本地时间经过不新建 dirty。治理停机恢复后续接原冻结义务，不补造停机期间的一串空 Seal。
+
+冻结 allowed set 与接收写入必须使用同一串行化边界。治理 Station 已返回“完整验证并耐久承诺纳入本轮关闭集合”的结果后，关闭不得遗漏该身份；只保存缺依赖请求不属于该成功。若关闭先提交，后来请求按已关闭证明分类，不能补写冻结集合。收尾时可同时收录新身份并为其尚未被公告覆盖的新 basis 建立下一项关闭义务，但不得推迟已有公告期限。
+
+累计集合和每个冻结 allowed set 使用完整 typed digest、canonical 排序与 RFC 6962 commitment。服务通过登记的有界分页 material 接口返回 root、member_count、页 continuation 及 inclusion/non-membership 完整性证明；只给若干 inclusion、最大 actor_seq、时间戳、cursor 或本地 scan 不证明排除。material 的 scope disclosure 与原 Event 可见性相同；Seal 元数据读取权不获得私有 Circle/Event 名单。producer/SDK 使用持久 outbox 向治理 Station 送达 exact bytes 并取得可验证收录结果；第三方接收 Station 没有强制转发义务，也不得替用户隐式 rebase、换 basis 重签或重发通知。
+
+数据关闭只冻结旧 basis 的允许身份集合，不证明实际创作时间，也不保证已收录 Event 永久具备授权资格。所有 authorization closure、有限期、执行依赖、已知 revoke 与后到历史重分类继续取交集。正常新编辑绑定仍开放的确认 Seal basis；某个来源 Event 位于旧已关闭集合不等于其合法后继必须也属于该旧集合。
 
 ## 6. 跨 Realm 原子性
 

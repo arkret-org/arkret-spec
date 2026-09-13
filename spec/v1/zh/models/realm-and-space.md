@@ -589,7 +589,7 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 - `ak.space.restore`：仅允许 `archived -> active`；不级联 restore。
 - `ak.space.tombstone`：不可逆；在它自己签名的 accepted Seal basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent cell 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical cells。
 - 上述准入检查 MUST 使用指定 accepted Seal basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved cell 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
-- v1 不为 Space lifecycle 与所有可能指向它的 parent/position cell 新建跨 cell 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/cell 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写仍使用原 parent/position cell 的完整 current heads。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
+- v1 不为 Space lifecycle 与所有可能指向它的 parent/position cell 新建跨 cell 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/cell 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写使用原 parent/position cell 的唯一 current source。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
@@ -599,7 +599,7 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 `expected_parent_space_id` / 已登记 precondition 只校验签名因果基底，不是全局 CAS。写入在该基底内验证存在性、同 Realm、可读 scope、自指及无环；缺证明 pending，不以本地当前图替换基底。不可读 parent 对外返回既有 `space_parent_unreadable`，已验证跨 Realm 返回 `space_realm_mismatch`。
 
-合流后先求每个 Space 的唯一 settled parent，多头保留为 unresolved；再将有向环内的所有 parent 边标记为 unresolved，不按摘要或到达顺序选边。unresolved 不得伪装 root，也不得产生有效 contains。后续有权写观察并覆盖相应 heads 后可修复。指向不可见、终态或不兼容 scope 的目标不产生 live navigation，但保留原始因果事实。
+合流后先按固定 `(depth,EventId)` 求每个 Space 的唯一 current parent；再将有向环内的所有 current parent 边标记为领域 `unresolved`。该环诊断不得反向重选寄存器值，不得伪装 root，也不得产生有效 contains。后续有权写引用各自 current source 后可修复。指向不可见、终态或不兼容 scope 的目标不产生 live navigation，但保留原始因果事实。
 
 parent 只是导航关系，不授予读取权，不修改 `scope_circle_id`、Realm、creator 或安全 policy。普通对象 archive/restore 的写权限来自独立安全授权；restore 不能要求对象先 active。terminal 仍不可逆，不能通过 reparent 复活。
 
@@ -614,7 +614,7 @@ execution   := data
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
-`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据，不携带 `seal_basis`。`expected_position` 与 `from_space_id` 只校验签名因果基底，不能把离线并发变成唯一成功的 CAS。多个不同位置 heads 为 unresolved，仅一个合法 settled head 产生 effective placement/contains。后继观察所有待解决 heads 后可以收敛。WIP 在各自基底校验；并发合流超限呈现明确的超限诊断，不能按到达顺序撤销某一合法写来伪装硬容量保证。
+`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据，不携带 `seal_basis`。`expected_position` 与 `from_space_id` 只校验签名因果基底，不能把离线并发变成唯一成功的 CAS。多个并发位置写均可被接受，但该 position cell 始终按普通 `causal_register` 的固定 `(depth,EventId)` rank 产生唯一 current winner；只有 winner 产生 effective placement/contains，落选 Event 仅保留历史与 provenance，不进入第二个 UI “冲突列”。后继引用当前 winner 即产生更高 depth 的正常移动，无需观察或人工修复全部落选分支。WIP 在各自签名基底校验；合流后由同一固定 winner 计算当前占用，不得按到达顺序撤销某一合法写来伪装硬容量保证。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 

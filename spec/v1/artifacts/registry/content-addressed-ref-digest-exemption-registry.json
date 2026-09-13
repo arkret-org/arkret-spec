@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.8",
+  "version": "2026-09-13.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T14:19:50+08:00",
+  "generated_at": "2026-09-13T11:30:00+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -575,6 +575,37 @@
         ]
       },
       "preimage": "Merkle root of control-plane cell state; predecessor_ref identifies the prior Seal and commits a different preimage",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.seal_data_event_set_root.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/seal.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "data_event_set_root",
+        "content_addressed_refs": [
+          "id",
+          "predecessor_ref"
+        ]
+      },
+      "preimage": "Cumulative Merkle root over every confirmed ordinary data Event published by this Seal lineage; id addresses this Seal and predecessor_ref addresses the prior Seal.",
+      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.unsigned_seal_data_event_set_root.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/seal.schema.json",
+        "json_path": "$.$defs.unsigned_seal.properties",
+        "digest_field": "data_event_set_root",
+        "content_addressed_refs": [
+          "predecessor_ref"
+        ]
+      },
+      "preimage": "Cumulative Merkle root over every confirmed ordinary data Event published by this Seal lineage; predecessor_ref addresses the prior Seal.",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     }
   ]

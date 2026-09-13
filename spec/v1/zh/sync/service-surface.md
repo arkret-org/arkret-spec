@@ -671,15 +671,15 @@ GET /_arkret/self/realm-state-snapshot/head?realm_id=<id>
 
 用于拿到当前推荐 snapshot manifest：响应即完整 `ak.schema.realm_state_snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ak.self.realm_state_snapshot.read.manifest_head.v1` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
 
-### 5.3 Event / Seal 状态与 Bottom 暴露
+### 5.3 Event / Seal 状态与确定性 current
 
-Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`data_local` / `data_observed` / `control_pending` / `control_sealed` / `failed_precondition` / `failed_plane` / `failed_bottom` / `rejected_seal` / `fork_quarantine`。
+Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致。`failed_bottom` 只保留给已登记的跨 Cell/领域不变量诊断，不是普通 `causal_register` 的合流结果。
 
-普通 `causal_register` 的多头 MUST 完整保留；通用 current result 返回 `status=heads`，需要单值却不能确定结果的消费面返回 `unavailable` 并附冲突诊断。不得把多头当成权限或到达顺序赢家。
+普通 `causal_register` 的所有合资格写入身份与固定 depth MUST 作为回放证据保留；业务 current MUST 按 `(depth,EventId)` 返回唯一 `status=value` 及 source，客户端不得重新按到达顺序、HLC 或显示字符串选值。
 
-诊断的唯一 closed shape 见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)：固定 `kind="conflict"`、ordinary `cell_ids`、按 Event id 排序的 typed `heads[{event_id,value}]` 与可选 `escalated_at`。它不是 Cell 状态、命令 outcome 或安全恢复载体；不得使用额外的 `cells`、`basis`、平行 `event_ids`、free-form details 或 Seal 镜像。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
+领域诊断的 closed shape 仍见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；它不是普通寄存器状态、命令 outcome 或安全恢复载体。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
 
-`event_state="fork_quarantine"` 表示争议 Event 被隔离，按 [Actor 分叉规则](../authz/event-auth-state-resolution.md) §15 处理；它不允许重写已经确认的安全历史。`bottom_escalation_after_ms` 只控制普通冲突的带外提示；超时不选赢家、不扩权。
+`event_state="fork_quarantine"` 表示具有可验证 collision、over-fork 或关闭排除证据的 Event 被隔离，按 [Actor 分叉规则](../authz/event-auth-state-resolution.md) §15 处理；普通合法 sibling 的排序落选不得使用该状态。
 
 `/_arkret/self/account/subscribe` / `/_arkret/self/events` 只在各自 schema 已登记的位置携带诊断，精确字段由 OpenAPI 与对应响应类型决定。
 

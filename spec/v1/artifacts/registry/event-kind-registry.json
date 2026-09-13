@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.15",
+  "version": "2026-09-13.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T19:42:00+08:00",
+  "generated_at": "2026-09-13T12:36:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -93,7 +93,7 @@
     "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Signal payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-    "Each active shared reducer kind declares exact cell_writes with cell_family, cell_subject, execution, state_model, value_shape, closed condition and effect_projection. Effective security writes make the complete Event atomic and require safety finality; otherwise it is ordinary data. Conditional kinds omit static sealed. sequenced_state has no unordered join or bottom. Causal writes retain distinct identities, including written null. Conditions are pure functions of signed Event fields; unknown sources fail closed. Closed pre_state_requirements are checked on the registered execution basis and failure leaves zero effects.",
+    "Each active shared reducer kind declares exact cell_writes with cell_family, cell_subject, execution, state_model, value_shape, closed condition and effect_projection. Effective security writes make the complete Event atomic and require safety finality; otherwise it is ordinary data. Conditional kinds omit static sealed. sequenced_state has no unordered join. Causal writes retain distinct identities, including written null, and select one current value by fixed same-Cell causal depth plus complete Event identity. Conditions are pure functions of signed Event fields; unknown sources fail closed. Closed pre_state_requirements are checked on the registered execution basis and failure leaves zero effects.",
     "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no duplicate agent or controller coordinate. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
     "Every write with transition_contract MUST resolve by cell_family to exactly one closed domain transition contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
     "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBS fields, reducer_input, or shared cell_contracts.",
@@ -104,7 +104,7 @@
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by tools/artifact_lint; no active durable reducer-input event may lack an admission source (fail-closed).",
     "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate.",
     "Every active standard Event kind MUST declare exactly one payload_schema_ref. The reference MUST resolve to an existing schema location and MUST equal the single Event Envelope payload dispatch for that kind. Consumers MUST NOT infer payload schemas from Event.kind spelling, schema-name conventions, or fallback definitions.",
-    "For every v1 built-in reducer-input Event kind, execution, state_model, value_shape and causal_register bottom policy are frozen registry authority. Realm extension profiles MUST NOT shadow, override or reinterpret a built-in cell family.",
+    "For every v1 built-in reducer-input Event kind, execution, state_model and value_shape are frozen registry authority. The causal_register deterministic ordering is global v1 protocol behavior, not a per-family policy. Realm extension profiles MUST NOT shadow, override or reinterpret a built-in cell family.",
     "ak.agent.action_approve is a target-Realm security command. The controller and exact agent authority, requested action, target, full approved Event identity, finite window, and all current authority dependencies are checked at execution. Its approval_consumption Cell must be absent; no later write or nonce release is allowed. The approved ordinary Event has no forward reference to the approval command or its Seal. The submission publication_event carries its immutable bytes. Missing evidence is pending, not permission to publish."
   ],
   "payload_schema_contract": {
@@ -496,7 +496,6 @@
         {
           "cell_family": "ak.component.realm.profile.v1",
           "cell_subject": null,
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -958,7 +957,6 @@
         {
           "cell_family": "ak.component.realm.set_default_strand.v1",
           "cell_subject": null,
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -1451,7 +1449,6 @@
             "field": "envelope.event_id",
             "kind": "id:circle"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -1613,7 +1610,6 @@
             "kind": "id:circle",
             "field": "payload.circle_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -2593,7 +2589,6 @@
             "kind": "id:strand",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -2625,7 +2620,6 @@
             "field": "payload.target_ref",
             "kind": "id:strand"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -2660,7 +2654,6 @@
             "kind": "id:strand",
             "field": "payload.target_ref"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition",
             "from": {
@@ -2696,7 +2689,6 @@
             "kind": "id:strand",
             "field": "payload.target_ref"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition",
             "from": {
@@ -2732,7 +2724,6 @@
             "field": "payload.strand_id",
             "kind": "id:strand"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -2764,7 +2755,6 @@
             "field": "payload.target_ref",
             "kind": "id:strand"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -2810,7 +2800,6 @@
             ],
             "kind": "tuple"
           },
-          "bottom": "expose",
           "value_projection": {
             "kind": "object",
             "members": [
@@ -2843,7 +2832,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Rank-only causal update of the same placement cell as ak.strand.move. The signed basis list_space_id must match the projected list_space_id; concurrent placement writes remain visible until an authorized successor observes them. This ordinary placement never grants scope access.",
+      "payload": "Rank-only causal update of the same placement cell as ak.strand.move. The signed basis list_space_id must match the projected list_space_id; concurrent writes select the fixed causal-register (depth,EventId) winner while losing Events remain historical provenance. This ordinary placement never grants scope access.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_reorder_payload",
       "id_source": "reference",
       "plane": "data",
@@ -2866,7 +2855,6 @@
             ],
             "kind": "tuple"
           },
-          "bottom": "expose",
           "value_projection": {
             "kind": "object",
             "members": [
@@ -2922,7 +2910,6 @@
             ],
             "kind": "tuple"
           },
-          "bottom": "expose",
           "value_projection": {
             "kind": "object",
             "members": [
@@ -2968,7 +2955,6 @@
             ],
             "kind": "tuple"
           },
-          "bottom": "expose",
           "condition": {
             "kind": "field_absent",
             "field": "payload.level"
@@ -3004,7 +2990,6 @@
             "kind": "id:space",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3048,7 +3033,6 @@
             "kind": "id:space",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3069,7 +3053,6 @@
             "kind": "id:space",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3104,7 +3087,6 @@
             "kind": "id:space",
             "field": "payload.space_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -3164,7 +3146,6 @@
             "field": "payload.space_id",
             "kind": "id:space"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3196,7 +3177,6 @@
             "kind": "id:space",
             "field": "payload.space_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition",
             "from": {
@@ -3232,7 +3212,6 @@
             "kind": "id:space",
             "field": "payload.space_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition",
             "from": {
@@ -3268,7 +3247,6 @@
             "kind": "id:space",
             "field": "payload.space_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition_to",
             "to": {
@@ -3410,7 +3388,6 @@
             "kind": "id:message",
             "field": "payload.message_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3567,7 +3544,6 @@
               }
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3736,7 +3712,6 @@
             "kind": "id:morph",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3768,7 +3743,6 @@
             "kind": "id:morph",
             "field": "payload.target_ref"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -3803,7 +3777,6 @@
             "kind": "id:morph",
             "field": "payload.target_ref"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition",
             "from": {
@@ -3839,7 +3812,6 @@
             "kind": "id:morph",
             "field": "payload.target_ref"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition",
             "from": {
@@ -3875,7 +3847,6 @@
             "field": "payload.morph_id",
             "kind": "id:morph"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3908,7 +3879,6 @@
             "kind": "id:relation",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -3940,7 +3910,6 @@
             "kind": "id:relation",
             "field": "payload.relation_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -3972,7 +3941,7 @@
         "when payload.baseline.member_event_ids is present it MUST equal that rebuilt set element by element in canonical bytewise-ascending order; member_count above 64 omits the inline list and is proven by members_digest alone, and the ordinary 16-head diagnostic bound MUST NOT be applied to this evidence",
         "a retain_candidate outcome names a retained_event_id that belongs to this Move's own baseline; a name outside the covered set is rejected with failed_precondition reason=relation_conflict_baseline_stale",
         "the actor independently holds the registered ak.relation.resolve capability over every candidate in the covered group and its scope; holding ak.relation.update on one member never authorizes adjudicating the others",
-        "Relation conflict resolution is an ordinary causal successor. It observes all intended heads and does not reset security state or invoke an unregistered recovery authority."
+        "Relation conflict resolution is an ordinary causal successor. It observes the complete intended domain candidate set and does not reset security state or invoke an unregistered recovery authority."
       ],
       "id_source": "not_an_object_id",
       "plane": "data",
@@ -3989,7 +3958,6 @@
               }
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -4021,7 +3989,6 @@
             "kind": "id:relation",
             "field": "payload.relation_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "transition_to",
             "to": {
@@ -4057,7 +4024,6 @@
               "payload.item_ref"
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -4089,7 +4055,6 @@
             "kind": "string",
             "field": "payload.container_ref"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -4122,7 +4087,6 @@
             "kind": "id:view",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -4154,7 +4118,6 @@
             "field": "payload.view_id",
             "kind": "id:view"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -4189,7 +4152,6 @@
             "field": "payload.view_id",
             "kind": "id:view"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -5200,7 +5162,6 @@
             "kind": "id:actor_profile",
             "field": "envelope.event_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -5233,7 +5194,6 @@
             "field": "payload.target_ref",
             "kind": "id:actor_profile"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -5272,7 +5232,6 @@
               "payload.target_ref"
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -7435,7 +7394,6 @@
               "payload.recording_transition.recording_id"
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -7501,7 +7459,6 @@
               "payload.transcript_transition.recording_id"
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -7682,7 +7639,6 @@
               "payload.recording_id"
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -7749,7 +7705,6 @@
               "payload.recording_id"
             ]
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {
@@ -7799,7 +7754,6 @@
             "field": "payload.call_id",
             "kind": "typed_id"
           },
-          "bottom": "expose",
           "effect_projection": {
             "kind": "set",
             "value": {

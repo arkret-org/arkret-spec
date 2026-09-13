@@ -103,8 +103,8 @@ confidential_discussion_of
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 只有一个 settled parent 时才投影 active Board parent，多头或环为 unresolved。**Truth source 是 causal_register cell `ak:cell:ak.component.space.parent.v1:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 cell 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Move，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
-| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 的位置只有一个 settled head 时才投影 active List；并发位置为 unresolved。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 causal_register cell `ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Move**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 的 parent `causal_register` 固定选出一个 current winner，只有 winner 且未形成跨 Cell 环时才投影 active Board parent；环属于领域 `unresolved`，不得反向重选寄存器值。**Truth source 是 cell `ak:cell:ak.component.space.parent.v1:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 cell 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Move，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
+| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 的 position cell 固定选择一个 `(depth,EventId)` winner，且只向该 winner 指向的 active List 投影。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 causal_register cell `ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Move**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
 | `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` | 按完整 tuple 去重；普通包含记录不自动引入额外数量限制或级联规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
@@ -266,22 +266,22 @@ members_digest = H( UTF8("ak-relation-conflict-members-v1\u0000") || JCS({
 
 Receiver MUST 在本 Move 的冻结 predecessor view 下，从自己已接纳的 Relation 历史独立重建该域的完整活跃候选集合，按 §6.3 复算承诺，并要求与 `payload.baseline.member_count`、`members_digest` 逐字节相等；`member_event_ids` 存在时还要求与重建集合逐 EventId、逐顺序相等。缺项、多带已被取代的旧 head、重复项、混入其它域的成员，或 `retain_candidate` 指向名单外的 EventId，MUST 以 `failed_precondition`（`relation_conflict_baseline_stale`）拒绝**整条 Move 且零 cell 写入**。提交前若发现当前可验证组已变化，author MUST 重新 query、重新签发；MUST NOT 先应用再补验，也 MUST NOT 用 receiver 当前数据库快照替代签名基线。
 
-所谓 current 是**这份可验证基线下的 current**：本合同 MUST NOT 被解释为声称知道整个网络尚未送达的事件。已验证的历史裁决只对其冻结覆盖集产生效果；后来发现的、未被覆盖的并发分支改变当前投影并重新触发 `require_review`，MUST NOT 重写旧裁决的历史含义；已被覆盖的旧分支重复到达 MUST NOT 复活它。重放、增量处理与分片合并在相同有效事实与证据下 MUST 得到相同 heads 与相同结果。
+所谓 current 是**这份可验证基线下的 current**：本合同 MUST NOT 被解释为声称知道整个网络尚未送达的事件。已验证的历史裁决只对其冻结覆盖集产生效果；后来发现的、未被覆盖的并发分支改变当前投影并重新触发 `require_review`，MUST NOT 重写旧裁决的历史含义；已被覆盖的旧分支重复到达 MUST NOT 复活它。重放、增量处理与分片合并在相同有效事实与证据下 MUST 得到相同领域候选集合、相同 resolution winner 与相同结果。
 
 同一 canonical Event 的 exact replay 按 EventId 幂等（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）：它已生效后重传 MUST NOT 因为它自己的效果改变了当前 heads 就被判成一次新的 stale 提交，也 MUST NOT 报 `relation_conflict_baseline_stale`。新的 EventId 则必须按本节重新验证。
 
 ### 6.5 并发裁决与再解决（normative）
 
-组裁决数据状态按因果寄存器（`causal_register`，`bottom=expose`）登记，合并规则见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)：
+组裁决数据状态按因果寄存器（`causal_register`）登记，合并规则见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)：
 
-- 结果**相同**的并发 resolution 派生同一 canonical cell value，保留各自 Event 身份，不进入 `⊥`；后继裁决仍须覆盖全部身份。
-- 结果**不同**的真正并发 resolution MUST NOT 选 winner：cell join 到 `⊥`，依赖它的读路径 fail closed，该域的 Relation 查询继续 `require_review`。
-- `ak.relation.resolve` MUST NOT 对自己的 `ak.component.relation.conflict_resolution.v1` cell 声明 `head_eq`；因此在覆盖完整冲突 heads 与仍然有效的数据候选之后，一次本来就有权的普通 `ak.relation.resolve` 可以以含异值 heads 的签名 basis 再次解决该域并收敛回单值。本 family MUST NOT 留下只能靠本地管理员清库才能离开的死状态。
-- 上一次裁决的取代关系仅由本 Event 签名因果 basis 中观察到的完整 heads 承担；并发新 heads 不被覆盖，payload MUST NOT 另设一份"被取代的历史裁决列表"形成第二真相源。
+- 结果相同或不同的并发 resolution 都保留各自 Event 身份，并按固定 `(depth,EventId)` 选择唯一 resolution winner；不得按接收顺序、HLC 或结果内容选边。
+- 每条 resolution 仍必须独立覆盖完整、冻结的 Relation 领域候选集合；固定 winner 只决定多个合法裁决中哪个当前生效，不放宽 baseline 完整性。
+- 后续 `ak.relation.resolve` 引用当前 resolution winner，产生更高 depth 并自然取代它；payload MUST NOT 另设一份"被取代的历史裁决列表"形成第二真相源。
+- 新发现且不在 winner 冻结 baseline 中的 Relation 领域候选仍会重新触发 `require_review`；这属于跨 Cell 领域完整性检查，不是 resolution Cell 的通用多头 Bottom。
 
 **17-head 恢复（normative）**：超过普通诊断上限的域按同一 carrier 修复。author 通过 `ak.self.relation_conflicts.read.candidates.v1` 取得 17 条（或更多）成员的完整材料，按 §6.3 复算 `members_digest`，内联名单（`member_count ≤ 64`）或仅携承诺（`≥ 65`），再提交一条 `ak.relation.resolve`。实现 MUST NOT 因为普通 fanout 上限先拒绝所有修复材料，也 MUST NOT 把 16 复制成修复证据的上限。
 
-§6.2–§6.5 的保留／全部作废、基线承诺、缺项与异组成员拒绝、17-head 恢复、大集合分页链、exact replay、同值／异值并发裁决与 `⊥` 自愈由 `ak.vector.relation.conflict_resolution.v1` 固化。
+§6.2–§6.5 的保留／全部作废、基线承诺、缺项与异组成员拒绝、17-head 恢复、大集合分页链、exact replay，以及同值／异值并发裁决的固定 winner 由 `ak.vector.relation.conflict_resolution.v1` 固化。
 
 ## 7. 常见关系（按对象）
 

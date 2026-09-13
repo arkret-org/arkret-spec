@@ -1023,7 +1023,7 @@
           }
         }
       },
-      "instance_note": "A wire Event carrying more than 128 basis refs is rejected by schema maxItems; schedule_frontier_too_large is the distinct authoring-side failure when the observed frontier itself exceeds the bound."
+      "instance_note": "The wire array is retained for compatibility of the payload shape but maxItems=1 enforces the deterministic schedule winner; any extra basis ref is schema-invalid."
     },
     {
       "name": "rsvp_admission_occurrence_without_zone_rejected",
@@ -1195,29 +1195,37 @@
       "expected_projection": "the old instance RSVP is retained for audit and marked stale_orphaned; it is never migrated to the new key, while series RSVPs are marked needs_reconfirmation"
     },
     {
-      "name": "schedule_revision_concurrent_heads_block_rsvp",
+      "name": "schedule_revision_concurrent_writes_choose_one_winner",
       "vector_id": "ak.vector.calendar.schedule_revision.v1",
-      "precondition": "two concurrent accepted schedule updates produce different canonical calendar bytes; the authoring client can decrypt and sees conflict",
-      "action": "authoring client attempts to construct ak.rsvp.set before a schedule resolution Event",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "calendar_schedule_unsettled",
-      "expected_projection": "the refusal happens client-side because settledness needs schedule plaintext; a server MUST NOT gate admission on it, so an e2ee and a plaintext server accept the identical set"
+      "precondition": "two concurrent accepted schedule updates produce different canonical calendar bytes",
+      "action": "compute the schedule causal_register and author ak.rsvp.set against its winner",
+      "semantic_outcome": "accept",
+      "expected_projection": "exactly one schedule_revision_source wins by fixed (depth,EventId) rank; schedule_basis_refs contains only that source and no resolution Event is required"
     },
     {
-      "name": "schedule_revision_equal_value_heads_are_settled",
+      "name": "schedule_revision_unreadable_winner_blocks_local_authoring",
       "vector_id": "ak.vector.calendar.schedule_revision.v1",
-      "precondition": "two concurrent heads decrypt to identical canonical calendar bytes",
-      "action": "compute schedule_resolution_state",
+      "precondition": "the deterministic schedule winner is encrypted and the authoring client lacks a valid scope key",
+      "action": "authoring client attempts to construct ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_schedule_unavailable",
+      "expected_projection": "the refusal happens client-side because winner readability needs schedule plaintext; a server MUST NOT use it as an admission gate"
+    },
+    {
+      "name": "schedule_revision_equal_value_writes_still_choose_one_identity",
+      "vector_id": "ak.vector.calendar.schedule_revision.v1",
+      "precondition": "two concurrent writes decrypt to identical canonical calendar bytes",
+      "action": "compute schedule_revision_source",
       "semantic_outcome": "accept",
-      "expected_projection": "state is settled and both canonical heads remain listed in schedule_revision_heads[]"
+      "expected_projection": "one source identity wins by fixed (depth,EventId) rank; equal plaintext does not merge Event identities"
     },
     {
       "name": "schedule_revision_non_calendar_update_is_not_a_revision",
       "vector_id": "ak.vector.calendar.schedule_revision.v1",
       "precondition": "an ak.strand.update that only changes metadata.title",
-      "action": "recompute the schedule revision frontier",
+      "action": "recompute the schedule revision winner",
       "semantic_outcome": "accept",
-      "expected_projection": "the frontier is unchanged and previously authored RSVP basis values stay current"
+      "expected_projection": "the winner is unchanged and previously authored RSVP basis values stay current"
     },
     {
       "name": "rsvp_reducer_projection_value_must_equal_payload_entry",
@@ -1246,10 +1254,10 @@
     {
       "name": "rsvp_effective_projection_instance_overrides_series",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
-      "precondition": "same responder has a series head and an instance head for the same occurrence",
+      "precondition": "same responder has a series-cell winner and an instance-cell winner for the same occurrence",
       "action": "compute the effective response",
       "semantic_outcome": "accept",
-      "expected_projection": "only instance heads participate; series heads are the fallback and the two sets are never unioned into a false conflict"
+      "expected_projection": "the instance winner is used; the series winner is only a fallback and the two cells are never unioned"
     },
     {
       "name": "rsvp_effective_projection_causal_successor_dominates",
@@ -1257,23 +1265,23 @@
       "precondition": "the same responder rewrites an earlier RSVP while observing it",
       "action": "join the causal_register cell in either arrival order",
       "semantic_outcome": "accept",
-      "expected_projection": "one head remains and the result is independent of arrival order, HLC, created_at and event_id"
+      "expected_projection": "the causal successor is the unique winner and the result is independent of arrival order, HLC and created_at"
     },
     {
       "name": "rsvp_effective_projection_missing_key_is_not_a_status",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
-      "precondition": "reader lacks the scope key for an encrypted response head",
+      "precondition": "reader lacks the scope key for an encrypted response winner",
       "action": "render the effective response",
       "semantic_outcome": "accept",
-      "expected_projection": "the head is marked encrypted_unresolved; no status is fabricated and the head is excluded from the effective response"
+      "expected_projection": "the winner is marked encrypted_unresolved; no status is fabricated and the winner is excluded from the effective response"
     },
     {
       "name": "rsvp_effective_projection_ciphertext_difference_is_not_conflict",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
-      "precondition": "two concurrent heads whose plaintext responses and basis are identical",
-      "action": "compute resolution_state after decryption",
+      "precondition": "two concurrent writes whose plaintext responses and basis are identical",
+      "action": "compute the causal_register winner after decryption",
       "semantic_outcome": "accept",
-      "expected_projection": "state is not conflict; the heads may merge for display while canonical heads and provenance are preserved"
+      "expected_projection": "one source identity wins by fixed (depth,EventId) rank; equal plaintext does not merge identities or create conflict"
     },
     {
       "name": "rsvp_admission_non_attendee_with_capability_accepted",
@@ -1298,7 +1306,7 @@
       "action": "authoring client attempts to construct a new ak.rsvp.set",
       "semantic_outcome": "reject",
       "expected_reason_code": "calendar_event_cancelled",
-      "expected_projection": "refusal is client-side for the same reason as schedule settledness; historical RSVP projection is retained and a late head is shown as a response to a cancelled event"
+      "expected_projection": "refusal is client-side because status needs schedule plaintext; historical RSVP projection is retained and a late winner is shown as a response to a cancelled event"
     },
     {
       "name": "rsvp_admission_basis_outside_causal_refs_rejected",
@@ -1316,15 +1324,6 @@
       "semantic_outcome": "defer",
       "expected_projection": "target admission only reads the referenced Events plaintext envelope; the RSVP stays pending until they arrive and is never accepted as if the basis resolved",
       "expected_reason_code": "dependency_missing"
-    },
-    {
-      "name": "rsvp_admission_frontier_over_cap_fails_closed",
-      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
-      "precondition": "observed schedule frontier exceeds 128 heads",
-      "action": "authoring client tries to build entry.schedule_basis_refs from the observed frontier",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schedule_frontier_too_large",
-      "expected_projection": "the client fails closed locally; it MUST NOT truncate the basis to fit the 128 bound"
     },
     {
       "name": "rsvp_admission_missing_target_is_not_an_oracle",

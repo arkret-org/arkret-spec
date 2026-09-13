@@ -43,6 +43,8 @@
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "notary_seq": 0,
         "notary_signature": {
@@ -87,6 +89,8 @@
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "notary_seq": 0,
         "notary_signature": {
@@ -131,6 +135,8 @@
         "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "notary_seq": 1,
         "notary_signature": {
@@ -166,6 +172,8 @@
         "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "notary_seq": 1,
         "notary_signature": {
@@ -201,6 +209,8 @@
         "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "notary_seq": 1,
         "notary_signature": {
@@ -237,6 +247,8 @@
         "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "delta": [],
         "control_event_set_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "notary_seq": 1,
         "notary_signature": {

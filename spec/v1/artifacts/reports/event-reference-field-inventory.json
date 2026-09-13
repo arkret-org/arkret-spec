@@ -38,7 +38,7 @@
     },
     {
       "schema": "account-current-result.schema.json",
-      "json_pointer": "/$defs/result/oneOf/1/properties/heads/items/properties/event_id",
+      "json_pointer": "/$defs/result/oneOf/0/properties/source/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
     },
@@ -1016,20 +1016,20 @@
     },
     {
       "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/causal_register_state/properties/covered_event_ids",
+      "field": "covered_event_ids",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
+      "json_pointer": "/$defs/causal_winner/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "realm-state-snapshot-chunk.schema.json",
       "json_pointer": "/$defs/conflicting_input_record/properties/event_id",
       "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "realm-state-snapshot-chunk.schema.json",
-      "json_pointer": "/$defs/effect_head/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "realm-state-snapshot-chunk.schema.json",
-      "json_pointer": "/$defs/heads_state/properties/covered_event_ids",
-      "field": "covered_event_ids",
       "classification": "complete_event_id"
     },
     {

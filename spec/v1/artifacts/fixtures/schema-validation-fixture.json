@@ -2673,6 +2673,8 @@
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
         "control_event_set_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "notary_seq": 1,
         "notary_signature": {
@@ -3062,15 +3064,14 @@
             "kind": "cell",
             "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AVgnD-1YLmV6g-_RiZro8Yzmydn3Q8upFMpAgJW9bsbj",
             "state": {
-              "heads": [
-                {
-                  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                  "value": "archived"
-                }
-              ],
               "covered_event_ids": [
                 "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-              ]
+              ],
+              "winner": {
+                "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                "depth": 0,
+                "value": "archived"
+              }
             },
             "state_model": "causal_register"
           }
@@ -3178,7 +3179,6 @@
             "kind": "cell",
             "id": "ak:cell:ak.component.invite.live_target.v1:fAWD6k02hF3JHnquwsCU7inqyb8Qdajftruz5xEWFGc",
             "state": {
-              "heads": [],
               "covered_event_ids": [
                 "ak:event:AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
               ]
@@ -3196,7 +3196,7 @@
           "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
         ]
       },
-      "first_expected_error": "contains:heads"
+      "first_expected_error": "contains:winner"
     },
     {
       "name": "realm_state_snapshot_chunk_mixed_state_shape_rejected",
@@ -6946,7 +6946,7 @@
         "revision": 7,
         "result": {
           "status": "unavailable",
-          "reason": "bottom"
+          "reason": "dependency_missing"
         }
       }
     },
@@ -6968,11 +6968,8 @@
         },
         "revision": 8,
         "result": {
-          "status": "heads",
-          "heads": [
-            {
-              "event_id": "ak:event:AZEvldDJcWI9IRHqP2BMibDDfc59Ax_LwrbsrQmeD6Ml",
-              "value": {
+          "status": "value",
+          "value": {
                 "id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
                 "schema": "ak.schema.strand.v1",
                 "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
@@ -7006,9 +7003,11 @@
                   }
                 },
                 "created_at": "2026-06-01T00:00:00.000Z"
-              }
-            }
-          ]
+          },
+          "source": {
+            "event_id": "ak:event:AZEvldDJcWI9IRHqP2BMibDDfc59Ax_LwrbsrQmeD6Ml",
+            "depth": 0
+          }
         }
       }
     },
@@ -7030,15 +7029,14 @@
         },
         "revision": 8,
         "result": {
-          "status": "heads",
-          "heads": [
-            {
-              "event_id": "ak:event:AZEvldDJcWI9IRHqP2BMibDDfc59Ax_LwrbsrQmeD6Ml",
-              "value": {
-                "patch": []
-              }
-            }
-          ]
+          "status": "value",
+          "value": {
+            "patch": []
+          },
+          "source": {
+            "event_id": "ak:event:AZEvldDJcWI9IRHqP2BMibDDfc59Ax_LwrbsrQmeD6Ml",
+            "depth": 0
+          }
         }
       },
       "first_expected_error": "contains:not valid under"
@@ -7800,6 +7798,7 @@
               "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ]
           },
+          "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "track_name": "discussion",
@@ -7867,6 +7866,7 @@
             "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
           ]
         },
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",
@@ -8020,6 +8020,7 @@
               "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ]
           },
+          "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "track_name": "discussion",
@@ -8087,6 +8088,7 @@
             "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
           ]
         },
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",
@@ -8154,6 +8156,7 @@
                 "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
               ]
             },
+            "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "payload": {
               "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
               "track_name": "discussion",
@@ -8226,6 +8229,7 @@
               "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
             ]
           },
+          "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "payload": {
             "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
             "track_name": "discussion",
@@ -8893,6 +8897,7 @@
           ],
           "key_id": "ed25519-removed-coordinate"
         },
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",
@@ -8960,6 +8965,7 @@
           ],
           "key_epoch": 1
         },
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",
@@ -9027,6 +9033,7 @@
           ],
           "credential_epoch": 1
         },
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",
@@ -9091,6 +9098,7 @@
         "auth_context": {
           "authority_refs": []
         },
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",
@@ -9153,6 +9161,7 @@
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "auth_context": {},
+        "data_basis": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "payload": {
           "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
           "track_name": "discussion",

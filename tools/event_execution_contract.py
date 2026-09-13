@@ -63,11 +63,19 @@ def schema_definition(registry: dict) -> dict:
             clauses.append({"if": kind_guard, "then": {"anyOf": effective}})
         data_requirements = {"not": {"required": ["seal_basis"]}}
         if kind in registry["bootstrap_event_kinds"]:
-            data_requirements["anyOf"] = [{"required": ["auth_context"]}, bootstrap_ref]
+            data_requirements["anyOf"] = [
+                {"required": ["auth_context", "data_basis"]},
+                bootstrap_ref,
+            ]
         else:
-            data_requirements["required"] = ["auth_context"]
+            data_requirements["required"] = ["auth_context", "data_basis"]
         data_requirements["allOf"] = [{"if": field_guard("payload.patch", {}), "then": {"required": ["causal_refs"]}}]
-        security_requirements = {"not": {"required": ["auth_context"]}}
+        security_requirements = {
+            "allOf": [
+                {"not": {"required": ["auth_context"]}},
+                {"not": {"required": ["data_basis"]}},
+            ]
+        }
         if kind != "ak.realm.create":
             if kind in registry["bootstrap_event_kinds"]:
                 security_requirements["anyOf"] = [{"required": ["seal_basis"]}, bootstrap_ref]

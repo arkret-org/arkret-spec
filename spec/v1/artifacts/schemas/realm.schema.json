@@ -134,7 +134,7 @@
         "null"
       ],
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$",
-      "description": "Derived ordinary default-Strand selection from causal_register ak.component.realm.set_default_strand.v1. Concurrent distinct heads are unresolved, never selected by arrival order; only a single eligible non-terminal same-Realm Strand produces an effective default. Selection grants no authority."
+      "description": "Derived ordinary default-Strand selection from causal_register ak.component.realm.set_default_strand.v1. The deterministic (depth, EventId) winner selects the candidate; it is effective only when the selected Strand is eligible, non-terminal, and in the same Realm. Selection grants no authority."
     },
     "default_discoverability": {
       "type": "string",
@@ -360,7 +360,7 @@
     "bottom_escalation_after_ms": {
       "type": "integer",
       "minimum": 60000,
-      "description": "Optional timeout after which unresolved ordinary causal_register conflict diagnostics should be escalated to recovery governance. Expiry does not choose a winner automatically; other state models never produce Bottom."
+      "description": "Reserved governance diagnostic timeout. It MUST NOT alter ordinary causal_register ordering, select a value, or turn a losing write into quarantine."
     },
     "retention_policy_id": {
       "type": "string",

@@ -148,7 +148,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 cell family** `ak.component.view.v1`（`causal_register`、`bottom=expose`）。
+三个 kind 写**同一个 cell family** `ak.component.view.v1`（`causal_register`、固定 `(depth,EventId)` 单值 current）。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
 update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 
@@ -170,8 +170,8 @@ update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 - **三条写入采用同一 canonical 对象值口径。**cell 中 MUST NOT 保存可自报的 `id`，
   读取时由 subject 派生；`reconcile.definition` 同样 MUST NOT 携带 `id`，
   否则 create 与 reconcile 会在同一个 cell 里留下两种值形状。
-- **reconcile 的 whole-value `set` 只按 causal_register 因果关系取代它已观察到的 heads。**
-  并发但未被观察的分支仍按 §9.2 暴露；「已知良好的定义」不是无条件覆盖全部并发状态的特权。
+- **reconcile 的 whole-value `set` 引用其观察到的唯一 current source。**
+  并发但未被观察的分支仍保留为历史候选并参与固定 rank；「已知良好的定义」不是无条件覆盖全部未来写入的特权。
 
 `ak.view.reconcile` 用于把 View 定义**整体**重新同步到一个已知良好的 `ak.schema.view.v1`
 对象——典型场景是 schema 演进后重新发布定义。它与另外两者的分工是封闭的：create 只在

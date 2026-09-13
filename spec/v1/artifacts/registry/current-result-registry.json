@@ -1,13 +1,13 @@
 {
-  "version": "2026-09-12.6",
+  "version": "2026-09-13.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T09:51:32+08:00",
+  "generated_at": "2026-09-13T10:43:01+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "rules": [
     "Each registered non-log built-in family has exactly one complete current value mapping. Ordered logs remain timeline or dedicated current roster projections; clients never replay them for governance.",
     "Selector scope and CellRef define identity. Target is immutable interest ownership, derived by the registered rule from accepted source coordinates, never chosen by the caller or inferred from Event order.",
-    "Materialized object values exclude fields owned by distinct cells; the complete remaining head value is returned, never an update patch.",
+    "Materialized object values exclude fields owned by distinct cells; the complete current value is returned, never an update patch. A causal_register result also carries its deterministic event_id and depth source.",
     "The enclosing Realm target never grants visibility into a Circle; current and frozen visibility must both allow every disclosed result."
   ],
   "families": [
@@ -1560,7 +1560,7 @@
       "state_model": "causal_register",
       "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_strand_position",
       "target_class": "strand",
-      "target_derivation": "registered_subject_strand",
+      "target_derivation": "registered_position_subject_strand",
       "source_event_kinds": [
         "ak.strand.move",
         "ak.strand.reorder"

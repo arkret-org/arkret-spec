@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Signed immutable Event with exactly one portable producer proof. Ordinary data uses causal replication and cached verified authorization. Security commands require a unique scoped Seal decision. Station receipts do not grant authority. Execution and admission shape are generated from the canonical registry.",
+  "description": "Signed immutable Event with exactly one portable producer proof. Ordinary data uses deterministic causal replication, cached verified authorization, and an open data_basis for asynchronous Seal publication. Security commands require a unique scoped Seal decision. Station receipts do not grant authority. Execution and admission shape are generated from the canonical registry.",
   "type": "object",
   "required": [
     "event_id",
@@ -106,7 +106,7 @@
     },
     "causal_refs": {
       "type": "array",
-      "description": "Optional ordinary Event semantic causal predecessors by event_digest. The property MUST be omitted when there is no business causality; an explicitly empty array is not a canonical Event shape. A ordinary Event carrying payload.patch MUST provide at least one causal_ref and MUST identify exactly one accepted base-head digest for every target cell; the per-cell uniqueness and post-state reconstruction checks are reducer semantics. Other ordinary Events may use this field for business causality. These refs are not global completeness proofs.",
+      "description": "Optional ordinary Event semantic causal predecessors by event_digest. The property MUST be omitted when there is no business causality; an explicitly empty array is not a canonical Event shape. An ordinary Event carrying payload.patch MUST identify the unique current source digest for every target cell; every non-initial causal-register write must identify at least one valid same-cell source. Per-cell source selection, fixed depth derivation, and post-state reconstruction are reducer semantics. Other ordinary Events may use this field for business causality. These refs are not global completeness proofs.",
       "minItems": 1,
       "maxItems": 128,
       "uniqueItems": true,
@@ -116,7 +116,7 @@
     },
     "preconditions": {
       "type": "array",
-      "description": "Signed predicates over the verified causal basis for ordinary data, or the actual confirmed predecessor for safety commands. Ordinary predicates do not promise global compare-and-swap; concurrent data heads are retained.",
+      "description": "Signed predicates over the verified causal basis for ordinary data, or the actual confirmed predecessor for safety commands. Ordinary predicates do not promise global compare-and-swap; deterministic causal-register ordering is independent of arrival order.",
       "items": {
         "$ref": "#/$defs/precondition"
       },
@@ -142,6 +142,10 @@
         }
       },
       "additionalProperties": false
+    },
+    "data_basis": {
+      "$ref": "#/$defs/seal_ref",
+      "description": "Required for ordinary Events except registered atomic-bootstrap initial data members. Identifies one confirmed same-Realm Seal whose data interval remains open. It is signed, grants no authority, and does not require a new Seal for this write. A closed basis requires authenticated inclusion in its frozen allowed set; authenticated non-membership quarantines the Event and missing closure material remains pending."
     },
     "seal_basis": {
       "type": "object",
@@ -7598,11 +7602,22 @@
               ]
             },
             "then": {
-              "not": {
-                "required": [
-                  "auth_context"
-                ]
-              },
+              "allOf": [
+                {
+                  "not": {
+                    "required": [
+                      "auth_context"
+                    ]
+                  }
+                },
+                {
+                  "not": {
+                    "required": [
+                      "data_basis"
+                    ]
+                  }
+                }
+              ],
               "required": [
                 "seal_basis"
               ]
@@ -7614,7 +7629,8 @@
                 ]
               },
               "required": [
-                "auth_context"
+                "auth_context",
+                "data_basis"
               ],
               "allOf": [
                 {
@@ -7709,11 +7725,22 @@
               ]
             },
             "then": {
-              "not": {
-                "required": [
-                  "auth_context"
-                ]
-              },
+              "allOf": [
+                {
+                  "not": {
+                    "required": [
+                      "auth_context"
+                    ]
+                  }
+                },
+                {
+                  "not": {
+                    "required": [
+                      "data_basis"
+                    ]
+                  }
+                }
+              ],
               "required": [
                 "seal_basis"
               ]
@@ -7725,7 +7752,8 @@
                 ]
               },
               "required": [
-                "auth_context"
+                "auth_context",
+                "data_basis"
               ],
               "allOf": [
                 {
@@ -8090,11 +8118,22 @@
               ]
             },
             "then": {
-              "not": {
-                "required": [
-                  "auth_context"
-                ]
-              },
+              "allOf": [
+                {
+                  "not": {
+                    "required": [
+                      "auth_context"
+                    ]
+                  }
+                },
+                {
+                  "not": {
+                    "required": [
+                      "data_basis"
+                    ]
+                  }
+                }
+              ],
               "required": [
                 "seal_basis"
               ]
@@ -8106,7 +8145,8 @@
                 ]
               },
               "required": [
-                "auth_context"
+                "auth_context",
+                "data_basis"
               ],
               "allOf": [
                 {
@@ -8267,11 +8307,22 @@
               ]
             },
             "then": {
-              "not": {
-                "required": [
-                  "auth_context"
-                ]
-              },
+              "allOf": [
+                {
+                  "not": {
+                    "required": [
+                      "auth_context"
+                    ]
+                  }
+                },
+                {
+                  "not": {
+                    "required": [
+                      "data_basis"
+                    ]
+                  }
+                }
+              ],
               "required": [
                 "seal_basis"
               ]
@@ -8283,7 +8334,8 @@
                 ]
               },
               "required": [
-                "auth_context"
+                "auth_context",
+                "data_basis"
               ],
               "allOf": [
                 {
@@ -8323,11 +8375,22 @@
             ]
           },
           "then": {
-            "not": {
-              "required": [
-                "auth_context"
-              ]
-            }
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "auth_context"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "data_basis"
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -8353,7 +8416,8 @@
             "anyOf": [
               {
                 "required": [
-                  "auth_context"
+                  "auth_context",
+                  "data_basis"
                 ]
               },
               {
@@ -8427,11 +8491,22 @@
             ]
           },
           "then": {
-            "not": {
-              "required": [
-                "auth_context"
-              ]
-            },
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "auth_context"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "data_basis"
+                  ]
+                }
+              }
+            ],
             "anyOf": [
               {
                 "required": [
@@ -8569,11 +8644,22 @@
             ]
           },
           "then": {
-            "not": {
-              "required": [
-                "auth_context"
-              ]
-            },
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "auth_context"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "data_basis"
+                  ]
+                }
+              }
+            ],
             "required": [
               "seal_basis"
             ]
@@ -8654,7 +8740,8 @@
               ]
             },
             "required": [
-              "auth_context"
+              "auth_context",
+              "data_basis"
             ],
             "allOf": [
               {

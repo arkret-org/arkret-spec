@@ -97,7 +97,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 - `conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `conformance-vectors.md` 与 `cbs-lattice-fixture.json`：CBS 双平面、ordinary Event acceptance、Control Move Seal finality、普通 causal_register 多头、安全状态不得产生 Bottom、同批授权不可提前推进与 Seal covered_set 的收敛向量。
+- `conformance-vectors.md` 与 `cbs-lattice-fixture.json`：CBS 双平面、ordinary Event acceptance、Control Move Seal finality、普通 causal_register 固定因果全序、安全状态不得产生 Bottom、同批授权不可提前推进与 Seal covered_set 的收敛向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Strand discussion track 不继承 Strand synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。

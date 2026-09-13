@@ -63,7 +63,7 @@ sidebar:
     污染 DID resolver、registry、witness 可信链，或 `did:web` / `did:webvh` 的域绑定与 `did.jsonl` 托管，错误承认身份控制权。**默认 method 是 `did:webvh`**，其 hosting 方 split-view 与历史截断只被部分缓解，见 §2.1a。
 
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
-    利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence或竞争确认凭证制造普通状态错误、错误 CBS query basis 或安全域停摆。两个互不可达 confirmed Seal 是共识安全故障，不能作为普通可合并冲突；接收方必须按安全域故障停摆。
+    利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence、actor over-fork 或竞争确认凭证制造普通状态错误、错误 CBS query basis 或安全域停摆。合法普通 sibling 由固定 `(depth,EventId)` 选出单值，落选不等于 quarantine；仍获权作者可用长分支或同深度身份试探影响结果，这是需限速、审计和最终撤权的数据完整性/资源残余风险。两个互不可达 confirmed Seal 是共识安全故障，不能作为普通可合并冲突；接收方必须按安全域故障停摆。
 
 15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。
@@ -183,7 +183,7 @@ sidebar:
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
 | 拓扑污染 | 是 | 实际接纳/审计角色按 [discovery-directory §8.10 / §11](../discovery/discovery-directory.md) 验来源签名、source-ref 与背书授权，按 service-surface §2.6 验服务路由；普通客户端按已登记 Station 结果消费。不定义通用双签载体。 |
 | 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
-| 冲突/分叉 | 是 | fork 检测、冲突源 quarantine + backfill re-check。 |
+| 冲突/分叉 | **部分** | hash collision 与 actor over-fork 按各自可验证规则 quarantine；普通合法 sibling 保留历史并由固定 `(depth,EventId)` 收敛为单值，不能仅因陈旧或落选隔离。已授权恶意作者仍可写恶意内容、延长分支或消耗资源，依靠限速、审计、撤权与数据基准关闭缓解。 |
 | 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、frontier 一致性双重校验。 |
 | 跨域边界绕过 | 是 | source/destination/scope 每一层 must-bind 校验，禁止空域回退。 |
 | 邀请令牌滥用 | 是 | token 一次性约束、过期窗口、绑定 proof 重放检测。 |

@@ -86,7 +86,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 - `rejected`
 - `tombstoned`
 
-`ak.realm.link` 写入 `ak.component.realm.link.v1` cell。cell subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`state_model=causal_register`、`bottom=expose`、`execution=data`；并发 status 保留多头，导航只有在唯一有效状态下投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+`ak.realm.link` 写入 `ak.component.realm.link.v1` cell。cell subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`state_model=causal_register`、`execution=data`；并发 status 按固定 `(depth,EventId)` 选择唯一 current，导航只从该 winner 投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
 
 允许的状态迁移如下；`absent` 只表示尚无 cell，不是 wire 状态：
 
@@ -97,7 +97,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 | `rejected` | `rejected` / `active` / `tombstoned` | 本侧可在新的已授权 Control Move 中重新接受。 |
 | `tombstoned` | `tombstoned` | 终态；仅允许字节等价的幂等重放。 |
 
-未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是 `sequenced_state`：同一 confirmed predecessor 上只会确认一个 successor，竞争命令以 committed/rejected 结果收束，不产生 `⊥`，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与竞争 revision 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
+未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是普通 `causal_register`：每条写入按其冻结业务前态验证迁移，合法并发写按固定 `(depth,EventId)` 选择唯一 current，不产生 `⊥`，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与并发 winner 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
 
 Projection MAY 派生：
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-state-snapshot-chunk.schema.json",
   "title": "Arkret Snapshot Chunk Payload",
-  "description": "A snapshot chunk binds exact reducer state and the verified evidence needed to recompute authorization eligibility. Ordinary data state is not a Seal state_root leaf. Different eligibility contexts merge raw evidence and recompute, never directly join projected heads.",
+  "description": "A snapshot chunk binds exact reducer state and the verified evidence needed to recompute authorization eligibility. Ordinary data state is not a Seal state_root leaf. Different eligibility contexts merge raw evidence, preserve each authenticated write's fixed depth, and recompute the deterministic winner rather than directly joining projected winners.",
   "type": "object",
   "required": [
     "chunk_kind",
@@ -42,14 +42,14 @@
       "items": {
         "$ref": "#/$defs/cell_item"
       },
-      "description": "Written cells sorted by canonical CellRef, unique across the manifest. state_model must match the canonical family contract. Ordinary causal heads retain effect identities and coverage; security cells retain their last successful command revision."
+      "description": "Written cells sorted by canonical CellRef, unique across the manifest. state_model must match the canonical family contract. Ordinary causal registers retain complete coverage plus the deterministic winner identity/depth/value; security cells retain their last successful command revision."
     },
     "conflict_records": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/conflict_record"
       },
-      "description": "Unresolved non-business inputs, never an alternate security-state winner. Ordinary concurrent heads belong in their causal state. Quarantined inputs have no business supersession power."
+      "description": "Unresolved non-business inputs, never an alternate security-state winner. Ordinary concurrent writes remain in retained causal evidence while each causal_register exposes one fixed winner. Quarantined inputs have no business supersession power."
     },
     "soft_failed": {
       "type": "array",
@@ -146,7 +146,7 @@
           "then": {
             "properties": {
               "state": {
-                "$ref": "#/$defs/heads_state"
+                "$ref": "#/$defs/causal_register_state"
               }
             }
           }
@@ -217,11 +217,11 @@
         }
       ]
     },
-    "heads_state": {
+    "causal_register_state": {
       "type": "object",
       "required": [
         "covered_event_ids",
-        "heads"
+        "winner"
       ],
       "properties": {
         "covered_event_ids": {
@@ -232,16 +232,12 @@
             "$ref": "./common-ids.schema.json#/$defs/event_id"
           }
         },
-        "heads": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/effect_head"
-          }
+        "winner": {
+          "$ref": "#/$defs/causal_winner"
         }
       },
       "additionalProperties": false,
-      "description": "C/H at one verified eligibility context. covered and heads use exact Event identities for this Cell. Head identities are unique and contained in covered. Retired values must remain available through replay evidence whenever future reclassification could reveal them."
+      "description": "Deterministic causal-register state at one verified eligibility context. covered_event_ids contains every eligible write identity for this Cell; winner is the maximum fixed (depth, canonical EventId bytes) candidate and is contained in covered_event_ids. Retired and losing values plus their fixed-depth evidence remain available through replay evidence whenever future reclassification could reveal them."
     },
     "conflict_record": {
       "oneOf": [
@@ -334,15 +330,21 @@
       },
       "additionalProperties": false
     },
-    "effect_head": {
+    "causal_winner": {
       "type": "object",
       "required": [
         "event_id",
+        "depth",
         "value"
       ],
       "properties": {
         "event_id": {
           "$ref": "#/$defs/event_id"
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
         },
         "value": {}
       },

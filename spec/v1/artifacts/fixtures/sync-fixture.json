@@ -1681,16 +1681,16 @@
       },
       {
         "id": "ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
-        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"covered_event_ids\":[\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\"],\"heads\":[{\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"value\":\"archived\"}]},\"state_model\":\"causal_register\"}",
-        "leaf": "sha256:b86cc3cd7c6800172357300e4b5e47187ac7f783295a297a9c53da1a9f751b78"
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.lifecycle.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"covered_event_ids\":[\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\"],\"winner\":{\"depth\":0,\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"value\":\"archived\"}},\"state_model\":\"causal_register\"}",
+        "leaf": "sha256:4f30272a94ee230d85f4cb37883cbcf04c27f6789183c2b77845bdc2a63249cb"
       },
       {
         "id": "ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
-        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"covered_event_ids\":[\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\"],\"heads\":[{\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"value\":{\"created_at\":\"2026-06-01T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"metadata\":{\"title\":\"Weekly sync\"},\"realm_id\":\"ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"synthesis\":{\"enabled\":true,\"is_primary\":true}}}}]},\"state_model\":\"causal_register\"}",
-        "leaf": "sha256:1a929a7eb813cf9cf3b69f3e6a55588bcabaf76d2a0f2649540139af35f58a54"
+        "leaf_preimage": "{\"cell\":\"ak:cell:ak.component.strand.object.v1:ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"state\":{\"covered_event_ids\":[\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\"],\"winner\":{\"depth\":0,\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"value\":{\"created_at\":\"2026-06-01T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"metadata\":{\"title\":\"Weekly sync\"},\"realm_id\":\"ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"synthesis\":{\"enabled\":true,\"is_primary\":true}}}}},\"state_model\":\"causal_register\"}",
+        "leaf": "sha256:76f98cafdfd9b1d97910f83ed565275df335637527930d461a4279ffe98b5d81"
       }
     ],
-    "state_digest": "sha256:75efc29d8d325a830c71108a30ae3a3d7d1ab17627548eb3f0cb1a387815df84",
+    "state_digest": "sha256:20fb9271d3cb90ae6967ebee087fa5839b7d4750f1f505366244a8cea8286bc2",
     "cases": [
       {
         "name": "canonical_chunk_recomputes_state_digest",
@@ -1772,12 +1772,11 @@
                   "covered_event_ids": [
                     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
                   ],
-                  "heads": [
-                    {
-                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                      "value": "archived"
-                    }
-                  ]
+                  "winner": {
+                    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                    "depth": 0,
+                    "value": "archived"
+                  }
                 },
                 "state_model": "causal_register"
               },
@@ -1788,32 +1787,31 @@
                   "covered_event_ids": [
                     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
                   ],
-                  "heads": [
-                    {
-                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                      "value": {
-                        "schema": "ak.schema.strand.v1",
-                        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-                        "metadata": {
-                          "title": "Weekly sync"
-                        },
-                        "tracks": {
-                          "synthesis": {
-                            "enabled": true,
-                            "is_primary": true
-                          }
-                        },
-                        "created_by": {
-                          "kind": "account",
-                          "account_id": {
-                            "principal_id": "ak:did_core:webvh:z6mkfixture",
-                            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-                          }
-                        },
-                        "created_at": "2026-06-01T00:00:00.000Z"
-                      }
+                  "winner": {
+                    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                    "depth": 0,
+                    "value": {
+                      "schema": "ak.schema.strand.v1",
+                      "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                      "metadata": {
+                        "title": "Weekly sync"
+                      },
+                      "tracks": {
+                        "synthesis": {
+                          "enabled": true,
+                          "is_primary": true
+                        }
+                      },
+                      "created_by": {
+                        "kind": "account",
+                        "account_id": {
+                          "principal_id": "ak:did_core:webvh:z6mkfixture",
+                          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                        }
+                      },
+                      "created_at": "2026-06-01T00:00:00.000Z"
                     }
-                  ]
+                  }
                 },
                 "state_model": "causal_register"
               }
@@ -1827,7 +1825,7 @@
             "replay_authority_refs": []
           }
         ],
-        "declared_state_digest": "sha256:75efc29d8d325a830c71108a30ae3a3d7d1ab17627548eb3f0cb1a387815df84"
+        "declared_state_digest": "sha256:20fb9271d3cb90ae6967ebee087fa5839b7d4750f1f505366244a8cea8286bc2"
       },
       {
         "name": "chunk_boundaries_do_not_change_state_digest",
@@ -1939,12 +1937,11 @@
                   "covered_event_ids": [
                     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
                   ],
-                  "heads": [
-                    {
-                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                      "value": "archived"
-                    }
-                  ]
+                  "winner": {
+                    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                    "depth": 0,
+                    "value": "archived"
+                  }
                 },
                 "state_model": "causal_register"
               },
@@ -1955,32 +1952,31 @@
                   "covered_event_ids": [
                     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
                   ],
-                  "heads": [
-                    {
-                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                      "value": {
-                        "schema": "ak.schema.strand.v1",
-                        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-                        "metadata": {
-                          "title": "Weekly sync"
-                        },
-                        "tracks": {
-                          "synthesis": {
-                            "enabled": true,
-                            "is_primary": true
-                          }
-                        },
-                        "created_by": {
-                          "kind": "account",
-                          "account_id": {
-                            "principal_id": "ak:did_core:webvh:z6mkfixture",
-                            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-                          }
-                        },
-                        "created_at": "2026-06-01T00:00:00.000Z"
-                      }
+                  "winner": {
+                    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                    "depth": 0,
+                    "value": {
+                      "schema": "ak.schema.strand.v1",
+                      "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                      "metadata": {
+                        "title": "Weekly sync"
+                      },
+                      "tracks": {
+                        "synthesis": {
+                          "enabled": true,
+                          "is_primary": true
+                        }
+                      },
+                      "created_by": {
+                        "kind": "account",
+                        "account_id": {
+                          "principal_id": "ak:did_core:webvh:z6mkfixture",
+                          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                        }
+                      },
+                      "created_at": "2026-06-01T00:00:00.000Z"
                     }
-                  ]
+                  }
                 },
                 "state_model": "causal_register"
               }
@@ -1994,7 +1990,7 @@
             "replay_authority_refs": []
           }
         ],
-        "declared_state_digest": "sha256:75efc29d8d325a830c71108a30ae3a3d7d1ab17627548eb3f0cb1a387815df84"
+        "declared_state_digest": "sha256:20fb9271d3cb90ae6967ebee087fa5839b7d4750f1f505366244a8cea8286bc2"
       },
       {
         "name": "blake3_digest",
@@ -2076,12 +2072,11 @@
                   "covered_event_ids": [
                     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
                   ],
-                  "heads": [
-                    {
-                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                      "value": "archived"
-                    }
-                  ]
+                  "winner": {
+                    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                    "depth": 0,
+                    "value": "archived"
+                  }
                 },
                 "state_model": "causal_register"
               },
@@ -2092,32 +2087,31 @@
                   "covered_event_ids": [
                     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
                   ],
-                  "heads": [
-                    {
-                      "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-                      "value": {
-                        "schema": "ak.schema.strand.v1",
-                        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
-                        "metadata": {
-                          "title": "Weekly sync"
-                        },
-                        "tracks": {
-                          "synthesis": {
-                            "enabled": true,
-                            "is_primary": true
-                          }
-                        },
-                        "created_by": {
-                          "kind": "account",
-                          "account_id": {
-                            "principal_id": "ak:did_core:webvh:z6mkfixture",
-                            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-                          }
-                        },
-                        "created_at": "2026-06-01T00:00:00.000Z"
-                      }
+                  "winner": {
+                    "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+                    "depth": 0,
+                    "value": {
+                      "schema": "ak.schema.strand.v1",
+                      "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                      "metadata": {
+                        "title": "Weekly sync"
+                      },
+                      "tracks": {
+                        "synthesis": {
+                          "enabled": true,
+                          "is_primary": true
+                        }
+                      },
+                      "created_by": {
+                        "kind": "account",
+                        "account_id": {
+                          "principal_id": "ak:did_core:webvh:z6mkfixture",
+                          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                        }
+                      },
+                      "created_at": "2026-06-01T00:00:00.000Z"
                     }
-                  ]
+                  }
                 },
                 "state_model": "causal_register"
               }
@@ -2131,7 +2125,7 @@
             "replay_authority_refs": []
           }
         ],
-        "declared_state_digest": "blake3:89a247fd1d04db285014f295e7528c216765c50c2e16548cfd65779c4bf2f267"
+        "declared_state_digest": "blake3:de742e5b0c2b90ce121bbbd2197c04e0fd5db31f1d694756476f1d8bd9d53f28"
       },
       {
         "name": "wrong_digest",

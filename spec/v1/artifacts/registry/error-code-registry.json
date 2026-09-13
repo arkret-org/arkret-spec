@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.16",
-  "generated_at": "2026-09-12T21:44:30+08:00",
+  "version": "2026-09-13.17",
+  "generated_at": "2026-09-13T12:36:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2767,15 +2767,15 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A new RSVP targets a Calendar Strand whose schedule status is cancelled. Historical RSVP projection is retained; new responses are refused. The generic Strand stage axis MUST NOT be reinterpreted as calendar status. See zh/models/calendar-event.md. This is an authoring-side and projection-side code for the same reason as calendar_schedule_unsettled: the cancelled status lives in the Calendar subtree plaintext."
+      "description": "A new RSVP targets a Calendar Strand whose schedule status is cancelled. Historical RSVP projection is retained; new responses are refused. The generic Strand stage axis MUST NOT be reinterpreted as calendar status. See zh/models/calendar-event.md. This is an authoring-side and projection-side code for the same reason as calendar_schedule_unavailable: the cancelled status lives in the Calendar subtree plaintext."
     },
     {
-      "code": "calendar_schedule_unsettled",
+      "code": "calendar_schedule_unavailable",
       "applies_to": [
         "event_envelope",
         "state_resolution"
       ],
-      "description": "An RSVP or occurrence expansion was attempted while the Calendar schedule projection is conflict or encrypted_unresolved rather than settled. Concurrent schedule heads MUST be resolved by a schedule resolution Event first; no HLC, arrival order, or private last-writer rule may pick a winner. See zh/models/calendar-event.md. This is an authoring-side and projection-side code, never a server admission gate: deciding settledness requires the Calendar subtree plaintext, so gating admission on it would fork the accepted set between e2ee and plaintext Realms."
+      "description": "An RSVP or occurrence expansion was attempted while the deterministic Calendar schedule winner is encrypted_unresolved rather than available. See zh/models/calendar-event.md. This is an authoring-side and projection-side code, never a server admission gate: deciding readability requires the Calendar subtree plaintext, so gating admission on it would fork the accepted set between e2ee and plaintext Realms."
     },
     {
       "code": "calendar_tzdb_mismatch",
@@ -2852,7 +2852,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "An ordinary projection needed one domain value but retains unresolved eligible causal heads. This diagnostic grants no authority and creates no safety state; only an authorized causal successor may resolve the ordinary conflict."
+      "description": "An explicitly registered cross-Cell domain invariant cannot produce a valid combined projection from the deterministic winner of each involved ordinary Cell. This diagnostic grants no authority, creates no safety state, and MUST NOT be emitted for ordinary causal_register concurrency by itself."
     },
     {
       "code": "challenge_expired",
@@ -4886,14 +4886,6 @@
         "agent_readiness"
       ],
       "description": "Closed generic Agent readiness blocker: no active accepted runtime key exists. It is durable subject-level readiness state and MUST NOT be inferred from a missing session or target-Realm grant."
-    },
-    {
-      "code": "schedule_frontier_too_large",
-      "applies_to": [
-        "event_envelope",
-        "schema_validation"
-      ],
-      "description": "The observed Calendar schedule revision frontier exceeds the 128-entry bound shared with causal_refs, so entry.schedule_basis_refs cannot express it. The producer MUST converge the schedule before responding and MUST NOT truncate the basis. See zh/conformance/scalability-constraints.md. It is raised by the authoring client when the observed frontier itself exceeds the bound; a wire Event that actually carries more than 128 refs is instead rejected by schema maxItems as schema_violation."
     },
     {
       "code": "scope_incomparable",

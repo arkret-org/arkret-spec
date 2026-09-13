@@ -150,13 +150,13 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | `roster_delta` | `ak.component.call.roster.v1` | `sequenced_state` | set |
 | `mute_override` | `ak.component.call.mute_override.v1` | `sequenced_state` | register |
 
-安全状态没有无序 Bottom join。普通结果保留 Event 身份和全部因果 heads，`bottom=expose`；result 不授予采集、密钥或读取权限。精确 subject、条件、投影由 registry 唯一派生。
+安全状态没有无序 Bottom join。普通结果保留完整 Event 证据并按固定 `(depth,EventId)` 投影唯一 current；result 不授予采集、密钥或读取权限。精确 subject、条件、投影由 registry 唯一派生。
 
 **未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `cell_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result cell write。完整 op 由 registry `effect_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 
 **捕获态按段切分**：录制 / 转写 cell 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 cell，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `ak.component.call.recording.v1` 或 `ak.component.call.transcript.v1`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 cell family。
 
-**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details}`；并发不同结果保持多头供显式后继修订，不能重开捕获。start 的 pending result 与许可创建在同一原子安全命令内生效。
+**捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details}`；并发不同结果按普通 `causal_register` 固定 `(depth,EventId)` 选择唯一 current，后继修订引用当前来源，且不能重开捕获。start 的 pending result 与许可创建在同一原子安全命令内生效。
 
 - `focus`：是 `ak.component.call.focus.v1` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
 - `roster_delta`：`op=join` 时 effect 固定为 `add(tag=dot,value=participant)`（`dot` 为本 write 的 canonical write dot，定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2）；`op=leave` 时固定为 `remove(tag=observed_dot)`，并携带与 observed add value 一致的 `actor_id/device_id`。未知、跨 call 或身份不匹配的 tag MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
@@ -320,7 +320,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 }
 ```
 
-- `ak.call.summary` 写入 `ak.component.call.summary.v1`，`cell_subject = payload.call_id`，采用 `execution=data`、`state_model=causal_register`。它无需新 Seal；并发摘要保留全部身份，有权后继可以观察并覆盖有关 heads。摘要不授予通话、捕获或密钥访问权限。
+- `ak.call.summary` 写入 `ak.component.call.summary.v1`，`cell_subject = payload.call_id`，采用 `execution=data`、`state_model=causal_register`。它无需等待新 Seal；并发摘要保留全部历史身份并按固定 rank 投影单值，有权后继引用 current source。摘要不授予通话、捕获或密钥访问权限。
 - `final_state` MUST 是某终态，且该 `call_id` 的 `ak:cell:ak.component.call.state.v1:<call_id>` MUST 已存在终态 head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。该前置只看 `state` 轴 cell——某段捕获结果尚未收敛或捕获未终结 MUST NOT 阻止 summary 写入。
 - `recording_state` / `transcript_state` 是终态时刻从各捕获段 cell（`ak.component.call.recording_result.v1` / `ak.component.call.transcript_result.v1`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture cell。多段并存时该字段是 producer 签署的摘要声明；接收站不得自行选择不同段重写持久值。显示逐段状态时读取相同资格上下文内的完整结果集合。
 

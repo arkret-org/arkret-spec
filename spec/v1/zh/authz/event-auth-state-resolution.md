@@ -3,7 +3,7 @@ title: Event Authorization and State Resolution
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-09-13
 ---
 
 本文规范关键字按 [规范语言](../conformance/normative-language.md) 解释。
@@ -14,7 +14,7 @@ updated: 2026-09-12
 
 每项注册 Cell write 声明 `execution=data|security` 与 `state_model`。先从签名 Event 求值该 write 的封闭 `condition`，再派生目标与效果。存在任意有效 security write 时，整个 Event 是原子安全命令；否则是普通数据。没有有效效果的 reducer Event MUST 拒绝。producer MUST NOT 自报执行类别。
 
-普通数据使用 `causal_register`、`or_set`、`ordered_log` 或 issuer-local `counter`。安全状态使用 `sequenced_state`，按安全域确认命令顺序执行，不定义无序 join。转移表与 CAS 前置条件属于领域验证规则，不是另一种共享寄存器类型。
+普通数据使用 `causal_register`、`or_set`、`ordered_log` 或 issuer-local `counter`。其中 `causal_register` 按 §6 的同 Cell 固定因果全序产生唯一当前值，不以到达顺序、墙钟或 HLC 选值。安全状态使用 `sequenced_state`，按安全域确认命令顺序执行，不定义无序 join。转移表与 CAS 前置条件属于领域验证规则，不是另一种共享寄存器类型。
 
 原子 bootstrap unit 内的所有 Event 共同等待该 unit 的安全决定；D 初始效果不能提前使创建整体成功。后续独立的普通编辑不继承这种等待。安全许可与普通结果 MUST 使用不同注册写入目标，D 效果不能覆盖 S 字段。
 
@@ -47,7 +47,7 @@ K 为完整已验证输入证据集合。持久分类由 K、对应安全域的�
 
 实际曾发生的投递、用户已看到的内容或泄露不能回滚，不属于持久 Cell 投影的收敛保证。历史回放 MUST NOT 重新触发 live 通知、自动化或密钥释放。
 
-普通因果引用不等于执行依赖。引用/回复隔离内容不自动撤销回复者；对隔离基底应用 patch、依赖失效 grant 的操作 MUST 停止投影。有权作者可对有效基底发新的因果写修复，不按接收顺序清空历史。
+普通因果引用不等于执行依赖。引用/回复隔离内容不自动撤销回复者；对隔离基底应用 patch、依赖失效 grant 的操作 MUST 停止投影。有权作者可对有效基底发新的因果后继，不按接收顺序清空历史。`causal_register` 的 `depth(e,c)` 在完整认证依赖可用后固定；后来资格变化只改变候选集合，不从当前 eligible 子图重算历史深度。
 
 比较收敛时必须比较相同可见 scope 和完整必要证据。加密正文的语义验证另外要求同样的必要密钥；Station 只能判定可验证 envelope/密文/公开依赖，不能把不可解密当成正文有效。
 
@@ -57,7 +57,7 @@ K 为完整已验证输入证据集合。持久分类由 K、对应安全域的�
 
 关闭记录的 `scope_ref` 标识**被关闭授权依赖自身所属的安全 scope**，不是使用该资格的普通 Event 的业务资源 scope。验证者 MUST 从已验证授权来源派生该坐标，不得直接复制普通 Event 的 `scope_ref`。例如 human device 或 Agent key 的授权依赖属于其 exact AccountId 所绑定的 PCR scope；其关闭可影响依赖该资格的任意业务 Realm，不要求 PCR 枚举所有这些 Realm。Realm membership 依赖属于该 Realm，Circle membership 依赖属于该 Circle；Circle 内的 Event 同时使用父 Realm membership 时，仍分别保留这两个授权依赖坐标。grant 的授权依赖 scope 由其已确认的授权记录及登记规则派生。业务资源 scope、grant selector 覆盖、action、audience 和 constraints 仍独立验证；依赖 scope 相同不授予跨资源访问权，也不允许任意 PCR 为其它授权域签发关闭决定。
 
-普通 Event 不等待关闭决定。实际撤销时汇集可获得的目标历史，不等待所有副本在线；关闭证明只承诺选定集合，不证明世界历史收齐。最大 actor_seq、wall clock、HLC 和摘要排序 MUST NOT 代替完整 Event 身份。
+普通 Event 不等待授权关闭决定。实际撤销时汇集可获得的目标历史，不等待所有副本在线；授权关闭证明只承诺选定集合，不证明世界历史收齐。最大 actor_seq、wall clock、HLC 和摘要排序 MUST NOT 代替完整 Event 身份。普通数据另受 §8 的数据基准收录/关闭约束：该约束冻结一个已公告基准的允许 Event 身份集合，不替代授权资格，也不把业务值写入安全状态根。
 
 使用已关闭资格的 e，仅在历史授权成立且 e 属于每个适用 C_R 时保持 eligible；否则 quarantined。多个适用 cut 允许集取交集，不以较宽后继 cut 复活被另一关闭排除的事件。已验证授权坐标后，任一完整适用关闭集合明确排除 e，或实际执行依赖已有确定的无效结果，即足以 quarantine；其它依赖尚缺材料不能推翻这个已证明的否定结论。尚无确定否定且缺必要 membership 证明时 pending，不把本地查不到当成 non-membership。数学签名、绑定或结构非法仍按拒绝处理。
 
@@ -77,30 +77,34 @@ producer created_at 不能证明期限内存在。有限期资格的普通 Event
 
 ## 6. 因果寄存器
 
-写入身份由 canonical Event 身份与注册 Cell target 唯一确定，业务值不是身份。写过的 null、未写入、同值多个 head、ABA 与异值多个 head MUST 可区分。不得按 `(value,from)` 去重或接因果边。
+写入身份由 canonical Event 身份与注册 Cell target 唯一确定，业务值不是身份。写过的 null、未写入、同值多写、ABA 与异值并发写 MUST 可区分。不得按 `(value,from)` 去重或接因果边。
 
-在同一已验证资格上下文内，C 为已纳入的效果身份集合，H 为仍活跃的 heads：
+对确切 `(Realm, effective scope, CellRef=c)` 的已认证写入 `e`，`P(e,c)` 是其签名 `causal_refs[]` 中经注册 reducer 验证为同 Cell 业务因果前驱的写入集合。合法初始写没有同 Cell 前驱；后继写必须至少引用一个可用同 Cell 来源。只引用别的 Cell、actor chain、语义回复、Seal、HLC 或墙钟不提高该 Cell 排名。
 
 ```text
-C = C1 ∪ C2
-H = (H1 ∩ H2) ∪ (H1 \ C2) ∪ (H2 \ C1)
+depth(e,c) = 0                                      若 e 是合法初始写
+depth(e,c) = 1 + max(depth(p,c), p ∈ P(e,c))         其它合法写
+order(e,c) = (depth(e,c), canonical_event_id_bytes(e))
+current(c,K) = argmax(order(e,c), e ∈ eligible_writes(c,K))
 ```
 
-后继只覆盖自己签名因果上下文中的 heads；不能吸收接收站后来看到的并发写。全值并发写保留全部 heads；patch 必须绑定确切可用基底。普通前置检查只对签名 basis 成立，不承诺两个离线写中只成功一个。
+`canonical_event_id_bytes` 是完整 typed EventId 的规范解码字节（suite code 与全部 digest octets），按无符号字节升序比较并取较大项；不得比较显示字符串、截断 digest 或 locale。`depth` 是 `0..=9007199254740991` 的 JSON-safe 无符号整数，必须从已认证、无环的同 Cell 依赖图推导，作者不能自报。加一溢出、超过上限、同 Cell 必需前驱缺失或依赖环均 fail closed；缺材料时 pending，不能暂以 0 或 receiver 当前值代替。实现 MAY 缓存已验证深度，但 MUST 能由相同证据重算。
 
-先从 K 求 eligible 效果，再合并该集合的 C/H。隔离写没有业务覆盖权，不能压掉合法旧值。资格撤回可能重新显露较早但仍合法的值；这不等于资格集合不变时因丢覆盖导致旧 head 复活。
+深度在完成认证推导后固定。后来授权/关闭证据变化只改变 `eligible_writes(c,K)`，不得从此时仍 eligible 的父集合重算历史深度；被隔离执行基底的后继仍按既有执行依赖规则失去资格。相同资格上下文中的 join 是对全部候选取固定 `order` 最大值，因而交换、结合、幂等；不得先裁剪为旧式 heads 再挑 winner。不同资格上下文仍须先合并原始证据、重算资格，再选值，不能直接 join 两个赢家。
 
-C/H 快照 MUST 绑定资格上下文，即安全确认前缀、授权与关闭依赖和 reducer 合同。不同上下文的快照 MUST NOT 直接 join；先并 K 再重算。业务资格撤回不是普通膨胀型 CRDT delta。
+后继只声明自己实际观察到的来源，不能吸收接收站后来看到的并发写。普通前置检查只对签名 basis 成立，不承诺两个离线写中只成功一个。作者基于当前来源保存的新写，其深度严格高于该来源；未观察到的更深合法分支仍可能胜出。仍获权作者可构造更长分支或试探同深度 EventId，这属于 authorized-writer 内容修改/资源消耗风险，不授予额外 authority，也不得以本地“陈旧”判断 quarantine 合法离线写。
 
-一致性向量 `ak.vector.lattice.causal_register_supersession.v1` 与 `ak.vector.state_model.causal_transition_heads.v1` 验证同值身份、ABA、部分观察与领域转移的因果归约。
+current 只发布唯一赢家的完整 `{event_id,depth,value}` 来源；普通编辑仅以该来源作为同 Cell 基底，不要求取得或引用全部并发候选。snapshot 保留完整 coverage 与赢家排名，并绑定安全确认前缀、授权/关闭依赖和 reducer 合同；未来资格重算所需的落选值、认证依赖和固定深度材料仍须由 replay evidence 保留，不能因 current 单值而 GC。
+
+一致性向量 `ak.vector.lattice.causal_register_supersession.v1` 与 `ak.vector.state_model.causal_transition_heads.v1` MUST 覆盖正常后继超过整个已观察视图、不同到达顺序、同值异身份、null、ABA、同深度身份兜底、无关 Cell/actor_seq 不抬 rank、缺依赖、循环和溢出。向量 ID 为既有稳定标识；其中 `heads` 仅是历史命名，不表示当前协议仍发布多头。
 
 ## 7. 其他普通状态与结构
 
 OR-set 按精确 observed-remove dots 合并；移除只覆盖签名上下文实际观察的 dot。counter 仅按登记的 issuer-local 分片合并。ordered_log 是不可变 Event 集，canonical 排序只用于序列化/展示，不产生权限、因果或唯一赢家。
 
-空间 parent 在各自 basis 验无环、自指、同 Realm 和可读 scope。合流后先求单一 settled parent，多值为 unresolved；然后将有向环中的 parent 边全部标 unresolved。不得生成 contains、伪装 root 或按到达顺序选边。有权后继 reparent 可修复。指向终态或不相容 scope 的边不产生有效导航，placement 从不授予读取权。
+空间 parent 在各自 basis 验无环、自指、同 Realm 和可读 scope。每个 parent Cell 先按 §6 得到唯一当前边，再在当前边图中把有向环涉及的边全部标 unresolved；不得生成 contains、伪装 root 或按到达顺序选边。有权后继 reparent 可改变当前边。指向终态或不相容 scope 的边不产生有效导航，placement 从不授予读取权。
 
-普通状态转移表属于注册领域合同。多头归档冲突保守限制当前操作面，restore 观察有关 heads 后可收敛；terminal tombstone 不可逆。时刻调度产生显式已授权后继 Event，不能按各站首次到达时间改写持久历史。
+普通状态转移表属于注册领域合同。每条候选写仍必须相对其签名来源通过转移验证；最终当前状态按 §6 固定排序选出，不因落选而变成无效写。terminal tombstone 的不可逆性必须由登记领域验证保证，不能只依赖 winner 排序。时刻调度产生显式已授权后继 Event，不能按各站首次到达时间改写持久历史。
 
 ## 8. 安全状态与 Seal
 
@@ -108,9 +112,17 @@ v1 每个 Realm 构成一个安全域，域内身份控制、授权政策、MLS 
 
 安全域由唯一治理 Station 耐久串行执行，签署者使用冻结配置的唯一 key。单写者排他、CAS、防重复签发、原子终态与 outbox 遵循 [安全域确认 §1–§3](./cbs-profiles.md)；不声明多节点容错或自动选主。
 
-Seal 只确认该域的安全命令。每条命令在确认顺序处对实际状态执行 CAS 与领域转移；相同前置 revision 的竞争命令最多一个成功。失败命令无业务效果且结果持久，超时不等于失败。
+Seal 确认该域的安全命令，并按本节后述独立数据 publication 字段承诺普通 Event 身份及关闭旧数据基准。每条安全命令在确认顺序处对实际状态执行 CAS 与领域转移；相同前置 revision 的竞争命令最多一个成功。失败命令无业务效果且结果持久，超时不等于失败。数据身份收录不是安全命令结果，不把普通业务值加入 `delta` 或 `state_root`。
 
-安全 root 只承诺该域状态，不承诺普通消息完整性。普通消息不进入 delta，不产生 KeyView、普通数据覆盖 root 或周期空 Seal。普通快照同步不要求签署者在线。
+安全 root 只承诺该域安全状态，不承诺普通消息内容或全球完整性。普通消息不进入 `delta`/`state_root`，不产生 KeyView；其 Event 身份进入独立 data set commitment。普通快照同步不要求签署者在线。
+
+ordinary Event（原子 bootstrap unit 内的初始 D 成员除外）MUST 签名携带该 Realm 一个已确认 Seal 的 `data_basis`。该 basis 标识写入所属的开放数据区间，不要求为每次编辑生成新 Seal，也不替代 `auth_context`。治理 Station 对首次可验证且尚未收录的 ordinary Event 耐久记录 dirty，正常服务下最迟 `300000 ms` 形成数据批次；持续来件不得重置最老 dirty 的时限。没有新身份、未完成关闭公告或其它治理工作时不产生 Seal。
+
+数据批次以独立 `data_delta` 和累计 `data_event_set_root` 收录完整 Event 身份，并可公告关闭某个既有 `data_basis`。公告的 `not_before` 至少晚于公告 Seal 认证时间 `300000 ms`；该义务必须久化，即使此后没有新 Event 也必须产生有实质关闭效果的收尾 Seal。安全即时 Seal MAY 搭载收录/到期关闭，但 MUST NOT 缩短宽限。查询、重复 Event、exact retry、单纯时间经过不得凭空制造 dirty；收尾 Seal 自身不触发下一轮永久空转。
+
+最终 `data_closure` 冻结该 basis 的确切允许 Event 身份集合承诺。已取得“可验证且已耐久接收并承诺纳入本轮关闭集合”的成功不能在关闭竞态中遗漏；缺依赖 pending 不具备该语义。被关闭 basis 的 Event 若有完整 non-membership 证明则 quarantined；缺排除证明仍 pending，不能把本地查不到当成排除。已收录身份不得从身份集合移除，但未来授权关闭或执行依赖失效仍可使其退出 eligible。正常后继可绑定仍开放的新 basis；不得套用“业务来源在旧 cut 内而新 Event 不在即隔离”的错误规则。
+
+data set/closure 的 commitment、分页 material、inclusion/non-membership proof、权限裁剪与 exact retry 使用 §11 和 CBS 登记的统一 typed 合同。Seal 不内联无界 Event JSON，也不得向只有 Seal 元数据读取权的主体泄露私有 Circle/Event 名单。治理不可用、时钟边界不可信或材料不足时保持未确认/待证，不补造停机期间空 Seal。
 
 配置轮换由旧 signer 确认并冻结后继写权，新执行者取得完整前缀与耐久终态/outbox 后才激活。旧备份不得自启平行分支。notary 资格不是 controller 权力，不能取得客户端 MLS 私钥。
 
@@ -128,17 +140,19 @@ Seal 只确认该域的安全命令。每条命令在确认顺序处对实际状
 
 PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来自预先授权的恢复策略。旧签名备份不证明最新，缺连续证据或治理签署权不自证接管。稳定 Direct Conversation 全部私有状态丢失时暂停，不新建同 pair 的平行 group。
 
-普通快照保留必要活跃值、覆盖 membership、授权/关闭证明，以及未来资格重算可能需要的旧值和认证因果关系。可用归档可以承载旧内容，但不能只存一个 root 然后声称可恢复。不能证明旧值以后无用就不得 GC；依法硬删除后明确不可恢复。
+普通快照保留唯一当前值的身份/深度、完整 coverage、授权/关闭证明，以及未来资格重算可能需要的落选值和认证因果关系。可用归档可以承载旧内容，但不能只存一个 root 然后声称可恢复。不能证明旧值以后无用就不得 GC；依法硬删除后明确不可恢复。
 
 同步复用 direct push、cursor pull、exact-ID dependency resolve。证据最终送达要求存在可达持有者；恶意独占持有者不交付时不承诺活性。配额和背压不得通过各站任意截掉不同 heads 伪装收敛。
 
 ## 11. 安全状态根与序列化
 
-`covered(S)` 是 `S.delta` 与唯一 predecessor 的 covered 集合的并集。`control_event_set_root` 仅覆盖成功安全命令；拒绝结果由 Seal 的签名 `command_results` 直接承诺。普通数据从不进入该集合。genesis 注册原子 unit 的初始 D 效果仍由完整 unit 复算，不能宣称这些数据以后必须被 Seal 覆盖。
+`covered(S)` 是 `S.delta` 与唯一 predecessor 的 control covered 集合的并集。`control_event_set_root` 仅覆盖成功安全命令；拒绝结果由 Seal 的签名 `command_results` 直接承诺。普通数据从不进入该集合。`data_covered(S)` 是 `S.data_delta` 与 predecessor 的 data covered 集合并集，`data_event_set_root` 只承诺这些 ordinary Event 身份；两棵树、字段与证明不得互换。genesis 注册原子 unit 的初始 D 效果仍由完整 unit 复算，不进入 data set，也不能宣称这些数据以后必须另被 Seal 覆盖。
 
 含 D/S 的安全原子命令，其 `result_digest` 中 D 效果的完整模型状态 MUST 从该成员签名 `prev_refs` 与 `causal_refs` 可达的完整 D 因果输入、已验证历史资格上下文，以及它确切依赖的 unit 内前序写入重算。未被该成员观察的并发 D 写 MUST NOT 进入这个结果；同一 unit 中仅仅排在前面的 D 写也不自动成为它的因果依赖。`seal_basis` 只固定安全授权与 S revision，不能充当 D 状态快照；接收站当前全局 D 投影不能替代该签名依赖 cut。必要认证材料、资格或因果依赖缺失时整个命令保持 pending，不得把缺失解释为 unwritten/null，也不得先发布其中 D 效果。命令确认后，其全部成功 D/S 操作、唯一终局与发布 outbox MUST 原子保存；S root 与 delta 仍只承诺 S 部分，普通全局 D 投影在相同资格上下文内再合并其它合法并发写，不能反向改变已确认命令的 `result_digest`。
 
-`state_root` 的每个 leaf 恰为 `JCS({cell:<CellRef>,state:{revision_event_id:<EventId>,value:<value>}})`。成员恰为该安全域中已执行成功注册 write 的 `sequenced_state` cell；未写入者无 leaf，写过 null 者保留 leaf。revision 是最后成功写入的 Event 身份，不能用值或 Seal ID 替代。安全 register 的 value 是完整登记业务值；安全 set 的 value 是按 tag_id 排序的全部活跃 `{tag_id,value}` 项，空集为 []，不保存已移除项。安全 set 不进行离线 merge，确切 revision 已防止旧命令复活被删除的 dot。安全 log 保留按登记键排序的完整不可变 entries。上述内部表示不同于可能剥离 tags 的查询展示值；只有 D OR-set 必须保留 removed_tag_ids。D cell、未登记隐含写入、候选命令都不进入安全 root。
+`state_root` 的每个 leaf 恰为 `JCS({cell:<CellRef>,state:{revision_event_id:<EventId>,value:<value>}})`。成员恰为该安全域中已执行成功注册 write 的 `sequenced_state` cell；未写入者无 leaf，写过 null 者保留 leaf。revision 是最后成功写入的 Event 身份，不能用值或 Seal ID 替代。安全 register 的 value 是完整登记业务值；安全 set 的 value 是按 tag_id 排序的全部活跃 `{tag_id,value}` 项，空集为 []，不保存已移除项。安全 set 不进行离线 merge，确切 revision 已防止旧命令复活被删除的 dot。安全 log 保留按登记键排序的完整不可变 entries。上述内部表示不同于可能剥离 tags 的查询展示值；只有 D OR-set 必须保留 removed_tag_ids。D cell、data publication、未登记隐含写入、候选命令都不进入安全 root。
+
+`data_event_set_root` 使用同一 Realm digest suite 和 RFC 6962 构造，leaf_data 是完整 typed Event digest 的 UTF-8 字节，按 typed digest wire bytes 排序。`data_delta` 只含本 Seal 新收录且已完成所需 envelope/历史材料验证的 ordinary Event digest，canonical 排序去重；重复收录非法。`data_closure` 的 allowed-set commitment 使用同一 leaf 规则，但集合限于绑定目标 `data_basis` 且已冻结允许的 Event 身份。分页 material 必须绑定 root、member_count、page index/continuation 与完整性证明；inclusion 证明成员，non-membership 使用认证相邻 leaf 与端点范围。零散 inclusion 不能证明排除，最大 actor_seq、时间戳或每 actor frontier 不能替代确切集合。
 
 cell leaf 按完整 CellRef 的 Unicode code point 升序；covered digest 按 typed digest wire bytes 升序，leaf_data 为完整 typed digest 的 UTF-8 字节，保留 suite 前缀。所有树使用 RFC6962：leaf=H(0x00 || leaf_data)，node=H(0x01 || left || right)，空树=H(empty)，单 leaf 为其带域分隔 leaf hash，递归在小于长度的最大 2 的幂处分割。根的 suite 来自已验证安全配置，不从待验证对象自报摘要推断。
 

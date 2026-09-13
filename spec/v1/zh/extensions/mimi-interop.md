@@ -498,7 +498,7 @@ Arkret 的 unknown handling 来自登记的 state model 与 criticality：
 | Arkret | MIMI |
 | --- | --- |
 | `sequenced_state` 安全语义或未知核心状态模型 | `must-understand` |
-| `bottom=expose` | `should-understand` / exposed conflict |
+| `causal_register` deterministic winner | `should-understand` / single current value with retained history |
 | 非授权 projection extension | `silently-drop`，但必须保留 raw bytes 或 canonical hash |
 
 **Facade 责任**：

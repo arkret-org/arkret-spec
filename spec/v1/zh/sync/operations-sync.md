@@ -25,7 +25,7 @@ Arkret v1 采用 **CBS**（Control-plane Basis-committed Sealing）：
 
 - 数据面事件（ordinary Event）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。ordinary Event 由 actor 签名、按 `auth_context.authority_refs` 验证授权，通过注册的 cell state model 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
-- Seal 只确认安全命令及其顺序结果。普通消息不进入 Seal 的 delta 或 state_root；安全命令 bytes 的可用性由 signed `availability_receipt_digests[]` 逐项承诺。
+- Seal 确认安全命令及其顺序结果，并在独立的 `data_delta` / `data_event_set_root` 中发布普通 Event 身份与数据基准关闭；普通消息不进入安全 `delta` 或 `state_root`。安全命令 bytes 的可用性由 signed `availability_receipt_digests[]` 逐项承诺。
 
 同步层必须支持 actor 侧可验证发布、append-only 审计日志、离线写入、跨服务传播、选择性同步、最终一致投影、以及控制面问责。
 
@@ -37,9 +37,9 @@ Reducer-input Event 分为两类，二者 wire shape 互斥：
 
 | 类型 | 必须字段 | 禁止字段 | 收敛语义 |
 | --- | --- | --- | --- |
-| ordinary Event | `scope_ref`、`auth_context` | `seal_basis` | reducer 从 kind + payload 派生 data-plane writes；preconditions 仅检查签名因果基底；签名、actor chain、授权与注册 state-model 验证通过即可本地接受。 |
-| Control Move | `scope_ref`、`seal_basis` | `seal_ref`、`auth_context` | reducer 派生 control-plane writes；进入 pending control set，直到被有效 Seal 覆盖才生效。 |
-| Anchor Unit | `scope_ref`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`seal_basis` | 封闭例外；必须按 CBS 非空 genesis / transaction 规则验证。 |
+| ordinary Event | `scope_ref`、`auth_context`、`data_basis` | `seal_basis` | reducer 从 kind + payload 派生 data-plane writes；preconditions 仅检查签名因果基底；签名、actor chain、授权、开放数据基准与注册 state-model 验证通过即可本地接受。 |
+| Control Move | `scope_ref`、`seal_basis` | `seal_ref`、`auth_context`、`data_basis` | reducer 派生 control-plane writes；进入 pending control set，直到被有效 Seal 覆盖才生效。 |
+| Anchor Unit | `scope_ref`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`data_basis`、`seal_basis` | 封闭例外；必须按 CBS 非空 genesis / transaction 规则验证。 |
 
 `preconditions[]` 仅属于 Control Move。ordinary Event 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane，不得伪装成轻量数据面写入。
 
@@ -51,6 +51,7 @@ ordinary Event 是数据面写入。它的核心字段如下：
 | --- | --- |
 | reducer contract | 从 kind + payload 派生普通 cell write；全部目标 MUST 为 `execution="data"`。 |
 | `auth_context` | 签名 key 坐标、capability refs 与已确认的 `authority_refs`；长期缓存不因签署者离线失效。 |
+| `data_basis` | 同 Realm 已确认且尚未最终关闭的 Seal；只绑定数据发布区间，不授予权限、不参与业务排序。 |
 | `causal_refs[]` | 业务因果 hash 引用；用于投影、线程、排序与缺依赖诊断，不证明范围完整性。 |
 | `refs[]` | 语义引用；例如 `authorized_by`、`parent_event`、`attestation`、`after`。 |
 
@@ -103,7 +104,7 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 
 1. 首次提交由任意合资格接收站独立验证 producer、授权与因果证据，和本地已知 revoke fence 串行持久化。普通消息不要求新 Seal 或原站确认。federation/backfill 按相同证据闭包求历史资格，后续关闭可使此前暂时接纳的消息进入隔离，历史导入不触发 live 副作用。
 
-ordinary Event 的安全问题主要是签名伪造、授权过期、写入不属于 data plane、以及不可合并冲突。签名伪造由 DID/key 与 Event proof 解决；授权基准由已验证 `auth_context.authority_refs` 提供；普通因果冲突由 `causal_register` 的多 head 结果显式暴露；其它 state model 按各自登记规则收敛。
+ordinary Event 的安全问题主要是签名伪造、授权过期、写入不属于 data plane、恶意获权写入与资源滥用。签名伪造由 DID/key 与 Event proof 解决；授权基准由已验证 `auth_context.authority_refs` 提供；`causal_register` 按固定 `(depth,EventId)` 收敛为单值并保留落选证据；其它 state model 按各自登记规则收敛。
 
 ### 3.2 Control Move 验证
 
@@ -266,10 +267,11 @@ Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell fami
 
 - 普通 or_set、ordered_log 与已注册 issuer-local counter 在相同资格证据下 MUST 对输入顺序不敏感。安全 sequenced_state 按确认顺序执行，不适用无序 join。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
-- 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Station sync surface 顺序挑选 winner。
+- 普通 `causal_register` 对同 Cell 写入计算固定 `depth`，再按完整 typed EventId 字节兜底，确定性选择唯一当前值；不得使用 HLC、actor id、数据库自增 ID、本地到达顺序或 Station sync surface 顺序。
+- Relation 互斥、parent 成环等已登记跨 Cell 领域约束仍可产生独立 diagnostic；它们不得被误写成通用寄存器多头，也不得改变寄存器 winner。
 - Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 state-model result。
 
-ordinary Event 的 `causal_refs[]` 可以帮助投影层稳定排序和诊断缺依赖；它不是全局 completeness proof。
+ordinary Event 的 `causal_refs[]` 为每个 causal-register 更新绑定确切同 Cell 来源并用于固定 depth；其它引用仍可帮助投影层稳定排序和诊断缺依赖。它不是全局 completeness proof。
 
 ## 10. Snapshot
 
@@ -353,7 +355,7 @@ Arkret v1 固定：
 - Seal 只给控制面 finality；对数据面的 root 是观测承诺。
 - Event 签名、accepted DID/key binding 和 capability 检查解决伪造事件问题；DID authority
   resolution 只在身份 / key binding 建立、变更或显式 freshness 触发时执行。
-- 数据面的核心分布式问题是冲突、可用性、可见性与观测证明；冲突由 `causal_register` 多 head 与其它登记 state model 解决。
+- 数据面的核心分布式问题是收敛、可用性、可见性与观测证明；普通寄存器由固定因果全序选 current，其它登记 state model 与领域不变量各自解决。
 - 密文负载可以由不解密的 Station sync surface 转发。
 - hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；Event subject 的 `event_id` 本身保留完整 `(digest suite wire_code, event_digest)`。这只能保留已记录的身份，不能在 canonical bytes 已擦除后重新证明原 hash 正确。不得重写 Event hash 或伪装事件从未存在。
 

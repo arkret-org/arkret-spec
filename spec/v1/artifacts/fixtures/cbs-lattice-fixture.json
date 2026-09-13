@@ -28,8 +28,8 @@
         "vector_id": "ak.vector.lattice.causal_register_join.v1",
         "state_model": "causal_register",
         "assertions": [
-          "concurrent_set_surfaces_all_heads",
-          "does_not_choose_winner"
+          "concurrent_set_retains_all_identities",
+          "chooses_fixed_depth_event_id_winner"
         ]
       },
       {
@@ -246,9 +246,9 @@
       ]
     },
     {
-      "name": "data_plane_conflict_returns_bottom_without_winner",
+      "name": "data_plane_concurrency_selects_fixed_winner",
       "vector_id": "ak.vector.cbs_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
-      "description": "Concurrent ordinary values retain every authenticated Event identity; projections expose multiple heads.",
+      "description": "Concurrent ordinary values retain every authenticated Event identity while the projection exposes one fixed (depth,EventId) winner.",
       "state_model": "causal_register",
       "writes": [
         {
@@ -267,11 +267,8 @@
           "a",
           "b"
         ],
-        "heads": [
-          "a",
-          "b"
-        ],
-        "winner": null
+        "winner": "b",
+        "winner_depth": 0
       }
     },
     {
@@ -326,6 +323,8 @@
         "predecessor_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "delta": [],
         "control_event_set_root": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "data_delta": [],
+        "data_event_set_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "state_root": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
         "availability_receipt_digests": [],
         "notary_seq": 7,
@@ -335,8 +334,8 @@
         "command_results": []
       },
       "expected": {
-        "id": "ak:seal:sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18",
-        "notary_signature_payload_digest": "sha256:7b0aac985cb100216f9c24e307272a016ee6082a6101ce5d4eea7e273c4bb436",
+        "id": "ak:seal:sha256:95c7242daf392784b94aefcfc42577124b04ce519fdc87d3bb069ef1e2e4d4d5",
+        "notary_signature_payload_digest": "sha256:1cb4dbe438122078982736dc24d4abe389c7e0300bcbfa327b0a92928c945856",
         "valid_result": "accept"
       },
       "attacks": [
@@ -381,12 +380,12 @@
       },
       "commit_transcript": {
         "context": "ak.seal.commit.v1",
-        "seal_digest": "sha256:ccaab1f1ea5150a9d8114e3b55ed0a482b9eaaf996016e77eaec25073d64de18"
+        "seal_digest": "sha256:95c7242daf392784b94aefcfc42577124b04ce519fdc87d3bb069ef1e2e4d4d5"
       },
       "certificate": {
         "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
-        "payload_digest": "sha256:7b0aac985cb100216f9c24e307272a016ee6082a6101ce5d4eea7e273c4bb436",
-        "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..18DTrkqtwYyCUU1oVOCeSSA_DSqExg2OtoxYzKAaHjLTlqL_L00N2cLR3LxTFwEV_3EuSOXZxFEfIwlfujLtAA"
+        "payload_digest": "sha256:1cb4dbe438122078982736dc24d4abe389c7e0300bcbfa327b0a92928c945856",
+        "jws": "eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUifQ..1h6rAiZAfb0Yj9D1jHOFMgSnYTZnHPcLuu-dbXQrtdtScBqszNwjXNxIS3LDBWzVEaLBAUFIwkuSxg8bHoTnBA"
       }
     },
     {
@@ -1455,17 +1454,17 @@
       "vector_id": "ak.vector.actor_chain.realm_scope.v1"
     },
     {
-      "name": "conflict_recovery_move",
+      "name": "causal_successor_after_concurrent_writes",
       "vector_id": "ak.vector.cbs_lattice.authorized_causal_repair.v1",
-      "description": "Ordinary repair is an authorized causal successor. Safety state has one confirmed revision and no multi-head reset protocol.",
+      "description": "An ordinary authorized causal successor advances from the current source; concurrent losers remain historical evidence. Safety state has one confirmed revision and no reset protocol.",
       "cases": [
         {
-          "name": "repair_observes_all_heads",
-          "expected": "single_successor_head"
+          "name": "successor_references_current_winner",
+          "expected": "successor_has_higher_depth_and_wins"
         },
         {
-          "name": "repair_observes_one_head",
-          "expected": "unobserved_branch_retained"
+          "name": "successor_references_losing_write_only",
+          "expected": "winner_is_recomputed_by_fixed_rank_and_all_evidence_is_retained"
         },
         {
           "name": "arbitrary_target_reset",
@@ -2030,13 +2029,12 @@
               "b",
               "c"
             ],
-            "heads": [
-              "c"
-            ]
+            "winner": "c",
+            "winner_depth": 2
           }
         },
         {
-          "name": "same_value_concurrent_heads",
+          "name": "same_value_concurrent_writes",
           "writes": [
             {
               "id": "a",
@@ -2054,14 +2052,12 @@
               "a",
               "b"
             ],
-            "heads": [
-              "a",
-              "b"
-            ]
+            "winner": "b",
+            "winner_depth": 0
           }
         },
         {
-          "name": "partial_repair",
+          "name": "successor_of_one_concurrent_branch",
           "writes": [
             {
               "id": "a",
@@ -2087,10 +2083,8 @@
               "b",
               "c"
             ],
-            "heads": [
-              "b",
-              "c"
-            ]
+            "winner": "c",
+            "winner_depth": 1
           }
         }
       ],
@@ -2185,11 +2179,11 @@
           }
         },
         {
-          "name": "concurrent_metadata_and_track_patches_expose_mv_heads",
+          "name": "concurrent_metadata_and_track_patches_choose_fixed_winner",
           "family": "ak.component.strand.object.v1",
           "expected": {
-            "result": "multi_head",
-            "note": "causal_register exposes both heads over one explicit base; the contract promises causal supersession, not automatic field merging."
+            "result": "deterministic_winner",
+            "note": "causal_register retains both writes as evidence and exposes the fixed (depth,EventId) winner; it does not field-merge concurrent whole-object patches."
           }
         },
         {
@@ -2255,11 +2249,11 @@
           }
         },
         {
-          "name": "view_reconcile_supersedes_only_observed_heads",
+          "name": "view_reconcile_advances_from_current_source",
           "family": "ak.component.view.v1",
           "expected": {
-            "result": "multi_head",
-            "note": "a whole-value set on causal_register replaces the heads its basis observed; an unobserved concurrent branch stays exposed. A known-good definition is not a privilege to overwrite state it never saw."
+            "result": "deterministic_winner",
+            "note": "a whole-value set references the current source and gains a higher fixed depth; concurrent losers remain historical evidence but are not additional current values. A known-good definition is not a privilege to bypass signed-basis validation."
           }
         }
       ]
@@ -2300,7 +2294,7 @@
           "name": "same_decision_from_either_source_is_one_value",
           "expected": {
             "projected_value": "identical",
-            "note": "neither source puts its event reference or inner proof into the value. Otherwise two endorsements that mean the same thing would differ only by origin and drive a bottom=reject cell into conflict."
+            "note": "neither source puts its event reference or inner proof into the value. Equal business values remain equal even though the causal register still preserves distinct source identities and deterministically selects one."
           }
         },
         {

@@ -25,7 +25,6 @@ from .core import (
     OPERATION_KINDS,
     PROFILE_ID_RE,
     Path,
-    REGISTRY_BOTTOMS,
     REGISTRY_STATE_MODELS,
     REGISTRY_PLANES,
     ROOT,
@@ -839,8 +838,8 @@ def lint_effect_projection(
         if state_model == "causal_register" and "expected_prestate" not in projection:
             lint.fail(
                 path,
-                f"{ref} on a causal_register requires expected_prestate; without it the head "
-                f"this patch applies to is undefined",
+                f"{ref} on a causal_register requires expected_prestate; without it the exact "
+                f"current source/value this patch applies to is undefined",
             )
         if increment_members is not None:
             if state_model != "sequenced_state":
@@ -1674,20 +1673,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 write_model = write.get("state_model")
                 if write_model not in REGISTRY_STATE_MODELS:
                     lint.fail(event_path, f"{write_ref} has unknown state model {write_model!r}")
-                write_bottom = write.get("bottom")
                 if write.get("execution") not in {"data", "security"}:
                     lint.fail(event_path, f"{write_ref} must declare data or security execution")
                 if (write.get("execution") == "security") != (write_model == "sequenced_state"):
                     lint.fail(event_path, f"{write_ref} execution and state_model disagree")
                 if write.get("value_shape") not in {"register", "set", "log", "counter"}:
                     lint.fail(event_path, f"{write_ref} requires a registered value_shape")
-                if write_model == "causal_register":
-                    if write_bottom not in REGISTRY_BOTTOMS:
-                        lint.fail(event_path, f"{write_ref} causal_register has unknown bottom {write_bottom!r}")
-                elif "bottom" in write:
+                if "bottom" in write:
                     lint.fail(
                         event_path,
-                        f"{write_ref} declares bottom on {write_model}; only ordinary causal_register may produce Bottom",
+                        f"{write_ref} declares removed bottom policy; causal_register uses the fixed deterministic winner",
                     )
                 write_key = json.dumps(
                     [write_family, write.get("cell_subject")],

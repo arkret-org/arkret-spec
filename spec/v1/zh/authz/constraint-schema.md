@@ -174,7 +174,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
-**依赖不可判定时 fail closed**：condition 所引用的数据 cell 多头而不能唯一求值，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按确认顺序求值，不存在控制寄存器 Bottom。
+**依赖不可判定时 fail closed**：condition 所引用的数据 cell 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按确认顺序求值，不存在控制寄存器 Bottom。
 
 实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
