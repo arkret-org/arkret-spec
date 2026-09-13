@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.8",
+  "version": "2026-09-13.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T14:30:00+08:00",
+  "generated_at": "2026-09-13T16:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -13217,7 +13217,7 @@
         },
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/controller-gate-attestations",
-        "notes": "Account Authority S2S producer operation for Agent signer evidence. The request carries agent_authority_resolution: the service identity/type, adapter-discriminated method evidence and authenticated normalized DID Document. The receiver independently validates method evidence, document digest, current method state, project(did), and active assertion key before verifying an RFC 9421 signature that covers method, target URI/path, Content-Digest, Source/Destination-Service-ID, operation id and request id. A did_core_id, URL, bearer or caller-supplied public key is never the verification key source; bearer may only be an additional deployment gate. The authenticated source service MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the Agent same-server invariant. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: the independently signed gate binds the controller principal and is reusable for the same applicable relationship. Actual operation, scope and possession are checked from each signed message; no additional observation or outer attestation exists. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
+        "notes": "Account Authority deployment-internal producer operation for Agent signer evidence. The request is the closed triple {request_id, principal_id, agent_authority_id} and carries no service-resolution carrier. Caller identity comes only from the registered internal authentication relationship, which binds the configured caller, the target Station, the trust domain and the permitted operation; Source-Service-ID, a caller-asserted internal field, a did_core_id, URL, bearer or caller-supplied public key is never an identity source. The authenticated caller MUST equal request.agent_authority_id and MUST byte-match service_id in request.principal_id's current AcceptedAtServiceBinding; that Station is the Agent PCR authority under the Agent same-server invariant and MUST equal the authority named by the principal's current binding. Ordinary clients and a caller-supplied account identity are forbidden. The Account Authority reads its own authoritative account binding/status projection, selects account_binding_default or account_status_event basis, and signs the closed controller_account_gate_attestation under domain ak.controller_account_gate.v1. The response side is unchanged: the attestation signature, the public DID assertion authorization of its verification method, the TTL and exact replay all remain, because the outcome enters the external Agent evidence chain. issued_at <= expires_at and expires_at-issued_at MUST be <=300s. Unknown principal, missing current service binding, wrong source service and unauthorized caller are indistinguishable not_found outcomes and disclose no account status. Exact request_id plus canonical intent replay returns the byte-identical outcome while retained; same request_id with different principal or service is duplicate_conflict with zero issuance. The attestation is intentionally a reusable short-TTL controller-lifecycle snapshot and omits operation, request_digest, audience and challenge: the independently signed gate binds the controller principal and is reusable for the same applicable relationship. Actual operation, scope and possession are checked from each signed message; no additional observation or outer attestation exists. account_id and raw account cells never enter the request, outcome, logs visible to the caller or portable evidence.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "request_id",
@@ -16794,8 +16794,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-13.3",
-    "generated_at": "2026-09-13T02:19:04+08:00",
+    "version": "2026-09-13.4",
+    "generated_at": "2026-09-13T16:10:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

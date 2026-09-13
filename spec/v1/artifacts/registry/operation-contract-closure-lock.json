@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-13.33",
-  "generated_at": "2026-09-13T14:30:00+08:00",
+  "version": "2026-09-13.35",
+  "generated_at": "2026-09-13T16:10:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -125,7 +125,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-      "sha256": "sha256:22bff951b9688792331d451c3aa4831fd22558b38b1b04a628046d0445c9d63e"
+      "sha256": "sha256:7e8761e3da0305851476992266d59403d40c8c0def3cb947434ea1cabc1217cc"
     },
     {
       "operation_id": "ak.gate.account.command.issue_did_binding_challenge.v1",

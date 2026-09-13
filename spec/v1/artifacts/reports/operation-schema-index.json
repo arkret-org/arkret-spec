@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.8",
+  "version": "2026-09-13.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T14:30:00+08:00",
+  "generated_at": "2026-09-13T16:10:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1081,14 +1081,12 @@
         "required": [
           "request_id",
           "principal_id",
-          "agent_authority_id",
-          "agent_authority_resolution"
+          "agent_authority_id"
         ],
         "properties": [
           "request_id",
           "principal_id",
-          "agent_authority_id",
-          "agent_authority_resolution"
+          "agent_authority_id"
         ],
         "closed": true
       },
