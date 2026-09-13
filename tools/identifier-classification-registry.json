@@ -110,7 +110,7 @@
       "name": "approval_request_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 8,
+      "occurrences": 7,
       "example_path": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_data/properties/approval_request_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
