@@ -262,12 +262,12 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 **通道合同**：
 
-- 每次内部调用的认证 MUST 同时绑定四项已配置事实：**调用方身份**、**目标服务身份**、**trust domain**，以及**该调用方在该目标上被允许的 operation 集合**。任一项不匹配即拒绝；不存在"同部署即互信"或"同进程树即互信"的默认放行。
-- 内部身份 MUST 只来自凭据验证结果与部署配置。`Source-Service-ID` / `Destination-Service-ID` header、body 字段、路径段以及任何客户端自报的 `internal` 标记 MUST NOT 决定内部身份；它们最多是与已认证身份逐字比对的冗余输入，不一致即拒绝。
-- 内部对端的身份、endpoint 与 trust domain MUST 由显式部署配置提供。配置缺失、冲突或目标变更 MUST 拒绝或走显式重新绑定；MUST NOT 从 `describe`、响应中的首个候选或网络错误回退猜测对端。
+- 每个 Account Authority ↔ Station 配对复用已有 peer 配置中的唯一 **canonical origin、per-edge bearer 与对端 trust domain**；MUST NOT 为内部通道另建平行配置对象、身份副本或可编辑 operation allowlist。同一 bearer MUST NOT 分配给两个 peer 配置记录。
+- bearer 在哪一条 peer 配置中匹配就决定已认证 source；入站 destination 就是处理固定 route 的本机，出站 destination 由该记录的 canonical origin 决定；允许的 operation 由下表固定 route / call site 决定。实现 MUST NOT 再要求部署内调用发送或比较 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain` 或 `Destination-Trust-Domain` 来重复证明这些事实，body 字段、路径参数及任何客户端自报的 `internal` 标记也不得改变身份。通用 `Arkret-Operation` 若存在，只执行 header 与实际 route 的普通一致性检查，不产生内部权限。
+- 内部对端 origin、bearer 与 trust domain MUST 由显式部署配置提供。配置缺失、冲突、bearer 重复或目标变更 MUST 拒绝或走显式重新绑定；MUST NOT 从 `describe`、响应中的首个候选或网络错误回退猜测对端。发送 bearer 前 MUST 验证 exact canonical origin 与该 operation 的固定 path，不得把凭据发送到 URL credential、query、fragment、redirect 或另一 origin。
 - **通道完整性与部署前提**：内部通道上所有会解密 TLS 或转发已解密请求 / 响应的 proxy 均视为运营方控制的可信组件，并与调用端、目标端同属一个 TCB。current-v1 不通过协议字段、proxy 清单或应用层 hop 核验重复描述该部署事实，也不要求 mTLS；可信 proxy 的失陷按整个部署 TCB 失陷处理。不能接受此前提的部署不适用本节的无签名内部合同，须在采用新的完整消息签名合同后再部署，而不得自行增加私有 fallback 或双轨认证。
 - 支持同一认证事实的进程内调用 MUST NOT 被要求模拟 HTTP 才能取得本合同。
-- 内部通道 MUST NOT 用于未在下表登记的 operation。MUST NOT 把 `/_arkret/peer/*`、`/_arkret/gate/*`、`/_arkret/root/*` 或 `/_arkret/self/*` 的整条路径群改为接受部署 bearer；授权粒度只有"逐 operation 登记"这一种。
+- 内部通道 MUST NOT 用于未在下表登记的 operation。只有对应固定 route / call site 能读取该 peer bearer；MUST NOT 把 `/_arkret/peer/*`、`/_arkret/gate/*`、`/_arkret/root/*` 或 `/_arkret/self/*` 的整条路径群改为接受部署 bearer。
 
 **已登记的部署内 operation**：
 
@@ -280,7 +280,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 **混合 internal / federation operation**：上表的"内部调用关系"列既是允许主体，也是合同选择判据。若某 operation 同时存在外部调用面，实现 MUST 按**本次已认证的调用关系**逐次选择合同：调用关系就是登记的内部关系时用内部通道合同；其余一律是外部调用，§2.2 默认规则的 RFC 9421 / service DID proof 与该 operation 自身登记的独立验证（method evidence、document digest、record proof、currentness、active assertion key 等）全部保留。MUST NOT 因为某次调用是内部的就放宽外部调用的验证，也 MUST NOT 因为 operation 被登记为内部就对任意调用方接受部署 bearer。当前登记的四个 operation 都只有内部调用面：其允许主体、载体形态与 receipt 接受规则都封闭在该内部关系内，未经登记通道到达的调用一律拒绝，不存在可回退的外部分支。
 
-**内容权威不变**：内部通道只认证 transport 的 source / destination / operation 权限。内嵌 Event、签名 record、DID operation、幂等 intent、accepted-device possession proof 以及各 operation 自身登记的 gate，其验证职责与精确字节身份 MUST NOT 因内部通道而减少。transport 外壳的 digest 规则见 §2.5.1 末段。
+**内容权威不变**：内部通道只认证已配置 peer 对固定 route 的调用权限。内嵌 Event、签名 record、DID operation、幂等 intent、accepted-device possession proof 以及各 operation 自身登记的 gate，其验证职责与精确字节身份 MUST NOT 因内部通道而减少。transport 外壳的 digest 规则见 §2.5.1 末段。
 
 ### 2.3 端点契约清单
 
