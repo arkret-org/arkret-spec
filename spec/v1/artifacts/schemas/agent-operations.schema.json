@@ -498,10 +498,6 @@
         "current_signer_evidence": {
           "$ref": "./current-signer-evidence-operations.schema.json#/$defs/agent_evidence",
           "description": "Complete Agent signer evidence root and recursive dependencies with no known-ref omissions. The consumer recomputes signer_resolution_evidence_ref with the SDK canonical helper."
-        },
-        "runtime_verifier_material": {
-          "$ref": "#/$defs/agent_runtime_verifier_material",
-          "description": "Confidential verifier-only material. Return only to the authenticated delegated Account Authority executing pair_agent_key for this exact Agent; MUST be absent from ordinary controller/runtime responses and notifications."
         }
       },
       "dependentRequired": {
@@ -749,32 +745,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "agent_runtime_verifier_material": {
-      "type": "object",
-      "required": [
-        "approval_request_id",
-        "candidate",
-        "proof_of_possession",
-        "proof_verified_at"
-      ],
-      "properties": {
-        "approval_request_id": {
-          "$ref": "#/$defs/opaque_local_id"
-        },
-        "candidate": {
-          "$ref": "#/$defs/agent_runtime_approval_controller_projection"
-        },
-        "proof_of_possession": {
-          "$ref": "#/$defs/agent_runtime_key_possession_proof"
-        },
-        "proof_verified_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Authoritative Station timestamp at which this exact PoP passed freshness and signature checks. Same-candidate refresh updates this time and PoP atomically; it is not an independent proof against the Station."
-        }
-      },
-      "additionalProperties": false,
-      "description": "Authenticated confidential S2S verifier record for the exact current handle/candidate. Together with sibling authoritative pairing code, expiry and service identity, this provides all raw inputs for independent PoP transcript reconstruction/signature verification. A verified boolean is not a substitute. Freeze the candidate; freshness proof may refresh without invalidating approval."
     },
     "agent_human_approval_error_details": {
       "type": "object",

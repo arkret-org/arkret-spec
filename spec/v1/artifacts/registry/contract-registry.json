@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.9",
+  "version": "2026-09-13.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T16:10:00+08:00",
+  "generated_at": "2026-09-13T16:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -14943,7 +14943,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
-        "notes": "Authenticated controller view. Delegated Account Authority executing pair_agent_key may use authenticated confidential S2S access to this same operation and receive key_state.runtime_verifier_material bound to the exact handle/candidate for independent PoP verification. Ordinary controller/runtime responses MUST omit that field; no generic account impersonation or caller-selected candidate is allowed."
+        "notes": "Authenticated controller view. The Station that owns the pairing candidate is the single owner of the raw PoP material and verifies it there; the Account Authority consumes the authenticated exact outcome and does not read verifier-only raw material through this operation. No generic account impersonation or caller-selected candidate is allowed."
       },
       {
         "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
@@ -16794,8 +16794,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-13.4",
-    "generated_at": "2026-09-13T16:10:00+08:00",
+    "version": "2026-09-13.5",
+    "generated_at": "2026-09-13T16:40:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

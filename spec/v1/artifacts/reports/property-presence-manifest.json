@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11711,
+    "total_properties": 11706,
     "total_schema_documents": 173,
     "by_presence_class": {
-      "optional": 3153,
+      "optional": 3152,
       "optional_defaulted": 62,
-      "required": 7366,
+      "required": 7362,
       "required_nullable": 380,
       "tristate": 750
     },
@@ -4908,10 +4908,6 @@
         "/$defs/agent_runtime_public_key/properties/key": "required",
         "/$defs/agent_runtime_public_key/properties/kid": "required",
         "/$defs/agent_runtime_public_key/properties/kty": "required",
-        "/$defs/agent_runtime_verifier_material/properties/approval_request_id": "required",
-        "/$defs/agent_runtime_verifier_material/properties/candidate": "required",
-        "/$defs/agent_runtime_verifier_material/properties/proof_of_possession": "required",
-        "/$defs/agent_runtime_verifier_material/properties/proof_verified_at": "required",
         "/$defs/agent_sidecar_list/properties/next_cursor": "optional",
         "/$defs/agent_sidecar_list/properties/sidecars": "required",
         "/$defs/agent_sidecar_mls_context/properties/control_frontier": "required",
@@ -4951,7 +4947,6 @@
         "/$defs/key_state/properties/pending_runtime_key_request": "optional",
         "/$defs/key_state/properties/principal_control_realm_id": "required",
         "/$defs/key_state/properties/requested_scope": "required",
-        "/$defs/key_state/properties/runtime_verifier_material": "optional",
         "/$defs/key_state/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/operation_status_outcome/properties/status": "required",
         "/$defs/pending_sidecar_access_reconciliation_item/properties/agent_id": "required",
