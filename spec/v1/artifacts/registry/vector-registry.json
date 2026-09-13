@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.6",
+  "version": "2026-09-13.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T15:10:00+08:00",
+  "generated_at": "2026-09-13T20:13:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3814,6 +3814,21 @@
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
       "description": ""
+    },
+    {
+      "vector_id": "ak.vector.internal_channel.authorization_and_integrity.v1",
+      "status": "active",
+      "domain": "internal_channel",
+      "applies_to_fixtures": [
+        "internal-channel-fixture.json"
+      ],
+      "description": "Deployment-local channel configuration and per-request admission bind credential key, source service, destination service, trust domain and exact operation permission. Unsigned internal requests are permitted only when mTLS terminates in the business process or every decrypting/forwarding proxy is in the declared TCB; otherwise the original RFC 9421 protection remains mandatory. Gate receipts arriving outside the registered channel fail closed without restoring detached proof fields.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/internal-channel-fixture.json",
+        "spec/v1/artifacts/schemas/internal-channel-configuration.schema.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/service-http-binding.md"
+      ]
     },
     {
       "vector_id": "ak.vector.invite.claim_expiry_canonical_time.v1",

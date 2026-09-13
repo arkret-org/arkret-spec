@@ -5664,6 +5664,26 @@
       ]
     },
     {
+      "schema_path": "internal-channel-configuration.schema.json#/properties/internal_channel/properties/destination_service_id",
+      "property_name": "destination_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "internal-channel-configuration.schema.json#/properties/internal_channel/properties/source_service_id",
+      "property_name": "source_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "invite-delivery-request.schema.json#/$defs/handle_claim_evidence/properties/resolved_by",
       "property_name": "resolved_by",
       "semantic_category": "responsibility_identity_material",

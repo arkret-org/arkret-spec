@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11720,
-    "total_schema_documents": 173,
+    "total_properties": 11730,
+    "total_schema_documents": 174,
     "by_presence_class": {
       "optional": 3152,
       "optional_defaulted": 62,
-      "required": 7375,
+      "required": 7385,
       "required_nullable": 381,
       "tristate": 750
     },
@@ -11352,6 +11352,23 @@
       "conditionally_required": [
         "/$defs/principal_resolution_audit_evidence/properties/next_audit_cursor"
       ]
+    },
+    "internal-channel-configuration.schema.json": {
+      "schema_ids": [
+        "ak.schema.internal_channel_configuration.v1"
+      ],
+      "properties": {
+        "/properties/internal_channel": "required",
+        "/properties/internal_channel/properties/allowed_operations": "required",
+        "/properties/internal_channel/properties/credential_key_ids": "required",
+        "/properties/internal_channel/properties/destination_service_id": "required",
+        "/properties/internal_channel/properties/integrity": "required",
+        "/properties/internal_channel/properties/integrity/oneOf/0/properties/mode": "required",
+        "/properties/internal_channel/properties/integrity/oneOf/1/properties/decrypting_forwarding_proxies": "required",
+        "/properties/internal_channel/properties/integrity/oneOf/1/properties/mode": "required",
+        "/properties/internal_channel/properties/source_service_id": "required",
+        "/properties/internal_channel/properties/trust_domain": "required"
+      }
     },
     "invite-delivery-request.schema.json": {
       "schema_ids": [

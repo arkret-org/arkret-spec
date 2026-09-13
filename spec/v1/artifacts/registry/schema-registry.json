@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.2",
+  "version": "2026-09-13.17",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T14:30:00+08:00",
+  "generated_at": "2026-09-13T20:13:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -762,6 +762,16 @@
         "kind": "standalone_schema_alias",
         "selector": "principal resolution evidence or service resolution record",
         "normative_ref": "zh/identity/identity-did.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.internal_channel_configuration.v1",
+      "file": "schemas/internal-channel-configuration.schema.json",
+      "status": "active",
+      "description": "Closed deployment-local authenticated internal-channel binding, including the mandatory integrity posture that controls whether operation-listed RFC 9421 protection may be replaced.",
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "This object validates deployment-local configuration and is never carried by an Arkret operation, Event, or other wire object."
       }
     },
     {

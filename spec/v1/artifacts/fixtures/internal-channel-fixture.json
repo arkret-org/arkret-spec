@@ -1,0 +1,340 @@
+{
+  "profile": "ak.vector_group.privacy_security.v1",
+  "version": "2026-09-13",
+  "suite": "internal_channel_authorization_and_integrity",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.internal_channel.authorization_and_integrity.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.internal_channel.authorization_and_integrity.v1"
+  ],
+  "configuration_schema_ref": "schemas/internal-channel-configuration.schema.json",
+  "description": "Executable deployment-configuration and request-admission cases for service-http-binding section 2.2.3. A runner validates configuration first, then authenticates the credential against the exact channel binding, then evaluates the observed integrity path and any retained RFC 9421 signature before dispatch. Public responses may collapse reasons, but the expected audit_reason remains distinguishable.",
+  "cases": [
+    {
+      "name": "mtls_direct_process_allows_unsigned_internal_contract",
+      "configuration": {
+        "internal_channel": {
+          "source_service_id": "ak:did_core:webvh:account-authority.example",
+          "destination_service_id": "ak:did_core:webvh:station-a.example",
+          "trust_domain": "ak:trust_domain:deployment-a.example",
+          "credential_key_ids": [
+            "aa-station-a-key-2026-09"
+          ],
+          "allowed_operations": [
+            "ak.peer.device_revocations.command.check.v1"
+          ],
+          "integrity": {
+            "mode": "mtls_direct_process"
+          }
+        }
+      },
+      "observed_channel": {
+        "mtls_terminated_in_business_process": true,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "accept",
+        "rfc9421_required": false,
+        "audit_reason": "internal_channel_authenticated"
+      }
+    },
+    {
+      "name": "registered_complete_tcb_allows_unsigned_internal_contract",
+      "configuration": {
+        "internal_channel": {
+          "source_service_id": "ak:did_core:webvh:account-authority.example",
+          "destination_service_id": "ak:did_core:webvh:station-a.example",
+          "trust_domain": "ak:trust_domain:deployment-a.example",
+          "credential_key_ids": [
+            "aa-station-a-key-2026-09"
+          ],
+          "allowed_operations": [
+            "ak.peer.device_revocations.command.check.v1"
+          ],
+          "integrity": {
+            "mode": "registered_tcb",
+            "decrypting_forwarding_proxies": [
+              "edge-proxy-a",
+              "service-mesh-hop-a"
+            ]
+          }
+        }
+      },
+      "observed_channel": {
+        "mtls_terminated_in_business_process": false,
+        "decrypting_forwarding_proxies": [
+          "edge-proxy-a",
+          "service-mesh-hop-a"
+        ]
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "accept",
+        "rfc9421_required": false,
+        "audit_reason": "internal_channel_authenticated"
+      }
+    },
+    {
+      "name": "wrong_credential_key_is_rejected",
+      "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": true,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": "unregistered-key",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "dispatch_performed": false,
+        "audit_reason": "internal_channel_credential_key_mismatch"
+      }
+    },
+    {
+      "name": "wrong_destination_station_is_rejected",
+      "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": true,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-b.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "dispatch_performed": false,
+        "audit_reason": "internal_channel_destination_mismatch"
+      }
+    },
+    {
+      "name": "wrong_trust_domain_is_rejected",
+      "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": true,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-b.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "dispatch_performed": false,
+        "audit_reason": "internal_channel_trust_domain_mismatch"
+      }
+    },
+    {
+      "name": "valid_credential_without_operation_permission_is_rejected",
+      "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": true,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.gate.account.command.logout_auth_session.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "dispatch_performed": false,
+        "audit_reason": "internal_channel_operation_not_allowed"
+      }
+    },
+    {
+      "name": "proxy_outside_registered_tcb_requires_rfc9421",
+      "same_configuration_as": "registered_complete_tcb_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": false,
+        "decrypting_forwarding_proxies": [
+          "edge-proxy-a",
+          "service-mesh-hop-a",
+          "unregistered-debug-proxy"
+        ]
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "rfc9421_required": true,
+        "dispatch_performed": false,
+        "audit_reason": "internal_channel_integrity_protection_missing"
+      }
+    },
+    {
+      "name": "proxy_outside_registered_tcb_with_rfc9421_is_accepted",
+      "same_configuration_as": "registered_complete_tcb_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "mtls_terminated_in_business_process": false,
+        "decrypting_forwarding_proxies": [
+          "edge-proxy-a",
+          "service-mesh-hop-a",
+          "unregistered-debug-proxy"
+        ]
+      },
+      "request": {
+        "credential_key_id": "aa-station-a-key-2026-09",
+        "authenticated_source_service_id": "ak:did_core:webvh:account-authority.example",
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "rfc9421_message_signature_valid": true
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "accept",
+        "rfc9421_required": true,
+        "audit_reason": "internal_channel_authenticated_with_retained_message_integrity"
+      }
+    },
+    {
+      "name": "receipt_arriving_without_registered_channel_is_rejected",
+      "same_configuration_as": "mtls_direct_process_allows_unsigned_internal_contract",
+      "observed_channel": {
+        "transport_authentication_present": false,
+        "mtls_terminated_in_business_process": false,
+        "decrypting_forwarding_proxies": []
+      },
+      "request": {
+        "credential_key_id": null,
+        "authenticated_source_service_id": null,
+        "destination_service_id": "ak:did_core:webvh:station-a.example",
+        "trust_domain": "ak:trust_domain:deployment-a.example",
+        "operation_id": "ak.peer.device_revocations.command.check.v1",
+        "carries_decision_receipt": true,
+        "receipt_detached_proof_present": false,
+        "rfc9421_message_signature_valid": false
+      },
+      "expected": {
+        "configuration_valid": true,
+        "decision": "reject",
+        "dispatch_performed": false,
+        "external_fallback_allowed": false,
+        "audit_reason": "internal_channel_required"
+      }
+    },
+    {
+      "name": "missing_integrity_declaration_is_invalid_configuration",
+      "configuration": {
+        "internal_channel": {
+          "source_service_id": "ak:did_core:webvh:account-authority.example",
+          "destination_service_id": "ak:did_core:webvh:station-a.example",
+          "trust_domain": "ak:trust_domain:deployment-a.example",
+          "credential_key_ids": [
+            "aa-station-a-key-2026-09"
+          ],
+          "allowed_operations": [
+            "ak.peer.device_revocations.command.check.v1"
+          ]
+        }
+      },
+      "expected": {
+        "configuration_valid": false,
+        "decision": "reject",
+        "unsigned_internal_contract_enabled": false,
+        "audit_reason": "internal_channel_integrity_configuration_invalid"
+      }
+    },
+    {
+      "name": "registered_tcb_empty_proxy_registration_is_invalid_configuration",
+      "configuration": {
+        "internal_channel": {
+          "source_service_id": "ak:did_core:webvh:account-authority.example",
+          "destination_service_id": "ak:did_core:webvh:station-a.example",
+          "trust_domain": "ak:trust_domain:deployment-a.example",
+          "credential_key_ids": [
+            "aa-station-a-key-2026-09"
+          ],
+          "allowed_operations": [
+            "ak.peer.device_revocations.command.check.v1"
+          ],
+          "integrity": {
+            "mode": "registered_tcb",
+            "decrypting_forwarding_proxies": []
+          }
+        }
+      },
+      "expected": {
+        "configuration_valid": false,
+        "decision": "reject",
+        "unsigned_internal_contract_enabled": false,
+        "audit_reason": "internal_channel_integrity_configuration_invalid"
+      }
+    },
+    {
+      "name": "mtls_direct_process_cannot_declare_proxy_list",
+      "configuration": {
+        "internal_channel": {
+          "source_service_id": "ak:did_core:webvh:account-authority.example",
+          "destination_service_id": "ak:did_core:webvh:station-a.example",
+          "trust_domain": "ak:trust_domain:deployment-a.example",
+          "credential_key_ids": [
+            "aa-station-a-key-2026-09"
+          ],
+          "allowed_operations": [
+            "ak.peer.device_revocations.command.check.v1"
+          ],
+          "integrity": {
+            "mode": "mtls_direct_process",
+            "decrypting_forwarding_proxies": [
+              "edge-proxy-a"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "configuration_valid": false,
+        "decision": "reject",
+        "unsigned_internal_contract_enabled": false,
+        "audit_reason": "internal_channel_integrity_configuration_invalid"
+      }
+    }
+  ]
+}

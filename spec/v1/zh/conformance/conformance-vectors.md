@@ -6411,3 +6411,17 @@ membership/policy/control metadata，但不能读取 closure 外 ordinary Event�
 `ak.call.create` MUST 在目标 Realm 的确认序列中写入已登记的初始安全 Call 状态；重复同一 Event 返回原 outcome，另一创建使用它自身派生的 CallId，不能替换已有 Call 的初始安全 revision。普通摘要通过 ak.call.summary 写入，不得进入 Seal.delta 或安全 state_root。
 
 `ak.moderation.decision.lift` MUST 仅移除在签名 basis 实际观察到的精确决定，并在确认执行位置检查相关安全 Cell revision。两个同前置 revision 的解除至多一个成功；未知 tag、跨 target、跨 Realm 和无权 controller 均拒绝且零部分效果。先前不可逆 redaction 不因解除 moderation 决定而恢复内容。
+
+## 38. 部署内认证通道授权与完整性闭合向量
+
+`ak.vector.internal_channel.authorization_and_integrity.v1` MUST 加载
+[`internal-channel-fixture.json`](../../artifacts/fixtures/internal-channel-fixture.json)，先以
+[`internal-channel-configuration.schema.json`](../../artifacts/schemas/internal-channel-configuration.schema.json)
+验证部署配置，再逐请求执行 `ak.suite.internal_channel.authorization_and_integrity.v1`。Runner MUST 覆盖：
+
+1. `internal_channel.integrity.mode=mtls_direct_process` 且 mTLS 实际直接终止业务进程时，正确 key、source、destination、trust domain 与 operation allowlist 可使用无 RFC 9421 签名的内部合同；该模式出现 `decrypting_forwarding_proxies` 必须是非法配置。
+2. `internal_channel.integrity.mode=registered_tcb` 时，`decrypting_forwarding_proxies` 必须非空、成员 trim 后非空且唯一；实际全部解密 / 转发代理均在登记内时，可使用无 RFC 9421 签名的内部合同。
+3. 正确配置下分别替换 credential key、目标 Station、trust domain，或使用有效 credential 调用未授权 operation，必须在 dispatch 前拒绝且零业务 effect；任何 header / body 自报字段不得修复不匹配。
+4. 实际终止点或任一代理不在所声明 TCB 时，无 RFC 9421 签名的请求必须拒绝；同一请求只有在按该 operation 原签名合同完整验证 RFC 9421 后才可继续。RFC 9421 不得弥补错误 credential、目标、trust domain 或 operation 权限。
+5. 缺失 `internal_channel.integrity`、非法 mode、`registered_tcb` 空登记或不能核对实际链路时，无签名内部合同不得启用；实现必须拒绝配置 / 请求或保留并验证被替代前的 RFC 9421 要求。
+6. `ak.peer.device_revocations.command.check.v1` 的 `decision_receipt` 未经已登记通道到达时必须拒绝；不得恢复 detached proof / `verification_method`，不得把 receipt 当作外部调用或因其 body 形状合法而放行。

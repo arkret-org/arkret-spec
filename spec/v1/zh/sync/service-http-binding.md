@@ -265,7 +265,11 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 - 每次内部调用的认证 MUST 同时绑定四项已配置事实：**调用方身份**、**目标服务身份**、**trust domain**，以及**该调用方在该目标上被允许的 operation 集合**。任一项不匹配即拒绝；不存在"同部署即互信"或"同进程树即互信"的默认放行。
 - 内部身份 MUST 只来自凭据验证结果与部署配置。`Source-Service-ID` / `Destination-Service-ID` header、body 字段、路径段以及任何客户端自报的 `internal` 标记 MUST NOT 决定内部身份；它们最多是与已认证身份逐字比对的冗余输入，不一致即拒绝。
 - 内部对端的身份、endpoint 与 trust domain MUST 由显式部署配置提供。配置缺失、冲突或目标变更 MUST 拒绝或走显式重新绑定；MUST NOT 从 `describe`、响应中的首个候选或网络错误回退猜测对端。
-- **通道完整性**：mTLS MUST 直接终止在业务进程；或所有解密 / 转发代理 MUST 明确属于同一 TCB 并在部署配置中登记。两者都不成立时，该调用 MUST 保留跨越不可信中间点的消息完整性保护，即下表"内部合同"列被替代的签名要求 MUST 全部保留。"每一跳都是 TLS"不满足本要求。
+- **通道完整性**：每条内部通道的部署配置 MUST 通过 [`internal-channel-configuration.schema.json`](../../artifacts/schemas/internal-channel-configuration.schema.json) 显式声明 `internal_channel.integrity`；缺失、非法或不能证明实际链路的声明不得启用无签名内部合同。`internal_channel.integrity.mode` 是 closed 二选一：
+  - `mtls_direct_process`：mTLS 直接终止在处理该 operation 的业务进程；该分支 MUST NOT 配置 `decrypting_forwarding_proxies`。
+  - `registered_tcb`：所有会解密 TLS 或转发已解密请求的代理都属于同一 TCB，并全部以稳定的部署内标识列入非空 `decrypting_forwarding_proxies`。成员必须是 trim 后非空且唯一的完整登记；请求实际经过任一未登记中间点时，本分支对该请求不成立。
+
+  实现 MUST 在启动或配置热加载时校验上述 closed 形状，并在每次请求上把实际 TLS 终止点 / 转发链与声明核对。声明缺失、非法、`registered_tcb` 空登记、实际代理在 TCB 登记外，或无法取得足以完成核对的运行时证据时，实现 MUST fail closed：要么拒绝请求，要么按该 operation 被内部合同替代前的原要求完整保留并验证 RFC 9421 消息签名；不得仅凭 bearer、源地址、进程树或“每一跳都是 TLS”接受无签名请求。保留 RFC 9421 只补足跨不可信中间点的消息完整性，绝不替代本节对调用方、目标、trust domain 与逐 operation 权限的通道认证。
 - 支持同一认证事实的进程内调用 MUST NOT 被要求模拟 HTTP 才能取得本合同。
 - 内部通道 MUST NOT 用于未在下表登记的 operation。MUST NOT 把 `/_arkret/peer/*`、`/_arkret/gate/*`、`/_arkret/root/*` 或 `/_arkret/self/*` 的整条路径群改为接受部署 bearer；授权粒度只有"逐 operation 登记"这一种。
 
@@ -281,6 +285,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 **混合 internal / federation operation**：上表的"内部调用关系"列既是允许主体，也是合同选择判据。若某 operation 同时存在外部调用面，实现 MUST 按**本次已认证的调用关系**逐次选择合同：调用关系就是登记的内部关系时用内部通道合同；其余一律是外部调用，§2.2 默认规则的 RFC 9421 / service DID proof 与该 operation 自身登记的独立验证（method evidence、document digest、record proof、currentness、active assertion key 等）全部保留。MUST NOT 因为某次调用是内部的就放宽外部调用的验证，也 MUST NOT 因为 operation 被登记为内部就对任意调用方接受部署 bearer。当前登记的四个 operation 都只有内部调用面：其允许主体、载体形态与 receipt 接受规则都封闭在该内部关系内，未经登记通道到达的调用一律拒绝，不存在可回退的外部分支。
 
 **内容权威不变**：内部通道只认证 transport 的 source / destination / operation 权限。内嵌 Event、签名 record、DID operation、幂等 intent、accepted-device possession proof 以及各 operation 自身登记的 gate，其验证职责与精确字节身份 MUST NOT 因内部通道而减少。transport 外壳的 digest 规则见 §2.5.1 末段。
+
+本节的可执行闭合由 `ak.vector.internal_channel.authorization_and_integrity.v1`（[`internal-channel-fixture.json`](../../artifacts/fixtures/internal-channel-fixture.json)）提供，并登记进 normative-clause registry。向量必须逐请求覆盖 credential key、目标 Station、trust domain、operation allowlist、实际代理集合与 RFC 9421 保留分支；未经登记通道到达的 `decision_receipt` 即使不再携带 detached proof 也必须拒绝，且不得回退为外部调用分支。
 
 ### 2.3 端点契约清单
 
