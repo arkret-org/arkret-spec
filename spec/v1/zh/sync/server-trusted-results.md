@@ -434,6 +434,18 @@ Station MUST 逐次检查本次认证会话对该 Realm 的当前成员可见性
 
 通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。MUST NOT 截断 `signing_keys`。
 
+### 5.10 自己 Station 的设备目录结果
+
+普通客户端通过 `ak.self.keys.read.lookup.v1`（`POST /_arkret/self/keys/query`）从自己 Station 取得设备目录结果。它是关系门控的**跨账号 / 跨 Station** 面：路径含 self 只表示由自己 Station 服务本次请求，MUST NOT 被理解为响应只描述本账号。关系门控、非枚举失败形态与封闭 `failures[].reason_code` 词表以 [`../crypto-media/device-lifecycle.md` §8.2](../crypto-media/device-lifecycle.md) 为准。
+
+该 self 结果是自己 Station **已验证**的有限设备投影，加上客户端后续确实使用的 `signer_evidence_ref`。它 MUST NOT 携带客户端自己不验证的 origin proof 外壳，客户端也 MUST NOT 存储该外壳。设备投影核心值完整保留：当前完整 AccountId 与 device、identity/HPKE public key、authorization Event、generation、status、authorization window 与观察/新鲜度时态；外层 AccountId 与 device map key 的一致性仍校验。
+
+返回 self 结果的 Station MUST 先验证远端 origin attestation、完整 AccountId、generation 与有效性，再生成该投影；MUST NOT 把未验证的 peer row 去掉 proof 就当作已验证结果。remote 不可验证 MUST NOT 回空成功集合、省略 row 或空设备列表掩盖故障，必须按该 operation 的取材失败原因返回。
+
+客户端仍核对已绑定 Station、目标完整 AccountId/device、key、generation、authorization window 与时态，并按本地带外设备信任约束使用；换账号/会话、已知撤销、generation fence 与重启恢复之后 MUST NOT 借旧结果放行新设备。对真实 Event、MLS、AEAD、prekey、附件与备份的密码学验证不因本结果减少，带外 key pin 不删除；客户端信任的是自己 Station 给出的 scoped 设备治理结果，不是任何 origin 自报 key。
+
+`signer_evidence_ref` MUST 继续指向 origin 生成并持久保存的原完整不可变 evidence；MUST NOT 从已去掉 proof 的 self 投影重新计算该 ref，也 MUST NOT 删除后续 Event / 历史闭包实际使用的 ref。peer outcome、Station ↔ Station 取材与历史可携带证据保持完整签名链（§5.6 的历史结果与 [`../governance/history-visibility.md`](../governance/history-visibility.md) 的 attester 闭包不变）。客户端本地 authoring 恢复只保存该可信 self 投影及实际使用的引用与时态，MUST NOT 用无签名值填充声明为完整签名证据的类型。
+
 ## 6. 规范与 conformance
 
 full/e2ee 客户端 conformance 检查请求绑定、结果消费、端到端密码学和恢复行为；服务器 conformance 检查治理历史、DID/外部证据、admission、当前授权与共享增量状态。客户端没有治理历史 verifier 不构成不合规；服务器接受未经验证的远端材料构成不合规。
