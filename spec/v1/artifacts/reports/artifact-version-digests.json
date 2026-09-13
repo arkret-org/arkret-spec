@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-13.9",
-      "generated_at": "2026-09-13T15:20:00+08:00",
-      "content_digest": "sha256:094ebfc8edd580d0233be7e22f283ef2194f855e160b0567f62d95dcfcafa928"
+      "version": "2026-09-13.10",
+      "generated_at": "2026-09-13T17:35:00+08:00",
+      "content_digest": "sha256:beda8f84b927c9b68f9ad8946328ffd8048827579769410d6df3583e53c2be4d"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",

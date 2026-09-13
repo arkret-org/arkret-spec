@@ -376,7 +376,7 @@ ordinary human、Agent 与 organization-recovery holder 使用 `AuthenticatedSig
 `verification_method` 必须是该 principal DID 加 exact device-id fragment；`source_actor_id` 必须等于完整 attested AccountId，
 `source_sender_domain` 必须等于 exact device ID。该分支携 `device_projection_attestation` 与唯一
 `attester_signer_evidence_ref`，后者必须指向该 AccountId 的 origin Station 的历史 Service evidence。
-origin Station 在 `keys/query` 返回 `query_device_record.signer_evidence_ref` 前必须耐久保存这份内容寻址对象及 attester 闭包；
+origin Station 在 `keys/query` 的任一面返回 `signer_evidence_ref` 前必须耐久保存这份内容寻址对象及 attester 闭包（客户端面的 `query_device_record` 与 Station↔Station 面的 `peer_query_device_record` 携带的是同一个 ref）；
 对象内 attestation 与 row 中的 attestation 逐字相等。Source 先取该 ref，再在 attestation 有效窗口内签名 response，
 不得从 DID 文档猜设备公钥或把设备伪装成 `principal` 分支。Release Station 在 `source_proof.created_at` 验证完整闭包、
 正有效期区间、active 状态、签名与 exact actor/device 绑定；后续过期不追溯作废已接受的历史证明。
