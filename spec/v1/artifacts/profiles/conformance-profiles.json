@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-14.1",
-  "generated_at": "2026-09-14T04:54:49+08:00",
+  "version": "2026-09-14.2",
+  "generated_at": "2026-09-14T05:27:05+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3335,7 +3335,7 @@
     },
     "ak.profile.push_gateway.v1": {
       "role": "gateway",
-      "description": "Push gateway delivery profile. Provides notify, not Account device registration. Registration and unregistration belong to the Account Station role. All implementations claiming this profile MUST also implement ak.profile.push_gateway.blind_wakeup.v1 and read an authoritative durable registration within the supported deployment boundary; see zh/discovery/push-notifications.md sections 3.3 and 5.1. Visible notification remains an explicit opt-in profile.",
+      "description": "Push gateway delivery profile. Provides notify, not Account device registration. Registration and unregistration belong to the Account Station role. All implementations claiming this profile MUST also implement ak.profile.push_gateway.blind_wakeup.v1 and read an authoritative durable registration within the supported deployment boundary. A shared-authority deployment may read that state directly; an independent public Gateway must separately advertise ak.operation_bundle.push_gateway.registration_handoff.v1 and satisfy the source-Station tenant isolation and signed durable receipt contract in zh/discovery/push-notifications.md sections 3.3-3.4. Visible notification remains an explicit opt-in profile.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -3370,6 +3370,12 @@
           "plaintext_visibility_classes"
         ],
         "unsupported_optional": "strip unsupported plaintext fields"
+      },
+      "additional_requirements": {
+        "registration_authority_must": "A Gateway MUST resolve notify only from an exact durable registration. It MUST NOT provide Account self-service registration or infer registration from notify selectors.",
+        "public_handoff_bundle_must": "An independent public Gateway MUST advertise ak.operation_bundle.push_gateway.registration_handoff.v1 in addition to the notify bundle before a Station may select it. Shared-authority deployments omit that handoff bundle when no wire transfer is needed.",
+        "station_tenant_isolation_must": "Public handoff storage, encryption keys, logs, access, workers, caches, backups and deletion MUST be partitioned by authenticated Source-Service-ID. Raw provider tokens MUST NOT enter logs, metrics, traces, receipts or cross-Station indexes.",
+        "handoff_recovery_must": "The handoff is immutable per (authenticated source Station, registration_id): exact replay returns the original signed durable receipt, different content conflicts, revoked is terminal, and installing an exact successor atomically tombstones its predecessor."
       }
     },
     "ak.profile.push_gateway.blind_wakeup.v1": {

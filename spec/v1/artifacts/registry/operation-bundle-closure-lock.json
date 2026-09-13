@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.2",
-  "generated_at": "2026-09-12T21:15:06+08:00",
+  "version": "2026-09-12.3",
+  "generated_at": "2026-09-14T05:27:05+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -72,6 +72,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.push_gateway.http_notify.v1",
       "sha256": "sha256:be36fbb85f20bab139018a4a593e5db0676f9050d8de4c3b6c8b085a0e577083"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.push_gateway.registration_handoff.v1",
+      "sha256": "sha256:d9ab49352c1201634357590522a0cf5c032e097dd73c5c7f5a2b04dd197e6b9a"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.recovery_service.describe.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.12",
+  "version": "2026-09-14.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T17:20:00+08:00",
+  "generated_at": "2026-09-14T06:12:19+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12612,6 +12612,7 @@
       {
         "surface": "push",
         "operations": [
+          "ak.edge.push.command.apply_registration.v1",
           "ak.edge.push.command.register_device.v1",
           "ak.edge.push.command.unregister_device.v1",
           "ak.edge.push.command.notify.v1"
@@ -12940,6 +12941,28 @@
         "notes": ""
       },
       {
+        "operation_id": "ak.edge.push.command.apply_registration.v1",
+        "http_only_variant": true,
+        "http": "POST /_arkret/edge/push/registrations:apply",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
+        "uncertain_outcome": {
+          "strategy": "replay_same_operation",
+          "operation_id": "ak.edge.push.command.apply_registration.v1",
+          "requires_same_request_identity_and_canonical_intent": true
+        },
+        "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "persists_only_gateway_local_provider_route_tenant_tombstone_and_signed_installation_receipt"
+        },
+        "notes": "HTTP-only authenticated Station-to-Gateway registration handoff for a Station-approved public Gateway. The HTTP Message Signature binds exact Source-Service-ID, Destination-Service-ID and Content-Digest. The Gateway admits only an explicitly onboarded source Station, partitions storage/log/access by that authenticated source, and accepts notify for the installed registration only from that same Station. Each Station-generated registration_id is immutable: exact replay returns the byte-identical signed durable receipt, different content conflicts, revoked is terminal, and an active successor atomically tombstones its exact supersedes_registration_id. The body and receipt carry no AccountId, principal, Realm or user session. Raw provider route material appears only in the active handoff body and the destination tenant's provider adapter, never in notify, receipt, logs, metrics, traces or cross-tenant indexes."
+      },
+      {
         "operation_id": "ak.edge.push.command.notify.v1",
         "http": "POST /_arkret/edge/push/notify",
         "grpc": "EdgePush/Notify",
@@ -12954,7 +12977,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": "Provided by the push_gateway role. The source Station or delegated notification service must be authorized by the exact durable registration. Notification devices carry only device_id; registration routes and tokens are not supplied by this request. See push-notifications.md sections 3.3 and 5.1 for the shared-deployment prerequisite and the absent independent-store handoff contract."
+        "notes": "Provided by the push_gateway role. The source service must be authorized by the exact durable registration. For a trusted public-Gateway installation created by ak.edge.push.command.apply_registration.v1, only the exact source Station that installed it may call notify. Notification devices carry only device_id; registration routes and tokens are not supplied by this request."
       },
       {
         "operation_id": "ak.edge.push.command.register_device.v1",
@@ -16794,8 +16817,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-13.7",
-    "generated_at": "2026-09-13T17:20:00+08:00",
+    "version": "2026-09-14.2",
+    "generated_at": "2026-09-14T06:12:19+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -18251,6 +18274,19 @@
           {
             "operation_id": "ak.self.signal.stream.subscribe.v1",
             "binding_kind": "websocket"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.push_gateway.registration_handoff.v1",
+        "service_kind": "push_gateway",
+        "deployment_evidence": [
+          "normative:zh/discovery/push-notifications.md#34-受信公共-gateway-注册交接normative"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.edge.push.command.apply_registration.v1",
+            "binding_kind": "http_json"
           }
         ]
       },

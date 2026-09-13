@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.1",
+  "version": "2026-09-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T15:10:00+08:00",
+  "generated_at": "2026-09-14T05:50:11+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1367,6 +1367,25 @@
           "source": "constant ak.self.third_party_invite.read.acceptance_attestation.v1"
         }
       ]
+    },
+    {
+      "context": "ak.push_registration_installation_receipt_proof.v1",
+      "object_family": "push_registration_installation_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "registration_id",
+        "push_target_id",
+        "device_id",
+        "state",
+        "request_digest",
+        "source_station_id",
+        "destination_gateway_id",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/discovery/push-notifications.md#34-受信公共-gateway-注册交接normative",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_installation_receipt"
     }
   ],
   "domain_separations": [

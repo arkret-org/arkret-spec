@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 394,
+  "audited_occurrence_count": 398,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -62,6 +62,13 @@
         "commitment"
       ],
       "reason": "Carries the spec-defined client-authored registration evidence draft before Account Authority acceptance."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "signer_resolution_evidence_ref",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Content-addresses the immutable account_device_control signer-evidence root materialized for the confirmed device authorization."
     },
     {
       "file": "account-operations.schema.json",
@@ -190,6 +197,18 @@
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
+      "key": "account_device_control_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "commitment",
+        "transcript"
+      ],
+      "reason": "Carries the signed principal inception plus exact Event and Seal commitments needed to replay the portable human Control signer history."
+    },
+    {
+      "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "account_device_signer_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -312,7 +331,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 36,
+      "occurrences": 37,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -1133,7 +1152,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 36,
+      "occurrences": 37,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

@@ -85,7 +85,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 8
+        "did_core_id": 9
       },
       "reason": "Contact continuity signs as an exact actor; general proof evidence binds the stable DID core."
     },
@@ -2010,6 +2010,36 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence/properties/signer_id",
+      "property_name": "signer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
       ]
     },
     {
@@ -7131,6 +7161,26 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "push-operations.schema.json#/$defs/push_registration_installation_receipt/properties/destination_gateway_id",
+      "property_name": "destination_gateway_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "push-operations.schema.json#/$defs/push_registration_installation_receipt/properties/source_station_id",
+      "property_name": "source_station_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {

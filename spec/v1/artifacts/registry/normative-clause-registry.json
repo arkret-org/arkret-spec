@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.10",
+  "version": "2026-09-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T17:35:00+08:00",
+  "generated_at": "2026-09-14T05:50:11+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -553,7 +553,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
-      "section_digest": "sha256:74aa48b444bbd5032f06989c6f5453b4defbfdfd9a66e8494403b63a89c6661e",
+      "section_digest": "sha256:a2c1b1d5870e0f77ec9310e72033472a59fdce2f2361cda4c801fa7fa9be0e70",
       "requirement": "Origin/release services verify exact AccountDevice evidence, origin-Station signer closure, signed-time validity and full AccountId/device binding; first enqueue rechecks current authorization and generation. The Account Station selects and retains the history cut; ordinary requester/signing-input/receipt contain no client trust-anchor fields. Clients retain message/HPKE/signature and recipient binding checks, not governance replay. Device evidence cannot authorize Control Events, notary or organization recovery. The capability-bound Account Station supplies exact historical source-key results, deduplicated by evidence ref, and the accepted group suite. Minimal-metadata receivers retain actual encrypted IdentityLink/LeafNode and source-proof checks; public signer authority and winning-lineage range coverage are server responsibilities. Complete byte-bounded pages and ACKs never skip unresolved sequence slots.",
       "testability_grade": "audit",
       "test_plan": "Check old request/receipt trust-anchor fields are rejected and server-selected cut is frozen across exact retries. Run server device-history evidence negatives for missing refs, actor/device/Station substitution, altered authorization, revocation and invalid time. Exercise source relay generation changes before enqueue and historical replay after expiry. Run two-account request/manifest/chunk delivery with client cryptographic checks and zero client governance replay. Check missing/duplicate/surplus signer results fail before ACK, same Principal across Account Stations does not collapse per-record authority, and minimal local tree mismatches still fail. Cover registered suite/range byte-length checks, actual source signatures, singleton page admission, byte-prefix cursors, reserved sequence holes and completion after restart. Verify durable record/result installation before ACK without a client checkpoint."

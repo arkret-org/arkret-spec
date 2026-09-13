@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 672,
-    "typed_object_id": 1165,
+    "responsibility_identity_material": 676,
+    "typed_object_id": 1172,
     "registry_catalog_symbol": 17
   },
   "pending_rename_convergence": [],
@@ -93,7 +93,7 @@
       "name": "app_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 3,
+      "occurrences": 4,
       "example_path": "agent-operations.schema.json#/$defs/device_metadata/properties/app_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
@@ -659,11 +659,19 @@
     },
     {
       "name": "registration_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._:-]{1,128}$\"]]",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._~-]{22,128}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 4,
+      "example_path": "push-operations.schema.json#/$defs/push_register_device_outcome/properties/registration_id",
+      "reason": "High-entropy pairwise handle used to address one immutable Station-to-Gateway registration; the authenticated source tenant and stored record, not the handle alone, carry authority."
+    },
+    {
+      "name": "supersedes_registration_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._~-]{22,128}$\"]]",
       "category": "opaque_correlation",
       "occurrences": 1,
-      "example_path": "push-operations.schema.json#/$defs/push_register_device_outcome/properties/registration_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
+      "example_path": "push-operations.schema.json#/$defs/push_registration_handoff_active/properties/supersedes_registration_id",
+      "reason": "Names the exact immutable predecessor only within the authenticated Station tenant; it carries no authority outside that stored registration chain."
     },
     {
       "name": "rejection_id",

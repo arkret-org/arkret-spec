@@ -1697,6 +1697,10 @@ components:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_outcome
     PushRegisterDeviceRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_request_body
+    PushRegistrationHandoffOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome
+    PushRegistrationHandoffRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body
     PushUnregisterDeviceRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
     QueryFilter:
@@ -6990,6 +6994,35 @@ paths:
             visibility.
 
             '
+  /_arkret/edge/push/registrations:apply:
+    post:
+      operationId: ak.edge.push.command.apply_registration
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.edge.push.command.apply_registration.v1
+      responses:
+        '200':
+          description: Gateway-signed durable registration installation receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushRegistrationHandoffOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushRegistrationHandoffRequestBody'
   /_arkret/edge/push/register-device:
     post:
       operationId: ak.edge.push.command.register_device

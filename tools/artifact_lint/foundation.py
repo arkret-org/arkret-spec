@@ -2744,8 +2744,8 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
-    if len(bundle_ids) != 36:
-        lint.fail(operation_path, f"operation_bundles must contain the 36 evidenced v1 bundles, got {len(bundle_ids)}")
+    if len(bundle_ids) != 37:
+        lint.fail(operation_path, f"operation_bundles must contain the 37 evidenced v1 bundles, got {len(bundle_ids)}")
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"

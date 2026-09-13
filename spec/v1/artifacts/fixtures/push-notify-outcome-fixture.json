@@ -4,9 +4,10 @@
   "profile": "ak.vector_group.discovery.v1",
   "covers_vectors": [
     "ak.vector.push.notify_outcome_conservation.v1",
-    "ak.vector.push.device_route_revision_cas.v1"
+    "ak.vector.push.device_route_revision_cas.v1",
+    "ak.vector.push.registration_handoff_lifecycle.v1"
   ],
-  "version": "2026-07-27",
+  "version": "2026-09-14",
   "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#5.2",
   "source_refs": [
     "spec/v1/zh/discovery/push-notifications.md",
@@ -14,6 +15,8 @@
     "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_notify_outcome",
     "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
     "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_notify_request_body",
+    "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+    "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
     "spec/v1/artifacts/registry/error-code-registry.json"
   ],
   "description": "Conformance vectors for the ak.edge.push.command.notify.v1 response contract (push-notifications.md §5.2). The response is conserved against notification.devices[]: every input device_id appears in outcomes[] exactly once, none is missing, none is duplicated, and none appears that was not requested. A target-level failure is expanded into one same-reason rejected outcome per input device, so a second response shape never exists. gateway_status accepted/duplicate mean the gateway durably took the route over and the caller MUST NOT resend; only a rejected outcome carrying retry_after_ms transfers the next attempt back to the caller, and only for the two registered caller-retryable reasons. Cases whose schema_only_valid is true but whose semantic_outcome is reject satisfy JSON Schema yet MUST be rejected by a conforming verifier for the listed registered reason code, because conservation is a cross-field invariant JSON Schema cannot express. Placeholder pseudonyms and device ids are structural only and MUST NOT be treated as cryptographic vectors.",
@@ -388,6 +391,84 @@
       "instance": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm9"
     },
     {
+      "name": "trusted_public_gateway_active_handoff_is_valid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "registration_id": "station-a-public-reg-0001",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "state": "active",
+        "push_key": "fcm:eJx9k2-example",
+        "platform": "android",
+        "app_id": "org.arkret.client",
+        "visible_notification_opt_in": false,
+        "expires_at": "2026-09-15T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "trusted_public_gateway_durable_receipt_is_valid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "receipt": {
+          "registration_id": "station-a-public-reg-0001",
+          "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+          "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+          "state": "active",
+          "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "source_station_id": "ak:did_core:webvh:station-a.example",
+          "destination_gateway_id": "ak:did_core:webvh:push.example",
+          "stored_at": "2026-09-14T00:00:00.000Z",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:push.example#key-1",
+            "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "created_at": "2026-09-14T00:00:00.000Z",
+            "audience": "ak:did_core:webvh:station-a.example",
+            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
+          }
+        }
+      }
+    },
+    {
+      "name": "revoked_handoff_cannot_retain_provider_route",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:not valid under any",
+      "instance": {
+        "registration_id": "station-a-public-reg-0001",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "state": "revoked",
+        "push_key": "fcm:eJx9k2-example"
+      }
+    },
+    {
+      "name": "handoff_cannot_disclose_account_identity",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:not valid under any",
+      "instance": {
+        "registration_id": "station-a-public-reg-0001",
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "state": "active",
+        "push_key": "fcm:eJx9k2-example",
+        "visible_notification_opt_in": false,
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:alice.example",
+          "station_id": "ak:did_core:webvh:station-a.example"
+        }
+      }
+    },
+    {
       "name": "device_push_route_active_revision_zero_is_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "expect_valid": true,
@@ -458,6 +539,62 @@
         "revoked": true,
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
       }
+    }
+  ],
+  "registration_handoff_lifecycle_cases": [
+    {
+      "name": "exact_replay_after_lost_response",
+      "steps": [
+        "gateway_durable_commit_active",
+        "response_lost",
+        "station_replays_identical_body"
+      ],
+      "expected": "byte_identical_signed_receipt_and_one_active_installation"
+    },
+    {
+      "name": "same_registration_id_different_body_conflicts",
+      "steps": [
+        "install_active",
+        "replay_same_source_and_registration_id_with_different_push_key"
+      ],
+      "expected": "duplicate_conflict_and_zero_mutation"
+    },
+    {
+      "name": "successor_tombstones_predecessor_atomically",
+      "steps": [
+        "install_registration_0001",
+        "install_registration_0002_superseding_0001",
+        "deliver_delayed_install_for_0001"
+      ],
+      "expected": "registration_0002_active_and_0001_terminal_without_old_route_revival"
+    },
+    {
+      "name": "revoke_wins_over_delayed_install",
+      "steps": [
+        "commit_revoked_tombstone_for_registration_0001",
+        "deliver_delayed_active_body_for_registration_0001"
+      ],
+      "expected": "terminal_revoked_and_provider_route_absent"
+    },
+    {
+      "name": "source_destination_and_device_are_exact",
+      "variants": [
+        "wrong_source_station",
+        "wrong_destination_gateway",
+        "wrong_device",
+        "wrong_push_target",
+        "cross_station_supersedes"
+      ],
+      "expected": "reject_before_route_mutation_or_disclosure"
+    },
+    {
+      "name": "tenant_isolation",
+      "variants": [
+        "same_registration_id_from_two_source_stations",
+        "same_provider_token_from_two_source_stations",
+        "cross_station_admin_or_worker_lookup"
+      ],
+      "expected": "separate_tenant_objects_no_cross_station_index_log_access_or_dedup"
     }
   ],
   "device_push_route_revision_cases": [

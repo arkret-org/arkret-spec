@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.12",
+  "version": "2026-09-14.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T17:20:00+08:00",
+  "generated_at": "2026-09-14T06:12:19+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 252,
+    "total_operations": 253,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 250
+      "typed_schema": 251
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 152
+        "typed_schema": 153
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -158,6 +158,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.edge.push.command.apply_registration.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/edge/push/registrations:apply",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+      "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PushRegistrationHandoffRequestBody",
+        "response": "#/components/schemas/PushRegistrationHandoffOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.edge.push.command.notify.v1",

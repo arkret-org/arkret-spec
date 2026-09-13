@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.12",
+  "version": "2026-09-14.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T17:20:00+08:00",
+  "generated_at": "2026-09-14T06:12:19+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -275,6 +275,88 @@
       }
     },
     {
+      "operation_id": "ak.edge.push.command.apply_registration.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body",
+        "schema_kind": "oneOf",
+        "required": [
+          "registration_id",
+          "push_target_id",
+          "device_id",
+          "state"
+        ],
+        "properties": [
+          "registration_id",
+          "push_target_id",
+          "device_id",
+          "state",
+          "push_key",
+          "platform",
+          "app_id",
+          "visible_notification_opt_in",
+          "expires_at",
+          "supersedes_registration_id"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_active",
+            "schema_kind": "object",
+            "required": [
+              "registration_id",
+              "push_target_id",
+              "device_id",
+              "state",
+              "push_key",
+              "visible_notification_opt_in"
+            ],
+            "properties": [
+              "registration_id",
+              "push_target_id",
+              "device_id",
+              "state",
+              "push_key",
+              "platform",
+              "app_id",
+              "visible_notification_opt_in",
+              "expires_at",
+              "supersedes_registration_id"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_revoked",
+            "schema_kind": "object",
+            "required": [
+              "registration_id",
+              "push_target_id",
+              "device_id",
+              "state"
+            ],
+            "properties": [
+              "registration_id",
+              "push_target_id",
+              "device_id",
+              "state"
+            ],
+            "closed": true
+          }
+        ]
+      },
+      "response": {
+        "schema_ref": "schemas/push-operations.schema.json#/$defs/push_registration_handoff_outcome",
+        "schema_kind": "object",
+        "required": [
+          "receipt"
+        ],
+        "properties": [
+          "receipt"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.edge.push.command.notify.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -331,7 +413,8 @@
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
         "schema_kind": "object",
         "required": [
-          "push_target_id"
+          "push_target_id",
+          "registration_id"
         ],
         "properties": [
           "push_target_id",

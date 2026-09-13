@@ -92,10 +92,14 @@ Push registration 的作用域是认证 session 的完整 `AccountId`。客户�
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `push_target_id` | `PushTargetId` | required | 服务端按 §2.2 派生的完整 32-octet HMAC-SHA256 typed pairwise pseudonym；见下方 normative 约束 |
-| `registration_id` | id | optional | 服务端分配的注册 ID |
+| `registration_id` | opaque string | required | Station 为本次精确注册生成的高熵 pairwise identity；不得以 `ak:` 开头，不编码 Account、设备或 provider 材料。它是公共 Gateway 交接、替换与终局撤销的唯一注册身份，不是新的 Arkret typed ID。 |
 | `expires_at` | datetime | optional | 本 Sync / Principal Service 上该 push registration 记录的服务端有效期；不表示 APNs / FCM / WebPush provider token 自身过期时间 |
 
 **`push_target_id` 响应约束（normative）**：注册成功响应 MUST 携带服务端按 §2.2 派生的 `push_target_id`，这是调用方取得该伪名的唯一契约通路。`/_arkret/edge/push/notify` 的调用方 MUST 使用该值作为 `notification.push_target_id`，MUST NOT 自行推导、改造或复用其它标识；设备 MUST 以该值为准写入 / 核对 `ak.device.push_route` actor-private state（见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.6）。
+
+**`registration_id` 生命周期（normative）**：Station 为每次新 provider route、token 轮换或替代注册生成新的、至少 128-bit entropy 的 `registration_id`；不得复用已终局撤销的值。它只在同一 `(source Station, destination Gateway)` 信任关系内定址一份 immutable installation，不进入 notify。替代安装通过 §3.4 的 `supersedes_registration_id` 精确指向当前前驱；这条 immutable-id 链只排序 Gateway 外部副作用，不参与、覆盖或成为 `ak.device.push_route` 的 `server_revision_cas` 权威。
+
+当请求选择独立存储的公共 Gateway 时，Station 必须在返回本接口 2xx 前完成 §3.4 active handoff、验证 Gateway-signed durable receipt 并与本地 exact registration 原子记录；Gateway 拒绝、不可达、响应丢失或 receipt 不匹配时不得返回成功。相同客户端请求在不确定结果后可能重新开始一次新注册，但 Station 必须以新 `registration_id + supersedes_registration_id` 原子替代已确认的旧安装，不能让重复请求产生两个 current route。
 
 `expires_at` 若出现，MUST 只约束本次 Arkret push registration 记录。Provider token 的平台生命周期、撤销或轮换由 provider adapter 在实现内部处理，或通过新的注册请求提交新的 `push_key`；不得把 provider token 过期时间塞入 `expires_at`。客户端 SHOULD 在 `expires_at` 前主动重注册；到期后服务端 MUST 停止使用该 registration 投递 push，并在下一次注册 / describe / sync 投影中以等价的 `push_registration_expired` 状态或重新注册要求暴露给该 holder。`ak.device.push_route` 的轮换周期仍由 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.6.2 约束；若两者都存在，较早失效者控制实际投递。
 
@@ -113,17 +117,43 @@ POST /_arkret/edge/push/unregister-device
 | `push_key` | string | optional | 指定要注销的 push token |
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
-成功响应固定为 HTTP 204 且没有 entity body；注册不存在也必须按同一幂等成功处理。不得返回 JSON 占位对象。
+成功响应固定为 HTTP 204 且没有 entity body；注册不存在也必须按同一幂等成功处理。不得返回 JSON 占位对象。共享权威状态部署必须先原子提交本地终局注销；使用 §3.4 公共 Gateway 交接的部署还必须取得该 Gateway 对 exact `registration_id` 的 durable revoked receipt 后才可返回 204。Gateway 不可达时 Station 保留 durable revoke intent 并返回失败/可重试响应，不得以 204 伪装远端已经删除。
 
 ### 3.3 Station 与 Push Gateway 的职责边界（normative）
 
 设备注册和注销由认证 `AccountId.station_id` 对应的 Station 提供；Gateway 的服务身份、`service_signature` 或 `push_gateway` profile 不授予账号 self-service 注册权。Push 对 Station 仍是可选能力；声明 `ak.operation_bundle.station.push.v1` 时 MUST 同时实现 §3.1 与 §3.2，不提供 `notify`。`push_gateway` 角色通过 `ak.operation_bundle.push_gateway.http_notify.v1` 提供 §5 的 `notify`。同一部署可以同时运行两种角色，但 MUST 按 `ServiceDescribe.service_kind` 分别声明角色及操作束；共享进程或 URL 不合并两种授权。
 
-Gateway MUST 在 durable 接管前取得与 `(push_target_id, device_id)` 精确匹配的有效注册、注册 Station 身份、被授权的通知来源、provider 路由与设备 opt-in；不得把请求中的 `device_id`、`push_target_id` 或 `Destination-Service-ID` 当成注册证明。`notification.devices[]` 仍仅携带 `device_id`，不得恢复 provider token、app id、注册身份或 opt-in 镜像。
+Gateway MUST 在 durable 接管前取得与 `(registration_id, push_target_id, device_id)` 精确匹配的有效注册、注册 Station 身份、被授权的通知来源、provider 路由与设备 opt-in；不得把请求中的 `device_id`、`push_target_id` 或 `Destination-Service-ID` 当成注册证明。`notification.devices[]` 仍仅携带 `device_id`，不得恢复 provider token、app id、注册身份或 opt-in 镜像。
 
-current-v1 可由同一受信部署中的 Station 与 Gateway 访问同一权威耐久注册状态来满足该前提；这属于部署内部存储边界，不是跨 Station 复制账号私有状态，也不要求使用特定数据库。注册更新、注销、设备撤销、过期与 provider 失效回收 MUST 对 gateway 的后续接管生效；旧注册不得因 gateway 缓存而复活。该访问 MUST 保持 exact AccountId 的隔离与 §2.2 的 pairwise pseudonym 隐私边界。
+current-v1 有两条且仅有两条注册状态交付路径：同一受信部署中的 Station 与 Gateway 访问同一权威耐久注册状态；或 Station 按 §3.4 调用公共 Gateway 的标准 registration handoff。前者属于部署内部存储边界，不要求特定数据库；后者把 Gateway 明确纳入仅限 provider route 处理的受信数据处理边界。两者都不得复制 AccountId、principal、Realm 或用户 session，且注册更新、注销、设备撤销、过期与 provider 失效回收 MUST 对 Gateway 的后续接管生效；旧注册不得因 worker、缓存或延迟请求复活。
 
-current-v1 **尚未定义**向独立存储的第三方 Gateway 交付、授权和撤销注册状态的互操作契约。仅填写 `push_gateway_url` 不完成该交接；无法取得上述权威状态时，Station MUST NOT 报告该路由已可用，Gateway MUST NOT 接管通知。实现不得以转发用户 session grant、私有 HTTP 端点、notify 回填 token 或自行推断账号身份补足缺失契约。此限制不改变普通聊天发送或同步的离线可用性：缺失 push 路由不得变成普通 Event 准入依赖。
+仅填写 `push_gateway_url` 不建立信任。Station 必须把 URL 解析为预先 onboard 的 canonical Gateway origin 与 service DID，并确认该 Gateway 的 role-scoped Describe 同时声明 `ak.operation_bundle.push_gateway.http_notify.v1`；独立存储部署还必须声明 `ak.operation_bundle.push_gateway.registration_handoff.v1`。任一步缺失、冲突、redirect 或身份变化都必须 fail closed。实现不得以转发用户 session grant、私有 HTTP 端点、notify 回填 token或自行推断账号身份替代这两条路径。Push 缺失不得变成普通 Event、聊天发送或同步的准入依赖。
+
+### 3.4 受信公共 Gateway 注册交接（normative）
+
+独立存储的公共 Gateway 通过以下 HTTP-only operation 接收 Station 的注册 desired state：
+
+```
+POST /_arkret/edge/push/registrations:apply
+Arkret-Operation: ak.edge.push.command.apply_registration.v1
+```
+
+请求必须使用 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) §3 的 HTTP Message Signature；签名覆盖 exact `Source-Service-ID`、`Destination-Service-ID` 与 `Content-Digest`。来源必须是完成 §3.1 exact AccountId 认证并预先与 Gateway 建立 tenant trust 的 Station；目标必须是该 Station 选择并验证的 exact Gateway service DID。用户 session grant、AccountId、principal、Realm、Circle、Strand、Message、Event、handle 与设备 DID URL 均不得进入请求或收据。
+
+active desired state 是闭合 whole-value：`registration_id`、`push_target_id`、`device_id`、`state="active"`、`push_key`、可选 `platform` / `app_id`、显式 `visible_notification_opt_in`、可选 `expires_at`，以及替代时的 `supersedes_registration_id`。revoked desired state 只携 `registration_id`、`push_target_id`、`device_id` 与 `state="revoked"`；不得回携 token、app、opt-in 或替代值。此最小合同只授权 authenticated `Source-Service-ID` Station 为该 installation 调用 notify；不得从 profile、相同运营方、目的 header 或 body 字段推导其它 delegated notification source。
+
+公共 Gateway 是受信的 provider-route 数据处理方，但不是 Account Authority：
+
+- Gateway 必须以 authenticated `Source-Service-ID` 为顶层 tenant partition；同名 `registration_id` 在不同 Station 下是不同对象。数据库键、加密密钥、worker 队列、cache、备份、管理员访问与删除任务都必须保持该分区。
+- `push_key` 只可进入该 tenant 的 provider adapter 与必要的加密静态存储；不得进入应用日志、访问日志、审计正文、metrics label、trace、crash report、receipt 或跨 tenant token/dedup 索引。Gateway 不得比较或合并两个 Station 的 provider token。这里选择的是运营信任和强租户隔离，不声称 Gateway 对重复 provider token 具有密码学不可见性。
+- Gateway 按 `(authenticated Source-Service-ID, registration_id)` 幂等。首次 active 原子持久化 route 与 request digest；同 canonical body 重放返回逐字相同 receipt；同 key 异 body 返回 `duplicate_conflict` 且零修改。revoked 是该 key 的永久终局；删除私密 route 后仍保留最小 source/key/request-digest/outcome high-water，延迟 active 不得复活。
+- active 携 `supersedes_registration_id` 时，Gateway 必须在一个事务中确认该前驱是同 source tenant、同 device 的当前 active registration，终局 tombstone 前驱并安装新值；前驱缺失、已由其它 successor 替代、错 device、错 target 或跨 tenant 一律冲突且零修改。初始安装不得携该字段。token 轮换和 opt-in 改变都走新 registration + exact supersedes，不做旧值 patch。
+- 成功前 Gateway 必须完成 durable commit，再返回 `push_registration_installation_receipt`。收据绑定 exact request digest、source Station、destination Gateway、registration、target、device、state 与 stored time，并由 Gateway DID detached JWS 签名；它不重复 provider route。Station 必须验证签名与全部回显并 durable 保存后，才可把该 route 视为可用。
+- Gateway 已提交而 Station 未收到响应时，Station 重放同一 body并取得原收据；Station 未取得有效收据时不得报告可用。注销、设备撤销、到期和 provider invalidation 必须停止 Station 产生新的 notify，并驱动同一 registration 的 terminal tombstone；Gateway 一旦提交 tombstone，旧 worker、cache、重放或乱序 active 均不得投递。Gateway 提交 tombstone 前已经 durable 接管的 provider attempt MAY 完成；这条有界在途窗口不是新通知授权，也不得延长或重建 registration。
+
+Gateway 的 role-scoped Describe 只有实际提供并通过上述持久化、签名收据、tenant isolation 与终局 tombstone 合同时才可声明 `ak.operation_bundle.push_gateway.registration_handoff.v1`。共享权威存储的 Gateway 不需要声明该 bundle；公共独立 Gateway 缺少它时，Station MUST NOT 向其交付 token或报告注册成功。
+
+交接幂等、替代、终局撤销、签名收据与跨 Station 隔离的可执行向量为 `ak.vector.push.registration_handoff_lifecycle.v1`（见 [`../conformance/conformance-vectors.md` §10.12.3](../conformance/conformance-vectors.md)）。
 
 ## 4. 推送规则引擎
 
@@ -388,7 +418,7 @@ POST /_arkret/edge/push/notify
 
 `blind_wakeup` 下上述最小化义务覆盖 `counts` 内的所有绝对活动计数，包括未读数与未接来电数；`badge` 与 `missed_call` 均只能使用布尔存在标志或 policy 声明的封闭 bucket 字符串，MUST NOT 发送明文绝对计数。`unread_increment` 是唯一允许的有界增量形态，不得被解释为累计总数。
 
-> **传输层 header（非 body 字段）**：notify MUST 携带 exact selector `Arkret-Operation: ak.edge.push.command.notify.v1`；即使 endpoint family 当前只有该候选也不得省略。`idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标 Push Gateway service DID→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。service header 不承载、复用或替代 recipient AccountId；账号绑定只来自服务端已验证的 `push_target_id` registration。上述字段都不在 body 重复承载，且 **MUST NOT** 出现在请求体内。
+> **传输层 header（非 body 字段）**：notify MUST 携带 exact selector `Arkret-Operation: ak.edge.push.command.notify.v1`；即使 endpoint family 当前只有该候选也不得省略。`idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标 Push Gateway service DID→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。service header 不承载、复用或替代 recipient AccountId；账号绑定只来自服务端已验证的 `push_target_id` registration。公共 Gateway handoff 安装只授权其 authenticated source Station；Gateway 必须要求 notify 的 `Source-Service-ID` 与 receipt 的 `source_station_id` 逐字相等。上述字段都不在 body 重复承载，且 **MUST NOT** 出现在请求体内。
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 
@@ -514,7 +544,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 ### 6.2 安全约束
 
 - Station sync surface MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
-- 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2 与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
+- 对通知正文、Account/Realm 身份和跨 tenant 活动而言，推送网关仍按最小披露第三方处理：`push_hint` 白名单与 payload 最小化约束见 §2.2 与 §5.1。唯一额外信任是 §3.4 公共 Gateway 在 exact source-Station tenant 内处理 provider route；该信任不授予读取消息、账号身份或跨 Station 关联的权限。
 - 独立 Push Gateway 的路由输入 MUST 是 opaque token：`route_tokens` 不得包含、编码或可逆推出 DID、Realm id、Circle id、Event id、Message id、Strand id、handle、平台 push token 或长期稳定 correlation key。v1 不存在 mention redirect token；mention 走 blind/batch wakeup 并由客户端解密判断。
 
 ## 7. 静默时段 (Do Not Disturb)

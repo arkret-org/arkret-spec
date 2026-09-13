@@ -40,6 +40,10 @@
       "new": "ak.edge.applet.third_party_users.read.list.v1"
     },
     {
+      "old": "ak.edge.push.command.apply_registration",
+      "new": "ak.edge.push.command.apply_registration.v1"
+    },
+    {
       "old": "ak.edge.push.command.notify",
       "new": "ak.edge.push.command.notify.v1"
     },

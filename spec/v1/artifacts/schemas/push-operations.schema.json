@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/push-operations.schema.json",
   "title": "Arkret Push Gateway Operation DTOs",
-  "description": "Closed request and response DTOs for ak.edge.push.command.register_device.v1, ak.edge.push.command.unregister_device.v1, and ak.push.notify.",
+  "description": "Closed request and response DTOs for Station device registration, trusted public-Gateway registration handoff, and push notification delivery.",
   "anyOf": [
     {
       "$ref": "#/$defs/push_register_device_request_body"
@@ -12,6 +12,12 @@
     },
     {
       "$ref": "#/$defs/push_unregister_device_request_body"
+    },
+    {
+      "$ref": "#/$defs/push_registration_handoff_request_body"
+    },
+    {
+      "$ref": "#/$defs/push_registration_handoff_outcome"
     },
     {
       "$ref": "#/$defs/push_notify_request_body"
@@ -50,8 +56,8 @@
     },
     "registration_id": {
       "type": "string",
-      "pattern": "^(?!ak:)[A-Za-z0-9._:-]{1,128}$",
-      "description": "Push gateway local registration id. It is an opaque_correlation value, so its lexical space is disjoint from the ak: typed-ID namespace: a value MUST NOT begin with ak:."
+      "pattern": "^(?!ak:)[A-Za-z0-9._~-]{22,128}$",
+      "description": "Station-generated, high-entropy, pairwise registration identity scoped to one exact AccountId/device/push route and destination Gateway. It is not an Arkret typed ID, MUST NOT begin with ak:, MUST NOT encode account or provider material, and MUST never be reused after terminal revocation. A replacement allocates a new registration_id and names the exact predecessor through supersedes_registration_id."
     },
     "push_key": {
       "type": "string",
@@ -385,7 +391,8 @@
     "push_register_device_outcome": {
       "type": "object",
       "required": [
-        "push_target_id"
+        "push_target_id",
+        "registration_id"
       ],
       "properties": {
         "push_target_id": {
@@ -393,7 +400,8 @@
           "description": "Server-derived pairwise pseudonym for this registration, derived per push-notifications.md section 2.2 (HMAC-SHA256 over the service-private push secret and canonical account_id / device_id / push_route_id / salt_epoch_id inputs). account_id is taken from the authenticated session and is not repeated in this self-service request. The caller and the device MUST use this exact value as the notify target; they MUST NOT mint their own push_target_id."
         },
         "registration_id": {
-          "$ref": "#/$defs/registration_id"
+          "$ref": "#/$defs/registration_id",
+          "description": "Station-generated immutable identity for this exact registration. The Station uses it for trusted public-Gateway handoff and terminal revocation; the client MUST treat it as opaque."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -426,6 +434,162 @@
       },
       "additionalProperties": false,
       "description": "Account Station self-service unregistration under the same exact authenticated AccountId/device authority as registration; gateway notify authority is insufficient."
+    },
+    "push_registration_handoff_active": {
+      "type": "object",
+      "required": [
+        "registration_id",
+        "push_target_id",
+        "device_id",
+        "state",
+        "push_key",
+        "visible_notification_opt_in"
+      ],
+      "properties": {
+        "registration_id": {
+          "$ref": "#/$defs/registration_id"
+        },
+        "push_target_id": {
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "state": {
+          "const": "active"
+        },
+        "push_key": {
+          "$ref": "#/$defs/push_key",
+          "description": "Provider route secret disclosed only to the destination Gateway's authenticated Source-Service-ID tenant partition. It MUST NOT enter notify, receipts, logs, metrics, traces, cross-tenant indexes, or provider payload fields other than the provider address required for delivery."
+        },
+        "platform": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "app_id": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "visible_notification_opt_in": {
+          "type": "boolean",
+          "description": "Exact device opt-in derived by the source Station. False restricts the installation to blind wakeup even when the Gateway also advertises the visible-notification profile."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "supersedes_registration_id": {
+          "$ref": "#/$defs/registration_id",
+          "description": "Exact current predecessor replaced by this installation. The Gateway atomically tombstones that predecessor with installing this registration. It MUST be absent for an initial installation."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable active installation submitted by the authenticated source Station to one trusted public Gateway. Source and destination service identities are carried only by signed HTTP headers. The source Station is the only notify source authorized by this minimal handoff contract; delegation is not inferred from profile claims or body fields."
+    },
+    "push_registration_handoff_revoked": {
+      "type": "object",
+      "required": [
+        "registration_id",
+        "push_target_id",
+        "device_id",
+        "state"
+      ],
+      "properties": {
+        "registration_id": {
+          "$ref": "#/$defs/registration_id"
+        },
+        "push_target_id": {
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "state": {
+          "const": "revoked"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Terminal handoff tombstone. It carries no provider route, application metadata, opt-in, account identity, or replacement value. The Gateway retains the minimal (source Station, registration_id, request digest, outcome) high-water needed to reject a delayed active install after private material is erased."
+    },
+    "push_registration_handoff_request_body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/push_registration_handoff_active"
+        },
+        {
+          "$ref": "#/$defs/push_registration_handoff_revoked"
+        }
+      ],
+      "description": "Station-to-Gateway desired registration state. The HTTP Message Signature binds exact Source-Service-ID, Destination-Service-ID and Content-Digest. The Gateway keys state by authenticated source tenant plus registration_id; a byte-identical replay returns the original receipt, different content for the same key is duplicate_conflict, and revoked is terminal."
+    },
+    "push_registration_installation_receipt": {
+      "type": "object",
+      "x-arkret-proof-context": "ak.push_registration_installation_receipt_proof.v1",
+      "required": [
+        "registration_id",
+        "push_target_id",
+        "device_id",
+        "state",
+        "request_digest",
+        "source_station_id",
+        "destination_gateway_id",
+        "stored_at",
+        "proof"
+      ],
+      "properties": {
+        "registration_id": {
+          "$ref": "#/$defs/registration_id"
+        },
+        "push_target_id": {
+          "$ref": "./common-ids.schema.json#/$defs/push_target_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ]
+        },
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 of RFC 8785 JCS of the complete handoff request body. It binds provider route bytes without repeating them in the receipt."
+        },
+        "source_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "destination_gateway_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "stored_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Gateway detached-JWS proof. payload_digest hashes this complete receipt with proof omitted. The signed binding is canonical_json({context:'ak.push_registration_installation_receipt_proof.v1',payload_digest,registration_id,push_target_id,device_id,state,request_digest,source_station_id,destination_gateway_id,verification_method,created_at,audience}); created_at equals stored_at and audience equals source_station_id."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Gateway-signed durable confirmation that the exact active installation or terminal tombstone was committed in the authenticated source Station tenant before success. The receipt grants no Account authority and contains no provider token."
+    },
+    "push_registration_handoff_outcome": {
+      "type": "object",
+      "required": [
+        "receipt"
+      ],
+      "properties": {
+        "receipt": {
+          "$ref": "#/$defs/push_registration_installation_receipt"
+        }
+      },
+      "additionalProperties": false
     },
     "push_notify_request_body": {
       "type": "object",

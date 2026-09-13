@@ -3760,6 +3760,32 @@ Expected：
 - 第 5 步仍返回 `cas_conflict`、revision 保持 3；实现只保留不可恢复旧 target 的 subject digest / revision / outcome 最小状态。
 - 任一实现不得使用 CBS `preconditions`、arrival-order LWW、`causal_register` Bottom 或 `push_gateway_did` 私有别名替代本向量。
 
+### 10.12.3 Vector: Trusted Public Gateway Registration Handoff
+
+`vector_id`: `ak.vector.push.registration_handoff_lifecycle.v1`
+
+前置：Station A 与公共 Gateway G 已通过 service DID、canonical origin 与运营配置建立 tenant trust；G 分别声明 notify 与 registration-handoff operation bundle。A 从 authenticated exact AccountId 接受设备 D 的 provider route，为其生成 pairwise target P 与高熵 registration R1。
+
+Steps：
+
+1. A 以 exact Source/Destination/Content-Digest 签名提交 active R1，G durable commit 后返回签名 receipt；丢弃响应并重放逐字相同 body。
+2. 以同 A/R1 提交不同 token、target、device、opt-in 或 expiry。
+3. A 提交 active R2 且 `supersedes_registration_id=R1`，然后让延迟的 R1 active 请求到达。
+4. 对 R2 先提交 revoked tombstone，再让延迟的 R2 active 请求到达。
+5. 分别伪造 Source Station、Destination Gateway、device、target、receipt 回显或跨 tenant predecessor。
+6. 两个 Station tenant 使用相同 `registration_id` 或相同 provider token，并尝试从日志、索引、worker、cache、备份和管理员查询跨 tenant 命中。
+7. 模拟 G 已提交/A 未收到 receipt、A 未取得 receipt、注销与安装交叉以及 Gateway restart。
+
+Expected：
+
+- 第 1 步只产生一份 active installation，重放返回逐字相同 Gateway-signed receipt；A 只有验证并 durable 保存 receipt 后才报告 route 可用。
+- 第 2 步固定为 `duplicate_conflict` 且零修改；registration identity 是 immutable，不是 patch key。
+- 第 3 步原子安装 R2 并终局 tombstone R1；延迟 R1 不得恢复旧 provider route。前驱不存在、已被不同 successor 替代或不属于同 source/device 时整体冲突。
+- 第 4 步 revoked 永久胜出；私密 route 删除后保留的最小 high-water 仍必须拒绝旧 active。
+- 第 5 步在写 route、签 receipt 或披露存在性前拒绝；header、body与 receipt 的 source/destination/registration/target/device 必须逐字一致。
+- 第 6 步产生两个隔离对象；实现不得跨 Station 比较 provider token、合并安装、共享 tenant encryption key、记录 token 或提供跨 tenant 查询/dedup。
+- 第 7 步在 restart 后保持相同结论；没有有效 receipt 不得伪报安装成功。普通聊天、Event acceptance 与同步不依赖 Gateway 可达性。
+
 ## 11. Agent & Sidecar Vectors
 
 ### 11.1 Vector: Provisioning + Pairing + Global Scope Ceiling

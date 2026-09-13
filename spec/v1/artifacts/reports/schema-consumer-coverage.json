@@ -3152,6 +3152,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.edge.push.command.apply_registration.v1",
           "ak.edge.push.command.notify.v1",
           "ak.edge.push.command.register_device.v1",
           "ak.edge.push.command.unregister_device.v1"

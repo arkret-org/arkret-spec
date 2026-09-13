@@ -410,12 +410,12 @@ SHOULD 支持：
 
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
 | --- | --- | --- | --- | --- |
-| `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `notify` 操作（注册/注销由 Account Station 提供，见 Push §3.3），`ak.schema.notification.v1`，service DID 校验，notify 响应对 `notification.devices[]` 逐项守恒的 `outcomes[]`（见 [`../discovery/push-notifications.md` §5.2](../discovery/push-notifications.md)），按 `(push_target_id, device_id)` 回收失效注册 | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `notify` 操作（注册/注销由 Account Station 提供，见 Push §3.3），`ak.schema.notification.v1`，service DID 校验，notify 响应对 `notification.devices[]` 逐项守恒的 `outcomes[]`（见 [`../discovery/push-notifications.md` §5.2](../discovery/push-notifications.md)），按 exact durable registration 回收失效 route。共享权威存储可直接满足；独立公共 Gateway 必须另声明 registration handoff bundle | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device verification-method DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ak.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_id, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_id, device)` 元组。 | `privacy-security-fixture.json` |
 
-Station Push 保持可选；声明 `ak.operation_bundle.station.push.v1` MUST 同时提供 `register_device` / `unregister_device`。同部署的 Gateway 单独声明 `push_gateway` 角色，不能把 Gateway profile 作为 Station 的同角色能力扩展。独立存储 Gateway 的注册交接仍须先闭合 [Push §3.3](../discovery/push-notifications.md#33-station-与-push-gateway-的职责边界normative) 的缺失契约。
+Station Push 保持可选；声明 `ak.operation_bundle.station.push.v1` MUST 同时提供 `register_device` / `unregister_device`。同部署的 Gateway 单独声明 `push_gateway` 角色，不能把 Gateway profile 作为 Station 的同角色能力扩展。独立存储的公共 Gateway 只有同时声明 `ak.operation_bundle.push_gateway.http_notify.v1` 与 `ak.operation_bundle.push_gateway.registration_handoff.v1`，并满足 [Push §3.4](../discovery/push-notifications.md#34-受信公共-gateway-注册交接normative) 的 source-Station tenant isolation、immutable registration、terminal tombstone 与 signed durable receipt，才能被 Station 选择。
 
 MUST 支持（在所有变体上）：
 
@@ -424,6 +424,8 @@ MUST 支持（在所有变体上）：
 - service DID 或等价受信服务签名校验
 - 失效 token 回收
 - 按输入设备逐项守恒的 `outcomes[]` 结果回传
+- 对公共 Gateway handoff，按 authenticated source Station 隔离存储、日志、访问、worker、cache、备份与删除；禁止跨 Station provider-token equality index
+- 对公共 Gateway handoff，exact replay 返回原 signed durable receipt，同 registration 异内容冲突，revoked 与被 successor 取代的前驱均不可复活
 
 MUST NOT：
 

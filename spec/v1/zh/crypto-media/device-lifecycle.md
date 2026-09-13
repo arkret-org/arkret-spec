@@ -351,7 +351,7 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 
 ### 5.6 Privacy-Preserving Push
 
-Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Station sync surface、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
+Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Station sync surface、网络中间人或第三方 SaaS 控制面泄露 Account/Realm 身份与通知内容的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。独立公共 Gateway 为完成 provider delivery 必须取得原始 provider route 时，只可走 `push-notifications.md` §3.4 的认证 handoff，并作为按 source Station 强隔离的受信数据处理方持有；这不是 notify payload 的放宽，也不声称对 Gateway 隐藏重复 provider token 的密码学相等性。
 
 #### 5.6.1 `push_target_id` 派生与作用域
 
@@ -374,7 +374,7 @@ create / rotate / revoke、stale sibling、exact replay 与隐私 GC 的可执�
 
 #### 5.6.3 不可链接性要求
 
-- 同一 `principal_id` 在不同 AccountId、不同设备或不同 push route 上的 `push_target_id` MUST NOT be linkable by push gateway / 第三方 transport（除非两侧自愿持有相同源 secret）。受托 Station sync surface MAY 在自己的授权上下文内持有从 exact AccountId 到本服务本地 push queue 的短期索引，但不得把该索引导出给 Push Gateway / vendor。
+- 同一 `principal_id` 在不同 AccountId、不同设备或不同 push route 上的 `push_target_id` MUST NOT be linkable by push gateway / 第三方 transport（除非两侧自愿持有相同源 secret）。受托 Station sync surface MAY 在自己的授权上下文内持有从 exact AccountId 到本服务本地 push queue 的短期索引，但不得把该 Account 映射导出给 Push Gateway / vendor。`push-notifications.md` §3.4 是 provider route 的封闭例外：公共 Gateway 可在一个 authenticated source-Station tenant 内取得原始 provider token，但 MUST NOT 建立跨 Station token equality index、合并 installation、共享加密键或向另一个 tenant 暴露查询结果；这是强租户隔离和运营信任保证，不是跨 tenant 不可关联的密码学证明。
 - 同一设备的两条 `push_route` 的伪名 MUST 互相独立；其中一条被泄露不得让攻击者推导另一条。
 - 跨 Realm 投递 MUST 使用同一 `push_target_id`（按 device 而非按 Realm），但 push payload 内不得携带 plaintext `realm_id`/`strand_id`/`message_id`；目标拆分由 device 端解 envelope 后完成。
 
