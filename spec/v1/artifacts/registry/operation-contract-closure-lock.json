@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-13.33",
-  "generated_at": "2026-09-13T14:30:00+08:00",
+  "version": "2026-09-13.34",
+  "generated_at": "2026-09-13T15:20:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -121,11 +121,11 @@
     },
     {
       "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
-      "sha256": "sha256:4757b0a972d741613e47354e1fa6c529dad13f992bee4f31f07ae6bbe768e7a7"
+      "sha256": "sha256:2f2bf42a7532343597cfee369ad913bab6abe7f856aaf6d8b749734a8a1df27a"
     },
     {
       "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-      "sha256": "sha256:22bff951b9688792331d451c3aa4831fd22558b38b1b04a628046d0445c9d63e"
+      "sha256": "sha256:b538d27bc439098ac21efd4a887095dd0e932175724fd084b4ba4cad2e4e6b2b"
     },
     {
       "operation_id": "ak.gate.account.command.issue_did_binding_challenge.v1",
@@ -149,7 +149,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.logout_auth_session.v1",
-      "sha256": "sha256:4813e4a22ad19373d3165446f7d7a6b026297e7a7b4f08376f4a39432c6bf5ab"
+      "sha256": "sha256:d111dad634a110de65c556fd5814fa04616417850016253aa5f7d10af9196be6"
     },
     {
       "operation_id": "ak.gate.account.command.pair_agent_key.v1",
@@ -293,7 +293,7 @@
     },
     {
       "operation_id": "ak.peer.device_revocations.command.check.v1",
-      "sha256": "sha256:ca5ebfd9aa7f3224feceb683149463eb9cb98cfb854736c3b06fcec476ac6b1d"
+      "sha256": "sha256:7d8c160a60cc48c5fbeb36203e55741d73101a2bf68f59ceba7a45e950bed7be"
     },
     {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",

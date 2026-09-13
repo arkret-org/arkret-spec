@@ -11338,9 +11338,9 @@ paths:
 
         POST /_arkret/gate/account/logout. It calls this endpoint with the
 
-        configured Account Authority -> Auth Server S2S bearer
+        deployment-internal authentication channel registered in
 
-        (session_grant_introspection_bearer) to log out the Auth-side
+        service-http-binding 2.2.3 to log out the Auth-side
 
         browser/auth session owning the supplied grant and terminate that
 
@@ -11402,9 +11402,17 @@ paths:
 
         the grant (consumption/rotation is the refresh endpoint''s job).
 
-        Authenticated by the configured session_grant_introspection_bearer (a
+        Authenticated by the deployment-internal authentication channel
 
-        server-local static bearer) or an admin scope.
+        registered in service-http-binding 2.2.3. Request-admission
+
+        introspection MUST use the grant_jwt branch carrying the exact
+
+        presented token plus the caller''s own audience_id; the resource
+
+        server MUST NOT re-verify that JWT signature, replay the issuer DID
+
+        history or recompute the issuance preimage, suite-tagged ID or jti.
 
         '
       responses:
