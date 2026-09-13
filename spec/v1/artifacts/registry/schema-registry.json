@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.1",
+  "version": "2026-09-13.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T11:30:00+08:00",
+  "generated_at": "2026-09-13T14:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -343,7 +343,7 @@
       "schema_id": "ak.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "status": "active",
-      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses for an unresolved ordinary projection; it is not an authoritative safety Cell value"
+      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses for an explicitly registered cross-Cell domain inconsistency; ordinary causal_register Cells always select one deterministic winner and never produce Bottom"
     },
     {
       "schema_id": "ak.schema.calendar_event.v1",

@@ -13,7 +13,7 @@
     "kind": {
       "type": "string",
       "const": "conflict",
-      "description": "Concurrent eligible causal-register heads remain unresolved; no winner is selected."
+      "description": "The explicitly registered cross-Cell domain rule found an inconsistent combination of otherwise resolved ordinary values. This is not a causal_register join outcome."
     },
     "cell_ids": {
       "type": "array",
@@ -29,7 +29,7 @@
       "type": "array",
       "minItems": 2,
       "uniqueItems": true,
-      "description": "Candidate heads sorted by event_id wire bytes and unique by event_id. Equal and null values remain distinct because identity is the Event id. Receivers MUST NOT select a winner by value, timestamp or arrival order.",
+      "description": "Diagnostic source candidates sorted by complete typed event_id bytes and unique by event_id. The registered domain rule, not a generic register merge, defines why this complete set is inconsistent.",
       "items": {
         "type": "object",
         "required": [
