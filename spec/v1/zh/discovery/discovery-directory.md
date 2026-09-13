@@ -729,7 +729,6 @@ POST /_arkret/find/directory/list-handles-for-subject
 POST /_arkret/find/directory/private-contact-discovery
 POST /_arkret/find/directory/announce
 POST /_arkret/find/directory/withdraw
-POST /_arkret/find/directory/push/register
 ```
 
 字段级定义：

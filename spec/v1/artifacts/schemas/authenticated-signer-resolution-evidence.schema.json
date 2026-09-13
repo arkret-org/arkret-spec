@@ -14,6 +14,9 @@
       "$ref": "#/$defs/account_device_signer_evidence"
     },
     {
+      "$ref": "#/$defs/account_device_control_signer_evidence"
+    },
+    {
       "$ref": "#/$defs/agent_signer_evidence"
     }
   ],
@@ -134,6 +137,82 @@
       },
       "additionalProperties": false,
       "description": "Verify the exact signed device projection and its attester closure. For ordinary publication the cache expires_at limits current-query freshness only; authorization_window and applicable generation/revocation closures govern actual authority. Preserve the full AccountId, device and signing-key binding. This evidence alone does not authorize notary or root-control actions."
+    },
+    "account_device_control_signer_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "signer_id",
+        "account_id",
+        "device_id",
+        "verification_method",
+        "authorization_event_ref",
+        "authorized_generation_ref",
+        "generation_event_ref",
+        "confirmation_seal_ref",
+        "pcr_genesis_event_ref",
+        "principal_inception",
+        "history_event_refs",
+        "history_seal_refs"
+      ],
+      "properties": {
+        "kind": {
+          "const": "account_device_control"
+        },
+        "signer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "authorized_generation_ref": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generation_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "confirmation_seal_ref": {
+          "type": "string",
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+        },
+        "pcr_genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "principal_inception": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        },
+        "history_event_refs": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          }
+        },
+        "history_seal_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Portable ordinary-human Control signer root. signer_id equals account_id.principal_id; verification_method is rooted in principal_inception.did and has the exact device_id fragment. authorization_event_ref identifies the original fully signed ak.device.authorize, authorized_generation_ref and generation_event_ref identify its frozen generation, confirmation_seal_ref is the first successful confirming Seal, and pcr_genesis_event_ref plus the original signed principal_inception form the independent trust anchor. history_event_refs and history_seal_refs are UTF-8 byte-sorted, duplicate-free exact references for the minimal closed PCR prefix through confirmation_seal_ref; the objects are fetched through existing exact Event/Seal transports and are not inlined or replaced by current projections. A verifier MUST obtain every referenced object, verify the complete prefix, original possession and producer proofs, exact committed outcome and historical notary configuration, and match the derived Account/device/method/key/generation/window before accepting a generic Control Event. This branch does not authorize Data, notary, DID update, recovery-factor, SessionGrant or Signal actions. Complete canonical evidence is at most 1 MiB."
     },
     "agent_signer_evidence": {
       "type": "object",

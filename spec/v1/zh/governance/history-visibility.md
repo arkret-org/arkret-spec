@@ -381,7 +381,7 @@ origin Station 在 `keys/query` 的任一面返回 `signer_evidence_ref` 前必�
 不得从 DID 文档猜设备公钥或把设备伪装成 `principal` 分支。Release Station 在 `source_proof.created_at` 验证完整闭包、
 正有效期区间、active 状态、签名与 exact actor/device 绑定；后续过期不追溯作废已接受的历史证明。
 首次入队 T1 仍验证 source 的 current exact device authorization/generation 与 membership；历史 attestation 不代替 current gate。
-`account_device` 仅授权普通 human history-response proof，不扩张 Control Event、DID 文档或 notary 的签名权威。
+`account_device` 仅授权普通 human history-response proof，不扩张 Control Event、DID 文档或 notary 的签名权威。普通 human generic Control 必须使用 [`device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md) 的独立 `account_device_control` 分支；它复用原始用户 authorize Event、完整 PCR 确认前缀和 inception anchor，不信任 Station 设备投影签名，也不扩张本 history-response 分支。
 
 Release service admission 必须完整验证 authenticated branch 及其递归 attester evidence closure；对于只有 receiver
 持有 verified local MLS tree 的 minimal-metadata branch，release service 只验证 content address、closed shape、source relay binding 并原样 pin，

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.10",
-  "generated_at": "2026-09-12T22:13:28+08:00",
+  "version": "2026-09-14.1",
+  "generated_at": "2026-09-14T04:54:49+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2531,7 +2531,6 @@
       "optional_extensions": [
         "ak.private_contact_discovery.v1",
         "pull_mode_ingest",
-        "webhook_fanout",
         "restricted_query_proofs",
         "operator_console"
       ],

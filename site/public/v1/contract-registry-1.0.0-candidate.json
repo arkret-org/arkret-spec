@@ -10159,7 +10159,7 @@
         "schema_id": "ak.schema.directory_operations.v1",
         "file": "schemas/directory-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
+        "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, and agent selector lookup operations."
       },
       {
         "schema_id": "ak.schema.dnd_schedule.v1",
