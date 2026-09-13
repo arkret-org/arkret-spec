@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.5",
+  "version": "2026-09-13.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T12:36:00+08:00",
+  "generated_at": "2026-09-13T15:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5191,7 +5191,7 @@
       "vector_id": "ak.vector.proof_context.transcript.device_authorize_recovery_possession.v1",
       "status": "active",
       "domain": "proof_context",
-      "description": "Transcript KAT for ak.device_authorize_recovery_possession_proof.v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.device_revocation_gate_decision_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.device_authorize_recovery_possession_proof.v1: no unsigned projection (the binding object is the whole transcript); canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.did_webvh_witness_receipt_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.device_authorize_recovery_possession_proof.v1"
       ],
@@ -5209,21 +5209,6 @@
       "description": "Transcript KAT for ak.device_projection_attestation_proof.v1: digest input is the `attestation` member; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.principal_locator_proof.v1 rejected.",
       "covers_proof_contexts": [
         "ak.device_projection_attestation_proof.v1"
-      ],
-      "applies_to_fixtures": [
-        "proof-context-transcript-fixture.json"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.device_revocation_gate_decision_receipt.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "description": "Transcript KAT for ak.device_revocation_gate_decision_proof.v1: digest input deletes `proof`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.did_webvh_witness_receipt_proof.v1 rejected.",
-      "covers_proof_contexts": [
-        "ak.device_revocation_gate_decision_proof.v1"
       ],
       "applies_to_fixtures": [
         "proof-context-transcript-fixture.json"

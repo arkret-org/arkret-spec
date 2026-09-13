@@ -46,9 +46,19 @@ class DeviceHistoryEvidenceSchemaTest(unittest.TestCase):
         value["normalized_did_document"] = {}
         self.assertFalse(validator.is_valid(value))
 
+    def projection(self):
+        value = copy.deepcopy(self.core)
+        del value["account_id"]
+        del value["device_id"]
+        return value
+
     def test_query_and_current_evidence_require_retained_coordinate(self):
         for schema, value in [
             ("keys-operations.schema.json#/$defs/query_device_record", {
+                "algorithms": {}, "trust_algorithms": [],
+                "device_projection": self.projection(),
+            }),
+            ("keys-operations.schema.json#/$defs/peer_query_device_record", {
                 "algorithms": {}, "trust_algorithms": [],
                 "device_projection_attestation": self.attestation(),
             }),

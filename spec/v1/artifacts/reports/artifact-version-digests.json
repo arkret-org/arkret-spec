@@ -255,9 +255,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-13.33",
-      "generated_at": "2026-09-13T14:30:00+08:00",
-      "content_digest": "sha256:82038c31b454f00aa13b44ae858d3823180cf35075d3ae1f4b91bdb907290743"
+      "version": "2026-09-13.35",
+      "generated_at": "2026-09-13T15:10:00+08:00",
+      "content_digest": "sha256:21ce5dd23b73dc278fb11437fc1d4bb78167927e527758d99054674cc5048b28"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -285,9 +285,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/pcr-exposure-registry.json",
-      "version": "2026-09-12.11",
-      "generated_at": "2026-09-12T10:53:29+08:00",
-      "content_digest": "sha256:4b1c2649cc4731abaf9aa5b2ee87c6b5ccaa9f7cd339bb38a066647417c0aab5"
+      "version": "2026-09-13.1",
+      "generated_at": "2026-09-13T15:10:00+08:00",
+      "content_digest": "sha256:98b329c1712dc628196077377ccdafccf42e4fef006253f00405d616b9c9d7cc"
     },
     {
       "path": "spec/v1/artifacts/registry/preimage-identity-exemption-registry.json",
@@ -303,9 +303,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-09-12.8",
-      "generated_at": "2026-09-12T19:34:00+08:00",
-      "content_digest": "sha256:4518a965e41c3c5f5f7748f5255933685277a94ba1589e2390ae16b780d4a851"
+      "version": "2026-09-13.1",
+      "generated_at": "2026-09-13T15:10:00+08:00",
+      "content_digest": "sha256:705fa3e0b3d39b67a5c5416a2dc2952a58364c5320d5eafbd8b9a43c05b611e0"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -393,9 +393,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-13.5",
-      "generated_at": "2026-09-13T12:36:00+08:00",
-      "content_digest": "sha256:1754bb41659cb45ac68a7d3d7311227860225107bffece943fae84efc3b3cccb"
+      "version": "2026-09-13.6",
+      "generated_at": "2026-09-13T15:10:00+08:00",
+      "content_digest": "sha256:c1505a79360140ff239faa37a6beca8bf6144ddf0fa9d8c24f863fc4d643068d"
     }
   ]
 }

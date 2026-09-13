@@ -168,16 +168,16 @@
       ]
     },
     {
-      "name": "gate_receipt_decision_shapes_and_proof_are_closed",
+      "name": "gate_receipt_decision_shapes_are_closed",
       "given": "the origin evaluates allow pending revoked authority-mismatch and generation-mismatch branches",
-      "action": "validate each signed receipt and mutate forbidden branch fields or proof bindings",
+      "action": "validate each receipt received over the deployment-internal authenticated channel and mutate forbidden branch fields or add a proof member",
       "expected": "only_closed_exact_receipts_validate",
       "invariants": [
         "only allow carries target_device_authorize_event_id and target_device_generation_ref and every other decision rejects their presence",
         "allow and mismatch carry neither blocker nor Seal",
         "pending carries the lexicographically smallest pending blocker and no Seal while revoked carries the covering Seal of the smallest acceptance_seq then proposal_event_id revoked record and no blocker",
-        "payload_digest equals sha256 JCS of the complete receipt with proof omitted",
-        "proof context is ak.device_revocation_gate_decision_proof.v1 and the method equals receipt method its controller projects to the exact Station and proof created_at equals linearized_at"
+        "a receipt carrying a proof or a verification_method member is rejected",
+        "a receipt that did not arrive over the registered deployment-internal authenticated channel is rejected"
       ]
     },
     {
