@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11712,
+    "total_properties": 11711,
     "total_schema_documents": 173,
     "by_presence_class": {
       "optional": 3153,
       "optional_defaulted": 62,
-      "required": 7367,
+      "required": 7366,
       "required_nullable": 380,
       "tristate": 750
     },
@@ -5187,7 +5187,6 @@
         "/$defs/controller_account_gate_attestation_issue_outcome/properties/controller_account_gate_attestation": "required",
         "/$defs/controller_account_gate_attestation_issue_outcome/properties/request_id": "required",
         "/$defs/controller_account_gate_attestation_issue_request/properties/agent_authority_id": "required",
-        "/$defs/controller_account_gate_attestation_issue_request/properties/agent_authority_resolution": "required",
         "/$defs/controller_account_gate_attestation_issue_request/properties/principal_id": "required",
         "/$defs/controller_account_gate_attestation_issue_request/properties/request_id": "required"
       }

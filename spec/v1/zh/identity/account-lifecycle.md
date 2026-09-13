@@ -91,6 +91,8 @@ human-anchor 的 wire pins 不重复 `log_head_digest`；account registration �
 reserved -> did_published -> pcr_accepted -> account_bound -> completed
 ```
 
+**inception 校验复用（normative）**：实现 MAY 对同一 immutable inception operation 只做**一次** SDK 校验，并把该不可由任意调用者伪造的已验证结果传给两个 proof verifier；但 `identity_creation_control_proof` 与 `registration_did_evidence` 的 control proof 是两份不同签名与不同绑定，MUST 继续**分别**验签与绑定核对。该复用只消除同一输入的解析/方法验证重复，MUST NOT 引入新的 wire proof、可信客户端布尔值或跨请求不失效的缓存。
+
 `identity_creation_lease.state` MUST 返回上述 Account Authority 持久 saga 的当前状态；初次取得 lease、尚未冻结 DID operation 时返回 `active`。客户端每次取得新 handoff 后 MUST 以该服务端状态重新计算 onboarding phase，MUST NOT 通过本地 checkpoint、Recovery Key、旧 challenge 或旧 callback 是否存在来推断服务端阶段。`reserved_identity` 在 `active` MUST 省略，在 `reserved` 及后续状态 MUST 存在；两者矛盾时客户端 MUST fail closed。
 
 客户端随后只可检查当前服务端状态和所选合法目标所需的本地材料。材料必须验证其 account subject、lease/fence、reserved identity、purpose、challenge 与 expiry；不属于当前 flow、验证失败或当前状态不需要的材料 MUST 从活动 checkpoint 中删除。验证通过且已满足的步骤 MAY 跳过。任何非终态 reload、认证 callback、网络不确定结果或进程重启都 MUST 重新取得服务端状态并重复该 reconciliation，不得从旧页面步骤继续推进。
@@ -118,7 +120,7 @@ lease/fence 授权当前 holder 冻结 reservation 并发起 holder-originated c
 三种机制的责任边界（normative）：identity-creation lease/fence 提供 holder 互斥；frozen reservation 加 exact replay 保证同一账号/audience reservation 最多有一份 canonical DID operation 到达 registry；账号维度 PCR create-once 只保证 PCR acceptance 唯一，不保证 DID 发布唯一，也不能补救已经发生的 registry 副作用。DID 发布唯一性由 live lease/fence 授权下的原子冻结与 frozen operation exact replay 共同保证。上述 barrier 由 conformance vector `ak.vector.identity.frozen_reservation_barrier.v1` 覆盖（见 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) §10.9.0.3）。
 
 6. Account Authority 发布 exact client-signed DID operation，使用 registry 返回且 exact replay 稳定的 `accepted_at` 完成 `registration_did_evidence`，并通过 `ak.peer.principal_genesis.command.submit.v1` 原样 relay exact DID operation、完整 frozen evidence、genesis unit 与 root-signed pins。S2S signature 只认证 transport/correlation；Station 必须从 relay 内的 method-native operation 独立验证 adapter projection、两个 root proof、method evidence、DID log pins、root/device Event proofs、descriptor/payload commitments、event-derived PCR id、empty frontier、账号维度 create-once 与 atomicity；MUST NOT 查询 current resolver、数据库最新 DID row 或当前 method head补材料。该 pre-grant genesis unit 不携带、也不得被持久层要求预签发的 Authorization Lease 或 Control Proposal Ack；Account Authority 的 S2S 身份只绑定账号协调与传输来源，不能成为 Event authority。
-7. Station 返回 durable batch receipt，`scope.kind="pcr_genesis_unit"`，且 `scope.registration_evidence_digest` MUST 等于完整 `registration_did_evidence` 的 RFC 8785 JCS SHA-256。Account Authority 必须验证 receipt 的 principal/PCR、`initial_resolution`、三项 DID log pin、registration evidence digest、device/key/HPKE 与 frozen registration 逐字一致；还必须从 `events[]` 中唯一 `ak.realm.create` / `ak.device.authorize` typed item 的 Event ID 派生 digest，resolve 两条 Event 并重算，验证 genesis empty frontier、root/delegation proof 与原子 unit 后，才可提交一账号一 principal binding。receipt 不复制 Event digest，也不携带或证明 accepted frontier/Seal basis。`scope.device_key_digest` 与 `scope.hpke_key_digest` 的原像与 `control_key_digest` 同族，固定为 `SHA-256(UTF-8(canonical multikey))`：前者的原像是 `founding_device_descriptor.`device_public_key_did` **剥去 `did:key:` 前缀后的裸 multikey**，后者的原像是 `hpke_key` 的原样字节；两者都固定 SHA-256，不随 Realm `digest_algorithm` 变化。receipt 承载它们是因为 receipt 不携原始 key；`founding_device_descriptor` 本身携 key，因此不得再携这两个 digest（见 `derived-wire-field-removal-lock.json`）。把完整 `did:key:` URI 当原像是错误约定，MUST 拒绝。原子接受同时初始化 `ak.component.identity.resolution.v1`、PCR-local monotonic `current_device_generation_ref := 1` 与 `device_generation_status := active`；generation ref 不等于也不派生自 DID `versionId`，且这些投影不得在 unit 全部验证通过之前可见。
+7. Station 返回 durable batch receipt，`scope.kind="pcr_genesis_unit"`，且 `scope.registration_evidence_digest` MUST 等于完整 `registration_did_evidence` 的 RFC 8785 JCS SHA-256。genesis 的完整验证由第 6 步的 Station 唯一负责。Account Authority 只验证该**经认证的 outcome 与自己冻结的材料相符**：receipt 的 account/principal/PCR、`initial_resolution`、三项 DID log pin、registration evidence digest、device/key/HPKE、DID operation、lease/fence 与 request identity 逐字一致，之后才可提交一账号一 principal binding。Account Authority MUST NOT 为同一事实从 `events[]` 的 Event ID 派生 digest、resolve 已接纳 Event 或再次重放 genesis。HTTP 2xx、只带 Event ID、或未绑定本次冻结请求的 receipt MUST NOT 足以提交 binding。receipt 不复制 Event digest，也不携带或证明 accepted frontier/Seal basis。`scope.device_key_digest` 与 `scope.hpke_key_digest` 的原像与 `control_key_digest` 同族，固定为 `SHA-256(UTF-8(canonical multikey))`：前者的原像是 `founding_device_descriptor.`device_public_key_did` **剥去 `did:key:` 前缀后的裸 multikey**，后者的原像是 `hpke_key` 的原样字节；两者都固定 SHA-256，不随 Realm `digest_algorithm` 变化。receipt 承载它们是因为 receipt 不携原始 key；`founding_device_descriptor` 本身携 key，因此不得再携这两个 digest（见 `derived-wire-field-removal-lock.json`）。把完整 `did:key:` URI 当原像是错误约定，MUST 拒绝。原子接受同时初始化 `ak.component.identity.resolution.v1`、PCR-local monotonic `current_device_generation_ref := 1` 与 `device_generation_status := active`；generation ref 不等于也不派生自 DID `versionId`，且这些投影不得在 unit 全部验证通过之前可见。
 8. Account Authority 随后从 issuer ledger 签发 `credential_class="standard"` grant。`InitialSessionGrantIntent.device_id` 必须等于 founding descriptor；public JWK thumbprint必须等于 handoff/control proof DPoP JKT；audience 必须等于该部署的 Principal audience。Standard human scope 是规范固定的非空、排序、唯一 operation set，由 issuer 独立物化；`InitialSessionGrantIntent` 与其它 human request 均不得携 `requested_scope`。`pcr_accepted` 前不得签发 principal grant；account binding commit 后签发超时只能 exact replay issuer ledger，不能重建 PCR。
 
 整个 register 以 `(service_account,principal_id,operation_digest)` 与 idempotency key 做 exact replay：相同 bytes 返回同一 saga/receipt/grant outcome；同 key 不同 bytes、账号/principal 冲突或 genesis digest 变化必须零写入失败。一个 Account Authority 下一个 service account 只绑定一个 active principal，一个 principal 也只绑定一个 active account。
@@ -159,8 +161,12 @@ Account Authority 从 durable onboarding checkpoint 取得 account subject、冻
    **current active update key** 签 `account_registration_control_proof`；任一不符 MUST fail closed
    且不得签名。验证方 MUST 从已验证 DID history 选取该 key，MUST NOT 采信请求自带的 key
    或 DID Document 的 verificationMethod。
-4. **Soland MUST 独立解析 `did`、验证 projection 并自行重验该证明**，不得采信 Account Authority 的结论；
-   S2S 签名只认证传输来源。
+4. **该 DID 的 adapter / high-tier 验证实现与受信解析结果 MUST 归同一指定 owner**；同一部署 MAY 由 Station
+   既有 resolver 承接该职责。指定 owner 完整解析 `did`、验证 method 证据与 `project(did)`，并对本次绑定提交的
+   exact proof transcript 验签。非 owner 一方消费该已认证结果，MUST NOT 为同一份方法证据重复重放，也
+   MUST NOT 采信调用方自报的结论；S2S 或部署内通道只认证传输来源。`ak.root.identity.read.resolve.v1` 只是
+   解析载体，其存在 MUST NOT 被当作该实现已满足 §5.4 `high` tier 与 freshness 要求的证明；部署 MUST 另行
+   核实指定 owner 的实际完整验证及所需的时间 / 版本绑定。
 5. 绑定成立后，Station MUST 把已验证的 `{principal_id,did,method_history_head,version_id}`
    作为 PCR genesis `initial_resolution` 持久化，并从 resolution cell 生成 Profile current projection。
    本地账号记录仍是账号运营真相；日常操作使用 `principal_id`，不因普通请求回源 DID host。
@@ -168,6 +174,8 @@ Account Authority 从 durable onboarding checkpoint 取得 account subject、冻
    evidence。账号注销/擦除、session、device、capability、MLS 与普通 PCR 操作 MUST NOT 刷新 DID。
    current DID mismatch/deactivation 只把独立 external claim 标为 `stale`/`invalid`，MUST NOT 限制、
    解绑、冻结或转移账号/PCR。
+
+**challenge 生成与绑定提交是两个不同时间点（normative）**：第 1 步的解析与第 3–5 步的提交各自是一次独立的时间观察。两阶段若按 §5.4 的 freshness / current-key 合同需要刷新，MUST 刷新；MUST NOT 复用已失效的 challenge-era currentness，也 MUST NOT 声称整个注册只需要一次解析。第三方 DID 的 method-native witness / freshness、current active update key、exact proof transcript 与 `project(did)` 检查继续由上述指定 owner 执行；本家 Station 与 Account Authority 之间的部署内互信 MUST NOT 外推为信任第三方 DID host。本分支同样不新增第二份 DID、第二条 PCR lineage、账号绑定覆盖或私有注册端点。
 
 账号的唯一外部身份是 closed `AccountId {principal_id, station_id}`；两个字段均为规范化 `did_core_id`，必须作为一个原子值传递和比较。`authority` 表达“为什么有权”，由签名、grant、producer proof 与已确认授权状态 承载；`AccountId` 只表达“是谁”。协议和实现 MUST NOT 重新引入 authority-named identity、只按一个分量比较、把两个分量作为松散 identity 传递，或用 PCR / service-local key 替代 `AccountId`。
 
@@ -394,7 +402,7 @@ Current account status 是 ledger current head 的 `status`。该 ledger 是 Acc
 `soft_logged_out` 是当前 session grant 失效但凭证可恢复的软状态；用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话，而非仅清本地。客户端可见的登出入口是 Principal describe 发布的 Account Authority；Account Authority 内部协调两个权威的状态:
 
 - **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ak.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定，见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
-- **Station(资源服务)**:对 issuer grant ledger 的有界内省缓存(TTL ≤120s)、待投递 to-device 队列及 push registration；本地缓存记录不构成独立 session 授权真源。客户端可见登录凭据仍是 `ak.session.grant`，客户端以 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof 直接访问 `/_arkret/self/*`(见 [`../sync/api-conventions.md` §3.3](../sync/api-conventions.md));Station **不**为客户端铸独立本地 bearer，**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。
+- **Station(资源服务)**:对 issuer grant ledger 的有界内省缓存(TTL ≤120s)、待投递 to-device 队列及 push registration。Station **不**保存独立的本地 session 记录：issuer grant ledger 是唯一会话授权状态，内省缓存只是它的有界投影，敏感 operation MUST 旁路缓存并取 fresh 结果。客户端可见登录凭据仍是 `ak.session.grant`，客户端以 `Authorization: DPoP <ak.session.grant>` + `DPoP` proof 直接访问 `/_arkret/self/*`(见 [`../sync/api-conventions.md` §3.3](../sync/api-conventions.md));Station **不**为客户端铸独立本地 bearer，**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。
 
 **编排(normative)**:hard logout 由 Account Authority 编排。客户端 MUST 从 `ServiceDescribe.auth_metadata.account_authority.gate_account_base_url` 派生并调用:
 
@@ -414,7 +422,7 @@ POST /_arkret/gate/account/logout
 
 **执行顺序与失败语义(normative)**：Auth-side session logout / grant-chain 终结是耐久性关键步，Account Authority SHOULD 先完成步骤 2，再完成 Principal-side 本地清理。若步骤 2 失败且没有可证明的 durable completion，Account Authority MUST 返回可重试 Problem Details（例如 `temporarily_unavailable`），不得返回 2xx typed outcome。若步骤 2 已成功而步骤 3 暂时失败，Account Authority MAY 返回成功前把 Principal-side 清理持久化到 durable retry 队列；重复执行高层 `/logout` MUST 幂等。客户端在收到失败或网络中断时 MUST 只重试 `POST /_arkret/gate/account/logout`，MUST NOT 直接调用 `auth-sessions/logout`。
 
-**吊销传播与生效语义(normative)**：Account Authority 内部可同步调用或异步重试 Principal-side 终结，但对客户端返回成功前 MUST 至少保证 Auth-side grant 轮换链已不可续。Station 对本地 session 的有效性以「本地 session 记录 + 对 Account Authority / Auth-side 的 session-grant 内省」为准；Auth-side grant/会话被吊销后，Station MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果，但缓存 TTL 与本地 session TTL 共同构成吊销生效的上界，二者 SHOULD ≤ 数分钟；高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Station MUST NOT 依赖对方主动 push 吊销；Account Authority 是客户端可见的编排边界。
+**吊销传播与生效语义(normative)**：Account Authority 内部可同步调用或异步重试 Principal-side 终结，但对客户端返回成功前 MUST 至少保证 Auth-side grant 轮换链已不可续。Station 对会话有效性的唯一判据是 issuer grant ledger 的 session-grant 内省结果，不存在第二份本地 session 授权记录；Auth-side grant/会话被吊销后，Station MUST 在下一次权威查询得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果，但该有界缓存的绝对 TTL（≤120s）就是吊销生效的唯一上界，MUST NOT 由任何本地记录另行延长；敏感 operation MUST 旁路缓存取 fresh 结果，高安全 profile SHOULD 采用更短 TTL。Auth Server / Station MUST NOT 依赖对方主动 push 吊销；Account Authority 是客户端可见的编排边界。
 
 **轮换链单次 successor 与重用即妥协(normative)**：一次逻辑 refresh 只能产生一个 successor。轮换 MUST 在同一 issuer transaction 创建 successor 并把 predecessor 标记为 `superseded`。使用相同 `(predecessor_grant_id, refresh_request_digest)` 与 byte-identical intent 的 exact replay MUST 返回已记录的同一 successor；不得把它误判为第二次消费。对同一已 superseded grant 使用不同 request identity 或不同 canonical intent 再次发起轮换 MUST 拒(`grant_already_consumed` 或 `duplicate_conflict`)，且 SHOULD 视为凭证泄露信号并吊销整条轮换链。
 

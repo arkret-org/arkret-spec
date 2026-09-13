@@ -177,9 +177,11 @@ PCR create admission 必须从 durable provisioning 状态读取 prepare 锁定�
 - `requested_scope` 在 v1 provision request 中 MUST 存在，且 Agent principal 创建后 immutable；实现不得把省略解释为 unconstrained 或 deny-all，也不得通过 renew-pairing、同 key re-authorization、Realm 加入或 policy 更新修改它。需要改变（包括扩大）该全局 ceiling 时必须 provision 新 Agent principal。后续 `ak.agent.key.authorize.payload.agent_key_scope` MAY 比它更窄，但 MUST 满足 actions/resources/constraints 的 selector-narrowing 子集规则；不得要求两者完全相等。Receiver 不得信任 service-local row 声称的 ceiling：必须按 authorizing object 的 accepted-at 解析 Agent DID history，验证 §4.1 的公开 digest commitment，并取得有效的 `ak.schema.agent_requested_scope_disclosure.v1` 私有披露，重算 digest 后再求子集。具体 digest、资源覆盖和 mandatory constraint 规则以 [`../authz/capabilities.md` §9.1](../authz/capabilities.md) 为准。
 - **Runtime key pairing** (`POST /_arkret/gate/account/agent-key-pair`, operation `ak.gate.account.command.pair_agent_key.v1`):runtime 先经 open submit 登记一份已验 PoP 的 frozen candidate。controller 只提交 `{pairing_request_id, approval_request_id, requested_scope_disclosure, authorize_event}`；raw key、method、scope、audience、expiry 与 exact supersedes 由唯一 controller-signed authorize Event 绑定。Station 从持久 candidate 取 PoP/attestation 原材料并验证 current handle、controller/Agent parent authority、DID binding、private scope ceiling 与 Event proof。首次接纳耐久保存 exact 命令和激活 fence，返回 `awaiting_accepted_frontier`；覆盖该 Event 的 successor Seal accepted 后，后台 reconciler MUST 自动推进，无需第二次 pair command。Seal 必须仍由实际授权 controller/notary 签名，不能由 Station 代签。首次激活事务重新检查 handle/candidate identity、expiry、fence、exact旧授权集合和当前 parent authority，再消费 handle并记录 active outcome；renew、expiry、cancel、deactivate 或授权基准变化使待激活命令 cancelled，迟到 Seal 不得复活它。paused Agent 可保留有效 key但不得签发session；active outcome也不替代 runtime 的fresh agent_key_proof。精确重试只读取/恢复同一 durable command，同 Event id 不同 bytes 必须 conflict。
 
-  Account Authority 属于 Station 认证 TCB，但其签发职责与 Station 的业务准入职责不合并；以下原材料重验与激活一致性是强制的内部纵深防御，不因同一 wire role 而可省略，也不能检测整个 Station 的合谋谎报。
+  Account Authority 与该 Station 处于同一部署内已登记的认证关系，但其签发职责与 Station 的业务准入职责不合并。内部职责按**唯一 owner** 划分：事实 owner MUST 对冻结输入做完整验证；内部消费者通过认证且完整性受保护的 exact 结果承接同一事实，MUST NOT 为同一材料另取原材料重复验签，也 MUST NOT 从客户端或任意服务的 `verified=true` 布尔值推断该事实成立。消费者仍 MUST 检查本次 account、audience、operation、intent、状态版本、有效期与自身业务权限；状态变化后的 current gate 不是重复验签，继续执行。该划分不能检测整个 Station 的合谋谎报，本节不声称覆盖该情形。
 
-  当 Account Authority 与保存 Agent pairing/PCR 的 Station 分离时，Authority MUST 使用既有 authenticated `ak.self.agent.resource.get.v1` 的 verifier-only `key_state.runtime_verifier_material` 取得 exact handle/candidate、完整 PoP，以及同一 key_state 的 pairing secret/expiry与已验证 service identity，独立重建 stable binding、PoP transcript 并验签；不允许上游 verified 布尔值替代原材料。该 S2S 读取只允许被委托执行该 Agent pair operation 的 Authority，普通 controller/runtime 响应 MUST 省略 verifier material；合署部署可内部读同一 frozen record。Authority 随后以完全相同的最小 `AgentKeyPairRequestBody`、S2S认证和 `Idempotency-Key=authorize_event.event.event_id` 委托到 Station 同一 canonical pair operation。Station独立验证 candidate、current authority、scope、exact-set和Event；禁止私有端点或自定义队列信封。Authority以该 exact Event ref 对齐 durable outcome；Seal自动推进后通过既有读取/幂等恢复观察active，只有确认 durable activation 才建立本地active授权。激活时 Station 与 Authority 必须从同一冻结 authorization/lifecycle/notary/account-authority closure 使用 SDK `build_agent_signer_evidence` 独立重建完全相同的 `CurrentSignerEvidence::Agent`，并用唯一 `signer_evidence_ref` helper 重算 content ref；不一致则激活失败。
+  当 Account Authority 与保存 Agent pairing/PCR 的 Station 分离时，**Station 是 pairing 原材料与业务准入的唯一 owner**：它 MUST 保存并完整验证 candidate PoP、current handle/expiry、controller/Agent parent authority、DID binding、private scope ceiling、requested scope disclosure、exact supersedes 与 controller-signed Event proof，并在 activation fence 与 accepted Seal 下执行激活事务；MUST NOT 从客户端或任意服务的 `verified=true` 推断 PoP 已验。Authority 以完全相同的最小 `AgentKeyPairRequestBody`、部署内认证和 `Idempotency-Key=authorize_event.event.event_id` 委托到 Station 同一 canonical pair operation；禁止私有端点或自定义队列信封。Authority 对该已认证结果 MUST 核对 request / Event / Agent / controller / 授权对象的绑定，MUST NOT 为同一冻结材料另行取得 verifier-only 原材料并独立重建 stable binding、PoP transcript 或重复验签。Authority 以该 exact Event ref 对齐 durable outcome；Seal 自动推进后通过既有读取/幂等恢复观察 active，只有确认 durable activation 才建立本地授权投影。激活时由 **Station** 从同一冻结 authorization/lifecycle/notary/account-authority closure 使用 SDK `build_agent_signer_evidence` 构建**恰好一份** `CurrentSignerEvidence::Agent`，并用唯一 `signer_evidence_ref` helper 计算 content ref；Authority 只消费该 exact outcome，MUST NOT 另起一轮构建后比较，也 MUST NOT 以新时间戳或新签名替换已冻结结果。消费前 Authority 仍 MUST 核对 response 的 ref 与对象关联、身份、时态与授权 intent。Runtime 与外部 Station 对 portable closure 的既有完整验证不变。
+
+  **状态真源与耐久协调（normative）**：Agent pairing 的业务 command 与 activation 真源只有 Station 一份；Account Authority 侧保留 issuer ledger 与必要的协调/派生读取，协议 MUST NOT 要求第二份独立的业务激活裁决。Authority 若保留本地授权投影，该投影 MUST 能从同一 durable outcome 恢复并受 current gate 约束，MUST NOT 被当作 Station 已激活的替代证据。v1 不采用 at-most-once 网络投递：Authority 若在 Station 接纳前就向调用方承诺命令耐久，MUST 保存 exact pending intent 并可重试；若改为纯同步中继，客户端成功边界 MUST 在 Station durable accept 之后，未成功的 exact request 由原请求 owner 保管并重试。已接纳的 `awaiting_accepted_frontier` MUST 由 Station 后台 reconciler 继续推进，MUST NOT 再依赖第二次用户批准。
 
   Runtime 通过既有 `ak.open.agent_pairing.read.runtime_key_request_status.v1` 的 active outcome 一次取得 `current_signer_evidence` 与 `signer_resolution_evidence_ref`，不得新增 evidence endpoint。它必须验证完整递归闭包、重算 ref、逐字匹配自己的 method/raw-key，然后原子持久化完整 evidence 与 ref；以后普通 Event 直接引用本地 ref，并可向 receiver 提供本地持有的 evidence closure，不联系 controller、Account Authority 或 origin Station。`authorized_event_ref` 只标识授权 provenance，绝不能冒充 signer evidence ref。`ak.self.agent.resource.get.v1` 的 `key_state` 在存在 active authorization 时携带同一 pair，供已授权 controller/Authority 审计和恢复；两字段必须同现。
 - **Lifecycle、readiness 与 presence 正交（normative）**：通用 Agent view 只暴露三轴，`key_state` 不重复状态。poll 的 operation-local `runtime_state` 仅从 current active authorization set 与所查 handle 派生：无key/open handle→pending_runtime_key；无key/已过期handle→pairing_expired；有key/open handle→replacing；有key/无open handle→ready。不得持久化该诊断或使用历史 `authorized_event_ref` 推断当前授权。无key映射runtime_key_missing，open handle映射pairing_open；paused与key ready并存时不得虚报session_missing。
@@ -298,13 +300,16 @@ caller 自报 active 布尔值都是 schema violation。
 Account Authority 是同一 owning Station 下的独立签名职责，可以使用专用 verification method，但没有独立 service DID（见 overview/architecture.md 与 sync/service-surface.md）。消费者从实际 Agent 完整 AccountId 独立取得 Station：gate.authority_id MUST 等于该 Station；controller 的完整 AccountId 从 key_authorization_event 的已验证原始 producer proof 与可携带授权 与 producer 身份取得，MUST 等于 {principal_id: binding.controller_principal_id, station_id: Agent AccountId.station_id}。同 principal 在另一 Station 的 Account 或 gate 自报 authority 均不能替代。controller binding 使用该 Event 冻结的 producer method/key 验签；设备 method 不要求出现在 Principal DID assertionMethod 中，不再携带独立 controller signer evidence ref。
 
 Agent authority **不能自行合成 Account Authority evidence**。当签发或直接消费需要 current-query 语义的结果且缺少未过期、匹配 controller principal 的 gate 时，
-它 MUST 使用 authenticated S2S `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
-`{request_id, principal_id, agent_authority_id, agent_authority_resolution}`。Account Authority 独立验证完整
-AuthenticatedServiceResolution、method-native evidence、document digest、current assertion method，再验证 RFC 9421
-签名覆盖的 method、target URI/path、Content-Digest、Source/Destination-Service-ID、operation id 与 request id。
-verified source、`agent_authority_id` 与 controller exact AccountId 的 Station 必须相同；裸 DID、URL、bearer、自报
-public key 或 account active 值不能代替签名来源。未知 principal、错误 authority 或无权 caller 返回不可枚举的
-`not_found`。gate 的正有效期 MUST 不超过 300 秒；相同 request id 与 canonical intent 的 replay 返回原字节，
+它 MUST 使用部署内已登记的 `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
+`{request_id, principal_id, agent_authority_id}`。该请求走**部署内认证合同**：认证 MUST 绑定已配置的调用方、目标
+Station、trust domain 与允许的 operation，Account Authority MUST 只从该已认证调用关系取得调用方身份。请求体不携带、
+也不得重新引入任何 service resolution carrier；`Source-Service-ID`、客户端自报的 `internal` 字段、裸 DID、URL、bearer
+或自报 public key 都不是身份来源。已认证 source、`agent_authority_id` 与 controller exact AccountId 的 Station 必须
+相同，且 MUST 等于该 principal 当前 binding 指定的 authority；Account Authority 从自己的权威 account status/binding
+取值，不接受 caller 自报的 account active 值。未知 principal、错误 authority 或无权 caller 返回不可枚举的
+`not_found`。gate **响应**侧不随请求侧改为内部认证而削弱：attestation 签名、其 verification method 的公开 DID
+assertion 授权、TTL 与 exact replay 全部保留，因为该响应进入外部 Agent 证据链，由 SDK 与外部 Station 独立验证。
+gate 的正有效期 MUST 不超过 300 秒；相同 request id 与 canonical intent 的 replay 返回原字节，
 不同 intent 为 `duplicate_conflict` 且零签发。有效 gate 可以跨 current 状态查询与同一适用关系的设备复用；直接 current 消费只在
 缺失、到期或已观察状态变化时刷新，不增加 controller 审批。普通 Event 携带并验证的是原 observation 事实，gate 到期本身不要求 producer 刷新，也不要求 Account Authority 在线。
 
@@ -804,9 +809,14 @@ minimal-metadata pairwise endpoint 绑定由各自对应的
 `session.bind` 哨兵 scope。
 
 除固定 `schema`、固定 credential `kind` 与派生结果 `jti` 外，preimage 的每个字段都 MUST 是 JWT 的
-signed claim。verifier MUST 验证 JWT signature、issuer key 的 accepted-at 历史，并从 signed claims
-重算 preimage、digest 与 typed ID，要求结果与 `jti` 逐字节相等。仅验证 `ak:session_grant:` 外形不构成
-有效验证。该 ID 的 `id_form=suite_tagged_full_digest`，是 33-octet `uint8 digest-suite wire code ||
+signed claim。**issuer 侧**在签发与 refresh 时 MUST 自建该 canonical immutable preimage、`issuance_nonce`、
+digest 与 typed ID，并把完整凭据与 grant 状态原子写入 issuer ledger（§6.2）；exact issue/refresh replay 合同不变。
+**资源服务（Station）侧**不重建该派生：它 MUST 在预先绑定的 Account Authority 通道上提交**完整 token** 与目标
+`audience_id` 做内省，由 issuer ledger 以 exact credential 命中并返回权威元数据，再据此判定授权。资源服务
+MUST NOT 把本地 JWT 验签、issuer DID 历史回放或 preimage/digest/`jti` 重算当作授权依据，也 MUST NOT 以 `jti`
+或任何 ID 命中替代 exact token 绑定；依赖不可达或响应不完整 MUST fail closed，不得解释为 active。仅验证
+`ak:session_grant:` 外形同样不构成有效验证。客户端始终把该 JWT 当作不透明凭据，本条不改变 SessionGrant
+的凭据格式。该 ID 的 `id_form=suite_tagged_full_digest`，是 33-octet `uint8 digest-suite wire code ||
 32-octet digest` token；它不是 Realm / Event 的 `reserved-zero nibble || 4-bit suite` header，不是 Event
 ID，也不是 `ak:grant:` Capability
 GrantId；不得提供 Event retype、`from_event_id` 或 accepted-Event marker 路径。跨 issuer 的 durable

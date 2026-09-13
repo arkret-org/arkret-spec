@@ -9,8 +9,7 @@
       "required": [
         "request_id",
         "principal_id",
-        "agent_authority_id",
-        "agent_authority_resolution"
+        "agent_authority_id"
       ],
       "properties": {
         "request_id": {
@@ -23,15 +22,11 @@
         },
         "agent_authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Agent PCR authority service assembling signer evidence. It MUST equal both the authenticated S2S caller and service_id in the controller principal's current AcceptedAtServiceBinding."
-        },
-        "agent_authority_resolution": {
-          "$ref": "#/$defs/authenticated_service_resolution",
-          "description": "Current signed route and method-native control evidence for the Agent PCR authority. The Account Authority verifies this carrier before using its RFC 9421 keyid; a did_core_id, URL, bearer token or self-asserted public key is never a key source."
+          "description": "Agent PCR authority service assembling signer evidence. It MUST equal both the deployment-internal authenticated caller and service_id in the controller principal's current AcceptedAtServiceBinding."
         }
       },
       "additionalProperties": false,
-      "description": "Closed S2S request for the Account Authority-owned controller lifecycle gate. Agent state, account_id and raw account cell material are deliberately absent."
+      "description": "Closed deployment-internal request for the Account Authority-owned controller lifecycle gate. The caller identity comes from the registered internal authentication relationship, never from the request body, so no service-resolution carrier is transported. Agent state, account_id and raw account cell material are deliberately absent."
     },
     "authenticated_service_resolution": {
       "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
