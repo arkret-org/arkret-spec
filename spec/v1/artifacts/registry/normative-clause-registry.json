@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.11",
+  "version": "2026-09-13.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-13T20:13:00+08:00",
+  "generated_at": "2026-09-13T17:35:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -669,18 +669,6 @@
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The closed delegated producer branch carries delegated_actor_did exactly for legal Agent controller-device Events with executed_by; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. Production acceptance must include a first stranger controller-device Agent Contact with no cached Agent locator and no private PCR disclosure."
-    },
-    {
-      "clause_id": "AK-NC-053",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/sync/service-http-binding.md#223-部署内认证通道normative",
-      "section_digest": "sha256:9ae81a11c501a204f40d4b5935bb2f985bf4872fe93753556f7b9b21ed85c4b3",
-      "requirement": "Every internal channel binds an authenticated credential key and source service to one destination service, trust domain and exact operation allowlist. Unsigned replacement of an operation's RFC 9421 protection is allowed only when internal_channel.integrity declares and runtime evidence proves either mTLS termination in the business process or a complete same-TCB registry of all decrypting/forwarding proxies. Missing, invalid or disproven integrity configuration fails closed or retains the original RFC 9421 protection. A proofless gate receipt arriving outside its registered internal channel is rejected without an external fallback.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.internal_channel.authorization_and_integrity.v1"
-      ]
     }
   ]
 }

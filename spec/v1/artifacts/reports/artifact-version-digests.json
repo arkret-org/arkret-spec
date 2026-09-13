@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-13.13",
-      "generated_at": "2026-09-13T20:13:00+08:00",
-      "content_digest": "sha256:8533be33bda822126d9af3ce427cd2697c41a96295d31429e7101a142fd94537"
+      "version": "2026-09-13.12",
+      "generated_at": "2026-09-13T17:20:00+08:00",
+      "content_digest": "sha256:337628c4a18eee9050b00b10e153b06cb9deaef9f9ab7648208540150f13e3de"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-13.11",
-      "generated_at": "2026-09-13T20:13:00+08:00",
-      "content_digest": "sha256:970946660da11f6f9977c94988a71b39e6b9849f4d00d2f9e9bb97bde8b76ee2"
+      "version": "2026-09-13.10",
+      "generated_at": "2026-09-13T17:35:00+08:00",
+      "content_digest": "sha256:beda8f84b927c9b68f9ad8946328ffd8048827579769410d6df3583e53c2be4d"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -363,9 +363,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-09-13.17",
-      "generated_at": "2026-09-13T20:13:00+08:00",
-      "content_digest": "sha256:bb18ca87daf1565c7b6df8644c7d49989cfff5444bf1425a6cb0de4e272aa219"
+      "version": "2026-09-13.2",
+      "generated_at": "2026-09-13T14:30:00+08:00",
+      "content_digest": "sha256:5069a7168c21aa353489136761dc1924eb60670d69785a1dbc68fa6b6705cb7f"
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
@@ -393,9 +393,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-13.7",
-      "generated_at": "2026-09-13T20:13:00+08:00",
-      "content_digest": "sha256:b0dc342ccc39c09fafe561eef13defb3a84b3153a454e72577a586f13a74d311"
+      "version": "2026-09-13.6",
+      "generated_at": "2026-09-13T15:10:00+08:00",
+      "content_digest": "sha256:c1505a79360140ff239faa37a6beca8bf6144ddf0fa9d8c24f863fc4d643068d"
     }
   ]
 }
