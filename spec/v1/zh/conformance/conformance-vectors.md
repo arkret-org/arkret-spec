@@ -2714,6 +2714,39 @@ Expected：
 consumer 在 AEAD 解密之后、应用之前校验。承载该 key 的 Station 没有密钥，
 MUST NOT 因本向量要求明文、明文镜像或服务端 validator。
 
+### 5.14 Vector: per-Realm timeline 冻结窗口的完成声明
+
+`vector_id`: `ak.vector.sync.timeline_window_completion.v1`
+
+机器 fixture：`sync-fixture.json#account_subscribe_schema_cases`（`timeline_baseline_*` 用例）；执行入口以 fixture `runner` 元数据为准。
+唯一真源是 [`../sync/client-sync.md` §2.3](../sync/client-sync.md) 的 per-Realm timeline 窗口完成段、[§5.0](../sync/client-sync.md)
+的载体边界、[§5.2](../sync/client-sync.md) 的窗口级一致性与 [§13/§13.1](../sync/client-sync.md)。
+
+**静态半（fixture 可判定）**：
+
+- 携 `timeline_baseline` 而不携 `timeline` MUST 拒绝；与 `unavailable` 共存 MUST 拒绝。
+- `window_limit` 越界（>100 或 <0）MUST 拒绝；`timeline_baseline` 出现未登记字段 MUST 拒绝。
+- `timeline.events: []` 配 `complete=true` 与 `window_limit=0` 是合法的零条完成窗口。
+- `complete=false` 的中间段合法，且可与 `limited=true` / `preview_only=true` 共存。
+
+**运行时半（单帧 schema 不可判定，MUST 由 runner 行为测试覆盖）**：
+
+1. 同一 `snapshot_cursor` 跨多帧多轮交付：`window_limit=20` 而本帧只容纳 5 条时不得提前 `complete=true`，
+   也不得降低 `window_limit` 冒充完成；其它通道与其它 Realm 继续推进。
+2. 窗口级字段一致性：`limited` / `preview_only` / `prev_cursor` / `state_at_window_start` 在该窗口各段取值与存在性相同；
+   `prev_cursor` 指向整个窗口之前而非本段之前。
+3. live 穿插不混入冻结累计、不改变 current 冻结 coverage；重复 Event 按身份幂等；已完成窗口不被 live-only frame 重开。
+4. 兴趣变更：扩大/改变窗口范围建立新代次并在无新 Event 时也补发；缩小/移除只停止旧工作；旧代次的迟到段与 `complete`
+   MUST 被拒绝，不得推进新代次 cursor。
+5. 失效与撤权使旧 `complete` 无效；不可见目标、未知目标或缺默认目标 MUST NOT 伪装成零条成功窗口，其它 Realm 不被连坐。
+6. 原子性：payload 与累计记录、恢复 cursor 同一耐久边界保存；完成段前后崩溃重放不漏事件、不重复累计、不伪造完成。
+7. 三层确认分别验证：写入 accepted、barrier 达成、相关 current 交付并安装；无关 revision 增长、旧 baseline、barrier 超时与
+   current unavailable 均 MUST NOT 冒充写入终局或 UI 已同步。
+
+**Expected**：`timeline_baseline.complete`、`realms[id].baseline.complete`、账号 `completed_channels` 与 `catchup_complete`
+互不推断；任一实现以其中一项代替另一项 MUST 判为 conformance failure。完成只证明交付结束，不证明单条认证/解密、
+展示依赖、完整历史或读写权限。
+
 
 ## 6. Space Lifecycle Vectors
 

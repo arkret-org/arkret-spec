@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-09-10.9",
+  "version": "2026-09-15",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -2578,6 +2578,135 @@
           ]
         }
       }
+    },
+    {
+      "name": "timeline_baseline_incomplete_segment_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "timeline": {
+              "events": [],
+              "limited": true,
+              "preview_only": true
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindow",
+              "window_limit": 20,
+              "complete": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "timeline_baseline_zero_item_window_complete_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindow",
+              "window_limit": 0,
+              "complete": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "timeline_baseline_without_timeline_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindow",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "timeline_baseline_with_unavailable_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindow",
+              "window_limit": 20,
+              "complete": true
+            },
+            "unavailable": {
+              "error_code": "temporarily_unavailable"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "timeline_baseline_window_limit_above_maximum_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindow",
+              "window_limit": 101,
+              "complete": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "timeline_baseline_unknown_field_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:ATVvUTMUO6ZUOXGCUrdFnxR3rfOr_NyTB9L0vq5CKZkb": {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindow",
+              "window_limit": 20,
+              "complete": true,
+              "delivered": 3
+            }
+          }
+        }
+      }
     }
   ],
   "station_cas_account_data": {
@@ -2896,6 +3025,436 @@
           ]
         },
         "note": "The change record retention window no longer covers the requested after position. The server MUST answer dropped or resync_required instead of emitting an incremental frame that silently skips the gap."
+      }
+    ]
+  },
+  "timeline_window_completion": {
+    "vector_id": "ak.vector.sync.timeline_window_completion.v1",
+    "runner": "cotest::conformance::sync::run_timeline_window_completion_vector",
+    "operations": [
+      "ak.self.account.stream.subscribe.v1"
+    ],
+    "cases": [
+      {
+        "name": "segmented_window_completes_across_frames",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
+                "ak:event:AcJh-xmE_2JwwD0rXMhusODoFvO-XO9GyiZPd3porEx9",
+                "ak:event:ATfRnC7f0CaLb-Dn19ZMatBCFsXd3f_rTeH94fbCtGpH"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {
+            "timeline": {
+              "events": [
+                "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
+                "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
+                "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
+                "ak:event:Ad3qD0QzdyHAFPj5Fox3J_meniTG8mVrr8tcDE5SRpHS",
+                "ak:event:AZII_Od9QLqrRsEPGEo4pLNSo1i-8oCavhUrEdVcCmf4"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "complete",
+          "generation": "ak:cursor:fixturewindowgenerationa",
+          "window_limit": 20,
+          "delivered": 10
+        }
+      },
+      {
+        "name": "zero_item_window_completes_explicitly",
+        "frames": [
+          {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "complete",
+          "generation": "ak:cursor:fixturewindowgenerationa",
+          "window_limit": 20,
+          "delivered": 0
+        }
+      },
+      {
+        "name": "zero_request_window_completes_without_proving_empty_history",
+        "frames": [
+          {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 0,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "complete",
+          "generation": "ak:cursor:fixturewindowgenerationa",
+          "window_limit": 0,
+          "delivered": 0
+        }
+      },
+      {
+        "name": "absent_realm_entry_is_not_an_empty_window",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {}
+        ],
+        "expected": {
+          "window_state": "pending",
+          "generation": "ak:cursor:fixturewindowgenerationa",
+          "window_limit": 20,
+          "delivered": 3
+        }
+      },
+      {
+        "name": "live_frame_neither_completes_nor_reopens_the_window",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
+                "ak:event:AcJh-xmE_2JwwD0rXMhusODoFvO-XO9GyiZPd3porEx9"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          },
+          {
+            "timeline": {
+              "events": [
+                "ak:event:AWAADgGKGVz-TArIja5SOC31r2AKsHNXJ2Efc_7aXcWx",
+                "ak:event:ATzhFwLB9-jc1LGc_a92Vfi_dpiUI1yZdZd0IwdJcNhy"
+              ],
+              "limited": false
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "complete",
+          "generation": "ak:cursor:fixturewindowgenerationa",
+          "window_limit": 20,
+          "delivered": 4,
+          "live_installed": 2
+        }
+      },
+      {
+        "name": "window_limit_change_within_one_generation_rejected",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
+                "ak:event:AcJh-xmE_2JwwD0rXMhusODoFvO-XO9GyiZPd3porEx9",
+                "ak:event:ATfRnC7f0CaLb-Dn19ZMatBCFsXd3f_rTeH94fbCtGpH"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {
+            "timeline": {
+              "events": [
+                "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
+                "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
+                "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
+                "ak:event:Ad3qD0QzdyHAFPj5Fox3J_meniTG8mVrr8tcDE5SRpHS",
+                "ak:event:AZII_Od9QLqrRsEPGEo4pLNSo1i-8oCavhUrEdVcCmf4"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 10,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "rejected",
+          "reason": "window_limit_changed"
+        }
+      },
+      {
+        "name": "window_level_limited_flip_within_one_generation_rejected",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
+                "ak:event:AcJh-xmE_2JwwD0rXMhusODoFvO-XO9GyiZPd3porEx9",
+                "ak:event:ATfRnC7f0CaLb-Dn19ZMatBCFsXd3f_rTeH94fbCtGpH"
+              ],
+              "limited": true,
+              "prev_cursor": "ak:cursor:fixtureprev"
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {
+            "timeline": {
+              "events": [
+                "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
+                "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
+                "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
+                "ak:event:Ad3qD0QzdyHAFPj5Fox3J_meniTG8mVrr8tcDE5SRpHS",
+                "ak:event:AZII_Od9QLqrRsEPGEo4pLNSo1i-8oCavhUrEdVcCmf4"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "rejected",
+          "reason": "window_level_field_changed"
+        }
+      },
+      {
+        "name": "stale_generation_completion_does_not_resolve_the_new_window",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
+                "ak:event:AcJh-xmE_2JwwD0rXMhusODoFvO-XO9GyiZPd3porEx9",
+                "ak:event:ATfRnC7f0CaLb-Dn19ZMatBCFsXd3f_rTeH94fbCtGpH"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationb",
+              "window_limit": 50,
+              "complete": false
+            }
+          },
+          {
+            "timeline": {
+              "events": [
+                "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
+                "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
+                "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
+                "ak:event:Ad3qD0QzdyHAFPj5Fox3J_meniTG8mVrr8tcDE5SRpHS",
+                "ak:event:AZII_Od9QLqrRsEPGEo4pLNSo1i-8oCavhUrEdVcCmf4"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "pending",
+          "generation": "ak:cursor:fixturewindowgenerationb",
+          "window_limit": 50,
+          "delivered": 0,
+          "stale_segments_rejected": 1
+        }
+      },
+      {
+        "name": "unavailable_is_not_a_successful_empty_window",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9"
+              ],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": false
+            }
+          },
+          {
+            "unavailable": {
+              "error_code": "temporarily_unavailable"
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "unavailable",
+          "error_code": "temporarily_unavailable"
+        }
+      },
+      {
+        "name": "complete_with_limited_still_requires_backfill",
+        "frames": [
+          {
+            "timeline": {
+              "events": [
+                "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
+                "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
+                "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
+                "ak:event:AcJh-xmE_2JwwD0rXMhusODoFvO-XO9GyiZPd3porEx9",
+                "ak:event:ATfRnC7f0CaLb-Dn19ZMatBCFsXd3f_rTeH94fbCtGpH",
+                "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
+                "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
+                "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
+                "ak:event:Ad3qD0QzdyHAFPj5Fox3J_meniTG8mVrr8tcDE5SRpHS",
+                "ak:event:AZII_Od9QLqrRsEPGEo4pLNSo1i-8oCavhUrEdVcCmf4",
+                "ak:event:AWBnJLQOYVfVHn20si3pB9lHKQ8psPlclCceYJZaJlP6",
+                "ak:event:AQX8WVKNXtQ0dvVvkKueFYC3MV3gSFlxdGbUEmYkHOok",
+                "ak:event:AYqaodcqDthdihC9SAaXstsr8GQ26aFjsYgF_NQA6CcA",
+                "ak:event:AVJRxFmTM34jAPfnfYSCa5VkULwrX7Wm9vUUVRjmgLPg",
+                "ak:event:ASsIII9DdCozq4-kb5GBG5dWYN3dv8lJhBd3cDwYjVYO",
+                "ak:event:ATYVZcX4UHqon8_dMMAbUJ9s_McdCBaxGS2y2oHd5nRP",
+                "ak:event:AYGhTb6cGWTRMnpS_Qnd6KnIcItz9DqpEjv-PiCPFT0D",
+                "ak:event:AcPA2V_BYOfHNMsoTD1eKatGmGFEFkiq_4GKdQk5xfjW",
+                "ak:event:Aat2m7y06MW7-F4XEFMElohUnAcg-9BpWIrYyXFyk2C-",
+                "ak:event:AcQ2Dm6xm7oeu6hDx-j2zwV9NSMPqw8pwcAQsg2Olfxe"
+              ],
+              "limited": true,
+              "prev_cursor": "ak:cursor:fixtureprev"
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "complete",
+          "generation": "ak:cursor:fixturewindowgenerationa",
+          "window_limit": 20,
+          "delivered": 20,
+          "backfill_required": true
+        }
+      },
+      {
+        "name": "timeline_baseline_without_timeline_rejected",
+        "frames": [
+          {
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "rejected",
+          "reason": "timeline_baseline_without_timeline"
+        }
+      },
+      {
+        "name": "timeline_baseline_with_unavailable_rejected",
+        "frames": [
+          {
+            "timeline": {
+              "events": [],
+              "limited": false
+            },
+            "timeline_baseline": {
+              "snapshot_cursor": "ak:cursor:fixturewindowgenerationa",
+              "window_limit": 20,
+              "complete": true
+            },
+            "unavailable": {
+              "error_code": "not_found"
+            }
+          }
+        ],
+        "expected": {
+          "window_state": "rejected",
+          "reason": "unavailable_with_detail_fields"
+        }
       }
     ]
   },

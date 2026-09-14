@@ -62,7 +62,7 @@ Realm timeline / notification delta 只进入其成员 `ActorId` 中 account 分
 | `filter.strand_ids` | query | `StrandId[]` | optional | 最多 32 个目标，必须属于已选 Realm 且独立授权；缺省选择各 Realm 当前 default Strand。 |
 | `realm_list` | query (JSON value) | `RealmListRequest {after?, limit?}` | optional | 摘要快照分页，limit 默认 20、1–100；initial 缺省等价第一页，增量缺省不继续枚举。 |
 | `replace_filter` | query | `boolean` | optional | 默认 false；true 必须携 after 与 filter，按 §2.3 原子替换详情兴趣。 |
-| `filter.timeline_limit` | query | `int` | optional | 每 Realm 每 frame 默认 20、0–100；按目标 Strand 合并，受全局字节预算裁剪。 |
+| `filter.timeline_limit` | query | `int` | optional | 默认 20、0–100；按目标 Strand 合并取最大。baseline 冻结窗口按 §2.3 为每 Realm 跨全部分段的累计上限，live delta 按每 frame 适用。字节预算只决定分段，不降低该上限。 |
 | `filter.lazy_load_members` | query | `boolean` | optional | 默认 true；成员页最多 100 行，false 也只启动有界分页，不内联完整名单。 |
 | `filter.include_redundant_members` | query | `boolean` | optional | 默认 false；true 仍受 100 行和字节预算，不改变名单完整性。 |
 | `filter.event_kinds` | query | `string[]` | optional | Event kind allow list。 |
@@ -230,11 +230,41 @@ catchup_complete 不清理集合。零项通道也显式完成。移除 station_
 不授予读取/发送，不声称 timeline、全部成员或其它 Realm 完成。该 Realm 失效通知到达后，旧 baseline 的后续段/complete 不能解除 pending；必须重建当前目标 baseline，丢弃旧 snapshot 的迟到段。current query/MLS 仍按各自逐操作 gate。
 快照标识与 cursor/context 一起原子安装；本地不得只保留最后一段冒充整套 baseline。不得自动继续枚举列表来完成账号 baseline。
 
+**Per-Realm timeline 窗口完成。** 详情 `realms[id].timeline_baseline {snapshot_cursor, window_limit, complete}` 是该 Realm 冻结 timeline
+窗口交付完成的唯一载体；它不计入 `baseline.channels`/`completed_channels`，也不由 `realms[id].baseline.complete` 或 `catchup_complete` 代替。
+`snapshot_cursor` 标识本次冻结代次并在该窗口各段保持一致，不作为 account `after` 使用，也不解析或比较 token 大小；服务器在一致事务边界
+冻结请求目标/过滤上下文、授权上下文、Realm 事件读取边界、所需 current coverage/cut 与保留 reservation，并建立后续 live 起点。
+首次同步可复用同一账号 baseline 的冻结代次，局部重建为受影响 Realm 建立新代次，不要求重做全账号 baseline；`cut_revision` 仍属账号
+current 投影顺序域，不得充当 timeline Event 位置。`window_limit` 是规范化 `timeline_limit`（缺省 20、0–100）在该 Realm 合并目标后的
+跨段累计上限，同一窗口内不变；字节预算只决定如何分段，不得丢弃尚欠条目再降低它冒充完成。窗口取冻结边界下符合当前授权与过滤、
+在 §6 投影顺序中位于末尾的至多 `window_limit` 条，再按该顺序升序交付；不得按每个 Strand 各取上限突破每 Realm 总额，也不得用数据库
+接收顺序替代投影顺序。窗口选取、索引扫描与输出都必须有界，不得恢复全历史扫描后切片的路径。
+
+携 `timeline_baseline` 的 entry MUST 同时携 `timeline`（`events` 可为空），其全部条目属于该冻结窗口，不夹带窗口外 live 条目；
+不携 `timeline_baseline` 的 timeline entry 是 live 增量，可穿插交付，但不完成、不重开、不改变已冻结窗口，重复 Event 按身份幂等，
+窗口累计只统计本代次 baseline 条目。服务端在窗口最后一段携 `complete=true`，也可在条目交付后单独发送空完成段；客户端只有在同一
+有效代次的全部前序段与完成段都持久安装后才使完成生效，窗口上下文、累计记录、事件与 frame 恢复 cursor 必须原子保存，未安装响应的
+cursor 不得成为下一次起点。`timeline_baseline.complete`、`realms[id].baseline.complete`、账号 `completed_channels` 与 `catchup_complete`
+各自独立，任何一项不得代替其它项；live-only frame 或未携该 Realm 的 frame 不使已完成的有效窗口重新 pending。完成只证明本窗口交付结束，
+不证明单条认证/解密、展示依赖、完整历史或读写权限；缺钥仍按内容 pending 处理，符合逐操作 gate 的发送不等待窗口完成。
+
+对有合法请求目标且可交付的详情窗口，服务器 MUST 最终显式完成；零条窗口同样显式完成，不得以不返回该 Realm 的 entry 表示空窗口。
+`window_limit=0` 表示本次不请求 timeline 条目，仍显式完成零条窗口，且不证明该 Realm 没有历史，也不阻断 current、失效或其它账号通道。
+Realm 没有合法默认目标时保持既有目标 pending，不得解释为空窗口；不存在/不可见的显式目标沿既有错误合同返回。
+`realms[id].unavailable` 与 `timeline_baseline` 互斥：不可用不是完成，客户端按 `error_code` 结束等待而非无限 loading，其它 Realm 继续推进。
+兴趣变更沿本节替换规则：新增目标、增大 timeline 需求、更换默认/显式目标或改变内容过滤而改变窗口范围时建立新代次并立即补发，即使没有
+新 Event；仅缩小上限或移除目标只停止不再请求的旧窗口工作，不重做历史、不产生业务删除，取消的未完成窗口以本地取消状态结束等待。
+exact 请求重试保留相同逻辑 cut/补发范围，派生恢复 token 可不同，不得因重新签发而重置窗口。该 Realm 失效通知到达后废止受影响旧窗口并
+重新查询当前授权，旧代次的后续段/complete 不解除新窗口 pending，也不删除本地合法保留历史。
+
+本段的跨帧累计、零条显式完成、窗口级字段一致性、live 穿插、代次替换与不可用分支由
+`ak.vector.sync.timeline_window_completion.v1` 固化（[`../conformance/conformance-vectors.md` §5.14](../conformance/conformance-vectors.md)）。
+
 **固定预算与继续。** 每 canonical account frame ≤8 MiB，每 HTTP round ≤16 MiB 且 ≤16 frames；编码 wire 单 frame
 ≤16 MiB，读取/解析前执行上限。客户端 pending ≤2 frames 且 ≤16 MiB canonical，满时 backpressure；服务端 pending
 同上，无法续传时 dropped/resync_required。WS account data 的 payload 遵循同限额，若协商 WS frame 更小则使用 HTTP，
 不得截断 frame。列表页 ≤1 MiB，列表/变更/失效各 ≤100 项（列表索引扫描 ≤200）；state/account-data/device/notification
-单集合每 frame ≤100 项，timeline 每 Realm 默认20、0–100；全部同时受 frame/round bytes 裁剪。大 Event 仍遵守既有
+单集合每 frame ≤100 项，timeline 每 Realm baseline 冻结窗口跨段累计默认20、0–100、live delta 每 frame 同上限；全部同时受 frame/round bytes 裁剪。大 Event 仍遵守既有
 1 MiB envelope 上限，不降低或截断 MLS 原子材料；一个合法最大 Event 应可置于空 data frame 后推进。
 若附加证据/状态超过 frame，移至后续分段/现有明确的按引用读取合同，不能悄悄丢项或无限空页；不存在合法分割方式时
 只令该目标当前结果不可用并返回现行 limit_exceeded，服务器仍交付其它通道，不能循环推进该目标 cursor。其唯一载体是 `realms[id].unavailable {error_code}`，
@@ -363,6 +393,11 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
     "preview_only": false,
     "prev_cursor": "ak:cursor:<opaque-valid-stream-cursor>"
   },
+  "timeline_baseline": {
+    "snapshot_cursor": "ak:cursor:<opaque-valid-stream-cursor>",
+    "window_limit": 20,
+    "complete": true
+  },
   "current": {"entries": []},
   "state_at_window_start": {
     "actor_profiles": [],
@@ -397,6 +432,23 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
 ## 4. Realm Buckets
 
 ## 5. 当前结果与历史展示上下文
+
+### 5.0 current 与 timeline 的载体边界（normative）
+
+`current` 与 `timeline` 是两个不可互相替代的载体。二者可以引用同一来源 Event，但实现 MUST NOT 以任一方承载对方的语义：
+
+| 维度 | `current` | `timeline` |
+| --- | --- | --- |
+| 安装单位 | `selector {scope_ref, cell_id}` 的完整当前结果，MV 对象携完整 head 集 | Event 身份 |
+| 排序 | `(revision, JCS(selector) 的无符号 UTF-8 字节)`，服务版本安装与稳定分页 | §6 的 `causal_depth, hlc, actor_id, actor_seq, event_id`，服务确定展示顺序 |
+| 清理与扩展 | 版本化移除与完整 coverage 清理，只作用于当前结果 | 通过 `prev_cursor` / `before` 向更旧历史扩展，不因当前结果删除或窗口完成而删除 |
+| 认证职责 | 自己 Station 已裁决的结果，客户端只安装 | 客户端仍验证适用的真实消息签名、MLS 与端到端内容 |
+| 完成声明 | `realms[id].baseline` | `realms[id].timeline_baseline` |
+
+服务器 MUST 继续按正式 selector/result 合同交付当前结果，MUST NOT 把历史消息集合改造成其替代载体；
+客户端 MUST NOT 重放 `timeline` 求当前治理/对象状态（§5.1）。`timeline` MUST 保持本文的历史交付、排序、访问裁剪与内容认证义务；
+历史本身仍服从既有访问、redaction 与 retention 规则，本节不承诺永久保存。消息相关的 reaction/revision 当前结果按现行 registry
+进入 `current`，这不等于把消息历史塞进 `current`。
 
 ### 5.1 服务器当前结果
 
@@ -434,6 +486,14 @@ current 结果不跨消息缓存；backfill 和 live 按需处理都保留真实
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端按事件的已签授权上下文与因果闭包重放历史投影；HLC 只用于查找候选，不选择 Cell 值。
 - **窗口起点（normative）**：`state_at_window_start` 使用窗口首事件逐字携带的 `auth_context.authority_refs` 与完整 `prev_refs` 因果闭包，并按该上下文适用的已验证关闭集合重算。缺任一必要依赖时使用下述回退路径，不能另选“最近”Seal。该值只是渲染投影，不授予当前操作权限。
+- **分段下的窗口级一致性（normative）**：`limited`、`preview_only`、`prev_cursor` 与 `state_at_window_start` 是**窗口级**属性，不是分段级属性。
+  同一 `timeline_baseline.snapshot_cursor` 的每个分段 MUST 重复相同的值及相同的可选字段存在性；`limited` MUST NOT 因当前段装不下剩余
+  条目而改变，它只表达既有历史缺口语义。`prev_cursor` 指向整个冻结窗口之前的历史边界，MUST NOT 每段改成“本段之前”；没有合法的更早
+  读取范围时不伪造游标，过滤或授权排除的内容不得靠回填绕过。`state_at_window_start` 始终对应整个窗口首条事件，MUST NOT 随分段更换起点；
+  服务端不得因某一段预算不足而在 (a)/(b) 之间切换策略，必要时整个窗口采用 (b)。真正零条窗口没有首事件，MUST NOT 伪造起点上下文；
+  仍需标明历史缺口时使用 (b) 与合法恢复提示，不把“看不到”推断成“更早内容一定可以读”。
+  `timeline_baseline.complete=true` 与 `limited=true` 可以同时成立：本窗口交付完了，但更早历史或所需依赖仍有缺口；完成不清除
+  preview 或解密限制，`limited` 本身仍不触发全历史加载。
 
 **(b) 标记 `preview_only=true`** (回退路径)：
 
@@ -915,10 +975,13 @@ GET /_arkret/self/account/subscribe?catchup=true
 Accept: application/x-ndjson
 ```
 
-也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个有界 `delta` frame 作为账号 baseline 分段，再发送 `catchup_complete` 并结束本轮响应；未完成通道按 cursor 在后续轮继续，客户端随后使用该 cursor 发起有界长轮询。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
+也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个有界 `delta` frame 作为账号 baseline 分段，再发送 `catchup_complete` 并结束本轮响应；未完成通道按 cursor 在后续轮继续，客户端随后使用该 cursor 发起有界长轮询。
+per-Realm timeline 冻结窗口同样按 cursor 在后续轮继续，其完成由 §2.3 的 `realms[id].timeline_baseline` 声明，不计入 `baseline.completed_channels`。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
 
 - 返回用户当前 joined/knocked Realms 的 membership 摘要；另可从既有私有 Invite inbox / delivery CAS→private fanout 返回待处理邀请展示，但不得把它编码为 Realm membership 或 roster row。
-- 对活跃 Realm 返回有限 timeline。
+- 对 §2.3 详情兴趣集合内、有合法请求目标的每个 Realm 按显式兴趣、当前授权与预算交付冻结 timeline 窗口，成功时以
+  `timeline_baseline.complete=true` 显式声明完成（零条窗口同样显式完成）；不可用或目标未能合法确定时走 §2.3 的
+  `unavailable` / 目标 pending 分支。详情兴趣集合之外的 Realm 不交付 timeline。
 - 按已选目标返回足够当前 state 使该页面可渲染；不恢复未登记的 required_state 请求字段。
 - 分段返回 device list baseline；仅 `baseline.completed_channels` 声明该集合完成。
 - 顶层 `account_data.station_cas` 按 §2.3 分段覆盖所有 holder-readable live row；filter 不裁掉该集合，baseline removals 为空。零行也要显式完成 `station_cas` 通道；删除只在该快照终段安装后执行。
@@ -946,8 +1009,19 @@ Accept: application/x-ndjson
 | 加入推进 | 申请受理、等待与失败 | 标准加入/邀请流程；已提交、已排队与已 accepted 不互换 |
 | 当前目标授权 | 读取或准备一个具体动作 | Station 已确认 exact 账号/设备/目标/scope、accepted basis、当前 membership/incarnation、相应能力与 policy |
 | 设备密码状态 | 加密目标上的应用消息认证和生成 | 本设备可用的正确 MLS group/epoch、已接纳 winning transition 与匹配的治理结果；实际 RFC 9420 验证通过 |
-| 当前窗口 | 最近消息及必要显示状态 | 标准有界窗口已安装，limited/gap/继续位置明确；单条正文通过适用的认证/解密 |
+| 当前窗口 | 最近消息及必要显示状态 | 冻结窗口已按 §2.3 以 `timeline_baseline.complete=true` 交付完成并持久安装，limited/gap/继续位置明确；单条正文另行通过适用的认证/解密 |
 | 按需扩展 | 旧窗口、更多名单及媒体 | 对应范围的当前授权、分页/retention 与独立资源预算 |
+
+「当前窗口」区分三件事，MUST 分别判断：窗口**交付完成**由 `timeline_baseline.complete` 声明；**显示上下文**由 §5.2 的
+`state_at_window_start` / `preview_only` 决定；**单条认证/解密**由适用的消息签名、MLS 与 §15.1 的解密状态机决定。任一项成立不得推断其余两项。
+
+「提交已被接纳」与「目标可发」MUST NOT 以某条 Event 是否出现在 `timeline` 判定。提交结果以对应写 operation 的明确结果与事件身份为准，
+本地 queued/pending 不等于 accepted；读取侧投影是否追上该写入，使用写响应提供的 `purpose=barrier` cursor 经支持 wait-for 的标准读取接口
+等待 frontier 覆盖 exact target（§2 参数表、§12）。写响应提供 barrier 是 SHOULD（见 [`api-conventions.md` §8](./api-conventions.md)），
+无 barrier 时不得伪造满足，按该 operation 的正式结果与查询合同推进；barrier 超时不等于写入失败，barrier 通过也不等于相关当前结果已交付或安装。
+界面显示什么由相关 selector 的 `current` 结果及其版本规则决定：正常 current delta 按 selector/revision 直接安装并驱动相关 UI，
+不要求为每个 delta 重读全部 Space/Strand，任意 revision 增长也不证明某次写入成功。`realm_invalidations` 表示旧结果失效，
+客户端 MUST 暂停受影响操作、重查并重建，不得当作普通「有新数据」刷新信号。`timeline` 到达可验证事件交付，但不承担唯一写入确认职责。
 
 对于一个具体发送动作，只要会话/设备、目标当前授权、exact authoring 输入与适用的本机密码状态均满足正式 gate，客户端 MUST 允许继续标准提交，
 不以最近消息窗口或其余页面资源尚未完成阻止该动作。合法空 Realm 不要求先取得第一条历史消息；合法只读范围不以 write capability 作为显示正文的前置。

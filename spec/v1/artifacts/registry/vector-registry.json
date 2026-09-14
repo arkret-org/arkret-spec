@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.8",
+  "version": "2026-09-15",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T23:57:00+08:00",
+  "generated_at": "2026-09-15T06:23:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -7321,6 +7321,20 @@
         "ak.vector_group.sync.v1"
       ],
       "description": "Station-CAS holder-private account-data projection over account subscribe: the initial segmented baseline covers every holder-readable live row with no removals and clears missing keys only when completed_channels declares station_cas complete, a filter may not truncate it, absence from an incremental frame is not deletion, per-key revision is strictly monotonic with same-revision divergence forcing resync, one key coalesces to the last item in the cursor window, the row is never mirrored into account_data.events[], and an unfillable cursor gap answers dropped or resync_required instead of silently skipping.",
+      "source_refs": [
+        "spec/v1/zh/sync/client-sync.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.timeline_window_completion.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "Per-Realm frozen timeline window completion: timeline_baseline requires timeline, is mutually exclusive with unavailable, keeps window_limit constant across segments, completes zero-item windows explicitly, and never substitutes for realm detail baseline completion, account completed_channels or catchup_complete. The fixture covers the static half; cross-frame accumulation, window-level field consistency, live interleaving, interest replacement, invalidation and crash replay are runner behavior tests.",
       "source_refs": [
         "spec/v1/zh/sync/client-sync.md",
         "spec/v1/zh/conformance/conformance-vectors.md",

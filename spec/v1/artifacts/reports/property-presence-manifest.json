@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11776,
+    "total_properties": 11780,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3156,
+      "optional": 3157,
       "optional_defaulted": 62,
-      "required": 7425,
+      "required": 7428,
       "required_nullable": 382,
       "tristate": 751
     },
@@ -4639,9 +4639,13 @@
         "/$defs/realm_sync_entry/properties/state_at_window_start": "optional",
         "/$defs/realm_sync_entry/properties/summary": "optional",
         "/$defs/realm_sync_entry/properties/timeline": "optional",
+        "/$defs/realm_sync_entry/properties/timeline_baseline": "optional",
         "/$defs/realm_sync_entry/properties/unavailable": "optional",
         "/$defs/realm_sync_entry/properties/unavailable/properties/error_code": "required",
         "/$defs/realm_sync_entry/properties/unread_notifications": "optional",
+        "/$defs/realm_timeline_baseline/properties/complete": "required",
+        "/$defs/realm_timeline_baseline/properties/snapshot_cursor": "required",
+        "/$defs/realm_timeline_baseline/properties/window_limit": "required",
         "/$defs/state_at_window_start/properties/actor_profiles": "required",
         "/$defs/state_at_window_start/properties/actor_profiles/items/properties/actor_id": "required",
         "/$defs/state_at_window_start/properties/actor_profiles/items/properties/avatar_blob_ref": "optional",
@@ -4694,6 +4698,7 @@
         "/$defs/device_message_container/properties/ack_token",
         "/$defs/device_message_container/properties/next_cursor",
         "/$defs/notification_delta/properties/data",
+        "/$defs/realm_sync_entry/properties/timeline",
         "/properties/cursor"
       ]
     },

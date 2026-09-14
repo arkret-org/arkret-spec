@@ -134,6 +134,12 @@ event_ids 最多100个；members 为 `{mode:all}` 或 `{mode:selected,actor_ids}
 不能先读 cut、稍后登记 cursor，中间按旧 cursor 最小 cut GC。窗口存续期间保留需要的历史投影版本；
 无法保留时显式 resync，不能漏项。扫描使用 current/version 索引，不扫描全部历史再求最新值。
 
+同一冻结操作生成的 timeline 冻结窗口与 current 详情关联同一代次：`coverage.event_ids` 与按窗口选取的成员、展示依赖
+MUST 来自 [`client-sync.md` §2.3](./client-sync.md) 的同一冻结窗口，不得每发一段就改变 coverage，也不得在 `timeline_baseline`
+建立新代次后继续沿用旧 coverage。两个载体的完成标记仍各自独立：`baseline.complete` 只声明当前结果交付完成，
+`timeline_baseline.complete` 只声明该窗口条目交付完成，任一不得推断另一。`cut_revision` 属账号 current 投影顺序域，
+不得充当 timeline 的 Event 读取位置；`snapshot_cursor` 标识代次绑定，不作为 account `after` 使用。
+
 同 snapshot 的每段重复相同 cut_revision 和 coverage。含 baseline 的 Realm entry 内全部 current 结果
 属于这个冻结快照，revision 不大于 cut；该段不夹带同目标新 live 结果。live frame 可穿插在快照段之间，
 使用自身较大 revision。每页交付前重查权限，资格变化必须废止受影响窗口并重建，不把新视图重标成旧快照。

@@ -255,9 +255,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-13.49",
-      "generated_at": "2026-09-14T23:57:00+08:00",
-      "content_digest": "sha256:fa1170868a75f0a909c3f8828ad07e39fba674b19780d3660ef82767779beced"
+      "version": "2026-09-13.50",
+      "generated_at": "2026-09-15T00:04:00+08:00",
+      "content_digest": "sha256:f7c98bdf71eaaa5fd53341ee218d0401f3d245bbf25bbefe73938ef8076661ec"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -399,9 +399,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-14.8",
-      "generated_at": "2026-09-14T23:57:00+08:00",
-      "content_digest": "sha256:ce3197b919ac2fe903f34f9a34ada9d3c9c01f48344b5da83b6af76262ad21bc"
+      "version": "2026-09-15",
+      "generated_at": "2026-09-15T06:23:00+08:00",
+      "content_digest": "sha256:8f14aab5ef8b1966db73e3f1e83502aac0048fe3ae6eeed760a7484fd4cdcdb6"
     }
   ]
 }

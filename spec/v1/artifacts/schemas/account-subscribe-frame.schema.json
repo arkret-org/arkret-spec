@@ -560,15 +560,16 @@
           "maxItems": 100
         },
         "limited": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Window-level gap marker: earlier history exists beyond this window. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items."
         },
         "prev_cursor": {
           "$ref": "#/$defs/cursor_value",
-          "description": "Stream cursor pointing backward in the timeline for backfilling history before this batch."
+          "description": "Stream cursor pointing backward in the timeline for backfilling history before this batch. Within a frozen baseline window it points before the whole window, not before the current segment, and is repeated identically in every segment of that window."
         },
         "preview_only": {
           "type": "boolean",
-          "description": "Fallback path of client-sync.md §5.2: when timeline.limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events as preview only."
+          "description": "Fallback path of client-sync.md §5.2: when timeline.limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events as preview only. Window-level: repeated identically in every segment of a frozen baseline window; the server must not switch between the two §5.2 paths because one segment ran out of budget."
         },
         "ordered_log_siblings": {
           "type": "array",
@@ -580,11 +581,39 @@
       },
       "additionalProperties": true
     },
+    "realm_timeline_baseline": {
+      "type": "object",
+      "properties": {
+        "snapshot_cursor": {
+          "$ref": "#/$defs/cursor_value",
+          "description": "Identifies and binds the frozen timeline window generation for this Realm. Repeated identically in every segment of that window. Never used as the account `after` parameter and never parsed or compared as an ordered token."
+        },
+        "window_limit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Cumulative item ceiling of the frozen window for this Realm after merging the request targets, not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it."
+        },
+        "complete": {
+          "type": "boolean",
+          "description": "The server has delivered every segment of this frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission."
+        }
+      },
+      "required": [
+        "snapshot_cursor",
+        "window_limit",
+        "complete"
+      ],
+      "additionalProperties": false
+    },
     "realm_sync_entry": {
       "type": "object",
       "properties": {
         "timeline": {
           "$ref": "#/$defs/timeline"
+        },
+        "timeline_baseline": {
+          "$ref": "#/$defs/realm_timeline_baseline"
         },
         "state_at_window_start": {
           "$ref": "#/$defs/state_at_window_start"
@@ -709,12 +738,12 @@
                 },
                 {
                   "required": [
-                    "state_at_window_start"
+                    "timeline_baseline"
                   ]
                 },
                 {
                   "required": [
-                    "current"
+                    "state_at_window_start"
                   ]
                 },
                 {
@@ -759,6 +788,18 @@
                 }
               ]
             }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "timeline_baseline"
+            ]
+          },
+          "then": {
+            "required": [
+              "timeline"
+            ]
           }
         }
       ]
@@ -1109,7 +1150,8 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 100,
-          "default": 20
+          "default": 20,
+          "description": "Per-Realm item ceiling after merging the request targets. For a frozen baseline window it is the cumulative ceiling across every segment of that window (surfaced as realm_timeline_baseline.window_limit); for live delta it applies per frame. Byte budgets only decide segmentation and never lower it."
         },
         "lazy_load_members": {
           "type": "boolean",
