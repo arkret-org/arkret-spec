@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-13.17",
-  "generated_at": "2026-09-13T12:36:00+08:00",
+  "version": "2026-09-14.18",
+  "generated_at": "2026-09-14T23:57:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -754,7 +754,7 @@
       "code": "seal_signer_slot_fenced",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "A Seal preparation request differs from the canonical request already frozen for its (realm_id, signer slot, predecessor basis) signing-slot fence, so exactly one signable body ever leaves that signing position. The exact frozen request keeps replaying its byte-identical body instead. The fence is durable protocol state: internal timeouts, lease release or expiry, cache eviction, failover and restart MUST NOT release it, because the device may already have signed the frozen body offline. Only an actually advanced predecessor basis, a formal notary rotation, an advanced signer device generation or an accepted equivocation fault opens a new signing position. See zh/authz/event-auth-state-resolution.md section 7.1.1.",
+      "description": "A Seal preparation request differs from the canonical request already frozen for its (realm_id, signer slot, predecessor basis) signing-slot fence, so exactly one signable body ever leaves that signing position. The exact frozen request keeps replaying its byte-identical body instead. The fence is durable protocol state: internal timeouts, lease release or expiry, cache eviction, failover and restart MUST NOT release it, because the device may already have signed the frozen body offline. Only an actually advanced predecessor basis, a formal notary rotation, an advanced signer device generation or an accepted equivocation fault opens a new signing position. A current signer that lost its local journal uses the registered prepare-fence-result read; the prepare 409 never carries frozen material. See zh/authz/event-auth-state-resolution.md section 8, zh/authz/cbs-profiles.md section 3, and zh/sync/service-http-binding.md.",
       "type_uri": "https://arkret.org/problems/seal_signer_slot_fenced",
       "title": "Seal signer slot fenced"
     },

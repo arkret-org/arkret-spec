@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.7",
+  "version": "2026-09-14.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T22:55:00+08:00",
+  "generated_at": "2026-09-14T23:57:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6726,6 +6726,18 @@
         "spec/v1/artifacts/fixtures/seal-prepare-fence-fixture.json"
       ],
       "description": "One (realm_id, signer slot, predecessor basis) signing position yields at most one signable Seal body: the first prepare atomically freezes the canonical request and body before responding, the exact canonical request replays that body byte for byte, and any other request on the same fence is refused with seal_signer_slot_fenced and zero writes. Internal timeouts, lease expiry, cache eviction, failover and restart do not release the fence; only an advanced predecessor basis, an accepted notary rotation or an advanced signer device generation opens the next signing position, and a fence hit is never Seal admission."
+    },
+    {
+      "vector_id": "ak.vector.seals.prepare_fence_recovery.v1",
+      "status": "active",
+      "domain": "seals",
+      "applies_to_fixtures": [
+        "seal-prepare-fence-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/seal-prepare-fence-fixture.json"
+      ],
+      "description": "A current legal signer that lost its local prepare journal can recover the exact verified frozen request/outcome pair through the authenticated read-only prepare-fence-result operation. Signer slot and generation are session-derived; missing, invisible, stale, unauthorized and generation-mismatched lookups are uniformly not_found; corrupt durable bindings fail internally without partial material; success is no-store and cannot create, renew or release a fence."
     },
     {
       "vector_id": "ak.vector.seals.submit_admission.v1",

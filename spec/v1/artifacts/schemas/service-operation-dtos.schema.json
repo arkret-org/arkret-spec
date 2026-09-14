@@ -77,6 +77,12 @@
       "$ref": "#/$defs/SealPrepareOutcome"
     },
     {
+      "$ref": "#/$defs/SealPrepareFenceResultRequestBody"
+    },
+    {
+      "$ref": "#/$defs/SealPrepareFenceResultOutcome"
+    },
+    {
       "$ref": "#/$defs/AccountCursorRevokeRequestBody"
     },
     {
@@ -659,6 +665,42 @@
       },
       "additionalProperties": false,
       "description": "The client checks realm_id, exact predecessor, configuration, hlc and command_results digest order against its frozen request, derives delta from successful outcomes, computes the body ID, then signs JCS({context:\"ak.seal.commit.v1\",seal_digest,configuration_ref,notary_seq,view}). It never signs raw body bytes as a commit. The authenticated Account Station is trusted to reproduce state and results on this f=0 client surface. Body and view are durably fenced together across retries, restart and handoff; timeout cannot open another signing position."
+    },
+    "SealPrepareFenceResultRequestBody": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "predecessor_ref"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "predecessor_ref": {
+          "type": "string",
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
+          "description": "The exact current accepted Seal whose current session-derived signer slot may already have a durable prepare fence."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authenticated, non-enumerating recovery lookup for a lost local prepare journal. The caller cannot select a signer slot, generation, request hash, body digest, HLC or event digest; the Station derives the active signer slot from the authenticated session and DPoP device."
+    },
+    "SealPrepareFenceResultOutcome": {
+      "type": "object",
+      "required": [
+        "frozen_request",
+        "frozen_outcome"
+      ],
+      "properties": {
+        "frozen_request": {
+          "$ref": "#/$defs/SealPrepareRequestBody"
+        },
+        "frozen_outcome": {
+          "$ref": "#/$defs/SealPrepareOutcome"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact verified material for the one body already frozen at this signing position. Before returning it, the Station reconstructs the request from the durable outcome, verifies its canonical request hash, validates the full request/outcome binding and recomputes the durable body digest. Any mismatch fails internally with no partial material. The client repeats the normal prepare binding and signer-intent checks before signing."
     },
     "AccountCursorRevokeOutcome": {
       "type": "object",

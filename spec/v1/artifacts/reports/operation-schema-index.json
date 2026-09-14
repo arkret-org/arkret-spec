@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.8",
+  "version": "2026-09-15.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T22:55:00+08:00",
+  "generated_at": "2026-09-15T00:04:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9610,6 +9610,36 @@
         "properties": [
           "seal_body",
           "view"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.seals.read.prepare_fence_result.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "predecessor_ref"
+        ],
+        "properties": [
+          "realm_id",
+          "predecessor_ref"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome",
+        "schema_kind": "object",
+        "required": [
+          "frozen_request",
+          "frozen_outcome"
+        ],
+        "properties": [
+          "frozen_request",
+          "frozen_outcome"
         ],
         "closed": true
       }

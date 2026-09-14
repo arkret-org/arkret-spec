@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.8",
+  "version": "2026-09-15.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T22:55:00+08:00",
+  "generated_at": "2026-09-15T00:04:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12371,6 +12371,7 @@
           "ak.self.events.read.delivery_status.v1",
           "ak.self.events.command.submit.v1",
           "ak.self.seals.command.prepare.v1",
+          "ak.self.seals.read.prepare_fence_result.v1",
           "ak.self.seals.command.submit.v1",
           "ak.self.events.resource.get.v1",
           "ak.self.events.read.resolve.v1",
@@ -16561,6 +16562,21 @@
         }
       },
       {
+        "operation_id": "ak.self.seals.read.prepare_fence_result.v1",
+        "http": "POST /_arkret/self/seals/prepare-fence-result",
+        "grpc": "SelfSeals/PrepareFenceResult",
+        "mq": "self.seals.read.prepare_fence_result",
+        "notes": "Authenticated recovery read for the one durable prepare fence at the exact current predecessor and the current session-derived signer slot. The caller cannot select a signer slot or generation. The Station reconstructs the frozen request from the durable outcome, verifies canonical request hash, complete request/outcome binding and body digest, then returns the closed pair with Cache-Control: no-store. Missing, invisible, stale-predecessor, non-current-signer and generation-mismatch cases are uniformly not_found. This operation is read-only and never creates, renews or releases a fence.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "reads_and_verifies_an_existing_durable_prepare_fence_without_mutating_it"
+        }
+      },
+      {
         "operation_id": "ak.self.seals.command.submit.v1",
         "http": "POST /_arkret/self/seals",
         "grpc": "SelfSeals/Submit",
@@ -16823,8 +16839,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-14.4",
-    "generated_at": "2026-09-14T12:10:00+08:00",
+    "version": "2026-09-15.6",
+    "generated_at": "2026-09-15T00:04:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -18143,6 +18159,10 @@
           },
           {
             "operation_id": "ak.self.seals.read.pending_control.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.seals.read.prepare_fence_result.v1",
             "binding_kind": "http_json"
           },
           {

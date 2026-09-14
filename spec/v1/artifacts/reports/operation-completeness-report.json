@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.8",
+  "version": "2026-09-15.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T22:55:00+08:00",
+  "generated_at": "2026-09-15T00:04:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 253,
+    "total_operations": 254,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 251
+      "typed_schema": 252
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 61
+        "typed_schema": 62
       },
       "deployment_local": {
         "typed_schema": 16
@@ -3358,6 +3358,20 @@
       "openapi_component_refs": {
         "request": "../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequestBody",
         "response": "../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.seals.read.prepare_fence_result.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/seals/prepare-fence-result",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+        "response": "../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

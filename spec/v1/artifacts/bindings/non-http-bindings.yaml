@@ -173,6 +173,7 @@ grpc:
       Frontier: ak.self.seals.read.frontier.v1
       GovernanceDependencies: ak.self.seals.read.governance_dependencies.v1
       Prepare: ak.self.seals.command.prepare.v1
+      PrepareFenceResult: ak.self.seals.read.prepare_fence_result.v1
       MlsGovernanceProof: ak.self.seals.read.mls_governance_proof.v1
       MlsAcceptedArtifact: ak.self.seals.read.mls_accepted_artifact.v1
       MlsWelcomeRefs: ak.self.seals.read.mls_welcome_refs.v1
@@ -388,6 +389,7 @@ mq:
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
     self.seals.command.prepare: ak.self.seals.command.prepare.v1
+    self.seals.read.prepare_fence_result: ak.self.seals.read.prepare_fence_result.v1
     self.seals.command.submit: ak.self.seals.command.submit.v1
     self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
     self.seals.read.frontier: ak.self.seals.read.frontier.v1

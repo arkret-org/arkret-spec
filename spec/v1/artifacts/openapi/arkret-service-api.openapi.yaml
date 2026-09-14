@@ -3626,6 +3626,46 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+  /_arkret/self/seals/prepare-fence-result:
+    post:
+      operationId: ak.self.seals.read.prepare_fence_result
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.seals.read.prepare_fence_result.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Recover the verified request and outcome already frozen for the current signer slot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody
+      responses:
+        '200':
+          description: Exact verified frozen prepare request and outcome for the current signer slot
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                const: no-store
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome
+        '404':
+          description: No recoverable current-signer fence is visible for this exact current predecessor
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/seals:
     post:
       operationId: ak.self.seals.command.submit

@@ -1,6 +1,6 @@
 {
   "suite": "seal_prepare_signing_slot_fence",
-  "version": "2026-09-10",
+  "version": "2026-09-14.1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -17,7 +17,8 @@
     ]
   },
   "covers_vectors": [
-    "ak.vector.seals.prepare_signing_slot_fence.v1"
+    "ak.vector.seals.prepare_signing_slot_fence.v1",
+    "ak.vector.seals.prepare_fence_recovery.v1"
   ],
   "fence_key": {
     "members": [
@@ -280,6 +281,88 @@
         "replays_byte_identical_body": true,
         "submit_rechecks_frontier_and_cas": true,
         "prepared_counts_as_admitted": false
+      }
+    },
+    {
+      "name": "lost_journal_current_signer_recovers_exact_frozen_pair",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "fence_state": {
+        "existing_fence": "frozen_body",
+        "local_prepare_journal": "missing"
+      },
+      "station_state": {
+        "basis_is_current_accepted": true,
+        "signer_slot_derived_from_session": true,
+        "signer_slot_current": true,
+        "request_reconstructed_from_outcome": true,
+        "canonical_request_hash_verified": true,
+        "request_outcome_binding_verified": true,
+        "body_digest_verified": true,
+        "cache_control": "no-store",
+        "writes": 0,
+        "returns_frozen_material": true
+      }
+    },
+    {
+      "name": "recovery_request_cannot_select_signer_slot",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+      "expect_valid": false,
+      "first_expected_error": "contains:signer_slot",
+      "semantic_outcome": "reject",
+      "instance": {
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "signer_slot": "attacker-selected"
+      },
+      "station_state": {
+        "returns_frozen_material": false,
+        "writes": 0
+      }
+    },
+    {
+      "name": "wrong_signer_generation_and_stale_basis_are_non_enumerating",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+      "expect_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "not_found",
+      "instance": {
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "fence_state": {
+        "existing_fence": "not_disclosed"
+      },
+      "station_state": {
+        "basis_is_current_accepted": false,
+        "signer_generation_current": false,
+        "uniform_not_found": true,
+        "returns_frozen_material": false,
+        "writes": 0
+      }
+    },
+    {
+      "name": "corrupt_frozen_binding_fails_closed_without_partial_material",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
+      "expect_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "internal_error",
+      "instance": {
+        "realm_id": "ak:realm:ARKJ9576lYcSucoyvgOXfrky7T5uCvf5VUw56g_J_Pil",
+        "predecessor_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "fence_state": {
+        "existing_fence": "corrupt_request_hash_or_body_digest"
+      },
+      "station_state": {
+        "returns_frozen_material": false,
+        "returns_partial_material": false,
+        "writes": 0
       }
     }
   ]

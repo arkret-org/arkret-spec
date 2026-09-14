@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11772,
+    "total_properties": 11776,
     "total_schema_documents": 174,
     "by_presence_class": {
       "optional": 3156,
       "optional_defaulted": 62,
-      "required": 7421,
+      "required": 7425,
       "required_nullable": 382,
       "tristate": 751
     },
@@ -15919,6 +15919,10 @@
         "/$defs/SealFrontierRequestBody/properties/realm_id": "required",
         "/$defs/SealFrontierState/properties/frontier": "required",
         "/$defs/SealFrontierState/properties/receipts": "optional",
+        "/$defs/SealPrepareFenceResultOutcome/properties/frozen_outcome": "required",
+        "/$defs/SealPrepareFenceResultOutcome/properties/frozen_request": "required",
+        "/$defs/SealPrepareFenceResultRequestBody/properties/predecessor_ref": "required",
+        "/$defs/SealPrepareFenceResultRequestBody/properties/realm_id": "required",
         "/$defs/SealPrepareOutcome/properties/seal_body": "required",
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/availability_receipt_digests": "tristate",
         "/$defs/SealPrepareOutcome/properties/seal_body/allOf/1/properties/control_event_set_root": "tristate",

@@ -936,6 +936,10 @@
       "new": "ak.self.seals.command.prepare.v1"
     },
     {
+      "old": "ak.self.seals.read.prepare_fence_result",
+      "new": "ak.self.seals.read.prepare_fence_result.v1"
+    },
+    {
       "old": "ak.self.seals.command.submit",
       "new": "ak.self.seals.command.submit.v1"
     },

@@ -112,6 +112,8 @@ v1 每个 Realm 构成一个安全域，域内身份控制、授权政策、MLS 
 
 安全域由唯一治理 Station 耐久串行执行，签署者使用冻结配置的唯一 key。单写者排他、CAS、防重复签发、原子终态与 outbox 遵循 [安全域确认 §1–§3](./cbs-profiles.md)；不声明多节点容错或自动选主。
 
+PCR f=0 客户端 prepare 在 `(realm_id, signer slot, predecessor basis)` 上形成耐久 signing-slot fence；首个 canonical request 与唯一可签 outcome 必须在响应前原子冻结，exact request 只能重放同一 outcome，任何不同 request 都不能取得第二份可签 body。客户端 durable journal 丢失时，唯一恢复载体是认证的 `ak.self.seals.read.prepare_fence_result.v1`：Station 从 session/DPoP 派生 current signer slot，只对仍为 exact current predecessor 的同一合法 signer 返回经过 request hash、完整 binding 与 body digest 复核的原材料；其余命中状态统一非枚举 `not_found`。prepare 的错误 Problem、pending scan、Seal resolve 与内部数据库均不是恢复 wire。该 read 不创建、续租、释放 fence 或推进 frontier，客户端仍必须重新确认 signer intent 后才能签名。完整 HTTP 与 closed DTO 见 [`service-http-binding.md`](../sync/service-http-binding.md)。
+
 Seal 确认该域的安全命令，并按本节后述独立数据 publication 字段承诺普通 Event 身份及关闭旧数据基准。每条安全命令在确认顺序处对实际状态执行 CAS 与领域转移；相同前置 revision 的竞争命令最多一个成功。失败命令无业务效果且结果持久，超时不等于失败。数据身份收录不是安全命令结果，不把普通业务值加入 `delta` 或 `state_root`。
 
 安全 root 只承诺该域安全状态，不承诺普通消息内容或全球完整性。普通消息不进入 `delta`/`state_root`，不产生 KeyView；其 Event 身份进入独立 data set commitment。普通快照同步不要求签署者在线。
