@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.5",
+  "version": "2026-09-14.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "generated_at": "2026-09-14T12:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -13457,7 +13457,7 @@
         "http": "POST /_arkret/gate/account/register",
         "grpc": "GateAccount/Register",
         "mq": "gate.account.command.register",
-        "notes": "Canonical account creation/binding operation. The body selects exactly one branch: an already-published DID control proof, or account-first identity_creation. Both branches submit outer did and principal_id; every repeated did/principal_id in the selected proof, identity-creation object and PCR genesis initial_resolution MUST equal the outer values byte-for-byte. The Account Authority independently validates the registered method adapter and requires project(did)=principal_id. The published-DID proof branch uses the durable challenge pins and creates no identity-creation lease or PCR genesis. In the account-first identity_creation branch the caller MUST additionally present Authorization: DPoP <account_handoff_grant> plus matching DPoP, the current lease/fence, the exact reserved DID inception operation, and a fresh identity-root control proof over the persisted challenge transcript. For did:webvh the verifier takes parameters.updateKeys[0] of the entry pinned by did_version_id (the root is not a DID Document verificationMethod), requires verification_key_multibase to match it exactly, and requires its canonical multikey SHA-256 to equal control_key_digest. For account-first inception that entry is entry 0. The Account Authority CAS-validates account/holder/lease/fence/reservation, consumes the challenge, submits the DID operation internally, accepts only accepted or byte-identical duplicate with a verified head digest, derives pcr_realm_id only by retyping the exact root-signed ak.realm.create event_id, and writes the service-account binding. Account-first PCR genesis persists the same verified did, method_history_head and version_id in initial_resolution. Every success returns a signed binding_receipt that binds binding_kind, principal_id, did, did_version_id and control_key_digest; identity_creation_lease_id and lease_fence appear only for binding_kind=identity_creation. The (account, principal_id, operation_digest) result is idempotent; published-but-not-yet-bound state is durably completed for that same account and can never be rebound to another account. The operation never accepts recovery words, seed material, or identity-root private keys.",
+        "notes": "Canonical account creation/binding operation. The body selects exactly one branch: an already-published DID control proof, or account-first identity_creation. Both branches submit outer did and principal_id; every repeated did/principal_id in the selected proof, identity-creation object and PCR genesis initial_resolution MUST equal the outer values byte-for-byte. The Account Authority independently validates the registered method adapter and requires project(did)=principal_id. The published-DID proof branch uses the durable challenge pins and creates no identity-creation lease or PCR genesis. In the account-first identity_creation branch the caller MUST additionally present Authorization: DPoP <account_handoff_grant> plus matching DPoP, the current lease/fence, the exact reserved DID inception operation, and a fresh identity-root control proof over the persisted challenge transcript. For did:webvh the verifier takes parameters.updateKeys[0] of the entry pinned by did_version_id (the root is not a DID Document verificationMethod), requires verification_key_multibase to match it exactly, and requires its canonical multikey SHA-256 to equal control_key_digest. For account-first inception that entry is entry 0. The Account Authority CAS-validates account/holder/lease/fence/reservation, consumes the challenge, submits the DID operation internally, accepts only accepted or byte-identical duplicate with a verified head digest, derives pcr_realm_id only by retyping the exact root-signed ak.realm.create event_id, and writes the service-account binding. Account-first PCR genesis persists the same verified did, method_history_head and version_id in initial_resolution. Every success returns a signed binding_receipt that binds binding_kind, principal_id, did, did_version_id and control_key_digest; identity_creation_lease_id and lease_fence appear only for binding_kind=identity_creation. The (account, principal_id, registration_anchor_digest) result is idempotent; published-but-not-yet-bound state is durably completed for that same account and can never be rebound to another account. The operation never accepts recovery words, seed material, or identity-root private keys.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -16823,8 +16823,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-14.3",
-    "generated_at": "2026-09-14T08:51:14+08:00",
+    "version": "2026-09-14.4",
+    "generated_at": "2026-09-14T12:10:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

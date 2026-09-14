@@ -145,6 +145,16 @@ def project(did: str) -> str | None:
     return f"ak:did_core:{parts[1]}:{parts[2]}"
 
 
+def version_number(version_id: object) -> int | None:
+    """did:webvh versionId is <version number>-<entryHash>."""
+    if not isinstance(version_id, str):
+        return None
+    head, separator, _ = version_id.partition("-")
+    if not separator or not head.isdigit():
+        return None
+    return int(head)
+
+
 def derive_webvh_anchor(anchor: dict[str, Any]) -> dict[str, str] | None:
     operation = anchor["registration_did_operation"]
     did = operation.get("did")
@@ -153,47 +163,63 @@ def derive_webvh_anchor(anchor: dict[str, Any]) -> dict[str, str] | None:
     if not did.startswith("did:webvh:"):
         return None
     entries = anchor["log_entries"]
-    if not entries or entries[0].get("previous_entry_digest") is not None:
+    if not entries:
         return None
-    for index in range(1, len(entries)):
-        expected = "sha256:" + sha256_hex(canonical(entries[index - 1]))
-        if entries[index].get("previous_entry_digest") != expected:
+    for index, entry in enumerate(entries):
+        if version_number(entry.get("versionId")) != index + 1:
             return None
     terminal = entries[-1]
-    if operation.get("operation", {}).get("version_id") != terminal.get("version_id"):
+    if canonical(operation.get("operation")) != canonical(terminal):
         return None
-    known_versions = {entry.get("version_id") for entry in entries}
-    seen: set[tuple[Any, Any]] = set()
-    covered: dict[Any, int] = {}
+    terminal_version = version_number(terminal["versionId"])
+    if "seq" in operation and operation["seq"] != terminal_version:
+        return None
+
+    known_versions = {entry["versionId"] for entry in entries}
+    records: dict[str, Any] = {}
     for record in anchor["witness_records"]:
-        if record.get("version_id") not in known_versions or not record.get("proof_valid"):
+        version_id = record.get("versionId")
+        if version_id not in known_versions or set(record) != {"versionId", "proof"}:
             return None
-        key = (record.get("version_id"), record.get("witness_did"))
-        if key in seen:
+        if version_id in records:
             return None
-        seen.add(key)
-        covered[record["version_id"]] = covered.get(record["version_id"], 0) + 1
+        records[version_id] = record
+    # did:webvh witness policy is inherited: once an entry declares one it stays
+    # active for every later entry until a successor replaces it.
+    active_policy: dict[str, Any] | None = None
     for entry in entries:
-        if covered.get(entry.get("version_id"), 0) < entry.get("witness_threshold", 0):
+        declared = entry.get("parameters", {}).get("witness")
+        if declared is not None:
+            active_policy = declared
+        if active_policy is None:
+            continue
+        proofs = records.get(entry["versionId"], {}).get("proof", [])
+        witnesses = {witness["id"] for witness in active_policy["witnesses"]}
+        signers = {
+            proof.get("verificationMethod", "").split("#", 1)[0]
+            for proof in proofs
+        }
+        if len(signers & witnesses) < active_policy["threshold"]:
             return None
-    document = anchor["normalized_did_document"]
-    if document.get("did") != did:
+
+    if anchor["normalized_did_document"].get("did") != did:
         return None
-    root_method = terminal.get("root_verification_method")
-    rows = [
-        row
-        for row in document.get("verification_methods", [])
-        if row.get("verification_method") == root_method
-    ]
-    if len(rows) != 1:
+    update_keys = terminal.get("parameters", {}).get("updateKeys")
+    if not isinstance(update_keys, list) or len(update_keys) != 1:
         return None
-    root_key = rows[0].get("public_key_material", {}).get("publicKeyMultibase")
+    root_key = update_keys[0]
     if not isinstance(root_key, str):
+        return None
+    proofs = terminal.get("proof")
+    if not isinstance(proofs, list) or not proofs:
+        return None
+    root_method = proofs[0].get("verificationMethod")
+    if root_method != f"did:key:{root_key}#{root_key}":
         return None
     return {
         "did": did,
         "method_history_head": "sha256:" + sha256_hex(canonical(terminal)),
-        "version_id": terminal["version_id"],
+        "version_id": terminal["versionId"],
         "root_verification_method": root_method,
         "root_public_key_multibase": root_key,
     }
@@ -347,15 +373,16 @@ EXPECTED_WEBVH_NEGATIVES = {
     "history_prefix_contains_unrelated_successor",
     "did_web_human_anchor_is_not_a_registered_branch",
     "unknown_anchor_discriminator",
-    "anchor_discriminator_disagrees_with_operation_method",
+    "anchor_branch_replaced_by_the_other_registered_branch",
     "anchor_operation_method_disagrees_with_did",
     "anchor_log_does_not_start_at_inception",
-    "anchor_log_entry_chain_is_broken",
-    "anchor_operation_version_is_not_the_terminal_entry",
+    "anchor_log_skips_a_predecessor_version",
+    "anchor_operation_is_not_the_terminal_log_entry",
+    "anchor_operation_seq_disagrees_with_the_terminal_version",
     "anchor_witness_record_set_is_incomplete",
     "anchor_witness_record_is_surplus",
-    "anchor_normalized_document_is_substituted",
-    "anchor_document_did_is_substituted",
+    "anchor_root_verification_method_is_not_the_update_key",
+    "anchor_normalized_document_did_is_substituted",
     "derived_method_history_head_mismatches_genesis",
     "derived_version_id_mismatches_genesis",
     "derived_root_verification_method_mismatches_genesis",

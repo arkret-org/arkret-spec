@@ -14,7 +14,7 @@
   "$defs": {
     "webvh_registration_anchor": {
       "type": "object",
-      "description": "did:webvh registration anchor. registration_did_operation is the exact method-native operation accepted at registration; log_entries is the gap-free native history from inception through the entry that operation established, and witness_records is the complete did-witness.json record set every witness policy active in that interval requires. The verifier independently re-executes SCID derivation, every versionId and entry hash-chain link, every controller proof, rotation authorization and applicable witness threshold, requires the terminal entry to be canonically equal to normalized_did_document, and derives did, method_history_head and version_id from that verified terminal state under the registered did:webvh adapter rules. The derived triple MUST equal the PCR genesis initial_resolution did, method_history_head and version_id byte-for-byte, and the root verification method and key come only from the verified terminal state. A resolver summary, a partial log range, a bare current DID document or a caller-asserted head is not this anchor.",
+      "description": "did:webvh registration anchor. log_entries is the gap-free native history from inception through the registration entry: log_entries[i].versionId MUST carry version number i+1, and registration_did_operation adds only the did/did_method/seq wrapper the registry accepted around the terminal entry. witness_records is the complete did-witness.json record set every witness policy active in that interval requires. The verifier re-executes the registered did:webvh:1.0 adapter over log_entries - SCID derivation, every entry-hash link and predecessor versionId anchor, every controller proof, rotation authorization against the preceding nextKeyHashes commitment, and every applicable witness threshold - and only then derives, from the verified terminal entry alone: did from registration_did_operation.did, version_id from terminal versionId, method_history_head as sha256 over RFC 8785 JCS of that terminal entry, the root control key from terminal parameters.updateKeys[0], and the root verification method from the terminal entry proof whose multikey is that same key. The derived did, method_history_head and version_id MUST equal the PCR genesis initial_resolution values byte-for-byte, and the derived root verification method and key MUST be the ones the genesis root producer proof used. A resolver summary, a partial log range, a bare current DID document or a caller-asserted head is not this anchor.",
       "required": [
         "anchor_kind",
         "registration_did_operation",
@@ -28,7 +28,7 @@
         },
         "registration_did_operation": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
-          "description": "Exact accepted registration-time did:webvh operation with every controller proof it carried. did_method MUST equal webvh and did MUST be the canonical did:webvh identifier this anchor establishes; the anchor carries no second copy of that DID."
+          "description": "Exact accepted registration-time did:webvh operation wrapper. did_method MUST equal webvh, did MUST be the canonical did:webvh identifier this anchor establishes and is the anchor's only copy of that DID, seq when present MUST equal the version number of the terminal entry, and operation MUST be canonically equal to the last log_entries element. prev_event_digest MUST be absent: inside an anchor the predecessor is carried as the preceding log_entries elements, so a digest of it would be a mirror of material already present. The wrapper therefore states an invariant rather than offering a second, independently choosable copy of the registration entry."
         },
         "log_entries": {
           "type": "array",
@@ -37,7 +37,7 @@
           "items": {
             "type": "object"
           },
-          "description": "Exact ordered native did:webvh entry objects from inception through the registration anchor entry. Gaps, duplicates, surplus entries after the registration entry, or a first entry other than inception fail closed."
+          "description": "Exact ordered native did:webvh entry objects from inception through the registration anchor entry. Element i MUST be the entry whose versionId version number is i+1, so a missing predecessor, a duplicate, a surplus entry after the registration entry, or a first entry other than inception 1 fails closed."
         },
         "witness_records": {
           "type": "array",
@@ -45,11 +45,11 @@
           "items": {
             "type": "object"
           },
-          "description": "Exact native did-witness.json record objects required by log_entries, keyed uniquely by versionId. Missing, duplicate, invalid or surplus records fail closed. The array is empty exactly when the verified log activates no witness policy."
+          "description": "Exact native did-witness.json record objects required by log_entries. Each record is the closed {versionId, proof} pair, at most one record per versionId, and its proof array MUST satisfy that version's effective witness policy threshold with distinct listed witnesses. Every record MUST name a versionId present in log_entries: unlike a fetched did-witness.json, this anchor's log ends at the registration entry, so a record for any other version is surplus and fails closed. The array is empty exactly when the verified log activates no witness policy."
         },
         "normalized_did_document": {
           "$ref": "./did-binding-contracts.schema.json#/$defs/normalized_did_document",
-          "description": "Exact normalized DID document of the verified terminal entry. The verifier recomputes the normalized projection from log_entries and rejects any divergence instead of trusting this member."
+          "description": "Exact normalized DID document projection of the verified terminal entry state. Its did MUST equal registration_did_operation.did. The verifier recomputes the normalized projection from the terminal entry state and rejects any divergence instead of trusting this member; it holds the principal's own published verification methods, not the method-native update key, so a root key MUST NOT be selected from here."
         }
       },
       "additionalProperties": false
