@@ -646,6 +646,10 @@ origin Station MUST 在签发时从该 exact account-device 的 current accepted
 
 普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
+普通 human Account device 的 Event signer evidence 用途是下列封闭分流：写 shared CBS Data 的 ordinary Event 使用 `account_device`；event-kind registry 明确登记为 `wire_scope=actor_private_event` 且 `reducer_input=false` 的 actor-private Event 也使用 `account_device`；写 shared CBS Control 的 generic Control Event 使用 §8.2.2 的 `account_device_control`。CBS 分类 `None` 只表示 actor-private Event 不进入共享 reducer，绝不得将它改判为 Control。两个 native unit 继续由其专用 verifier 处理。
+
+`account_device` 接受 actor-private Event 时，验证方 MUST 验证完整 attestation 及 Service attester 历史闭包，并逐字绑定 Event actual producer 的完整 `AccountId`、exact `device_id`、DID method/key、原 `ak.device.authorize` 实例、generation 和 Event 签名时刻所在的原 `authorization_window`；live 提交仍独立检查 current generation 及 revoked/expired/fenced/pending-revoke 状态。只有 session/transport authentication、`principal` 证据、`account_device_control` 证据、错误 Account/Station、错误 device/method、错误授权实例，或签名时刻在授权窗口外时 MUST 拒绝。该 `wire_scope` 分支只为 actual producer 是普通 human Account device 的 Event 补齐用途，不允许 Agent/Service actor 借用 human device evidence，也不放宽 Event kind、payload、holder-only writer 或 actor-private 可见性校验。
+
 #### 8.2.1 跨站 peer 设备目录与 prekey lookup（normative）
 
 `keys/query` 的目标 AccountId 的 `station_id` 不是本 Station 时，本 Station MUST 通过
@@ -711,7 +715,7 @@ genesis、authorization chain、Seal 或目标的 Realm/Contact 清单。
 
 #### 8.2.2 Human generic Control 的 portable signer evidence（normative）
 
-普通 human 设备签署 Realm bootstrap、后续 generic Control Event，或作为 Agent Control 的实际 `producer` / `executed_by` 时，MUST 使用 `AuthenticatedSignerResolutionEvidence` 的 `account_device_control` 分支。`account_device` 分支继续只服务 Data 与普通 history-response proof，`principal` 分支继续只解析 DID Document authority；二者均不得作为普通 human device Control 的 fallback。不得要求日常设备 method 出现在 DID Document，也不得新增 principal signing key、Station 设备授权证书、prepare operation、补签或第二确认回执。
+普通 human 设备签署 Realm bootstrap、后续 generic Control Event，或作为 Agent Control 的实际 `producer` / `executed_by` 时，MUST 使用 `AuthenticatedSignerResolutionEvidence` 的 `account_device_control` 分支。`account_device` 分支继续只服务 shared Data、上述 ordinary human actor-private Event 与普通 history-response proof，`principal` 分支继续只解析 DID Document authority；二者均不得作为普通 human device Control 的 fallback。不得要求日常设备 method 出现在 DID Document，也不得新增 principal signing key、Station 设备授权证书、prepare operation、补签或第二确认回执。
 
 `account_device_control` root 是不可变内容寻址对象，字段顺序和闭合形态以 [`authenticated-signer-resolution-evidence.schema.json`](../../artifacts/schemas/authenticated-signer-resolution-evidence.schema.json) 为准。它绑定完整 `AccountId`、exact `device_id` / method、原 `ak.device.authorize` Event、冻结 generation 与 generation Event、该 authorize 首次 successful committed 的 Seal、PCR genesis 和原始签名 DID inception；`history_event_refs` / `history_seal_refs` 是到该确认位置为止的最小闭合 PCR 前缀引用，必须按 UTF-8 字节升序且无重复。root 不内联 Event/Seal，不携 request id、读取顺序、缓存时间、verified 标记或无关最新 Seal。后继无关 Seal、读取缓存刷新或设备后来被撤销不得改变这份 root；合法重新授权、generation 或 method 来源变化必须产生新 root。
 

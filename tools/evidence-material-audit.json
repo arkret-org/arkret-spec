@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 398,
+  "audited_occurrence_count": 406,
   "registrations": [
     {
       "file": "account-current-result.schema.json",
@@ -151,6 +151,68 @@
       "reason": "Frozen verification material with the original producer proof and authorization evidence, or a distinct receiver receipt."
     },
     {
+      "file": "applet-edge-operations.schema.json",
+      "key": "applet_service_signer_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the exact Applet Service signer root together with its content-addressed ref as one runtime authoring input."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "attester_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the exact Station Service leaf that verifies the managed Principal projection attestation."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "authenticated_signer_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the closed Service or Principal authenticated signer root selected by its enclosing typed authoring result field."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "managed_actor_principal_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Defines the complete managed Principal signer root and exact Station attester closure."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "managed_actor_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the accepted managed Actor Principal root and attester closure delivered for ordinary authoring."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "signer_resolution_evidence_ref",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Content-addresses the exact Service or Principal signer root carried in the same closed authoring result object."
+    },
+    {
       "file": "applet-install-authoring.schema.json",
       "key": "registration_epoch_evidence",
       "occurrences": 3,
@@ -178,7 +240,7 @@
     {
       "file": "applet-registration-epoch-evidence.schema.json",
       "key": "method_version_evidence",
-      "occurrences": 4,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",

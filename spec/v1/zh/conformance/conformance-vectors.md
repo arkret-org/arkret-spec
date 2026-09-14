@@ -1258,6 +1258,10 @@ ak.vector.lattice.ordered_log_gap.v1
 
 同一历史消息在撤销到达前可暂时接纳；关闭集合包含它则保留 eligible，排除它则 quarantine；缺精确关闭/因果依赖 pending。A/B 以相反顺序收到相同完整证据必须得到相同最终分类，接收时间和存储收据不得成为永久资格证据。
 
+### 2.14.1 Vector: actor-private human signer evidence 分流
+
+`ak.vector.actor_private.human_signer_evidence_binding.v1`：Runner MUST 将 holder 设备签名的 `ak.account_data.set`、registry 中的 `wire_scope=actor_private_event` 和 CBS 执行分类 `None` 组合为正例，并使用逐字匹配的 `account_device` evidence 接受。下列每项必须独立拒绝且零 account-data 写入：换成 `account_device_control`；换成 `principal`；只有 session/transport authentication；evidence 的完整 AccountId 或 Station 不同；device ID、verification method/key、原 authorization Event 或 generation 任一不同；Event 签名时刻在原授权窗口外；新 live 提交时设备已 revoked、expired 或 fenced。另须用 Agent/Service actual producer 携带 human `account_device` 的负例证明 `wire_scope` 不扩张 actor authority，并用 shared generic Control + `account_device` 证明不存在从 actor-private 分支泄漏的 Control fallback。
+
 ### 2.15 Vector: 无周期 Seal 写入门槛
 
 `ak.vector.cbs_lattice.seal_compaction_interval_enforced.v1`：空闲超过 compaction 提醒时间不使授权失效，不强制生成普通消息 Seal，不阻断缓存授权下聊天。实际存在未决安全义务时只按该义务的已签 Ack/deadline 产生健康诊断，不能全 Realm 阻断无关数据。
@@ -5358,7 +5362,7 @@ Expected：
 
 `vector_id`: `ak.vector.applet.managed_actor_authority.v1`
 
-Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Station、独立 method history/witness、verified DID namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。Rotation 只改 PCR current cell 而保持 creation anchors；Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
+Runner MUST 执行 [`applet-managed-actor-fixture.json`](../../artifacts/fixtures/applet-managed-actor-fixture.json) 的固定 Bot/Ghost 原子单元，验证 exact authority pair、receiving Station、独立 method history/witness、verified DID namespace、provision/PCR initial-resolution 交叉绑定与零可见失败。四条 creation Event 的 actual producer 必须是 Applet service 并引用可重算的真实 `Service` root；尚未 accepted 的 Bot/Ghost 不得提供未来 `Principal` root。完成结果必须携 Applet `Service` root、managed Actor `Principal` root及其 exact Station `Service` attester leaf，runtime 对三者重算并原子保存后才允许普通 authoring。缺失、verification-method hash 假 ref、错误 kind、actor/method/key/registration/install/provision/fence mismatch、attester ref mismatch 与 surplus closure 都必须在 producer authentication 层 fail closed，且零 root/零 result/outbox。安装后的 policy 负例先证明真实 `Principal` root通过，再只破坏目标 policy；pre-install 负例使用真实 Service producer 或 closed admission。Rotation 只改 PCR current cell而保持 creation anchors，并产生新的耐久 `Principal` root；旧 Event仍以旧 root 复验。Applet/Ghost revoke 后，通过普通 Event submit 的 self-signed write 也必须 `applet_revoked`，但历史 resolution/audit 仍可读。
 
 ### 19.3 Vector: Registration Epoch Transcript
 

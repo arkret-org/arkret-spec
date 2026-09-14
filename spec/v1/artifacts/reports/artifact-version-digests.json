@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-14.3",
-      "generated_at": "2026-09-14T06:12:19+08:00",
-      "content_digest": "sha256:4ee5a19671d403de9c21c169c92bafd4876d0c6be131f4b3d5bf0a872082fa21"
+      "version": "2026-09-14.4",
+      "generated_at": "2026-09-14T08:51:14+08:00",
+      "content_digest": "sha256:4b84899998b8cb09343fc5aeac5dd8cec7428ca19a52413addcaf9008c1f28f7"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -255,15 +255,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-13.40",
-      "generated_at": "2026-09-14T05:27:06+08:00",
-      "content_digest": "sha256:dec23fa76dfff20ec3ff3d0c232a73987d6479a2adb39e3a771f3bf810b2255b"
+      "version": "2026-09-13.41",
+      "generated_at": "2026-09-14T06:12:19+08:00",
+      "content_digest": "sha256:f276fd8970236a8aa5b0bd4ba82fb0468475bce89032e69e7cdb2cba4417415e"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-14.2",
-      "generated_at": "2026-09-14T06:12:19+08:00",
-      "content_digest": "sha256:963671daf7c51a5ffe626ad494f4294c870b4b21855dd33df16e4450bce1f326"
+      "version": "2026-09-14.3",
+      "generated_at": "2026-09-14T08:51:14+08:00",
+      "content_digest": "sha256:8d6558b00af24b0449c121961be548334fb03c0bc5d33adaad7f534a19271937"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -393,9 +393,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-14.1",
-      "generated_at": "2026-09-14T05:27:05+08:00",
-      "content_digest": "sha256:b2acb27e47ffbea49a4cb8349c61899121562b4fc7b20c84bbc9cd3639c103b8"
+      "version": "2026-09-14.2",
+      "generated_at": "2026-09-14T08:41:20+08:00",
+      "content_digest": "sha256:d0fabc8038484691c25dc307d58ac9352bae2ec3b5e86f1f8492f3c6a774f751"
     }
   ]
 }

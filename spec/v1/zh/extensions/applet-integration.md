@@ -299,6 +299,9 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
 Commit MUST 执行：
 
 - 在同一 durable transaction 中持久化完整 install execution record、formal fixed set、projection、Applet record 与幂等结果。
+- 从四条 creation Event 的 producer proof 与 registration epoch material 独立重建并验证 exact Applet
+  `Service` signer evidence root；该 root 必须已由 Applet service 在 author 阶段用于四条 proof。首次成功事务
+  同时耐久保存该 root，不能接受 verification-method hash、裸 key digest 或 caller 自报 verified 代替。
 - 对同一 `Idempotency-Key` + 同一 body canonical hash 重试返回同一结果和同一批 accepted event refs；同一 key + 不同 body MUST 返回 `duplicate_conflict`。
 - 服务端在事务开始前验证 caller 提交的每条 Event canonical bytes、event id、proof、frontier、依赖与 fixed-set 交叉绑定；事务内任一 CAS 或持久化失败必须回滚全部 Event 与 record。重试只读取同事务保存的 exact outcome，不得生成替代 id、重建 Event 或恢复逐步提交。
 - 重新计算 plan；不得盲信客户端传回的 `InstallPlan`。
@@ -650,8 +653,17 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 | `digest_suite` | 本次目标 Collaboration Realm 在该确认上下文中的真实 digest suite；MUST NOT 从其他 Realm/PCR 的 Seal 引用推断。 |
 | `auth_context` | 该已确认安装和原 producer 所需的确切授权引用。结果不改变原 grant 的 scope、有限期或关闭规则。 |
 | `accepted_actor_frontier` | 同一目标 Realm、同一完整 managed Actor 的既有 `RealmActorFrontierView`，其 digest 按本字段所属 Realm 的 `digest_suite` 校验。 |
+| `applet_service_signer_evidence` | 安装所接受 Applet service producer 的 exact `Service` root，含 `signer_resolution_evidence_ref` 与完整 leaf；ref 必须从 leaf 重算。 |
+| `managed_actor_signer_evidence` | 新 Bot/Ghost current method 的 exact `Principal` root及其唯一 Station `Service` attester leaf；两个 ref 都必须从完整 canonical evidence 重算并交叉匹配。 |
 
-安装 Station MUST 在原 install/Ghost closed unit 实际 committed 且全部效果完成安装后，才将完整结果、原请求及 Applet 交付 outbox 意图持久固定；它们 MUST 属于同一可恢复的原子提交。若协议实现将 Seal 确认和派生效果安装分阶段，完成阶段也 MUST 先核确切已确认原 unit，再原子保存效果、结果与 outbox，不能以已有一条 timeline row 认定整个单元完成。pending/rejected 不产生结果。该 outbox 是本地 Station→Applet 完成交付，MUST NOT 把私有 fixed set 拆为 Realm Event federation。管理员在安装返回后离线不影响重试交付。
+安装 Station MUST 在原 install/Ghost closed unit 实际 committed 且全部效果完成安装后，从同一 accepted
+resolution projection 物化 managed Actor `Principal` root，并冻结签署该 projection attestation 的 Station
+`Service` leaf；先前验证的 Applet `Service` root、Principal root、attester leaf、完整结果、原请求及 Applet
+交付 outbox 意图 MUST 属于同一可恢复的原子提交。任一 root/ref/closure 冲突使该完成提交整体回滚且不产生
+accepted authoring result。若协议实现将 Seal 确认和派生效果安装分阶段，完成阶段也 MUST 先核确切已确认原
+unit，再原子保存效果、evidence、结果与 outbox，不能以已有一条 timeline row 认定整个单元完成。
+pending/rejected 不产生结果。该 outbox 是本地 Station→Applet 完成交付，MUST NOT 把私有 fixed set 拆为
+Realm Event federation。管理员在安装返回后离线不影响重试交付。
 
 接收 Applet MUST 先执行 §7.3.1 的逐次 RFC 9421 来源认证，且 body/header/source proof 的来源 MUST 等于 `committed_request.authoring_request.basis.target_station_id`，目标 MUST 等于同一 basis 的 `service_id`，外层 `applet_id` MUST 等于 basis 的 `applet_id`。已知其他 Station 的有效签名不能覆盖本安装来源。原 authoring request/bundle 的结构、内容 digest、audience 与全部交叉绑定 MUST 成立；收到 own-Station 结果不构成对外可转交的管理员或治理证明。
 
@@ -659,9 +671,23 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 
 `accepted_actor_frontier.realm_id` MUST 等于 install effective_scope 的 Realm 或 Ghost basis 的 `realm_id`；完整 Actor MUST 等于该原 Bundle 或 reuse anchors 的 managed Actor，且其 Account Station 与安装目标相等。Circle install 保留原 Circle scope，MUST NOT 扩为整个 Realm。适用的 grant 从原 committed request 和 runtime 的原授权记录取得，缺材料保持未决；`accountability_grant` 仅表达责任，MUST NOT 当作普通发送 capability。跨授权域引用可以使用不同 digest suite。
 
-runtime MUST 原子保存确切来源记录、原 committed request、对应原身份/授权材料、该 Realm suite 与 authoring 上下文后，才返回 `status="accepted"`；该分支没有 partial 安装。完全相同的重投只确认原持久结果，不重置 Actor frontier，不覆盖已经冻结的待发送 Event，也不刷新首次观察时间。不同原文或绑定不得复用同一幂等身份。迟到结果不得使 frontier 倒退、清除已知关闭或重新打开旧授权实例；接收方可以确认已保存的旧结果而不恢复其 live 资格。
+runtime MUST 验证两个完整 evidence object，重算 Applet `Service` root、Station attester `Service` root 与
+managed Actor `Principal` root，逐字核对 actor、service、verification method、实际本地 public key、原
+registration/install/provision anchors 与 effective install fence；随后把确切来源记录、原 committed
+request、对应原身份/授权材料、两个 producer roots、attester closure、该 Realm suite 与 authoring 上下文
+原子保存，才返回 `status="accepted"`。该分支没有 partial 安装。完全相同的重投只确认原持久结果，不重置
+Actor frontier，不重新签发或替换 evidence，不覆盖已经冻结的待发送 Event，也不刷新首次观察时间。不同原文
+或绑定不得复用同一幂等身份。迟到结果不得使 frontier 倒退、清除已知关闭或重新打开旧授权实例；接收方可以
+确认已保存的旧结果而不恢复其 live 资格。
 
 完成交付后的普通聊天不要求逐消息查询原 Station、推进 Seal 或续订 Seal 年龄租约。原授权的真实有限期与已知关闭继续约束新 live 提交；离线接收方尚未知撤销的传播窗口按 CBS §5 处理。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的 `auth_context`、用户填写的 Seal ID 或重新读取 current DID 的结果冒充本次完成材料。
+
+managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧 root 继续只验证旧 Event。runtime 在
+新 resolution Event accepted 后使用既有 `ak.open.identity.read.resolution.v1` 取得 exact current public
+resolution，并通过既有 exact `authenticated_signer_resolution_evidence` governance-dependency carrier
+取得/核对签署 projection attestation 的 Station `Service` leaf，构建并原子保存新 `Principal` root 后才用新
+method author 普通 Event；不新增 Applet evidence endpoint。远端 Event verifier 同样只按 proof ref 经既有
+`ak.peer.seals.read.governance_dependencies.v1` / authorized self counterpart 解析 exact root 与递归 closure。
 
 同机 host MAY 经内部类型化存储交付相同结果，但 MUST 保持以上来源、原件、原子保存及重复处理规则，不能用一个公开 bool 或裸配置字符串替代它们。
 
@@ -897,6 +923,9 @@ Idempotency-Key: <opaque-string>
 - **失败原子性（normative）**：四条 Event、projection、Ghost record 与幂等结果 MUST 在同一 durable transaction 中提交；禁止逐条 fan-out。
 - **hosting / federation（normative）**：四条创建事实只由 `actor_id.account_id.station_id` 指定的接收 Station 保存并重放，不生成 peer Event fan-out。`ak.peer.events.command.submit.v1` 即使 transport/proof 合法也不是 `AppletFormal` admission，单独或普通 Realm bootstrap batch 提交该 PCR genesis MUST 以 `applet_managed_pcr_genesis_requires_closed_aggregate` 拒绝。Ghost 后续写入 Collaboration Realm 的普通 Event 才按该 Realm 的 federation 规则传播。
 - 成功时服务端返回调用方所提交的 Ghost Actor `ak.profile.create` 与 `ak.identity.accountability_grant` durable refs；响应 `authorization_ref` 回显上述 provisioning capability grant，不得回显 accountability ref 冒充授权。
+- 完成提交还 MUST 按 §7.3.2 原子物化并耐久保存 Applet `Service` root、Ghost `Principal` root及其
+  Station `Service` attester leaf，并经既有 `authoring_result` outbox 交付 runtime；同步 provision outcome
+  不镜像这些 runtime-private authoring inputs。
 - 后续 rotation 使用普通 `ak.identity.resolution.update`，其唯一 predecessor/CAS 输入是 envelope `resolution_projection` 的 `head_eq`；payload 不镜像 previous ref。Package/Ghost record anchors 不随 rotation 改写，current 只从 `JCS(actor_id)` 的 PCR cell 解析。
 - `applet_managed_control` PCR 与 human / Agent PCR 使用同一 create-locked Availability holder 规则：successor Seal 的唯一 eligible holder必须从 predecessor closure 中唯一 accepted create 的 actual-author `ActorId` 路由得到，并完整验证其 原始 producer proof 与 historical signer evidence；不得回退到不存在的 member-state holder。
 - 对任意 ingress（包括 actor 自签的普通 Event），receiver 一旦由 managed provision/PCR 识别该 authority pair，写入 admission MUST 与该 Event `scope_ref` 对应的 active exact Applet registration、install grant 与 revoke fence 做 AND。Ghost 严格跟随创建它的 exact effective install lifecycle，v1 不定义第二套 per-Ghost revoke 状态或操作；撤销一个 install 后只拒绝该 scope 的新写，最后一个 active effective install 被 fence 后 Bot 与全部 Ghost 才全局拒绝新写。历史读取与 identity-resolution audit 始终可用。
@@ -1025,6 +1054,12 @@ Applet 实现 MUST：
 - 记录可审计 bridge mapping
 - 对 secret / token 使用安全存储
 - 支持管理员 revoke
+
+任何“安装前策略拒绝”的测试不得让尚未 accepted 的 Bot/Ghost 直接签普通 Event，也不得要求其提前提供未来
+`Principal` root。测试必须让已经存在且具有真实 `Service` evidence 的 Applet service 作为 actual producer，
+或直接测试 closed install/ghost admission；安装后的 Bot/Ghost 策略负例则必须先以真实 `Principal` root通过
+producer authentication，再只破坏目标 policy 条件。每个 Event始终只有一份 actual producer proof；Station
+admission 与 RFC 9421 transport signature 都不能作为第二份 Event proof。
 
 Applet 实现 MUST NOT：
 

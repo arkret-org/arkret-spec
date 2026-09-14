@@ -70,14 +70,14 @@ updated: 2026-07-02
 > capability；但 profile-bound grant authority rule 只能读取已 accepted registration Event
 > 中的该字段，不能读取带外 package cache、preview DTO 或 registry 响应。
 
-> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更、binding invalidation 或 authority freshness 到期时，verifier MUST 展开 transcript evidence，解析或按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致；无版本化 `did:web` 在这些触发点 MUST re-fetch canonical document 并比对 digest。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
+> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更或 binding invalidation 时，verifier MUST 展开 transcript evidence，按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致。Applet service 必须能为所有 creation / ordinary Event 提供可历史复验的 `AuthenticatedSignerResolutionEvidence::Service`，因此 v1 registration epoch 只接受 `did:webvh` 与 `did:key`；无历史版本证明的 `did:web` 必须 fail closed，不能以 current snapshot、HTTP 来源签名或 registration epoch hash替代。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
 
 ### 1.0.1 `registration_epoch` transcript 与计算算法（normative）
 
 唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_auth`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
 
 - `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_auth` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
-- `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。有稳定版本证据的 DID method MUST 令 `unversioned_refetch=false`，并至少给出 `version_id` 或 `version_time`；没有稳定版本证据的 method MUST 令 `unversioned_refetch=true`，且 MUST 省略 `version_id` / `version_time`。后者只在 registration epoch 首次接受 / 续期、binding invalidation 或该授权面的显式 authority freshness 到期时重新解析 canonical document并比对 `document_digest`；同一 accepted epoch 下的普通授权匹配复用其固定 document digest 与 key binding。
+- `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。`method_version.method` 只允许 `did:webvh|did:key`，`unversioned_refetch` 固定为 `false`，并至少给出 `version_id` 或 `version_time`；`did:key` 使用其合成稳定 version id。没有稳定版本证据、必须依赖 current refetch 的 method 不能形成 Applet producer 的历史 signer root，MUST fail closed。
 - 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、三个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
 - 任意 optional 字段缺失时 MUST 直接省略；不得以 JSON `null` 代替。对象成员顺序最终由 JCS 处理；上述数组排序在 JCS 之前完成。
 - transcript 通过 schema 与集合规范化校验后，令 `canonical_bytes = JCS(transcript)`；令域分离字节为 UTF-8 `arkret-applet-registration-epoch-v1\n`（末尾单个 LF，字节 `0a`）；最终值为 `registration_epoch = "sha256:" + lowercase_hex(SHA-256(domain_separator || canonical_bytes))`。
@@ -214,6 +214,15 @@ request/bundle proof 分别使用
 Applet service 必须在响应前按 branch subject 与 request digest 原子保存 exact request/bundle、actor key
 handle、method history 与 provision state。restart 后 exact replay 返回原 bytes；不得从 request 确定性派生
 私钥或依赖易失内存 cache。
+
+四个 creation Event 的 actual producer 都是 Applet service：provision/accountability 的 actor 是 service，PCR
+genesis/Profile 则由相同 service 作为 `executed_by`；尚未 accepted 的 Bot/Ghost 不签这四条 Event。Applet
+service MUST 从 request 中唯一的 registration epoch evidence 与自己已验证的完整 method-native DID state 构建
+一份 `AuthenticatedSignerResolutionEvidence::Service`，使用统一 canonical helper 重算
+`signer_resolution_evidence_ref`，在返回 bundle 前原子保存 exact root，并令四条 Event 的唯一 producer proof
+全部引用该 ref。目标 Station 独立重建并逐字核对 service id、method、key、registration epoch 与 ref；任一不匹配
+使 closed aggregate 零写入。不得把 verification-method hash、registration epoch、HTTP message signature 或 bundle
+proof digest当作 signer evidence ref。
 
 Commit request 只有：
 

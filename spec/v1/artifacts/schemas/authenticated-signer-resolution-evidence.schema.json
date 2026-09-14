@@ -136,7 +136,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Verify the exact signed device projection and its attester closure. For ordinary publication the cache expires_at limits current-query freshness only; authorization_window and applicable generation/revocation closures govern actual authority. Preserve the full AccountId, device and signing-key binding. This evidence alone does not authorize notary or root-control actions."
+      "description": "Verify the exact signed device projection and its attester closure. This branch authorizes an ordinary human Account device for shared CBS Data and for registry-declared actor_private_event Events with reducer_input=false; it does not authorize generic Control, Agent/Service actors, Signal, notary, DID/root-control, or session/transport fallback. For ordinary publication the cache expires_at limits current-query freshness only; authorization_window and applicable generation/revocation closures govern actual authority. Preserve the full AccountId, Station, device, original authorization instance, generation, verification method and signing-key binding."
     },
     "account_device_control_signer_evidence": {
       "type": "object",

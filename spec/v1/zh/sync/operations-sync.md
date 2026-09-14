@@ -73,6 +73,8 @@ Control Move 的签名、actor chain、basis、precondition 和授权验证通�
 
 `actor_private_event` 仍使用 signed Event Envelope，但不写 shared Realm data/control cell，不进入控制面 Seal 覆盖集，也不影响其他成员的共享状态。它可以用于 account data、device route、个人偏好或 actor 私有投影。
 
+`actor_private_event` 的 CBS 执行分类是 `None`，只表示它不写共享 Data/Control cell，不得因此把它当作 generic Control。当 actual producer（有 `executed_by` 时以它为准）是普通 human Account device 时，该 Event MUST 使用 `account_device` signer evidence；不得使用 `account_device_control`、`principal` 或 session/transport authentication fallback。该例外只适用于 event-kind registry 明确登记的 `wire_scope=actor_private_event`，不为 Agent、Service、Signal、generic Control 或未登记 kind 增加任何 human device authority；完整验证见 [`device-lifecycle.md` §8.2](../crypto-media/device-lifecycle.md)。
+
 Signal 与 to-device 都不属于 Event registry。presence、typing、receipt、call signaling 使用
 encrypted-only `SignalEnvelope`；key verification、secret 与 Realm key 请求使用
 `DeviceMessageEnvelope`。接收方 MUST NOT 把两者解释为 durable Event、不得分配 shared

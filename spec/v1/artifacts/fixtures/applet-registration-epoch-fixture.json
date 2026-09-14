@@ -128,6 +128,11 @@
       "expected": "schema_violation"
     },
     {
+      "name": "did_web_current_snapshot_forbidden",
+      "mutation": "replace service_did_document.did and method_version with an unversioned did:web current snapshot",
+      "expected": "schema_violation"
+    },
+    {
       "name": "security_field_change_rotates_epoch",
       "mutation": "set derived_registration.base_url to https://other.example/cx",
       "expected": "digest_mismatch"

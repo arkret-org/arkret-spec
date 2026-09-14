@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.3",
+  "version": "2026-09-14.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T06:12:19+08:00",
+  "generated_at": "2026-09-14T08:51:14+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12860,14 +12860,14 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. Signals retain their independent proof regime."
+        "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_result branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime."
       },
       {
         "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
         "http": "POST /_arkret/edge/applet/managed-actors/author",
         "grpc": "EdgeApplet/ManagedActorAuthor",
         "mq": "edge.applet.managed_actor.command.author",
-        "notes": "The Applet service consumes the one signed install_bot or provision_ghost authoring request and returns the exact role-neutral four-Event bundle. Its durable ledger is keyed by branch subject plus full signed-request digest and preserves exact request/bundle bytes, actor key handle, method history, and provision state. No derived request ID or branch-specific Event aliases exist.",
+        "notes": "The Applet service consumes the one signed install_bot or provision_ghost authoring request and returns the exact role-neutral four-Event bundle. All four creation Events use the Applet service as actual producer and reference the same real Service AuthenticatedSignerResolutionEvidence root derived from the accepted registration epoch; a pre-effective Bot or Ghost never signs them. Its durable ledger is keyed by branch subject plus full signed-request digest and preserves exact request/bundle bytes, the Service root, actor key handle, method history, and provision state. No derived request ID or branch-specific Event aliases exist.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -12877,7 +12877,7 @@
         "response_schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/author_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "The operation admits no Arkret Event; independently, the Applet service atomically persists the subject/request-digest ledger, exact request and bundle, actor key custody, method history, and provision state before returning"
+          "rationale": "The operation admits no Arkret Event; independently, the Applet service atomically persists the subject/request-digest ledger, exact request and bundle, Applet Service signer root, actor key custody, method history, and provision state before returning"
         }
       },
       {
@@ -15030,7 +15030,7 @@
             "ak.profile.create"
           ]
         },
-        "notes": ""
+        "notes": "The four creation Events carry one real Applet Service signer-evidence ref. The successful transaction durably retains that exact Service root with the Event set and install state. Once the managed Actor resolution projection is accepted, completion atomically materializes and retains its Principal root plus the exact Station Service attester leaf and enqueues the existing authoring_result delivery; runtime signer inputs are not mirrored into the administrator outcome."
       },
       {
         "operation_id": "ak.self.applet.command.revoke.v1",
@@ -15109,7 +15109,7 @@
             "ak.profile.create"
           ]
         },
-        "notes": ""
+        "notes": "All four creation Events use the Applet Service as actual producer and carry its real Service signer-evidence ref; the pre-effective Ghost never signs this unit. Commit durably retains that root with the four Events and Ghost state. Completion atomically materializes the Ghost Principal root and exact Station Service attester leaf and enqueues the existing authoring_result delivery; the synchronous outcome does not mirror runtime signer inputs."
       },
       {
         "operation_id": "ak.self.applet.install.command.preview.v1",
@@ -16817,8 +16817,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-14.2",
-    "generated_at": "2026-09-14T06:12:19+08:00",
+    "version": "2026-09-14.3",
+    "generated_at": "2026-09-14T08:51:14+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

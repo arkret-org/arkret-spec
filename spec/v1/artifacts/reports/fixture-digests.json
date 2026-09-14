@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "352a55c5359cfad463781a4a1f6bbcf690abf15dbce6ffe8d13c8ac13a83fe99"
+      "sha256": "b177fbcdc56062b81a8ce5ded237df1c835027b24841dd375bd03e2715521686"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
@@ -86,7 +86,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json",
-      "sha256": "1e35f55c3d0931d68cb1079685e3e2520a5ac0f258e7acf55ffbcec93ed4c6e4"
+      "sha256": "a5cddfe1bfb749343fcb9a0a1c2c5513f1e3818e09762b34930067b1b64e7416"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",

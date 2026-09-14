@@ -1819,16 +1819,6 @@
       "representation_profile": "did",
       "external_literal_owner": false,
       "terminal_signature": [
-        "pattern:^did:web:[^\\s/?#]+$"
-      ]
-    },
-    {
-      "schema_path": "applet-registration-epoch-evidence.schema.json#/allOf/0/oneOf/2/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
         "pattern:^did:key:[^\\s/?#]+$"
       ]
     },

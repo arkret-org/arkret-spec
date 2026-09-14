@@ -234,6 +234,11 @@
       "reason": "registered scope carried by the generic service role"
     },
     {
+      "field": "applet_service_signer_evidence",
+      "role_stem": "applet_service_signer_evidence",
+      "reason": "applet_service is the registered external producer role and the field carries its complete signer-evidence closure"
+    },
+    {
       "field": "service_signer_evidence",
       "role_stem": "service_signer_evidence",
       "reason": "complete registered signer-evidence role for a service"

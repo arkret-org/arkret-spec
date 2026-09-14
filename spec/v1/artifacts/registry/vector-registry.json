@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.1",
+  "version": "2026-09-14.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T05:27:05+08:00",
+  "generated_at": "2026-09-14T08:41:20+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -110,6 +110,19 @@
       "description": "Realm-scoped actor frontiers bind realm_id and actor_id, start at actor_seq 0, retain the complete sorted sibling head set, and hash the closed realm_actor transcript deterministically.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.actor_private.human_signer_evidence_binding.v1",
+      "status": "active",
+      "domain": "actor_private",
+      "applies_to_fixtures": [
+        "cbs-lattice-fixture.json"
+      ],
+      "description": "Registry-declared actor-private Events signed by an ordinary human Account device use account_device evidence despite having no shared CBS plane; Control/Principal/session fallbacks, identity and authorization mismatches, closed authorization windows, current revoke/expiry/fence, and Agent/Service borrowing all fail closed with no write.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/cbs-lattice-fixture.json"
       ]
     },
     {

@@ -436,14 +436,54 @@
         }
       ]
     },
+    "applet_service_signer_evidence": {
+      "type": "object",
+      "description": "Complete content-addressed Service signer root selected by the accepted registration epoch. signer_resolution_evidence_ref MUST equal SHA-256(RFC8785-JCS(authenticated_signer_evidence)) in the registered ak:signer_evidence form. The Service branch is a leaf and has no recursive dependency array.",
+      "required": [
+        "signer_resolution_evidence_ref",
+        "authenticated_signer_evidence"
+      ],
+      "properties": {
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "authenticated_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_actor_principal_signer_evidence": {
+      "type": "object",
+      "description": "Complete content-addressed Principal signer root for the accepted managed Actor resolution plus its one exact Station Service attester leaf. Both refs are recomputed from complete RFC 8785 canonical evidence. attester_signer_evidence MUST hash to authenticated_signer_evidence.attester_signer_evidence_ref; omitted, surplus, or mismatched closure is invalid.",
+      "required": [
+        "signer_resolution_evidence_ref",
+        "authenticated_signer_evidence",
+        "attester_signer_evidence"
+      ],
+      "properties": {
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "authenticated_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence"
+        },
+        "attester_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
     "applet_managed_actor_authoring_result": {
       "type": "object",
-      "description": "Durable own-installation-Station result for a managed actor producer. It is authoring input, not transferable Event admission evidence. Accepted frontier and digest suite belong to the exact collaboration Realm of the original committed request.",
+      "description": "Durable own-installation-Station result for a managed actor producer. It is authoring input, not transferable Event admission evidence. Accepted frontier and digest suite belong to the exact collaboration Realm of the original committed request. The two signer-evidence fields are the exact roots and complete closures durably accepted by the Station; the runtime verifies, recomputes, and atomically persists them before ordinary authoring.",
       "required": [
         "committed_request",
         "digest_suite",
         "auth_context",
-        "accepted_actor_frontier"
+        "accepted_actor_frontier",
+        "applet_service_signer_evidence",
+        "managed_actor_signer_evidence"
       ],
       "properties": {
         "committed_request": {
@@ -457,6 +497,12 @@
         },
         "accepted_actor_frontier": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
+        },
+        "applet_service_signer_evidence": {
+          "$ref": "#/$defs/applet_service_signer_evidence"
+        },
+        "managed_actor_signer_evidence": {
+          "$ref": "#/$defs/managed_actor_principal_signer_evidence"
         }
       },
       "additionalProperties": false,

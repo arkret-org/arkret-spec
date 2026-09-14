@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.cbs_lattice.v1"
   },
   "profile": "ak.vector_group.cbs_lattice.v1",
-  "version": "2026-09-13.1",
+  "version": "2026-09-14.1",
   "notes": [
     "Abstract semantic vectors use symbolic Event labels unless a schema_ref is declared.",
     "Ordinary state is reduced from a fixed verified eligibility context; safety state is replayed in one confirmed Realm order.",
@@ -440,6 +440,108 @@
         {
           "name": "closed_generation_outside_cut",
           "expected": "quarantined"
+        }
+      ]
+    },
+    {
+      "name": "actor_private_human_signer_evidence_binding",
+      "vector_id": "ak.vector.actor_private.human_signer_evidence_binding.v1",
+      "description": "A registry-declared actor-private Event has no shared CBS execution plane, but an ordinary human Account device still uses account_device evidence. The None plane never turns it into generic Control and never expands human device authority to Agent or Service actors.",
+      "cases": [
+        {
+          "name": "account_data_set_exact_account_device",
+          "event_kind": "ak.account_data.set",
+          "wire_scope": "actor_private_event",
+          "reducer_input": false,
+          "execution_plane": null,
+          "actual_producer_kind": "account",
+          "evidence_kind": "account_device",
+          "exact_bindings": [
+            "account_id",
+            "station_id",
+            "device_id",
+            "verification_method",
+            "signing_key",
+            "authorization_event",
+            "generation",
+            "authorization_window"
+          ],
+          "expected": "accept"
+        },
+        {
+          "name": "account_data_set_control_evidence",
+          "event_kind": "ak.account_data.set",
+          "mutation": "replace account_device with account_device_control",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_principal_evidence",
+          "event_kind": "ak.account_data.set",
+          "mutation": "replace account_device with principal",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_session_transport_only",
+          "event_kind": "ak.account_data.set",
+          "mutation": "omit portable signer evidence and retain only session or transport authentication",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_wrong_account",
+          "event_kind": "ak.account_data.set",
+          "mutation": "change evidence account_id principal while preserving the producer proof",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_wrong_station",
+          "event_kind": "ak.account_data.set",
+          "mutation": "change evidence account_id station_id while preserving the principal",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_wrong_device",
+          "event_kind": "ak.account_data.set",
+          "mutation": "change the attested device_id without changing the proof method",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_wrong_method_or_key",
+          "event_kind": "ak.account_data.set",
+          "mutation": "change verification_method or signing key while preserving the device_id",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_wrong_authorization_or_generation",
+          "event_kind": "ak.account_data.set",
+          "mutation": "change the original authorization Event or generation binding",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_outside_original_authorization_window",
+          "event_kind": "ak.account_data.set",
+          "mutation": "move Event created_at before not_before or to or after expires_at",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "account_data_set_revoked_expired_or_fenced_live_device",
+          "event_kind": "ak.account_data.set",
+          "mutation": "submit live after current revoke expiry or generation fence",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "agent_or_service_actor_borrows_human_device_evidence",
+          "wire_scope": "actor_private_event",
+          "actual_producer_kind": "agent_or_service",
+          "evidence_kind": "account_device",
+          "expected": "reject_no_write"
+        },
+        {
+          "name": "generic_control_borrows_account_device",
+          "wire_scope": "durable_event",
+          "execution_plane": "control",
+          "actual_producer_kind": "account",
+          "evidence_kind": "account_device",
+          "expected": "reject_no_write"
         }
       ]
     },

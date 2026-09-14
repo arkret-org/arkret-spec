@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-registration-epoch-evidence.schema.json",
   "title": "Arkret Applet Registration Epoch Evidence",
+  "description": "Versioned Applet service DID evidence used to derive a stable registration epoch and Service signer evidence root. Only did:webvh and did:key are accepted; did:web current snapshots cannot support historical producer verification.",
   "type": "object",
   "required": [
     "did",
@@ -32,14 +33,6 @@
             "did": { "$ref": "./common-ids.schema.json#/$defs/webvh_did" },
             "method_version_evidence": {
               "properties": { "method": { "const": "did:webvh" } }
-            }
-          }
-        },
-        {
-          "properties": {
-            "did": { "type": "string", "pattern": "^did:web:[^\\s/?#]+$", "maxLength": 2048 },
-            "method_version_evidence": {
-              "properties": { "method": { "const": "did:web" } }
             }
           }
         },
