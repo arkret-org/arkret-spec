@@ -32,7 +32,17 @@ def _first_write(registry: dict, kind: str) -> dict:
 
 class CellSubjectKindTableTest(unittest.TestCase):
     def test_registered_kinds(self) -> None:
-        for kind in ("did", "typed_id", "string", "uri", "coalesce", "composite", "tuple", "id:strand"):
+        for kind in (
+            "did",
+            "typed_id",
+            "string",
+            "uri",
+            "coalesce",
+            "composite",
+            "tuple",
+            "typed_pair",
+            "id:strand",
+        ):
             self.assertTrue(foundation.is_registered_cell_subject_kind(kind), kind)
         for kind in ("canonical_json", "string_set_digest", "select", "id:", "id:Strand", "object"):
             self.assertFalse(foundation.is_registered_cell_subject_kind(kind), kind)

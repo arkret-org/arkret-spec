@@ -1,0 +1,98 @@
+{
+  "version": "2026-09-14.1",
+  "generated_at": "2026-09-14T22:55:00+08:00",
+  "source_registry": "registry/event-kind-registry.json",
+  "active_status": "active",
+  "description": "Closed executable capability inventory collected from every active registered cell_writes contract. Artifact lint requires this inventory to equal the active grammar exactly; every formal evaluator must publish and test the same sets, and a newly used node is a release-gate failure until evaluator support and a canonical projection vector land together.",
+  "capabilities": {
+    "cell_subject_kinds": [
+      "coalesce",
+      "composite",
+      "did",
+      "id:*",
+      "string",
+      "tuple",
+      "typed_id",
+      "typed_pair",
+      "uri"
+    ],
+    "cell_subject_component_kinds": [
+      "canonical_json",
+      "did",
+      "field",
+      "id:*",
+      "select",
+      "string",
+      "string_set_digest"
+    ],
+    "condition_kinds": [
+      "field_absent",
+      "field_equals",
+      "field_present"
+    ],
+    "effect_projection_operators": [
+      "append",
+      "apply_patch",
+      "or_set_add",
+      "or_set_delta",
+      "or_set_remove_dots",
+      "or_set_remove_observed",
+      "set",
+      "transition",
+      "transition_to"
+    ],
+    "effect_sources": [
+      "agent_authorization_dot",
+      "const",
+      "dot",
+      "envelope_field",
+      "field",
+      "object_without_fields",
+      "projected_value"
+    ],
+    "value_projection_operators": [
+      "object"
+    ],
+    "value_projection_sources": [
+      "derivation",
+      "envelope_field",
+      "field",
+      "literal",
+      "normalized_string_set"
+    ],
+    "transforms": [
+      "base64url_utf8"
+    ]
+  },
+  "canonical_projection_vectors": [
+    {
+      "vector_id": "ak.vector.encoding.registered_space_create_writes.v1",
+      "fixture": "fixtures/encoding-fixture.json",
+      "covers": [
+        "cell_subject:id:*",
+        "condition:field_present",
+        "effect_operator:set",
+        "effect_source:field",
+        "effect_source:object_without_fields"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.strand_position_typed_pair.v1",
+      "fixture": "fixtures/encoding-fixture.json",
+      "covers": [
+        "cell_subject:typed_pair",
+        "cell_subject_component:id:*",
+        "effect_operator:set",
+        "effect_source:projected_value",
+        "value_projection_operator:object",
+        "value_projection_source:field"
+      ]
+    }
+  ],
+  "evaluator_requirements": [
+    "producer and receiver evaluators must execute the same canonical vectors byte-for-byte",
+    "unknown or malformed grammar nodes fail closed with reducer_projection_failed",
+    "generated AST presence alone is not evaluator support",
+    "active capability inventory growth without matching evaluator support and canonical vectors fails CI"
+  ]
+}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.6",
+  "version": "2026-09-14.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T15:37:05+08:00",
+  "generated_at": "2026-09-14T22:55:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2542,6 +2542,32 @@
       "source_refs": [
         "spec/v1/zh/conformance/encoding.md",
         "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.registered_space_create_writes.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "A complete ak.space.create Event projects the exact metadata, child-scope-policy and parent write set; metadata deletes both split top-level fields through object_without_fields while the two dedicated cells retain their exact values.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.strand_position_typed_pair.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "The registered typed_pair subject for one board-space and Strand is reversible and byte-exact; Move producer and receiver project the literal Board+Strand cell id while malformed Board, Strand and legacy tuple-hash subjects fail closed.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },

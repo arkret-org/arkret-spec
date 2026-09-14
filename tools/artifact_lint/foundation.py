@@ -50,13 +50,168 @@ from .core import (
 # top-level cell_subject.kind MUST be one of these or the `id:<object kind>`
 # form; canonical_json and string_set_digest are components[] descriptors only.
 CELL_SUBJECT_KINDS = frozenset(
-    {"did", "typed_id", "string", "uri", "coalesce", "composite", "tuple"}
+    {
+        "did",
+        "typed_id",
+        "string",
+        "uri",
+        "coalesce",
+        "composite",
+        "tuple",
+        "typed_pair",
+    }
 )
 CELL_SUBJECT_ID_KIND_RE = re.compile(r"^id:[a-z][a-z0-9_]*$")
 
 
 def is_registered_cell_subject_kind(kind: str) -> bool:
     return kind in CELL_SUBJECT_KINDS or CELL_SUBJECT_ID_KIND_RE.fullmatch(kind) is not None
+
+
+def check_registered_effect_capability_inventory(lint: Lint) -> None:
+    """Keep the published executable grammar equal to active cell writes."""
+    event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    inventory_path = ARTIFACTS / "registry" / "registered-effect-capability-registry.json"
+    event_registry = load_json(lint, event_path)
+    inventory = load_json(lint, inventory_path)
+    if not isinstance(event_registry, dict) or not isinstance(inventory, dict):
+        return
+
+    capability_names = (
+        "cell_subject_kinds",
+        "cell_subject_component_kinds",
+        "condition_kinds",
+        "effect_projection_operators",
+        "effect_sources",
+        "value_projection_operators",
+        "value_projection_sources",
+        "transforms",
+    )
+    computed = {name: set() for name in capability_names}
+
+    def normalized_kind(value: object) -> object:
+        if isinstance(value, str) and value.startswith("id:"):
+            return "id:*"
+        return value
+
+    source_keys = {
+        "agent_authorization_dot",
+        "const",
+        "dot",
+        "envelope_field",
+        "field",
+        "object_without_fields",
+        "projected_value",
+    }
+
+    def collect_effect_sources(node: object) -> None:
+        if isinstance(node, dict):
+            matched = source_keys & set(node)
+            if len(node) == 1 and len(matched) == 1:
+                computed["effect_sources"].update(matched)
+                return
+            for value in node.values():
+                collect_effect_sources(value)
+        elif isinstance(node, list):
+            for value in node:
+                collect_effect_sources(value)
+
+    def collect_transforms(node: object) -> None:
+        if isinstance(node, dict):
+            transform = node.get("transform")
+            if isinstance(transform, str):
+                computed["transforms"].add(transform)
+            for value in node.values():
+                collect_transforms(value)
+        elif isinstance(node, list):
+            for value in node:
+                collect_transforms(value)
+
+    for row in event_registry.get("event_kinds", []):
+        if not isinstance(row, dict) or row.get("status") != inventory.get("active_status"):
+            continue
+        for write in row.get("cell_writes", []):
+            if not isinstance(write, dict):
+                continue
+            subject = write.get("cell_subject")
+            if isinstance(subject, dict):
+                subject_kind = normalized_kind(subject.get("kind"))
+                if isinstance(subject_kind, str):
+                    computed["cell_subject_kinds"].add(subject_kind)
+                if subject.get("kind") in {"composite", "tuple", "typed_pair"}:
+                    for component in subject.get("components", []):
+                        if isinstance(component, str):
+                            computed["cell_subject_component_kinds"].add("field")
+                        elif isinstance(component, dict):
+                            component_kind = normalized_kind(component.get("kind"))
+                            if isinstance(component_kind, str):
+                                computed["cell_subject_component_kinds"].add(component_kind)
+                            elif "field" in component:
+                                computed["cell_subject_component_kinds"].add("field")
+                collect_transforms(subject)
+            condition = write.get("condition")
+            if isinstance(condition, dict) and isinstance(condition.get("kind"), str):
+                computed["condition_kinds"].add(condition["kind"])
+            effect = write.get("effect_projection")
+            if isinstance(effect, dict) and isinstance(effect.get("kind"), str):
+                computed["effect_projection_operators"].add(effect["kind"])
+                collect_effect_sources(effect)
+            value_projection = write.get("value_projection")
+            if isinstance(value_projection, dict):
+                if isinstance(value_projection.get("kind"), str):
+                    computed["value_projection_operators"].add(value_projection["kind"])
+                for member in value_projection.get("members", []):
+                    if not isinstance(member, dict):
+                        continue
+                    for source in (
+                        "literal",
+                        "field",
+                        "envelope_field",
+                        "select",
+                        "derivation",
+                        "digest_of",
+                        "normalized_string_set",
+                    ):
+                        if source in member:
+                            computed["value_projection_sources"].add(source)
+                collect_transforms(value_projection)
+
+    declared = inventory.get("capabilities")
+    if not isinstance(declared, dict):
+        lint.fail(inventory_path, "capabilities must be an object")
+        return
+    for name in capability_names:
+        values = declared.get(name)
+        if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+            lint.fail(inventory_path, f"capabilities.{name} must be a string array")
+            continue
+        if values != sorted(set(values)):
+            lint.fail(inventory_path, f"capabilities.{name} must be unique and byte-sorted")
+        if set(values) != computed[name]:
+            lint.fail(
+                inventory_path,
+                f"capabilities.{name} drift: missing={sorted(computed[name] - set(values))}, "
+                f"stale={sorted(set(values) - computed[name])}",
+            )
+
+    fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    fixture_ids = {
+        vector.get("vector_id")
+        for vector in fixture.get("vectors", [])
+        if isinstance(vector, dict)
+    } if isinstance(fixture, dict) else set()
+    vectors = inventory.get("canonical_projection_vectors")
+    if not isinstance(vectors, list) or not vectors:
+        lint.fail(inventory_path, "canonical_projection_vectors must be non-empty")
+        return
+    for index, vector in enumerate(vectors):
+        vector_id = vector.get("vector_id") if isinstance(vector, dict) else None
+        if vector_id not in fixture_ids:
+            lint.fail(
+                inventory_path,
+                f"canonical_projection_vectors[{index}] references missing encoding vector {vector_id!r}",
+            )
 
 
 def unique_values(lint: Lint, path: Path, rows: Any, key: str) -> set[str]:
@@ -1582,11 +1737,16 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                         f"{write_ref}.cell_subject.fields[{part_index}]",
                                         part,
                                     )
-                        elif subject_kind == "tuple":
+                        elif subject_kind in {"tuple", "typed_pair"}:
                             parts = subject.get("components")
                             if not isinstance(parts, list) or not parts:
                                 lint.fail(event_path, f"{write_ref}.cell_subject.components must be non-empty")
                             else:
+                                if subject_kind == "typed_pair" and len(parts) != 2:
+                                    lint.fail(
+                                        event_path,
+                                        f"{write_ref} typed_pair must declare exactly two components",
+                                    )
                                 for part_index, part in enumerate(parts):
                                     part_ref = (
                                         f"{write_ref}.cell_subject.components[{part_index}].field"
@@ -1597,8 +1757,39 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                             f"{write_ref} tuple components must declare field",
                                         )
                                     else:
+                                        if subject_kind == "typed_pair":
+                                            allowed_part_keys = {"name", "field", "kind"}
+                                            unknown_part_keys = set(part) - allowed_part_keys
+                                            if unknown_part_keys:
+                                                lint.fail(
+                                                    event_path,
+                                                    f"{write_ref} typed_pair component has unknown member(s) "
+                                                    f"{sorted(unknown_part_keys)}",
+                                                )
+                                        if subject_kind == "typed_pair" and not isinstance(
+                                            part.get("kind"), str
+                                        ):
+                                            lint.fail(
+                                                event_path,
+                                                f"{write_ref} typed_pair components must declare kind",
+                                            )
+                                        elif subject_kind == "typed_pair" and not part["kind"].startswith(
+                                            "id:"
+                                        ):
+                                            lint.fail(
+                                                event_path,
+                                                f"{write_ref} typed_pair components must use id:<object kind>",
+                                            )
                                         lint_subject_field_path(
                                             lint, event_path, part_ref, part.get("field")
+                                        )
+                                if subject_kind == "typed_pair":
+                                    unknown_subject_keys = set(subject) - {"kind", "components"}
+                                    if unknown_subject_keys:
+                                        lint.fail(
+                                            event_path,
+                                            f"{write_ref}.cell_subject has unknown member(s) "
+                                            f"{sorted(unknown_subject_keys)}",
                                         )
                         else:
                             lint_subject_field_path(

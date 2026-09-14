@@ -52,6 +52,20 @@
       "value": "ak:cell:ak.private.account_data.v1:ak.account_data.theme",
       "category": "deliberate_negative_vector",
       "reason": "Case realm_state_snapshot_chunk_actor_private_family_rejected declares expect_valid false; an actor-private ak.private.* family is exactly what realm-state-snapshot-chunk.schema.json cell_ref must reject (realm-state-snapshot-schema.md section 3: actor-private cells are not Realm consensus state)."
+    },
+    {
+      "pointer": "encoding-fixture.json#/vectors/35/negative_subjects/0",
+      "position": "value",
+      "value": "ak:space:bad:ak:strand:AR0yYaLgfEhMOjzAp9eFpdYOf2dma-COBObvEGjj8NN0",
+      "category": "deliberate_negative_vector",
+      "reason": "The typed_pair negative vector deliberately gives the Board component a non-canonical Space token and requires every producer and receiver parser to reject it rather than accepting a partially typed pair."
+    },
+    {
+      "pointer": "encoding-fixture.json#/vectors/35/negative_subjects/1",
+      "position": "value",
+      "value": "ak:space:AY789mrKRCQEVlbVgiTgLdjVO5oCMJiUCrF-D-JlRNxI:ak:strand:bad",
+      "category": "deliberate_negative_vector",
+      "reason": "The typed_pair negative vector deliberately gives the Strand component a non-canonical Strand token and requires every producer and receiver parser to reject it rather than accepting a partially typed pair."
     }
   ]
 }

@@ -6476,3 +6476,22 @@ membership/policy/control metadata，但不能读取 closure 外 ordinary Event�
 `ak.call.create` MUST 在目标 Realm 的确认序列中写入已登记的初始安全 Call 状态；重复同一 Event 返回原 outcome，另一创建使用它自身派生的 CallId，不能替换已有 Call 的初始安全 revision。普通摘要通过 ak.call.summary 写入，不得进入 Seal.delta 或安全 state_root。
 
 `ak.moderation.decision.lift` MUST 仅移除在签名 basis 实际观察到的精确决定，并在确认执行位置检查相关安全 Cell revision。两个同前置 revision 的解除至多一个成功；未知 tag、跨 target、跨 Realm 和无权 controller 均拒绝且零部分效果。先前不可逆 redaction 不因解除 moderation 决定而恢复内容。
+
+## Registered write 可执行闭包
+
+`vector_id`：
+
+- `ak.vector.encoding.registered_space_create_writes.v1`
+- `ak.vector.encoding.strand_position_typed_pair.v1`
+
+两个向量均位于 `encoding-fixture.json`，输入是完整 Event，输出是按 registry 顺序排列的完整
+`{cell_id,op}` 集合。第一条固定 `ak.space.create` 的 metadata value 必须删除
+`child_scope_policy` 与 `parent_space_id`，同时两个 split cell 精确保留各自值；第二条固定
+`ak.strand.move` 的 `typed_pair(board_space_id,strand_id)` Cell id 与 `{list_space_id,rank}` value。
+producer、receiver 与服务端 reducer 若共享正式 evaluator，可执行同一 evaluator；否则 MUST 各自逐字节
+通过两条向量。未知 source、畸形 `object_without_fields`、错误 Board/Strand typed ID 与旧 tuple hash
+均 MUST fail closed，不能回退 producer effect、完整 object 或 family 私有特判。
+
+`registered-effect-capability-registry.json` 是从全部 active `cell_writes` 反查的闭合能力清单；artifact
+lint 对 subject、component、condition、effect/value operator、source 与 transform 逐集合比对。新增 active
+语法节点时，若该清单、正式 evaluator 支持声明或 canonical vector 未同步，CI MUST 确定性失败。

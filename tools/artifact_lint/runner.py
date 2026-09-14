@@ -27,6 +27,7 @@ from .foundation import (
     check_protocol_layer_registry,
     check_registries,
     check_registry_manifest,
+    check_registered_effect_capability_inventory,
     check_retired_event_id_contract,
     check_state_contract_closure,
     check_text_files_utf8_no_nul,
@@ -283,6 +284,10 @@ def main(argv: list[str] | None = None) -> int:
             ("text_encoding", lambda: check_text_files_utf8_no_nul(lint)),
             ("history_response_naming", lambda: check_history_response_naming(lint)),
             ("registry_manifest", lambda: check_registry_manifest(lint)),
+            (
+                "registered_effect_capabilities",
+                lambda: check_registered_effect_capability_inventory(lint),
+            ),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
             ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),

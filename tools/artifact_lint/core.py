@@ -195,6 +195,7 @@ CELL_SUBJECT_KINDS = {
     "coalesce",
     "composite",
     "tuple",
+    "typed_pair",
 }
 
 CELL_SUBJECT_COMPONENT_ONLY_KINDS = {"canonical_json", "string_set_digest"}

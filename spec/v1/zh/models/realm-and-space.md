@@ -614,6 +614,12 @@ execution   := data
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
+该 family 的 registry `cell_subject.kind` 固定为 `typed_pair`，两个有序分量依次为
+`id:space(payload.board_space_id)` 与 `id:strand(payload.strand_id)`。因此上式是可逆的
+canonical wire 编码，不适用 `tuple/composite` 的 SHA-256 subject；producer、reducer、Current
+publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 Cell id。解析时必须同时
+验证 Board 与 Strand 两个 typed-ID 分量，不能只截取末尾 Strand，也不能接受 hash subject。
+
 `ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据，不携带 `seal_basis`。`expected_position` 与 `from_space_id` 只校验签名因果基底，不能把离线并发变成唯一成功的 CAS。多个并发位置写均可被接受，但该 position cell 始终按普通 `causal_register` 的固定 `(depth,EventId)` rank 产生唯一 current winner；只有 winner 产生 effective placement/contains，落选 Event 仅保留历史与 provenance，不进入第二个 UI “冲突列”。后继引用当前 winner 即产生更高 depth 的正常移动，无需观察或人工修复全部落选分支。WIP 在各自签名基底校验；合流后由同一固定 winner 计算当前占用，不得按到达顺序撤销某一合法写来伪装硬容量保证。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：

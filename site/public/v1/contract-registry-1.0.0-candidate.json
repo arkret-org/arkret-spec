@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.7",
+  "version": "2026-09-14.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T15:37:05+08:00",
+  "generated_at": "2026-09-14T22:55:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -5941,7 +5941,7 @@
                   "kind": "id:strand"
                 }
               ],
-              "kind": "tuple"
+              "kind": "typed_pair"
             },
             "value_projection": {
               "kind": "object",
@@ -5987,7 +5987,7 @@
                   "kind": "id:strand"
                 }
               ],
-              "kind": "tuple"
+              "kind": "typed_pair"
             },
             "value_projection": {
               "kind": "object",
@@ -8780,8 +8780,8 @@
         }
       }
     },
-    "version": "2026-09-13.1",
-    "generated_at": "2026-09-13T10:43:01+08:00",
+    "version": "2026-09-14.1",
+    "generated_at": "2026-09-14T22:40:00+08:00",
     "history_admission_contract": {
       "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
       "consumer_contexts": [

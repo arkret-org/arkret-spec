@@ -2294,7 +2294,7 @@ def check_composite_subject_terminal_types(
                         f"{subject_ref} coalesce fields have no schema endpoint",
                     )
                 continue
-            if subject_kind not in {"composite", "tuple"}:
+            if subject_kind not in {"composite", "tuple", "typed_pair"}:
                 source = subject.get("field")
                 if isinstance(source, str):
                     validate_scalar_endpoint(

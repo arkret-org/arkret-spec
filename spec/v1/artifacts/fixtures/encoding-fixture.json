@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-13.1",
+  "version": "2026-09-14.1",
   "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.13. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
@@ -1479,6 +1479,150 @@
         "the registry cell_subject.kind selects the embedding rule; uri percent-encodes every octet outside ALPHA / DIGIT / - . _ ~ with upper-case hex, including : / and % itself",
         "encoding % is what keeps the transform injective: a segment carrying %2F and a path carrying a real / are two different rooms and MUST NOT fold onto one cell",
         "the transform addresses a cell and never normalizes one: a non-canonical mimi_room_uri MUST be rejected with schema_violation before any subject is derived"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.registered_space_create_writes.v1",
+      "kind": "registered_cell_writes",
+      "input_event": {
+        "event_id": "ak:event:AUf4Nwr-Lqj1RlqDi4awPbskicm37buT2CswWBfZbgLe",
+        "kind": "ak.space.create",
+        "realm_id": "ak:realm:AQOJcuEsMahV_eXZxrvKxOc_1fBMQCLgofI2jenpts5n",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQOJcuEsMahV_eXZxrvKxOc_1fBMQCLgofI2jenpts5n"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:principal.example"
+          }
+        },
+        "actor_seq": 7,
+        "created_at": "2026-07-26T01:00:00.000Z",
+        "hlc": "019f9e500000-0000-aabbccdd",
+        "prev_refs": [],
+        "payload": {
+          "object": {
+            "schema": "ak.schema.space.v1",
+            "realm_id": "ak:realm:AQOJcuEsMahV_eXZxrvKxOc_1fBMQCLgofI2jenpts5n",
+            "child_scope_policy": {
+              "kind": "require_e2ee"
+            },
+            "parent_space_id": "ak:space:AY789mrKRCQEVlbVgiTgLdjVO5oCMJiUCrF-D-JlRNxI",
+            "kind": "board",
+            "title": "Roadmap",
+            "summary": "Canonical projection fixture",
+            "labels": [
+              "planning"
+            ],
+            "created_by": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:web:principal.example"
+              }
+            },
+            "created_at": "2026-07-26T01:00:00.000Z"
+          }
+        },
+        "proofs": []
+      },
+      "expected_writes": [
+        {
+          "cell_id": "ak:cell:ak.component.space.metadata.v1:ak:space:AUf4Nwr-Lqj1RlqDi4awPbskicm37buT2CswWBfZbgLe",
+          "op": {
+            "kind": "set",
+            "value": {
+              "schema": "ak.schema.space.v1",
+              "realm_id": "ak:realm:AQOJcuEsMahV_eXZxrvKxOc_1fBMQCLgofI2jenpts5n",
+              "kind": "board",
+              "title": "Roadmap",
+              "summary": "Canonical projection fixture",
+              "labels": [
+                "planning"
+              ],
+              "created_by": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:web:principal.example"
+                }
+              },
+              "created_at": "2026-07-26T01:00:00.000Z"
+            }
+          }
+        },
+        {
+          "cell_id": "ak:cell:ak.component.space.child_scope_policy.v1:ak:space:AUf4Nwr-Lqj1RlqDi4awPbskicm37buT2CswWBfZbgLe",
+          "op": {
+            "kind": "set",
+            "value": {
+              "kind": "require_e2ee"
+            }
+          }
+        },
+        {
+          "cell_id": "ak:cell:ak.component.space.parent.v1:ak:space:AUf4Nwr-Lqj1RlqDi4awPbskicm37buT2CswWBfZbgLe",
+          "op": {
+            "kind": "set",
+            "value": "ak:space:AY789mrKRCQEVlbVgiTgLdjVO5oCMJiUCrF-D-JlRNxI"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.strand_position_typed_pair.v1",
+      "kind": "registered_cell_writes",
+      "input_event": {
+        "event_id": "ak:event:AV1bzsPGpTD74Cq12d9EOrCkieTddiSndS0kDtK1W2hM",
+        "kind": "ak.strand.move",
+        "realm_id": "ak:realm:AQOJcuEsMahV_eXZxrvKxOc_1fBMQCLgofI2jenpts5n",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQOJcuEsMahV_eXZxrvKxOc_1fBMQCLgofI2jenpts5n"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:principal.example"
+          }
+        },
+        "actor_seq": 8,
+        "created_at": "2026-07-26T01:01:00.000Z",
+        "hlc": "019f9e50ea60-0000-aabbccdd",
+        "prev_refs": [],
+        "auth_context": {
+          "authority_refs": [
+            "ak:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          ]
+        },
+        "payload": {
+          "board_space_id": "ak:space:AY789mrKRCQEVlbVgiTgLdjVO5oCMJiUCrF-D-JlRNxI",
+          "strand_id": "ak:strand:AR0yYaLgfEhMOjzAp9eFpdYOf2dma-COBObvEGjj8NN0",
+          "target_space_id": "ak:space:AYF9kISN3EO4c1c2LZQghlctBD8FjXKkkpKmZU86tBEk",
+          "rank": "U"
+        },
+        "proofs": []
+      },
+      "expected_writes": [
+        {
+          "cell_id": "ak:cell:ak.component.strand.position.v1:ak:space:AY789mrKRCQEVlbVgiTgLdjVO5oCMJiUCrF-D-JlRNxI:ak:strand:AR0yYaLgfEhMOjzAp9eFpdYOf2dma-COBObvEGjj8NN0",
+          "op": {
+            "kind": "set",
+            "value": {
+              "list_space_id": "ak:space:AYF9kISN3EO4c1c2LZQghlctBD8FjXKkkpKmZU86tBEk",
+              "rank": "U"
+            }
+          }
+        }
+      ],
+      "negative_subjects": [
+        "ak:space:bad:ak:strand:AR0yYaLgfEhMOjzAp9eFpdYOf2dma-COBObvEGjj8NN0",
+        "ak:space:AY789mrKRCQEVlbVgiTgLdjVO5oCMJiUCrF-D-JlRNxI:ak:strand:bad",
+        "TqCA8K4PWbJv0LC86pQddRltBuihlXLjBMdePUpo0Q4"
       ]
     }
   ],

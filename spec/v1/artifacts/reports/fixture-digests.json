@@ -142,7 +142,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "4bd181dd23259e0614bae9c15fa73ce0e5d8917ebf96817f6d3d3f35dfe57268"
+      "sha256": "c5cef6322a5aea5d5d5f40021a92dfd3c9e0fd2a957ae605c090f202a37f9d81"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",

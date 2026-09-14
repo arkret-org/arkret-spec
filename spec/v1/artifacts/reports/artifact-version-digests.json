@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-14.7",
-      "generated_at": "2026-09-14T15:37:05+08:00",
-      "content_digest": "sha256:7d8764212280ab1fa3f91cb6f5e1ef3b34e1b219e57943d5d04074e8e27ea136"
+      "version": "2026-09-14.8",
+      "generated_at": "2026-09-14T22:55:00+08:00",
+      "content_digest": "sha256:9b623820d6ec3230ebafdd431973e76b35f9c6a0f263d4439ede1e6c4eb3e99c"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-13.2",
-      "generated_at": "2026-09-13T12:36:00+08:00",
-      "content_digest": "sha256:2e4866bbe165d66908671f22a442bb8796a093860c06cf6f134320baa1efb07e"
+      "version": "2026-09-14.1",
+      "generated_at": "2026-09-14T22:40:00+08:00",
+      "content_digest": "sha256:cce502e3d37570e9007a64bc63962ad1c72c47c07bbdc7f9bfb76bf39fd86733"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -332,10 +332,16 @@
       "content_digest": "sha256:dd0a09b7e61617fbd75af3d0d5c6e7bf952f84050bad5a5027c5d7bd5963242b"
     },
     {
+      "path": "spec/v1/artifacts/registry/registered-effect-capability-registry.json",
+      "version": "2026-09-14.1",
+      "generated_at": "2026-09-14T22:55:00+08:00",
+      "content_digest": "sha256:f7fce3933c337280d504862511d4d5a8048fb84566c63cc63f0b885fb4bf7b46"
+    },
+    {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
-      "version": "2026-09-10.8",
-      "generated_at": "2026-09-10T10:52:00+08:00",
-      "content_digest": "sha256:3345500a9ebf4778822be08be641399039e71e612bc22dd8206e8599e0e4694b"
+      "version": "2026-09-14.1",
+      "generated_at": "2026-09-14T22:55:00+08:00",
+      "content_digest": "sha256:a7308e1eae3152fc8bbd46616d6015670fe9df3b2f69e52f492ad0d8fb884a25"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
@@ -393,9 +399,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-14.6",
-      "generated_at": "2026-09-14T15:37:05+08:00",
-      "content_digest": "sha256:5765a18ca9325e09d9ab833fc121afa3f1d3135885f7d3a787b9f65d65d506ad"
+      "version": "2026-09-14.7",
+      "generated_at": "2026-09-14T22:55:00+08:00",
+      "content_digest": "sha256:65b20ab77a1dc13908b2868c7ab3fbfd72b8d77f9566aaddb6e1ec787eb9a62f"
     }
   ]
 }

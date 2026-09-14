@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.2",
+  "version": "2026-09-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T12:36:00+08:00",
+  "generated_at": "2026-09-14T22:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2798,7 +2798,7 @@
                 "kind": "id:strand"
               }
             ],
-            "kind": "tuple"
+            "kind": "typed_pair"
           },
           "value_projection": {
             "kind": "object",
@@ -2853,7 +2853,7 @@
                 "kind": "id:strand"
               }
             ],
-            "kind": "tuple"
+            "kind": "typed_pair"
           },
           "value_projection": {
             "kind": "object",
