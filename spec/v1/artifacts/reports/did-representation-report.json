@@ -7154,6 +7154,16 @@
       ]
     },
     {
+      "schema_path": "principal-registration-anchor.schema.json#/$defs/did_key_registration_anchor/properties/did",
+      "property_name": "did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_key_did"
+      ]
+    },
+    {
       "schema_path": "push-operations.schema.json#/$defs/push_registration_installation_receipt/properties/destination_gateway_id",
       "property_name": "destination_gateway_id",
       "semantic_category": "responsibility_identity_material",

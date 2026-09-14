@@ -6312,9 +6312,12 @@ Runner MUST 从 `evidence_root` 的内容地址开始执行完整 verifier，不
 
 Runner MUST 覆盖：
 
-1. 正例从签名 DID inception、PCR genesis、原 `ak.device.authorize` 与 generation，沿按 UTF-8 字节排序、
+1. `did:webvh` 与 `did:key` 各有一条完整正例：从 closed `principal_registration_anchor`、PCR genesis、原 `ak.device.authorize` 与 generation，沿按 UTF-8 字节排序、
    无重复且最小的 Event/Seal 前缀走到首次 successful committed confirmation Seal；root 的 canonical JCS 与
-   `ak:signer_evidence:sha256:*` known answer 必须逐字匹配。
+   `ak:signer_evidence:sha256:*` known answer 必须逐字匹配。Runner MUST 只从锚分支材料离线导出 `did`、
+   `method_history_head`、`version_id`、normalized DID Document 与 root verification method/key，并要求它们
+   逐字等于 PCR genesis `initial_resolution` 与该 genesis 的 root producer 材料；不得访问 current resolver 或
+   数据库最新 DID row。
 2. `history_event_refs` 或 `history_seal_refs` 任一对象缺失、签名/possession proof/notary configuration/state
    transition 任一验证失败、前缀乱序/重复/混入后继对象，整体保持 unresolved 或拒绝，不能用 current projection
    补齐。
@@ -6324,6 +6327,12 @@ Runner MUST 覆盖：
    generation number 任一不一致必须拒绝；签名时刻早于 `not_before` 或达到/晚于 `expires_at` 也必须拒绝。
 5. `account_device_control` 只能授权普通 human generic Control（包括普通 Realm bootstrap）。Data Event 与 native
    PCR genesis/reanchor unit 必须拒绝该分支，且不得回退到 `account_device`、`principal` 或无 ref 的 native 规则。
+6. 注册锚负例必须全部拒绝：未登记的 `anchor_kind`（含任何 `did:web` 锚）以 `unsupported_did_method` 早拒绝；
+   分支内 operation method 与 DID 不一致、log 不从 inception 起、entry hash chain 断裂、operation 终点 version
+   不是 terminal entry、适用 witness record 缺失或多余、normalized DID Document 被替换、`did:key` 分支携带
+   自带文档或合成 operation，均以锚自身失效拒绝；导出的 head/version/DID 坐标、root verification method/key
+   与 principal projection 任一不等于 genesis 材料同样拒绝。任何负例都不得因本地可 expansion 或可回源当前
+   文档而被放行。
 
 ## Account status issuer ledger
 

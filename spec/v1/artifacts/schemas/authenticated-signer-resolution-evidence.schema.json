@@ -151,7 +151,7 @@
         "generation_event_ref",
         "confirmation_seal_ref",
         "pcr_genesis_event_ref",
-        "principal_inception",
+        "principal_registration_anchor",
         "history_event_refs",
         "history_seal_refs"
       ],
@@ -188,8 +188,8 @@
         "pcr_genesis_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
-        "principal_inception": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json"
         },
         "history_event_refs": {
           "type": "array",
@@ -212,7 +212,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Portable ordinary-human Control signer root. signer_id equals account_id.principal_id; verification_method is rooted in principal_inception.did and has the exact device_id fragment. authorization_event_ref identifies the original fully signed ak.device.authorize, authorized_generation_ref and generation_event_ref identify its frozen generation, confirmation_seal_ref is the first successful confirming Seal, and pcr_genesis_event_ref plus the original signed principal_inception form the independent trust anchor. history_event_refs and history_seal_refs are UTF-8 byte-sorted, duplicate-free exact references for the minimal closed PCR prefix through confirmation_seal_ref; the objects are fetched through existing exact Event/Seal transports and are not inlined or replaced by current projections. A verifier MUST obtain every referenced object, verify the complete prefix, original possession and producer proofs, exact committed outcome and historical notary configuration, and match the derived Account/device/method/key/generation/window before accepting a generic Control Event. This branch does not authorize Data, notary, DID update, recovery-factor, SessionGrant or Signal actions. Complete canonical evidence is at most 1 MiB."
+      "description": "Portable ordinary-human Control signer root. signer_id equals account_id.principal_id; verification_method is rooted in the DID the verifier derives from principal_registration_anchor and has the exact device_id fragment. authorization_event_ref identifies the original fully signed ak.device.authorize, authorized_generation_ref and generation_event_ref identify its frozen generation, confirmation_seal_ref is the first successful confirming Seal, and pcr_genesis_event_ref plus principal_registration_anchor form the independent trust anchor. principal_registration_anchor is the closed adapter-discriminated union whose branch the registered registration_anchor_kind selects: the verifier re-derives did, method_history_head, version_id, the normalized DID document and the root verification method and key from that branch alone, requires them to equal the PCR genesis initial_resolution coordinates byte-for-byte, and verifies the genesis root producer proof against the derived root key. A registration_did_evidence receipt, an identity_creation_control_proof or any current resolver or database result is not this anchor and MUST NOT substitute for it. history_event_refs and history_seal_refs are UTF-8 byte-sorted, duplicate-free exact references for the minimal closed PCR prefix through confirmation_seal_ref; the objects are fetched through existing exact Event/Seal transports and are not inlined or replaced by current projections. A verifier MUST obtain every referenced object, verify the complete prefix, original possession and producer proofs, exact committed outcome and historical notary configuration, and match the derived Account/device/method/key/generation/window before accepting a generic Control Event. This branch does not authorize Data, notary, DID update, recovery-factor, SessionGrant or Signal actions. Complete canonical evidence is at most 1 MiB."
     },
     "agent_signer_evidence": {
       "type": "object",

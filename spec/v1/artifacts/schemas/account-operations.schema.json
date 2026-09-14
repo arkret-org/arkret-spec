@@ -546,12 +546,12 @@
     },
     "reserved_identity_creation": {
       "type": "object",
-      "description": "Server-persisted identity-creation checkpoint, readable only by the authenticated current holder of the owning service account's identity-creation lease. It is NOT public: an unfinished reservation would otherwise leak that a specific account is mid-registration, and abandoning it would leave a permanent public trace. Once registration completes the public artifact is the published DID log entry itself, so this checkpoint never needs to become public. It contains the exact unpublished or already-published DID operation, never recovery words, seed material, private keys, or an encrypted root export.",
+      "description": "Server-persisted identity-creation checkpoint, readable only by the authenticated current holder of the owning service account's identity-creation lease. It is NOT public: an unfinished reservation would otherwise leak that a specific account is mid-registration, and abandoning it would leave a permanent public trace. Once registration completes the public artifact is the published method-native anchor itself, so this checkpoint never needs to become public. It contains the exact unpublished or already-published registration anchor, never recovery words, seed material, private keys, or an encrypted root export.",
       "required": [
         "principal_id",
         "did",
-        "operation_digest",
-        "did_operation"
+        "registration_anchor_digest",
+        "principal_registration_anchor"
       ],
       "properties": {
         "principal_id": {
@@ -560,12 +560,12 @@
         "did": {
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
-        "operation_digest": {
+        "registration_anchor_digest": {
           "$ref": "#/$defs/sha256_digest",
-          "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete did_operation object."
+          "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete principal_registration_anchor object."
         },
-        "did_operation": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json"
         }
       },
       "additionalProperties": false
@@ -790,7 +790,7 @@
         "identity_creation_lease_id",
         "lease_fence",
         "did",
-        "did_operation",
+        "principal_registration_anchor",
         "pcr_realm_id",
         "realm_create_payload_digest",
         "founding_authorize_payload_digest",
@@ -809,10 +809,10 @@
         },
         "did": {
           "$ref": "#/$defs/did",
-          "description": "Complete standard DID whose registered method adapter MUST project to the principal_id derived from did_operation."
+          "description": "Complete standard DID whose registered method adapter MUST project to the principal_id the Account Authority derives from principal_registration_anchor."
         },
-        "did_operation": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json"
         },
         "pcr_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -879,7 +879,7 @@
     },
     "identity_creation_control_proof": {
       "type": "object",
-      "description": "Fresh proof signed by the did:webvh inception operation's parameters.updateKeys[0] identity root. The verifier selects that key from did_operation and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. Signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1.",
+      "description": "Fresh proof signed by the registration root control key. The verifier derives that key from principal_registration_anchor under the adapter its anchor_kind selects - the accepted did:webvh entry's parameters.updateKeys[0] for webvh_registration, the deterministically expanded root key for did_key_registration - and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. proof_kind names the derivation actually used and MUST agree with anchor_kind. Signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -888,7 +888,7 @@
         "account_subject",
         "principal_id",
         "did",
-        "operation_digest",
+        "registration_anchor_digest",
         "did_version_id",
         "control_key_digest",
         "pcr_realm_id",
@@ -909,7 +909,12 @@
       ],
       "properties": {
         "proof_kind": {
-          "const": "did_webvh_inception_update_key"
+          "type": "string",
+          "enum": [
+            "did_webvh_inception_update_key",
+            "did_key_expansion_root_key"
+          ],
+          "description": "Closed registration root-key derivation discriminator. did_webvh_inception_update_key pairs with anchor_kind=webvh_registration and did_key_expansion_root_key with anchor_kind=did_key_registration; a mismatched pair fails closed."
         },
         "challenge_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -930,8 +935,9 @@
         "did": {
           "$ref": "#/$defs/did"
         },
-        "operation_digest": {
-          "$ref": "#/$defs/sha256_digest"
+        "registration_anchor_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 over RFC 8785 JCS of the complete principal_registration_anchor. The verifier recomputes it from the submitted anchor."
         },
         "did_version_id": {
           "type": "string",
@@ -1004,7 +1010,7 @@
         "identity_creation_lease_id",
         "lease_fence",
         "did",
-        "did_operation",
+        "principal_registration_anchor",
         "registration_did_evidence_draft",
         "control_proof",
         "pcr_genesis_unit",
@@ -1021,12 +1027,12 @@
         "did": {
           "$ref": "#/$defs/did"
         },
-        "did_operation": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json"
         },
         "registration_did_evidence_draft": {
           "$ref": "./registration-did-evidence.schema.json#/$defs/registration_did_evidence_draft",
-          "description": "Dedicated registration-time control proof and frozen method evidence. It is distinct from identity_creation_control_proof and MUST bind the exact did_operation pins."
+          "description": "Dedicated registration-time control proof and frozen method evidence. It is distinct from identity_creation_control_proof, it is a receipt rather than primary material, and it MUST bind the exact coordinates re-derived from principal_registration_anchor."
         },
         "control_proof": {
           "$ref": "#/$defs/identity_creation_control_proof"
@@ -1038,7 +1044,91 @@
           "$ref": "./service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent"
         }
       },
+      "allOf": [
+        {
+          "$ref": "#/$defs/registration_anchor_control_proof_pairing"
+        }
+      ],
       "additionalProperties": false
+    },
+    "registration_anchor_control_proof_pairing": {
+      "$comment": "Single closed pairing between the registration anchor branch and the identity-root derivation the control proof claims. It is referenced by every carrier that ships both objects so the two members can never disagree on which adapter produced the root key.",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "principal_registration_anchor"
+            ],
+            "properties": {
+              "principal_registration_anchor": {
+                "required": [
+                  "anchor_kind"
+                ],
+                "properties": {
+                  "anchor_kind": {
+                    "const": "webvh_registration"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "control_proof": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "did_webvh_inception_update_key"
+                  }
+                }
+              },
+              "identity_creation_control_proof": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "did_webvh_inception_update_key"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "principal_registration_anchor"
+            ],
+            "properties": {
+              "principal_registration_anchor": {
+                "required": [
+                  "anchor_kind"
+                ],
+                "properties": {
+                  "anchor_kind": {
+                    "const": "did_key_registration"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "control_proof": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "did_key_expansion_root_key"
+                  }
+                }
+              },
+              "identity_creation_control_proof": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "did_key_expansion_root_key"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "account_binding_receipt": {
       "type": "object",
@@ -1052,7 +1142,7 @@
         "did_version_id",
         "control_key_digest",
         "operation_status",
-        "operation_digest",
+        "registration_anchor_digest",
         "issued_at",
         "proof"
       ],
@@ -1112,16 +1202,16 @@
             "duplicate"
           ]
         },
-        "operation_digest": {
+        "registration_anchor_digest": {
           "$ref": "#/$defs/sha256_digest",
-          "description": "SHA-256 of RFC 8785 JCS of the complete frozen typed DidOperationSubmitRequestBody, including the exact method-native operation and all its proofs. The verifier MUST recompute it from the submitted operation; serializing a raw JSON transport with different optional-member treatment is not equivalent."
+          "description": "SHA-256 of RFC 8785 JCS of the complete frozen typed principal_registration_anchor, including the exact method-native material of the selected branch. For binding_kind=identity_creation it is the submitted anchor; for published_did the Account Authority freezes the anchor it reconstructed from the verified method history at did_version_id. The verifier MUST recompute it from that typed object; serializing a raw JSON transport with different optional-member treatment is not equivalent."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
         },
         "proof": {
           "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, did, did_version_id, control_key_digest, operation_digest, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, did, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
+          "description": "Account Authority detached proof. payload_digest is SHA-256 over RFC 8785 JCS of the complete receipt with proof omitted, including binding_kind, principal_id, did, did_version_id, control_key_digest, registration_anchor_digest, and the identity-creation lease/fence only when that branch applies. JWS signs canonical_json({context:'ak.account_binding_receipt_proof.v1', payload_digest, account_authority_id, account_subject, principal_id, did, did_version_id, control_key_digest, verification_method, created_at}); proof.created_at MUST equal issued_at and verification_method MUST be an assertion method of account_authority_id valid at issued_at."
         }
       },
       "allOf": [
@@ -2066,7 +2156,7 @@
     },
     "did_binding_challenge_request_body": {
       "type": "object",
-      "description": "Request a single-use challenge for binding an ALREADY-PUBLISHED did to principal_id. Unlike identity_binding_challenge_request_body this carries no unpublished did_operation and no PCR genesis digests: the DID already exists, and the Account Authority resolves did at high freshness, requires project(did)=principal_id, and never attempts to resolve did_core_id directly.",
+      "description": "Request a single-use challenge for binding an ALREADY-PUBLISHED did to principal_id. Unlike identity_binding_challenge_request_body this carries no unpublished principal_registration_anchor and no PCR genesis digests: the DID already exists, and the Account Authority resolves did at high freshness, requires project(did)=principal_id, and never attempts to resolve did_core_id directly.",
       "required": [
         "request_id",
         "principal_id",

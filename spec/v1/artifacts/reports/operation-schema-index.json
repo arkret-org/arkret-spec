@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.4",
+  "version": "2026-09-14.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T08:51:14+08:00",
+  "generated_at": "2026-09-14T10:50:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1257,7 +1257,7 @@
           "identity_creation_lease_id",
           "lease_fence",
           "did",
-          "did_operation",
+          "principal_registration_anchor",
           "pcr_realm_id",
           "realm_create_payload_digest",
           "founding_authorize_payload_digest",
@@ -1268,7 +1268,7 @@
           "identity_creation_lease_id",
           "lease_fence",
           "did",
-          "did_operation",
+          "principal_registration_anchor",
           "pcr_realm_id",
           "realm_create_payload_digest",
           "founding_authorize_payload_digest",
@@ -3869,7 +3869,7 @@
           "control_key_digest",
           "idempotency_key",
           "registration_request_digest",
-          "registration_did_operation",
+          "principal_registration_anchor",
           "registration_did_evidence",
           "identity_creation_control_proof",
           "genesis_unit"
@@ -3883,7 +3883,7 @@
           "control_key_digest",
           "idempotency_key",
           "registration_request_digest",
-          "registration_did_operation",
+          "principal_registration_anchor",
           "registration_did_evidence",
           "identity_creation_control_proof",
           "genesis_unit"

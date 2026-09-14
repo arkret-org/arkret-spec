@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/principal-registration-anchor.schema.json",
+  "title": "Arkret Principal Registration Anchor",
+  "description": "Closed, adapter-discriminated registration anchor for a v1 human principal. It is the single primary method-native material that human registration, PCR genesis and the portable account_device_control root all consume: one branch per active human_principal_anchor adapter, selected only by anchor_kind. The anchor carries originals, never receipts: a verifier reconstructs did, method_history_head, version_id, the exact normalized DID document and the root verification method/key from the branch material alone, offline, without a current resolver, a database row or an Account Authority attestation. registration_did_evidence and identity_creation_control_proof keep their own registration anti-replay and control-intent roles and never substitute for this object. did:web has no branch here: WebPKI authenticates a TLS endpoint rather than the DID document body, so it produces no portable historical publication proof. Restoring a did:web branch requires a separately registered publication-proof or independent-witness trust model, threat model and conformance vectors. Complete canonical anchor bytes MUST NOT exceed 1 MiB.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/webvh_registration_anchor"
+    },
+    {
+      "$ref": "#/$defs/did_key_registration_anchor"
+    }
+  ],
+  "$defs": {
+    "webvh_registration_anchor": {
+      "type": "object",
+      "description": "did:webvh registration anchor. registration_did_operation is the exact method-native operation accepted at registration; log_entries is the gap-free native history from inception through the entry that operation established, and witness_records is the complete did-witness.json record set every witness policy active in that interval requires. The verifier independently re-executes SCID derivation, every versionId and entry hash-chain link, every controller proof, rotation authorization and applicable witness threshold, requires the terminal entry to be canonically equal to normalized_did_document, and derives did, method_history_head and version_id from that verified terminal state under the registered did:webvh adapter rules. The derived triple MUST equal the PCR genesis initial_resolution did, method_history_head and version_id byte-for-byte, and the root verification method and key come only from the verified terminal state. A resolver summary, a partial log range, a bare current DID document or a caller-asserted head is not this anchor.",
+      "required": [
+        "anchor_kind",
+        "registration_did_operation",
+        "log_entries",
+        "witness_records",
+        "normalized_did_document"
+      ],
+      "properties": {
+        "anchor_kind": {
+          "const": "webvh_registration"
+        },
+        "registration_did_operation": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
+          "description": "Exact accepted registration-time did:webvh operation with every controller proof it carried. did_method MUST equal webvh and did MUST be the canonical did:webvh identifier this anchor establishes; the anchor carries no second copy of that DID."
+        },
+        "log_entries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "type": "object"
+          },
+          "description": "Exact ordered native did:webvh entry objects from inception through the registration anchor entry. Gaps, duplicates, surplus entries after the registration entry, or a first entry other than inception fail closed."
+        },
+        "witness_records": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object"
+          },
+          "description": "Exact native did-witness.json record objects required by log_entries, keyed uniquely by versionId. Missing, duplicate, invalid or surplus records fail closed. The array is empty exactly when the verified log activates no witness policy."
+        },
+        "normalized_did_document": {
+          "$ref": "./did-binding-contracts.schema.json#/$defs/normalized_did_document",
+          "description": "Exact normalized DID document of the verified terminal entry. The verifier recomputes the normalized projection from log_entries and rejects any divergence instead of trusting this member."
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_key_registration_anchor": {
+      "type": "object",
+      "description": "did:key registration anchor. did:key has no update operation and no native history, so this branch carries the canonical DID and nothing else: the verifier rebuilds the exact normalized DID document, the synthetic method_history_head and version_id and the root verification method and key from did alone under the registered did:key deterministic expansion rules. The rebuilt method_history_head and version_id MUST equal the PCR genesis initial_resolution values byte-for-byte. A caller-supplied DID document, an empty or synthesized operation, a fabricated log entry and any other selectable mirror member are forbidden here rather than optional, because a selectable mirror would let a caller choose which reconstruction the verifier compares against.",
+      "required": [
+        "anchor_kind",
+        "did"
+      ],
+      "properties": {
+        "anchor_kind": {
+          "const": "did_key_registration"
+        },
+        "did": {
+          "$ref": "./common-ids.schema.json#/$defs/did_key_did"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -8,6 +8,13 @@
     "ak.vector.identity.human_control_signer_evidence.v1"
   ],
   "schema_ref": "schemas/authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence",
+  "registration_anchor_rules": [
+    "anchor_kind is resolved through did-method-adapter-registry.json registration_anchor_kind before any branch parsing; an unregistered value, including any did:web anchor, fails closed with unsupported_did_method.",
+    "webvh_registration derivation: log_entries MUST begin at inception (previous_entry_digest null) and chain by sha256 over RFC 8785 JCS of the preceding entry; registration_did_operation.did_method MUST equal webvh and its operation.version_id MUST equal the terminal entry version_id; every entry with witness_threshold > 0 MUST be covered by at least that many witness_records for its exact version_id, and a record for a version outside log_entries is surplus. did is registration_did_operation.did, version_id is the terminal entry version_id and method_history_head is sha256 over RFC 8785 JCS of the terminal entry.",
+    "did_key_registration derivation: the branch carries only anchor_kind and did. method_history_head is sha256 over the UTF-8 bytes of did, version_id is synthetic-did-sha256:<same hex>, and the normalized document, root verification method and root key are rebuilt from the multibase suffix alone.",
+    "The derived did, method_history_head and version_id MUST equal the PCR genesis initial_resolution values byte-for-byte, the derived root verification method and key MUST equal the genesis root producer material, and project(did) MUST equal account_id.principal_id.",
+    "Every check consumes only the evidence root and its explicitly referenced objects. No case supplies a current resolver result, a database projection or an Account Authority receipt, so the whole suite runs offline."
+  ],
   "canonical_case": {
     "evidence_root": {
       "kind": "account_device_control",
@@ -23,13 +30,84 @@
       "generation_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
       "confirmation_seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "pcr_genesis_event_ref": "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
-      "principal_inception": {
-        "did": "did:webvh:z6mkfixture-control.example",
-        "did_method": "webvh",
-        "seq": 0,
-        "operation": {
-          "type": "create",
-          "root_verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+      "principal_registration_anchor": {
+        "anchor_kind": "webvh_registration",
+        "registration_did_operation": {
+          "did": "did:webvh:z6mkfixture-control.example",
+          "did_method": "webvh",
+          "seq": 1,
+          "operation": {
+            "type": "update",
+            "version_id": "2-fixturecontrolregistration"
+          }
+        },
+        "log_entries": [
+          {
+            "version_id": "1-fixturecontrolinception",
+            "previous_entry_digest": null,
+            "update_keys": [
+              "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+            ],
+            "witness_threshold": 0,
+            "root_verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+          },
+          {
+            "version_id": "2-fixturecontrolregistration",
+            "previous_entry_digest": "sha256:9e013f1498555f7de57c2963057349624848f4a16bc134fb88ad1a032a6a7091",
+            "update_keys": [
+              "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+            ],
+            "witness_threshold": 1,
+            "root_verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+          }
+        ],
+        "witness_records": [
+          {
+            "version_id": "2-fixturecontrolregistration",
+            "witness_did": "did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsbCnMcGCFf3E5DtRi3ucZfR",
+            "proof_valid": true
+          }
+        ],
+        "normalized_did_document": {
+          "did": "did:webvh:z6mkfixture-control.example",
+          "contexts": [
+            "https://www.w3.org/ns/did/v1"
+          ],
+          "controller_dids": [
+            "did:webvh:z6mkfixture-control.example"
+          ],
+          "also_known_as": [],
+          "verification_methods": [
+            {
+              "verification_method": "did:webvh:z6mkfixture-control.example#root-1",
+              "controller_did": "did:webvh:z6mkfixture-control.example",
+              "verification_method_suite": "Multikey",
+              "public_key_material": {
+                "publicKeyMultibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+              },
+              "extensions": []
+            }
+          ],
+          "authentication": [
+            {
+              "verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+            }
+          ],
+          "assertion_methods": [
+            {
+              "verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+            }
+          ],
+          "key_agreements": [],
+          "capability_invocations": [
+            {
+              "verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+            }
+          ],
+          "capability_delegations": [],
+          "services": [],
+          "metadata": {},
+          "extensions": []
         }
       },
       "history_event_refs": [
@@ -59,7 +137,14 @@
           "event_ref": "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
           "kind": "ak.realm.create",
           "pcr_genesis": true,
-          "principal_inception_signature_valid": true,
+          "initial_resolution": {
+            "did": "did:webvh:z6mkfixture-control.example",
+            "method_history_head": "sha256:4dc1edc65c21db3d31a83408de0579338f7edac96b8f80963d38fe9e8c0d7fd9",
+            "version_id": "2-fixturecontrolregistration"
+          },
+          "root_verification_method": "did:webvh:z6mkfixture-control.example#root-1",
+          "root_public_key_multibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+          "root_producer_proof_valid": true,
           "producer_proof_valid": true
         },
         {
@@ -109,155 +194,853 @@
     },
     "expected": {
       "decision": "accept",
-      "evidence_root_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture-control.example\",\"station_id\":\"ak:did_core:web:station.example\"},\"authorization_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"authorized_generation_ref\":1,\"confirmation_seal_ref\":\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"device_id\":\"ak:device:019b0000-0000-7000-8000-000000000001\",\"generation_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"history_event_refs\":[\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\"],\"history_seal_refs\":[\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"],\"kind\":\"account_device_control\",\"pcr_genesis_event_ref\":\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"principal_inception\":{\"did\":\"did:webvh:z6mkfixture-control.example\",\"did_method\":\"webvh\",\"operation\":{\"root_verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\",\"type\":\"create\"},\"seq\":0},\"signer_id\":\"ak:did_core:webvh:z6mkfixture-control.example\",\"verification_method\":\"did:webvh:z6mkfixture-control.example#ak:device:019b0000-0000-7000-8000-000000000001\"}",
-      "evidence_root_ref": "ak:signer_evidence:sha256:901537a8da4efa7d0642541dbaa0db331248e178675cfd263bc4fe0ca05d100e"
+      "evidence_root_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture-control.example\",\"station_id\":\"ak:did_core:web:station.example\"},\"authorization_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"authorized_generation_ref\":1,\"confirmation_seal_ref\":\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"device_id\":\"ak:device:019b0000-0000-7000-8000-000000000001\",\"generation_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"history_event_refs\":[\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\"],\"history_seal_refs\":[\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"],\"kind\":\"account_device_control\",\"pcr_genesis_event_ref\":\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"principal_registration_anchor\":{\"anchor_kind\":\"webvh_registration\",\"log_entries\":[{\"previous_entry_digest\":null,\"root_verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\",\"update_keys\":[\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"],\"version_id\":\"1-fixturecontrolinception\",\"witness_threshold\":0},{\"previous_entry_digest\":\"sha256:9e013f1498555f7de57c2963057349624848f4a16bc134fb88ad1a032a6a7091\",\"root_verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\",\"update_keys\":[\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"],\"version_id\":\"2-fixturecontrolregistration\",\"witness_threshold\":1}],\"normalized_did_document\":{\"also_known_as\":[],\"assertion_methods\":[{\"verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\"}],\"authentication\":[{\"verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\"}],\"capability_delegations\":[],\"capability_invocations\":[{\"verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\"}],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[\"did:webvh:z6mkfixture-control.example\"],\"did\":\"did:webvh:z6mkfixture-control.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{},\"services\":[],\"verification_methods\":[{\"controller_did\":\"did:webvh:z6mkfixture-control.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"},\"verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\",\"verification_method_suite\":\"Multikey\"}]},\"registration_did_operation\":{\"did\":\"did:webvh:z6mkfixture-control.example\",\"did_method\":\"webvh\",\"operation\":{\"type\":\"update\",\"version_id\":\"2-fixturecontrolregistration\"},\"seq\":1},\"witness_records\":[{\"proof_valid\":true,\"version_id\":\"2-fixturecontrolregistration\",\"witness_did\":\"did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsbCnMcGCFf3E5DtRi3ucZfR\"}]},\"signer_id\":\"ak:did_core:webvh:z6mkfixture-control.example\",\"verification_method\":\"did:webvh:z6mkfixture-control.example#ak:device:019b0000-0000-7000-8000-000000000001\"}",
+      "evidence_root_ref": "ak:signer_evidence:sha256:b9a742170384fbb38d2ee4244de592574d9f1d73e95fc3cd38422211e199bfb1"
+    }
+  },
+  "did_key_case": {
+    "evidence_root": {
+      "kind": "account_device_control",
+      "signer_id": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+      "account_id": {
+        "principal_id": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "device_id": "ak:device:019b0000-0000-7000-8000-000000000002",
+      "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000002",
+      "authorization_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+      "authorized_generation_ref": 1,
+      "generation_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+      "confirmation_seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pcr_genesis_event_ref": "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
+      "principal_registration_anchor": {
+        "anchor_kind": "did_key_registration",
+        "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+      },
+      "history_event_refs": [
+        "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
+        "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC"
+      ],
+      "history_seal_refs": [
+        "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "candidate_event": {
+      "lane": "generic_control",
+      "kind": "ak.realm.create",
+      "producer_account_id": {
+        "principal_id": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "producer_device_id": "ak:device:019b0000-0000-7000-8000-000000000002",
+      "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000002",
+      "public_key_multibase": "z6MkfZ6S4NLZ2Kxk7dYvRqvqJPFa1nLgM8dtcivMBS9F2eXd",
+      "created_at": "2026-09-14T01:00:00.000Z",
+      "proof_uses_evidence_root_content_address": true
+    },
+    "resolved_dependencies": {
+      "events": [
+        {
+          "event_ref": "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
+          "kind": "ak.realm.create",
+          "pcr_genesis": true,
+          "initial_resolution": {
+            "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+            "method_history_head": "sha256:74cb01f67b39f88c55b07bb3d782798c09e34418bc9119082edcdc3949742244",
+            "version_id": "synthetic-did-sha256:74cb01f67b39f88c55b07bb3d782798c09e34418bc9119082edcdc3949742244"
+          },
+          "root_verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+          "root_public_key_multibase": "z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+          "root_producer_proof_valid": true,
+          "producer_proof_valid": true
+        },
+        {
+          "event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "kind": "ak.device.authorize",
+          "account_id": {
+            "principal_id": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "device_id": "ak:device:019b0000-0000-7000-8000-000000000002",
+          "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000002",
+          "public_key_multibase": "z6MkfZ6S4NLZ2Kxk7dYvRqvqJPFa1nLgM8dtcivMBS9F2eXd",
+          "authorized_generation_ref": 1,
+          "generation_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "not_before": "2026-09-14T00:00:00.000Z",
+          "expires_at": "2026-09-14T02:00:00.000Z",
+          "possession_proof_valid": true,
+          "producer_proof_valid": true
+        }
+      ],
+      "seals": [
+        {
+          "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sequence": 0,
+          "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "command_result": "committed",
+          "historical_notary_configuration_valid": true,
+          "state_transition_valid": true
+        }
+      ]
+    },
+    "authority_history": {
+      "seals": [
+        {
+          "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sequence": 0,
+          "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "command_result": "committed"
+        },
+        {
+          "seal_ref": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "sequence": 1,
+          "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "command_result": "committed"
+        }
+      ]
+    },
+    "expected": {
+      "decision": "accept",
+      "evidence_root_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG\",\"station_id\":\"ak:did_core:web:station.example\"},\"authorization_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"authorized_generation_ref\":1,\"confirmation_seal_ref\":\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"device_id\":\"ak:device:019b0000-0000-7000-8000-000000000002\",\"generation_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"history_event_refs\":[\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\"],\"history_seal_refs\":[\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"],\"kind\":\"account_device_control\",\"pcr_genesis_event_ref\":\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"principal_registration_anchor\":{\"anchor_kind\":\"did_key_registration\",\"did\":\"did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG\"},\"signer_id\":\"ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG\",\"verification_method\":\"did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000002\"}",
+      "evidence_root_ref": "ak:signer_evidence:sha256:ab1447405f4fe42b4b5bbcf1e18d55a19481f29f1a1c6b3189758dbb657ec39a"
     }
   },
   "negative_cases": [
     {
       "name": "missing_authorization_event_dependency",
       "mutations": [
-        { "op": "delete", "path": "/resolved_dependencies/events/1" }
+        {
+          "op": "delete",
+          "path": "/resolved_dependencies/events/1"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "dependency_missing" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "dependency_missing"
+      }
     },
     {
       "name": "missing_confirmation_seal_dependency",
       "mutations": [
-        { "op": "delete", "path": "/resolved_dependencies/seals/0" }
+        {
+          "op": "delete",
+          "path": "/resolved_dependencies/seals/0"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "dependency_missing" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "dependency_missing"
+      }
     },
     {
-      "name": "invalid_principal_inception_signature",
+      "name": "invalid_registration_root_producer_proof",
       "mutations": [
-        { "op": "replace", "path": "/resolved_dependencies/events/0/principal_inception_signature_valid", "value": false }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/root_producer_proof_valid",
+          "value": false
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "history_verification_failed"
+      }
     },
     {
       "name": "invalid_pcr_genesis_producer_proof",
       "mutations": [
-        { "op": "replace", "path": "/resolved_dependencies/events/0/producer_proof_valid", "value": false }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/producer_proof_valid",
+          "value": false
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "history_verification_failed"
+      }
     },
     {
       "name": "invalid_authorize_producer_proof",
       "mutations": [
-        { "op": "replace", "path": "/resolved_dependencies/events/1/producer_proof_valid", "value": false }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/1/producer_proof_valid",
+          "value": false
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "history_verification_failed"
+      }
     },
     {
       "name": "invalid_device_possession_proof",
       "mutations": [
-        { "op": "replace", "path": "/resolved_dependencies/events/1/possession_proof_valid", "value": false }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/1/possession_proof_valid",
+          "value": false
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "history_verification_failed"
+      }
     },
     {
       "name": "invalid_historical_notary_configuration",
       "mutations": [
-        { "op": "replace", "path": "/resolved_dependencies/seals/0/historical_notary_configuration_valid", "value": false }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/seals/0/historical_notary_configuration_valid",
+          "value": false
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "history_verification_failed"
+      }
     },
     {
       "name": "invalid_confirming_state_transition",
       "mutations": [
-        { "op": "replace", "path": "/resolved_dependencies/seals/0/state_transition_valid", "value": false }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/seals/0/state_transition_valid",
+          "value": false
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "history_verification_failed"
+      }
     },
     {
       "name": "confirmation_is_not_first_successful_seal",
       "mutations": [
-        { "op": "replace", "path": "/evidence_root/confirmation_seal_ref", "value": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
-        { "op": "replace", "path": "/evidence_root/history_seal_refs", "value": ["ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
-        { "op": "replace", "path": "/resolved_dependencies/seals/0", "value": { "seal_ref": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sequence": 1, "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC", "command_result": "committed", "historical_notary_configuration_valid": true, "state_transition_valid": true } }
+        {
+          "op": "replace",
+          "path": "/authority_history/seals/0/sequence",
+          "value": 2
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "confirmation_not_first_successful" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "confirmation_not_first_successful"
+      }
     },
     {
       "name": "history_event_prefix_is_not_utf8_sorted",
       "mutations": [
-        { "op": "replace", "path": "/evidence_root/history_event_refs", "value": ["ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC", "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB"] }
+        {
+          "op": "replace",
+          "path": "/evidence_root/history_event_refs",
+          "value": [
+            "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+            "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB"
+          ]
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "prefix_not_canonical" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "prefix_not_canonical"
+      }
     },
     {
       "name": "history_prefix_contains_unrelated_successor",
       "mutations": [
-        { "op": "append", "path": "/evidence_root/history_event_refs", "value": "ak:event:AQMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" },
-        { "op": "append", "path": "/resolved_dependencies/events", "value": { "event_ref": "ak:event:AQMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD", "kind": "ak.message.create", "producer_proof_valid": true } }
+        {
+          "op": "append",
+          "path": "/evidence_root/history_event_refs",
+          "value": "ak:event:AQMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD"
+        },
+        {
+          "op": "append",
+          "path": "/resolved_dependencies/events",
+          "value": {
+            "event_ref": "ak:event:AQMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD",
+            "kind": "ak.message.create"
+          }
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "prefix_not_minimal" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "prefix_not_minimal"
+      }
+    },
+    {
+      "name": "did_web_human_anchor_is_not_a_registered_branch",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor",
+          "value": {
+            "anchor_kind": "did_web_registration",
+            "did": "did:web:alice.example"
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "unsupported_did_method"
+      }
+    },
+    {
+      "name": "unknown_anchor_discriminator",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor/anchor_kind",
+          "value": "webvh_registration_v2"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "unsupported_did_method"
+      }
+    },
+    {
+      "name": "anchor_discriminator_disagrees_with_operation_method",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor",
+          "value": {
+            "anchor_kind": "did_key_registration",
+            "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_coordinates_mismatch"
+      }
+    },
+    {
+      "name": "anchor_operation_method_disagrees_with_did",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor/registration_did_operation/did_method",
+          "value": "key"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "anchor_log_does_not_start_at_inception",
+      "mutations": [
+        {
+          "op": "delete",
+          "path": "/evidence_root/principal_registration_anchor/log_entries/0"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "anchor_log_entry_chain_is_broken",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor/log_entries/1/previous_entry_digest",
+          "value": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "anchor_operation_version_is_not_the_terminal_entry",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor/registration_did_operation/operation/version_id",
+          "value": "1-fixturecontrolinception"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "anchor_witness_record_set_is_incomplete",
+      "mutations": [
+        {
+          "op": "delete",
+          "path": "/evidence_root/principal_registration_anchor/witness_records/0"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "anchor_witness_record_is_surplus",
+      "mutations": [
+        {
+          "op": "append",
+          "path": "/evidence_root/principal_registration_anchor/witness_records",
+          "value": {
+            "version_id": "9-unknownentry",
+            "witness_did": "did:key:z6MkgYGF3thn8k1Fv4p4dWXKtsbCnMcGCFf3E5DtRi3ucZfR",
+            "proof_valid": true
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "anchor_normalized_document_is_substituted",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor/normalized_did_document",
+          "value": {
+            "did": "did:webvh:z6mkfixture-control.example",
+            "contexts": [
+              "https://www.w3.org/ns/did/v1"
+            ],
+            "controller_dids": [
+              "did:webvh:z6mkfixture-control.example"
+            ],
+            "also_known_as": [],
+            "verification_methods": [
+              {
+                "verification_method": "did:webvh:z6mkfixture-control.example#root-1",
+                "controller_did": "did:webvh:z6mkfixture-control.example",
+                "verification_method_suite": "Multikey",
+                "public_key_material": {
+                  "publicKeyMultibase": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5"
+                },
+                "extensions": []
+              }
+            ],
+            "authentication": [
+              {
+                "verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+              }
+            ],
+            "assertion_methods": [
+              {
+                "verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+              }
+            ],
+            "key_agreements": [],
+            "capability_invocations": [
+              {
+                "verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+              }
+            ],
+            "capability_delegations": [],
+            "services": [],
+            "metadata": {},
+            "extensions": []
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_root_key_mismatch"
+      }
+    },
+    {
+      "name": "anchor_document_did_is_substituted",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor/normalized_did_document",
+          "value": {
+            "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+            "contexts": [
+              "https://www.w3.org/ns/did/v1"
+            ],
+            "controller_dids": [
+              "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+            ],
+            "also_known_as": [],
+            "verification_methods": [
+              {
+                "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#root-1",
+                "controller_did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+                "verification_method_suite": "Multikey",
+                "public_key_material": {
+                  "publicKeyMultibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+                },
+                "extensions": []
+              }
+            ],
+            "authentication": [
+              {
+                "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#root-1"
+              }
+            ],
+            "assertion_methods": [
+              {
+                "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#root-1"
+              }
+            ],
+            "key_agreements": [],
+            "capability_invocations": [
+              {
+                "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#root-1"
+              }
+            ],
+            "capability_delegations": [],
+            "services": [],
+            "metadata": {},
+            "extensions": []
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_invalid"
+      }
+    },
+    {
+      "name": "derived_method_history_head_mismatches_genesis",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/initial_resolution/method_history_head",
+          "value": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_coordinates_mismatch"
+      }
+    },
+    {
+      "name": "derived_version_id_mismatches_genesis",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/initial_resolution/version_id",
+          "value": "3-wrongversion"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_coordinates_mismatch"
+      }
+    },
+    {
+      "name": "derived_root_verification_method_mismatches_genesis",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/root_verification_method",
+          "value": "did:webvh:z6mkfixture-control.example#root-2"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_root_key_mismatch"
+      }
+    },
+    {
+      "name": "derived_root_key_mismatches_genesis",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/root_public_key_multibase",
+          "value": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_root_key_mismatch"
+      }
+    },
+    {
+      "name": "anchor_principal_projection_mismatches_account",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/signer_id",
+          "value": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+        },
+        {
+          "op": "replace",
+          "path": "/evidence_root/account_id/principal_id",
+          "value": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+        },
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/1/account_id/principal_id",
+          "value": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+        },
+        {
+          "op": "replace",
+          "path": "/candidate_event/producer_account_id/principal_id",
+          "value": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "principal_projection_mismatch"
+      }
     },
     {
       "name": "wrong_account_binding",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/producer_account_id/station_id", "value": "ak:did_core:web:other-station.example" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/producer_account_id/station_id",
+          "value": "ak:did_core:web:other-station.example"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "account_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "account_mismatch"
+      }
     },
     {
       "name": "wrong_device_binding",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/producer_device_id", "value": "ak:device:019b0000-0000-7000-8000-000000000002" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/producer_device_id",
+          "value": "ak:device:019b0000-0000-7000-8000-000000000002"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "device_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "device_mismatch"
+      }
     },
     {
       "name": "wrong_verification_method_binding",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/verification_method", "value": "did:webvh:z6mkfixture-control.example#other-device" }
+        {
+          "op": "replace",
+          "path": "/evidence_root/verification_method",
+          "value": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000001"
+        },
+        {
+          "op": "replace",
+          "path": "/candidate_event/verification_method",
+          "value": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000001"
+        },
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/1/verification_method",
+          "value": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000001"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "verification_method_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "verification_method_mismatch"
+      }
     },
     {
       "name": "wrong_public_key_binding",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/public_key_multibase", "value": "z6MktWfZrM8E4N3z3fE9E2a2YwZQ5o9a5e8wXWgXaC2LQbGP" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/public_key_multibase",
+          "value": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "public_key_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "public_key_mismatch"
+      }
     },
     {
       "name": "wrong_generation_binding",
       "mutations": [
-        { "op": "replace", "path": "/evidence_root/authorized_generation_ref", "value": 2 }
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/1/authorized_generation_ref",
+          "value": 2
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "generation_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "generation_mismatch"
+      }
     },
     {
       "name": "signature_before_authorization_window",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/created_at", "value": "2026-09-13T23:59:59.999Z" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/created_at",
+          "value": "2026-09-13T23:59:59.999Z"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "authorization_window_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "authorization_window_mismatch"
+      }
     },
     {
       "name": "signature_at_authorization_expiry",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/created_at", "value": "2026-09-14T02:00:00.000Z" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/created_at",
+          "value": "2026-09-14T02:00:00.000Z"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "authorization_window_mismatch" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "authorization_window_mismatch"
+      }
     },
     {
       "name": "account_device_control_rejected_for_data_lane",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/lane", "value": "data" },
-        { "op": "replace", "path": "/candidate_event/kind", "value": "ak.message.create" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/lane",
+          "value": "shared_data"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "wrong_lane" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "wrong_lane"
+      }
     },
     {
       "name": "account_device_control_rejected_for_native_unit_lane",
       "mutations": [
-        { "op": "replace", "path": "/candidate_event/lane", "value": "native_unit" },
-        { "op": "replace", "path": "/candidate_event/kind", "value": "ak.device.reanchor" }
+        {
+          "op": "replace",
+          "path": "/candidate_event/lane",
+          "value": "native_unit"
+        }
       ],
-      "expected": { "decision": "reject", "failure_class": "wrong_lane" }
+      "expected": {
+        "decision": "reject",
+        "failure_class": "wrong_lane"
+      }
+    }
+  ],
+  "did_key_negative_cases": [
+    {
+      "name": "did_key_anchor_carries_a_selectable_document_mirror",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor",
+          "value": {
+            "anchor_kind": "did_key_registration",
+            "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+            "normalized_did_document": {
+              "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+              "contexts": [
+                "https://www.w3.org/ns/did/v1"
+              ],
+              "controller_dids": [
+                "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+              ],
+              "also_known_as": [],
+              "verification_methods": [
+                {
+                  "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+                  "controller_did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+                  "verification_method_suite": "Multikey",
+                  "public_key_material": {
+                    "publicKeyMultibase": "z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+                  },
+                  "extensions": []
+                }
+              ],
+              "authentication": [
+                {
+                  "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+                }
+              ],
+              "assertion_methods": [
+                {
+                  "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+                }
+              ],
+              "key_agreements": [],
+              "capability_invocations": [
+                {
+                  "verification_method": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+                }
+              ],
+              "capability_delegations": [],
+              "services": [],
+              "metadata": {},
+              "extensions": []
+            }
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "evidence_schema_invalid"
+      }
+    },
+    {
+      "name": "did_key_anchor_carries_a_synthesized_operation",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/evidence_root/principal_registration_anchor",
+          "value": {
+            "anchor_kind": "did_key_registration",
+            "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+            "registration_did_operation": {
+              "did": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+              "did_method": "key",
+              "operation": {}
+            }
+          }
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "evidence_schema_invalid"
+      }
+    },
+    {
+      "name": "did_key_derived_synthetic_version_mismatches_genesis",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/initial_resolution/version_id",
+          "value": "synthetic-did-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_coordinates_mismatch"
+      }
+    },
+    {
+      "name": "did_key_derived_root_key_mismatches_genesis",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/resolved_dependencies/events/0/root_public_key_multibase",
+          "value": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+        }
+      ],
+      "expected": {
+        "decision": "reject",
+        "failure_class": "registration_anchor_root_key_mismatch"
+      }
     }
   ]
 }

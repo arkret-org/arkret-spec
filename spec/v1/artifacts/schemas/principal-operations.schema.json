@@ -325,7 +325,7 @@
       "x-arkret-pcr-outward-event-kinds": [
         "ak.realm.create"
       ],
-      "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration evidence, the identity-root control proof and the two Event proofs. The Station verifies registration_did_operation and registration_did_evidence without consulting current DID resolution.",
+      "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration anchor, the identity-root control proof and the two Event proofs. The Station verifies principal_registration_anchor and registration_did_evidence without consulting current DID resolution.",
       "required": [
         "account_authority_id",
         "principal_id",
@@ -335,7 +335,7 @@
         "control_key_digest",
         "idempotency_key",
         "registration_request_digest",
-        "registration_did_operation",
+        "principal_registration_anchor",
         "registration_did_evidence",
         "identity_creation_control_proof",
         "genesis_unit"
@@ -358,11 +358,11 @@
           "type": "string",
           "pattern": "^(?!ak:)",
           "minLength": 1,
-          "description": "Validated did:webvh inception versionId. It MUST match the same fields in identity_creation_control_proof and the accepted registry log."
+          "description": "Adapter-derived registration versionId: the accepted did:webvh entry versionId, or the registered synthetic did:key value. It MUST equal the value the Station re-derives from principal_registration_anchor and the same field in identity_creation_control_proof."
         },
         "control_key_digest": {
           "$ref": "#/$defs/digest",
-          "description": "SHA-256 digest of the active inception update key committed by the identity root proof."
+          "description": "SHA-256 digest of the registration root control key committed by the identity root proof: the accepted did:webvh entry's active update key, or the deterministically expanded did:key root key."
         },
         "idempotency_key": {
           "type": "string",
@@ -372,9 +372,9 @@
         "registration_request_digest": {
           "$ref": "#/$defs/digest"
         },
-        "registration_did_operation": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
-          "description": "Exact method-native operation accepted during registration. Its canonical digest MUST equal identity_creation_control_proof.operation_digest; it is historical verifier input and MUST NOT be replaced with current resolver output."
+        "principal_registration_anchor": {
+          "$ref": "./principal-registration-anchor.schema.json",
+          "description": "Exact closed registration anchor accepted during registration. Its canonical digest MUST equal identity_creation_control_proof.registration_anchor_digest, the Station MUST re-derive did, did_version_id, method_history_head and the root control key from it alone, and it is historical verifier input that MUST NOT be replaced with current resolver output."
         },
         "registration_did_evidence": {
           "$ref": "./registration-did-evidence.schema.json#/$defs/registration_did_evidence",
@@ -387,12 +387,17 @@
           "$ref": "#/$defs/pcr_genesis_unit"
         }
       },
+      "allOf": [
+        {
+          "$ref": "./account-operations.schema.json#/$defs/registration_anchor_control_proof_pairing"
+        }
+      ],
       "additionalProperties": false,
       "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
     },
     "pcr_genesis_unit": {
       "type": "object",
-      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. Both producer proofs MUST omit signer_resolution_evidence_ref because neither signer has an accepted Arkret signer projection before this unit. The first key is resolved only from registration_did_operation, registration_did_evidence and identity_creation_control_proof; the second key is resolved only from the root-signed founding descriptor, authorize payload and unit-local candidate overlay. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. The verifier MUST NOT consult or mutate the durable device directory until every check succeeds. These Events are replayable only inside this complete unit and its accepted receipt closure, never as standalone shared-history Events. No partial acceptance is permitted.",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. Both producer proofs MUST omit signer_resolution_evidence_ref because neither signer has an accepted Arkret signer projection before this unit. The first key is resolved only from principal_registration_anchor, registration_did_evidence and identity_creation_control_proof; the second key is resolved only from the root-signed founding descriptor, authorize payload and unit-local candidate overlay. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. The verifier MUST NOT consult or mutate the durable device directory until every check succeeds. These Events are replayable only inside this complete unit and its accepted receipt closure, never as standalone shared-history Events. No partial acceptance is permitted.",
       "required": [
         "events"
       ],

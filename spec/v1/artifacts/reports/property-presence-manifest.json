@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11761,
-    "total_schema_documents": 173,
+    "total_properties": 11780,
+    "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3154,
+      "optional": 3158,
       "optional_defaulted": 62,
-      "required": 7415,
-      "required_nullable": 381,
-      "tristate": 749
+      "required": 7424,
+      "required_nullable": 383,
+      "tristate": 753
     },
-    "tristate_occurrences": 749,
-    "tristate_audit_targets": 166,
+    "tristate_occurrences": 753,
+    "tristate_audit_targets": 168,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 157,
+      "absent_null_equivalent": 159,
       "condition_guarded": 8,
       "distinct": 1
     }
@@ -542,6 +542,10 @@
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
+    "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof",
+    "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof",
+    "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof",
+    "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof",
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
     "account-subscribe-frame.schema.json/$defs/realm_list_page/allOf/0/then/properties/items",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
@@ -1370,6 +1374,28 @@
       "instance_path": "/event/preconditions",
       "occurrences": [
         "/$defs/account_profile_event_submission/allOf/1/properties/event/properties/preconditions"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "/$defs/registration_anchor_control_proof_pairing",
+      "instance_path": "/control_proof",
+      "occurrences": [
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "account-operations.schema.json",
+      "shape": "/$defs/registration_anchor_control_proof_pairing",
+      "instance_path": "/identity_creation_control_proof",
+      "occurrences": [
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4191,10 +4217,10 @@
         "/$defs/account_binding_receipt/properties/identity_creation_lease_id": "optional",
         "/$defs/account_binding_receipt/properties/issued_at": "required",
         "/$defs/account_binding_receipt/properties/lease_fence": "optional",
-        "/$defs/account_binding_receipt/properties/operation_digest": "required",
         "/$defs/account_binding_receipt/properties/operation_status": "required",
         "/$defs/account_binding_receipt/properties/principal_id": "required",
         "/$defs/account_binding_receipt/properties/proof": "required",
+        "/$defs/account_binding_receipt/properties/registration_anchor_digest": "required",
         "/$defs/account_handoff_authentication_proof/properties/audience_id": "required",
         "/$defs/account_handoff_authentication_proof/properties/authorization_code": "required",
         "/$defs/account_handoff_authentication_proof/properties/challenge": "required",
@@ -4424,12 +4450,12 @@
         "/$defs/identity_binding_challenge_outcome/properties/purpose": "required",
         "/$defs/identity_binding_challenge_outcome/properties/request_id": "required",
         "/$defs/identity_binding_challenge_request_body/properties/did": "required",
-        "/$defs/identity_binding_challenge_request_body/properties/did_operation": "required",
         "/$defs/identity_binding_challenge_request_body/properties/founding_authorize_payload_digest": "required",
         "/$defs/identity_binding_challenge_request_body/properties/identity_creation_lease_id": "required",
         "/$defs/identity_binding_challenge_request_body/properties/initial_session_request_digest": "required",
         "/$defs/identity_binding_challenge_request_body/properties/lease_fence": "required",
         "/$defs/identity_binding_challenge_request_body/properties/pcr_realm_id": "required",
+        "/$defs/identity_binding_challenge_request_body/properties/principal_registration_anchor": "required",
         "/$defs/identity_binding_challenge_request_body/properties/realm_create_payload_digest": "required",
         "/$defs/identity_binding_challenge_request_body/properties/request_id": "required",
         "/$defs/identity_creation_control_proof/properties/account_subject": "required",
@@ -4447,13 +4473,13 @@
         "/$defs/identity_creation_control_proof/properties/initial_session_request_digest": "required",
         "/$defs/identity_creation_control_proof/properties/issued_at": "required",
         "/$defs/identity_creation_control_proof/properties/lease_fence": "required",
-        "/$defs/identity_creation_control_proof/properties/operation_digest": "required",
         "/$defs/identity_creation_control_proof/properties/origin": "required",
         "/$defs/identity_creation_control_proof/properties/pcr_realm_id": "required",
         "/$defs/identity_creation_control_proof/properties/principal_id": "required",
         "/$defs/identity_creation_control_proof/properties/proof_kind": "required",
         "/$defs/identity_creation_control_proof/properties/purpose": "required",
         "/$defs/identity_creation_control_proof/properties/realm_create_payload_digest": "required",
+        "/$defs/identity_creation_control_proof/properties/registration_anchor_digest": "required",
         "/$defs/identity_creation_control_proof/properties/signature": "required",
         "/$defs/identity_creation_control_proof/properties/trust_domain": "required",
         "/$defs/identity_creation_control_proof/properties/verification_key_multibase": "required",
@@ -4464,16 +4490,28 @@
         "/$defs/identity_creation_lease/properties/state": "required",
         "/$defs/identity_creation_registration/properties/control_proof": "required",
         "/$defs/identity_creation_registration/properties/did": "required",
-        "/$defs/identity_creation_registration/properties/did_operation": "required",
         "/$defs/identity_creation_registration/properties/identity_creation_lease_id": "required",
         "/$defs/identity_creation_registration/properties/initial_session": "required",
         "/$defs/identity_creation_registration/properties/lease_fence": "required",
         "/$defs/identity_creation_registration/properties/pcr_genesis_unit": "required",
+        "/$defs/identity_creation_registration/properties/principal_registration_anchor": "required",
         "/$defs/identity_creation_registration/properties/registration_did_evidence_draft": "required",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/if/properties/principal_registration_anchor": "required_nullable",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/if/properties/principal_registration_anchor/properties/anchor_kind": "required",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof": "tristate",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof/properties/proof_kind": "optional",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof": "tristate",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof/properties/proof_kind": "optional",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/if/properties/principal_registration_anchor": "required_nullable",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/if/properties/principal_registration_anchor/properties/anchor_kind": "required",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof": "tristate",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof/properties/proof_kind": "optional",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof": "tristate",
+        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof/properties/proof_kind": "optional",
         "/$defs/reserved_identity_creation/properties/did": "required",
-        "/$defs/reserved_identity_creation/properties/did_operation": "required",
-        "/$defs/reserved_identity_creation/properties/operation_digest": "required",
         "/$defs/reserved_identity_creation/properties/principal_id": "required",
+        "/$defs/reserved_identity_creation/properties/principal_registration_anchor": "required",
+        "/$defs/reserved_identity_creation/properties/registration_anchor_digest": "required",
         "/$defs/session_revoke_outcome/properties/revoked_count": "required",
         "/$defs/session_revoke_outcome/properties/revoked_session_grant_ids": "optional",
         "/$defs/session_revoke_request_body/properties/all_sessions": "optional",
@@ -5918,7 +5956,7 @@
         "/$defs/account_device_control_signer_evidence/properties/history_seal_refs": "required",
         "/$defs/account_device_control_signer_evidence/properties/kind": "required",
         "/$defs/account_device_control_signer_evidence/properties/pcr_genesis_event_ref": "required",
-        "/$defs/account_device_control_signer_evidence/properties/principal_inception": "required",
+        "/$defs/account_device_control_signer_evidence/properties/principal_registration_anchor": "required",
         "/$defs/account_device_control_signer_evidence/properties/signer_id": "required",
         "/$defs/account_device_control_signer_evidence/properties/verification_method": "required",
         "/$defs/account_device_signer_evidence/properties/attester_signer_evidence_ref": "required",
@@ -13206,8 +13244,8 @@
         "/$defs/pcr_genesis_submit_request/properties/identity_creation_control_proof": "required",
         "/$defs/pcr_genesis_submit_request/properties/pcr_realm_id": "required",
         "/$defs/pcr_genesis_submit_request/properties/principal_id": "required",
+        "/$defs/pcr_genesis_submit_request/properties/principal_registration_anchor": "required",
         "/$defs/pcr_genesis_submit_request/properties/registration_did_evidence": "required",
-        "/$defs/pcr_genesis_submit_request/properties/registration_did_operation": "required",
         "/$defs/pcr_genesis_submit_request/properties/registration_request_digest": "required",
         "/$defs/pcr_genesis_unit/properties/events": "required",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/kind": "required",
@@ -13292,6 +13330,20 @@
         "/$defs/signature/properties/created_at": "required",
         "/$defs/signature/properties/jws": "required",
         "/$defs/signature/properties/verification_method": "required"
+      }
+    },
+    "principal-registration-anchor.schema.json": {
+      "schema_ids": [
+        "ak.schema.principal_registration_anchor.v1"
+      ],
+      "properties": {
+        "/$defs/did_key_registration_anchor/properties/anchor_kind": "required",
+        "/$defs/did_key_registration_anchor/properties/did": "required",
+        "/$defs/webvh_registration_anchor/properties/anchor_kind": "required",
+        "/$defs/webvh_registration_anchor/properties/log_entries": "required",
+        "/$defs/webvh_registration_anchor/properties/normalized_did_document": "required",
+        "/$defs/webvh_registration_anchor/properties/registration_did_operation": "required",
+        "/$defs/webvh_registration_anchor/properties/witness_records": "required"
       }
     },
     "public-key.schema.json": {

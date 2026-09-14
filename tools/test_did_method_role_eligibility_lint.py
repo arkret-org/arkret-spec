@@ -50,13 +50,13 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
         def mutate(profiles, _adapters):
             profiles["profile_requirements"]["ak.profile.personal_node.v1"][
                 "identity"
-            ]["allowed_principal_methods"] = ["did:webvh", "did:web"]
+            ]["allowed_principal_methods"] = ["did:webvh"]
 
         errors = self._run(mutate)
         self.assertTrue(
             any(
                 "ak.profile.personal_node.v1" in error
-                and "registry-derived human principal anchor allowlist ['did:webvh', 'did:web', 'did:key']" in error
+                and "registry-derived human principal anchor allowlist ['did:webvh', 'did:key']" in error
                 for error in errors
             ),
             errors,
@@ -96,11 +96,12 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
                 adapter for adapter in adapters["adapters"] if adapter["method"] == "did:key"
             )
             did_key["human_principal_anchor"] = False
+            did_key.pop("registration_anchor_kind", None)
 
         errors = self._run(mutate)
         self.assertTrue(
             any(
-                "registry-derived human principal anchor allowlist ['did:webvh', 'did:web']" in error
+                "registry-derived human principal anchor allowlist ['did:webvh']" in error
                 for error in errors
             ),
             errors,

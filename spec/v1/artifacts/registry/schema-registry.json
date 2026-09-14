@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.1",
+  "version": "2026-09-14.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T04:54:49+08:00",
+  "generated_at": "2026-09-14T10:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1088,6 +1088,12 @@
         "selector": "registered principal-scoped operation DTO and proof carriers",
         "normative_ref": "zh/conformance/schema-registry.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.principal_registration_anchor.v1",
+      "file": "schemas/principal-registration-anchor.schema.json",
+      "status": "active",
+      "description": "Closed adapter-discriminated registration anchor consumed identically by human registration, PCR genesis and the portable account_device_control root."
     },
     {
       "schema_id": "ak.schema.public_key.v1",

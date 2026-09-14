@@ -202,7 +202,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/human-control-signer-evidence-kat.json",
-      "sha256": "da6e0bf195b8e44e50b065c13dd0471a5da89d11a9b801ca5ccf168df06fe9a2"
+      "sha256": "da5cc02a49e775922b62991e91c0a70fe57d542aa83cd2d3f2aff6af16e66349"
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "07678c3dfe09903d36a48d941cbc8bb6f58da9e392d69c2b0117160dce7f4daa"
+      "sha256": "c459ebe3543f81c9d685d289dba06e8f9049a2ecdc49a8d7219ff7977164b970"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
