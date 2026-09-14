@@ -201,6 +201,10 @@
       "sha256": "18cacfdff46e14bcfb91cca1cbf02d4fd2bc6d74182fffd7f3a38ce5068b034e"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/human-control-signer-evidence-kat.json",
+      "sha256": "da6e0bf195b8e44e50b065c13dd0471a5da89d11a9b801ca5ccf168df06fe9a2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
       "sha256": "e6117c6833f8a84c6ec8ecafc8a2df4a9f94812f26753b93d012730532673fe7"
     },

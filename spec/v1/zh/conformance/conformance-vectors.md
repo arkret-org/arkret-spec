@@ -6300,6 +6300,31 @@ Runner MUST 覆盖：
 5. destination commit 前崩溃不确认；commit 后响应前崩溃由 exact retry 的 duplicate 收敛；
    source 在持久化 delivered 前崩溃时同样安全重试。不得为这些情况增加第二套 signed receipt。
 
+## 38. Human generic Control portable signer evidence closure vector
+
+`vector_id`: `ak.vector.identity.human_control_signer_evidence.v1`
+
+本向量由
+[`human-control-signer-evidence-kat.json`](../../artifacts/fixtures/human-control-signer-evidence-kat.json)
+承载，规则正文见
+[`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md#822-human-generic-control-的-portable-signer-evidencenormative)。
+Runner MUST 从 `evidence_root` 的内容地址开始执行完整 verifier，不能把 fixture 中的关系字段当成已验证结论。
+
+Runner MUST 覆盖：
+
+1. 正例从签名 DID inception、PCR genesis、原 `ak.device.authorize` 与 generation，沿按 UTF-8 字节排序、
+   无重复且最小的 Event/Seal 前缀走到首次 successful committed confirmation Seal；root 的 canonical JCS 与
+   `ak:signer_evidence:sha256:*` known answer 必须逐字匹配。
+2. `history_event_refs` 或 `history_seal_refs` 任一对象缺失、签名/possession proof/notary configuration/state
+   transition 任一验证失败、前缀乱序/重复/混入后继对象，整体保持 unresolved 或拒绝，不能用 current projection
+   补齐。
+3. `confirmation_seal_ref` 指向较晚 Seal，即使它也能追溯该 authorization，仍必须拒绝；只能使用首次 successful
+   committed 的确认位置。
+4. root、原 authorization 与待验证 Event 的完整 AccountId、device、verification method/key、generation Event/
+   generation number 任一不一致必须拒绝；签名时刻早于 `not_before` 或达到/晚于 `expires_at` 也必须拒绝。
+5. `account_device_control` 只能授权普通 human generic Control（包括普通 Realm bootstrap）。Data Event 与 native
+   PCR genesis/reanchor unit 必须拒绝该分支，且不得回退到 `account_device`、`principal` 或无 ref 的 native 规则。
+
 ## Account status issuer ledger
 
 `ak.vector.account_status.issuer_ledger.v1` MUST 覆盖：account binding 与 `status_seq=1,active` record、account row、audit、outbox 原子提交，PCR 尚无 Seal 也成功；record id 与 proof 对同一 closed unsigned core 做 JCS/SHA-256 闭合，proof controller 必须是 Account Authority；successor 严格执行 `seq=current+1` 与 exact predecessor CAS，exact replay byte-identical、同 request identity 异 intent 零写入冲突；receiver 区分 accepted/duplicate/stale/gap/fork，且分类基线只有 durable replica head——在连续 replica 上重投一条低于 head 且与本地仍保留的同 `status_seq` 历史行逐字节相同的 record，MUST 得到 `failed_precondition` + `account_status_record_stale`（`retryable=false`、零写入），MUST NOT 降级为 `duplicate`；gap 返回 exact required seq 并通过 bounded resolve 取得连续原始 records；holder offline/revoked/hostile 时 Account Authority 仍可 final `locked/suspended/deactivated/erasure_pending`；receiver 接受 exact、连续且验签有效的 `deactivated → active` successor，authoring conformance 则必须证明它只来自 deployment-policy allow + completed PCR recovery closure，并与原 account row、audit、outbox、exact新 generation grant 原子提交；普通 admin/login/refresh、policy deny 或缺 recovery closure 均 `account_deactivated` 且零权威写入；`erasure_pending` 的任何 successor 继续以 `erasure_pending_is_terminal` 拒绝；receipted fanout 保留原 record bytes，receipt 精确绑定 record，超窗 flag 不回写 record；不存在 Event、Seal、CBS、frontier 或 `pending_seal` 路径。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.1",
+  "version": "2026-09-14.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T05:50:11+08:00",
+  "generated_at": "2026-09-14T09:54:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -669,6 +669,18 @@
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The closed delegated producer branch carries delegated_actor_did exactly for legal Agent controller-device Events with executed_by; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. Production acceptance must include a first stranger controller-device Agent Contact with no cached Agent locator and no private PCR disclosure."
+    },
+    {
+      "clause_id": "AK-NC-054",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#822-human-generic-control-的-portable-signer-evidencenormative",
+      "section_digest": "sha256:039daf1ff19696928dc49396a66dacf831ee33d6f001037607ad159be5c8811e",
+      "requirement": "A human device authorizes Realm bootstrap and later generic Control only through the content-addressed account_device_control root and its complete minimal PCR prefix through the first successful confirming Seal. The verifier independently checks every exact Event/Seal, historical signature/notary transition, Account, device, method/key, generation and authorization window. Missing or substituted dependencies, a later confirmation, a non-canonical prefix, or use for Data/native-unit and other excluded lanes fails closed without account_device or principal fallback.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.identity.human_control_signer_evidence.v1"
+      ]
     }
   ]
 }

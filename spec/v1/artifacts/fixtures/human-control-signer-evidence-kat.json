@@ -1,0 +1,263 @@
+{
+  "suite": "human_generic_control_signer_evidence",
+  "runner": {
+    "kind": "known_answer_tests",
+    "entrypoint": "ak.suite.identity.human_control_signer_evidence.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.identity.human_control_signer_evidence.v1"
+  ],
+  "schema_ref": "schemas/authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence",
+  "canonical_case": {
+    "evidence_root": {
+      "kind": "account_device_control",
+      "signer_id": "ak:did_core:webvh:z6mkfixture-control.example",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture-control.example",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "device_id": "ak:device:019b0000-0000-7000-8000-000000000001",
+      "verification_method": "did:webvh:z6mkfixture-control.example#ak:device:019b0000-0000-7000-8000-000000000001",
+      "authorization_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+      "authorized_generation_ref": 1,
+      "generation_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+      "confirmation_seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pcr_genesis_event_ref": "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
+      "principal_inception": {
+        "did": "did:webvh:z6mkfixture-control.example",
+        "did_method": "webvh",
+        "seq": 0,
+        "operation": {
+          "type": "create",
+          "root_verification_method": "did:webvh:z6mkfixture-control.example#root-1"
+        }
+      },
+      "history_event_refs": [
+        "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
+        "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC"
+      ],
+      "history_seal_refs": [
+        "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "candidate_event": {
+      "lane": "generic_control",
+      "kind": "ak.realm.create",
+      "producer_account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture-control.example",
+        "station_id": "ak:did_core:web:station.example"
+      },
+      "producer_device_id": "ak:device:019b0000-0000-7000-8000-000000000001",
+      "verification_method": "did:webvh:z6mkfixture-control.example#ak:device:019b0000-0000-7000-8000-000000000001",
+      "public_key_multibase": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5",
+      "created_at": "2026-09-14T01:00:00.000Z",
+      "proof_uses_evidence_root_content_address": true
+    },
+    "resolved_dependencies": {
+      "events": [
+        {
+          "event_ref": "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB",
+          "kind": "ak.realm.create",
+          "pcr_genesis": true,
+          "principal_inception_signature_valid": true,
+          "producer_proof_valid": true
+        },
+        {
+          "event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "kind": "ak.device.authorize",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture-control.example",
+            "station_id": "ak:did_core:web:station.example"
+          },
+          "device_id": "ak:device:019b0000-0000-7000-8000-000000000001",
+          "verification_method": "did:webvh:z6mkfixture-control.example#ak:device:019b0000-0000-7000-8000-000000000001",
+          "public_key_multibase": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5",
+          "authorized_generation_ref": 1,
+          "generation_event_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "not_before": "2026-09-14T00:00:00.000Z",
+          "expires_at": "2026-09-14T02:00:00.000Z",
+          "possession_proof_valid": true,
+          "producer_proof_valid": true
+        }
+      ],
+      "seals": [
+        {
+          "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sequence": 0,
+          "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "command_result": "committed",
+          "historical_notary_configuration_valid": true,
+          "state_transition_valid": true
+        }
+      ]
+    },
+    "authority_history": {
+      "seals": [
+        {
+          "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sequence": 0,
+          "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "command_result": "committed"
+        },
+        {
+          "seal_ref": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "sequence": 1,
+          "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+          "command_result": "committed"
+        }
+      ]
+    },
+    "expected": {
+      "decision": "accept",
+      "evidence_root_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture-control.example\",\"station_id\":\"ak:did_core:web:station.example\"},\"authorization_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"authorized_generation_ref\":1,\"confirmation_seal_ref\":\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"device_id\":\"ak:device:019b0000-0000-7000-8000-000000000001\",\"generation_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"history_event_refs\":[\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\"],\"history_seal_refs\":[\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"],\"kind\":\"account_device_control\",\"pcr_genesis_event_ref\":\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"principal_inception\":{\"did\":\"did:webvh:z6mkfixture-control.example\",\"did_method\":\"webvh\",\"operation\":{\"root_verification_method\":\"did:webvh:z6mkfixture-control.example#root-1\",\"type\":\"create\"},\"seq\":0},\"signer_id\":\"ak:did_core:webvh:z6mkfixture-control.example\",\"verification_method\":\"did:webvh:z6mkfixture-control.example#ak:device:019b0000-0000-7000-8000-000000000001\"}",
+      "evidence_root_ref": "ak:signer_evidence:sha256:901537a8da4efa7d0642541dbaa0db331248e178675cfd263bc4fe0ca05d100e"
+    }
+  },
+  "negative_cases": [
+    {
+      "name": "missing_authorization_event_dependency",
+      "mutations": [
+        { "op": "delete", "path": "/resolved_dependencies/events/1" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "dependency_missing" }
+    },
+    {
+      "name": "missing_confirmation_seal_dependency",
+      "mutations": [
+        { "op": "delete", "path": "/resolved_dependencies/seals/0" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "dependency_missing" }
+    },
+    {
+      "name": "invalid_principal_inception_signature",
+      "mutations": [
+        { "op": "replace", "path": "/resolved_dependencies/events/0/principal_inception_signature_valid", "value": false }
+      ],
+      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+    },
+    {
+      "name": "invalid_pcr_genesis_producer_proof",
+      "mutations": [
+        { "op": "replace", "path": "/resolved_dependencies/events/0/producer_proof_valid", "value": false }
+      ],
+      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+    },
+    {
+      "name": "invalid_authorize_producer_proof",
+      "mutations": [
+        { "op": "replace", "path": "/resolved_dependencies/events/1/producer_proof_valid", "value": false }
+      ],
+      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+    },
+    {
+      "name": "invalid_device_possession_proof",
+      "mutations": [
+        { "op": "replace", "path": "/resolved_dependencies/events/1/possession_proof_valid", "value": false }
+      ],
+      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+    },
+    {
+      "name": "invalid_historical_notary_configuration",
+      "mutations": [
+        { "op": "replace", "path": "/resolved_dependencies/seals/0/historical_notary_configuration_valid", "value": false }
+      ],
+      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+    },
+    {
+      "name": "invalid_confirming_state_transition",
+      "mutations": [
+        { "op": "replace", "path": "/resolved_dependencies/seals/0/state_transition_valid", "value": false }
+      ],
+      "expected": { "decision": "reject", "failure_class": "history_verification_failed" }
+    },
+    {
+      "name": "confirmation_is_not_first_successful_seal",
+      "mutations": [
+        { "op": "replace", "path": "/evidence_root/confirmation_seal_ref", "value": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+        { "op": "replace", "path": "/evidence_root/history_seal_refs", "value": ["ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+        { "op": "replace", "path": "/resolved_dependencies/seals/0", "value": { "seal_ref": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sequence": 1, "confirms_authorization_ref": "ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC", "command_result": "committed", "historical_notary_configuration_valid": true, "state_transition_valid": true } }
+      ],
+      "expected": { "decision": "reject", "failure_class": "confirmation_not_first_successful" }
+    },
+    {
+      "name": "history_event_prefix_is_not_utf8_sorted",
+      "mutations": [
+        { "op": "replace", "path": "/evidence_root/history_event_refs", "value": ["ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC", "ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB"] }
+      ],
+      "expected": { "decision": "reject", "failure_class": "prefix_not_canonical" }
+    },
+    {
+      "name": "history_prefix_contains_unrelated_successor",
+      "mutations": [
+        { "op": "append", "path": "/evidence_root/history_event_refs", "value": "ak:event:AQMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" },
+        { "op": "append", "path": "/resolved_dependencies/events", "value": { "event_ref": "ak:event:AQMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD", "kind": "ak.message.create", "producer_proof_valid": true } }
+      ],
+      "expected": { "decision": "reject", "failure_class": "prefix_not_minimal" }
+    },
+    {
+      "name": "wrong_account_binding",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/producer_account_id/station_id", "value": "ak:did_core:web:other-station.example" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "account_mismatch" }
+    },
+    {
+      "name": "wrong_device_binding",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/producer_device_id", "value": "ak:device:019b0000-0000-7000-8000-000000000002" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "device_mismatch" }
+    },
+    {
+      "name": "wrong_verification_method_binding",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/verification_method", "value": "did:webvh:z6mkfixture-control.example#other-device" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "verification_method_mismatch" }
+    },
+    {
+      "name": "wrong_public_key_binding",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/public_key_multibase", "value": "z6MktWfZrM8E4N3z3fE9E2a2YwZQ5o9a5e8wXWgXaC2LQbGP" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "public_key_mismatch" }
+    },
+    {
+      "name": "wrong_generation_binding",
+      "mutations": [
+        { "op": "replace", "path": "/evidence_root/authorized_generation_ref", "value": 2 }
+      ],
+      "expected": { "decision": "reject", "failure_class": "generation_mismatch" }
+    },
+    {
+      "name": "signature_before_authorization_window",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/created_at", "value": "2026-09-13T23:59:59.999Z" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "authorization_window_mismatch" }
+    },
+    {
+      "name": "signature_at_authorization_expiry",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/created_at", "value": "2026-09-14T02:00:00.000Z" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "authorization_window_mismatch" }
+    },
+    {
+      "name": "account_device_control_rejected_for_data_lane",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/lane", "value": "data" },
+        { "op": "replace", "path": "/candidate_event/kind", "value": "ak.message.create" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "wrong_lane" }
+    },
+    {
+      "name": "account_device_control_rejected_for_native_unit_lane",
+      "mutations": [
+        { "op": "replace", "path": "/candidate_event/lane", "value": "native_unit" },
+        { "op": "replace", "path": "/candidate_event/kind", "value": "ak.device.reanchor" }
+      ],
+      "expected": { "decision": "reject", "failure_class": "wrong_lane" }
+    }
+  ]
+}

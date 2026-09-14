@@ -729,6 +729,8 @@ owning Station MUST 在 authorization 的 successful Seal 与 device projection 
 
 root 走 `ak.self.seals.read.governance_dependencies.v1` 的现有 ASRE selector；Event 与 Seal 走各自 exact read。holder 自有 PCR 与携合法 Event 的 federation/backfill/shared-read verifier 可以读取 root 所列的最小闭包；peer pre-visibility 例外相应允许 exact human `account_device_control` root 及其显式引用对象，但不得借此读取同 PCR 的其它 Event、其它设备或任意 digest。完整签名对象按原字节交付，不裁剪已签字段；取得完整包并验证后不要求原 Station 在线。超出既有单对象/项数/字节/深度界限时整体 `limit_exceeded` 或 dependency missing，不截断签名对象、不返回 partial success。
 
+本节的可执行闭包由 `ak.vector.identity.human_control_signer_evidence.v1` 固定；实现不得以只通过 root schema、但未执行完整历史验证的测试声明符合。
+
 #### 8.3 客户端设备信任（normative）
 
 客户端信任自己已认证 Station 确认的 exact account-device 当前授权投影。远端 origin Station 的 attestation 及其 assertion key/history 由自己 Station 验证；客户端不执行 DID/PCR 历史验证，不将任意服务直接返回的设备公钥视为本账号服务器结果。跨站目标的取材由自己 Station 按 §8.2.1 完成；客户端 MUST NOT 直连 origin Station 的 peer 面，也 MUST NOT 把自己的 SessionGrant / DPoP 交给任何其它服务。

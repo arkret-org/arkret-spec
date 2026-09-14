@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.3",
+  "version": "2026-09-14.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T09:17:20+08:00",
+  "generated_at": "2026-09-14T09:54:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3563,6 +3563,20 @@
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/identity/account-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.human_control_signer_evidence.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "human-control-signer-evidence-kat.json"
+      ],
+      "description": "A human device's portable generic-Control authority is the immutable account_device_control root over the exact Account/device/method/key/generation/window and the minimal sorted PCR Event/Seal prefix through the first successful authorization Seal. Every dependency and historical signature is independently verified; missing objects, a later confirmation Seal, a binding mismatch, a non-minimal prefix, or use on Data/native-unit lanes fails closed without account_device, principal or local-projection fallback.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/human-control-signer-evidence-kat.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
       ]
     },
     {
