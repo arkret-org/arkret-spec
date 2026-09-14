@@ -176,7 +176,7 @@ B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位�
 - 幂等键：写接口使用 `Idempotency-Key` header、`event_id`、`request_id` 或 canonical request hash。
 - 失败时使用标准 Problem Details。
 
-认证方式与 namespace 是不同维度；上述认证方式是操作契约的例示，不是新建的封闭认证 registry。路径段不得推导某种凭证足以授权。端点表中“部署受信 registration bearer / admin credential”仅指由该部署配置、限定调用方和 operation 的本地凭证；接收方 MUST 验证其有效性、用途与最小权限，并沿用该操作的审计和撤销规则。它不是公共 wire role、普通 SessionGrant 或任意 `root` 操作的通行证，MUST NOT 替代 client-signed inception、DID control proof、producer signature、capability 或 recovery policy。部署内 S2S bearer 同样只用于明确登记的 S2S operation：可用的 operation、允许主体与最小权限由 §2.2.3 的登记表逐条给出，路径群或 namespace 不产生任何内部通行权。
+认证方式与 namespace 是不同维度；上述认证方式是操作契约的例示，不是新建的封闭认证 registry。路径段不得推导某种凭证足以授权。端点表中“部署受信 registration bearer / admin credential”仅指由该部署配置、限定调用方和 operation 的本地凭证；接收方 MUST 验证其有效性、用途与最小权限，并沿用该操作的审计和撤销规则。它不是公共 wire role、普通 SessionGrant 或任意 `root` 操作的通行证，MUST NOT 替代 client-signed inception、DID control proof、producer signature、capability 或 recovery policy。部署内 S2S shared secret 以 `Authorization: Bearer` 出示时，同样只用于明确登记的 S2S operation：可用的 operation、允许主体与最小权限由 §2.2.3 的登记表逐条给出，路径群或 namespace 不产生任何内部通行权。
 
 JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST 以 `contract-registry.json#operation_registry`、OpenAPI binding 和被 `request_schema_ref` / `response_schema_ref` 指向的 JSON Schema 为准；字段表只提供人类阅读索引，字段集合快照由 [`operation-schema-index.json`](../../artifacts/reports/operation-schema-index.json) 生成。
 
@@ -185,7 +185,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 - 除明确标记为 `public_metadata` 的 describe / discovery 外，所有 endpoint MUST 认证。
 - 认证只证明调用方身份；服务仍 MUST 执行 capability、Realm policy、history visibility、service delegation 和 revocation 检查。
 - 服务间调用 MUST 使用 HTTP Message Signature 或等价 service DID proof，并绑定 method、target URI、content digest、origin service `did_core_id` 和 destination service `did_core_id`；shared ingress / 多租户 / allowlist endpoint 场景还 MUST 绑定 destination service endpoint digest。唯一例外是 §2.2.3 登记的部署内认证通道 operation，且本次已认证的调用关系就是该表登记的内部关系；其余调用（含混合 operation 的外部分支）一律适用本条。
-- 服务间调用的 `origin` / `destination` 必须是 service `did_core_id`。发送方 MUST 先用已验证 `AuthenticatedServiceResolution` 将 destination 映射到当前 `did` / target URL，接收方 MUST 确认签名使用的 method key、`project(did)`、target URL、Realm policy / service delegation 和签名 transcript 一致。§2.2.3 的内部通道调用不适用本条：其对端身份只来自通道凭据验证与部署配置，不经 `AuthenticatedServiceResolution` 解析，也不接受 header 自报身份。
+- 服务间调用的 `origin` / `destination` 必须是 service `did_core_id`。发送方 MUST 先用已验证 `AuthenticatedServiceResolution` 将 destination 映射到当前 `did` / target URL，接收方 MUST 确认签名使用的 method key、`project(did)`、target URL、Realm policy / service delegation 和签名 transcript 一致。§2.2.3 的内部通道调用不适用逐请求 message-signature 要求：其运行期对端身份来自已完整验证并耐久固定的内部 binding，shared secret 只认证该 binding 对应的配置槽，也不接受 header 自报身份；首次建立及后续推进该 binding 时仍须执行 §2.2.3 的 `AuthenticatedServiceResolution` 与 method-history 验证。
 - 受保护 endpoint 不得接受 query string 中的 token、API key 或签名材料；临时下载 URL 只能使用短时效、单用途、可撤销的派生 token。
 - 返回 `not_found` 的 endpoint MUST 对“不存在”和“存在但不可见”保持一致失败语义，除非调用方已有管理权限。
 - 所有批量读取 MUST 支持 `limit` 上限，分页 cursor 必须是不透明 token。
@@ -262,12 +262,14 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 **通道合同**：
 
-- 每个 Account Authority ↔ Station 配对复用已有 peer 配置中的唯一 **canonical origin、per-edge bearer 与对端 trust domain**；MUST NOT 为内部通道另建平行配置对象、身份副本或可编辑 operation allowlist。同一 bearer MUST NOT 分配给两个 peer 配置记录。
-- bearer 在哪一条 peer 配置中匹配就决定已认证 source；入站 destination 就是处理固定 route 的本机，出站 destination 由该记录的 canonical origin 决定；允许的 operation 由下表固定 route / call site 决定。实现 MUST NOT 再要求部署内调用发送或比较 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain` 或 `Destination-Trust-Domain` 来重复证明这些事实，body 字段、路径参数及任何客户端自报的 `internal` 标记也不得改变身份。通用 `Arkret-Operation` 若存在，只执行 header 与实际 route 的普通一致性检查，不产生内部权限。
-- 内部对端 origin、bearer 与 trust domain MUST 由显式部署配置提供。配置缺失、冲突、bearer 重复或目标变更 MUST 拒绝或走显式重新绑定；MUST NOT 从 `describe`、响应中的首个候选或网络错误回退猜测对端。发送 bearer 前 MUST 验证 exact canonical origin 与该 operation 的固定 path，不得把凭据发送到 URL credential、query、fragment、redirect 或另一 origin。
+- 每个 Account Authority ↔ Station 配对复用已有 peer 配置中的唯一 **canonical origin、per-edge shared secret（以 `Authorization: Bearer` 出示）与对端 trust domain**；MUST NOT 为内部通道另建平行配置对象、身份副本或可编辑 operation allowlist。同一 shared secret MUST NOT 分配给两个 peer 配置记录。
+- shared secret 在哪一条 peer 配置中匹配就决定已认证 source；入站 destination 就是处理固定 route 的本机，出站 destination 由该记录的 canonical origin 决定；允许的 operation 由下表固定 route / call site 决定。实现 MUST NOT 再要求部署内调用发送或比较 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain` 或 `Destination-Trust-Domain` 来重复证明这些事实，body 字段、路径参数及任何客户端自报的 `internal` 标记也不得改变身份。通用 `Arkret-Operation` 若存在，只执行 header 与实际 route 的普通一致性检查，不产生内部权限。
+- 内部对端 canonical HTTPS origin、shared secret 与双方 trust domain MUST 由显式部署配置提供；所属 Station 的 service identity 不要求作为另一份可编辑配置 pin。首次尚无 durable binding 时，Account Authority MUST 只从 exact configured origin 获取候选 role-scoped Describe 与 method resolution，并完整验证 WebVH method history、current state、`AuthenticatedServiceResolution`、`service_kind=station`、`project(did)==service_id`、DID service endpoint、describe transport 与 freshness；只有全部成功才能原子耐久保存 Station name、origin、service ID、DID 与 method-history floor。configured origin、正常 TLS/egress policy 与完整 method-native proof 的合取才是首次接纳根；public Describe 或 shared secret 单独均不得建立身份。
+- durable binding 必须对 Station name 与 canonical origin 分别唯一。并发首次验证出完全相同 tuple 时实现 MAY 在唯一键冲突后重读并按幂等成功收敛；任一字段不同 MUST 报 identity conflict，MUST NOT 覆盖先写记录。已有 binding 时必须以已保存的 service core 与 history floor 重验证：同名且 origin 变化时，只有新 configured origin 证明同一 service core、连续 history 且不低于旧 floor，才可用 expected-old origin/head 的 CAS 更新；origin 已绑定另一名称、core/genesis 变化、rollback、Describe/endpoint 不一致或临时网络错误均 MUST fail closed。身份替换只允许走具名、审计且显式触发的高风险 replace/revoke 恢复操作；正常首次启动 MUST NOT 要求管理员 bootstrap 操作。
+- 配置缺失、shared secret 重复或 trust domain 冲突 MUST 在启动/注册 peer 前失败。发送 shared secret 前 MUST 验证 exact canonical origin 与该 operation 的固定 path，不得把凭据发送到 URL credential、query、fragment、redirect 或另一 origin。尚未完成首次 binding 时，实现 MAY 仅开放解除冷启动循环所需的 public discovery、JWKS 与 health，并重试完整验证；业务 route 必须 fail closed，且失败尝试不得持久化候选身份。
 - **通道完整性与部署前提**：内部通道上所有会解密 TLS 或转发已解密请求 / 响应的 proxy 均视为运营方控制的可信组件，并与调用端、目标端同属一个 TCB。current-v1 不通过协议字段、proxy 清单或应用层 hop 核验重复描述该部署事实，也不要求 mTLS；可信 proxy 的失陷按整个部署 TCB 失陷处理。不能接受此前提的部署不适用本节的无签名内部合同，须在采用新的完整消息签名合同后再部署，而不得自行增加私有 fallback 或双轨认证。
 - 支持同一认证事实的进程内调用 MUST NOT 被要求模拟 HTTP 才能取得本合同。
-- 内部通道 MUST NOT 用于未在下表登记的 operation。只有对应固定 route / call site 能读取该 peer bearer；MUST NOT 把 `/_arkret/peer/*`、`/_arkret/gate/*`、`/_arkret/root/*` 或 `/_arkret/self/*` 的整条路径群改为接受部署 bearer。
+- 内部通道 MUST NOT 用于未在下表登记的 operation。只有对应固定 route / call site 能读取该 peer shared secret；MUST NOT 把 `/_arkret/peer/*`、`/_arkret/gate/*`、`/_arkret/root/*` 或 `/_arkret/self/*` 的整条路径群改为接受部署 shared secret。
 
 **已登记的部署内 operation**：
 
