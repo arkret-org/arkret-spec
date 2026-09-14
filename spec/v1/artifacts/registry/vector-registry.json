@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.2",
+  "version": "2026-09-14.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T08:41:20+08:00",
+  "generated_at": "2026-09-14T09:17:20+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3519,7 +3519,7 @@
         "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ],
-      "description": "Complete recovery units advance device generation only through Committed results in the unique lawful PCR Seal sequence. Pending/rejected rivals never quarantine confirmed generations; actual same-position signed Seal equivocation remains a separate CBS lineage failure."
+      "description": "Complete recovery units freeze one canonical millisecond authoring checkpoint shared byte-for-byte by both Event created_at values and both producer-proof created_at values; mismatch, non-canonical time, missing pre-signing floor, or a checkpoint outside the applicable window is rejected before writes. Valid units advance device generation only through Committed results in the unique lawful PCR Seal sequence. Pending/rejected rivals never quarantine confirmed generations; actual same-position signed Seal equivocation remains a separate CBS lineage failure."
     },
     {
       "vector_id": "ak.vector.identity.did_webvh_v1_adapter.v1",
@@ -3628,7 +3628,7 @@
       "applies_to_fixtures": [
         "pcr-genesis-fixture.json"
       ],
-      "description": "Root-committed FoundingDeviceDescriptor, device possession, one-way authorize payload digest binding, ordered atomic create-once PCR genesis unit, extended identity creation transcript, exact replay and mutation rejection.",
+      "description": "Root-committed FoundingDeviceDescriptor, device possession, one-way authorize payload digest binding, and an ordered atomic create-once PCR genesis unit whose two Events and two producer proofs share one canonical millisecond authoring checkpoint. Mutations of any time position, non-canonical wire time, and missing sub-millisecond floor reject with zero writes; an otherwise valid ordinary PCR Event may have proof.created_at later than event.created_at.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

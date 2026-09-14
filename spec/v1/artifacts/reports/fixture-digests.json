@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json",
-      "sha256": "64b7e0ab989f70b997ec82ceea1b46306b493312806d5735757e76cb38bcdda5"
+      "sha256": "6c0894e97f41288d43a783d25dbda3f69b58692b8e42d9eed29231870d04a854"
     },
     {
       "path": "spec/v1/artifacts/fixtures/independent-admission-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "da358eef285501096df16d6eb6ff78f0f4d263671e930f158c64ef8c77569f8d"
+      "sha256": "89fdffc580df0ef318a31810f9189793ae92a09c048b3865f6d14e1c57d64473"
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-outward-exposure-fixture.json",

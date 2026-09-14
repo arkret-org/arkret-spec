@@ -549,11 +549,15 @@ Applet 写入仍必须验证 signed `applet_id`、确切 installation aggregate�
 | `alg` | yes | `string` | 初版默认 `Ed25519`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
 | `event_digest` | yes | `digest` | MUST 等价于 `canonical_digest(envelope_without_event_id_proofs_unsigned)`。签名输入包含完整 `actor_id` / `executed_by`、`scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `event_id`、`proofs`、`unsigned`。 | producer-signed canonical Event digest。 |
-| `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
+| `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时绑定的时间；下述 native unit 槽位使用冻结 authoring checkpoint。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
 | `signer_resolution_evidence_ref` | conditional | `id:signer_evidence` | 普通 submit、普通或安全 shared-history Event 与所有非 native security submit 必填并进入 proof binding。仅 human PCR genesis 的 root create/founding authorize，以及 PCR-policy recovery 的 reanchor/replacement authorize 必须省略；专用 unit verifier 从 enclosing unit 的冻结原生证据解析 key。 | 可携带 signer 依据。 |
 | `jws` | yes | `string` | detached JWS。 | 签名值。 |
+
+**PCR native unit 时间绑定（normative）**：human PCR genesis 的 `ak.realm.create` / founding `ak.device.authorize`，以及 PCR-policy recovery 的 `ak.device.reanchor` / replacement `ak.device.authorize`，分别属于两个规范列举的 closed native unit。构造方 MUST 在构造该完整 unit 的任何 Event canonical bytes、digest 或 producer proof 之前选择一个 canonical 毫秒时间 `T`；同一 unit 内两条 Event 的 `event.created_at` 与各自唯一 producer proof 的 `proof.created_at` MUST 全部逐字等于 `T`。亚毫秒输入必须先 floor 到毫秒，不能在两条 Event 或两个 proof 之间再次读取墙钟。`T` 是该 unit 唯一的 signed authoring checkpoint，并驱动所有把已签 Event/proof 时间与 historical signer authorization、policy/session window 或状态坐标比较的检查；proof 不产生第二时间轴。operation 另有以接收方可信 `now` 执行的 current lease/session expiry、future-skew 或 replay 检查时仍 MUST 独立执行，不得用 `T` 代替。
+
+专用 unit verifier MUST 在验签和任何状态写入前逐字段比较上述四个时间位置；任一缺失、非 canonical 或不等 MUST 以既有 operation-specific proof/history evidence failure 零写入拒绝，不得正规化、补签、改写原件或通过时钟偏差容差放行。该规则只适用于上述两个 enclosing unit 的四个槽位：普通 Event（包括普通 PCR Event）的 `proof.created_at` 仍是签名方在 proof 中绑定的时间，MAY 晚于 `event.created_at`，并继续按其既有 freshness、授权窗口与 proof binding 独立验证；通用 Event verifier 和完整 PCR history verifier 均不得把 native 等值条件扩张为全局规则。
 
 DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/identity-did.md) 的 Proof 和 [`../conformance/encoding.md`](../conformance/encoding.md) 的 canonical JSON 规则一致。
 

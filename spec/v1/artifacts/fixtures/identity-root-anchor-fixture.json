@@ -94,6 +94,65 @@
       }
     },
     {
+      "name": "accept_single_frozen_reanchor_authoring_checkpoint",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "canonical_timestamp": "2026-08-09T00:02:00.000Z",
+        "reanchor_event_created_at": "2026-08-09T00:02:00.000Z",
+        "reanchor_proof_created_at": "2026-08-09T00:02:00.000Z",
+        "replacement_authorize_event_created_at": "2026-08-09T00:02:00.000Z",
+        "replacement_authorize_proof_created_at": "2026-08-09T00:02:00.000Z",
+        "policy_session_and_signer_windows_contain_checkpoint": true
+      },
+      "expected": {
+        "decision": "accept",
+        "durable_effects": "atomic"
+      }
+    },
+    {
+      "name": "reject_reanchor_event_or_proof_time_mismatch",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "mutations": [
+          "reanchor_event_created_at",
+          "reanchor_proof_created_at",
+          "replacement_authorize_event_created_at",
+          "replacement_authorize_proof_created_at"
+        ],
+        "each_mutation_delta_milliseconds": 1
+      },
+      "expected": {
+        "decision": "reject_each",
+        "durable_effects": 0
+      }
+    },
+    {
+      "name": "reject_reanchor_noncanonical_or_unfloored_checkpoint",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "mutations": [
+          "same_instant_non_canonical_wire_form",
+          "sub_millisecond_input_not_floored_before_signing"
+        ]
+      },
+      "expected": {
+        "decision": "reject_each",
+        "durable_effects": 0
+      }
+    },
+    {
+      "name": "reject_reanchor_checkpoint_outside_authorization_window",
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "input": {
+        "all_four_created_at_fields_equal": true,
+        "checkpoint_crosses_policy_session_or_signer_authorization_window": true
+      },
+      "expected": {
+        "decision": "reject",
+        "durable_effects": 0
+      }
+    },
+    {
       "name": "accept_historical_reverification_after_policy_changed",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
       "input": {

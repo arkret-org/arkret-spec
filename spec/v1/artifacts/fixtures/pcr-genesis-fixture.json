@@ -84,6 +84,24 @@
       "authorize.event_digest",
       "authorize.envelope_digest"
     ],
+    "authoring_checkpoint": {
+      "canonical_timestamp": "2026-08-09T00:00:00.000Z",
+      "equal_fields": [
+        "events[0].created_at",
+        "events[0].proofs[0].created_at",
+        "events[1].created_at",
+        "events[1].proofs[0].created_at"
+      ],
+      "sub_millisecond_policy": "floor_before_any_event_digest_or_producer_proof",
+      "second_clock_read": "forbidden"
+    },
+    "ordinary_pcr_event_regression": {
+      "native_unit": false,
+      "event_created_at": "2026-08-09T00:01:00.000Z",
+      "proof_created_at": "2026-08-09T00:01:00.728Z",
+      "other_freshness_authorization_and_binding_checks": "valid",
+      "expected": "accept"
+    },
     "atomic": true,
     "create_once": true
   },
@@ -262,6 +280,36 @@
       "field": "genesis_unit.events[1].proof.verification_method",
       "mutation": "did:key",
       "expected": "reject"
+    },
+    {
+      "field": "genesis_unit.events[0].created_at",
+      "mutation": "one_millisecond_after_frozen_checkpoint",
+      "expected": "reject_zero_writes"
+    },
+    {
+      "field": "genesis_unit.events[0].proofs[0].created_at",
+      "mutation": "one_millisecond_after_frozen_checkpoint",
+      "expected": "reject_zero_writes"
+    },
+    {
+      "field": "genesis_unit.events[1].created_at",
+      "mutation": "one_millisecond_after_frozen_checkpoint",
+      "expected": "reject_zero_writes"
+    },
+    {
+      "field": "genesis_unit.events[1].proofs[0].created_at",
+      "mutation": "one_millisecond_after_frozen_checkpoint",
+      "expected": "reject_zero_writes"
+    },
+    {
+      "field": "genesis_unit.authoring_checkpoint",
+      "mutation": "same_instant_non_canonical_wire_form",
+      "expected": "reject_zero_writes"
+    },
+    {
+      "field": "genesis_unit.authoring_checkpoint",
+      "mutation": "sub_millisecond_input_not_floored_before_signing",
+      "expected": "reject_zero_writes"
     },
     {
       "field": "identity_creation_control_proof.realm_create_event_id",

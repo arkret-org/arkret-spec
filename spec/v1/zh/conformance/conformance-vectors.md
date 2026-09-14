@@ -3527,16 +3527,18 @@ Expected：
 
 Steps：
 
-1. 构造 root-signed create + founding-device-signed authorize；第二条 Event 的 proof method 使用 founding principal 已验证 `did` 下的 DID URL，并让其 bare `did` 经 adapter 投影为 `principal_id`（`did_core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
-2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields与 payload digest。
+1. 冻结一个 canonical 毫秒 authoring checkpoint `T`，构造 root-signed create + founding-device-signed authorize；两条 Event 与各自唯一 producer proof 的 `created_at` 全部逐字等于 `T`。第二条 Event 的 proof method 使用 founding principal 已验证 `did` 下的 DID URL，并让其 bare `did` 经 adapter 投影为 `principal_id`（`did_core_id`）、fragment 逐字等于 `device_id`，同时让 descriptor、payload digest、device/HPKE material 与 initial session request 全部一致；不得从 principal core 与 device fragment 拼接 verification method。
+2. 分别 mutation root/device signature、lease fence、DPoP JKT、scope、Event order/prev_refs、descriptor fields、payload digest，以及任一 Event/proof 的 `created_at`；另覆盖同一瞬时的非 canonical wire 表示和亚毫秒输入未先 floor。
 3. 尝试把 authorize Event id/envelope digest加入 root transcript，或把 second proof method改为 `did:key`。
 4. 并发提交两个不同 genesis unit；随后对 winner 执行 PCR-policy recovery unit。
+5. 构造一个不属于 native unit 的普通 PCR Event，使合法 producer proof 的 `proof.created_at > event.created_at` 且其它 freshness、授权窗口与 proof binding 全部成立。
 
 Expected：
 
 - 第 1 步两 Event原子 accepted，receipt scope=`pcr_genesis_unit`，首个 Standard grant只在 receipt verified 后签发。
 - 第 2/3 步全部 fail closed、零写入。
 - 第 4 步只有一个 create-once winner；re-anchor 第二条使用同一 candidate overlay，接受后旧 generation devices fenced。
+- 第 5 步必须按普通 Event 规则 accepted；history verifier 不得把 native unit 的精确时间等值提升为整个 PCR 的规则。
 
 ### 10.9.0.1 Vector: Identity Registration Saga Crash / Fence / Client Binding
 
@@ -5431,7 +5433,7 @@ Expected：
 
 ### 22.3 Re-anchor、generation fence 与冲突
 
-`ak.vector.identity.device_reanchor.v1` 覆盖已有 accepted policy 与完整 accepted Seal frontier 的恢复入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖旧恢复模型混入、未授权的 root Event 签名、缺失 accepted policy、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、session key/PoP/双 Event key 不匹配、过期或已被其它事务消费的 session、撤销 policy、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
+`ak.vector.identity.device_reanchor.v1` 覆盖已有 accepted policy 与完整 accepted Seal frontier 的恢复入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。正例必须先冻结同一 canonical 毫秒 checkpoint `T`，并让 re-anchor、replacement authorize 及两个 producer proof 的 `created_at` 全部逐字等于 `T`。负向必须覆盖旧恢复模型混入、未授权的 root Event 签名、缺失 accepted policy、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、session key/PoP/双 Event key 不匹配、任一 Event/proof 时间改变、同瞬时非 canonical wire 表示、亚毫秒未先 floor、跨 policy/session 或 signer authorization window、过期或已被其它事务消费的 session、撤销 policy、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
 
 generation 只能由唯一合法 PCR Seal 序列中完整 unit 的 committed 结果推进。向量 MUST 覆盖 pending 与 rejected 的 rival unit 在 committed winner 之前或之后到达均不改变当前 generation、不隔离 winner 或后继合法 Seal；同旧 generation 的后执行 rival 以 generation revision/CAS 失败取得 rejected，完整 byte-identical 重试只复用原结果。还必须分别覆盖 incomplete unit 无效果、DID update 不推进 generation，以及同一 authority 在同一 Seal 签名位置签出不同 body 的真实 equivocation；后者按既有 CBS lineage 规则拒绝不唯一的确认材料，不能与未确认候选混同，也不能靠下一 DID entry 解除。
 

@@ -239,6 +239,8 @@ Arkret v1 只有一个 principal device model：DID 是 identity-root key log；
 1. `ak.realm.create`：由 registration-time DID control key 签名；`realm_genesis.fields.purpose` 必须是 `principal_control`，并携带 `FoundingDeviceDescriptor` 与 durable registration evidence digest。
 2. `ak.device.authorize`：由 descriptor 中 `device_public_key_did` 对 possession transcript 和 Event proof 各自签名；`authorization_binding_kind="registration_anchor"`；`prev_refs` 只能含第一条 create Event id。
 
+构造方必须按 [`event-and-patch.md` §3.2](../models/event-and-patch.md) 先冻结该 unit 唯一的 canonical 毫秒 authoring checkpoint `T`，再构造、求摘要并签署两条 Event；两条 `event.created_at` 与两个唯一 producer proof 的 `proof.created_at` 必须全部逐字等于 `T`。Station 必须在任何验签或状态写入前检查该等值关系；这不是普通 PCR Event 的全局规则。
+
 identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event id 或 envelope digest。create 与 authorize Event 的完整 account `actor_id` 必须逐字一致；descriptor 与 authorize payload 必须在 `device_id`、device/HPKE key、算法集合和 authorize payload digest 上逐字一致。Station 必须验证 event-derived PCR id（`retype(create.event_id)`，见 [`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)；它不由 principal DID 或 subject 派生）、空 frontier、**账号维度**的 create-once、当前 identity-creation lease fence/expiry 及完整 root/device proofs，然后在一个数据库原子边界内接受两条 Event；任一步失败均零写入。
 
 首设备无需已有设备、账号权威或管理员批准。Account Authority 的 S2S signature 只证明 transport source，不能替代 identity root 或 device proof。
@@ -1398,6 +1400,8 @@ recovery policy 授权，并提交两条 Event：
    authorize payload digest 与 monotonic PCR generation CAS；
 2. 同一 replacement device identity key 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
    `prev_refs` 只指向 re-anchor Event。
+
+构造方必须先冻结该 recovery unit 唯一的 canonical 毫秒 authoring checkpoint `T`，再构造、求摘要并签署两条 Event；re-anchor、replacement authorize 及各自唯一 producer proof 的 `created_at` 必须全部逐字等于 `T`。`T` 是该 unit 在已签历史窗口比较中的唯一 Event-time / signer-window / policy-session 时间坐标，proof 不另建签名时间轴；接收方按 [`event-and-patch.md` §3.2](../models/event-and-patch.md) 在验签与任何 recovery 状态写入前 fail closed 比较，并继续以可信 `now` 独立执行现有 current session/lease expiry 等 live admission 检查。
 
 两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
 `{kind, account_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个 exact AccountId，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。re-anchor 与 replacement-authorize digest 分别从 `events[]` 中唯一对应 kind 的 typed `event_id` 解码，scope 不重复携带。scope MUST NOT 携带 `did_version_id`、
