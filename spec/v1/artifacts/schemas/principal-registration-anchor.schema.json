@@ -2,13 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/principal-registration-anchor.schema.json",
   "title": "Arkret Principal Registration Anchor",
-  "description": "Closed, adapter-discriminated registration anchor for a v1 human principal. It is the single primary method-native material that human registration, PCR genesis and the portable account_device_control root all consume: one branch per active human_principal_anchor adapter, selected only by anchor_kind. The anchor carries originals, never receipts: a verifier reconstructs did, method_history_head, version_id, the exact normalized DID document and the root verification method/key from the branch material alone, offline, without a current resolver, a database row or an Account Authority attestation. registration_did_evidence and identity_creation_control_proof keep their own registration anti-replay and control-intent roles and never substitute for this object. did:web has no branch here: WebPKI authenticates a TLS endpoint rather than the DID document body, so it produces no portable historical publication proof. Restoring a did:web branch requires a separately registered publication-proof or independent-witness trust model, threat model and conformance vectors. Complete canonical anchor bytes MUST NOT exceed 1 MiB.",
+  "description": "Closed WebVH registration anchor for a v1 human principal. It is the single primary method-native material that human registration, PCR genesis and the portable account_device_control root all consume. v1 human registration supports exactly the active did:webvh adapter and anchor_kind=webvh_registration; every other DID method, including did:key and did:web, fails closed with unsupported_did_method before method-specific parsing. The anchor carries originals, never receipts: a verifier reconstructs did, method_history_head, version_id, the exact normalized DID document and the root verification method/key from the branch material alone, offline, without a current resolver, a database row or an Account Authority attestation. registration_did_evidence and identity_creation_control_proof keep their own registration anti-replay and control-intent roles and never substitute for this object. Adding another branch requires a separately registered publication-proof or independent-witness trust model, threat model and conformance vectors. Complete canonical anchor bytes MUST NOT exceed 1 MiB.",
   "oneOf": [
     {
       "$ref": "#/$defs/webvh_registration_anchor"
-    },
-    {
-      "$ref": "#/$defs/did_key_registration_anchor"
     }
   ],
   "$defs": {
@@ -50,23 +47,6 @@
         "normalized_did_document": {
           "$ref": "./did-binding-contracts.schema.json#/$defs/normalized_did_document",
           "description": "Exact normalized DID document projection of the verified terminal entry state. Its did MUST equal registration_did_operation.did. The verifier recomputes the normalized projection from the terminal entry state and rejects any divergence instead of trusting this member; it holds the principal's own published verification methods, not the method-native update key, so a root key MUST NOT be selected from here."
-        }
-      },
-      "additionalProperties": false
-    },
-    "did_key_registration_anchor": {
-      "type": "object",
-      "description": "did:key registration anchor. did:key has no update operation and no native history, so this branch carries the canonical DID and nothing else: the verifier rebuilds the exact normalized DID document, the synthetic method_history_head and version_id and the root verification method and key from did alone under the registered did:key deterministic expansion rules. The rebuilt method_history_head and version_id MUST equal the PCR genesis initial_resolution values byte-for-byte. A caller-supplied DID document, an empty or synthesized operation, a fabricated log entry and any other selectable mirror member are forbidden here rather than optional, because a selectable mirror would let a caller choose which reconstruction the verifier compares against.",
-      "required": [
-        "anchor_kind",
-        "did"
-      ],
-      "properties": {
-        "anchor_kind": {
-          "const": "did_key_registration"
-        },
-        "did": {
-          "$ref": "./common-ids.schema.json#/$defs/did_key_did"
         }
       },
       "additionalProperties": false

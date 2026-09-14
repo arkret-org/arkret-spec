@@ -132,7 +132,7 @@ see_also:
 
 | 文档 | 内容 |
 | --- | --- |
-| `identity/identity-did.md` | DID、human anchor 的 `did:webvh` / `did:web` / `did:key` 闭集（`did:webvh` 为 MTI/default）、独立的 ephemeral pairwise `did:key` 角色、service 默认 `did:webvh` 与显式 no-history `did:web`、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
+| `identity/identity-did.md` | DID、唯一 human registration anchor `did:webvh`（MTI/default）、非注册用途的 `did:key`、独立的 ephemeral pairwise `did:key` 角色、service 默认 `did:webvh` 与显式 no-history `did:web`、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
 | `identity/did-usage-and-verification.md` | DID / DID URL 字段总表、非 DID identifier 对照、普通身份锚点使用与少量 DID 权威验证触发条件、verified binding 缓存和失效边界。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation 与 exact AccountId disclosure。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |

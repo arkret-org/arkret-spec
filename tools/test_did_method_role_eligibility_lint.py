@@ -46,17 +46,17 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
         finally:
             lint_artifacts.load_json = original_load_json
 
-    def test_personal_node_cannot_remove_registered_human_anchor(self) -> None:
+    def test_personal_node_cannot_add_did_key_as_human_anchor(self) -> None:
         def mutate(profiles, _adapters):
             profiles["profile_requirements"]["ak.profile.personal_node.v1"][
                 "identity"
-            ]["allowed_principal_methods"] = ["did:webvh"]
+            ]["allowed_principal_methods"] = ["did:webvh", "did:key"]
 
         errors = self._run(mutate)
         self.assertTrue(
             any(
                 "ak.profile.personal_node.v1" in error
-                and "registry-derived human principal anchor allowlist ['did:webvh', 'did:key']" in error
+                and "registry-derived human principal anchor allowlist ['did:webvh']" in error
                 for error in errors
             ),
             errors,
@@ -95,13 +95,13 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
             did_key = next(
                 adapter for adapter in adapters["adapters"] if adapter["method"] == "did:key"
             )
-            did_key["human_principal_anchor"] = False
-            did_key.pop("registration_anchor_kind", None)
+            did_key["human_principal_anchor"] = True
+            did_key["registration_anchor_kind"] = "did_key_registration"
 
         errors = self._run(mutate)
         self.assertTrue(
             any(
-                "registry-derived human principal anchor allowlist ['did:webvh']" in error
+                "registry-derived human principal anchor allowlist ['did:webvh', 'did:key']" in error
                 for error in errors
             ),
             errors,

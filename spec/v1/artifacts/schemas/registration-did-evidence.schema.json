@@ -30,11 +30,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/webvh_did"
         },
         "adapter_version": {
-          "type": "string",
-          "minLength": 1
+          "const": "did:webvh:1.0"
         },
         "method_history_head": {
           "type": "string",
@@ -77,11 +76,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "did": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+          "$ref": "./common-ids.schema.json#/$defs/webvh_did"
         },
         "adapter_version": {
-          "type": "string",
-          "minLength": 1
+          "const": "did:webvh:1.0"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

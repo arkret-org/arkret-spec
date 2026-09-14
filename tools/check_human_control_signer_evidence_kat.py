@@ -225,25 +225,10 @@ def derive_webvh_anchor(anchor: dict[str, Any]) -> dict[str, str] | None:
     }
 
 
-def derive_did_key_anchor(anchor: dict[str, Any]) -> dict[str, str] | None:
-    did = anchor["did"]
-    if not did.startswith("did:key:z"):
-        return None
-    suffix = did.removeprefix("did:key:")
-    digest = sha256_hex(did)
-    return {
-        "did": did,
-        "method_history_head": "sha256:" + digest,
-        "version_id": "synthetic-did-sha256:" + digest,
-        "root_verification_method": f"{did}#{suffix}",
-        "root_public_key_multibase": suffix,
-    }
-
-
 def derive_anchor(anchor: dict[str, Any]) -> dict[str, str] | None:
     if anchor["anchor_kind"] == "webvh_registration":
         return derive_webvh_anchor(anchor)
-    return derive_did_key_anchor(anchor)
+    return None
 
 
 def reject(reason: str) -> dict[str, str]:
@@ -373,7 +358,7 @@ EXPECTED_WEBVH_NEGATIVES = {
     "history_prefix_contains_unrelated_successor",
     "did_web_human_anchor_is_not_a_registered_branch",
     "unknown_anchor_discriminator",
-    "anchor_branch_replaced_by_the_other_registered_branch",
+    "did_key_human_anchor_is_not_a_registered_branch",
     "anchor_operation_method_disagrees_with_did",
     "anchor_log_does_not_start_at_inception",
     "anchor_log_skips_a_predecessor_version",
@@ -399,7 +384,7 @@ EXPECTED_WEBVH_NEGATIVES = {
     "account_device_control_rejected_for_native_unit_lane",
 }
 
-EXPECTED_DID_KEY_NEGATIVES = {
+EXPECTED_DID_KEY_REJECTIONS = {
     "did_key_anchor_carries_a_selectable_document_mirror",
     "did_key_anchor_carries_a_synthesized_operation",
     "did_key_derived_synthetic_version_mismatches_genesis",
@@ -432,6 +417,23 @@ def run_group(
             raise SystemExit(f"{label}/{case['name']}: expected {case['expected']!r}, got {actual!r}")
 
 
+def run_rejected_group(
+    base: dict[str, Any],
+    cases: list[dict[str, Any]],
+    validator: Draft202012Validator,
+    anchor_kinds: dict[str, str],
+    label: str,
+) -> None:
+    if evaluate(base, validator, anchor_kinds) != base["expected"]:
+        raise SystemExit(f"{label}: unsupported base input was not rejected")
+    for case in cases:
+        mutated = apply_mutations(base, case["mutations"])
+        mutated.pop("expected", None)
+        actual = evaluate(mutated, validator, anchor_kinds)
+        if actual != case["expected"]:
+            raise SystemExit(f"{label}/{case['name']}: expected {case['expected']!r}, got {actual!r}")
+
+
 def main() -> int:
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     if set(fixture) != {
@@ -441,9 +443,9 @@ def main() -> int:
         "schema_ref",
         "registration_anchor_rules",
         "canonical_case",
-        "did_key_case",
+        "unsupported_did_key_case",
         "negative_cases",
-        "did_key_negative_cases",
+        "did_key_rejection_cases",
     }:
         raise SystemExit("human Control signer-evidence KAT top-level shape drifted")
     if fixture["runner"] != {"kind": "known_answer_tests", "entrypoint": ENTRYPOINT}:
@@ -458,7 +460,7 @@ def main() -> int:
 
     for group, expected_names in (
         ("negative_cases", EXPECTED_WEBVH_NEGATIVES),
-        ("did_key_negative_cases", EXPECTED_DID_KEY_NEGATIVES),
+        ("did_key_rejection_cases", EXPECTED_DID_KEY_REJECTIONS),
     ):
         names = [case.get("name") for case in fixture[group]]
         if len(names) != len(set(names)) or set(names) != expected_names:
@@ -470,18 +472,18 @@ def main() -> int:
     run_group(
         fixture["canonical_case"], fixture["negative_cases"], validator, anchor_kinds, "did:webvh anchor"
     )
-    run_group(
-        fixture["did_key_case"],
-        fixture["did_key_negative_cases"],
+    run_rejected_group(
+        fixture["unsupported_did_key_case"],
+        fixture["did_key_rejection_cases"],
         validator,
         anchor_kinds,
-        "did:key anchor",
+        "did:key human registration",
     )
 
     print(
-        "human Control signer-evidence KAT: did:webvh and did:key registration anchors, canonical "
+        "human Control signer-evidence KAT: WebVH-only registration anchor, did:key rejection, canonical "
         "content addresses, complete first-confirmation prefix and "
-        f"{len(fixture['negative_cases']) + len(fixture['did_key_negative_cases'])} negative cases OK"
+        f"{len(fixture['negative_cases']) + len(fixture['did_key_rejection_cases'])} negative cases OK"
     )
     return 0
 

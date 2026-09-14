@@ -13,7 +13,7 @@
     "This suite pins the anchor's role in the portable Control closure, not did:webvh cryptography. SCID derivation, entry-hash links, controller proofs, rotation authorization against nextKeyHashes and witness proof validity are verified by ak.vector.identity.did_webvh_v1_adapter.v1 over did-webvh-v1-fixture.json; the entries here carry native member names so no parallel vocabulary enters, and their proofValue bytes are fixture placeholders rather than real signatures.",
     "webvh_registration closed-form checks: registration_did_operation.did_method equals webvh and matches the DID method; log_entries[i].versionId carries version number i+1 starting at 1; registration_did_operation.operation is canonically equal to the last log_entries element and its seq, when present, equals that terminal version number; every witness_records row names a versionId present in log_entries and each version has at most one closed {versionId, proof} record whose proof array covers that version's declared witness threshold; normalized_did_document.did equals registration_did_operation.did; the terminal entry proof verificationMethod is the did:key URL of terminal parameters.updateKeys[0].",
     "webvh_registration derivation: did is registration_did_operation.did, version_id is the terminal entry versionId, method_history_head is sha256 over RFC 8785 JCS of the terminal entry, root_public_key_multibase is terminal parameters.updateKeys[0] and root_verification_method is that entry proof's verificationMethod. The normalized document holds the principal's own published keys and is never a root-key source.",
-    "did_key_registration derivation: the branch carries only anchor_kind and did. method_history_head is sha256 over the UTF-8 bytes of did, version_id is synthetic-did-sha256:<same hex>, and the root verification method and key are rebuilt from the multibase suffix alone.",
+    "did:key is not a human registration method in v1. anchor_kind=did_key_registration is unregistered and MUST fail closed with unsupported_did_method before branch parsing.",
     "The derived did, method_history_head and version_id MUST equal the PCR genesis initial_resolution values byte-for-byte, the derived root verification method and key MUST equal the genesis root producer material, and project(did) MUST equal account_id.principal_id.",
     "Every check consumes only the evidence root and its explicitly referenced objects. No case supplies a current resolver result, a database projection or an Account Authority receipt, so the whole suite runs offline."
   ],
@@ -337,7 +337,7 @@
       "evidence_root_ref": "ak:signer_evidence:sha256:6854da1f165ccaca86578ce2f11e3357e7a1e403f0ac522e7cca0c532cc62d9d"
     }
   },
-  "did_key_case": {
+  "unsupported_did_key_case": {
     "evidence_root": {
       "kind": "account_device_control",
       "signer_id": "ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
@@ -439,9 +439,8 @@
       ]
     },
     "expected": {
-      "decision": "accept",
-      "evidence_root_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG\",\"station_id\":\"ak:did_core:web:station.example\"},\"authorization_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"authorized_generation_ref\":1,\"confirmation_seal_ref\":\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"device_id\":\"ak:device:019b0000-0000-7000-8000-000000000002\",\"generation_event_ref\":\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\",\"history_event_refs\":[\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"ak:event:AQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC\"],\"history_seal_refs\":[\"ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"],\"kind\":\"account_device_control\",\"pcr_genesis_event_ref\":\"ak:event:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"principal_registration_anchor\":{\"anchor_kind\":\"did_key_registration\",\"did\":\"did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG\"},\"signer_id\":\"ak:did_core:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG\",\"verification_method\":\"did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#ak:device:019b0000-0000-7000-8000-000000000002\"}",
-      "evidence_root_ref": "ak:signer_evidence:sha256:ab1447405f4fe42b4b5bbcf1e18d55a19481f29f1a1c6b3189758dbb657ec39a"
+      "decision": "reject",
+      "failure_class": "unsupported_did_method"
     }
   },
   "negative_cases": [
@@ -640,7 +639,7 @@
       }
     },
     {
-      "name": "anchor_branch_replaced_by_the_other_registered_branch",
+      "name": "did_key_human_anchor_is_not_a_registered_branch",
       "mutations": [
         {
           "op": "replace",
@@ -653,7 +652,7 @@
       ],
       "expected": {
         "decision": "reject",
-        "failure_class": "registration_anchor_coordinates_mismatch"
+        "failure_class": "unsupported_did_method"
       }
     },
     {
@@ -1094,7 +1093,7 @@
       }
     }
   ],
-  "did_key_negative_cases": [
+  "did_key_rejection_cases": [
     {
       "name": "did_key_anchor_carries_a_selectable_document_mirror",
       "mutations": [
@@ -1150,7 +1149,7 @@
       ],
       "expected": {
         "decision": "reject",
-        "failure_class": "evidence_schema_invalid"
+        "failure_class": "unsupported_did_method"
       }
     },
     {
@@ -1172,7 +1171,7 @@
       ],
       "expected": {
         "decision": "reject",
-        "failure_class": "evidence_schema_invalid"
+        "failure_class": "unsupported_did_method"
       }
     },
     {
@@ -1186,7 +1185,7 @@
       ],
       "expected": {
         "decision": "reject",
-        "failure_class": "registration_anchor_coordinates_mismatch"
+        "failure_class": "unsupported_did_method"
       }
     },
     {
@@ -1200,7 +1199,7 @@
       ],
       "expected": {
         "decision": "reject",
-        "failure_class": "registration_anchor_root_key_mismatch"
+        "failure_class": "unsupported_did_method"
       }
     }
   ]

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-14.3",
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "version": "2026-09-14.4",
+  "generated_at": "2026-09-14T15:37:05+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4940,8 +4940,7 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh",
-          "did:key"
+          "did:webvh"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [
@@ -5016,8 +5015,7 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh",
-          "did:key"
+          "did:webvh"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [
@@ -5083,8 +5081,7 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh",
-          "did:key"
+          "did:webvh"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [
@@ -5161,8 +5158,7 @@
       "identity": {
         "principal_method_default": "did:webvh",
         "allowed_principal_methods": [
-          "did:webvh",
-          "did:key"
+          "did:webvh"
         ],
         "service_method_default": "did:webvh",
         "allowed_service_methods": [

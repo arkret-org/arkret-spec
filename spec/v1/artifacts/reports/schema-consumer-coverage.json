@@ -1325,7 +1325,6 @@
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
-          "ak.schema.principal_registration_anchor.v1",
           "ak.schema.push_operations.v1",
           "ak.schema.query.v1",
           "ak.schema.read_cursor.v1",

@@ -158,9 +158,9 @@
     },
     "human_principal_did": {
       "type": "string",
-      "pattern": "^(?:did:webvh:[^\\s#?]+|did:key:z[1-9A-HJ-NP-Za-km-z]+)$",
+      "pattern": "^did:webvh:[^\\s#?]+$",
       "maxLength": 2048,
-      "description": "Canonical bare DID for a v1 human principal anchor. The method set is derived from role_requirements.human_principal_anchor and is exactly did:webvh and did:key; did:web is excluded because ordinary WebPKI produces no portable offline-verifiable publication proof for the served DID document, so a did:web human registration MUST fail closed with unsupported_did_method here rather than inside a method parser or a history replay. Capability checks for relocation, DID-root recovery and ongoing governance are separate."
+      "description": "Canonical bare DID for a v1 human principal anchor. The method set is derived from role_requirements.human_principal_anchor and contains exactly did:webvh. Every other method, including did:key and did:web, MUST fail closed with unsupported_did_method here rather than inside a method parser or history replay. Capability checks for relocation, DID-root recovery and ongoing governance are separate."
     },
     "agent_did": {
       "type": "string",

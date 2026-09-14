@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.3",
+  "version": "2026-09-14.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "generated_at": "2026-09-14T15:37:05+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -675,8 +675,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#822-human-generic-control-的-portable-signer-evidencenormative",
-      "section_digest": "sha256:ca119cb6fe9435df3cb1c2a724708bf494073d8fcf02e6f14ece59234f08c3c8",
-      "requirement": "A human device authorizes Realm bootstrap and later generic Control only through the content-addressed account_device_control root, its closed adapter-discriminated principal_registration_anchor and its complete minimal PCR prefix through the first successful confirming Seal. The anchor branch is selected only by the registered registration_anchor_kind, so v1 admits did:webvh and did:key and fails a did:web human anchor closed with unsupported_did_method. The verifier re-derives the DID, method history head, version id, normalized document and root verification method/key from the anchor branch alone, requires them to equal the PCR genesis coordinates and root producer material byte-for-byte, and independently checks every exact Event/Seal, historical signature/notary transition, Account, device, method/key, generation and authorization window. Missing or substituted dependencies, a receipt or current resolver result standing in for the anchor, a later confirmation, a non-canonical prefix, or use for Data/native-unit and other excluded lanes fails closed without account_device or principal fallback.",
+      "section_digest": "sha256:65afc68d459d9707741ba4c9540a8ff46a2a888aa7a8722c59a486c9a4159329",
+      "requirement": "A human device authorizes Realm bootstrap and later generic Control only through the content-addressed account_device_control root, its closed WebVH-only principal_registration_anchor and its complete minimal PCR prefix through the first successful confirming Seal. v1 admits only anchor_kind=webvh_registration; every other human registration method or anchor kind, including did:key and did:web, fails closed with unsupported_did_method. The verifier re-derives the DID, method history head, version id, normalized document and root verification method/key from the anchor alone, requires them to equal the PCR genesis coordinates and root producer material byte-for-byte, and independently checks every exact Event/Seal, historical signature/notary transition, Account, device, method/key, generation and authorization window. Missing or substituted dependencies, a receipt or current resolver result standing in for the anchor, a later confirmation, a non-canonical prefix, or use for Data/native-unit and other excluded lanes fails closed without account_device or principal fallback.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.identity.human_control_signer_evidence.v1"

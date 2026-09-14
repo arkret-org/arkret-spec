@@ -148,10 +148,6 @@
       "category": "registration_or_binding"
     },
     {
-      "pointer": "principal-registration-anchor.schema.json#/$defs/did_key_registration_anchor/properties/did/$ref",
-      "category": "registration_or_binding"
-    },
-    {
       "pointer": "realm-genesis.schema.json#/allOf/2/then/properties/initial_resolution/properties/did/$ref",
       "category": "resolution_or_did_document"
     },

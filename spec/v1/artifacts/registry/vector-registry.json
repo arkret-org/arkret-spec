@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.5",
+  "version": "2026-09-14.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "generated_at": "2026-09-14T15:37:05+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3572,7 +3572,7 @@
       "applies_to_fixtures": [
         "human-control-signer-evidence-kat.json"
       ],
-      "description": "A human device's portable generic-Control authority is the immutable account_device_control root over its closed principal_registration_anchor, the exact Account/device/method/key/generation/window and the minimal sorted PCR Event/Seal prefix through the first successful authorization Seal. did:webvh and did:key anchors each have a complete positive case and an unregistered anchor kind, including any did:web anchor, fails closed with unsupported_did_method. Every dependency, derived DID coordinate, root verification method/key and historical signature is independently verified offline; missing objects, a substituted document, a broken log chain, a missing or surplus witness record, a later confirmation Seal, a binding or projection mismatch, a non-minimal prefix, or use on Data/native-unit lanes fails closed without account_device, principal or local-projection fallback.",
+      "description": "A human device's portable generic-Control authority is the immutable account_device_control root over its closed WebVH-only principal_registration_anchor, the exact Account/device/method/key/generation/window and the minimal sorted PCR Event/Seal prefix through the first successful authorization Seal. The did:webvh anchor has a complete positive case; every other anchor kind, including did:key and did:web, fails closed with unsupported_did_method. Every dependency, derived DID coordinate, root verification method/key and historical signature is independently verified offline; missing objects, a substituted document, a broken log chain, a missing or surplus witness record, a later confirmation Seal, a binding or projection mismatch, a non-minimal prefix, or use on Data/native-unit lanes fails closed without account_device, principal or local-projection fallback.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/human-control-signer-evidence-kat.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

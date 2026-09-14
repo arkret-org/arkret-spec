@@ -15,16 +15,16 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11780,
+    "total_properties": 11772,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3158,
+      "optional": 3156,
       "optional_defaulted": 62,
-      "required": 7424,
-      "required_nullable": 383,
-      "tristate": 753
+      "required": 7421,
+      "required_nullable": 382,
+      "tristate": 751
     },
-    "tristate_occurrences": 753,
+    "tristate_occurrences": 751,
     "tristate_audit_targets": 168,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 159,
@@ -544,8 +544,6 @@
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
     "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof",
     "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof",
-    "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof",
-    "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof",
     "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
     "account-subscribe-frame.schema.json/$defs/realm_list_page/allOf/0/then/properties/items",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
@@ -1383,8 +1381,7 @@
       "shape": "/$defs/registration_anchor_control_proof_pairing",
       "instance_path": "/control_proof",
       "occurrences": [
-        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof"
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1394,8 +1391,7 @@
       "shape": "/$defs/registration_anchor_control_proof_pairing",
       "instance_path": "/identity_creation_control_proof",
       "occurrences": [
-        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof"
+        "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4502,12 +4498,6 @@
         "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof/properties/proof_kind": "optional",
         "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof": "tristate",
         "/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof/properties/proof_kind": "optional",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/if/properties/principal_registration_anchor": "required_nullable",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/if/properties/principal_registration_anchor/properties/anchor_kind": "required",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof": "tristate",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/control_proof/properties/proof_kind": "optional",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof": "tristate",
-        "/$defs/registration_anchor_control_proof_pairing/allOf/1/then/properties/identity_creation_control_proof/properties/proof_kind": "optional",
         "/$defs/reserved_identity_creation/properties/did": "required",
         "/$defs/reserved_identity_creation/properties/principal_id": "required",
         "/$defs/reserved_identity_creation/properties/principal_registration_anchor": "required",
@@ -13337,8 +13327,6 @@
         "ak.schema.principal_registration_anchor.v1"
       ],
       "properties": {
-        "/$defs/did_key_registration_anchor/properties/anchor_kind": "required",
-        "/$defs/did_key_registration_anchor/properties/did": "required",
         "/$defs/webvh_registration_anchor/properties/anchor_kind": "required",
         "/$defs/webvh_registration_anchor/properties/log_entries": "required",
         "/$defs/webvh_registration_anchor/properties/normalized_did_document": "required",

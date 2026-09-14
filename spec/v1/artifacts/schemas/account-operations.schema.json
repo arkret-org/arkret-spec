@@ -879,7 +879,7 @@
     },
     "identity_creation_control_proof": {
       "type": "object",
-      "description": "Fresh proof signed by the registration root control key. The verifier derives that key from principal_registration_anchor under the adapter its anchor_kind selects - the accepted did:webvh entry's parameters.updateKeys[0] for webvh_registration, the deterministically expanded root key for did_key_registration - and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. proof_kind names the derivation actually used and MUST agree with anchor_kind. Signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1.",
+      "description": "Fresh proof signed by the WebVH registration root control key. The verifier derives that key from the accepted did:webvh entry's parameters.updateKeys[0] in principal_registration_anchor and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. proof_kind is fixed to did_webvh_inception_update_key and MUST agree with anchor_kind=webvh_registration. Signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -911,10 +911,9 @@
         "proof_kind": {
           "type": "string",
           "enum": [
-            "did_webvh_inception_update_key",
-            "did_key_expansion_root_key"
+            "did_webvh_inception_update_key"
           ],
-          "description": "Closed registration root-key derivation discriminator. did_webvh_inception_update_key pairs with anchor_kind=webvh_registration and did_key_expansion_root_key with anchor_kind=did_key_registration; a mismatched pair fails closed."
+          "description": "Closed registration root-key derivation discriminator. v1 permits only did_webvh_inception_update_key paired with anchor_kind=webvh_registration."
         },
         "challenge_id": {
           "$ref": "#/$defs/opaque_registration_id"
@@ -1085,43 +1084,6 @@
                 "properties": {
                   "proof_kind": {
                     "const": "did_webvh_inception_update_key"
-                  }
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "required": [
-              "principal_registration_anchor"
-            ],
-            "properties": {
-              "principal_registration_anchor": {
-                "required": [
-                  "anchor_kind"
-                ],
-                "properties": {
-                  "anchor_kind": {
-                    "const": "did_key_registration"
-                  }
-                }
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "control_proof": {
-                "properties": {
-                  "proof_kind": {
-                    "const": "did_key_expansion_root_key"
-                  }
-                }
-              },
-              "identity_creation_control_proof": {
-                "properties": {
-                  "proof_kind": {
-                    "const": "did_key_expansion_root_key"
                   }
                 }
               }

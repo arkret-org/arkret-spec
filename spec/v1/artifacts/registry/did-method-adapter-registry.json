@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.1",
+  "version": "2026-09-14.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "generated_at": "2026-09-14T15:37:05+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -14,7 +14,7 @@
     "A did is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
     "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
-    "Exactly one active adapter row per human_principal_anchor method declares registration_anchor_kind, and that value is the sole discriminator of the closed principal-registration-anchor union. A human principal is registered, given PCR genesis and later replayed from a portable account_device_control root only through the branch that value selects. did:web carries human_principal_anchor=false: ordinary WebPKI authenticates a TLS endpoint rather than the served DID document body, so a did:web registration produces no portable offline-verifiable publication proof. A human registration naming an ineligible method MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Restoring did:web as a human anchor requires a newly registered publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT return through a test fixture, an optional sidecar member or a locally widened allowlist."
+    "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered, given PCR genesis and later replayed from a portable account_device_control root only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist."
   ],
   "principal_resolution_contract": {
     "version": "2026-08-30.1",
@@ -189,7 +189,7 @@
       "did_shape": "did:key:<canonical-multibase-method-specific-id>",
       "core_projection": "ak:did_core:key:<canonical-multibase-method-specific-id>",
       "resolution_components": [],
-      "human_principal_anchor": true,
+      "human_principal_anchor": false,
       "ongoing_did_governance": false,
       "self_certifying_genesis": true,
       "native_history": false,
@@ -199,7 +199,6 @@
       "network_resolved_document": false,
       "history_evidence_kind": "none",
       "method_evidence_kind": "did_key_expansion",
-      "registration_anchor_kind": "did_key_registration",
       "method_history_head_rule": "sha256:<lowercase-hex SHA-256 of the UTF-8 bytes of canonical did>",
       "version_id_rule": "synthetic-did-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",
       "service_resolution_event_ref_rule": "did-key-did-sha256:<the same 64 lowercase hex octets carried by method_history_head after sha256:>",

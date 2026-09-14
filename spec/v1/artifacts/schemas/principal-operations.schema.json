@@ -358,11 +358,11 @@
           "type": "string",
           "pattern": "^(?!ak:)",
           "minLength": 1,
-          "description": "Adapter-derived registration versionId: the accepted did:webvh entry versionId, or the registered synthetic did:key value. It MUST equal the value the Station re-derives from principal_registration_anchor and the same field in identity_creation_control_proof."
+          "description": "Adapter-derived registration versionId: the exact accepted did:webvh entry versionId. It MUST equal the value the Station re-derives from principal_registration_anchor and the same field in identity_creation_control_proof."
         },
         "control_key_digest": {
           "$ref": "#/$defs/digest",
-          "description": "SHA-256 digest of the registration root control key committed by the identity root proof: the accepted did:webvh entry's active update key, or the deterministically expanded did:key root key."
+          "description": "SHA-256 digest of the registration root control key committed by the identity root proof: the accepted did:webvh entry's active update key."
         },
         "idempotency_key": {
           "type": "string",
