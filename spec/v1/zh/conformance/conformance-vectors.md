@@ -6494,4 +6494,6 @@ producer、receiver 与服务端 reducer 若共享正式 evaluator，可执行�
 
 `registered-effect-capability-registry.json` 是从全部 active `cell_writes` 反查的闭合能力清单；artifact
 lint 对 subject、component、condition、effect/value operator、source 与 transform 逐集合比对。新增 active
-语法节点时，若该清单、正式 evaluator 支持声明或 canonical vector 未同步，CI MUST 确定性失败。
+语法节点但清单或正式 evaluator 支持声明未同步时，CI MUST 确定性失败。能力声明本身不是行为证明；新增或
+修改语法节点还 MUST 同步增加 canonical behavioral vector。本节两条向量分别是
+`object_without_fields` 与 `typed_pair` 的行为门禁，不声称覆盖清单中所有历史语法节点。
