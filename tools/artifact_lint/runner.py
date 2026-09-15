@@ -119,6 +119,7 @@ from .fixtures import (
     check_history_scale_fixture,
     check_keypackage_write_transcript_fixture,
     check_mls_governance_proof_fixture,
+    check_mls_creator_bootstrap_transaction,
     check_normative_clause_registry,
     check_one_of_branch_discriminability,
     check_operation_selector_fixture,
@@ -457,6 +458,10 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_registry", lambda: check_vector_registry(lint)),
             ("crypto_suite_kats", lambda: check_cryptographic_suite_kat_bindings(lint)),
             ("normative_clauses", lambda: check_normative_clause_registry(lint)),
+            (
+                "mls_creator_bootstrap",
+                lambda: check_mls_creator_bootstrap_transaction(lint),
+            ),
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),

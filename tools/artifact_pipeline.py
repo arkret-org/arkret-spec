@@ -1356,6 +1356,15 @@ def run_schema_constructability_test() -> int:
     return result.returncode
 
 
+def run_mls_creator_bootstrap_transaction_test() -> int:
+    result = subprocess.run(
+        [sys.executable, "-m", "unittest",
+         "tools.test_mls_creator_bootstrap_transaction_lint"],
+        cwd=ROOT,
+    )
+    return result.returncode
+
+
 def run_openapi_operation_selector(mode: str) -> int:
     result = subprocess.run(
         [sys.executable, str(OPENAPI_OPERATION_SELECTOR_SCRIPT), mode], cwd=ROOT
@@ -1474,6 +1483,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         ("operation string classification test", run_operation_string_classification_test),
         ("long text schema test", run_long_text_schema_test),
         ("schema constructability test", run_schema_constructability_test),
+        ("creator bootstrap transaction test", run_mls_creator_bootstrap_transaction_test),
         ("fixture digests", run_fixture_digest_check),
         ("session grant KAT", run_session_grant_kat_check),
         ("contact round KAT", run_contact_round_kat_check),

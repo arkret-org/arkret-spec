@@ -3,7 +3,7 @@ title: 账号服务器信任与结果消费
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-09-15
 sidebar:
   label: 服务器信任与结果
 ---
@@ -114,7 +114,9 @@ proposed_group_genesis_binding?, previous_epoch, next_epoch` 排列。scope 仅�
 credential_ref 不重复且每项不超过 2048 字符，请求 canonical bytes 不超过 8 MiB。它不是全部 Realm 历史。
 epoch 只允许 0→0 或 n→n+1；后者必须提供准确的 base_group_state_ref。0→0 禁止 base ref；只有未存在
 accepted Genesis 时携 proposed_group_genesis_binding，proposal、accepted immutable Genesis 和并发冲突仍遵守
-现有 Genesis 错误合同。固定使用 `ak.security_frontier.v1` 选择规则和 full MLS binding profile。
+现有 Genesis 错误合同。该 proposal MUST 逐字取自调用方已耐久落盘的 creator bootstrap transaction record
+（[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)），MUST NOT 由 current
+projection、Realm profile、history facet 或默认值重建；Station 仍不得代为默认。固定使用 `ak.security_frontier.v1` 选择规则和 full MLS binding profile。
 
 服务器 MUST 对每次请求检查当前账号的 Realm/Circle 可见性，并读取 exact seal_basis 对应的已确认状态，
 不得静默替换为当前单一 head。沿现有 frontier registry、exact local leaves 与不可变 Genesis binding 计算

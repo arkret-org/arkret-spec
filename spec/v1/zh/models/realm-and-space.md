@@ -3,7 +3,7 @@ title: Realm & Space
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-09-15
 ---
 
 ## 0. 规范语言
@@ -153,6 +153,11 @@ v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`�
 `durability_policy` 是 exporter effective scope 在 create/Genesis 时固定的必填 string：`none|organization_recovery_key`。非-exporter Realm
 必须省略。它与 `content_scheme` 都不属于 `ak.realm.policy_bundle` complete-set；reducer 从 exact accepted Genesis/group state 读取并纳入 security frontier，任何后续 Event 试图改变任一值都以 `failed_precondition` 零写入拒绝。Realm authority 同一时点只登记一把逻辑 organization recovery key tuple；scope 不复制 recipient、holder、
 threshold 或 custody topology。每个 exporter Realm/Circle 独立 opt in，Circle 不继承父 Realm 选择。
+
+创建者在 accepted Genesis 之前对 `content_scheme` / `durability_policy` 的选择只是本地创建意图，其唯一耐久载体是
+[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md) 的 creator bootstrap
+transaction record。`ak.realm.create` closed payload、`ak.realm.profile`、`ak.realm.history_access` facet 与任何
+current/UI projection MUST NOT 复制这两个值，也 MUST NOT 被用来反推它们。
 
 选择 organization key 时，每个 winning Genesis/Commit 必须在同一 signed Event 内携本 scope/epoch 恰一份 archive；
 缺少唯一 accepted authority key tuple 或 archive 时 transition 拒绝。Rotation 只影响后续 transition；历史 archive

@@ -1032,6 +1032,44 @@ Expected：
 - 所有拒绝分支 MUST 零 durable 写入、不进入 MLS proposal store、不产生 leaf provenance，也不推进 `ak.component.mls.epoch.v1`。
 - 只做 schema 校验、或只验证发送者是当前成员而不比较 exact base 叶与已验证 producer，不构成通过。
 
+### 2.5.8 Vector: 创建者 MLS Genesis Bootstrap 恢复
+
+`vector_id`: `ak.vector.mls.creator_bootstrap_recovery.v1`
+
+本 vector 固定 [`encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md) 与
+[`mls-creator-bootstrap-transaction-registry.json`](../../artifacts/registry/mls-creator-bootstrap-transaction-registry.json)
+的唯一 creator bootstrap transaction/FSM。runner MUST 加载
+[`mls-creator-bootstrap-recovery-fixture.json`](../../artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json)
+并执行 `ak.suite.mls.creator_bootstrap_recovery.v1`；fixture 的 `crash_cases[]` 与 registry 的 `transitions[]` 一一对应，
+新增箭头而不新增两侧 crash case 即为不通过。
+
+逐箭头 crash/reload：对 registry `transitions[]` 的每一条箭头，runner MUST 分别在该箭头的 durable commit **之前**与
+**之后**注入 crash/reload，并断言 fixture 中同名 `pre_commit` / `post_commit` case 的 `expected_state` 与 invariants。
+八条箭头依次是 `absent -> genesis_intent_persisted`、`genesis_intent_persisted -> realm_accepted`、
+`realm_accepted -> governance_result_pinned`、`governance_result_pinned -> epoch0_state_persisted`、
+`epoch0_state_persisted -> genesis_queued`、`genesis_queued -> genesis_accepted`、
+`genesis_accepted -> artifacts_converged`、`artifacts_converged -> ready`。
+
+场景覆盖：runner 还 MUST 覆盖 Realm-create response loss、0→0 response loss、public blob 部分上传、
+sign-before-enqueue、enqueue commit 后响应丢失、accepted 后本地确认丢失、artifact 部分持久化、另一 Genesis 获胜、
+terminal reject 与 local corruption 十类，对应 fixture 的 `scenario_cases[]`。
+
+Expected：
+
+- 每个正例最终 MUST 在服务端恰好留下一个 accepted `ak.mls.genesis`，且 accepted Event bytes 与 queue 中冻结的 bytes
+  逐字节相同。
+- 在恢复器运行前删除全部 current / UI projection，所有结果 MUST 不变；projection MUST NOT 参与 encryption、creator、
+  Genesis-exists 或 ready 的任一协议分支。
+- 任何分支 MUST NOT 依据 HTTP 2xx、`duplicate` code、队列存在、`emitted` / `submitted` 标志或页面投影宣告完成；只有
+  exact accepted Event 是完成权威。
+- selector MUST 在 Realm create 首次网络副作用、0→0 query 与任何随机材料之前耐久落盘；先建 Realm 再补 selector、
+  或从 accepted history facet / Realm projection / 默认值反推 selector 均为不通过。
+- 签名后改动 active attempt 的任一字段 MUST fail closed；`another_genesis_wins` MUST 进入 `superseded` 且本地私有状态
+  MUST NOT 与 winner 配平，`terminal_reject` 的新 attempt generation MUST 继承原 durable intent 的 selector，
+  `local_corruption` MUST 进入 `quarantined` 且不自动擦除原始恢复材料。
+- 把该本地记录或其任一字段写入 Realm Event、current projection、Account Data key、sync 或 federation 面，或以对端
+  对该记录的声明作为 scope 状态证据，均为不通过。
+
 ### 2.6 Vector: 数据面 sibling 按固定 rank 选 Winner
 
 向量名称：

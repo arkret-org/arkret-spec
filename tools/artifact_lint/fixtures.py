@@ -5819,3 +5819,280 @@ def check_websocket_binding_fixture(lint: Lint) -> None:
     missing = sorted(required_frame_definitions - definitions)
     if missing:
         lint.fail(path, f"websocket frame schema misses required definitions: {missing}")
+MLS_CREATOR_BOOTSTRAP_REGISTRY_PATH = (
+    ARTIFACTS / "registry" / "mls-creator-bootstrap-transaction-registry.json"
+)
+
+MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH = (
+    ARTIFACTS / "fixtures" / "mls-creator-bootstrap-recovery-fixture.json"
+)
+
+MLS_CREATOR_BOOTSTRAP_VECTOR_ID = "ak.vector.mls.creator_bootstrap_recovery.v1"
+
+MLS_CREATOR_BOOTSTRAP_STATE_KEYS = (
+    "state_id",
+    "ordinal",
+    "kind",
+    "authority_source",
+    "entry_predicate",
+    "required_durable_fields",
+    "allowed_exits",
+    "retry_rule",
+    "gc_rule",
+    "failure_disposition",
+)
+
+MLS_CREATOR_BOOTSTRAP_TRANSITION_KEYS = (
+    "transition_id",
+    "from_state",
+    "to_state",
+    "commit_boundary",
+    "crash_before_commit",
+    "crash_after_commit",
+)
+
+MLS_CREATOR_BOOTSTRAP_STATE_KINDS = frozenset(
+    {"progress", "terminal_success", "terminal_attempt", "terminal_failure"}
+)
+
+MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER = (
+    "genesis_intent_persisted",
+    "realm_accepted",
+    "governance_result_pinned",
+    "epoch0_state_persisted",
+    "genesis_queued",
+    "genesis_accepted",
+    "artifacts_converged",
+    "ready",
+)
+
+MLS_CREATOR_BOOTSTRAP_SCENARIOS = (
+    "realm_create_response_loss",
+    "governance_query_response_loss",
+    "public_blob_partial_upload",
+    "sign_before_enqueue",
+    "enqueue_commit_then_response_loss",
+    "accepted_then_local_confirmation_loss",
+    "artifact_partial_persistence",
+    "another_genesis_wins",
+    "terminal_reject",
+    "local_corruption",
+)
+
+
+def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
+    """Bind the creator bootstrap FSM to a crash vector on both sides of every arrow.
+
+    encryption-and-audit.md section 5.1.2 registers one client-local durable
+    transaction. The gap the ruling closed was that two conforming clients could
+    each pick a different cut point, so the machine contract only helps if every
+    registered arrow is proven crash-recoverable from both sides. This walks the
+    registry and refuses an arrow, a state or a required durable field that no
+    fixture case exercises.
+    """
+
+    registry_path = MLS_CREATOR_BOOTSTRAP_REGISTRY_PATH
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    if registry.get("source_of_truth") is not True:
+        lint.fail(registry_path, "source_of_truth must be true")
+
+    states = registry.get("states")
+    if not isinstance(states, list) or not states:
+        lint.fail(registry_path, "states must be a non-empty list")
+        return
+
+    state_rows: dict[str, dict[str, Any]] = {}
+    ordinals: list[int] = []
+    for index, row in enumerate(states):
+        label = f"states[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(registry_path, f"{label} must be an object")
+            continue
+        if tuple(row.keys()) != MLS_CREATOR_BOOTSTRAP_STATE_KEYS:
+            lint.fail(
+                registry_path,
+                f"{label} must declare exactly {list(MLS_CREATOR_BOOTSTRAP_STATE_KEYS)} in that order",
+            )
+            continue
+        state_id = row["state_id"]
+        if not isinstance(state_id, str) or not re.fullmatch(r"[a-z][a-z0-9_]*", state_id):
+            lint.fail(registry_path, f"{label}.state_id must be a snake_case token")
+            continue
+        if state_id in state_rows:
+            lint.fail(registry_path, f"{label}.state_id duplicates {state_id}")
+        state_rows[state_id] = row
+        if not isinstance(row["ordinal"], int) or isinstance(row["ordinal"], bool):
+            lint.fail(registry_path, f"{state_id}.ordinal must be an integer")
+        else:
+            ordinals.append(row["ordinal"])
+        if row["kind"] not in MLS_CREATOR_BOOTSTRAP_STATE_KINDS:
+            lint.fail(
+                registry_path,
+                f"{state_id}.kind must be one of {sorted(MLS_CREATOR_BOOTSTRAP_STATE_KINDS)}",
+            )
+        for key in ("authority_source", "entry_predicate", "retry_rule", "gc_rule", "failure_disposition"):
+            if not isinstance(row[key], str) or not row[key].strip():
+                lint.fail(registry_path, f"{state_id}.{key} must be a non-empty string")
+        fields = row["required_durable_fields"]
+        if not isinstance(fields, list) or not fields or not all(
+            isinstance(item, str) and item.strip() for item in fields
+        ):
+            lint.fail(
+                registry_path,
+                f"{state_id}.required_durable_fields must be a non-empty array of non-empty strings",
+            )
+        exits = row["allowed_exits"]
+        if not isinstance(exits, list) or len(exits) != len(set(exits)):
+            lint.fail(registry_path, f"{state_id}.allowed_exits must be a duplicate-free array")
+
+    if ordinals != sorted(ordinals) or len(set(ordinals)) != len(ordinals):
+        lint.fail(registry_path, "states[].ordinal must be unique and strictly increasing in file order")
+
+    for state_id, row in state_rows.items():
+        for target in row["allowed_exits"]:
+            if target not in state_rows:
+                lint.fail(registry_path, f"{state_id}.allowed_exits references unknown state: {target!r}")
+        if row["kind"] in {"terminal_success", "terminal_failure"} and row["allowed_exits"]:
+            if row["kind"] == "terminal_failure":
+                lint.fail(registry_path, f"{state_id} is terminal_failure but declares an exit")
+        if row["kind"] == "progress" and not row["allowed_exits"]:
+            lint.fail(registry_path, f"{state_id} is a progress state with no exit")
+
+    for state_id in MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER:
+        if state_id not in state_rows:
+            lint.fail(registry_path, f"the ruled progress chain requires state {state_id!r}")
+
+    transitions = registry.get("transitions")
+    if not isinstance(transitions, list) or not transitions:
+        lint.fail(registry_path, "transitions must be a non-empty list")
+        return
+
+    transition_ids: list[str] = []
+    for index, row in enumerate(transitions):
+        label = f"transitions[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(registry_path, f"{label} must be an object")
+            continue
+        if tuple(row.keys()) != MLS_CREATOR_BOOTSTRAP_TRANSITION_KEYS:
+            lint.fail(
+                registry_path,
+                f"{label} must declare exactly {list(MLS_CREATOR_BOOTSTRAP_TRANSITION_KEYS)} in that order",
+            )
+            continue
+        transition_id = row["transition_id"]
+        if not isinstance(transition_id, str) or not transition_id:
+            lint.fail(registry_path, f"{label}.transition_id must be a non-empty string")
+            continue
+        if transition_id in transition_ids:
+            lint.fail(registry_path, f"{label}.transition_id duplicates {transition_id}")
+        transition_ids.append(transition_id)
+        from_state = row["from_state"]
+        to_state = row["to_state"]
+        if from_state is not None and from_state not in state_rows:
+            lint.fail(registry_path, f"{transition_id}.from_state is not a registered state: {from_state!r}")
+        if to_state not in state_rows:
+            lint.fail(registry_path, f"{transition_id}.to_state is not a registered state: {to_state!r}")
+        elif from_state is None:
+            if state_rows[to_state]["ordinal"] != 1:
+                lint.fail(registry_path, f"{transition_id} may only enter the first state")
+        elif to_state not in state_rows[from_state]["allowed_exits"]:
+            lint.fail(
+                registry_path,
+                f"{transition_id} is not listed in {from_state}.allowed_exits",
+            )
+        expected_id = f"{from_state or 'absent'}_to_{to_state}"
+        if transition_id != expected_id:
+            lint.fail(registry_path, f"{transition_id} must be named {expected_id}")
+        for key in ("commit_boundary", "crash_before_commit", "crash_after_commit"):
+            if not isinstance(row[key], str) or not row[key].strip():
+                lint.fail(registry_path, f"{transition_id}.{key} must be a non-empty string")
+
+    chain = ["absent_to_" + MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER[0]] + [
+        f"{a}_to_{b}"
+        for a, b in zip(
+            MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER, MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER[1:]
+        )
+    ]
+    missing_chain = [item for item in chain if item not in transition_ids]
+    if missing_chain:
+        lint.fail(registry_path, f"the ruled progress chain has unregistered arrows: {missing_chain}")
+
+    fixture_path = MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict):
+        return
+    if fixture.get("covers_vectors") != [MLS_CREATOR_BOOTSTRAP_VECTOR_ID]:
+        lint.fail(fixture_path, f"covers_vectors must be exactly [{MLS_CREATOR_BOOTSTRAP_VECTOR_ID!r}]")
+    if fixture.get("registry_under_test") != "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json":
+        lint.fail(fixture_path, "registry_under_test must name the creator bootstrap transaction registry")
+    assertions = fixture.get("global_assertions")
+    if not isinstance(assertions, list) or len(assertions) < 3:
+        lint.fail(fixture_path, "global_assertions must state the single-accepted-Genesis closure")
+
+    crash_cases = fixture.get("crash_cases")
+    if not isinstance(crash_cases, list) or not crash_cases:
+        lint.fail(fixture_path, "crash_cases must be a non-empty list")
+        return
+
+    observed: set[tuple[str, str]] = set()
+    for index, case in enumerate(crash_cases):
+        label = f"crash_cases[{index}]"
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"{label} must be an object")
+            continue
+        transition_id = case.get("transition")
+        injection = case.get("injection")
+        if transition_id not in transition_ids:
+            lint.fail(fixture_path, f"{label}.transition is not a registered arrow: {transition_id!r}")
+            continue
+        if injection not in {"pre_commit", "post_commit"}:
+            lint.fail(fixture_path, f"{label}.injection must be pre_commit or post_commit")
+            continue
+        suffix = "crash_before_commit" if injection == "pre_commit" else "crash_after_commit"
+        if case.get("name") != f"{transition_id}__{suffix}":
+            lint.fail(fixture_path, f"{label}.name must be {transition_id}__{suffix}")
+        if (transition_id, injection) in observed:
+            lint.fail(fixture_path, f"{label} duplicates {transition_id} {injection}")
+        observed.add((transition_id, injection))
+        if not isinstance(case.get("expected_state"), str) or not case["expected_state"].strip():
+            lint.fail(fixture_path, f"{label}.expected_state must be a non-empty string")
+        elif case["expected_state"] not in state_rows and case["expected_state"] != "absent":
+            lint.fail(fixture_path, f"{label}.expected_state is not a registered state")
+        if not isinstance(case.get("expected"), str) or not case["expected"].strip():
+            lint.fail(fixture_path, f"{label}.expected must be a non-empty string")
+        invariants = case.get("invariants")
+        if not isinstance(invariants, list) or not invariants:
+            lint.fail(fixture_path, f"{label}.invariants must be a non-empty array")
+
+    for transition_id in transition_ids:
+        for injection in ("pre_commit", "post_commit"):
+            if (transition_id, injection) not in observed:
+                lint.fail(
+                    fixture_path,
+                    f"arrow {transition_id} has no {injection} crash case; "
+                    "every registered arrow needs a crash and reload on both sides",
+                )
+
+    scenario_cases = fixture.get("scenario_cases")
+    if not isinstance(scenario_cases, list):
+        lint.fail(fixture_path, "scenario_cases must be a list")
+        return
+    scenario_names = [
+        case.get("name") for case in scenario_cases if isinstance(case, dict)
+    ]
+    missing_scenarios = [name for name in MLS_CREATOR_BOOTSTRAP_SCENARIOS if name not in scenario_names]
+    if missing_scenarios:
+        lint.fail(fixture_path, f"scenario_cases misses ruled failure coverage: {missing_scenarios}")
+    for index, case in enumerate(scenario_cases):
+        label = f"scenario_cases[{index}]"
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"{label} must be an object")
+            continue
+        for key in ("name", "given", "action", "expected"):
+            if not isinstance(case.get(key), str) or not case[key].strip():
+                lint.fail(fixture_path, f"{label}.{key} must be a non-empty string")
+        invariants = case.get("invariants")
+        if not isinstance(invariants, list) or not invariants:
+            lint.fail(fixture_path, f"{label}.invariants must be a non-empty array")

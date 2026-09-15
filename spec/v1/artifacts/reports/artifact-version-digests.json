@@ -212,6 +212,12 @@
       "content_digest": "sha256:0aeebd88416cd3c7cdbe6bbca8bfac10c1568581f21c0e9bb1c3be8d1432bbb4"
     },
     {
+      "path": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
+      "version": "2026-09-15",
+      "generated_at": "2026-09-15T21:40:00+08:00",
+      "content_digest": "sha256:02f31a4a61f7820b44278bece1e88e9a01ae2af0e9edcaac70ce77a1ff778d9f"
+    },
+    {
       "path": "spec/v1/artifacts/registry/mls-extension-registry.json",
       "version": "2026-09-10",
       "generated_at": "2026-09-10T10:52:00+08:00",
@@ -237,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-15.2",
-      "generated_at": "2026-09-15T12:32:00+08:00",
-      "content_digest": "sha256:6393e49870e17e7c43f3fd70a8737535c4cf8a4ff6b47b4fffdfe4df9338e4e7"
+      "version": "2026-09-15.4",
+      "generated_at": "2026-09-15T22:10:00+08:00",
+      "content_digest": "sha256:17739365768c99d7efe273d4f87b4d603bd4518fc8cfb38e7f0287c76e705522"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -339,9 +345,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
-      "version": "2026-09-14.1",
-      "generated_at": "2026-09-14T22:55:00+08:00",
-      "content_digest": "sha256:a7308e1eae3152fc8bbd46616d6015670fe9df3b2f69e52f492ad0d8fb884a25"
+      "version": "2026-09-15.1",
+      "generated_at": "2026-09-15T21:40:00+08:00",
+      "content_digest": "sha256:7a711078105ffc6fcd2510068deef483304fbdfaee7e8dd1ee525b2b403a1861"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",
@@ -399,9 +405,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-15.2",
-      "generated_at": "2026-09-15T18:40:00+08:00",
-      "content_digest": "sha256:0448dc72c1280d6a3111e9d056b76d835dca195b2a69378123de65426ebd6822"
+      "version": "2026-09-15.3",
+      "generated_at": "2026-09-15T13:40:00+00:00",
+      "content_digest": "sha256:148c75a5aea3074d4f19587eb927e787b63515a664bdea45361b0f2ce5373213"
     }
   ]
 }

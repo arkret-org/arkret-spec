@@ -3,7 +3,7 @@ title: Encryption and Auditability
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-10
+updated: 2026-09-15
 sidebar:
   label: Encryption & Audit
 ---
@@ -774,6 +774,8 @@ Welcome”或“自举已经完成”。客户端 MUST 按以下规则收敛：
 3. 客户端 MUST 在产生不可重建的 epoch-0 私有状态后耐久保存该状态，以及恢复 exact signed Genesis 所需的
    transaction material；网络失败、页面卸载或进程崩溃后必须重入同一事务。byte-identical retry 必须复用同一
    Event；若 Station 已接受 Genesis，则客户端必须解析并收敛到该 accepted Event，不得生成第二个 Genesis。
+   该 transaction material 的唯一记录身份、逐状态必需字段、原子边界与恢复转移由 §5.1.2 与其机器 registry
+   闭合登记；本条不授权实现自行选择保存范围或恢复顺序。
 4. 只有当 exact `ak.mls.genesis` 已 accepted，且与之匹配的 epoch-0 私有 group state 和客户端所需的 accepted
    artifact 已耐久保存后，客户端才可把该 scope 标记为 MLS-write-ready。仅有 optimistic Realm、epoch-0 本地
    snapshot、`submitted` / `emitted` 标志、HTTP 成功或本地 Event id 均不足以越过 §2.5.2 send gate。
@@ -818,6 +820,79 @@ HTTP caller MUST 使用 §3 的 service-to-service authentication，并且是该
 被 Realm policy 显式授权读取 MLS public group state 的服务；同进程 tracker 也必须执行完全相同的 Event acceptance、visibility、digest 与 RFC 9420
 校验。consumer 只能从验证后的 ratchet tree 的实际 occupied leaves 恢复 RFC leaf index；不得枚举 KeyPackage
 记录猜测 tree position、不得按到达顺序编号，也不得从 governance proof bundle 获取 leaves。
+
+#### 5.1.2 创建者 bootstrap transaction（normative）
+
+§5.1 第 3 条所称的 transaction material 是一条唯一的、客户端本地的耐久事务记录。它的封闭状态集合、逐状态权威来源、
+进入条件、必需耐久字段、允许退出、retry 规则、GC 规则与失败归宿的机器真相源是
+[`mls-creator-bootstrap-transaction-registry.json`](../../artifacts/registry/mls-creator-bootstrap-transaction-registry.json)；
+本节只解释语义并逐段对应该 registry。实现 MUST 以该 registry 为准，MUST NOT 让某个客户端私有 enum、UI 步骤条或
+effect 生命周期成为事实标准。
+
+**记录身份与互斥**：逻辑记录 key 固定为 `(owner_actor_id, effective_scope, operation)`，`operation` 固定为
+`mls_genesis`。普通 human creator 的 `owner_actor_id` MUST 是含 `station_id` 的完整 Account ActorId；Agent、service 与
+minimal-metadata 分支使用各自完整 ActorId，缩成 principal DID 不构成 key。`effective_scope` MUST 是 §5.1 的
+canonical typed scope，MUST NOT 用页面 route、显示 Realm 或裸字符串别名代替。creator device 与 creator signer method 是
+该记录的 immutable 字段，但**不进入** logical key：因此 reload、同账号多窗口与同设备重入都落在同一条记录上，而换设备
+不会因为得到另一个 key 就静默开出第二个 Genesis。不持有该记录私有状态与 signer 的设备 MUST 等待 accepted 结果并走
+Welcome／设备迁移／恢复路径，MUST NOT 接管该记录重新生成材料。每个本地 authoring vault 对同一
+`(effective_scope, operation)` 至多保有一条 active 记录，MUST 由 partial unique constraint 或等价的原子 CAS 强制；
+本地锁、UI 去重与 effect 去抖 MUST NOT 被当作协议互斥，跨设备的最终互斥仍然只由同 effective scope 唯一 accepted
+Genesis 的服务端槽位提供。
+
+**状态顺序**：正式顺序是 `genesis_intent_persisted -> realm_accepted -> governance_result_pinned ->
+epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready`。已 accepted 但尚无
+Genesis 的 MLS Realm MAY 带着 `genesis_intent_persisted -> realm_accepted` 已满足的后置条件进入该事务；无论入口在
+哪里，selector MUST 先耐久落盘，MUST NOT 先生成随机材料或先发起 0→0 governance query。`rejected` 是同一 logical
+record 下的 terminal attempt，只有在 exact 查询再次确认尚无 accepted Genesis 后，才可原子封存旧 attempt 并开启新的
+attempt generation，且 selector 继承原 durable intent；`superseded` 与 `quarantined` 是终态，MUST 停止 queue retry、
+自动 authoring 与 send gate。恢复器 MUST 从耐久记录的当前状态执行唯一的下一条箭头，MUST NOT 从 UI 重新拼材料。
+
+**本地状态不授权对端采信**：该记录是客户端本地、由设备秘密保护的 normative durable state。它不是 wire object、
+不是 Realm Event、不是 Account Data key，也不是服务端事务；MUST NOT 进入 `ak.realm.create` payload、current
+projection、client sync 或 federation。该 registry 约束的只是 conforming client 自己 MUST 保存和验证什么；它
+MUST NOT 被解释为授权任何 peer、Station 或 federation 对端采信另一方的本地状态。Genesis 是否存在、创建者坐标、
+被锁定的 selector 以及 scope 是否可写，一律只从 exact accepted Event 判定；对该记录的任何声明、导出或回显都不具有
+协议效力，receiver MUST NOT 据此放宽 §2.5.2 的 send gate 或本节的 Genesis 判定。
+
+**selector 的性质**：`content_scheme` 与条件必填的 `durability_policy` 在 `genesis_intent_persisted` 阶段只是**本地
+创建意图**，不是 Realm create 已锁定的事实；只有记录进入 `genesis_accepted` 之后，它们才成为该 group 的协议 immutable
+值（§2.10、[`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）。Realm create closed payload、
+`ak.realm.profile`、`ak.realm.history_access` facet 与任何 current/UI projection MUST NOT 复制这两个 selector，也
+MUST NOT 被用来反推它们。v1 不登记任何从 facet、projection 或旧 UI 组合窄推断 selector 的兼容分支；缺正式记录的
+旧本地数据按已有 accepted Genesis 收敛、明确无 Genesis 时显式废弃重建、accepted 状态未知时保持不可写。
+
+**原子 cut point**：registry `atomic_cut_points[]` 逐条登记，判定要点为：
+
+1. `genesis_intent_persisted` MUST 先于 `ak.realm.create` 的首次网络副作用。create Event id 在提交前已可由 exact
+   signed unit 派生，因此“尚无 accepted realm_id”MUST NOT 成为延后保存 selector 的理由。
+2. `governance_result_pinned` MUST 先于任何依赖该 binding 的 MLS/HPKE 随机材料生成。query 可重试，但已验证并被采用的
+   request/outcome pair MUST NOT 被 current projection 或更新后的 basis 静默替换。
+3. epoch-0 私有状态、公开 raw bytes、随机 archive/ciphertext 与 exact unsigned Genesis core MUST 作为一个恢复单元先
+   耐久提交，才允许上传公开 blobs、签名或入队。纯内存生成期间崩溃且从未产生外部副作用不构成可恢复 attempt；一旦任何
+   材料可被外部观察，上述 durable unit MUST 已经存在。
+4. exact signed Event bytes 与 outbound queue item MUST 原子建立。不存在“transaction 写成功但 queue 没写”或“queue
+   已可发送但 transaction 尚不知其 bytes”的合法状态。
+5. `ready` 状态与实际 send-gate index MUST 原子发布。崩溃后要么仍是 `artifacts_converged` 且最后一步可重试，要么两者
+   同时可见；ready 标志与 artifact 记录分叉不是合法状态。
+
+**durable outbound queue 的归属**：queue 是独立 ledger，不是该事务的权威状态机。通用 outbound worker 继续拥有发送
+次数、backoff 与 transport outcome；该事务拥有“哪一份 signed Genesis 是唯一可重试原件”。进入 `genesis_queued` 时二者
+MUST 在同一 durable commit 中以 Event id、canonical bytes digest 与 queue item id 一对一关联，worker 只能重发冻结
+bytes。response loss 后 MUST 先 exact 查询 accepted Genesis：匹配则进入 `genesis_accepted`；明确 absent 且上次结果可
+重试则继续同一 queue item；unknown 保持原状态。队列 exhausted、HTTP 2xx、`duplicate` 与 UI effect 完成 MUST NOT 自行
+推进该事务，这与 §5.1 第 4 条的 ready 判据同源。
+
+**清理与保留**：`ready` 之前 MUST NOT 删除 selector、pinned request/outcome、epoch-0 私有状态、signed Event bytes 或
+queue 关联。进入 `ready` 后，MAY 在一个原子 compaction 中删除 pre-Genesis proposal、proof request/outcome 副本、staged
+state 与 completed queue item；accepted 私有 group state、accepted artifact、协议要求继续可解析的 public blobs 以及最小
+terminal receipt MUST 保留，§5.1.1 要求的 public blobs 保留 MUST NOT 被当作本地临时文件一起回收。`rejected` /
+`superseded` 的不匹配 secret 与未被 accepted Event 引用的临时 blobs，只能在 terminal diagnostic 已耐久、queue 已停止且
+accepted 状态已再次确认后擦除；`quarantined` 默认不自动擦除原始恢复材料。物理删除 MUST NOT 移除“该 logical key 已有
+terminal attempt”的防重建 tombstone。
+
+本节的可执行证据是 [`../conformance/conformance-vectors.md` §2.5.8](../conformance/conformance-vectors.md) 的
+`ak.vector.mls.creator_bootstrap_recovery.v1`。
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：

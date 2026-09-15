@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.2",
+  "version": "2026-09-15.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T12:32:00+08:00",
+  "generated_at": "2026-09-15T22:10:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -691,6 +691,18 @@
       "requirement": "An accepted MLS artifact carries a complete ordered mls_leaf_authorizations association keyed by the exact occupied leaf indices of its transition. Device, Agent and pairwise branches are closed, forbid nulls and redundant identity/key fields, and retain exact historical authorization without altering frontier/removal digests. Missing provenance is unavailable, never current-directory or claim substitution. The client binds the exact artifact/session and actual RFC tree before atomic installation; current access remains independently checked.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools/test_mls_accepted_leaf_authorization_schema.py and SDK accepted-artifact/real cold-Welcome tests for closed branches, missing/duplicate/wrong indices, nulls, unchanged frontier digest and durable historical bindings. PostgreSQL verifies exact retry and withdrawal behavior. These checks do not establish complete Add/Agent/cross-Station origin production or Seal publication: those remain explicitly owned by arkret-work 0714 and require real revocation/re-authorization, cold recovery and process-failure acceptance. Never mark candidate storage as a confirmed origin or use current authority to reconstruct missing historical sources."
+    },
+    {
+      "clause_id": "AK-NC-056",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建者-bootstrap-transactionnormative",
+      "section_digest": "sha256:9a8521e3018d98517511eac92de62a7a24d7721ba06c9a517437a5384ba074b5",
+      "requirement": "A creator client keeps exactly one client-local durable transaction per (owner_actor_id, effective_scope, operation=mls_genesis) and advances it only along the registered arrows genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. The selector is persisted before the first Realm-create side effect, before any 0->0 query and before any selector-dependent randomness; the signed Genesis bytes and the outbound queue item are established atomically; ready and the send-gate index are published atomically. Only an exact accepted Event proves completion, the record never reaches a wire, projection, Account Data key, sync or federation surface, and it never authorizes a peer to trust another party's local state.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.mls.creator_bootstrap_recovery.v1"
+      ]
     }
   ]
 }

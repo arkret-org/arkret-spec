@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.2",
+  "version": "2026-09-15.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T18:40:00+08:00",
+  "generated_at": "2026-09-15T13:40:00+00:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4610,6 +4610,21 @@
         "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json"
       ],
       "description": "A Realm/Circle/Sidecar MLS group fixes its content scheme at Genesis; later switching or accepting another group id for the same ordinary scope fails closed."
+    },
+    {
+      "vector_id": "ak.vector.mls.creator_bootstrap_recovery.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-creator-bootstrap-recovery-fixture.json"
+      ],
+      "description": "The creator client drives one encrypted effective scope through the single durable transaction genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. A crash and a reload are injected before and after every registered arrow, and the run also covers Realm-create response loss, 0->0 response loss, partial public blob upload, sign-before-enqueue, a lost response after the enqueue commit, a lost local confirmation after acceptance, partial artifact persistence, another accepted Genesis winning, a terminal rejection and local corruption. Every positive run ends with exactly one accepted ak.mls.genesis whose bytes equal the bytes frozen in the outbound queue item, deleting every current or UI projection changes no outcome, and no branch declares completion from an HTTP success, a duplicate code, a queue item or an emitted flag.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
+        "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
     },
     {
       "vector_id": "ak.vector.mls.governance_epoch_binding.v1",

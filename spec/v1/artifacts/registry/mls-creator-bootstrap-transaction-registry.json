@@ -1,0 +1,389 @@
+{
+  "version": "2026-09-15",
+  "source_of_truth": true,
+  "generated_at": "2026-09-15T21:40:00+08:00",
+  "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit MLS content-scheme selection to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
+  "registry_rules": [
+    "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
+    "This registry constrains what a conforming client MUST persist and verify. It never authorizes a peer, a Station or a federation partner to believe another party's local state: every cross-party conclusion still comes from an exact accepted Event, and an assertion about this record carries no protocol weight.",
+    "The logical record key is exactly (owner_actor_id, effective_scope, operation) with operation fixed to mls_genesis. owner_actor_id MUST be the complete Account ActorId including its station_id for an ordinary human creator, and the complete ActorId of the Agent, service or minimal-metadata branch otherwise; a bare principal DID is not a key. effective_scope MUST be the canonical typed scope of zh/crypto-media/encryption-and-audit.md section 5.1, never a page route, a displayed Realm or a bare string alias.",
+    "The creator device and signer method are immutable fields of the record and are deliberately not part of the logical key, so a reload, a second window of the same account and a re-entry on the same device all find the same record, while a different device never silently opens a second Genesis. A device that does not hold this record's private state and signer MUST wait for the accepted result and proceed through Welcome, device migration or recovery; it MUST NOT take the record over and regenerate material.",
+    "Each local authoring vault holds at most one active record per (effective_scope, operation), enforced by a partial unique constraint or an equivalent atomic compare-and-swap. A process lock, a UI guard or a de-duplicated effect is not protocol mutual exclusion; mutual exclusion across devices remains the single accepted-Genesis slot of the same effective scope.",
+    "content_scheme and durability_policy are a local creation intent while the record is at genesis_intent_persisted. They become the group's protocol-immutable values only once the record reaches genesis_accepted. The Realm create closed payload, the Realm profile, the history facet and any current or UI projection MUST NOT copy them and MUST NOT be used to infer them.",
+    "A recoverer reads the durable record and executes the single next arrow its current state allows. A retryable transport failure, a page reload, a process crash and an unavailable accepted-Genesis query do not change the logical state. Rebuilding material from UI state is never a recovery path.",
+    "Any change to a field of an active attempt after the Genesis is signed is not a retry and MUST fail closed. A second window or a background effect may only join the existing record.",
+    "v1 registers no compatibility branch that infers the selector from an accepted history facet, a Realm projection or an old UI combination. Development data without a formal record follows the retention rules: converge on an existing accepted Genesis, fail closed and explicitly discard the stale local draft when there is definitely none, and stay unwritable while the accepted state is unknown.",
+    "Adding a state, an arrow or a required durable field requires an active vector-registry.json row that injects a crash and a reload on both sides of the new arrow in the same registry release."
+  ],
+  "record_identity": {
+    "logical_key_fields": [
+      "owner_actor_id",
+      "effective_scope",
+      "operation"
+    ],
+    "operation": "mls_genesis",
+    "immutable_non_key_fields": [
+      "creator_device_id",
+      "creator_signer_method"
+    ],
+    "active_record_uniqueness": "one active record per (effective_scope, operation) per local authoring vault, enforced by a partial unique constraint or an equivalent atomic compare-and-swap",
+    "protocol_mutual_exclusion": "the single accepted ak.mls.genesis slot of the same effective scope"
+  },
+  "disclosure_boundary": {
+    "wire_exposure": "none",
+    "forbidden_carriers": [
+      "ak.realm.create closed payload",
+      "any current result or query projection",
+      "Account Data keys",
+      "client sync surfaces",
+      "federation surfaces",
+      "any server-side transaction record"
+    ],
+    "peer_trust_rule": "A conforming implementation MUST NOT accept another party's assertion about this record as evidence of scope state. Genesis existence, the creator coordinates, the locked selectors and write-readiness are decided only from exact accepted Events."
+  },
+  "states": [
+    {
+      "state_id": "genesis_intent_persisted",
+      "ordinal": 1,
+      "kind": "progress",
+      "authority_source": "local_creator_selection",
+      "entry_predicate": "The user or calling application has explicitly chosen this scope's MLS content scheme, and the record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 governance query, and before any selector-dependent random material is generated. An already accepted MLS Realm that has no accepted Genesis enters here with this state's postconditions already satisfied and immediately continues to realm_accepted; no entry path may generate random material or query governance before the selector is durable.",
+      "required_durable_fields": [
+        "logical key: owner_actor_id, effective_scope, operation",
+        "complete owner_actor_id including its station_id",
+        "creator signer slot bound to this authoring device",
+        "canonical effective scope and the mls_group_id derived from it",
+        "content_scheme",
+        "durability_policy, required exactly when content_scheme=mls_exporter_aead_v1",
+        "the complete closed proposed_group_genesis_binding",
+        "the associated exact signed Realm-create unit and the create Event id derived from it"
+      ],
+      "allowed_exits": [
+        "realm_accepted",
+        "quarantined"
+      ],
+      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the selector from UI state, a default, a Realm profile, an accepted history facet or any projection.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "realm_accepted",
+      "ordinal": 2,
+      "kind": "progress",
+      "authority_source": "own_station_accepted_realm_create_event",
+      "entry_predicate": "The client obtained an accepted ak.realm.create from its own Station, either as the submit result or by exact resolve, and an exact accepted-Genesis query for this scope returned a definite absent. An unknown result, a timeout or a missing projection MUST NOT enter this state.",
+      "required_durable_fields": [
+        "accepted Realm-create Event id and the digest of its exact accepted bytes",
+        "encryption_profile",
+        "the Realm digest suite",
+        "the accepted authority-root resolution result",
+        "every field of the previous state, which stays immutable"
+      ],
+      "allowed_exits": [
+        "governance_result_pinned",
+        "superseded",
+        "quarantined"
+      ],
+      "retry_rule": "Repeat the exact accepted-Genesis query. A definite absent keeps the state, a definite winner moves to superseded, and anything else leaves the state unchanged.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "governance_result_pinned",
+      "ordinal": 3,
+      "kind": "progress",
+      "authority_source": "own_station_closed_governance_outcome_for_the_exact_zero_to_zero_request",
+      "entry_predicate": "The client validated the closed Station outcome for its exact 0->0 request and confirmed that the outcome's query digest, scope, group, selector, local leaves and basis all match the request it sent.",
+      "required_durable_fields": [
+        "the exact canonical request bytes",
+        "proof_base_basis and proof_target_basis",
+        "the local leaf set that entered the query",
+        "the query digest",
+        "the complete validated outcome bytes",
+        "the single governance_binding adopted from that outcome"
+      ],
+      "allowed_exits": [
+        "epoch0_state_persisted",
+        "superseded",
+        "quarantined"
+      ],
+      "retry_rule": "The query itself is retryable, but a validated and adopted request and outcome pair MUST NOT be replaced by a current projection or by a refreshed basis.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "epoch0_state_persisted",
+      "ordinal": 4,
+      "kind": "progress",
+      "authority_source": "local_mls_engine_output_bound_to_the_pinned_governance_binding",
+      "entry_predicate": "The MLS engine produced epoch 0 using only the binding pinned by the previous state, and the whole recovery unit below was durably committed before any public blob upload, any signature and any enqueue.",
+      "required_durable_fields": [
+        "device-secret-encrypted epoch-0 private group state",
+        "cipher suite",
+        "creator leaf and signer binding",
+        "the raw GroupInfo and ratchet tree bytes together with their content-addressed refs",
+        "every randomness-dependent archive or key material the scope's durability_policy requires",
+        "the frozen created_at",
+        "the exact unsigned Genesis core"
+      ],
+      "allowed_exits": [
+        "genesis_queued",
+        "superseded",
+        "quarantined"
+      ],
+      "retry_rule": "A crash before this commit that produced no externally observable material is not a recoverable attempt, and the recoverer regenerates epoch 0 from the same pinned binding. Once any of this material can be observed outside the device, this durable unit MUST already exist and MUST NOT be regenerated.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "genesis_queued",
+      "ordinal": 5,
+      "kind": "progress",
+      "authority_source": "single_local_atomic_commit_binding_the_signed_event_to_the_outbound_queue_item",
+      "entry_predicate": "The public blobs were written to a durable object store resolvable by the service that hosts this Realm and verified against their refs, the exact Genesis was signed, and the transaction update plus the durable outbound enqueue succeeded inside one local atomic commit.",
+      "required_durable_fields": [
+        "the immutable Genesis Event id",
+        "the exact signed Event bytes",
+        "the canonical bytes digest of those bytes",
+        "the outbound_queue_item_id of the associated ledger item",
+        "the public blob refs"
+      ],
+      "allowed_exits": [
+        "genesis_accepted",
+        "rejected",
+        "superseded",
+        "quarantined"
+      ],
+      "retry_rule": "The worker may only resend the frozen bytes. After a lost response the client first queries the exact accepted Genesis: a match advances to genesis_accepted, a definite absent with a retryable last result keeps the same queue item, and an unknown result keeps the state. An exhausted queue, an HTTP 2xx, a duplicate code and a completed UI effect never advance the transaction. Re-signing, rebuilding MLS state and replacing the proof basis are forbidden from this state on.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "genesis_accepted",
+      "ordinal": 6,
+      "kind": "progress",
+      "authority_source": "own_station_exact_accepted_genesis_event_resolve",
+      "entry_predicate": "An exact accepted-Event resolve from the client's own Station returned a Genesis whose bytes are byte-identical to the bytes frozen at enqueue. HTTP success, a duplicate code and a locally derived Event id are all insufficient.",
+      "required_durable_fields": [
+        "the accepted Event id",
+        "the exact accepted bytes and their digest",
+        "the accepted-at and result binding",
+        "the queue item, kept as completed-but-retained until local artifacts converge"
+      ],
+      "allowed_exits": [
+        "artifacts_converged",
+        "quarantined"
+      ],
+      "retry_rule": "Re-resolving the same accepted Event is idempotent. A resolve that returns different accepted Genesis bytes for this scope is an unexplainable inconsistency, not a retry.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "artifacts_converged",
+      "ordinal": 7,
+      "kind": "progress",
+      "authority_source": "local_accepted_artifact_consumer_install",
+      "entry_predicate": "The accepted artifact consumer installed the accepted Genesis Event, the matching epoch-0 private state and the raw GroupInfo and ratchet-tree bytes and refs as one winning epoch, and committed that install durably.",
+      "required_durable_fields": [
+        "the accepted artifact record or ref",
+        "the private-state binding",
+        "the public-material binding",
+        "the complete consistency check results"
+      ],
+      "allowed_exits": [
+        "ready",
+        "quarantined"
+      ],
+      "retry_rule": "A partially persisted install is retried as a whole. Any single mismatch moves the record to quarantined; a partially ready scope does not exist.",
+      "gc_rule": "retain_until_ready",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "ready",
+      "ordinal": 8,
+      "kind": "terminal_success",
+      "authority_source": "durable_re_read_of_genesis_accepted_and_artifacts_converged_and_private_state_match",
+      "entry_predicate": "The client re-read durable state instead of trusting an in-memory flag, confirmed genesis_accepted, artifacts_converged and an exact private-state match, and published this state together with the MLS write-ready index in one durable commit.",
+      "required_durable_fields": [
+        "minimal terminal receipt: the logical key, the accepted Genesis Event id and digest, the immutable Genesis binding, the accepted artifact ref and the ready commit position"
+      ],
+      "allowed_exits": [],
+      "retry_rule": "A crash around this commit leaves either artifacts_converged with the last step retryable, or ready and the send-gate index both visible. A ready flag visible without the artifact record is an inconsistency, not a retry state.",
+      "gc_rule": "compact_pre_genesis_material_atomically",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "rejected",
+      "ordinal": 9,
+      "kind": "terminal_attempt",
+      "authority_source": "own_station_definite_terminal_rejection_of_the_exact_signed_genesis",
+      "entry_predicate": "The exact signed Genesis received a definite terminal rejection, and queue retry stopped.",
+      "required_durable_fields": [
+        "the Event id and digest of the rejected bytes",
+        "the original reason code",
+        "the stage at which the rejection occurred",
+        "the last verified accepted-or-absent result"
+      ],
+      "allowed_exits": [
+        "realm_accepted",
+        "superseded"
+      ],
+      "retry_rule": "A new attempt generation may open only after an exact query again confirms that no accepted Genesis exists, and only by atomically sealing the previous attempt inside the same logical record. The selector is inherited from the original durable intent and MUST NOT be re-read from UI state, a default or a facet.",
+      "gc_rule": "erase_mismatched_secrets_after_terminal_diagnostics_are_durable",
+      "failure_disposition": "quarantined"
+    },
+    {
+      "state_id": "superseded",
+      "ordinal": 10,
+      "kind": "terminal_failure",
+      "authority_source": "own_station_exact_accepted_genesis_that_is_not_this_record_attempt",
+      "entry_predicate": "An exact query found that a different Genesis is already accepted for this effective scope.",
+      "required_durable_fields": [
+        "the winning Genesis Event id and its immutable binding",
+        "the loser Event id and digest, when this record had signed one"
+      ],
+      "allowed_exits": [],
+      "retry_rule": "None. The local loser queue item is stopped and removed, the local private state MUST NOT be matched to the winner and MUST NOT become ready, and the scope proceeds only through Welcome, device migration or recovery.",
+      "gc_rule": "erase_mismatched_secrets_after_terminal_diagnostics_are_durable",
+      "failure_disposition": "terminal"
+    },
+    {
+      "state_id": "quarantined",
+      "ordinal": 11,
+      "kind": "terminal_failure",
+      "authority_source": "local_detection_of_an_inconsistency_that_has_no_single_explanation",
+      "entry_predicate": "The local record, the queue item, the private state, the public refs, the signed bytes or the accepted result disagree in a way that has no single explanation.",
+      "required_durable_fields": [
+        "the logical key",
+        "the last state",
+        "the invariant that failed",
+        "the Event id and digest",
+        "the outbound_queue_item_id",
+        "the accepted winner, when one is known",
+        "the reason code and the time of detection"
+      ],
+      "allowed_exits": [],
+      "retry_rule": "None. Automatic authoring, queue retry and the send gate all stop. Clearing a flag and starting over is not a repair.",
+      "gc_rule": "retain_recovery_material_by_default",
+      "failure_disposition": "terminal"
+    }
+  ],
+  "transitions": [
+    {
+      "transition_id": "absent_to_genesis_intent_persisted",
+      "from_state": null,
+      "to_state": "genesis_intent_persisted",
+      "commit_boundary": "The selector record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 query and before any selector-dependent random material.",
+      "crash_before_commit": "No attempt exists. The next run starts from an explicit selection and MUST NOT infer a selector from a Realm that may already have been created.",
+      "crash_after_commit": "The record exists and the recoverer continues from genesis_intent_persisted, reusing the frozen selector and the derived create Event id."
+    },
+    {
+      "transition_id": "genesis_intent_persisted_to_realm_accepted",
+      "from_state": "genesis_intent_persisted",
+      "to_state": "realm_accepted",
+      "commit_boundary": "The accepted Realm-create result and the definite Genesis-absent result are committed together into the same record.",
+      "crash_before_commit": "The recoverer resolves the create Event id already derived from the frozen unit. It MUST NOT submit a second create and MUST NOT read an unknown result as absent.",
+      "crash_after_commit": "The record is at realm_accepted and the recoverer proceeds to the 0->0 query using the frozen selector."
+    },
+    {
+      "transition_id": "realm_accepted_to_governance_result_pinned",
+      "from_state": "realm_accepted",
+      "to_state": "governance_result_pinned",
+      "commit_boundary": "The exact request bytes and the complete validated outcome are pinned in one commit.",
+      "crash_before_commit": "The query is repeated with the same selector. A lost response never authorizes generating MLS or HPKE material.",
+      "crash_after_commit": "The pinned request and outcome pair is authoritative and MUST NOT be replaced by a current projection or a refreshed basis."
+    },
+    {
+      "transition_id": "governance_result_pinned_to_epoch0_state_persisted",
+      "from_state": "governance_result_pinned",
+      "to_state": "epoch0_state_persisted",
+      "commit_boundary": "The epoch-0 private state, the public raw bytes, every randomness-dependent archive and the exact unsigned Genesis core are committed as one recovery unit.",
+      "crash_before_commit": "Nothing was externally observable, so the recoverer regenerates epoch 0 from the same pinned binding.",
+      "crash_after_commit": "The recoverer reuses the persisted epoch-0 material and MUST NOT regenerate randomness."
+    },
+    {
+      "transition_id": "epoch0_state_persisted_to_genesis_queued",
+      "from_state": "epoch0_state_persisted",
+      "to_state": "genesis_queued",
+      "commit_boundary": "The exact signed Event bytes and the outbound queue item are established in one atomic commit.",
+      "crash_before_commit": "A signature produced but never committed together with a queue item is discarded, and the recoverer signs the same exact unsigned core again. Public blobs already uploaded are content-addressed, so they are re-verified rather than re-minted.",
+      "crash_after_commit": "The frozen bytes are the only retriable original. There is no legal state in which the transaction committed without the queue item, and none in which the queue item is sendable while the transaction does not know its bytes."
+    },
+    {
+      "transition_id": "genesis_queued_to_genesis_accepted",
+      "from_state": "genesis_queued",
+      "to_state": "genesis_accepted",
+      "commit_boundary": "The exact accepted bytes and the accepted Event id are committed after an exact accepted-Event resolve.",
+      "crash_before_commit": "A lost send response leaves the state unchanged, and the recoverer queries the exact accepted Genesis before resending the frozen bytes.",
+      "crash_after_commit": "The record is at genesis_accepted and the queue item stays completed-but-retained until local artifacts converge."
+    },
+    {
+      "transition_id": "genesis_accepted_to_artifacts_converged",
+      "from_state": "genesis_accepted",
+      "to_state": "artifacts_converged",
+      "commit_boundary": "The accepted Event, the matching epoch-0 private state and the public material are installed as one winning epoch in one durable commit.",
+      "crash_before_commit": "A partially persisted install is retried as a whole, and no partial install may report convergence.",
+      "crash_after_commit": "The record is at artifacts_converged and only the ready publication remains."
+    },
+    {
+      "transition_id": "artifacts_converged_to_ready",
+      "from_state": "artifacts_converged",
+      "to_state": "ready",
+      "commit_boundary": "The ready state and the MLS send-gate index are published in one durable commit.",
+      "crash_before_commit": "The record stays at artifacts_converged, the last step is retried and the send gate stays closed.",
+      "crash_after_commit": "Both the ready state and the send-gate index are visible. A ready flag without the artifact record, and an open send gate without the ready state, are both inconsistencies."
+    }
+  ],
+  "atomic_cut_points": [
+    {
+      "cut_point_id": "selector_before_first_realm_create_side_effect",
+      "rule": "genesis_intent_persisted MUST precede the first network side effect of ak.realm.create. The create Event id is derivable from the exact signed unit before submission, so the absence of an accepted realm id never justifies deferring the selector."
+    },
+    {
+      "cut_point_id": "governance_binding_before_dependent_randomness",
+      "rule": "governance_result_pinned MUST precede any MLS or HPKE random material that depends on that binding. The query is retryable, but a validated and adopted request and outcome pair MUST NOT be silently replaced by a current projection or an updated basis."
+    },
+    {
+      "cut_point_id": "epoch0_recovery_unit_before_any_external_observability",
+      "rule": "The epoch-0 private state, the public raw bytes, the randomness-dependent archive or ciphertext and the exact unsigned Genesis core MUST be committed as one recovery unit before public blobs are uploaded, before the Genesis is signed and before it is enqueued. A crash during purely in-memory generation that produced no external side effect is not a recoverable attempt; once any of that material can be observed externally, this durable unit MUST already exist."
+    },
+    {
+      "cut_point_id": "signed_bytes_and_queue_item_in_one_commit",
+      "rule": "The exact signed Event bytes and the outbound queue item MUST be established atomically. There is no legal state in which the transaction committed without the queue item, and none in which the queue item is sendable while the transaction does not yet know its bytes."
+    },
+    {
+      "cut_point_id": "ready_and_send_gate_index_in_one_commit",
+      "rule": "The ready state and the effective send-gate index MUST be published atomically. After a crash the client is either still at artifacts_converged with the last step retryable, or both are visible; a ready flag forked from the artifact record is forbidden."
+    }
+  ],
+  "outbound_queue_binding": {
+    "ownership": "independent_ledger_atomically_associated",
+    "queue_owns": [
+      "send attempt accounting",
+      "backoff",
+      "transport outcome"
+    ],
+    "transaction_owns": [
+      "which single signed Genesis is the only retriable original"
+    ],
+    "association_rule": "Entering genesis_queued binds the two one-to-one inside a single durable commit through the Event id, the canonical bytes digest and the outbound_queue_item_id.",
+    "worker_rule": "The generic outbound worker may only resend the frozen bytes. After a response loss the client first queries the exact accepted Genesis: a match advances to genesis_accepted, a definite absent with a retryable last result continues the same queue item, and an unknown result keeps the current state.",
+    "non_completion_signals": [
+      "an exhausted queue",
+      "an HTTP 2xx response",
+      "a duplicate code",
+      "a completed UI effect",
+      "a local emitted or submitted flag"
+    ]
+  },
+  "retention": {
+    "before_ready": "The selector, the pinned request and outcome, the epoch-0 private state, the signed Event bytes and the queue association MUST NOT be deleted.",
+    "at_ready": "One atomic compaction MAY delete the pre-Genesis proposal, the proof request and outcome copies, staged state and the completed queue item. The accepted private group state, the accepted artifact, the public blobs the protocol still requires to be resolvable, and the minimal terminal receipt MUST be retained; protocol retention of the public blobs MUST NOT be garbage-collected together with local temporary files.",
+    "terminal_attempt": "Mismatched secrets of a rejected or superseded attempt, and temporary blobs that no accepted Event references, may be erased only after the terminal diagnostics are durable, the queue is stopped and the accepted state has been confirmed again.",
+    "quarantined": "Original recovery material is not erased automatically.",
+    "tombstone_rule": "Physical deletion MUST NOT remove the tombstone recording that this logical key already had a terminal attempt."
+  },
+  "conformance_vector_ids": [
+    "ak.vector.mls.creator_bootstrap_recovery.v1"
+  ]
+}

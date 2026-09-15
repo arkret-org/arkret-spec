@@ -1,0 +1,320 @@
+{
+  "suite": "mls_creator_bootstrap_recovery",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.mls.creator_bootstrap_recovery.v1"
+  },
+  "version": "2026-09-15",
+  "covers_vectors": [
+    "ak.vector.mls.creator_bootstrap_recovery.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建者-bootstrap-transactionnormative",
+  "registry_under_test": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
+  "global_assertions": [
+    "the server ends every positive run with exactly one accepted ak.mls.genesis for the effective scope",
+    "the accepted Genesis bytes are byte-identical to the bytes frozen in the outbound queue item",
+    "deleting every current and UI projection before the recoverer runs does not change any outcome",
+    "no run reaches write-ready from an HTTP success, a duplicate code, a queue item, an emitted flag or a page projection",
+    "no run writes this record or any of its fields onto a Realm Event, a current projection, an Account Data key, a sync surface or a federation surface"
+  ],
+  "crash_cases": [
+    {
+      "name": "absent_to_genesis_intent_persisted__crash_before_commit",
+      "transition": "absent_to_genesis_intent_persisted",
+      "injection": "pre_commit",
+      "expected_state": "absent",
+      "expected": "no_attempt_exists",
+      "invariants": [
+        "no Realm create was submitted and no governance query was sent",
+        "no selector-dependent random material was generated",
+        "the next run requires an explicit selection and may not infer content_scheme or durability_policy"
+      ]
+    },
+    {
+      "name": "absent_to_genesis_intent_persisted__crash_after_commit",
+      "transition": "absent_to_genesis_intent_persisted",
+      "injection": "post_commit",
+      "expected_state": "genesis_intent_persisted",
+      "expected": "resume_from_frozen_selector",
+      "invariants": [
+        "the record carries the complete owner_actor_id, the canonical effective_scope and operation=mls_genesis",
+        "content_scheme, the conditional durability_policy and the complete closed proposed_group_genesis_binding are readable without any projection",
+        "the create Event id is derived from the frozen signed unit, not from a server response"
+      ]
+    },
+    {
+      "name": "genesis_intent_persisted_to_realm_accepted__crash_before_commit",
+      "transition": "genesis_intent_persisted_to_realm_accepted",
+      "injection": "pre_commit",
+      "expected_state": "genesis_intent_persisted",
+      "expected": "resolve_the_derived_create_event_id",
+      "invariants": [
+        "no second ak.realm.create is submitted",
+        "an unknown or timed-out create result does not enter realm_accepted",
+        "a missing current projection does not enter realm_accepted"
+      ]
+    },
+    {
+      "name": "genesis_intent_persisted_to_realm_accepted__crash_after_commit",
+      "transition": "genesis_intent_persisted_to_realm_accepted",
+      "injection": "post_commit",
+      "expected_state": "realm_accepted",
+      "expected": "resume_at_the_zero_to_zero_query",
+      "invariants": [
+        "the accepted create Event id, its bytes digest, encryption_profile, the digest suite and the authority-root resolution are durable",
+        "the exact accepted-Genesis query returned a definite absent before this state was entered",
+        "every genesis_intent_persisted field is unchanged"
+      ]
+    },
+    {
+      "name": "realm_accepted_to_governance_result_pinned__crash_before_commit",
+      "transition": "realm_accepted_to_governance_result_pinned",
+      "injection": "pre_commit",
+      "expected_state": "realm_accepted",
+      "expected": "repeat_the_exact_query_with_the_same_selector",
+      "invariants": [
+        "no MLS or HPKE random material was generated",
+        "the repeated query carries the same proposed_group_genesis_binding"
+      ]
+    },
+    {
+      "name": "realm_accepted_to_governance_result_pinned__crash_after_commit",
+      "transition": "realm_accepted_to_governance_result_pinned",
+      "injection": "post_commit",
+      "expected_state": "governance_result_pinned",
+      "expected": "resume_with_the_pinned_request_and_outcome",
+      "invariants": [
+        "the exact canonical request bytes, both bases, the local leaf set, the query digest and the complete validated outcome bytes are durable",
+        "a current projection or a refreshed basis does not replace the pinned pair",
+        "exactly one governance_binding is adopted"
+      ]
+    },
+    {
+      "name": "governance_result_pinned_to_epoch0_state_persisted__crash_before_commit",
+      "transition": "governance_result_pinned_to_epoch0_state_persisted",
+      "injection": "pre_commit",
+      "expected_state": "governance_result_pinned",
+      "expected": "regenerate_epoch0_from_the_same_pinned_binding",
+      "invariants": [
+        "nothing was externally observable, so the discarded in-memory material is not a recoverable attempt",
+        "regeneration uses the pinned binding and never a re-queried outcome"
+      ]
+    },
+    {
+      "name": "governance_result_pinned_to_epoch0_state_persisted__crash_after_commit",
+      "transition": "governance_result_pinned_to_epoch0_state_persisted",
+      "injection": "post_commit",
+      "expected_state": "epoch0_state_persisted",
+      "expected": "reuse_the_persisted_epoch0_material",
+      "invariants": [
+        "the device-secret-encrypted private state, the raw GroupInfo and ratchet tree bytes and refs, the durability archive, the frozen created_at and the exact unsigned Genesis core are all durable",
+        "no randomness is regenerated"
+      ]
+    },
+    {
+      "name": "epoch0_state_persisted_to_genesis_queued__crash_before_commit",
+      "transition": "epoch0_state_persisted_to_genesis_queued",
+      "injection": "pre_commit",
+      "expected_state": "epoch0_state_persisted",
+      "expected": "discard_the_uncommitted_signature_and_sign_the_same_core_again",
+      "invariants": [
+        "a signature that was never committed together with a queue item is not an original",
+        "already uploaded public blobs are content-addressed and are re-verified rather than re-minted",
+        "no transaction state records bytes that no queue item can send"
+      ]
+    },
+    {
+      "name": "epoch0_state_persisted_to_genesis_queued__crash_after_commit",
+      "transition": "epoch0_state_persisted_to_genesis_queued",
+      "injection": "post_commit",
+      "expected_state": "genesis_queued",
+      "expected": "resend_only_the_frozen_bytes",
+      "invariants": [
+        "the Event id, the exact signed bytes, the canonical bytes digest, the outbound_queue_item_id and the public blob refs are bound one-to-one in the same commit",
+        "re-signing, rebuilding MLS state and replacing the proof basis are refused"
+      ]
+    },
+    {
+      "name": "genesis_queued_to_genesis_accepted__crash_before_commit",
+      "transition": "genesis_queued_to_genesis_accepted",
+      "injection": "pre_commit",
+      "expected_state": "genesis_queued",
+      "expected": "query_the_exact_accepted_genesis_before_resending",
+      "invariants": [
+        "an HTTP 2xx, a duplicate code, an exhausted queue and a completed UI effect do not advance the transaction",
+        "a definite absent with a retryable last result continues the same queue item",
+        "an unknown result keeps the state unchanged"
+      ]
+    },
+    {
+      "name": "genesis_queued_to_genesis_accepted__crash_after_commit",
+      "transition": "genesis_queued_to_genesis_accepted",
+      "injection": "post_commit",
+      "expected_state": "genesis_accepted",
+      "expected": "resume_at_artifact_installation",
+      "invariants": [
+        "the accepted bytes are byte-identical to the bytes frozen at enqueue",
+        "the queue item stays completed-but-retained until artifacts converge"
+      ]
+    },
+    {
+      "name": "genesis_accepted_to_artifacts_converged__crash_before_commit",
+      "transition": "genesis_accepted_to_artifacts_converged",
+      "injection": "pre_commit",
+      "expected_state": "genesis_accepted",
+      "expected": "retry_the_install_as_a_whole",
+      "invariants": [
+        "a partially persisted install never reports convergence",
+        "the send gate stays closed"
+      ]
+    },
+    {
+      "name": "genesis_accepted_to_artifacts_converged__crash_after_commit",
+      "transition": "genesis_accepted_to_artifacts_converged",
+      "injection": "post_commit",
+      "expected_state": "artifacts_converged",
+      "expected": "resume_at_the_ready_publication",
+      "invariants": [
+        "the accepted artifact ref, the private-state binding, the public-material binding and the consistency results are durable",
+        "the record is still not write-ready"
+      ]
+    },
+    {
+      "name": "artifacts_converged_to_ready__crash_before_commit",
+      "transition": "artifacts_converged_to_ready",
+      "injection": "pre_commit",
+      "expected_state": "artifacts_converged",
+      "expected": "retry_the_ready_publication",
+      "invariants": [
+        "the send gate stays closed",
+        "no in-memory ready flag survives the reload"
+      ]
+    },
+    {
+      "name": "artifacts_converged_to_ready__crash_after_commit",
+      "transition": "artifacts_converged_to_ready",
+      "injection": "post_commit",
+      "expected_state": "ready",
+      "expected": "write_ready_and_send_gate_index_both_visible",
+      "invariants": [
+        "the ready state and the send-gate index were published in one durable commit",
+        "the minimal terminal receipt is readable after compaction"
+      ]
+    }
+  ],
+  "scenario_cases": [
+    {
+      "name": "realm_create_response_loss",
+      "given": "the record is at genesis_intent_persisted and the ak.realm.create response is dropped",
+      "action": "reload the client and run the recoverer",
+      "expected": "resolve_the_derived_create_event_id",
+      "invariants": [
+        "exactly one accepted ak.realm.create exists",
+        "an unknown result keeps the record at genesis_intent_persisted",
+        "the selector is never re-read from UI state or a default"
+      ]
+    },
+    {
+      "name": "governance_query_response_loss",
+      "given": "the record is at realm_accepted and the 0->0 governance response is dropped",
+      "action": "reload the client and run the recoverer",
+      "expected": "repeat_the_exact_query_with_the_same_selector",
+      "invariants": [
+        "no MLS or HPKE random material is generated before an outcome is pinned",
+        "the repeated request is byte-identical apart from its transport framing"
+      ]
+    },
+    {
+      "name": "public_blob_partial_upload",
+      "given": "the epoch-0 recovery unit is durable and only one of the two public blobs was uploaded",
+      "action": "reload the client and run the recoverer",
+      "expected": "reupload_the_missing_blob_from_the_persisted_bytes",
+      "invariants": [
+        "the refs are recomputed from the persisted raw bytes and are unchanged",
+        "no epoch-0 randomness is regenerated",
+        "the Genesis is not signed until both blobs resolve"
+      ]
+    },
+    {
+      "name": "sign_before_enqueue",
+      "given": "the exact Genesis was signed and the process died before the atomic transaction-and-queue commit",
+      "action": "reload the client and run the recoverer",
+      "expected": "discard_the_uncommitted_signature_and_sign_the_same_core_again",
+      "invariants": [
+        "no queue item exists that the transaction cannot name",
+        "no transaction field names bytes that no queue item can send",
+        "the exact unsigned Genesis core is unchanged"
+      ]
+    },
+    {
+      "name": "enqueue_commit_then_response_loss",
+      "given": "the record is at genesis_queued and the submit response is lost",
+      "action": "run the outbound worker and the recoverer",
+      "expected": "query_the_exact_accepted_genesis_before_resending",
+      "invariants": [
+        "only the frozen bytes are ever resent",
+        "a duplicate code does not advance the transaction",
+        "the server ends with exactly one accepted Genesis"
+      ]
+    },
+    {
+      "name": "accepted_then_local_confirmation_loss",
+      "given": "the Station accepted the Genesis and the client crashed before committing genesis_accepted",
+      "action": "reload the client and run the recoverer",
+      "expected": "resolve_the_accepted_event_and_commit_genesis_accepted",
+      "invariants": [
+        "the accepted bytes equal the bytes frozen at enqueue",
+        "no second Genesis is authored",
+        "the send gate stays closed until artifacts converge"
+      ]
+    },
+    {
+      "name": "artifact_partial_persistence",
+      "given": "the accepted Event was installed but the private-state binding was not committed",
+      "action": "reload the client and run the recoverer",
+      "expected": "retry_the_install_as_a_whole",
+      "invariants": [
+        "the record stays at genesis_accepted",
+        "no partially ready scope is exposed"
+      ]
+    },
+    {
+      "name": "another_genesis_wins",
+      "given": "the record is at genesis_queued and an exact query finds a different accepted Genesis for the scope",
+      "action": "run the recoverer",
+      "expected": "superseded",
+      "invariants": [
+        "the winner Event id and its immutable binding are recorded",
+        "the loser queue item is stopped and removed",
+        "the local private state is never matched to the winner and never becomes ready",
+        "the scope proceeds only through Welcome, device migration or recovery"
+      ]
+    },
+    {
+      "name": "terminal_reject",
+      "given": "the exact signed Genesis receives a definite terminal rejection",
+      "action": "run the recoverer, then open a new attempt generation",
+      "expected": "rejected_then_new_attempt_generation_under_the_same_logical_key",
+      "invariants": [
+        "the rejected Event id and digest, the original reason code, the rejection stage and the last verified accepted-or-absent result are durable",
+        "queue retry stops",
+        "a new attempt opens only after an exact query again confirms that no accepted Genesis exists",
+        "the new attempt inherits the selector from the original durable intent",
+        "the tombstone recording a terminal attempt for this logical key survives erasure"
+      ]
+    },
+    {
+      "name": "local_corruption",
+      "given": "the record, the queue item, the private state, the public refs, the signed bytes and the accepted result disagree without a single explanation",
+      "action": "run the recoverer",
+      "expected": "quarantined",
+      "invariants": [
+        "the logical key, the last state, the failed invariant, the Event id and digest, the outbound_queue_item_id, any known winner, the reason code and the detection time are retained",
+        "automatic authoring, queue retry and the send gate all stop",
+        "clearing a flag and starting over is refused",
+        "original recovery material is not erased automatically"
+      ]
+    }
+  ]
+}

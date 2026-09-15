@@ -257,6 +257,10 @@
       "sha256": "e2ff86e7881985e0714072c7cbf20901730cbc42c16252531109ce70ba1c62e7"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
+      "sha256": "0abab88dce0fd900706393f707143d69b9987e3b3ef748b681c3add2d8cbe67c"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
       "sha256": "95393e1468812a5815aa330dbb08f9737a73d27c3f2430c1ab7cbd0c80235630"
     },
