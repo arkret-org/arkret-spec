@@ -370,7 +370,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-prepare-fence-fixture.json",
-      "sha256": "0d0197759f056b1f59e186178e99a5dc69e42eb201760cec6ace237063641499"
+      "sha256": "2819a6d7206cddc15324abefa4084dafdd1fd8a960b2f8dc5f903bb301e4ed1e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",

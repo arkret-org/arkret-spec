@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.9",
-  "generated_at": "2026-09-16T01:00:00+08:00",
+  "version": "2026-09-15.10",
+  "generated_at": "2026-09-16T01:00:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -949,7 +949,7 @@
     },
     {
       "operation_id": "ak.self.seals.command.prepare.v1",
-      "sha256": "sha256:afb0a29dd4c143e618fa04b29e65645548b447d5fbe91d28c70c3819264bb6bb"
+      "sha256": "sha256:a3c2f845ece84ee360bb671a64209eccecc6f633f792f022ad502bdf3e49cb60"
     },
     {
       "operation_id": "ak.self.seals.command.submit.v1",
@@ -989,7 +989,7 @@
     },
     {
       "operation_id": "ak.self.seals.read.prepare_fence_result.v1",
-      "sha256": "sha256:4aa344c9ae8925cb4f73718f7ccbb4a5e24eb68aaa2cb68b461da8d21322a37e"
+      "sha256": "sha256:a93150cfeada35fa1ab0934b2fa87e3adcb942b2562b6c381702291c95dcd955"
     },
     {
       "operation_id": "ak.self.seals.read.resolve.v1",

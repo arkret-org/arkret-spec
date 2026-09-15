@@ -611,13 +611,12 @@
         }
       },
       "additionalProperties": false,
-      "description": "Prepare a successor for a human or Agent PCR configured with quorum f=0. The authenticated Account Station is the explicitly trusted execution delegate for this client surface; it validates dependencies, authorization and ordered results and durably freezes one body plus view per signing slot. This surface is not the distributed replica voting protocol. Multi-replica domains use the consensus certificate contract and cannot substitute this trusted preparation response for independent replica validation."
+      "description": "Prepare a successor for a human or Agent PCR configured with quorum f=0. The authenticated Account Station is the explicitly trusted execution delegate for this client surface; it validates dependencies, authorization and ordered results and durably freezes exactly one body per signing slot. This surface is not the distributed replica voting protocol. Multi-replica domains use the consensus certificate contract and cannot substitute this trusted preparation response for independent replica validation."
     },
     "SealPrepareOutcome": {
       "type": "object",
       "required": [
-        "seal_body",
-        "view"
+        "seal_body"
       ],
       "properties": {
         "seal_body": {
@@ -656,15 +655,10 @@
               }
             }
           ]
-        },
-        "view": {
-          "type": "integer",
-          "const": 0,
-          "description": "The f=0 PCR signing view. The client signs the exact ak.seal.commit.v1 transcript with this view and the returned body digest."
         }
       },
       "additionalProperties": false,
-      "description": "The client checks realm_id, exact predecessor, configuration, hlc and command_results digest order against its frozen request, derives delta from successful outcomes, computes the body ID, then signs JCS({context:\"ak.seal.commit.v1\",seal_digest,configuration_ref,notary_seq,view}). It never signs raw body bytes as a commit. The authenticated Account Station is trusted to reproduce state and results on this f=0 client surface. Body and view are durably fenced together across retries, restart and handoff; timeout cannot open another signing position."
+      "description": "The client checks realm_id, exact predecessor, configuration, hlc and command_results digest order against its frozen request, derives delta from successful outcomes, computes the body ID, then signs JCS({context:\"ak.seal.commit.v1\",seal_digest}) with exactly those two members. seal_digest already authenticates the complete canonical unsigned body, including Realm, configuration, sequence, predecessor and results, so the transcript carries no configuration_ref, notary_seq, view, phase ticket or signature array. It never signs raw body bytes as a commit. The authenticated Account Station is trusted to reproduce state and results on this f=0 client surface. The body is durably fenced across retries, restart and handoff; timeout cannot open another signing position."
     },
     "SealPrepareFenceResultRequestBody": {
       "type": "object",

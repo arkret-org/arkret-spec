@@ -1129,7 +1129,7 @@ ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：使用 `seal.schema.json` 的完整 unsigned body 计算内容地址；notary certificate 的每个签名覆盖 `JCS({context:"ak.seal.commit.v1",seal_digest,configuration_ref,notary_seq,view})`。Verifier 分别重算 body digest、commit transcript digest、命令结果与安全 roots，不把两种摘要混为一谈。
+1. **Base case**：使用 `seal.schema.json` 的完整 unsigned body 计算内容地址；notary certificate 的唯一签名恰好覆盖 `JCS({context:"ak.seal.commit.v1",seal_digest})` 这两个成员。Verifier 分别重算 body digest、commit transcript digest、命令结果与安全 roots，不把两种摘要混为一谈。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `seal_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
 3. **sig-in-canonical-bytes attack**：若 producer 把 `notary_signature` certificate 也进入 canonical bytes，`id` 重算会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Seal，把 canonical JSON key 顺序打乱（例如 `delta` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
@@ -5571,7 +5571,7 @@ generation 只能由唯一合法 PCR Seal 序列中完整 unit 的 committed 结
 
 completion attestation MUST 签入 `terminal_commit_digest` 与 `first_generation_seal_id`，其 `completed_at` 是服务端线性化提交时间且不早于 receipt 的 `completed_at`——上一条的确定性拒绝使该不等式自动成立，实现 MUST NOT 靠签发未来时间戳或阻塞提交来满足它；runner MUST 用只持有 receipt、缺 completion attestation 的输入证明 Account Authority 的 recovery completion grant 拒绝签发。
 
-recovery 首枚 Seal 的 commit transcript `view` 由 PCR 的 f=0 唯一确定为 `0`：recovery 专用 prepare 不返回 `view`，runner MUST 证明签名方与 coordinator 各自按该规则取 `0` 而得到同一可验证 transcript，任何取其它 `view` 的签名 MUST 校验失败。
+recovery 首枚 Seal 的 commit transcript 与其它 Seal 同形，恰为 `JCS({context:"ak.seal.commit.v1",seal_digest})` 两个成员：recovery 专用 prepare 不返回任何额外 transcript 成员，因为不存在可返回的成员。runner MUST 证明签名方与 coordinator 只从冻结的 unsigned body 派生 `seal_digest` 即得到同一可验证 transcript，任何向 transcript 增补成员（`configuration_ref`、`notary_seq`、`view` 或阶段票据）的签名 MUST 校验失败。
 
 ### 22.4 Recovery-secret 泄露 handoff
 

@@ -204,10 +204,10 @@ RecoveryTerminalCommit {
 其中 Seal 的 unsigned body MUST 与 prepared plan 中冻结的 `first_generation_seal_body` 逐字节相等，只允许补上由
 replacement device method/key 生成的 canonical `id` 与 `notary_signature`，且该 `id` MUST 等于
 `binding.first_generation_seal_id`。该 `notary_signature` 的签名输入是 `ak.seal.commit.v1` commit transcript，
-其 `view` 由 PCR 的 f=0 唯一确定为 `0`，见
+恰为 `JCS({context:"ak.seal.commit.v1",seal_digest})` 两个成员，见
 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)。recovery 的专用 prepare
-不经普通 seal prepare operation，因此不存在返回 `view` 的响应；签名方与 coordinator MUST 各自按该规则取 `0`，
-MUST NOT 另行猜测，也 MUST NOT 为携带这一可派生量新增 wire 字段。
+不经普通 seal prepare operation，但这不影响签名输入：transcript 的两个成员都能从冻结的 unsigned body 本地派生，
+签名方与 coordinator MUST NOT 为此另立约定，也 MUST NOT 向 transcript 增补成员。
 
 RecoveryReceipt 继续由同一 replacement device 签名，并 MUST 新增并签入
 `first_generation_seal_id`，同时保持对 `transaction_id`、`transaction_request_digest`、`prepared_plan_digest`、

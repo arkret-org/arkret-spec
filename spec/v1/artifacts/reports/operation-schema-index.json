@@ -9668,12 +9668,10 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
         "schema_kind": "object",
         "required": [
-          "seal_body",
-          "view"
+          "seal_body"
         ],
         "properties": [
-          "seal_body",
-          "view"
+          "seal_body"
         ],
         "closed": true
       }
