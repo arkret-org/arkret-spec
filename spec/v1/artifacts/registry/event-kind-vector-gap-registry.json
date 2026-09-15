@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-12.1",
+  "version": "2026-09-15.1",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -16,11 +16,6 @@
     ]
   },
   "uncovered_event_kinds": [
-    {
-      "event_kind": "ak.realm.set_default_strand",
-      "priority": "normal",
-      "rationale": "Default-Strand state selection lacks a directly searchable vector."
-    },
     {
       "event_kind": "ak.realm.notary",
       "priority": "critical",
@@ -92,5 +87,5 @@
       "rationale": "Realm profile override lacks a directly searchable vector."
     }
   ],
-  "generated_at": "2026-09-12T06:29:14+08:00"
+  "generated_at": "2026-09-15T18:50:00+08:00"
 }

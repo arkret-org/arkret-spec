@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.1",
+  "version": "2026-09-15.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "generated_at": "2026-09-15T18:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6802,7 +6802,7 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
       ],
-      "description": "RecoveryTransaction create freezes the exact unsigned first-generation Seal without any recovery effect, and the single client-attested commit_recovery_unit step accepts the closed RecoveryTerminalCommit so that both Events, the Seal, the generation advance, the replacement device projection, the consumed session and the completed terminal result become observable in one atomic commit. Covers byte-identical create replay, duplicate_conflict, signing-slot fence non-release, forged Seal or receipt, capability_denied for ordinary seal prepare/submit under a recovery grant, generation CAS winner/loser semantics, stored-outcome precedence over live-state refusal, and zero accepted finality for a raw recovery Seal without a completed transaction."
+      "description": "RecoveryTransaction create freezes the exact unsigned first-generation Seal without any recovery effect, and the single client-attested commit_recovery_unit step accepts the closed RecoveryTerminalCommit so that both Events, the Seal, the generation advance, the replacement device projection, the consumed session and the completed terminal result become observable in one atomic commit. Covers byte-identical create replay, duplicate_conflict, signing-slot fence non-release, forged Seal or receipt, capability_denied for ordinary seal prepare/submit under a recovery grant, generation CAS winner/loser semantics, stored-outcome precedence over live-state refusal, and zero accepted finality for a raw recovery Seal without a completed transaction. Also covers the deterministic recovery_receipt_completed_at_after_commit rejection of a receipt whose completed_at is later than the Station's linearized commit time, and the f=0 derivation that fixes the first Seal's commit transcript view at 0 without any wire field."
     },
     {
       "vector_id": "ak.vector.security_transaction.resilience.v1",
@@ -7378,6 +7378,20 @@
       ],
       "description": "DeviceMessageEnvelope requires a sender-assigned device_message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/device_message_id_conflict, and distinct ids remain distinct logical messages.",
       "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.realm_detail_baseline_singletons.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "The four required Realm detail-baseline singletons are always representable: genesis, policy and policy_bundle are sequenced_state registers and the default Strand pointer is a causal_register singleton, so a Realm that never committed ak.realm.set_default_strand still publishes every one of them as a confirmed empty value and completes its detail baseline. The confirmed empty omits source because it has no write identity, a written pointer value keeps carrying source={event_id,depth}, a status=value entry without the value member is rejected, and a missing database row may never be published as an empty value, marked complete, or downgraded to removed/unavailable.",
+      "source_refs": [
+        "spec/v1/zh/sync/current-results.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/sync-fixture.json"
       ]

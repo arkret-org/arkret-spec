@@ -3,7 +3,7 @@ title: 服务器当前结果与有界基线
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-13
+updated: 2026-09-15
 sidebar:
   label: 当前结果与基线
 ---
@@ -53,11 +53,15 @@ tuple/hash subject 不可逆，服务器必须在接纳 writer 时同事务保�
 `result` 的唯一分支：
 
 - `status=value, value, source?`：sequenced_state 的已确认值、OR-set 完整已 join 的元素值集合，或
-  causal_register 的确定性唯一当前值。causal_register MUST 同时携带
+  causal_register 的确定性唯一当前值。causal_register 的已写入值 MUST 同时携带
   `source={event_id,depth}`；`depth` 为同 Cell 已验证因果深度，`event_id` 为该完整值的写入身份。
   其它 state model MUST 省略 source。空集合与显式
   null 依 family 类型表示真实结果，不表示缺响应；不携 dots，不要求客户端 join。
   从未写入的 sequenced_state cell 可由服务器确认 null，OR-set 可确认空数组，不得为补基线伪造 Genesis Event。
+  register 形态的 causal_register 单例 cell 同样可由服务器确认 null。该已确认空值没有写入身份，
+  MUST 省略 `source`；写过 null 的值仍 MUST 携带 `source`，两者因此在 wire 上可区分，满足
+  [事件授权与状态判定 §6](../authz/event-auth-state-resolution.md) 对“写过的 null 与未写入 MUST 可区分”的要求。
+  `source` 只存在于 `status=value`；`removed` 与 `unavailable` 不含该字段，也不得被用来表示已确认空值。
 - `status=removed`：该 selector 在本次读取视图中已不存在或不再可见的版本化移除。它只删除当前结果，
   不删除 timeline 历史，不自动解释为成员 leave、对象业务 tombstone 或 MLS Remove。
 - `status=unavailable, reason`：reason 闭合为 dependency_missing/limit_exceeded。
@@ -159,6 +163,11 @@ authz/current-result 接口取得；不可要求客户端从 grant Events 求权
 publisher 必须在验证完整 accepted 状态后发布已确认空值；数据库中缺少结果行本身不是空值证明。
 派生 publication 标为 ready 但缺少必要基线条目时，读取方必须使其失效并通过既有 accepted frontier
 重建路径修复，不能永久重试同一不完整 publication，也不能由客户端补默认值或发出新的治理 Event。
+default Strand pointer 是 causal_register 单例，同样适用本条：从未提交 `ak.realm.set_default_strand`
+的 Realm 必须以省略 `source` 的已确认空值发布该 pointer，不得因此使详情基线无法完成；
+把 `ak.realm.set_default_strand` 变成 Realm 创建的强制前置与本条直接冲突，MUST NOT 采用。
+四个必需单例的已确认空值与“缺结果行冒充空值”的失败路径由
+`ak.vector.sync.realm_detail_baseline_singletons.v1` 固定。
 
 ## 5. 预算与失败
 

@@ -3,7 +3,7 @@ title: Service HTTP/JSON Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-09-15
 ---
 
 ## 0. 规范语言
@@ -150,7 +150,7 @@ A 类——真协议能力，**已由既有 canonical operation / event 覆盖�
 | 未登记路径形态 | canonical 归属 |
 | --- | --- |
 | session-grant 刷新 / 续期（`gate/auth/refresh` 等） | `ak.gate.account.command.refresh_session_grant.v1`（`POST /_arkret/gate/account/session-grants/refresh`，§2.1.2） |
-| self account-secret / 设备恢复运行态（`self/keys/recovery`） | `ak.self.keys.backups.command.unlock.v1`（key backup 解锁）+ `ak.root.identity.recovery_session.{create,resource.get,submit_proof,complete}`（恢复挑战应答，[account-lifecycle.md](../identity/account-lifecycle.md)）；无独立 `self/keys/recovery` operation |
+| self account-secret / 设备恢复运行态（`self/keys/recovery`） | `ak.self.keys.backups.command.unlock.v1`（key backup 解锁）+ `ak.root.identity.recovery_session.{command.create,resource.get,command.submit_proof}`（恢复挑战应答，[account-lifecycle.md](../identity/account-lifecycle.md)）+ `ak.self.security_transaction.{command.create,resource.get,command.continue}`（恢复终态提交，唯一 accepted step 为 index 0 的 `commit_recovery_unit`，[security-transactions.md §1.1](../identity/security-transactions.md)）；无独立 `self/keys/recovery` operation，旧 `recovery_session.command.complete` 不属于 v1 |
 | holder 发起第三方邀请（`self/invites/third-party`） | `ak.invite.third_party` Event 经 `ak.self.events.command.submit.v1` 摄取（[third-party-invites.md §3.1](./third-party-invites.md)）；invite token 铸造与回绑由已登记的 `ak.open.third_party_invite.command.provision.v1`、`ak.self.third_party_invite.read.acceptance_attestation.v1` 与 `ak.open.third_party_invite.command.activate.v1` 承载（[third-party-invites.md §7.1](./third-party-invites.md)），holder 侧不另设 `self/invites/third-party` 路径 |
 
 B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位（治理归属原则同 §2.1.1：服务器 / 运维级能力走实现私有 negative-space root（例如 `/_<impl>/*`），日常治理走协议事件 + capability 闸门，不占用 `/_arkret/*` 命名空间）：

@@ -203,7 +203,13 @@ RecoveryTerminalCommit {
 
 其中 Seal 的 unsigned body MUST 与 prepared plan 中冻结的 `first_generation_seal_body` 逐字节相等，只允许补上由
 replacement device method/key 生成的 canonical `id` 与 `notary_signature`，且该 `id` MUST 等于
-`binding.first_generation_seal_id`。RecoveryReceipt 继续由同一 replacement device 签名，并 MUST 新增并签入
+`binding.first_generation_seal_id`。该 `notary_signature` 的签名输入是 `ak.seal.commit.v1` commit transcript，
+其 `view` 由 PCR 的 f=0 唯一确定为 `0`，见
+[`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)。recovery 的专用 prepare
+不经普通 seal prepare operation，因此不存在返回 `view` 的响应；签名方与 coordinator MUST 各自按该规则取 `0`，
+MUST NOT 另行猜测，也 MUST NOT 为携带这一可派生量新增 wire 字段。
+
+RecoveryReceipt 继续由同一 replacement device 签名，并 MUST 新增并签入
 `first_generation_seal_id`，同时保持对 `transaction_id`、`transaction_request_digest`、`prepared_plan_digest`、
 两条 Event、re-anchor batch receipt、generation 与 session/policy/proof 的既有绑定。
 
@@ -215,6 +221,14 @@ replacement device method/key 生成的 canonical `id` 与 `notary_signature`，
 RecoveryReceipt 的 `completed_at` 是 replacement device 签署“若全部校验通过则完成”的作者化时间，不是数据库已经提交
 的证明。它只有与同一原子提交生成的 `ak.schema.recovery_completion_attestation.v1` 配对后，才是可消费的 completed
 receipt。
+
+“若全部校验通过则完成”意味着该时刻 MUST NOT 晚于 Station 的实际提交时刻。Station 在 `commit_recovery_unit` 的重验阶段
+以自身线性化提交时刻比较 `recovery_receipt.completed_at`：晚于该时刻时 MUST 以确定性 reason
+`recovery_receipt_completed_at_after_commit` 拒绝整笔提交并执行零权威写入。规范不定义任何 skew 上界；Station MUST NOT
+签发未来时间戳的 attestation，也 MUST NOT 阻塞等待客户端时钟追上。该拒绝与其它重验失败同属“未曾接受的请求”：它不推进
+`accepted_steps`、不写 `terminal_result`、不消费 session、不冻结任何 step outcome，修正时钟后可用**新的** receipt 重新提交。
+已冻结为 step outcome 的异 bytes 仍按共同不变量 4 返回 `duplicate_conflict`。因此 attestation 的
+`completed_at` MUST NOT 早于 receipt 的 `completed_at` 是自动满足的不变量，而不是需要服务端迁就客户端时钟的约束。
 
 coordinator 在 `commit_recovery_unit` 接受与完成 ledger 同一原子提交中生成
 `ak.schema.recovery_completion_attestation.v1`。其 Ed25519 签名输入固定为
@@ -232,7 +246,8 @@ Event digest 必须由 suite-bearing `device_authorization_event_id` 解码；�
 `commit_recovery_unit` MUST 在同一个本地数据库事务、同一组行锁与同一 generation/predecessor CAS 下完成全部动作：
 
 1. 重验 transaction/request/plan、session binding、live expiry/policy、historical PCR、Event signatures、
-   Seal predecessor/delta/body/id/signature 与 terminal receipt/outer attestation；
+   Seal predecessor/delta/body/id/signature 与 terminal receipt/outer attestation，并按 §2.2 比较
+   `recovery_receipt.completed_at` 与本次线性化提交时刻；
 2. 插入并确认两条 Event 及其唯一 committed command result；
 3. 接受并发布 exact first-generation Seal；
 4. 推进 generation、fence 旧 generation，并把 replacement device 投影为 `active + verified + current generation`；

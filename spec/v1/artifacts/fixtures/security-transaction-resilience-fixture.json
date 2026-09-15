@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-09-15.1",
+  "version": "2026-09-15.2",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
@@ -283,6 +283,26 @@
       "phase": "commit_recovery_unit",
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
+    },
+    {
+      "name": "receipt_completed_at_later_than_the_linearized_commit_time",
+      "phase": "commit_recovery_unit",
+      "expected": "reject_without_side_effect",
+      "reason_code": "recovery_receipt_completed_at_after_commit",
+      "note": "The replacement device clock runs ahead, so the signed receipt claims a completed_at the Station has not reached. No skew allowance exists: the Station neither signs a future-dated completion attestation nor blocks until the claimed time.",
+      "zero_effects": [
+        "accepted_reanchor_event",
+        "accepted_authorize_event",
+        "committed_first_generation_seal",
+        "advanced_device_generation",
+        "active_verified_replacement_device",
+        "consumed_recovery_session",
+        "accepted_terminal_step",
+        "recovery_completion_attestation",
+        "completed_terminal_result"
+      ],
+      "retry_with_a_new_receipt": "accepted",
+      "retry_with_different_bytes_for_a_frozen_step_outcome": "duplicate_conflict"
     },
     {
       "name": "ordinary_seal_prepare_or_submit_under_a_recovery_grant",

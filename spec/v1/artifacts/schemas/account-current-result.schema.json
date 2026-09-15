@@ -1423,7 +1423,14 @@
       ]
     },
     "value_realm_profile": {
-      "$ref": "./event-payload.schema.json#/$defs/realm_profile_payload"
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "./event-payload.schema.json#/$defs/realm_profile_payload"
+        }
+      ]
     },
     "value_realm_destroy": {
       "anyOf": [
@@ -1644,7 +1651,14 @@
       ]
     },
     "value_realm_set_default_strand": {
-      "$ref": "./event-payload.schema.json#/$defs/realm_set_default_strand_payload/properties/strand_id"
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "./event-payload.schema.json#/$defs/realm_set_default_strand_payload/properties/strand_id"
+        }
+      ]
     },
     "value_realm_tombstone": {
       "anyOf": [
@@ -3926,8 +3940,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_calendar_rsvp"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -4133,8 +4169,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_recording_result"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -4258,8 +4316,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_summary"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -4342,8 +4422,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_call_transcript_result"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -4590,8 +4692,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_circle_metadata"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -4715,8 +4839,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_container_order"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -4758,8 +4904,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_container_position"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -5334,8 +5502,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_message_revision"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -5582,8 +5772,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_morph_lifecycle"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -5625,8 +5837,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_morph_stage"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -5668,8 +5902,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_morph"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -6001,8 +6257,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_profile_create"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -6044,8 +6322,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_profile_realm_override"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -6907,8 +7207,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_profile"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7114,8 +7436,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_realm_set_default_strand"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7198,8 +7542,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_relation_conflict_resolution"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7241,8 +7607,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_relation_lifecycle"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7284,8 +7672,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_relation"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7450,8 +7860,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_space_lifecycle"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7493,8 +7925,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_space_metadata"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7536,8 +7990,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_space_parent"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7579,8 +8055,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_strand_lifecycle"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7622,8 +8120,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_strand_object"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7665,8 +8185,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_strand_position"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7708,8 +8250,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_strand_stage"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7751,8 +8315,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_strand_watch"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }
@@ -7794,8 +8380,30 @@
                     "$ref": "./account-current-result.schema.json#/$defs/value_view"
                   }
                 },
-                "required": [
-                  "source"
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "value"
+                        },
+                        "value": {
+                          "not": {
+                            "type": "null"
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "value"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "source"
+                      ]
+                    }
+                  }
                 ]
               }
             }

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.2",
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "version": "2026-09-15.3",
+  "generated_at": "2026-09-15T18:20:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -485,7 +485,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:e52da439f2999e482d855b35fdd5020e16411e685b0878ef4e8e44cbaec78906"
+      "sha256": "sha256:b21cecbd9e88b9cae50b291da3a9165c5c239b1894885ecb333e96e3c9df78f7"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -989,7 +989,7 @@
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
-      "sha256": "sha256:88ebc6518b1e12dcf147c9f0fd45dc1b9ff969956fb2823564690d16f1d94361"
+      "sha256": "sha256:87ac853fba3029253ef28c130baf55f7bf26f21211d1ff304d19267637138929"
     },
     {
       "operation_id": "ak.self.security_transaction.command.create.v1",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-14.18",
-  "generated_at": "2026-09-14T23:57:00+08:00",
+  "version": "2026-09-15.1",
+  "generated_at": "2026-09-15T18:45:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4690,6 +4690,13 @@
         "recovery_transaction"
       ],
       "description": "Recovery evidence does not bind the current transaction, recovery session, principal, replacement device or prepared-plan digest."
+    },
+    {
+      "code": "recovery_receipt_completed_at_after_commit",
+      "applies_to": [
+        "recovery_transaction"
+      ],
+      "description": "A RecoveryTerminalCommit carries a recovery_receipt whose completed_at is later than the Station's own linearized commit time for commit_recovery_unit. The receipt's completed_at is the replacement device's authoring time for \"completed if every check passes\", so it can never be later than the commit that would make it true. The Station MUST reject the whole submission with this deterministic reason and perform zero authoritative writes: no accepted step, no terminal result, no accepted Event, no committed Seal, no generation advance, no activated device and no consumed recovery session. v1 defines no skew allowance, the Station MUST NOT sign a future-dated completion attestation and MUST NOT block waiting for the client clock. The rejected request was never accepted, so a corrected submission MUST use a new receipt; bytes already frozen as a step outcome still return duplicate_conflict. See zh/identity/security-transactions.md section 2.2."
     },
     {
       "code": "recovery_policy_genesis_not_v1",

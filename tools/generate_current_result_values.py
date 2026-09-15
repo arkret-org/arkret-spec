@@ -55,8 +55,9 @@ for kind,contract in catalog['event_kind_registry']['cell_contracts'].items():
     for write in contract['cell_writes']:
         family=write.get('cell_family')
         if family is None or write.get('value_shape')=='log':continue
-        row=families.setdefault(family,{'state_model':write['state_model'],'values':[],'writers':[]})
+        row=families.setdefault(family,{'state_model':write['state_model'],'values':[],'writers':[],'singleton':True})
         row['writers'].append(kind)
+        row['singleton']=row['singleton'] and write['cell_subject'] is None
         effect=write['effect_projection'];op=effect['kind']
         try:
             if op in ['set','or_set_add']:row['values']+=source(kind,effect['value'],write)
@@ -139,7 +140,11 @@ for family,row in families.items():
         dedup={json.dumps(v,sort_keys=True):v for v in variants};variants=[dedup[k] for k in sorted(dedup)]
         value=variants[0] if len(variants)==1 else {'anyOf':variants}
     if bindings[family]['value_shape']=='set' and bindings[family]['result_projection']=='joined_value':value={'type':'array','uniqueItems':True,'items':value}
-    elif row['state_model']=='sequenced_state' and bindings[family]['value_shape']=='register':
+    # A register-shaped cell publishes a confirmed empty value when it was never written:
+    # current-results.md section 2 for every sequenced_state register, and the same section
+    # plus section 4 for a causal_register singleton, whose unwritten baseline entry has no
+    # write identity and therefore omits source.
+    elif bindings[family]['value_shape']=='register' and (row['state_model']=='sequenced_state' or row['singleton']):
         value={'anyOf':[{'type':'null'},value]}
     value_defs[name]=value
 
@@ -200,7 +205,12 @@ for family,binding in bindings.items():
     value={'$ref':'./'+binding['value_schema_ref'].removeprefix('schemas/')}
     result={'status':{'enum':['value','removed','unavailable']},'value':value}
     result_constraint={'properties':result}
-    if binding['state_model']=='causal_register':result_constraint['required']=['source']
+    # Only a written causal_register value has a write identity to report. Requiring source
+    # unconditionally is structurally unsatisfiable for removed/unavailable, which carry no
+    # source field at all, and it would also forbid the confirmed empty value that
+    # current-results.md section 4 requires from an unwritten baseline singleton.
+    if binding['state_model']=='causal_register':
+        result_constraint['allOf']=[{'if':{'properties':{'status':{'const':'value'},'value':{'not':{'type':'null'}}},'required':['status','value']},'then':{'required':['source']}}]
     else:result['source']=False
     conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'pattern':pattern}}}}},'then':{'properties':{'target':{'properties':{'kind':{'enum':targets}}},'result':result_constraint}}})
 conditions.append({'if':{'properties':{'selector':{'properties':{'cell_id':{'$ref':'./event-envelope.schema.json#/$defs/cell_ref','not':{'anyOf':[{'pattern':p} for p in patterns]}}}}}},'then':{'properties':{'result':{'properties':{'status':{'enum':['removed','unavailable']}}}}}})

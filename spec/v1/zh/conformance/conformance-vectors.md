@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-10
+updated: 2026-09-15
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
@@ -2749,6 +2749,37 @@ MUST NOT 因本向量要求明文、明文镜像或服务端 validator。
 互不推断；任一实现以其中一项代替另一项 MUST 判为 conformance failure。完成只证明交付结束，不证明单条认证/解密、
 展示依赖、完整历史或读写权限。
 
+### 5.15 Vector: Realm 详情基线的四个必需单例
+
+`vector_id`: `ak.vector.sync.realm_detail_baseline_singletons.v1`
+
+机器 fixture：静态半在 `sync-fixture.json#schema_validation_cases`（`realm_detail_baseline_*` /
+`realm_default_strand_*` 用例），运行时半在 `sync-fixture.json#realm_detail_baseline_singletons`；
+执行入口以 fixture `runner` 元数据为准。唯一真源是
+[`../sync/current-results.md` §2](../sync/current-results.md) 的 `result` 分支与
+[§4](../sync/current-results.md) 的首个可用基线段。
+
+**静态半（fixture 可判定）**：
+
+- 从未提交 `ak.realm.set_default_strand` 的 Realm，其 genesis、policy、policy_bundle 与 default Strand
+  pointer 四个必需单例各以 `{status:"value", value:null}` 交付，整帧连同 `baseline.complete=true` MUST 合法。
+  default Strand pointer 是 causal_register 单例，该已确认空值省略 `source`。
+- `{status:"value"}` 缺 `value` 成员 MUST 拒绝：缺结果行不能冒充已确认空值。
+- 已写入的 default Strand pointer 缺 `source` MUST 拒绝：省略 `source` 只对未写入的已确认空值成立。
+
+**运行时半（单帧 schema 不可判定，MUST 由 runner 行为测试覆盖）**：
+
+1. publisher MUST 在验证完整 accepted 状态后才发布已确认空值；数据库缺结果行时 MUST NOT 发布
+   `value:null`、`removed` 或 `unavailable`，也 MUST NOT 标记 `baseline.complete=true`。
+2. 读取方遇到标为 ready 却缺必要基线条目的派生 publication MUST 使其失效并走 accepted frontier 重建路径，
+   MUST NOT 永久重试同一不完整 publication，MUST NOT 由客户端补默认值。
+3. 已写入的 default Strand pointer MUST 交付唯一赢家值及其 `source={event_id,depth}`；
+   写过的 null 与未写入 MUST 按 `source` 的有无区分。
+
+**Expected**：缺少 default Strand 写入不是详情基线不可完成的理由；任何实现以此让
+`realms[id].baseline` 永久停在 `unavailable` MUST 判为 conformance failure。
+把 `ak.realm.set_default_strand` 变成 Realm 创建的强制前置同样 MUST 判为 conformance failure。
+
 
 ## 6. Space Lifecycle Vectors
 
@@ -5485,11 +5516,17 @@ generation 只能由唯一合法 PCR Seal 序列中完整 unit 的 committed 结
 - `expected_accepted_step_count != 0` 或无 attestation 的 `continue`；
 - 用 recovery SessionGrant 调用 `ak.self.seals.command.prepare.v1` / `ak.self.seals.command.submit.v1` → `capability_denied`；
 - 同一 signer slot 在签名 body 已可见后因超时、重启或事务失败而取得第二份可签 body；
-- raw signed recovery Seal 无 completed transaction 与 completion attestation 时经普通 submit、federation 或 history replay 取得 accepted finality。
+- raw signed recovery Seal 无 completed transaction 与 completion attestation 时经普通 submit、federation 或 history replay 取得 accepted finality；
+- receipt 的 `completed_at` 晚于 Station 自身线性化提交时刻（replacement device 时钟快）→ 确定性
+  `recovery_receipt_completed_at_after_commit`。runner MUST 证明该拒绝零权威写入、不冻结 step outcome，
+  且时钟修正后用**新的** receipt 重新提交可被接受；规范不定义 skew 上界，Station MUST NOT 签发未来时间戳的
+  completion attestation，也 MUST NOT 阻塞等待客户端时钟。
 
 幂等与竞争 MUST 覆盖：terminal response 丢失、进程重启与 byte-identical `continue` 重放都返回首次保存的 completed resource、receipt 与 completion attestation，且 stored-outcome 检查先于“session 已消费”的 live-state 拒绝；两个 recovery unit 竞争同一 previous generation 时只有在同一原子 CAS 中提交 Seal 的一方是 winner，loser 不留下 accepted Event、verified device、consumed session 或 completed transaction，也不 quarantine winner；commit 后到达的 rival 取得确定性的 generation/predecessor conflict 或 terminal aborted 结果，不生成第二个 committed Seal。
 
-completion attestation MUST 签入 `terminal_commit_digest` 与 `first_generation_seal_id`，其 `completed_at` 是服务端线性化提交时间且不早于 receipt 的 `completed_at`；runner MUST 用只持有 receipt、缺 completion attestation 的输入证明 Account Authority 的 recovery completion grant 拒绝签发。
+completion attestation MUST 签入 `terminal_commit_digest` 与 `first_generation_seal_id`，其 `completed_at` 是服务端线性化提交时间且不早于 receipt 的 `completed_at`——上一条的确定性拒绝使该不等式自动成立，实现 MUST NOT 靠签发未来时间戳或阻塞提交来满足它；runner MUST 用只持有 receipt、缺 completion attestation 的输入证明 Account Authority 的 recovery completion grant 拒绝签发。
+
+recovery 首枚 Seal 的 commit transcript `view` 由 PCR 的 f=0 唯一确定为 `0`：recovery 专用 prepare 不返回 `view`，runner MUST 证明签名方与 coordinator 各自按该规则取 `0` 而得到同一可验证 transcript，任何取其它 `view` 的签名 MUST 校验失败。
 
 ### 22.4 Recovery-secret 泄露 handoff
 

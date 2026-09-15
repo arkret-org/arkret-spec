@@ -262,6 +262,205 @@
         "removals": []
       },
       "first_expected_error": "$: Additional properties are not allowed ('complete' was unexpected)"
+    },
+    {
+      "name": "realm_detail_baseline_unwritten_singletons_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "note": "current-results.md section 4: a Realm that never committed ak.realm.set_default_strand still delivers all four required baseline singletons as confirmed empty values. The default Strand pointer is a causal_register singleton, so its confirmed empty omits source; the three sequenced_state singletons never carry source at all.",
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N": {
+            "current": {
+              "entries": [
+                {
+                  "selector": {
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N"
+                    },
+                    "cell_id": "ak:cell:ak.component.realm.genesis.v1:null"
+                  },
+                  "target": {
+                    "kind": "realm"
+                  },
+                  "revision": 7,
+                  "result": {
+                    "status": "value",
+                    "value": null
+                  }
+                },
+                {
+                  "selector": {
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N"
+                    },
+                    "cell_id": "ak:cell:ak.component.realm.policy.v1:null"
+                  },
+                  "target": {
+                    "kind": "realm"
+                  },
+                  "revision": 7,
+                  "result": {
+                    "status": "value",
+                    "value": null
+                  }
+                },
+                {
+                  "selector": {
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N"
+                    },
+                    "cell_id": "ak:cell:ak.component.realm.policy_bundle.v1:null"
+                  },
+                  "target": {
+                    "kind": "realm"
+                  },
+                  "revision": 7,
+                  "result": {
+                    "status": "value",
+                    "value": null
+                  }
+                },
+                {
+                  "selector": {
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N"
+                    },
+                    "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null"
+                  },
+                  "target": {
+                    "kind": "realm"
+                  },
+                  "revision": 7,
+                  "result": {
+                    "status": "value",
+                    "value": null
+                  }
+                }
+              ]
+            },
+            "baseline": {
+              "snapshot_cursor": "ak:cursor:fixture-realm-detail-baseline",
+              "cut_revision": 7,
+              "coverage": {
+                "realm": true,
+                "strand_ids": [],
+                "members": {
+                  "mode": "selected",
+                  "actor_ids": []
+                },
+                "event_ids": []
+              },
+              "complete": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "realm_detail_baseline_missing_result_row_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "note": "A missing result row is not a confirmed empty value: status=value without the value member cannot stand in for the verified null that current-results.md section 4 requires.",
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N": {
+            "current": {
+              "entries": [
+                {
+                  "selector": {
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N"
+                    },
+                    "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null"
+                  },
+                  "target": {
+                    "kind": "realm"
+                  },
+                  "revision": 7,
+                  "result": {
+                    "status": "value"
+                  }
+                }
+              ]
+            },
+            "baseline": {
+              "snapshot_cursor": "ak:cursor:fixture-realm-detail-baseline",
+              "cut_revision": 7,
+              "coverage": {
+                "realm": true,
+                "strand_ids": [],
+                "members": {
+                  "mode": "selected",
+                  "actor_ids": []
+                },
+                "event_ids": []
+              },
+              "complete": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "realm_default_strand_written_value_without_source_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:'source' is a required property",
+      "note": "Dropping required provenance stays illegal: a written causal_register value keeps MUST carry source={event_id,depth}. Only the unwritten confirmed empty may omit it.",
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N": {
+            "current": {
+              "entries": [
+                {
+                  "selector": {
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:AdF_8ICakbYdEH0Cnl-w5o1WFlnh5rXGWqY_-_G6yM7N"
+                    },
+                    "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null"
+                  },
+                  "target": {
+                    "kind": "realm"
+                  },
+                  "revision": 7,
+                  "result": {
+                    "status": "value",
+                    "value": "ak:strand:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN"
+                  }
+                }
+              ]
+            },
+            "baseline": {
+              "snapshot_cursor": "ak:cursor:fixture-realm-detail-baseline",
+              "cut_revision": 7,
+              "coverage": {
+                "realm": true,
+                "strand_ids": [],
+                "members": {
+                  "mode": "selected",
+                  "actor_ids": []
+                },
+                "event_ids": []
+              },
+              "complete": true
+            }
+          }
+        }
+      }
     }
   ],
   "to_device_message_idempotency": {
@@ -3450,6 +3649,103 @@
           "window_state": "rejected",
           "reason": "unavailable_with_detail_fields"
         }
+      }
+    ]
+  },
+  "realm_detail_baseline_singletons": {
+    "vector_id": "ak.vector.sync.realm_detail_baseline_singletons.v1",
+    "runner": "cotest::conformance::sync::run_realm_detail_baseline_singletons_vector",
+    "operations": [
+      "ak.self.account.stream.subscribe.v1"
+    ],
+    "required_singleton_cells": [
+      "ak:cell:ak.component.realm.genesis.v1:null",
+      "ak:cell:ak.component.realm.policy.v1:null",
+      "ak:cell:ak.component.realm.policy_bundle.v1:null",
+      "ak:cell:ak.component.realm.set_default_strand.v1:null"
+    ],
+    "cases": [
+      {
+        "name": "realm_without_a_default_strand_write_still_completes_the_detail_baseline",
+        "written_singleton_cells": [],
+        "expected": "publish_confirmed_empty_for_every_required_singleton",
+        "expected_results": [
+          {
+            "cell_id": "ak:cell:ak.component.realm.genesis.v1:null",
+            "status": "value",
+            "value": null,
+            "source_present": false
+          },
+          {
+            "cell_id": "ak:cell:ak.component.realm.policy.v1:null",
+            "status": "value",
+            "value": null,
+            "source_present": false
+          },
+          {
+            "cell_id": "ak:cell:ak.component.realm.policy_bundle.v1:null",
+            "status": "value",
+            "value": null,
+            "source_present": false
+          },
+          {
+            "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null",
+            "status": "value",
+            "value": null,
+            "source_present": false
+          }
+        ],
+        "baseline_complete": true
+      },
+      {
+        "name": "confirmed_empty_default_strand_pointer_is_not_removed_or_unavailable",
+        "written_singleton_cells": [],
+        "expected": "publish_confirmed_empty_for_every_required_singleton",
+        "forbidden_results": [
+          {
+            "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null",
+            "status": "removed"
+          },
+          {
+            "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null",
+            "status": "unavailable",
+            "reason": "dependency_missing"
+          }
+        ],
+        "baseline_complete": true
+      },
+      {
+        "name": "written_default_strand_pointer_carries_its_write_identity",
+        "written_singleton_cells": [
+          "ak:cell:ak.component.realm.set_default_strand.v1:null"
+        ],
+        "expected": "publish_written_value_with_source",
+        "expected_results": [
+          {
+            "cell_id": "ak:cell:ak.component.realm.set_default_strand.v1:null",
+            "status": "value",
+            "value": "ak:strand:AaalePlTK6W4ZKrbKyKzlmmcdhXVx-InxeWY4ul69tiN",
+            "source_present": true,
+            "source": {
+              "event_id": "ak:event:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "depth": 0
+            }
+          }
+        ],
+        "baseline_complete": true
+      },
+      {
+        "name": "missing_result_row_is_not_a_confirmed_empty_value",
+        "publisher_state": "no accepted-state verification was performed; the result row is simply absent from the database",
+        "expected": "withhold_baseline_complete_and_invalidate_publication",
+        "forbidden_publisher_outcomes": [
+          "publish_confirmed_empty_without_verifying_accepted_state",
+          "publish_removed",
+          "publish_unavailable",
+          "mark_baseline_complete"
+        ],
+        "reader_behavior": "invalidate the derived publication and rebuild through the accepted frontier path",
+        "baseline_complete": false
       }
     ]
   },
