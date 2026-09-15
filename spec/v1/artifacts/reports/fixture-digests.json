@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
-      "sha256": "6bac4a1c031a40ec81aae3f02e183bfbdddb5468288f91a4ce2f7887a1325a03"
+      "sha256": "1acdafb2aec2b3968fd08ce1342e8f97d3871a42a7259f7f89266f6f961325c3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -310,7 +310,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
-      "sha256": "c459ebe3543f81c9d685d289dba06e8f9049a2ecdc49a8d7219ff7977164b970"
+      "sha256": "c640b1d1a199a35747d011d918009475ac4ef28a386ab50986f2e09ffb4a2e43"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.15",
-  "generated_at": "2026-09-15T18:45:00+08:00",
+  "version": "2026-09-15.16",
+  "generated_at": "2026-09-16T01:05:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1554,7 +1554,7 @@
     },
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",
-      "description": "Realm profile for a principal-scoped durable control stream. PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. After genesis, identity resolution, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
+      "description": "Realm profile for a principal-scoped durable control stream. A human PCR genesis is one create-once atomic unit: identity-root-signed ak.realm.create plus founding-device-signed ak.device.authorize. Agent and Applet-managed genesis carry no founding device and hold exactly one ak.realm.create, so their devices are authorized by ordinary post-genesis successors. After genesis, identity resolution, device state and recovery policy live in the PCR; the DID is only the identity-root key log and re-anchor fence.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -1740,7 +1740,7 @@
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
-        "fields.purpose MUST be principal_control for human/organization PCRs or agent_control for Agent PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in both cases.",
+        "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs, or applet_managed_control for Applet-managed Bot/Ghost PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in all three cases.",
         "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
@@ -1749,6 +1749,7 @@
         "An Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
+        "An applet_managed_control PCR genesis carries no FoundingDeviceDescriptor and its accepted genesis unit holds exactly one ak.realm.create, so the principal owns no device at genesis. Its delegated device MUST be authorized by an ordinary post-genesis successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact install that provisioned the principal. That Event MUST carry signer_resolution_evidence_ref and MUST NOT use a unit-local candidate overlay or join any atomic native unit: its signer is the already accepted managed-actor controller method, so the two named encoding.md omission exceptions stay exactly two. The device MUST stop being an effective signer as soon as that install is fenced, with applet_revoked and without waiting for a separate ak.device.revoke.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 cell, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]

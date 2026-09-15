@@ -89,6 +89,11 @@ registration/grant 与 Applet provenance，后者以 critical ref 唯一引用�
 `initial_resolution`。Package / durable registration 只保存不可变的 provision/genesis anchor，不保存
 current resolution source ref；运行时 current resolution 只由 `JCS(bot_actor_id)` 的 PCR resolution cell 重放。
 
+Bot PCR genesis 不携带 founding device，安装固定集合也 MUST NOT 携带设备授权。Bot 参与 E2EE 所需的**受限 delegated device**
+由 genesis 之后一条普通后继 `ak.device.authorize`（`authorization_binding_kind="applet_managed_delegation"`，
+`authorized_by` 为 Bot 自己的 `principal_id`）授权，见 §12 与
+[`../crypto-media/device-lifecycle.md` §5.2.3 / §15](../crypto-media/device-lifecycle.md)。Ghost 用同一条路径（§9.1）。
+
 ### 3.4 Ghost Actor
 
 外部网络用户在 Arkret 中的镜像 Actor。例如 Slack 用户 `U123` 映射为一个独立 Actor DID：
@@ -948,6 +953,7 @@ Idempotency-Key: <opaque-string>
 - 对任意 ingress（包括 actor 自签的普通 Event），receiver 一旦由 managed provision/PCR 识别该 authority pair，写入 admission MUST 与该 Event `scope_ref` 对应的 active exact Applet registration、install grant 与 revoke fence 做 AND。Ghost 严格跟随创建它的 exact effective install lifecycle，v1 不定义第二套 per-Ghost revoke 状态或操作；撤销一个 install 后只拒绝该 scope 的新写，最后一个 active effective install 被 fence 后 Bot 与全部 Ghost 才全局拒绝新写。历史读取与 identity-resolution audit 始终可用。
 - **幂等（normative）**：同一 `(applet_id, external_ref.protocol, external_ref.instance_id, external_ref.external_id)` 与同一 `Idempotency-Key` 的 exact replay（包含四条 Event 的 canonical bytes）MUST 返回既有 refs，不得重复提交。`external_ref`是唯一tuple carrier，请求不再镜像`protocol/tenant/external_user_id`。相同 tuple 或 key 携带不同 Event bytes / event ids MUST `duplicate_conflict`；`Idempotency-Key` 的保存必须与原子提交同事务。语义与 §7.3 相同。
 - provision 不隐含任何 Realm membership 或 MLS 入组：ghost 加入 portal Realm 走常规 membership 流程，加入 E2EE group 还需 §12 的独立 E2EE 加入授权。
+- 四 Event 创建单元 MUST NOT 携带设备授权，Ghost PCR genesis 也不携带 founding device。Ghost 参与 E2EE 所需的**受限 delegated device** 与 Bot 完全相同：在该 Ghost 自己的 `applet_managed_control` PCR 中，以 genesis 之后一条普通后继 `ak.device.authorize`（`authorization_binding_kind="applet_managed_delegation"`，`authorized_by` 为 Ghost 自己的 `principal_id`，`applet_id` 为本次 install）授权，见 §12 与 [`../crypto-media/device-lifecycle.md` §5.2.3 / §15](../crypto-media/device-lifecycle.md)。该 authorize 走普通 Event admission，MUST NOT 以 `ak.self.applet.ghost.command.provision.v1` 的封闭 aggregate 携带；它与 Ghost 的其余写入一样跟随 exact effective install 的 revoke fence。
 
 ## 10. Portal Realm
 
@@ -1057,6 +1063,12 @@ Applet 参与 E2EE Realm 时有三种模式：
 - 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 administrator actor 签发，并经 Station authorization capability 校验（参照 §4 的 `applet_registration_unauthorized` 门槛），再落为携带 applet provenance 的可审计 Arkret Event（例如 `ak.member.state`，其 membership write 由 registry 派生），不得仅凭 Applet 自身 Welcome 入组。
 - 缺少该独立 E2EE 加入授权时，Arkret 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
 - 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 Ghost Actor 协议层可区分要求一致。
+
+**E2EE endpoint 是 delegated device，不是新分支（normative）**：模式 1、2 中实际持有 MLS leaf 的是 Bot / Ghost 的**受限 delegated device**，走 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 既有的**普通 device 分支**。Bot 与 Ghost MUST NOT 借用 Agent 分支（§3.4.1），MUST NOT 使用 minimal-metadata pairwise 分支（该分支只在声明 `ak.profile.mls.minimal_metadata_realm.v1` 的 Realm 内可用，且其 holder binding MUST NOT 被投影进 roster，与本节的 applet-managed 标注要求互斥），v1 也 **不**为它们新增第四个 recipient endpoint 分支。
+
+- 该 delegated device MUST 由该 principal 自己 `applet_managed_control` PCR 中一条已接受的 `authorization_binding_kind="applet_managed_delegation"` 的 `ak.device.authorize` 授权，形状、possession transcript 与签名方解析见 [`../crypto-media/device-lifecycle.md` §5.2.3 / §5.3 / §15](../crypto-media/device-lifecycle.md)。该 authorize 是 PCR genesis 之后的**普通后继 Event**，不属于 §4b 的 install fixed set，也不属于 §9.1 的四 Event Ghost aggregate；把它塞进任一封闭单元 MUST 以 `applet_managed_pcr_genesis_requires_closed_aggregate` 的对偶规则拒绝，因为那两个单元的形状是逐条固定的。
+- 没有这样一条已接受的 authorize 时，客户端 MUST NOT 为该 Bot / Ghost 发布 KeyPackage、MUST NOT 把它加入 MLS group，也 MUST NOT 接受它签署的 MLS durable receipt。此处 fail closed 的是**设备**条件，与上文独立 E2EE 加入授权（`applet_e2ee_join_unauthorized`）是两道彼此独立的门，任一不成立都拒绝。
+- 该 delegated device 严格跟随创建该 principal 的 exact effective install 的 revoke fence：install 被 fence 后，该设备的新 KeyPackage 发布、新 Welcome 准入与新 durable receipt MUST 以 `applet_revoked` 拒绝，不得等待另一条 `ak.device.revoke`。
 
 ## 13. 安全要求
 

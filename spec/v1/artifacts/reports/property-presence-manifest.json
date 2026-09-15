@@ -15,20 +15,20 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11757,
+    "total_properties": 11760,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3122,
+      "optional": 3123,
       "optional_defaulted": 62,
-      "required": 7450,
+      "required": 7452,
       "required_nullable": 382,
       "tristate": 741
     },
     "tristate_occurrences": 741,
     "tristate_audit_targets": 167,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 158,
-      "condition_guarded": 8,
+      "absent_null_equivalent": 157,
+      "condition_guarded": 9,
       "distinct": 1
     }
   },
@@ -1744,8 +1744,8 @@
       "occurrences": [
         "/$defs/device_authorize_payload/properties/expires_at"
       ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -9267,7 +9267,10 @@
         "/$defs/cross_object_redaction_payload/properties/reason": "optional",
         "/$defs/cross_object_redaction_payload/properties/target_ref": "required",
         "/$defs/device_authorize_payload/allOf/0/if/properties/authorization_binding_kind": "required",
+        "/$defs/device_authorize_payload/allOf/1/if/properties/authorization_binding_kind": "required",
+        "/$defs/device_authorize_payload/allOf/1/then/properties/expires_at": "required",
         "/$defs/device_authorize_payload/properties/algorithms": "required",
+        "/$defs/device_authorize_payload/properties/applet_id": "optional",
         "/$defs/device_authorize_payload/properties/authorization_binding_kind": "required",
         "/$defs/device_authorize_payload/properties/authorized_by": "required",
         "/$defs/device_authorize_payload/properties/device_id": "required",
@@ -10178,7 +10181,10 @@
         "/$defs/call_state_payload/properties/transcript_transition/properties/result",
         "/$defs/capability_revoke_payload/properties/grant_ref",
         "/$defs/content_block/properties/parts",
+        "/$defs/device_authorize_payload/properties/applet_id",
+        "/$defs/device_authorize_payload/properties/expires_at",
         "/$defs/device_authorize_payload/properties/pairing_challenge_transcript_digest",
+        "/$defs/device_authorize_payload/properties/scopes",
         "/$defs/device_list_update_payload/properties/changed_ids",
         "/$defs/device_list_update_payload/properties/device_list_digest",
         "/$defs/device_list_update_payload/properties/left_ids",

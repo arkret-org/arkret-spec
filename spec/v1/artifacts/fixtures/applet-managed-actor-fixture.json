@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_bridge.v1",
-  "version": "2026-08-24",
+  "version": "2026-09-15",
   "suite": "applet_managed_actor_authority",
   "runner": {
     "kind": "named_suite",
@@ -208,6 +208,36 @@
       "name": "revoked_applet_history_read",
       "mutation": "identity resolution audit after registration revoke",
       "expect": "accepted"
+    },
+    {
+      "name": "delegated_device_authorize_is_ordinary_successor",
+      "mutation": "after the accepted Bot install unit and the accepted Ghost provisioning unit, each managed principal submits one ordinary successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to its own actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact active install",
+      "expect": "accepted"
+    },
+    {
+      "name": "delegated_device_authorize_cannot_join_closed_aggregate",
+      "mutation": "carry the same ak.device.authorize as a fifth Event of the Ghost authoring bundle or as a seventh fact of the Bot install fixed set",
+      "expect": "schema_violation"
+    },
+    {
+      "name": "delegated_device_authorize_requires_signer_resolution_evidence_ref",
+      "mutation": "omit proof.signer_resolution_evidence_ref and resolve the managed controller method through a unit-local candidate overlay instead of the accepted resolution cell",
+      "expect": "schema_violation"
+    },
+    {
+      "name": "delegated_device_authorize_authorized_by_must_self_anchor",
+      "mutation": "set authorized_by to the Applet registration service_id or controller DID instead of the managed principal's own principal_id",
+      "expect": "device_unauthorized"
+    },
+    {
+      "name": "delegated_device_authorize_requires_bounded_delegation",
+      "mutation": "submit the same authorize with expires_at=null, then with scopes omitted, then carrying a recovery_session_id or a pairing_challenge_transcript_digest",
+      "expect": "schema_violation"
+    },
+    {
+      "name": "delegated_device_follows_install_revoke_fence",
+      "mutation": "revoke the exact effective install, then publish a KeyPackage, accept a Welcome and sign an MLS durable receipt with the still-accepted delegated device",
+      "expect": "applet_revoked"
     }
   ]
 }

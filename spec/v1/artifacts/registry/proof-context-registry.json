@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.2",
+  "version": "2026-09-15.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "generated_at": "2026-09-16T01:05:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -286,6 +286,33 @@
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof"
+    },
+    {
+      "context": "ak.device_authorize_applet_managed_possession_proof.v1",
+      "object_family": "device_authorize_applet_managed_possession",
+      "binding_fields": [
+        "account_id",
+        "device_id",
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "not_before",
+        "expires_at",
+        "scopes",
+        "recovery_session_id",
+        "authorization_binding_kind",
+        "applet_id"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+      "injected_fields": [
+        {
+          "field": "account_id",
+          "source": "containing Event envelope actor_id.account_id, preserving both principal_id and station_id"
+        }
+      ]
     },
     {
       "context": "ak.device_authorize_possession_proof.v1",

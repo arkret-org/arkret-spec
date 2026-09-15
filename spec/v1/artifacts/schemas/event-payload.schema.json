@@ -4055,7 +4055,7 @@
     },
     "device_authorize_payload": {
       "type": "object",
-      "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, and accepted-device pairing. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core bound to that exact AccountId; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. None of these branches derives human authority from current DID state.",
+      "description": "Closed authorization record shared by registration genesis, PCR-policy recovery, accepted-device pairing, and Applet-managed delegation. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. registration_anchor and pcr_recovery use a candidate-device possession proof over the full authorization core bound to that exact AccountId; pcr_recovery is admitted only beside an accepted recovery session and monotonic PCR generation CAS. accepted_device uses the current accepted approving device. applet_managed_delegation is an ordinary successor Event inside an already accepted applet_managed_control PCR, signed by that principal's own resolved controller method, so it carries a signer_resolution_evidence_ref and needs no unit-local candidate overlay. None of these branches derives human authority from current DID state.",
       "required": [
         "device_id",
         "device_public_key_did",
@@ -4087,16 +4087,17 @@
         },
         "authorized_by": {
           "$ref": "#/$defs/device_or_principal_ref",
-          "description": "Under registration_anchor this is the principal whose durable registration control evidence was accepted. Under pcr_recovery it is the same principal selected by the recovery session and account-local lineage. Under accepted_device it is the approving device id at the accepted generation."
+          "description": "Under registration_anchor this is the principal whose durable registration control evidence was accepted. Under pcr_recovery it is the same principal selected by the recovery session and account-local lineage. Under accepted_device it is the approving device id at the accepted generation. Under applet_managed_delegation it is the Applet-managed principal's own principal_id, equal to actor_id.account_id.principal_id: the managed PCR authorizes its own delegated device and no cross-principal authority is introduced."
         },
         "authorization_binding_kind": {
           "type": "string",
           "enum": [
             "registration_anchor",
             "pcr_recovery",
-            "accepted_device"
+            "accepted_device",
+            "applet_managed_delegation"
           ],
-          "description": "registration_anchor is valid only in accepted PCR genesis; pcr_recovery only in a recovery unit authorized by the accepted PCR recovery policy; accepted_device requires an active approving device. No branch permits a same-core foreign PCR lineage."
+          "description": "registration_anchor is valid only in accepted PCR genesis; pcr_recovery only in a recovery unit authorized by the accepted PCR recovery policy; accepted_device requires an active approving device; applet_managed_delegation is valid only as an ordinary successor Event inside an accepted applet_managed_control PCR and only while the exact Applet install that created that principal is still active. No branch permits a same-core foreign PCR lineage."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"
@@ -4109,16 +4110,20 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device_authorize_possession_proof.v1; pcr_recovery uses ak.device_authorize_recovery_possession_proof.v1; accepted_device carries the single device_pairing_target_proof signature over the full challenge descriptor bound to the final AccountId and authorization core. The accepted-device branch MUST verify pairing_challenge_transcript_digest against that signed descriptor; no second new-device signature is required."
+          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device_authorize_possession_proof.v1; pcr_recovery uses ak.device_authorize_recovery_possession_proof.v1; applet_managed_delegation uses ak.device_authorize_applet_managed_possession_proof.v1 over the same authorization core plus applet_id; accepted_device carries the single device_pairing_target_proof signature over the full challenge descriptor bound to the final AccountId and authorization core. The accepted-device branch MUST verify pairing_challenge_transcript_digest against that signed descriptor; no second new-device signature is required."
         },
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Required by the pcr_recovery branch and omitted for registration_anchor and ordinary accepted_device pairing."
+          "description": "Required by the pcr_recovery branch and omitted for registration_anchor, ordinary accepted_device pairing and applet_managed_delegation."
         },
         "pairing_challenge_transcript_digest": {
           "$ref": "#/$defs/digest",
           "description": "Required only for accepted_device. SHA-256 typed digest of the complete canonical challenge descriptor authenticated by device_signature; the verifier persists the descriptor and rechecks the exact final AccountId and authorization core."
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id",
+          "description": "Required only for applet_managed_delegation and forbidden on every other branch. The exact Applet install whose accepted managed-actor provision created this principal. It is the device's revocation fence: once that install is revoked the device MUST stop being an effective signer, so the binding cannot outlive the install that justified it."
         }
       },
       "additionalProperties": false,
@@ -4143,6 +4148,37 @@
             "not": {
               "required": [
                 "pairing_challenge_transcript_digest"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "authorization_binding_kind": {
+                "const": "applet_managed_delegation"
+              }
+            },
+            "required": [
+              "authorization_binding_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "applet_id",
+              "expires_at",
+              "scopes"
+            ],
+            "properties": {
+              "expires_at": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "applet_id"
               ]
             }
           }

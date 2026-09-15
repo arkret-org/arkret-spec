@@ -466,7 +466,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 
 - 与 principal DID **1:1 绑定**，由 `principal_control_realm_id` 标识，由 DID method 的 inception 证据钉死（参见 [`identity/key-management.md` §4.1 与 §5.0](../identity/key-management.md)）。
 - Genesis discriminator 与 effective projection MUST：
-  - human / organization PCR create genesis `purpose = "principal_control"`；Agent PCR create genesis `purpose = "agent_control"`
+  - human / organization PCR create genesis `purpose = "principal_control"`；Agent PCR create genesis `purpose = "agent_control"`；Applet-managed Bot / Ghost PCR create genesis `purpose = "applet_managed_control"`（见 [`../extensions/applet-integration.md` §3.3 / §9.1](../extensions/applet-integration.md)）。三者是该 discriminator 的完整取值集合，`realm.schema.json` 与 `realm-genesis.schema.json` 的 enum 与本表逐字相等
   - `schema_refs` 包含 `ak.profile.principal_control_realm.v1`
   - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
   - effective `content_encryption_floor = "e2ee_required"` 且 `metadata_encryption_floor = "e2ee_required"`。v1 不存在"明文地板的 PCR"：两条 floor 由 PCR profile baseline 固定，不是 genesis object 的 producer 字段。

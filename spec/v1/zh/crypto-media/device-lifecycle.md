@@ -275,13 +275,14 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 
 ### 5.2 Device possession transcript（normative）
 
-`device_signature` 的 domain **由 `authorization_binding_kind` 判别**，不是单一固定值。该字段有三个取值，各自对应一个 domain 与一个封闭签名对象：
+`device_signature` 的 domain **由 `authorization_binding_kind` 判别**，不是单一固定值。该字段有四个取值，各自对应一个 domain 与一个封闭签名对象：
 
 - `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device_authorize_possession_proof.v1`，见 §5.2.1。
 - `pcr_recovery`：PCR-policy recovery unit 的第二条 authorize（包含 policy 显式选择 did_root factor 的情况）；domain `ak.device_authorize_recovery_possession_proof.v1`，并绑定 recovery session/policy/generation。
 - `accepted_device`：已有 accepted device 批准新设备；domain `ak.device_authorize_accepted_device_possession_proof.v1`，见 §5.2.2。
+- `applet_managed_delegation`：Applet-managed Bot / Ghost principal 在自己已接受的 `applet_managed_control` PCR 中授权一台受限 delegated device；domain `ak.device_authorize_applet_managed_possession_proof.v1`，见 §5.2.3 与 §15。
 
-三个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
+四个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
 
 #### 5.2.1 registration/recovery possession transcript（normative）
 
@@ -342,13 +343,51 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 **持久验签材料**：accepted authorize payload MUST 保存 `pairing_challenge_transcript_digest`，与目标 descriptor、`device_signature` 一起构成原已签对象，stage 清理后仍可重验 target signature；对象中的 `account_id` 由该 Event 自身的 `actor_id.account_id` 逐字节提供，不在 payload 中另设第二个副本。仅凭这组材料不能事后证明 challenge 确由 gate 签发；该事实由首次 admission 的 accepted evidence 保证。不得保存匿名 code/nonces 为公开 Event 字段。
 
+#### 5.2.3 `applet_managed_delegation` possession transcript（normative）
+
+Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 Seal 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `seal_basis`、`prev_refs`、frontier 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
+
+设备 possession 签名对象是：
+
+```json
+{
+  "device_id": "ak:device:...",
+  "device_public_key_did": "did:key:...",
+  "hpke_key": "z...",
+  "algorithms": ["..."],
+  "device_key_algorithm": "Ed25519",
+  "authorized_by": "ak:did_core:webvh:zExampleManagedActorScid",
+  "not_before": "2026-09-15T00:00:00.000Z",
+  "expires_at": "2026-12-15T00:00:00.000Z",
+  "scopes": ["..."],
+  "recovery_session_id": null,
+  "authorization_binding_kind": "applet_managed_delegation",
+  "applet_id": "ak:applet:..."
+}
+```
+
+签名输入是 `UTF8("ak.device_authorize_applet_managed_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 必须先按 UTF-8 bytewise 排序去重；`account_id` 与 §5.2.1 同样从 Event envelope 的完整 account `actor_id` 注入，不是 payload 字段。
+
+该分支的封闭约束（normative）：
+
+- **`authorized_by` 自锚**：MUST 逐字等于 `Event.actor_id.account_id.principal_id`。授权该设备的是这个 managed principal 自己的 PCR controller key，不是 Applet 的 `service_id`、controller DID 或任何别的 principal；取 `service_id` 会引入一条本规范未定义的跨 principal authority 链路，并与 §3.3「Bot 是独立长期 principal，不复用 Applet service/controller identity」相悖。MUST NOT 使用设备 id。
+- **有界委托**：`expires_at` MUST 存在且 MUST NOT 为 `null`，`scopes` MUST 非空。Applet-managed delegated device 不存在"永久、无限 scope"形态；这与 human / Agent 设备不同，因为持有该设备私钥的是 Applet 运行时，而不是 principal 本人。
+- **`applet_id` 是撤销围栏载体**：MUST 逐字等于创建该 principal 的那条已接受 `ak.applet.managed_actor.provision` 所属的 exact Applet install。它使该设备能被 §15 的 install revoke fence 直接判定，而不需要在设备目录之外另建一张映射表。
+- **不得跨分支复用**：该 payload MUST NOT 携带 `recovery_session_id` 或 `pairing_challenge_transcript_digest`；`registration_anchor` / `pcr_recovery` / `accepted_device` 三个分支同样 MUST NOT 携带 `applet_id`。
+- **前置状态**：接受该 Event 前，该 PCR 中 `ak.applet.managed_actor.provision` 与 `applet_managed_control` genesis MUST 已 accepted，且其 exact Applet install MUST 仍为 active。provision 与 genesis 尚未接受，或 install 已被 fence 时 MUST fail closed，前者按普通依赖未满足处理，后者 code=`applet_revoked`。
+
 ### 5.3 Event proof key resolution（normative）
 
 所有普通设备 Event 的 `proof.verification_method` MUST 是基于该 account actor principal 已验证、且满足操作 freshness / event-time 要求的 `did` 的 DID URL。receiver MUST 取 DID URL 的 bare `did`，用已登记 method adapter 验证并要求 `project(did) == Event.actor_id.account_id.principal_id`，再要求 fragment 逐字等于完整 `signing_device_id`（`ak:device:<uuid>`）；不得把 fragment 拼到 principal core，也不得把任何 core-plus-fragment 字符串当成 verification method。设备没有独立 DID，因此不得使用 candidate `did:key` 作为该字段。对 `authorization_binding_kind="accepted_device"` 的 authorize，`signing_device_id` 必须是 payload.`authorized_by`，不能是待授权 target device；因此 payload.`authorized_by` 在该分支下必然是设备 id，不是任何 principal DID。
 
 该 Event proof 同时是 `accepted_device` 分支下完整 account actor、`authorized_by`、`not_before`、`expires_at`、`scopes` 的**唯一签名承载**（§5.2.2）：它覆盖完整 canonical Event bytes，而签名方正是选定这些值的批准设备。验签方 MUST 用它校验这些字段，MUST NOT 期望目标设备的 `device_signature` 覆盖它们。
 
+**`applet_managed_delegation` 的签名方不是设备（normative）**：该分支的 `ak.device.authorize` 由 Applet-managed principal 自己的 DID controller method 签署，不由任何设备签署。因此其 `proof.verification_method` MUST 是该 managed principal 已验证 `did` 下的 **DID Document verification method** DID URL，fragment 是该 DID Document 中的 verification method fragment，**MUST NOT** 是 `ak:device:<uuid>`。receiver 仍 MUST 取 bare `did`、经已登记 method adapter 验证并要求 `project(did) == Event.actor_id.account_id.principal_id`。上一段「fragment 逐字等于完整 `signing_device_id`」只约束由设备签署的 Event，不适用于本分支；本分支同样 MUST NOT 由 principal core 拼 fragment，也 MUST NOT 以候选设备的 `did:key` 作为 verification method。
+
+**本分支不使用 candidate overlay，也不得省略 `signer_resolution_evidence_ref`（normative）**：[`../conformance/encoding.md` §4](../conformance/encoding.md) 中「省略 `signer_resolution_evidence_ref` + unit-local candidate overlay」的豁免是一张**恰含两项的封闭表**——human PCR genesis 的 root create 加 founding-device authorize，以及 PCR-policy recovery 的 reanchor 加 replacement authorize。那两项成立的**唯一**理由是：signer 在该原子 unit 被接纳之前，尚不存在可被引用的 accepted signer projection。`applet_managed_delegation` 不满足这个前提：它的 signer 是该 managed principal 的 controller method，而 `ak.applet.managed_actor.provision` 冻结的 `initial_resolution`、`method_history_evidence` 与 `JCS(actor_id)` 的 current resolution cell 在本 Event 之前**已经**被接受，可引用的 accepted signer projection 是存在的。因此本分支 MUST 携带 `signer_resolution_evidence_ref`，MUST NOT 建立任何 unit-local candidate overlay，也 MUST NOT 与另一条 Event 组成原子 native unit。实现 MUST NOT 把本分支加进那张封闭表；那张表在 v1 **恰为两项**，把它扩成三项是本条明确禁止的结果。候选设备 key 也不需要 overlay：它由同一 payload 的 `device_public_key_did` 与 `device_signature` 自证持有，而 overlay 要解决的是**签名方**不可解析，本分支的签名方完全可解析。
+
 - 对普通 Event，receiver 从当前 accepted PCR device directory 解析该 method；
+- 对 `applet_managed_delegation` 的 authorize，receiver 从该 managed principal 已接受的 current resolution cell 解析 controller method；不查 PCR device directory（该目录此时可能为空），不建立 overlay，也不接受 provision 之外的 resolution 来源；
 - 对 genesis unit 的第二条 authorize，以及 recovery unit 的 re-anchor 和 authorize 两条 Event，目录尚未包含 candidate。verifier 必须建立只在本次 unit 内可见的 candidate overlay。genesis 的 key 来自经 root 承诺的 descriptor；recovery 的 key 必须同时等于已验证 session 的 `requesting_device_public_key_did` 和 authorize payload 的 `device_public_key_did`。overlay 将规范 account DID URL/device fragment 映射到该 key，只提供验签材料，不授予权限。verifier 先验证对应 descriptor 或 accepted policy/session、payload/digest、possession signature 和全部 Event proof，全部成功后才原子写入 durable directory；
 - 不得查询未接受的 projection，不得回退到同 fragment 的旧 key，也不得在验签前产生可观察目录状态。
 
@@ -1419,9 +1458,13 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ## 15. Applet Device Delegation
 
-Applet 如需代表 Ghost Actor 或桥接用户参与 E2EE，MUST 使用受限 delegated device：
+Applet-managed principal（Bot Actor 与 Ghost Actor，见 [`../extensions/applet-integration.md` §3.3 / §3.4](../extensions/applet-integration.md)）如需参与 E2EE——发布 KeyPackage、作为 Welcome 接收方入组、签署 MLS durable receipt——MUST 使用**受限 delegated device**。本节对 Bot 与 Ghost 等效适用：两者用同一个 managed-actor provision + `applet_managed_control` PCR 模型，因此也用同一条设备授权路径，不存在只覆盖其中一方的形态。
 
-- device id MUST 标记 `applet_id`。
-- capability MUST 限制 Realm、协议、动作和有效期。
-- delegated device 不得签发新的 human device。
-- delegated device 的 to-device 权限 MUST 只覆盖其 namespace 内 actor。
+Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通 device 分支的成员，[`encryption-and-audit.md`](./encryption-and-audit.md) 的 device / Agent / minimal-metadata-pairwise 三分支封闭 XOR 不变。
+
+- **唯一授权路径**：一条 `authorization_binding_kind="applet_managed_delegation"` 的 `ak.device.authorize`，在该 principal 自己的 `applet_managed_control` PCR 中作为 **genesis 之后的普通后继 Event** 提交，形状与约束见 §5.2.3，签名方解析见 §5.3。MUST NOT 把它塞进 install fixed set、Ghost provisioning aggregate 或任何 genesis unit；MUST NOT 让 Applet service 以自己的 `service_id` 代替该 principal 授权设备。
+- **有界委托**：`scopes` MUST 非空且限制到该 delegated device 实际需要的 Realm / 动作，`expires_at` MUST 是非 null 的到期时刻。过期后该设备 MUST 与 `expired` lifecycle 一样失去新业务授权（§14.1）。
+- **跟随 install revoke fence（normative）**：delegated device 的有效性 MUST 与 payload `applet_id` 指向的 exact Applet install 的 active 状态做 AND，判定口径与 [`../extensions/applet-integration.md` §4b](../extensions/applet-integration.md) 的 revoke fence 逐字一致。该 install 被 fence 之后，接收方 MUST 立即拒绝该设备的新 KeyPackage 发布、新 Welcome 准入与新 MLS durable receipt，code=`applet_revoked`；MUST NOT 等待另一条 `ak.device.revoke`，也 MUST NOT 因为 PCR 中该 authorize 仍在而认为设备仍然有效。缺少这一条，撤销一个 Applet 之后它的 Bot 仍能继续签 MLS 回执。历史读取与既有 accepted Event 的复验不受影响。
+- **不得向上委托**：delegated device MUST NOT 授权任何新设备——它 MUST NOT 作为 `accepted_device` 分支的批准方，也 MUST NOT 签发第二条 `applet_managed_delegation` authorize。managed principal 的设备集合只能由其 controller method 直接授权。
+- **不得跨 namespace**：delegated device 的 to-device 权限 MUST 只覆盖其 Applet namespace 内的 actor。
+- **不进入 PCR recovery**：`applet_managed_control` PCR 不使用 `pcr_recovery` 分支。Applet 丢失 delegated device 私钥时，正确做法是 revoke 该设备并授权一台新的 delegated device；MUST NOT 为 managed principal 发起 human recovery session 或 factor transcript。

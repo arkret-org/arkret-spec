@@ -51,6 +51,12 @@ EXPECTED: dict[str, tuple[str, Any]] = {
     "revoked_applet_direct_self_signed_write": ("expect", "applet_revoked"),
     "managed_actor_portal_membership_is_not_delegated_bypass": ("expect", "rejected_then_accepted_then_rejected"),
     "revoked_applet_history_read": ("expect", "accepted"),
+    "delegated_device_authorize_is_ordinary_successor": ("expect", "accepted"),
+    "delegated_device_authorize_cannot_join_closed_aggregate": ("expect", "schema_violation"),
+    "delegated_device_authorize_requires_signer_resolution_evidence_ref": ("expect", "schema_violation"),
+    "delegated_device_authorize_authorized_by_must_self_anchor": ("expect", "device_unauthorized"),
+    "delegated_device_authorize_requires_bounded_delegation": ("expect", "schema_violation"),
+    "delegated_device_follows_install_revoke_fence": ("expect", "applet_revoked"),
 }
 
 
