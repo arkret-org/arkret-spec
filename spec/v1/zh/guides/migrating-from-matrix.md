@@ -158,21 +158,20 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 
-Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Arkret 把三件事分开建模（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2）：
+Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Arkret 把三件事分开建模（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2），并且**不移植 Matrix 的 device-level SAS / verification-QR 协议**：
 
 | 操作 | Arkret 允许产出 | Arkret 不自动产出 |
 | --- | --- | --- |
 | 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ak.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ak.device.authorize`、E2EE 历史密钥访问 |
 | 设备授权 | `ak.device.authorize`、DID key-log operation、`ak.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
-| 设备密钥验证（SAS / QR） | 本地人工信任标记与一次性 pairing transcript | 长期 device grant、Realm capability、登录态 |
+| 设备信任确认（pairing 短码 / pairing 二维码 / 配对链接） | §10.1 的 verification checkpoint 与一次性 pairing transcript | 长期 device grant、Realm capability、登录态 |
 
-验证消息形状（`ak.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Arkret 对生命周期和 transcript 绑定给出更明确的规范章节：
+Arkret v1 没有 `m.key.verification` 对应的 to-device 消息族、SAS 算法协商或独立的 verification 二维码。同一 principal 的新设备只走一次 pairing ceremony：新设备同时展示 8 位短码、pairing 二维码与配对链接，已授权设备扫码、输码或粘贴链接后核对短码并批准，绑定规则见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §2.1.1 / §2.1.2：
 
-- `request.expires_at` 与本地交互超时由 device lifecycle 章节给出。
-- SAS transcript 覆盖双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
-- QR payload 覆盖 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method，并排除长期私钥、secret storage key、recovery secret 或 MLS group secret。
-- 跨 principal 验证只表达人工信任，不改变对方设备授权状态。
-- cancel code 由 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §10.6 给出固定 registry；本指南不抄录具体取值，避免成为陈旧副本。
+- pairing transcript 覆盖 `pairing_code`、`device_pairing_request_id`、完整 `AccountId`、`gate_audience`、`expires_at`、candidate keys 与 metadata digest。
+- 成功的 accepted-device pairing 按 §10.1 建立 `verification_source=pairing_code` 的 verification checkpoint；lifecycle 与 trust evidence 仍是两个正交维度。
+- 跨 principal 的联系人验真不在 v1 范围；未来若需要，应绑定双方 stable principal / identity key 的 safety number，而不是逐台确认会轮换的 device key。
+- Matrix 客户端迁移时 MUST 把 SAS / verification-QR 界面映射到 pairing ceremony，不能期待 Arkret 提供等价的 device-level 验证消息。
 
 #### 4.5.9 完整性评估
 

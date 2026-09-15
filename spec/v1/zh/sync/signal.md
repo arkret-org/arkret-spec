@@ -403,7 +403,7 @@ service-level profile preflight 后报告 peer relay unavailable，但不得暴�
 
 ## 5. 与 to-device 的硬边界
 
-`ak.key.verification.*`、`ak.secret.request/send`、`ak.history_key.request` 以及直接参与设备验证、
+`ak.secret.request/send`、`ak.history_key.request` 以及直接参与设备信任确认、
 密钥分发、历史恢复的消息使用 `DeviceMessageEnvelope` 和可靠队列。它们不得进入 broadcast
 Signal，也不得使用 signal TTL/单跳 fanout 语义。
 

@@ -27,7 +27,7 @@
   ],
   "type_derived_summary": {
     "responsibility_identity_material": 676,
-    "typed_object_id": 1173,
+    "typed_object_id": 1172,
     "registry_catalog_symbol": 17
   },
   "pending_rename_convergence": [],
@@ -836,14 +836,6 @@
       "occurrences": 1,
       "example_path": "invite.schema.json#/$defs/third_party_invite/properties/token_salt_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "transaction_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~=-]{1,128}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "device-message.schema.json#/$defs/key_verification_content/properties/transaction_id",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
     },
     {
       "name": "transfer_id",

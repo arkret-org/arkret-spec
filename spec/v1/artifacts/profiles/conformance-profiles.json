@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-14.4",
-  "generated_at": "2026-09-14T15:37:05+08:00",
+  "version": "2026-09-15.11",
+  "generated_at": "2026-09-15T08:51:47+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -530,9 +530,6 @@
   "lattice_extension_profiles": [
     "ak.profile.crdt.text.v1"
   ],
-  "interop_compat_profiles": [
-    "ak.profile.matrix_compat.v1"
-  ],
   "encoding_extension_profiles": [
     "ak.profile.encoding.cbor.v1",
     "ak.profile.encoding.multihash.v1"
@@ -622,7 +619,6 @@
     "ak.profile.constraint.encryption_requirement.v1": "admin",
     "ak.profile.constraint.visibility_control.v1": "admin",
     "ak.profile.constraint.resource_limit.v1": "admin",
-    "ak.profile.matrix_compat.v1": "interop",
     "ak.profile.encoding.cbor.v1": "interop",
     "ak.profile.encoding.multihash.v1": "interop",
     "ak.profile.hash.blake3.v1": "interop",
@@ -3482,12 +3478,6 @@
           "binding_kind": "http_json"
         }
       ],
-      "depends_on": [
-        "ak.profile.matrix_compat.v1"
-      ],
-      "required_profiles": [
-        "ak.profile.matrix_compat.v1"
-      ],
       "inherits": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -5590,71 +5580,6 @@
           "forbidden_marketing_terms_check"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
-      }
-    },
-    "ak.profile.matrix_compat.v1": {
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, and SAS verification message strand. Arkret device authorization remains PCR-native and is outside this compatibility profile. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe.v1 / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
-      "enforcement_phases": [
-        "conformance",
-        "peer_eligibility"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.device_messages.command.send.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.device_messages.read.list.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.device_messages.command.ack.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.keys.upload.create.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.keys.read.lookup.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.keys.command.claim.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.edge.push.command.notify.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.device_message.v1"
-      ],
-      "required_fixtures": [
-        "keypackage-lifecycle-fixture.json",
-        "push-rule-core-fixture.json",
-        "sync-fixture.json"
-      ],
-      "optional_extensions": [
-        "matrix_push_gateway_passthrough"
-      ],
-      "feature_discovery": {
-        "required": [
-          "to_device_queue",
-          "prekey_distribution"
-        ],
-        "unsupported_optional": "omit profile claim"
       }
     },
     "ak.profile.binding.websocket.v1": {

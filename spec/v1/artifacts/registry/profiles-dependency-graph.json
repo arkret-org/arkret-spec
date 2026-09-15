@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-12.6",
+  "version": "2026-09-15.11",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-09-12T09:51:32+08:00",
+  "generated_at": "2026-09-15T08:51:47+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -66,7 +66,6 @@
     "ak.profile.kem.hybrid_xwing.v1",
     "ak.profile.key_backup.memory_hard.v1",
     "ak.profile.key_transparency.v1",
-    "ak.profile.matrix_compat.v1",
     "ak.profile.media_service_binding.arkret_native.v1",
     "ak.profile.media_service_binding.livekit.v1",
     "ak.profile.media_service_binding.v1",
@@ -285,11 +284,6 @@
       "from": "ak.profile.personal_node.v1",
       "to": "ak.profile.station_events_api.v1",
       "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.push_gateway.matrix_passthrough.v1",
-      "to": "ak.profile.matrix_compat.v1",
-      "kind": "depends_on"
     },
     {
       "from": "ak.profile.push_gateway.v1",

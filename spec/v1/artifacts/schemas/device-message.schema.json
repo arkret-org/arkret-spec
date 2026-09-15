@@ -182,198 +182,6 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.key.verification.request",
-              "ak.key.verification.ready",
-              "ak.key.verification.start",
-              "ak.key.verification.accept",
-              "ak.key.verification.key",
-              "ak.key.verification.mac",
-              "ak.key.verification.done",
-              "ak.key.verification.cancel"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "#/$defs/key_verification_content"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.request"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "methods",
-              "timestamp",
-              "expires_at"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.ready"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "methods"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.start"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "method"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.accept"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "commitment"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.key"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "key"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.mac"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "mac",
-              "keys"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.key.verification.cancel"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "required": [
-              "transaction_id",
-              "from_device_id",
-              "code"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.secret.request"
           }
         },
@@ -460,7 +268,7 @@
     },
     "secret_request_content": {
       "type": "object",
-      "description": "ak.secret.request to-device content (device-lifecycle.md §10.7). A newly authorized device asks an existing authorized device to hand over an account-scope secret over HPKE. Carries no secret material itself.",
+      "description": "ak.secret.request to-device content (device-lifecycle.md §10.2). A newly authorized device asks an existing authorized device to hand over an account-scope secret over HPKE. Carries no secret material itself.",
       "required": [
         "request_id",
         "secret_id",
@@ -484,7 +292,7 @@
         "recipient_hpke_public_key": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url X25519 HPKE public key the requesting device controls and the responder seals to. It MUST be byte-identical to the hpke_key registered for from_device in the current accepted device projection. A responder MUST fail closed on any mismatch and MUST NOT accept an ephemeral key merely because it appeared in a bound SAS verification transcript; SAS authenticates device signing keys, not HPKE sealing keys."
+          "description": "base64url X25519 HPKE public key the requesting device controls and the responder seals to. It MUST be byte-identical to the hpke_key registered for from_device in the current accepted device projection. A responder MUST fail closed on any mismatch and MUST NOT accept an ephemeral key merely because it appeared in some other transcript; a verification checkpoint binds the device signing key and the accepted hpke_key, never an unverified sealing key."
         }
       },
       "additionalProperties": true
@@ -531,7 +339,7 @@
     },
     "secret_send_content": {
       "type": "object",
-      "description": "ak.secret.send to-device content (device-lifecycle.md §10.7). The existing authorized device returns the requested secret HPKE-sealed to the requester's recipient_hpke_public_key. The plaintext is never visible to the queue service.",
+      "description": "ak.secret.send to-device content (device-lifecycle.md §10.2). The existing authorized device returns the requested secret HPKE-sealed to the requester's recipient_hpke_public_key. The plaintext is never visible to the queue service.",
       "required": [
         "request_id",
         "secret_id",
@@ -569,127 +377,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "key_verification_content": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "from_device_id"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "#/$defs/transaction_id"
-        },
-        "from_device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "methods": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-          },
-          "uniqueItems": true
-        },
-        "method": {
-          "type": "string",
-          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-        },
-        "timestamp": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "purpose": {
-          "const": "device_key_verification",
-          "description": "Optional purpose for ordinary verification between already authorized device endpoints. Fresh-device authorization uses the out-of-band device-pairing handoff and MUST NOT use this message."
-        },
-        "key_agreement_protocols": {
-          "$ref": "#/$defs/string_list"
-        },
-        "hashes": {
-          "$ref": "#/$defs/string_list"
-        },
-        "message_authentication_codes": {
-          "$ref": "#/$defs/string_list"
-        },
-        "short_authentication_string": {
-          "$ref": "#/$defs/string_list"
-        },
-        "commitment": {
-          "type": "string",
-          "minLength": 1
-        },
-        "key": {
-          "type": "string",
-          "minLength": 1
-        },
-        "mac": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "keys": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "verified_keys": {
-          "$ref": "#/$defs/string_list"
-        },
-        "signatures": {
-          "type": "object"
-        },
-        "code": {
-          "enum": [
-            "user_cancelled",
-            "timeout",
-            "unknown_transaction",
-            "unexpected_message",
-            "unsupported_method",
-            "unsupported_algorithm",
-            "mismatched_commitment",
-            "mismatched_mac",
-            "device_revoked",
-            "untrusted_device",
-            "policy_denied",
-            "accepted_by_other_device",
-            "device_generation_fenced"
-          ]
-        },
-        "reason": {
-          "type": "string",
-          "maxLength": 256
-        }
-      },
-      "not": {
-        "anyOf": [
-          { "required": ["pairing_code"] },
-          { "required": ["new_device_pubkey"] },
-          { "required": ["challenge_proof"] },
-          { "required": ["target_attestation"] },
-          { "required": ["target_proof"] },
-          { "required": ["gate_audience"] },
-          { "required": ["request_canonical_digest"] },
-          { "required": ["device_metadata"] }
-        ]
-      },
-      "additionalProperties": true
-    },
-    "string_list": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
     }
   }
 }

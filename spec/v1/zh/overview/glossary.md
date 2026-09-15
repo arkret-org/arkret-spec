@@ -301,8 +301,7 @@ see_also:
 | `JKT` | JWK Thumbprint | RFC 7638；`jkt` 确认值见 RFC 9449 | [`../sync/service-http-binding.md`](../sync/service-http-binding.md) |
 | `OIDC` | OpenID Connect | OpenID Connect Core | [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) |
 | `SSO` | Single Sign-On | 业界通用术语；本规范中的企业 SSO 经 OIDC 网关绑定 | [`../crypto-media/device-lifecycle.md` §3](../crypto-media/device-lifecycle.md) |
-| `SAS` | Short Authentication String | Matrix `m.sas.v1`；概念源自 ZRTP（RFC 6189 §7） | [`../crypto-media/device-lifecycle.md` §10.3](../crypto-media/device-lifecycle.md) |
-| `QR` | Quick Response code（二维码） | ISO/IEC 18004 | [`../crypto-media/device-lifecycle.md` §10.4](../crypto-media/device-lifecycle.md) |
+| `QR` | Quick Response code（二维码） | ISO/IEC 18004 | [`../crypto-media/device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) |
 | `HPKE` | Hybrid Public Key Encryption | RFC 9180 | [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) |
 | `KEM` | Key Encapsulation Mechanism | RFC 9180 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `AEAD` | Authenticated Encryption with Associated Data | RFC 5116 | [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) |
@@ -347,7 +346,7 @@ see_also:
 | `CAS` | compare-and-swap | 精确前态条件；安全序列提供原子检查，普通数据只对签名因果 basis 检查。内容寻址写完整 content-addressed。 |
 | `SSE` | Server-Sent Events | 见 [`../sync/transport-bindings.md`](../sync/transport-bindings.md)。唯一例外是 [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) 中与 PIR / ORAM 并列的 “Forward-private SSE”，该处指 Searchable Symmetric Encryption；该展开只在该上下文成立。 |
 | `DAG` | Directed Acyclic Graph | 指 `prev_refs` 因果图（[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
-| `MAC` | Message Authentication Code | 不是 Media Access Control。指 `ak.key.verification.mac`、MLS transcript 与秘密 MAC；具体的带密钥 hash 构造见 §4.2 `HMAC`。 |
+| `MAC` | Message Authentication Code | 不是 Media Access Control。指 MLS transcript 与秘密 MAC；具体的带密钥 hash 构造见 §4.2 `HMAC`。 |
 | Domain Transition | 领域转移 | 对 `sequenced_state` 或 `causal_register` 写入应用的已登记前态/后态校验规则；不是独立共享状态模型，也不参与 join。 |
 | `CRDT` | Conflict-free Replicated Data Type | 见 [`../models/crdt-text-extension.md`](../models/crdt-text-extension.md)。 |
 | `LWW` | Last-Writer-Wins | 仅用于对照说明；v1 数据面冲突不隐式选 winner。 |

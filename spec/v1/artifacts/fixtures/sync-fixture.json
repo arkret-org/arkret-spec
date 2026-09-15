@@ -12,7 +12,7 @@
       "expect_valid": true,
       "instance": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
-        "kind": "ak.key.verification.request",
+        "kind": "ak.secret.request",
         "sender_account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:webvh:z6mkfixtureservice"
@@ -26,13 +26,10 @@
         "sent_at": "2026-07-16T08:00:00.000Z",
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
-          "transaction_id": "verification-fixture-1",
+          "request_id": "secret-fixture-1",
+          "secret_id": "example_mls_account_secret",
           "from_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
-          "methods": [
-            "ak.sas.v1"
-          ],
-          "timestamp": "2026-07-16T08:00:00.000Z",
-          "expires_at": "2026-07-16T08:10:00.000Z"
+          "recipient_hpke_public_key": "9CKz3Ai9iQz0kHhZcH0H2jqvS-LcQ0YjvKq3aH9mQ0U"
         }
       }
     },
@@ -42,7 +39,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'device_message_id' is a required property",
       "instance": {
-        "kind": "ak.key.verification.request",
+        "kind": "ak.secret.request",
         "sender_account_id": {
           "principal_id": "ak:did_core:webvh:z6mkfixture",
           "station_id": "ak:did_core:webvh:z6mkfixtureservice"
@@ -56,13 +53,10 @@
         "sent_at": "2026-07-16T08:00:00.000Z",
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
-          "transaction_id": "verification-fixture-1",
+          "request_id": "secret-fixture-1",
+          "secret_id": "example_mls_account_secret",
           "from_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
-          "methods": [
-            "ak.sas.v1"
-          ],
-          "timestamp": "2026-07-16T08:00:00.000Z",
-          "expires_at": "2026-07-16T08:10:00.000Z"
+          "recipient_hpke_public_key": "9CKz3Ai9iQz0kHhZcH0H2jqvS-LcQ0YjvKq3aH9mQ0U"
         }
       }
     },
@@ -72,10 +66,10 @@
       "expect_valid": true,
       "instance": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
-        "kind": "ak.key.verification.request",
+        "kind": "ak.secret.request",
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
-          "transaction_id": "verification-fixture-1"
+          "request_id": "secret-fixture-1"
         }
       }
     },
@@ -85,10 +79,10 @@
       "expect_valid": false,
       "first_expected_error": "$: 'device_message_id' is a required property",
       "instance": {
-        "kind": "ak.key.verification.request",
+        "kind": "ak.secret.request",
         "expires_at": "2026-07-16T08:10:00.000Z",
         "content": {
-          "transaction_id": "verification-fixture-1"
+          "request_id": "secret-fixture-1"
         }
       }
     },

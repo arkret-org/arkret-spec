@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-13.50",
-  "generated_at": "2026-09-15T00:04:00+08:00",
+  "version": "2026-09-13.51",
+  "generated_at": "2026-09-15T00:04:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -169,7 +169,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:ba227c755685da3edc57e715311a0ed571f685ba4907b0d08735393aea99ebff"
+      "sha256": "sha256:416112651495e5f3a2c1a6b0618d5ca22379d4e4ff11430f8308920fb4567ff5"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -481,11 +481,11 @@
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
-      "sha256": "sha256:246958e39880e5d3f514c19090fff7cf1167365087732e29c9b8794bd8506ea8"
+      "sha256": "sha256:9c0cc5714cc3f9a604b94c4bd2f8435ec54dc0efb4b2579b2a7b25ddd79ddc2f"
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:ac9a6b782aae3062ef748715963be6f8f9bac7991b7b671ea1799c5c1d221a92"
+      "sha256": "sha256:e52da439f2999e482d855b35fdd5020e16411e685b0878ef4e8e44cbaec78906"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -713,7 +713,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.read.list.v1",
-      "sha256": "sha256:f841f82e946addf2f8da599c97416f2b089a9e8e87d56a09c0e83a9aed1f4dff"
+      "sha256": "sha256:1753114e6a8c920cd5fb02bb2cac1324f5a2abde1657f5dd05a75e39cdc8be7a"
     },
     {
       "operation_id": "ak.self.direct_conversation.read.resolve.v1",

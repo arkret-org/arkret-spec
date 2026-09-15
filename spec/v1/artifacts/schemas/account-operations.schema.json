@@ -176,6 +176,15 @@
           ],
           "description": "Trust verification of the device authorization evidence, separate from lifecycle status. A consumer MUST NOT interpret lifecycle status=active as usable authority unless verification_state=verified."
         },
+        "verification_source": {
+          "type": "string",
+          "enum": [
+            "genesis",
+            "pairing_code",
+            "recovery"
+          ],
+          "description": "Closed provenance of the verification checkpoint behind verification_state, per device-lifecycle.md section 10.1. genesis is the PCR genesis first device, pairing_code an accepted-device pairing or re-verification ceremony, and recovery an accepted recovery unit replacement device. Login factors, SSO sessions, ordinary session grants and bare server projections MUST NOT mint a checkpoint. Required when verification_state is verified, retained when a previously verified checkpoint went stale, and absent when verification_state is unresolved."
+        },
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
         },
@@ -217,9 +226,29 @@
           },
           "then": {
             "required": [
+              "verification_source",
               "authorized_event_ref",
               "signer_resolution_evidence_ref"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification_state": {
+                "const": "unresolved"
+              }
+            },
+            "required": [
+              "verification_state"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "verification_source"
+              ]
+            }
           }
         },
         {

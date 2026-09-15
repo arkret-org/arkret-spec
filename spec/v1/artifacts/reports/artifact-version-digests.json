@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-14.4",
-      "generated_at": "2026-09-14T15:37:05+08:00",
-      "content_digest": "sha256:3eefab5496187361b3047e7268400e721566a66ed1a3d454560bf707ee2557a7"
+      "version": "2026-09-15.11",
+      "generated_at": "2026-09-15T08:51:47+08:00",
+      "content_digest": "sha256:89daa40012342fc60ee11f26fc65ed0c0216040d1b08f21f6a6fafbf4bb559eb"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -255,9 +255,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-13.50",
-      "generated_at": "2026-09-15T00:04:00+08:00",
-      "content_digest": "sha256:f7c98bdf71eaaa5fd53341ee218d0401f3d245bbf25bbefe73938ef8076661ec"
+      "version": "2026-09-13.51",
+      "generated_at": "2026-09-15T00:04:01+08:00",
+      "content_digest": "sha256:4843eeb24ff15ead5cdb4e144f7b94e9e49ea994cb94ff7540080ce24caa5075"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -297,9 +297,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/profiles-dependency-graph.json",
-      "version": "2026-09-12.6",
-      "generated_at": "2026-09-12T09:51:32+08:00",
-      "content_digest": "sha256:1169d73fc3d5b5b48f922e6739b57155b0b05c6cc04ebb2b6f32464fdea73dc8"
+      "version": "2026-09-15.11",
+      "generated_at": "2026-09-15T08:51:47+08:00",
+      "content_digest": "sha256:0ca61a69bfc0e78705fdfe80a1176a8b09c0170042646c70fa6c1017b4f3dd0e"
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",

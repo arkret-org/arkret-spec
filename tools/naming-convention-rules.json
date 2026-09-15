@@ -178,13 +178,6 @@
       "narrative_section": "existing-hash-rule",
       "exceptions": [
         {
-          "id": "matrix-key-verification-interop-literals",
-          "basis": "external_literal",
-          "reason": "The ak.key.verification.* to-device family mirrors the Matrix m.key.verification SAS payload field-for-field so verification transcripts stay byte-comparable with the external protocol.",
-          "anchor": "spec/v1/artifacts/schemas/device-message.schema.json",
-          "external_anchor": "Matrix Client-Server API m.key.verification.accept `hashes`"
-        },
-        {
           "id": "mimi-room-update-group-context-projection",
           "basis": "external_literal",
           "reason": "mimi_room_update_request_body projects RFC 9420 GroupContext verbatim; its siblings mls_group_id and epoch are GroupContext names as well, so renaming only the transcript field would break the projection.",
@@ -202,15 +195,6 @@
       "enforcement": "predicate+registry",
       "enforcement_scope": "The predicate decides the token; every retained occurrence must carry an exact-path exception or a debt entry.",
       "exact_path_exceptions": [
-        {
-          "id": "matrix-key-verification-hashes",
-          "file": "device-message.schema.json",
-          "pointer": "/$defs/key_verification_content/properties/hashes",
-          "name": "hashes",
-          "basis": "external_literal",
-          "reason": "Matrix m.key.verification SAS interop field, retained verbatim.",
-          "external_anchor": "Matrix Client-Server API m.key.verification.accept `hashes`"
-        },
         {
           "id": "mimi-room-update-confirmed-transcript-hash",
           "file": "mimi-operations.schema.json",

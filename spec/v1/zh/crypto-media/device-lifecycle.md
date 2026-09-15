@@ -16,7 +16,7 @@ updated: 2026-08-11
 
 - **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出 sender-constrained handoff/session、触发 identity-root recovery，或请求已有 accepted device 批准配对；它不能自行产生设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ak.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
-- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
+- **设备信任确认**：§10.1 的 verification checkpoint 只记录“该 exact device key 与 `hpke_key` 已被本账号在环确认过”。取得 checkpoint 不得自动创建登录态、长期 device grant 或 Realm capability。
 
 ### 1.1 认证服务（Auth Server）验证什么
 
@@ -44,8 +44,8 @@ Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 
 ### 1.2 登录、设备授权与设备验证的边界
 
-登录因子验证、设备授权与设备密钥验证的三项边界以 §1 的列表为唯一规范来源。
-“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `ak.device.authorize` 或短期 `ak.session.grant`。短期 Web/OIDC 登录可以只使用 `ak.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
+登录因子验证、设备授权与设备信任确认的三项边界以 §1 的列表为唯一规范来源。
+“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `ak.device.authorize` 或短期 `ak.session.grant`。短期 Web/OIDC 登录可以只使用 `ak.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须完成设备授权，并按 §10.1 取得 verification checkpoint。
 
 
 ## 2. 多设备配对 (Device Pairing)
@@ -109,6 +109,12 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 §5.2.2 attestation 的正例、attestation challenge digest 与本次 pairing 不匹配 /
 `hpke_key` 与 `pair_device.hpke_key` 或 payload 不一致 / 两个 binding kind 的 transcript 互换
 等负向量，以及 §5.4.1 装配前校验失败时目标设备 fail closed。
+
+#### 2.1.4 Gate 落地与目标设备的结果观察（normative）
+
+用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `device_pairing_target_proof` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 首次接纳时从仍为 pending 的 staged record 按 §2.1.2 独立重算 challenge digest，再按 §5.2.2 用该 digest 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` / `ak.device.list_update` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
+
+已授权设备在该 gate 接纳后 MAY 发布 `ak.device.list_update`，并在用户或 policy 允许时按 §10.2 共享账户级 secret-storage material 或 MLS Welcome；identity root / device private key 永不共享。成功的 accepted-device pairing 同时按 §10.1 建立该新设备的 verification checkpoint：授权与信任仍是两个正交维度，各自按自己的规则撤销、过期与 fence。
 
 ### 2.2 设备吊销
 
@@ -417,16 +423,16 @@ Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不�
 
 ## 7. To-Device Messages
 
-To-device message 是面向具体 principal/device 的非 Realm 持久消息，用于密钥交换、验证、secret sharing 和通知。
+To-device message 是面向具体 principal/device 的非 Realm 持久消息，用于密钥交换、secret sharing 和通知。
 
-To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 `ak.key.verification.*` 名称在 to-device 通道中出现在 `kind` 字段；它们不得推进 `actor_seq`、`prev_refs`、Realm reducer frontier 或持久 timeline。
+To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 to-device kind 名称（`ak.secret.*`、`ak.read_cursor.update` 与 registry 明确的 actor-private update）在 to-device 通道中出现在 `kind` 字段；它们不得推进 `actor_seq`、`prev_refs`、Realm reducer frontier 或持久 timeline。
 
 `DeviceMessageEnvelope` 基本字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `device_message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端按完整 closed sender identity 与 `device_message_id` 去重。 |
-| `kind` | `string` | required | 消息 kind，例如 `ak.key.verification.request`。标准 to-device kind 由 `device-message.schema.json` 的闭合 dispatch 定义，不得登记成 Event.kind。 |
+| `kind` | `string` | required | 消息 kind，例如 `ak.secret.request`。标准 to-device kind 由 `device-message.schema.json` 的闭合 dispatch 定义，不得登记成 Event.kind。 |
 | `sender_account_id` + `sender_device_id` | `AccountId` + `id:device` | conditional | human device sender；完整账号与设备共同标识发送端，并与完整 `sender_agent_*` 三元组、`sender_id` 严格 XOR。 |
 | `sender_agent_id` / `sender_agent_verification_method` / `sender_agent_key_authorize_event_id` | `did_core_id` / `did_url` / `id:event` | conditional | Agent sender 的完整 signer-evidence 三元组；`sender_agent_id` 是唯一 Agent 身份 carrier，不得再携同值 principal 镜像。 |
 | `sender_id` | `did_core_id` | conditional | 受限 Station sender。只允许 `device-message.schema.json#/$defs/actor_private_update_kind` 闭集，且 `sender_id == recipient_account_id.station_id`；不得自报 holder sender 身份。 |
@@ -463,7 +469,7 @@ Content-Type: application/json
 | `messages.{principal_id}` | body | `object` | required | map key MUST 是 `did_core_id`（`ak:did_core:<method>:<core>`），不是 bare DID、AccountId 或 ActorId JSON。 |
 | `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
 | `messages.{principal_id}.{device_id}.device_message_id` | body | `id:device_message` | required | 发送方分配的稳定逻辑消息 ID；服务端 MUST 原样复制到 `DeviceMessageEnvelope.device_message_id`。 |
-| `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `ak.key.verification.request`。 |
+| `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `ak.secret.request`。 |
 | `messages.{principal_id}.{device_id}.expires_at` | body | `datetime` | required | 队列过期时间；服务端物化 envelope 后必须复制到 `DeviceMessageEnvelope.expires_at`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
 
@@ -483,7 +489,7 @@ Content-Type: application/json
 - **覆盖关系**：`delivered` 与 `unknown_devices` 的设备集合 MUST 互不相交，且其并集 MUST 等于请求 `messages` 中的全部 `(principal_id, device_id)` 目标全集（每个目标恰好出现在二者之一）。consumer 据此可断言无目标被静默丢弃。
 - 单设备因 TTL / `expires_at` 等可投递性原因不可入队时，该设备 MUST 计入 `unknown_devices`（携带可投递性失败语义），不使整请求失败。
 
-请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址,`content.from_device` 是**发送设备**(MUST 等于 envelope `sender_device_id`,见 §10.1),二者为不同设备，故 UUID 不同：
+请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址,`content.from_device_id` 是**发送设备**(MUST 等于 envelope `sender_device_id`,见 §10.2),二者为不同设备，故 UUID 不同：
 
 ```json
 {
@@ -491,17 +497,13 @@ Content-Type: application/json
     "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR": {
       "ak:device:01964137-0000-7000-8000-000000000000": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000000",
-        "kind": "ak.key.verification.request",
+        "kind": "ak.secret.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
-          "transaction_id": "ver_123",
-          "from_device": "ak:device:019641aa-0000-7000-8000-000000000001",
-          "timestamp": "2026-04-26T00:00:00Z",
-          "expires_at": "2026-04-26T00:10:00Z",
-          "methods": [
-            "ak.sas.v1",
-            "ak.qr.v1"
-          ]
+          "request_id": "req_123",
+          "secret_id": "example_mls_account_secret",
+          "from_device_id": "ak:device:019641aa-0000-7000-8000-000000000001",
+          "recipient_hpke_public_key": "9CKz3Ai9iQz0kHhZcH0H2jqvS-LcQ0YjvKq3aH9mQ0U"
         }
       }
     }
@@ -509,7 +511,7 @@ Content-Type: application/json
 }
 ```
 
-未被 `ak.device.authorize` durable accepted 的新设备没有合法的 human-device sender endpoint，也不得取得 restricted fresh-device SessionGrant；因此它 MUST NOT 调用本节 send/read/ack surface，MUST NOT 通过 `ak.key.verification.request` 发现或通知 sibling devices。新设备授权只走 §2.1.1 的匿名 stage/resolve/status 与二维码、手动复制或等价带外通道；用户以带外交付动作选择批准设备。stage/resolve/status 保持 account-less，不返回 principal 或 sibling device 集合。唯一 `device_pairing_target_proof` 只经二维码/短链 fragment 到达批准设备，并按 §2.1.1 独立验签。
+未被 `ak.device.authorize` durable accepted 的新设备没有合法的 human-device sender endpoint，也不得取得 restricted fresh-device SessionGrant；因此它 MUST NOT 调用本节 send/read/ack surface，MUST NOT 通过任何 to-device kind 发现或通知 sibling devices。新设备授权只走 §2.1.1 的匿名 stage/resolve/status 与二维码、手动复制或等价带外通道；用户以带外交付动作选择批准设备。stage/resolve/status 保持 account-less，不返回 principal 或 sibling device 集合。唯一 `device_pairing_target_proof` 只经二维码/短链 fragment 到达批准设备，并按 §2.1.1 独立验签。
 
 授权前没有签发 grant，因此不存在 bootstrap grant 撤销语义：pending pairing 只能过期、被成功授权原子消费，或在记录清理后变为不可解析；它从未授予账号能力。授权后的设备撤销使用普通 `ak.device.revoke` 合同。部署 MAY 在已认证账号边界内提供不含 token、pairing code、proof、attestation 或 sibling 列表的脱敏唤醒提示，但该提示不是配对传输、不得替代带外交付，也不得使匿名请求绑定 principal。
 
@@ -564,7 +566,7 @@ Content-Type: application/json
 | --- | --- | --- | --- |
 | `pruned_count` | `int` | required | 本次实际删除的消息数；重复或旧令牌的合法 no-op 返回 0。 |
 
-确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{pruned_count: 0}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 closed sender 分支查询 durable 去重记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
+确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{pruned_count: 0}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `param_invalid`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 closed sender 分支查询 durable 去重记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
 
 ## 8. One-Time and Fallback Keys
 
@@ -737,7 +739,7 @@ root 走 `ak.self.seals.read.governance_dependencies.v1` 的现有 ASRE selector
 
 客户端信任自己已认证 Station 确认的 exact account-device 当前授权投影。远端 origin Station 的 attestation 及其 assertion key/history 由自己 Station 验证；客户端不执行 DID/PCR 历史验证，不将任意服务直接返回的设备公钥视为本账号服务器结果。跨站目标的取材由自己 Station 按 §8.2.1 完成；客户端 MUST NOT 直连 origin Station 的 peer 面，也 MUST NOT 把自己的 SessionGrant / DPoP 交给任何其它服务。
 
-客户端 MUST 核对请求的完整 AccountId、device_id、密钥、generation、状态和有效期，并保留 KeyPackage/MLS/消息认证与 `ak.key.verification.*` 带外设备信任。服务器确认授权不能将未带外确认的新设备或替换密钥标为用户已验证。缓存按账号/自己 Station 会话隔离，已知撤销或 generation 变化立即失效，不越过 `expires_at`。收到 `device_directory_unavailable` 时，客户端 MUST 把该 `(account_id, device_id)` 视为**本次不可用**并保持等待或重试，MUST NOT 解释为该设备不存在、已撤销或对方无设备，MUST NOT 据此降级加密、跳过收件人或推进任何带外验证状态。
+客户端 MUST 核对请求的完整 AccountId、device_id、密钥、generation、状态和有效期，并保留 KeyPackage/MLS/消息认证与 §10.1 的带外 verification checkpoint。服务器确认授权不能将未带外确认的新设备或替换密钥标为用户已验证。缓存按账号/自己 Station 会话隔离，已知撤销或 generation 变化立即失效，不越过 `expires_at`。收到 `device_directory_unavailable` 时，客户端 MUST 把该 `(account_id, device_id)` 视为**本次不可用**并保持等待或重试，MUST NOT 解释为该设备不存在、已撤销或对方无设备，MUST NOT 据此降级加密、跳过收件人或推进任何带外验证状态。
 
 客户端把 `keys/query` 结果落到本地 authoring 授权状态时，只 MUST 保存这份可信 self 投影及后续确实使用的 `signer_evidence_ref` 与时态；**MUST NOT** 把未签名的 `device_projection` 填进任何声明为完整签名证据的位置，特别是 `current_signer_evidence` 的 `account_device` item——该 item 仍 MUST 返回 origin 的同一 `signer_evidence_ref`，其所指对象仍是那份含完整 attestation 的不可变 evidence。重启恢复按同一规则从 durable 状态重建，不得用缓存投影冒充证据。若某个 self 入口实际承担 portable evidence 交付，该入口保持完整；本节只裁剪不承担交付的 `keys/query` 普通结果。
 
@@ -1038,138 +1040,49 @@ Remove。Remove绑定旧group/generation/leaf/commit，新generation上只能no-
 但cleanup authority持续到成功消费或确定性 conflict。重复、跨admission、executor/proof key错配或deadline前滥用
 都必须拒绝。success/repair terminal不得生成compensation terminal certificate。
 
-## 10. Verification Strands
+## 10. 设备信任 checkpoint 与 Secret Sharing
 
-设备密钥验证用于确认“这个 principal/device/key 是否是用户想信任的对象”。验证成功本身不授予登录态、Realm 权限或长期设备权力：
+设备 trust evidence 回答“这台设备及其密钥是否已被本账号在环确认过”。它与 device lifecycle 正交（§14.1）：evidence 取值只有 `verified | unresolved | stale`，本身**不授予**登录态、Realm 权限或长期设备权力：
 
-- 同一 principal 的新设备登录，验证成功后仍 MUST 通过 `ak.device.authorize`、DID/key-log operation 或 recovery policy 把设备加入有效设备集合。
-- 跨 principal 验证只表达本地人工信任，不得改变对方 PCR 设备授权状态。
-- `ak.session.grant` 只授予短期会话能力；不得因 SAS/QR 成功而自动升级为长期设备授权。
+- 同一 principal 的新设备仍 MUST 通过 `ak.device.authorize`、符合 DID method 的 key-log operation 或 recovery policy 才进入有效设备集合，并按 §5.4.1 在本地装配前完成强制校验。
+- `ak.session.grant` 只授予短期会话能力；取得 verification checkpoint 不得被升级为长期设备授权。
+- v1 不定义 device-level 的跨 principal 人工验证协议；跨 principal 联系人验真不在 v1 范围（见 §10.1 末尾）。
 
-### 10.1 标准消息类型
+### 10.1 Verification checkpoint（normative）
 
-Arkret 标准验证消息通过 to-device 通道发送：
+evidence=`verified` 只来自 **verification checkpoint**：一条绑定 exact `(AccountId, device_id, device signing key, hpke_key, authorize generation)` 的 durable 记录。v1 的 checkpoint 来源是**封闭集合**；机读真源是 [`account-operations.schema.json`](../../artifacts/schemas/account-operations.schema.json) 的 `device_summary.verification_source`，其取值只允许：
 
-- `ak.key.verification.request`
-- `ak.key.verification.ready`
-- `ak.key.verification.start`
-- `ak.key.verification.accept`
-- `ak.key.verification.key`
-- `ak.key.verification.mac`
-- `ak.key.verification.done`
-- `ak.key.verification.cancel`
-
-所有验证消息 content MUST 包含：
-
-| 字段 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- |
-| `transaction_id` | `string` | required | 交易 ID；对参与 principal/device 组合唯一，长度 1..128，不能复用已完成或已取消交易。 |
-| `from_device` | `id:device` | required | 发送设备；MUST 等于 envelope 的 `sender_device_id`。 |
-
-各消息的额外字段：
-
-| `kind` | 额外必填字段 | 说明 |
+| `verification_source` | 唯一来源 | 建立条件 |
 | --- | --- | --- |
-| `ak.key.verification.request` | `methods`, `timestamp`, `expires_at` | 在两个已有合法 sender/recipient endpoint 的设备间发起普通设备密钥验证。`methods` 使用标准方法名，例如 `ak.sas.v1`、`ak.qr.v1`。不得承载未授权新设备的 pairing code、challenge proof、target attestation 或 sibling discovery。 |
-| `ak.key.verification.ready` | `methods` | 接受请求并回报本设备可用方法。 |
-| `ak.key.verification.start` | `method` | 选择方法并开始。SAS 还 MUST 带 `key_agreement_protocols`、`hashes`、`message_authentication_codes`、`short_authentication_string`。 |
-| `ak.key.verification.accept` | `commitment` | 接受 `start` 并提交本端 ephemeral key 承诺；还 MUST 固定选定算法。 |
-| `ak.key.verification.key` | `key` | 发送本端 ephemeral public key。 |
-| `ak.key.verification.mac` | `mac`, `keys` | 发送待验证 key 的 MAC 与 key-id MAC。 |
-| `ak.key.verification.done` | none | 双方 MAC 验证通过后完成。MAY 带本地生成的签名摘要。 |
-| `ak.key.verification.cancel` | `code` | 任意阶段取消；`reason` MAY 给出面向用户的短说明。 |
+| `genesis` | §5.1 PCR genesis 与首设备 | 初始账号创建 ceremony 中首设备对 exact device signing key 与 `hpke_key` 提供私钥持有证明，并被 accepted registration-anchor authorize 覆盖。 |
+| `pairing_code` | §2.1 accepted-device pairing / re-verification ceremony | 见下方五项条件。 |
+| `recovery` | §14 PCR-policy device recovery | accepted recovery unit 按 recovery policy 为 replacement device 建立；checkpoint 绑定该 unit 的 result generation。 |
 
-### 10.2 状态机、超时与并发
+只有**同时**满足以下全部条件，一次 pairing 才产生 `verification_source=pairing_code` 的 checkpoint：
 
-标准交互状态机为：
+1. 批准方是该 exact AccountId 的 accepted、未撤销、current generation 内设备；
+2. candidate 对 exact device signing key 与 `hpke_key` 提供 §5.2.2 的有效持有证明；
+3. `pairing_code`、`device_pairing_request_id`、完整 `AccountId`、`gate_audience`、`expires_at`、candidate keys 与 metadata 绑定到同一份 §2.1.2 canonical transcript；
+4. 用户通过扫码、输入短码，或在配对链接流程中显式确认短码，完成带外确认；
+5. accepted `ak.device.authorize` 与对应 checkpoint 在同一原子提交可见，或可从同一 accepted authorization 与已签 transcript 确定性重建。
 
-```text
-request -> ready -> start -> accept -> key -> mac -> done
-```
+以下 MUST NOT 单独产生 checkpoint：账号登录因子、SSO session、普通 `ak.session.grant`、仅向用户展示 fingerprint、服务端自报“这是同一设备”，以及任何未完成上述带外确认的候选流程。新增 verification source MUST 先扩展本节封闭集合与上述 schema 枚举；实现不得用任意字符串、profile 自报或本地标记进入该集合。`verification_source` 与 DID URL 形态的 `verification_method` 是两个不同字段，MUST NOT 互相替代。
 
-`cancel` MAY 在任意阶段发送。接收方 MUST 对重复的同一消息做幂等处理；对越序或状态不匹配的消息 MUST cancel，`code=unexpected_message`。
+checkpoint 的失效遵守既有 lifecycle 与 generation 规则，不另设独立超时：
 
-请求超时规则：
+- 目标设备被 revoke 或进入 `revocation_pending`：该 checkpoint MUST NOT 再用于 live authorization；
+- authorize generation 被 fence，或设备 key rotation 后 checkpoint 不再绑定 exact key：evidence MUST 变为 `stale`；
+- 没有可验证 checkpoint，或 PCR evidence 出现 gap / 冲突：evidence 保持 `unresolved`，MUST NOT TOFU。
 
-- `request.timestamp` 不能比接收设备本地时间晚 5 分钟以上。
-- `request.expires_at` MUST be no later than `timestamp + 10m`。
-- 用户在展示提示后 2 分钟内没有交互，客户端 SHOULD 本地取消或隐藏提示。
-- 过期交易的后续消息 MUST 被忽略或以 `code=timeout` 取消。
+account `device_summary` 的 `verification_source` MUST 在 evidence=`verified` 时出现，在 evidence=`unresolved` 时缺省；曾 verified 后转 `stale` 的 row 保留原 `verification_source` 作为 provenance，但 MUST NOT 据此继续 live authorization。该字段是 provenance 投影，不是第二个真相源：checkpoint 本身仍由 accepted PCR evidence（§5.5）与上述条件决定。
 
-并发规则：
+`stale` / `unresolved` 的历史设备、受控导入设备与 key rotation 后的设备统一重新走 §2.1 的 account-bound pairing / re-verification ceremony 取得新 checkpoint。v1 不提供第二套 device-level 验证协议，也不定义独立的“验证设备”页面或 verification 专用二维码；§2.1.1 的 pairing 二维码是唯一 QR 载体。
 
-- `request` 可以发送给同一 principal 的多个设备；`ready` 之后实际验证 MUST 收敛到两个具体设备。
-- 一台接收设备接受后，发起方 SHOULD 向其他待处理设备发送 `cancel`，`code=accepted_by_other_device`。
-- 交易完成或取消后，`transaction_id` MUST NOT 在相同 principal/device 组合中重用。
+跨 principal 的联系人验真不在 v1 范围：它应绑定双方 stable principal / identity key 的 safety number，而不是逐台确认会轮换的 device key。v1 MUST NOT 以 device-level 验证消息、to-device transcript 或本地 trust receipt 冒充该能力。
 
-### 10.3 SAS 验证
+### 10.2 Secret Sharing（`ak.secret.*`）
 
-SAS 验证 MUST 绑定：
-
-- 双方 principal id
-- 双方 device id
-- 双方 device verify key
-- transaction id
-- chosen method and algorithms
-
-`accept.commitment` MUST 是对本端 ephemeral public key 与 canonical `start` 消息的哈希承诺。收到 `key` 后，接收方 MUST 重算 commitment；不一致 MUST cancel，`code=mismatched_commitment`。
-
-MAC 阶段 MUST 覆盖完整 transcript，包括双方 principal id、device id、device verify key、transaction id、method、算法选择、双方 ephemeral key 和待验证 key id。任何 transcript 不一致 MUST cancel，`code=mismatched_mac`。
-
-Transcript 中的双方 principal/device MUST 与 `DeviceMessageEnvelope` 的 sender/recipient 字段一致；不一致时 MUST cancel，`code=mismatched_mac` 或 `unexpected_message`。
-
-SAS 展示值 MUST 从同一 transcript 派生。用户确认前，客户端不得把对方 device key 标记为 verified。
-
-### 10.4 QR 验证
-
-QR 验证 MUST 使用一次性 secret 或 public commitment，且 QR 内容 MUST 有过期时间和 intended verifier。
-
-QR payload MUST 至少绑定：
-
-- `transaction_id`
-- 展示端 principal id 与 device id
-- intended verifier principal id；若已知，还 SHOULD 绑定 intended verifier device id
-- 一次性 secret 或 public commitment
-- `expires_at`
-- supported verification method
-
-QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。扫码后，客户端仍 MUST 通过 to-device transcript 完成 `mac` / `done`，不能只凭扫码动作直接信任设备。
-
-### 10.5 成功后的动作
-
-新设备已通过 §2.1.1 带外流程完成授权并重新认证取得 Standard grant 后，已授权设备 MAY：
-
-1. 签发 `ak.device.authorize` 或符合 DID method 的 key-log operation。
-2. 发布 `ak.device.list_update`。
-3. 在用户或 policy 允许时，通过加密 to-device 消息共享账户级 secret-storage material 或 MLS Welcome；不得共享 identity root/device private key。
-
-用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `device_pairing_target_proof` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 首次接纳时从仍为 pending 的 staged record 按 §2.1.2 独立重算 challenge digest，再按 §5.2.2 用该 digest 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` / `ak.device.list_update` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
-
-跨 principal 验证完成后，客户端 MAY 保存由当前 accepted device 签署的本地 trust receipt。该 receipt 只影响本 principal 的信任视图，不授予对方 Realm capability。
-
-### 10.6 Cancel Code Registry
-
-标准 cancel code：
-
-| code | 含义 |
-| --- | --- |
-| `user_cancelled` | 用户主动取消。 |
-| `timeout` | 交易过期或交互超时。 |
-| `unknown_transaction` | 本设备不存在该交易。 |
-| `unexpected_message` | 消息与当前状态机不匹配。 |
-| `unsupported_method` | 无共同验证方法。 |
-| `unsupported_algorithm` | 无共同 key agreement、hash、MAC 或 SAS 表示算法。 |
-| `mismatched_commitment` | ephemeral key commitment 校验失败。 |
-| `mismatched_mac` | MAC 或 key-id MAC 校验失败。 |
-| `device_revoked` | 任一参与设备已撤销。 |
-| `untrusted_device` | policy 要求验证设备，但设备信任链不满足。 |
-| `policy_denied` | Realm、组织或账号 policy 拒绝。 |
-| `accepted_by_other_device` | 同一请求已被另一设备接受。 |
-| `device_generation_fenced` | 验证过程中发现目标设备属于旧 DID generation；必须重新解析 PCR evidence。 |
-
-### 10.7 Secret Sharing（`ak.secret.*`）
-
-§10.5(3) 允许 accepted device 在验证成功后通过加密 to-device 消息共享账户级 secret-storage material 或 MLS Welcome。本节把该动作收敛为两个标准 to-device kind，用于把账户级 secret（如 MLS account secret / secret storage bootstrap key）从一台已授权设备直传给同一 principal 的另一台已通过 §10.3 SAS 验证的设备，无需用户重新输入恢复口令。它是 [`identity/key-management.md` §7](../identity/key-management.md) 无口令恢复路径的设备直传分支，服务端零知识。
+已授权设备 MAY 在用户或 policy 允许时，通过加密 to-device 消息把账户级 secret-storage material 或 MLS Welcome 共享给同一 principal 的另一台设备；identity root / device private key 永不共享。本节把该动作收敛为两个标准 to-device kind，用于把账户级 secret（如 MLS account secret / secret storage bootstrap key）从一台已授权设备直传给同一 principal 的另一台**持有 §10.1 当前有效 verification checkpoint** 的设备，无需用户重新输入恢复口令。它是 [`identity/key-management.md` §7](../identity/key-management.md) 无口令恢复路径的设备直传分支，服务端零知识。
 
 标准 kind（均走 §7 to-device 通道，不进入 Event registry 或任何持久 timeline）：
 
@@ -1183,9 +1096,9 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `request_id` | `string` | required | 调用方生成的随机关联 id；MUST NOT 在被应答或取消后重用。 |
-| `secret_id` | `string` | required | 被请求 secret 的不透明标识，例如 `org.example.mls_account_secret`。 |
-| `from_device` | `id:device` | required | 请求（新）设备；MUST 等于 envelope 的 `sender_device_id`。 |
-| `recipient_hpke_public_key` | `string` | required | 请求设备控制的 base64url X25519 HPKE 公钥，被请求设备据此密封。它 **MUST** 逐字节等于目标 `from_device` 在该 principal 设备集投影（§4 device record / §6 device list）中登记的权威 `hpke_key`；不等即 fail closed（见下方规则）。**MUST NOT** 仅因该公钥"看似格式合法"或与某条 SAS transcript 内某值相符就接受——SAS（§10.3）只验证双方 device verify key（Ed25519），不覆盖 HPKE（X25519）密封密钥，故密封目标公钥必须独立绑定到权威 `hpke_key`。 |
+| `secret_id` | `string` | required | 被请求 secret 的不透明标识；形态受 [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的 `^[a-z0-9_]+$` 约束，例如 `example_mls_account_secret`。 |
+| `from_device_id` | `id:device` | required | 请求（新）设备；MUST 等于 envelope 的 `sender_device_id`。 |
+| `recipient_hpke_public_key` | `string` | required | 请求设备控制的 base64url X25519 HPKE 公钥，被请求设备据此密封。它 **MUST** 逐字节等于目标 `from_device_id` 在该 principal 设备集投影（§4 device record / §6 device list）中登记的权威 `hpke_key`；不等即 fail closed（见下方规则）。**MUST NOT** 仅因该公钥"看似格式合法"或与某条 transcript 内某值相符就接受——§10.1 的 verification checkpoint 绑定的是 device signing key 与该设备已 accepted 的 `hpke_key`，任何未经权威投影核对的 X25519 公钥都不得作为密封目标。 |
 
 `ak.secret.send.content` 字段：
 
@@ -1193,7 +1106,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | --- | --- | --- | --- |
 | `request_id` | `string` | required | 关联到 pending 的 `ak.secret.request`；MUST 等于密封 plaintext 内被认证的 `request_id`。 |
 | `secret_id` | `string` | required | 与请求一致的 secret 标识。 |
-| `from_device` | `id:device` | required | 授权（已有）设备；MUST 等于 envelope 的 `sender_device_id`，且 MUST 是接收 principal 的未撤销设备。 |
+| `from_device_id` | `id:device` | required | 授权（已有）设备；MUST 等于 envelope 的 `sender_device_id`，且 MUST 是接收 principal 的未撤销设备。 |
 | `scheme` | `string` | required | MUST 为 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id；v1 default-MUST 为 `ak.hpke_x25519_aead_chacha20poly1305.v1`。未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。 |
 | `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
 | `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
@@ -1204,14 +1117,14 @@ HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON�
 
 规则（normative）：
 
-- 时序：`ak.secret.request` / `ak.secret.send` MUST 在两台设备完成 §10.3 SAS 验证之后发送。请求与发送绑定的设备 MUST 与该 SAS transcript 绑定的 device key 一致，防止“验证设备 A、把 secret 发给设备 B”。
+- 前置（normative）：`ak.secret.request` / `ak.secret.send` MUST 只在请求设备持有 §10.1 封闭来源之一、且适用于 exact device / key 的**当前有效** verification checkpoint 时发送。checkpoint 为 `stale`、`unresolved`、已被 revoke 或不绑定本次 exact device signing key 与 `hpke_key` 时 MUST fail closed。普通登录因子、session grant、服务端裸投影与未完成的候选流程都不满足该前置。请求与发送绑定的设备 MUST 与该 checkpoint 绑定的 device key 一致，防止“确认设备 A、把 secret 发给设备 B”。
 - TTL：二者受 §7 队列 TTL 约束；`ak.secret.send` SHOULD 使用更短 `expires_at`（推荐 10–60 分钟）。
 - 用户在环：被请求设备在发送 `ak.secret.send` 前 MUST 经用户显式授权，并 MUST 校验目标 device ∈ 本 principal 当前授权设备集合且未撤销。
-- 密封密钥绑定（normative）：被请求设备在密封并发送 `ak.secret.send` 前，MUST 校验请求中的 `recipient_hpke_public_key` 逐字节等于目标 `from_device` 在设备集投影（§4 device record / §6 device list，经 §8.3 PCR authorization evidence 验证后视为权威）中登记的 `hpke_key`；不等 MUST fail closed（不密封、不发送），并 SHOULD 提示用户该请求异常。该校验闭合"验证设备 A 的 verify key、却把账户级 secret 密封给攻击者控制的 X25519 公钥"这一密钥绑定缝隙——它独立于 §10.3 SAS（SAS 只绑 verify key）。device `hpke_key` MUST 被 accepted `ak.device.authorize` payload 与 PCR authorization chain 覆盖；仅有服务端裸投影、但无法验证 HPKE key 绑定的设备不得作为账户级 secret 的接收目标。
-- 反滥用：接收方 MUST 丢弃 unsolicited `ak.secret.send`（无本端 pending `request_id`）；`request_id` 用后即作废；对同一 `from_device` 的重复请求 SHOULD 限速；多次拒绝 SHOULD 提示用户考虑撤销该设备。
+- 密封密钥绑定（normative）：被请求设备在密封并发送 `ak.secret.send` 前，MUST 校验请求中的 `recipient_hpke_public_key` 逐字节等于目标 `from_device_id` 在设备集投影（§4 device record / §6 device list，经 §8.3 PCR authorization evidence 验证后视为权威）中登记的 `hpke_key`；不等 MUST fail closed（不密封、不发送），并 SHOULD 提示用户该请求异常。该校验闭合"确认设备 A 的 signing key、却把账户级 secret 密封给攻击者控制的 X25519 公钥"这一密钥绑定缝隙——它独立于 §10.1 的 checkpoint，checkpoint 不替代 lifecycle、authorization 或 HPKE key binding。device `hpke_key` MUST 被 accepted `ak.device.authorize` payload 与 PCR authorization chain 覆盖；仅有服务端裸投影、但无法验证 HPKE key 绑定的设备不得作为账户级 secret 的接收目标。
+- 反滥用：接收方 MUST 丢弃 unsolicited `ak.secret.send`（无本端 pending `request_id`）；`request_id` 用后即作废；对同一 `from_device_id` 的重复请求 SHOULD 限速；多次拒绝 SHOULD 提示用户考虑撤销该设备。
 - 审计：被请求设备 SHOULD 记录一次 secret 共享审计（如 `ak.audit.accessed`，`access_kind=secret_share`）。
 - 止损：误授权后，用户从任一已授权设备发起 §2.2 设备撤销并轮换对应 account secret、重新封装全部备份即可使被泄露设备失效。
-- QR：与 §10.4 一致，QR payload 仍 MUST NOT 直接携带任何 secret 本体；secret 只经本节 HPKE 密封的 `ak.secret.send` 传输。
+- 带外载体：§2.1.1 的 pairing 二维码、短码与配对链接 MUST NOT 直接携带任何 secret 本体；secret 只经本节 HPKE 密封的 `ak.secret.send` 传输。
 
 ## 11. Secret Storage（client-local cache form）
 
