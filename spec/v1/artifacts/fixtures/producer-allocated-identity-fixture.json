@@ -33,7 +33,6 @@
       "history_request",
       "history_response",
       "invite_locator",
-      "key_event",
       "message_stream",
       "notification",
       "operation",

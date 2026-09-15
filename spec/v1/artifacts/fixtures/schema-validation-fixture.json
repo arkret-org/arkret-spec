@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-13.2",
+  "version": "2026-09-15.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -9279,6 +9279,62 @@
       },
       "expect_valid": false,
       "first_expected_error": "$: {'applet_id': 'ak:applet:019a6aa0-0000-7000-8000-000000000000', 'source_id': 'ak:did_core:webvh:z6mkfixturesourceexample', 'completion': {}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "identity_resolve_head_sha256",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "expect_valid": true,
+      "instance": {
+        "did_document": {},
+        "key_log_head": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "identity_resolve_head_blake3",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "expect_valid": true,
+      "instance": {
+        "did_document": {},
+        "key_log_head": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "name": "identity_resolve_head_producer_uuid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "expect_valid": false,
+      "instance": {
+        "did_document": {},
+        "key_log_head": "ak:device:019642b0-0000-7000-8000-000000000005"
+      },
+      "first_expected_error": "contains:does not match"
+    },
+    {
+      "name": "identity_resolve_head_uppercase_digest",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "expect_valid": false,
+      "instance": {
+        "did_document": {},
+        "key_log_head": "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "first_expected_error": "contains:does not match"
+    },
+    {
+      "name": "identity_resolve_head_truncated_digest",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "expect_valid": false,
+      "instance": {
+        "did_document": {},
+        "key_log_head": "sha256:abc"
+      },
+      "first_expected_error": "contains:does not match"
+    },
+    {
+      "name": "identity_resolve_head_absent",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "expect_valid": true,
+      "instance": {
+        "did_document": {}
+      }
     }
   ]
 }

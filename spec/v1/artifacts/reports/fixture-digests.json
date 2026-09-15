@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
-      "sha256": "db16090638ae00bc881b9058383cd869af65b4fb0bf5058d50f70989276afd31"
+      "sha256": "777283003c95f09a98d4ecccc80809f18fcd50e550fb9f658c619e1c9184668b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/proof-context-transcript-fixture.json",
@@ -358,7 +358,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "f55ad0cce145f0bdd4f7cc61f211da4ca9b7fe20b7d0950d6662068ea1dd327e"
+      "sha256": "41ba1e2bef213a20374672347cf2763f7fb67678db57c2f8e9c48d7d269cc8a3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

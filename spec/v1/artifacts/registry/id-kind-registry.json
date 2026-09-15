@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-08.4",
+  "version": "2026-09-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-08T16:43:05+08:00",
+  "generated_at": "2026-09-15T19:36:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -636,15 +636,6 @@
       "status": "active",
       "wire_form": "ak:invite_locator:<uuidv7>",
       "description": "Non-secret Station administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "key_event",
-      "category": "identity",
-      "status": "active",
-      "wire_form": "ak:key_event:<uuidv7>",
-      "description": "DID/key log event ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

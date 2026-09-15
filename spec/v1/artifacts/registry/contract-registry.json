@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.18",
+  "version": "2026-09-15.19",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T01:00:00+08:00",
+  "generated_at": "2026-09-16T01:01:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -11764,15 +11764,6 @@
         "identity_authority": "producer_signature"
       },
       {
-        "kind": "key_event",
-        "category": "identity",
-        "status": "active",
-        "wire_form": "ak:key_event:<uuidv7>",
-        "description": "DID/key log event ID",
-        "id_form": "producer_allocated",
-        "identity_authority": "producer_signature"
-      },
-      {
         "kind": "message",
         "category": "core_object",
         "status": "active",
@@ -12075,8 +12066,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-09-08.4",
-    "generated_at": "2026-09-12T20:45:44+08:00",
+    "version": "2026-09-15.1",
+    "generated_at": "2026-09-15T19:36:00+08:00",
     "notification_projection_identity_contract": {
       "applies_to_id_kinds": [
         "notification_projection"

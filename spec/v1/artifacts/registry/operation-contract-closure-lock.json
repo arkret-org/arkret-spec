@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.11",
-  "generated_at": "2026-09-16T01:00:02+08:00",
+  "version": "2026-09-15.12",
+  "generated_at": "2026-09-16T01:01:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -437,7 +437,7 @@
     },
     {
       "operation_id": "ak.root.identity.read.resolve.v1",
-      "sha256": "sha256:a761ca5fd829e448a1101d808beda5366a0750a20cfc3a4803306adb7a752f96"
+      "sha256": "sha256:91115371b642ae30941c9d7f2d1472c947712c89c134d7f5edf007151f6f743c"
     },
     {
       "operation_id": "ak.root.identity.receipts.read.list.v1",

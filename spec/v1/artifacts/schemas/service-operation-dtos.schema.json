@@ -4222,7 +4222,7 @@
           "type": "object"
         },
         "key_log_head": {
-          "type": "string"
+          "$ref": "./account-operations.schema.json#/$defs/digest"
         },
         "seq": {
           "type": "integer"

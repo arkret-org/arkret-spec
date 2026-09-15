@@ -829,7 +829,7 @@ push 见 §4.1，pull / backfill 与成员视图见 §4.2，operation 行见
 | `valid` | `boolean` | required | 是否完成签名、DID/key-log 和目的约束校验；不得表示最终授权。 |
 | `actor_id` | `did_core_id` | required | 回显被验证 Actor 稳定身份，MUST 与请求一致。 |
 | `verified_key_id` | `did-url` | `valid=true` 时 required | 实际通过校验的 key id。 |
-| `key_log_head` | `id` | optional | 服务端用于校验的 key-log head；接收方可据此刷新本地缓存。 |
+| `key_log_head` | `digest` | optional | 服务端用于校验的已验证 key-log head 内容摘要（`sha256` / `blake3` 加 64 位小写十六进制）；接收方可据此刷新本地缓存。 |
 | `did_document_ref` | `sha256:<hash>` | optional | DID Document canonical hash 或等价引用。 |
 | `expires_at` | `datetime` | `valid=true` 时 required | 该辅助验证结果的最晚缓存时间；不得长于本地策略 TTL。 |
 | `warnings` | `string[]` | required | 非致命提示；无提示时为空数组。 |
@@ -841,7 +841,7 @@ push 见 §4.1，pull / backfill 与成员视图见 §4.2，operation 行见
   "valid": true,
   "actor_id": "ak:did_core:webvh:zActorCore",
   "verified_key_id": "did:webvh:...#device-a",
-  "key_log_head": "ak:key_event:...",
+  "key_log_head": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",
   "warnings": []
