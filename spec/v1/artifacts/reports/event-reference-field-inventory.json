@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 211,
+    "complete_event_id": 213,
     "digest_copy_or_commitment": 23,
     "external_event_namespace": 1
   },
@@ -910,6 +910,18 @@
       "schema": "mimi-operations.schema.json",
       "json_pointer": "/$defs/mimi_reporter_authority/properties/room_binding_event_id",
       "field": "room_binding_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-governance-proof-bundle.schema.json",
+      "json_pointer": "/$defs/accepted_leaf_authorization/properties/agent_key_authorize_event_id",
+      "field": "agent_key_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-governance-proof-bundle.schema.json",
+      "json_pointer": "/$defs/accepted_leaf_authorization/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
       "classification": "complete_event_id"
     },
     {

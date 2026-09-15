@@ -6854,6 +6854,16 @@
       ]
     },
     {
+      "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/accepted_leaf_authorization/properties/agent_verification_method",
+      "property_name": "agent_verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome/properties/account_id",
       "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",

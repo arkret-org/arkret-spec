@@ -9831,13 +9831,15 @@
           "query_digest",
           "transition_head",
           "governance_binding",
-          "mls_frontier_leaves"
+          "mls_frontier_leaves",
+          "mls_leaf_authorizations"
         ],
         "properties": [
           "query_digest",
           "transition_head",
           "governance_binding",
-          "mls_frontier_leaves"
+          "mls_frontier_leaves",
+          "mls_leaf_authorizations"
         ],
         "closed": true
       }

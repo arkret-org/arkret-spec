@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11747,
+    "total_properties": 11752,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 3140,
+      "optional": 3143,
       "optional_defaulted": 62,
-      "required": 7419,
+      "required": 7421,
       "required_nullable": 382,
       "tristate": 744
     },
@@ -12587,11 +12587,16 @@
       "properties": {
         "/$defs/accepted_artifact_outcome/properties/governance_binding": "required",
         "/$defs/accepted_artifact_outcome/properties/mls_frontier_leaves": "required",
+        "/$defs/accepted_artifact_outcome/properties/mls_leaf_authorizations": "required",
         "/$defs/accepted_artifact_outcome/properties/query_digest": "required",
         "/$defs/accepted_artifact_outcome/properties/transition_head": "required",
         "/$defs/accepted_artifact_request_body/properties/artifact_ref": "required",
         "/$defs/accepted_artifact_request_body/properties/effective_scope": "required",
         "/$defs/accepted_artifact_request_body/properties/mls_group_id": "required",
+        "/$defs/accepted_leaf_authorization/properties/agent_key_authorize_event_id": "optional",
+        "/$defs/accepted_leaf_authorization/properties/agent_verification_method": "optional",
+        "/$defs/accepted_leaf_authorization/properties/device_authorize_event_id": "optional",
+        "/$defs/accepted_leaf_authorization/properties/leaf_index": "required",
         "/$defs/accepted_transition/properties/mls_transition_digest": "required",
         "/$defs/accepted_transition/properties/transition_event_digest": "required",
         "/$defs/accepted_transition/properties/transition_ref": "required",
@@ -12714,6 +12719,9 @@
         "/$defs/typed_proof_material/properties/seal_predecessor_edges/items/properties/seal_ref": "required"
       },
       "conditionally_required": [
+        "/$defs/accepted_leaf_authorization/properties/agent_key_authorize_event_id",
+        "/$defs/accepted_leaf_authorization/properties/agent_verification_method",
+        "/$defs/accepted_leaf_authorization/properties/device_authorize_event_id",
         "/$defs/frontier_boundary/properties/entry",
         "/$defs/group_security_frontier_request/allOf/1/properties/base_group_state_ref",
         "/$defs/group_security_frontier_request/allOf/1/properties/proposed_group_genesis_binding",

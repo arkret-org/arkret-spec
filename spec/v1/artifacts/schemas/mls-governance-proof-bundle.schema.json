@@ -865,6 +865,23 @@
       },
       "additionalProperties": false
     },
+    "accepted_leaf_authorization": {
+      "type": "object",
+      "description": "Exact historical endpoint authorization for the same transition and frontier leaf_index. Device credentials require only device_authorize_event_id; Agent credentials require only agent_verification_method and agent_key_authorize_event_id; pairwise credentials forbid all authorization fields. No nulls, current-directory substitution or duplicated identity/key fields.",
+      "required": ["leaf_index"],
+      "properties": {
+        "leaf_index": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "device_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "agent_verification_method": {"$ref": "./common-ids.schema.json#/$defs/did_url"},
+        "agent_key_authorize_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {"required": ["device_authorize_event_id"], "not": {"anyOf": [{"required": ["agent_verification_method"]}, {"required": ["agent_key_authorize_event_id"]}]}},
+        {"required": ["agent_verification_method", "agent_key_authorize_event_id"], "not": {"required": ["device_authorize_event_id"]}},
+        {"not": {"anyOf": [{"required": ["device_authorize_event_id"]}, {"required": ["agent_verification_method"]}, {"required": ["agent_key_authorize_event_id"]}]}}
+      ]
+    },
     "accepted_artifact_outcome": {
       "type": "object",
       "description": "Complete bounded Account Station result: the exact artifact belongs to the current accepted winning MLS transition chain. It includes no history, Merkle witness or continuation. At most 16 MiB canonical response bytes, independently of the 64 KiB request limit.",
@@ -872,7 +889,8 @@
         "query_digest",
         "transition_head",
         "governance_binding",
-        "mls_frontier_leaves"
+        "mls_frontier_leaves",
+        "mls_leaf_authorizations"
       ],
       "properties": {
         "query_digest": {
@@ -893,6 +911,14 @@
             "$ref": "#/$defs/mls_security_frontier_leaf"
           },
           "description": "Exact durable post-transition public leaf input of transition_head.transition_ref, retained at admission. Never reconstructed from current directory order, transient claims or historical candidates."
+        },
+        "mls_leaf_authorizations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/accepted_leaf_authorization"},
+          "description": "Complete historical authorization association, strictly increasing by leaf_index and exactly matching mls_frontier_leaves indices and order. Missing authority is frontier_unavailable, never a partial result. Included in the existing 16 MiB response budget; excluded from shared frontier/removal digest preimages."
         }
       },
       "additionalProperties": false

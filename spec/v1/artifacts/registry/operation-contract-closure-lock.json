@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-13.51",
-  "generated_at": "2026-09-15T00:04:01+08:00",
+  "version": "2026-09-15.1",
+  "generated_at": "2026-09-15T14:06:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -961,7 +961,7 @@
     },
     {
       "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
-      "sha256": "sha256:182622fe1c46c236f9ddcd5b987aace0812be7940374de4720d28146772430ac"
+      "sha256": "sha256:db9fd24229d3a6fae7a963c70cb34a8aad4b0f1763dedfd6589a13dbd9972d93"
     },
     {
       "operation_id": "ak.self.seals.read.mls_governance_proof.v1",

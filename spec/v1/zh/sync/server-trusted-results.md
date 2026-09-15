@@ -185,9 +185,29 @@ tree、credential/signature key、GroupContext 和 exact Proposal/Commit bytes �
 | 字段 | 含义 |
 | --- | --- |
 | query_digest | SHA-256(`ak.mls-accepted-artifact-query-v1` + NUL + JCS(request)) |
-| transition_head | artifact 对应的已接纳 Genesis/Commit，使用 MlsEpochHead 唯一类型 |
+| transition_head | artifact 对应的已接纳 Genesis/Commit，使用 MlsAcceptedTransition；scope/epoch 仅取 governance_binding |
 | governance_binding | 该 transition 的原始 signed governance binding |
 | mls_frontier_leaves | §5.1 在该 transition admission 中原子保存的 exact final public leaves |
+| mls_leaf_authorizations | 按 leaf_index 严格递增的完整历史 endpoint 授权关联，与 mls_frontier_leaves 的 occupied index 集合完全相同 |
+
+`MlsAcceptedLeafAuthorization` 是结果专用 closed 对象，字段顺序为 `leaf_index`、
+`device_authorize_event_id?`、`agent_verification_method?`、`agent_key_authorize_event_id?`。
+ordinary DeviceId credential 必须且只能携 `device_authorize_event_id`；Agent credential 必须且只能携
+`agent_verification_method` 与 `agent_key_authorize_event_id`；minimal-metadata pairwise 只能携 `leaf_index`，
+其 did:key method 从真实 leaf key 和 pairwise credential 确定。所有 optional 字段禁止 null。
+完整 Account（含 Station）与 credential 复用同 index 的 frontier leaf；不得再复制 Actor、设备、公钥或成员 incarnation。
+两数组必须严格同序、同 index 集合，无重复、缺项、多项或位置推测；客户端复用既有 endpoint identity 与
+verified leaf binding 验证器核对真实 MLS tree，再与私有 MLS 状态同事务安装。
+
+该关联钉住 transition 当时的授权，MUST 从已验证的 Genesis/Add 来源耐久取得；保留叶继承，Remove 终止，
+实际 Remove+Add 即使复用全部公开字段也必须采用新 Add 来源。服务器不得在查询时按当前 key/device 重新选授权。
+新 Add 的当前授权验证仍然执行，但不得代替旧叶的历史授权。缺少任一历史来源返回 frontier_unavailable，
+不得回退当前目录、claim、Welcome hint、空引用或任意候选。当前授权后续撤销不重写历史结果，但当前请求者资格仍独立检查。
+精确缓存以完整账号会话、scope/group 和 transition ref 绑定，不能仅以 governance binding 或 epoch 选中缓存项。
+
+这不是第二份叶目录：授权关联仅补足结果消费所缺字段，不进入 `MlsSecurityFrontierLeaf`，不改变 submission、
+security frontier 或 membership removal 的既有 digest preimage；响应仍受完整 16 MiB 与 65,536 叶上限约束，
+不得截断、分页或省略 pairwise 行。超过响应预算返回 limit_exceeded。
 
 服务器 MUST 同时检查当前请求者的 Realm/PCR/Circle 读取资格和该 artifact 的精确读取可见性；先前作者身份、
 旧成员身份、临时 claim、可读一个 Event 或共享验证缓存命中都不替代当前范围授权。Welcome 还必须匹配本会话

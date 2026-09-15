@@ -380,6 +380,8 @@ creator Event 的 `actor_id`、唯一 producer proof 与 signer leaf 建立。Ad
 replacement/remove+add；Remove 与本地 MLS 接收状态保留 transition 当时的必要 leaf binding。current admission 只接受 current authority，
 历史 replay 使用对应 epoch 已钉住的 historical binding。裸 RFC 9420 public tree 只能给出 endpoint leaves；没有 accepted
 transition provenance 时不得把它解释为 principal roster，也不得查询 current directory补全。
+accepted-artifact 的历史授权载体正式采用 [server-trusted-results §5.2](../sync/server-trusted-results.md#52-已知-mls-artifact-的接纳结果)
+所定义的 `mls_leaf_authorizations`；它与原 `mls_frontier_leaves` 按 exact leaf_index 完整关联，不改变共享 frontier 摘要。
 
 同一 Commit 中，实际消费的 Add proposal、Commit `proposal_refs[]` 与 post-Commit 新 occupied leaves MUST 构成 every-and-only 双射：每个 referenced accepted Add 恰产生一个新 leaf，每个新 leaf恰由一个 referenced Add解释。inline/unreferenced Add、零匹配、多匹配、重复 credential/key、proposal set 不一致均拒绝；不得按到达顺序或“第一个空 leaf index”猜位置。同一 DeviceId最多一个 active leaf，同一 principal的不同 device可各占一个 leaf。自己的 Station 返回 winning transition/security frontier 治理结果；客户端验证与 exact accepted-artifact/真实 MLS 输入的绑定、应用 Commit，并把本地 RFC group state、必要 public leaf bindings 与 accepted transition ref 按 §2.5.4 同一耐久边界原子保存。重启直接恢复这份本地 MLS 状态，不重建治理 checkpoint 或扫描历史 Event/Proposal/Commit；不得另建一套客户端治理 leaf-directory。
 
