@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.15",
+  "version": "2026-09-15.16",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T00:20:00+08:00",
+  "generated_at": "2026-09-16T00:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -2399,104 +2399,6 @@
             "state_model": "sequenced_state",
             "value_shape": "register",
             "execution_domain": "enclosing_realm"
-          }
-        ]
-      },
-      "ak.identity.disclosure_policy": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.identity.disclosure_policy.v1",
-            "cell_subject": {
-              "kind": "typed_id",
-              "field": "payload.policy_id"
-            },
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
-              }
-            },
-            "execution": "security",
-            "state_model": "sequenced_state",
-            "value_shape": "register",
-            "execution_domain": "enclosing_realm"
-          }
-        ]
-      },
-      "ak.identity.disclosure_receipt": {
-        "plane": "data",
-        "sealed": false,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.identity.disclosure_receipt.v1",
-            "cell_subject": {
-              "kind": "did",
-              "field": "payload.holder_principal_id"
-            },
-            "effect_projection": {
-              "kind": "append",
-              "value": {
-                "field": "payload"
-              },
-              "issuer_seq": {
-                "envelope_field": "actor_seq"
-              }
-            },
-            "execution": "data",
-            "state_model": "ordered_log",
-            "value_shape": "log"
-          }
-        ]
-      },
-      "ak.identity.presentation_request": {
-        "plane": "data",
-        "sealed": false,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.identity.presentation.v1",
-            "cell_subject": {
-              "kind": "typed_id",
-              "field": "payload.request_id"
-            },
-            "effect_projection": {
-              "kind": "append",
-              "value": {
-                "field": "payload"
-              },
-              "issuer_seq": {
-                "envelope_field": "actor_seq"
-              }
-            },
-            "execution": "data",
-            "state_model": "ordered_log",
-            "value_shape": "log"
-          }
-        ]
-      },
-      "ak.identity.presentation_response": {
-        "plane": "data",
-        "sealed": false,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.identity.presentation.v1",
-            "cell_subject": {
-              "kind": "typed_id",
-              "field": "payload.request_id"
-            },
-            "effect_projection": {
-              "kind": "append",
-              "value": {
-                "field": "payload"
-              },
-              "issuer_seq": {
-                "envelope_field": "actor_seq"
-              }
-            },
-            "execution": "data",
-            "state_model": "ordered_log",
-            "value_shape": "log"
           }
         ]
       },
@@ -6929,54 +6831,6 @@
         "id_source": "not_an_object_id"
       },
       {
-        "event_kind": "ak.identity.disclosure_policy",
-        "category": "identity",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Identity disclosure policy",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
-        "id_source": "reference"
-      },
-      {
-        "event_kind": "ak.identity.disclosure_receipt",
-        "category": "identity",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Identity disclosure receipt",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
-        "id_source": "not_an_object_id"
-      },
-      {
-        "event_kind": "ak.identity.presentation_request",
-        "category": "identity",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Presentation request",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_presentation_request_state_payload",
-        "id_source": "reference"
-      },
-      {
-        "event_kind": "ak.identity.presentation_response",
-        "category": "identity",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Presentation response",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_presentation_response_state_payload",
-        "id_source": "reference"
-      },
-      {
         "event_kind": "ak.identity.accountability_grant",
         "category": "identity",
         "status": "active",
@@ -8780,8 +8634,8 @@
         }
       }
     },
-    "version": "2026-09-14.1",
-    "generated_at": "2026-09-14T22:40:00+08:00",
+    "version": "2026-09-15.1",
+    "generated_at": "2026-09-15T18:40:00+08:00",
     "history_admission_contract": {
       "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
       "consumer_contexts": [
@@ -21541,8 +21395,8 @@
     "generated_at": "2026-09-13T10:43:01+08:00"
   },
   "current_result_registry": {
-    "version": "2026-09-13.2",
-    "generated_at": "2026-09-13T13:30:36+08:00",
+    "version": "2026-09-15.1",
+    "generated_at": "2026-09-15T18:40:00+08:00",
     "rules": [
       "Each registered non-log built-in family has exactly one complete current value mapping. Ordered logs remain timeline or dedicated current roster projections; clients never replay them for governance.",
       "Selector scope and CellRef define identity. Target is immutable interest ownership, derived by the registered rule from accepted source coordinates, never chosen by the caller or inferred from Event order.",
@@ -22132,20 +21986,6 @@
         "source_event_kinds": [
           "ak.agent.provision",
           "ak.identity.accountability_grant"
-        ],
-        "projection_omitted_fields": [],
-        "result_projection": "joined_value",
-        "delivery": "current",
-        "value_shape": "register"
-      },
-      {
-        "cell_family": "ak.component.identity.disclosure_policy.v1",
-        "state_model": "sequenced_state",
-        "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_identity_disclosure_policy",
-        "target_class": "realm",
-        "target_derivation": "enclosing_realm",
-        "source_event_kinds": [
-          "ak.identity.disclosure_policy"
         ],
         "projection_omitted_fields": [],
         "result_projection": "joined_value",

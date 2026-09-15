@@ -1703,82 +1703,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.identity.disclosure_policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.identity.disclosure_receipt"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.identity.presentation_request"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/identity_presentation_request_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.identity.presentation_response"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/identity_presentation_response_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.schema.define"
           }
         },
@@ -7390,10 +7314,6 @@
                 "ak.fork.resolution",
                 "ak.handle.discovery",
                 "ak.identity.accountability_grant",
-                "ak.identity.disclosure_policy",
-                "ak.identity.disclosure_receipt",
-                "ak.identity.presentation_request",
-                "ak.identity.presentation_response",
                 "ak.identity.resolution.update",
                 "ak.invite.accept",
                 "ak.invite.cancel",
@@ -8586,7 +8506,6 @@
                   "ak.fork.resolution",
                   "ak.handle.discovery",
                   "ak.identity.accountability_grant",
-                  "ak.identity.disclosure_policy",
                   "ak.identity.resolution.update",
                   "ak.invite.accept",
                   "ak.invite.cancel",
@@ -8677,9 +8596,6 @@
                   "ak.circle.update",
                   "ak.container.move_item",
                   "ak.container.rebalance",
-                  "ak.identity.disclosure_receipt",
-                  "ak.identity.presentation_request",
-                  "ak.identity.presentation_response",
                   "ak.message.create",
                   "ak.message.redact",
                   "ak.message.revise",
@@ -8839,10 +8755,6 @@
                 "ak.fork.resolution",
                 "ak.handle.discovery",
                 "ak.identity.accountability_grant",
-                "ak.identity.disclosure_policy",
-                "ak.identity.disclosure_receipt",
-                "ak.identity.presentation_request",
-                "ak.identity.presentation_response",
                 "ak.identity.resolution.update",
                 "ak.invite.accept",
                 "ak.invite.cancel",

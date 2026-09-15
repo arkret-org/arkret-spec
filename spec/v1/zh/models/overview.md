@@ -75,7 +75,7 @@ Read Cursor（actor-private 已读位置，[private-objects.md](./private-object
 | --- | --- | --- | --- |
 | `ak:blob:` | Blob | 由 Blob Store 管理的数据，不参与协作图归约。两种形态：`ak:blob:<uuid>` 是 metadata row id；`ak:blob:sha256:...`（`sha256:<hex>`）是内容寻址特殊形态（详见 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)）。 | [extension-objects.md](./extension-objects.md) |
 | `ak:applet:` | Applet | bot / bridge / portal / 集成服务（extension profile） | [extension-objects.md](./extension-objects.md) |
-| Agent runtime | Agent | A2A / ACP 互通运行时 | [extension-objects.md](./extension-objects.md) |
+| Agent runtime | Agent | 外部 agent 协议互通运行时 | [extension-objects.md](./extension-objects.md) |
 
 ### 2.5 辅助标识符
 

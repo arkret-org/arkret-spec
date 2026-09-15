@@ -1,17 +1,16 @@
 {
   "suite": "event_payload_value_closure",
   "fixture_kind": "schema_and_semantic",
-  "version": "2026-09-02.1",
+  "version": "2026-09-15.1",
   "spec_anchor": "spec/v1/zh/conformance/schema-registry.md",
   "source_refs": [
     "spec/v1/artifacts/schemas/event-payload.schema.json",
     "spec/v1/artifacts/schemas/policy.schema.json",
     "spec/v1/artifacts/schemas/recovery-policy.schema.json",
-    "spec/v1/zh/identity/identity-handles.md",
     "spec/v1/zh/governance/content-moderation.md",
     "spec/v1/zh/models/governance-objects.md"
   ],
-  "description": "Executable positive and negative schema cases for the five finite Event value families closed in v1. Former prose selectors and subject-only payloads are explicitly rejected. policy.set identifier equality is additionally covered as semantic admission because JSON Schema cannot compare sibling values.",
+  "description": "Executable positive and negative schema cases for the three finite Event value families closed in v1. Former prose selectors and subject-only payloads are explicitly rejected. policy.set identifier equality is additionally covered as semantic admission because JSON Schema cannot compare sibling values.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -134,208 +133,6 @@
           ]
         },
         "state": "active"
-      }
-    },
-    {
-      "name": "identity_disclosure_policy_valid",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
-      "expect_valid": true,
-      "semantic_outcome": "accept",
-      "instance": {
-        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-        "value": {
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {
-            "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
-            "verifier_ids": [
-              "ak:did_core:webvh:z6mkfixtureverifier"
-            ]
-          },
-          "allowed_claims": [],
-          "denied_fields": [
-            "credential_id"
-          ],
-          "user_consent_required": true,
-          "expires_at": "2026-07-26T00:00:00.000Z"
-        }
-      }
-    },
-    {
-      "name": "identity_disclosure_policy_missing_value_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:required property",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000"
-      }
-    },
-    {
-      "name": "identity_disclosure_policy_unknown_family_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-        "value": {
-          "policy_family": "credential_specific",
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {
-            "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
-            "verifier_ids": [
-              "ak:did_core:webvh:z6mkfixtureverifier"
-            ]
-          },
-          "allowed_claims": [],
-          "denied_fields": [],
-          "user_consent_required": true,
-          "expires_at": "2026-07-26T00:00:00.000Z"
-        }
-      }
-    },
-    {
-      "name": "identity_disclosure_policy_body_mismatch_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:required property",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-        "value": {
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {
-            "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization"
-          },
-          "allowed_claims": [],
-          "denied_fields": [],
-          "user_consent_required": true,
-          "expires_at": "2026-07-26T00:00:00.000Z"
-        }
-      }
-    },
-    {
-      "name": "identity_disclosure_policy_unknown_wrapper_field_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-        "value": {
-          "holder_principal_id": "ak:did_core:webvh:z6mkfixtureholder",
-          "audience": {
-            "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
-            "verifier_ids": [
-              "ak:did_core:webvh:z6mkfixtureverifier"
-            ]
-          },
-          "allowed_claims": [],
-          "denied_fields": [],
-          "user_consent_required": true,
-          "expires_at": "2026-07-26T00:00:00.000Z"
-        },
-        "reason": "unexpected"
-      }
-    },
-    {
-      "name": "identity_disclosure_receipt_valid",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
-      "expect_valid": true,
-      "semantic_outcome": "accept",
-      "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
-        "value": {
-          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
-          "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-          "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "proof_profile": "vc_di_bbs_2023",
-          "transport": "tsp",
-          "disclosed_fields": [
-            "credentialSubject.organization_id"
-          ],
-          "withheld_fields": [
-            "credentialSubject.handle"
-          ],
-          "created_at": "2026-04-26T00:00:00.000Z"
-        }
-      }
-    },
-    {
-      "name": "identity_disclosure_receipt_missing_value_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:required property",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise"
-      }
-    },
-    {
-      "name": "identity_disclosure_receipt_former_receipt_kind_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
-        "value": {
-          "receipt_kind": "selective_disclosure",
-          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
-          "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-          "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "proof_profile": "vc_di_bbs_2023",
-          "transport": "tsp",
-          "disclosed_fields": [],
-          "withheld_fields": [],
-          "created_at": "2026-04-26T00:00:00.000Z"
-        }
-      }
-    },
-    {
-      "name": "identity_disclosure_receipt_body_mismatch_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:required property",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
-        "value": {
-          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000"
-        }
-      }
-    },
-    {
-      "name": "identity_disclosure_receipt_unknown_wrapper_field_rejected",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
-      "instance": {
-        "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
-        "value": {
-          "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
-          "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-          "verifier_id": "ak:did_core:webvh:z6mkfixtureverifier",
-          "represented_organization_id": "ak:did_core:webvh:z6mkfixtureorganization",
-          "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "proof_profile": "vc_di_bbs_2023",
-          "transport": "tsp",
-          "disclosed_fields": [],
-          "withheld_fields": [],
-          "created_at": "2026-04-26T00:00:00.000Z"
-        },
-        "state": "stored"
       }
     },
     {

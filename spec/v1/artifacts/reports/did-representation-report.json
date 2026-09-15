@@ -21,7 +21,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 3,
-        "did_core_id": 37
+        "did_core_id": 36
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
     },
@@ -101,7 +101,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 5
+        "did_core_id": 4
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
     },
@@ -2354,16 +2354,6 @@
       ]
     },
     {
-      "schema_path": "common-ids.schema.json#/$defs/tsp_vid/oneOf/0/properties/value",
-      "property_name": "value",
-      "semantic_category": "external_system_identifier",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
-      ]
-    },
-    {
       "schema_path": "consent-operations.schema.json#/$defs/consent_request_request_body/properties/holder_account_id",
       "property_name": "holder_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -3911,106 +3901,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_claim/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_claim/properties/subject_id",
-      "property_name": "subject_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_document/properties/audience/properties/represented_organization_id",
-      "property_name": "represented_organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_document/properties/audience/properties/verifier_ids",
-      "property_name": "verifier_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_document/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_presentation_request_state_payload/properties/value/properties/accepted_issuer_ids",
-      "property_name": "accepted_issuer_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_presentation_request_state_payload/properties/value/properties/represented_organization_id",
-      "property_name": "represented_organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_presentation_request_state_payload/properties/value/properties/verifier_id",
-      "property_name": "verifier_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/identity_presentation_response_state_payload/properties/value/properties/holder_subject_id",
-      "property_name": "holder_subject_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {
@@ -9665,30 +9555,6 @@
       "account_scoped": false,
       "required_evidence": [
         "accepted_controller_principal_binding"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_policy_document/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "event-payload.schema.json#/$defs/identity_disclosure_receipt_state_payload/properties/holder_principal_id",
-      "property_name": "holder_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
       ]
     },
     {

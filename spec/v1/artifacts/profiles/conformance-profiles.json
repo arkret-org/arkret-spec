@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.12",
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "version": "2026-09-15.15",
+  "generated_at": "2026-09-15T18:45:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -500,7 +500,7 @@
     "profile_set_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
-      "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product features such as productivity, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
+      "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; unstandardized external agent protocols; Applet registry/audit SLA) and opt-in product features such as productivity, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
     }
   },
   "identity_extension_profiles": [
@@ -526,9 +526,6 @@
     "ak.profile.constraint.encryption_requirement.v1",
     "ak.profile.constraint.visibility_control.v1",
     "ak.profile.constraint.resource_limit.v1"
-  ],
-  "lattice_extension_profiles": [
-    "ak.profile.crdt.text.v1"
   ],
   "encoding_extension_profiles": [
     "ak.profile.encoding.cbor.v1",
@@ -627,7 +624,6 @@
     "ak.profile.hpke.p256.v1": "admin",
     "ak.profile.signature.ecdsa_p256.v1": "admin",
     "ak.profile.signature.pqc.v1": "admin",
-    "ak.profile.crdt.text.v1": "interop",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": "interop",
     "ak.profile.mls_ciphersuite.pq_auth.v1": "interop",
     "ak.profile.ucan_interop.v1": "interop",
@@ -3108,11 +3104,7 @@
         }
       ],
       "required_event_kinds": [
-        "ak.identity.resolution.update",
-        "ak.identity.disclosure_policy",
-        "ak.identity.disclosure_receipt",
-        "ak.identity.presentation_request",
-        "ak.identity.presentation_response"
+        "ak.identity.resolution.update"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -6462,23 +6454,6 @@
           "signature_suite.ML-DSA-65"
         ],
         "unsupported_optional": "do not claim ak.profile.signature.pqc.v1 and reject ML-DSA-65 proofs as unsupported"
-      }
-    },
-    "ak.profile.crdt.text.v1": {
-      "description": "Reserved interoperability slot for operation-based collaborative plain/rich text. It is not active v1 wire until the algorithm, operation encoding, E2EE carriage and convergence vectors are pinned by a registry release.",
-      "enforcement_phases": [
-        "conformance",
-        "peer_eligibility"
-      ],
-      "operation_requirements": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [],
-        "unsupported_optional": "do not claim ak.profile.crdt.text.v1; reject profile-tagged CRDT operations as unsupported until the reserved profile is activated"
       }
     },
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": {

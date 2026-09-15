@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-08.1",
+  "version": "2026-09-15.1",
   "kind": "canonical_lexeme_registry",
   "source_of_truth": true,
   "description": "Closed adjudication table for Arkret-owned domain words that have historically acquired shortened aliases. Ordinary words stay complete on every contract surface; abbreviations are admitted only by one of the registered authority classes. The lint rejects every forbidden alias on schema property, type, symbolic-value, registry-symbol, fixture and normative JSON-example surfaces.",
@@ -84,18 +84,6 @@
           "external_anchor": "https://www.w3.org/TR/vc-data-model-2.0/#types"
         }
       ],
-      "allowed_non_contract_contexts": [
-        "historical changelog text and negative conformance cases that name the rejected spelling"
-      ]
-    },
-    {
-      "canonical": "presentation_request",
-      "pascal_case": "PresentationRequest",
-      "forbidden_aliases": [
-        "arkret_presentation_request"
-      ],
-      "reason": "Presentation request is an Arkret-owned object in an Arkret specification, so the product qualifier is redundant.",
-      "identifier_rule": "Use presentation_request for the local symbolic value and ak.identity.presentation_request for its globally serialized protocol kind.",
       "allowed_non_contract_contexts": [
         "historical changelog text and negative conformance cases that name the rejected spelling"
       ]

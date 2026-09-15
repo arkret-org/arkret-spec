@@ -94,15 +94,6 @@
   ],
   "responsibility_field_contracts": [
     {
-      "field": "holder_principal_id",
-      "terminal_category": "did_core_id",
-      "subject_class": "principal",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_principal_authority"
-      ]
-    },
-    {
       "field": "holder_service_id",
       "terminal_category": "did_core_id",
       "subject_class": "service",
@@ -756,14 +747,6 @@
       "reason": "exact projection of CapabilityGrant.subject closed ActorId-or-condition union"
     },
     {
-      "file": "common-ids.schema.json",
-      "pointer": "/$defs/tsp_vid/oneOf/0/properties/value",
-      "terminal_categories": [
-        "did"
-      ],
-      "reason": "value is the payload of the closed tsp_vid union and its sibling kind discriminator selects the DID representation"
-    },
-    {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
       "terminal_categories": [
@@ -997,7 +980,7 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/42/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/41/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"
@@ -1005,7 +988,7 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/90/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/89/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"
@@ -1013,7 +996,7 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/100/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/99/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier.",
       "terminal_categories": [
         "typed_object_id"

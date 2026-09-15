@@ -33,7 +33,7 @@ Arkret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Realm、Actor、对象范围、用户授权和 capability 细分。 |
 | AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability 和 protocol session。 |
-| 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
+| 外部 agent 协议 | 无原生 agent handoff 语义。 | 外部 agent 协议桥接与自定义 agent API 可作为受控 agent protocol session。 |
 | E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Arkret 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影定义；搜索和 projection 默认由客户端本地派生，不充当真相源。 |
 | 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容由 principal 或 Realm policy 明确委托的服务处理；明文可见服务用 `plaintext_visible_services` 声明。 |
@@ -61,7 +61,7 @@ Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix
 - agent 可以是 principal、Actor、capability subject。
 - agent 输出可以写入 Message、Strand、Morph 或 Relation。
 - agent 权限采用窄范围、短时效、可撤销、可审计（规范见 [`identity/key-management.md`](../identity/key-management.md) §3 agent key）。
-- agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Arkret。
+- agent 间协作场景可以显式升级到外部 agent 协议桥接或企业私有 agent API，并将 session、status、artifact、result 回写 Arkret。
 - Arkret 把协作事实、授权边界、审计摘要和最终结果放入协议账本，不把每个 token 或 tool call 都建模为 durable Event。
 
 ### 4.3 身份系统的演进

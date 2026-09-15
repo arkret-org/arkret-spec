@@ -137,7 +137,6 @@ see_also:
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation 与 exact AccountId disclosure。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |
 | `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、双方方向性 Contact authority、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Strand 形态。 |
-| `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 | `identity/security-transactions.md` | RecoveryTransaction / SecurityRotationTransaction 的幂等、恢复与终态合同。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
@@ -162,7 +161,6 @@ see_also:
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
 | `models/account-data.md` | principal/actor-private Account Data 的存储、namespace key、value encryption、HKDF/AAD transcript 与文档放置规则单一真相源。 |
-| `models/crdt-text-extension.md` | 实时协同文本 CRDT 的 reserved profile、默认 revision 关系与激活门槛。 |
 | `models/personal-productivity.md` | principal-private reminders、scheduled send、snooze、saved items 与 draft sync account-data key 规则。 |
 | `models/file-transfer.md` | principal-private 跨设备文件传输：encrypted account-data transfer record、Blob ciphertext、to-device key delivery、retention 与共享附件边界。 |
 | `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ak.schema.patch.v1`)、Event Batch Receipt、reducer 总则。 |

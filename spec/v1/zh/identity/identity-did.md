@@ -424,7 +424,6 @@ verification 侧反向执行——「把 log entry 当作字符串，把从 DID 
 - **`did:plc` adapter** — AT Protocol 互通；需要 PLC directory / mirror / audit source。
 - **`did:pkh`** — 钱包 / 链上账号绑定；需要 chain-specific verification。
 - **`did:keri` 与其他 KERI 系列** — KERI 部署的 raw evidence 保留与 normalized view 映射。
-- **TSP transport** — 见 [`identity/tsp-integration.md`](./tsp-integration.md)（extension profile；v1 core 不要求实现）。
 
 声明这些 adapter 的部署 MUST 在 `service/describe.identity_methods` 中显式列出，并在 conformance profile 中说明 trust roots、outage 策略与 mirror 来源。
 

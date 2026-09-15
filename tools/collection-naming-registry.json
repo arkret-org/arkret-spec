@@ -128,22 +128,22 @@
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/43/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/42/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
     },
     {
       "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/52/then/properties/result/properties/value",
+      "pointer": "/$defs/entry/allOf/51/then/properties/result/properties/value",
+      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
+    },
+    {
+      "file": "account-current-result.schema.json",
+      "pointer": "/$defs/entry/allOf/56/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
     },
     {
       "file": "account-current-result.schema.json",
       "pointer": "/$defs/entry/allOf/57/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/58/then/properties/result/properties/value",
       "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
     },
     {

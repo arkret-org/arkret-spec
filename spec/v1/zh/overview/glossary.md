@@ -282,8 +282,6 @@ see_also:
 | `VC` | Verifiable Credential | W3C VC Data Model | [`../identity/identity-handles.md`](../identity/identity-handles.md) |
 | `SCID` | Self-Certifying Identifier | `did:webvh` | [`../identity/identity-did.md`](../identity/identity-did.md) |
 | `KERI` | Key Event Receipt Infrastructure | KERI / ToIP | [`../identity/identity-did.md`](../identity/identity-did.md) |
-| `TSP` | Trust Spanning Protocol | ToIP TSP | [`../identity/tsp-integration.md`](../identity/tsp-integration.md) |
-| `VID` | Verifiable Identifier | ToIP TSP | [`../identity/tsp-integration.md`](../identity/tsp-integration.md)；与 DID 的边界见 [`../identity/did-usage-and-verification.md` §2.4](../identity/did-usage-and-verification.md) |
 | `MLS` | Messaging Layer Security | RFC 9420 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `PCS` | Post-Compromise Security | MLS 安全属性 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `PQ` | Post-Quantum | NIST PQC 选定算法；MLS 侧与 MLS WG draft 的 suite 预注册纪律对齐 | [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
@@ -348,7 +346,7 @@ see_also:
 | `DAG` | Directed Acyclic Graph | 指 `prev_refs` 因果图（[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
 | `MAC` | Message Authentication Code | 不是 Media Access Control。指 MLS transcript 与秘密 MAC；具体的带密钥 hash 构造见 §4.2 `HMAC`。 |
 | Domain Transition | 领域转移 | 对 `sequenced_state` 或 `causal_register` 写入应用的已登记前态/后态校验规则；不是独立共享状态模型，也不参与 join。 |
-| `CRDT` | Conflict-free Replicated Data Type | 见 [`../models/crdt-text-extension.md`](../models/crdt-text-extension.md)。 |
+| `CRDT` | Conflict-free Replicated Data Type | 指注册 reducer contract 声明的 cell 收敛模型（`causal_register` / `or_set` / `counter` 等）；见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。v1 不定义协同文本 CRDT。 |
 | `LWW` | Last-Writer-Wins | 仅用于对照说明；v1 数据面冲突不隐式选 winner。 |
 | `RYW` | Read-Your-Writes | 见 §2 与 [`../sync/operations-sync.md`](../sync/operations-sync.md)。 |
 | `KAT` | Known-Answer Test | 指逐字节固定的 fixture 向量集。 |

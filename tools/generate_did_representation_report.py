@@ -98,7 +98,7 @@ def build_report() -> dict[str, Any]:
                                     "property_name": name,
                                     "semantic_category": (
                                         "external_system_identifier"
-                                        if external or "/$defs/tsp_vid/" in property_pointer
+                                        if external
                                         else "responsibility_identity_material"
                                     ),
                                     "representation_profile": (

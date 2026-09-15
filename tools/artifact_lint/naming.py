@@ -344,7 +344,6 @@ DEFAULT_FORBIDDEN_LEXEMES = frozenset(
     {
         "org",
         "arkret_organization_membership_credential",
-        "arkret_presentation_request",
     }
 )
 def forbidden_lexeme_pattern(alias: str) -> re.Pattern[str]:

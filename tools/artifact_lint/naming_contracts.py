@@ -1246,10 +1246,7 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
         }
         for occurrence in enumerate_schema_properties(file_name, document):
             owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
-            if owner_pointer in external_owners or (
-                file_name == "common-ids.schema.json"
-                and "/$defs/tsp_vid/" in occurrence.pointer
-            ):
+            if owner_pointer in external_owners:
                 continue
             terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
             cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)

@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 677,
-    "typed_object_id": 1182,
+    "responsibility_identity_material": 667,
+    "typed_object_id": 1176,
     "registry_catalog_symbol": 17
   },
   "pending_rename_convergence": [],
@@ -852,14 +852,6 @@
       "occurrences": 1,
       "example_path": "agent-signer-evidence.schema.json#/$defs/key_transition_witness/properties/transition_key_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "tsp_relationship_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/identity_disclosure_receipt_document/properties/tsp_relationship_id",
-      "reason": "Relationship identifier minted by the external TSP transport and retained verbatim; Arkret never parses it as a typed ID."
     },
     {
       "name": "user_facing_response_event_ids",

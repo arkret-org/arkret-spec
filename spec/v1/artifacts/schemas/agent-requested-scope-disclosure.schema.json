@@ -24,7 +24,7 @@
     "request_id": {
       "type": "string",
       "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Identifier of the signed ak.identity.presentation_request or an equivalent authenticated private challenge request. It is single-use at verifier_id."
+      "description": "Identifier of the verifier's authenticated private challenge request. It is single-use at verifier_id."
     },
     "agent_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

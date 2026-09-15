@@ -278,7 +278,6 @@ document.addEventListener("astro:after-swap", boot);
                 "consent-model",
                 "contact-and-direct-conversation",
                 "account-lifecycle",
-                "tsp-integration",
               ]),
             },
             {

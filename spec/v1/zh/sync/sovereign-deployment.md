@@ -141,7 +141,7 @@ Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制
 - Station sync surface / Directory 只接受 allowlist service DID(MUST)。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内(MUST)。
 - E2EE 默认开启(MUST);需要合规审查时使用 auditable E2EE，且必须向成员显示。
-- 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启(MUST)。
+- 外部 Applet、Agent handoff、外部 agent protocol transport 默认关闭，按 Realm 明确开启(MUST)。
 - Realm 默认 `discoverability=unlisted` 或 `invite_only`(SHOULD；与 §7 的 sovereign profile 声明一致)。
 - Realm 默认 `join_rule=invite` 或 `restricted`(SHOULD)。
 - policy 与 moderation 检查默认 fail closed 或进入 quarantine(SHOULD)。

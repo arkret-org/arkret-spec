@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.2",
+  "version": "2026-09-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T13:30:36+08:00",
+  "generated_at": "2026-09-15T18:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "rules": [
@@ -593,20 +593,6 @@
       "source_event_kinds": [
         "ak.agent.provision",
         "ak.identity.accountability_grant"
-      ],
-      "projection_omitted_fields": [],
-      "result_projection": "joined_value",
-      "delivery": "current",
-      "value_shape": "register"
-    },
-    {
-      "cell_family": "ak.component.identity.disclosure_policy.v1",
-      "state_model": "sequenced_state",
-      "value_schema_ref": "schemas/account-current-result.schema.json#/$defs/value_identity_disclosure_policy",
-      "target_class": "realm",
-      "target_derivation": "enclosing_realm",
-      "source_event_kinds": [
-        "ak.identity.disclosure_policy"
       ],
       "projection_omitted_fields": [],
       "result_projection": "joined_value",

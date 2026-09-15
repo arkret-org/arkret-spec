@@ -240,11 +240,9 @@ class RegisteredCaseTest(MutationHarness):
         self.assertTrue(nc_lexeme_001("OrgMembershipClaim"))
         self.assertTrue(nc_lexeme_001("ak.profile.org_identity.v1"))
         self.assertTrue(nc_lexeme_001("arkret_organization_membership_credential"))
-        self.assertTrue(nc_lexeme_001("arkret_presentation_request"))
         self.assertFalse(nc_lexeme_001("organization_membership"))
         self.assertFalse(nc_lexeme_001("OrganizationMembershipClaim"))
         self.assertFalse(nc_lexeme_001("organization_membership_credential"))
-        self.assertFalse(nc_lexeme_001("PresentationRequest"))
         self.assertTrue(nc_lexeme_001("ArkretOrganizationMembershipCredential"))
 
     def test_dropping_a_predicate_case_fails_the_gate(self) -> None:

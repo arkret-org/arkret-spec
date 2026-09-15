@@ -931,7 +931,7 @@ Arkret v1 固定：
 - 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交：deny / quarantine / require_review 跨**全部**命中 grant 全局生效（全局 deny 优先），任一命中 grant 的 deny 不得被另一无 deny 命中 grant 绕过；allow 仍按"每个满足的依赖 grant 内 allow 全满足"判定。确定性跨 grant 入口算法见 [`constraint-schema.md` §15.4](./constraint-schema.md)。
 - Moderation policy MUST NOT 凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
-- Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 [`../identity/identity-handles.md` §16](../identity/identity-handles.md) 的 presentation 规则。
+- Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof 与 `../identity/identity-handles.md` 的 claim / VC 规则；Agent requested-scope 的私有披露路径见 [`../identity/identity-handles.md` §16](../identity/identity-handles.md)。
 
 ## 附录 B. 可携带授权与撤销（informative）
 

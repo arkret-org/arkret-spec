@@ -820,40 +820,15 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 
 该 disclosure MUST 绑定单一 verifier challenge / domain，并且 MUST NOT 自动披露其他组织 handle。
 
-## 12. Presentation Request
+## 12. 披露请求的最小化原则
 
-Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所有账号”。
-
-```json
-{
-  "kind": "ak.identity.presentation_request",
-  "audience": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-  "domain": "google.example",
-  "challenge": "ak.chal_01J...",
-  "accepted_issuers": [
-    "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-    "did:webvh:z63bVQgiDj3vkHkgjzVuvJdte:trusted-hr.example"
-  ],
-  "required_claims": [
-    {
-      "claim_kind": "organization_membership_credential",
-      "constraints": {
-        "organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
-        "member": true
-      },
-      "disclosure": "abstract"
-    }
-  ],
-  "denied_claims": [
-    "other_handles",
-    "external_accounts",
-    "global_strand_identifier"
-  ]
-}
-```
+Verifier MUST 使用最小披露请求，不得请求"所有 alias"或"所有账号"。请求 MUST 指定 accepted issuer、所需 claim kind 与每个 claim 的披露档（abstract / explicit），并显式列出拒绝披露的字段。
 
 Wallet MUST 展示将要披露的 claim。
-Wallet SHOULD 拒绝或警告请求无关 handle、global subject identifier、credential id 或不必要人口属性的 presentation request。
+Wallet SHOULD 拒绝或警告请求无关 handle、global subject identifier、credential id 或不必要人口属性的披露请求。
+
+Arkret v1 不为通用 credential 披露定义 wire Event 或服务端点：本节是对 §9 所列外部 VC 机制的使用约束。Arkret wire 上唯一的私有披露路径是 §16 的 Agent requested-scope 私有披露。
+
 
 ## 13. Proof Profile
 
@@ -902,325 +877,49 @@ grant subject = alice@google.com
 
 如果 holder 后续为另一个组织出示不同 pairwise DID，除非 holder 显式提供 linking proof，否则 verifier MUST 将其视为独立隐私上下文。
 
-## 16. Progressive Disclosure（渐进披露）
+## 16. Agent requested-scope 私有披露（normative）
 
-本节定义 Arkret 隐私信息渐进披露的端到端实现方案。渐进披露用于让 holder 只向特定 verifier / organization 披露完成某项验证所需的最小身份信息，例如：
+Agent 的 immutable global ceiling（`requested_scope`）只以域分离 digest 的形式出现在公开 DID Document 与其历史中。当 authorizing verifier 需要判定该 ceiling 时，controller MUST 通过本章的 verifier-bound 私有披露出示完整 scope。
 
-- 对 Google 披露 `alice@google.com`
-- 对 Facebook 披露 `alice@facebook.com`
-- 对某 Realm 只证明"我是某组织当前成员"，不披露具体 handle
-- 对某 verifier 证明年龄、角色、认证等级、设备可信度等属性
+v1 不定义通用 credential presentation Event：本章是 Arkret wire 上唯一的私有披露路径。其载体是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象，只经认证机密通道一次性出示，不产生 durable Event、cell 或 account data；它是授权证据，不授予任何 action 或 resource，也不是把 scope 发布为 credential registry 或 Realm fact。
 
-核心原则：
+### 16.1 请求面
 
-- DID Document 不承载跨组织身份画像。
-- Handle 不是权限主键。
-- 披露决策在 holder wallet 本地完成。
-- 原始 credential、base proof、pairwise key 和 disclosure policy 默认只保存在 holder 私有域。
-- TSP 是可选私密传输层，不是披露策略引擎。
+Authorizing verifier MUST 经认证机密通道发出一次性私有 challenge 请求，并绑定下列输入：
 
-### 16.1 参与方
-
-| 角色 | 定义 |
+| 输入 | 要求 |
 | --- | --- |
-| Holder | 持有 credential、handle claim、pairwise DID 和 disclosure policy 的主体。 |
-| Wallet | Holder 控制的本地或私有同步组件，负责策略匹配、proof 派生、发送和 receipt 保存。 |
-| Issuer | 签发 credential / claim / attestation 的组织或服务。 |
-| Verifier | 请求 presentation 的服务、组织、Realm、Applet 或 agent。 |
-| Represented Organization | Verifier 声称代表的组织 DID / VID。 |
-| Transport | TSP、HTTP/JWE、DIDComm-like envelope、to-device、MLS DM 等 presentation 传输方式。 |
+| `verifier_id` | 精确判定方 DID。其他 verifier MUST NOT 接受或转发本次披露作为自己的证据。 |
+| `audience` | 精确 origin、service audience 或 canonical operation audience。 |
+| `challenge` | 不可预测，至少 16 字符。 |
+| `request_id` | 唯一 `ak:request:<uuidv7>`，在 `verifier_id` 处单次使用。 |
+| 接收窗口 | `expires_at - issued_at` MUST NOT 超过 300 秒。 |
+| claim 绑定 | `agent_id` 与 Agent DID accepted-at `requested_scope_digest`。 |
 
-### 16.2 数据对象
+请求与响应 MUST NOT 出现在公开 DID URL、公开 Blob、Realm plaintext Event、durable Event、pairing code 或通知中。
 
-#### 16.2.1 Presentation Request
+### 16.2 响应面
 
-```json
-{
-  "kind": "ak.identity.presentation_request",
-  "payload": {
-    "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-    "value": {
-      "verifier_id": "ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n",
-      "represented_organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
-      "domain": "google.example",
-      "challenge": "ak.chal_01J...",
-      "purpose": "space_join",
-      "accepted_issuers": ["ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"],
-      "required_claims": [
-        {
-          "claim_kind": "organization_membership_credential",
-          "constraints": {
-            "organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
-            "member": true
-          },
-          "disclosure": "abstract"
-        }
-      ],
-      "optional_claims": [
-        {
-          "claim_kind": "verified_handle",
-          "fields": ["handle"],
-          "disclosure": "explicit"
-        }
-      ],
-      "denied_claims": [
-        "other_handles",
-        "external_accounts",
-        "global_strand_identifier",
-        "credential_id"
-      ],
-      "transport_hints": ["tsp", "http_jwe", "didcomm_like"],
-      "expires_at": "2026-04-26T00:05:00Z"
-    }
-  }
-}
-```
+Controller wallet 的响应 MUST 是 `ak.schema.agent_requested_scope_disclosure.v1` 闭合对象，并携带 controller 当前 proof。Controller proof、disclosure digest 与 accepted-at DID commitment 的重算与验证规则见 [`key-management.md` §4.1](./key-management.md) 与 [`../authz/capabilities.md` §9.1](../authz/capabilities.md)。
 
-Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wallet MUST 把响应中的 proof 绑定到 `challenge`、`domain`、`verifier_id` 和 `represented_organization_id`。
+Wallet MUST 采用最小披露，MUST NOT 在该响应中附带无关 handle、credential identifier、其他组织身份或全局 subject identifier。
 
-#### 16.2.2 Disclosure Policy
+### 16.3 传输
 
-```json
-{
-  "kind": "ak.identity.disclosure_policy",
-  "payload": {
-    "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
-    "value": {
-      "holder_principal_id": "ak:did_core:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5",
-      "audience": {
-        "represented_organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
-        "verifier_ids": ["ak:did_core:webvh:zGZ728E4hbEuyDPggPzuioG6n"],
-        "tsp_vids": [
-          {
-            "kind": "did",
-            "value": "did:webs:google.example:verifier"
-          }
-        ]
-      },
-      "allowed_claims": [
-        {
-          "claim_kind": "verified_handle",
-          "issuer_id": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-          "subject_account_id": "ak:did_core:key:z6Mkgpairwise",
-          "disclosure": "explicit",
-          "fields": ["handle"],
-          "value_constraints": {
-            "handle": "alice@google.com"
-          }
-        }
-      ],
-      "denied_fields": [
-        "other_handles",
-        "external_accounts",
-        "global_strand_identifier",
-        "credential_id"
-      ],
-      "user_consent_required": true,
-      "expires_at": "2026-07-26T00:00:00.000Z"
-    }
-  }
-}
-```
+Transport MUST 是下列之一，或安全性等价的 authenticated confidential channel：
 
-`payload` MUST 严格匹配
-[`identity_disclosure_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：`policy_id` 与
-`value` 都是必填，`value` 是 v1 唯一的 closed disclosure-policy document family。`holder_principal_id` 只位于
-`value`，不得平铺；`state` / `reason` 与未知 family selector 都不是该 Event 的 wire 字段。
+1. 使用 verifier DID / 服务密钥的 `http_jwe`。
+2. 双方都支持时使用 `didcomm_like` envelope。
+3. verifier 是已知 Arkret 设备 / 服务端点时使用 `to_device`。
+4. controller 与 verifier 共享加密 DM Realm 时使用 `mls_dm`。
 
-Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm。
-接收方 MUST 以 accepted DID/profile 或 credential proof 验证 `holder_principal_id` 是该 credential、main 或 pairwise holder principal，并要求外层 Event `actor_id` 是 account 分支且其 `account_id` 是本条 holder-private state 的 exact storage owner。`holder_principal_id` 不得用作 account-data partition key，也不得替代完整 AccountId；同 principal、异 Station 的外层 actor 仍是不同 storage owner。
+普通明文 HTTP、公开 DID URL、公开 Blob、Realm plaintext Event 与 notification payload 均不得承载该对象。所需机密传输不可用时，controller MUST 拒绝披露，MUST NOT 降级到明文通道。
 
-#### 16.2.3 Presentation Response
+### 16.4 消费与缓存
 
-```json
-{
-  "kind": "ak.identity.presentation_response",
-  "payload": {
-    "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-    "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "value": {
-      "holder_subject": "ak:did_core:key:z6Mkgpairwise",
-      "proof_profile": "vc_di_bbs_2023",
-      "presentation": {},
-      "disclosed_fields": [
-        "credentialSubject.organization_id",
-        "credentialSubject.member",
-        "credentialSubject.handle_verified"
-      ],
-      "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "created_at": "2026-04-26T00:00:00.000Z"
-    }
-  }
-}
-```
+Verifier MUST 原子消费 `(verifier_id, request_id, challenge)`。同一 wire presentation 重放、错 verifier / audience、过期或超出 300 秒窗口全部 fail closed。
 
-Response MUST NOT 包含未披露字段、base proof、无关的 credential identifier、其他组织的 handle 或全局 subject identifier。
-
-##### 16.2.3.1 Agent requested-scope 私有披露 profile（normative）
-
-当 authorizing verifier 需要判定 Agent 的 immutable global ceiling 时，MUST 使用本节 presentation 流程请求 `claim_kind="ak.schema.agent_requested_scope_disclosure.v1"`，并在 `constraints` 中绑定 `agent_id` 与 Agent DID accepted-at `requested_scope_digest`。请求 MUST 携带精确 `verifier_id`、`domain`/operation audience、不可预测 `challenge`、唯一 `request_id` 与不超过 300 秒的接收窗口；controller wallet 的 `presentation` MUST 是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象。该对象的 controller proof、digest 与 accepted-at DID commitment 验证规则见 [`key-management.md` §4.1](./key-management.md) 和 [`../authz/capabilities.md` §9.1](../authz/capabilities.md)。
-
-这是把完整 scope 定向披露给判定方的私有 profile，不是把 scope 发布为 credential registry 或 Realm fact。Transport MUST 是 TSP、HTTP/JWE、DIDComm-like、to-device、MLS DM 或安全性等价的 authenticated confidential channel；普通明文 HTTP、公开 DID URL、公开 Blob、Realm plaintext Event 与 notification payload 均不得承载该对象。Verifier MUST 原子消费 `(verifier_id, request_id, challenge)`；同一 wire presentation 重放、错 audience/verifier 或过期窗口全部 fail closed。成功接收后的缓存只属于 verifier 私域，不得被另一 verifier 当作其自己的 presentation。
-
-#### 16.2.4 Disclosure Receipt
-
-```json
-{
-  "kind": "ak.identity.disclosure_receipt",
-  "payload": {
-    "holder_principal_id": "ak:did_core:key:z6Mkgpairwise",
-    "value": {
-      "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
-      "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-      "request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "presentation_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "proof_profile": "vc_di_bbs_2023",
-      "transport": "tsp",
-      "tsp_relationship_id": "tsp:rel:example",
-      "disclosed_fields": [
-        "credentialSubject.organization_id",
-        "credentialSubject.member"
-      ],
-      "withheld_fields": [
-        "credentialSubject.handle",
-        "other_handles"
-      ],
-      "created_at": "2026-04-26T00:00:00.000Z"
-    }
-  }
-}
-```
-
-`payload` MUST 严格匹配
-[`identity_disclosure_receipt_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
-`holder_principal_id` 与 `value` 都是必填，receipt body 只位于 closed `value`；v1 没有 `receipt_kind` 分派、
-`state` / `reason` 或平铺 receipt 字段。
-
-Receipt 是 holder 私域 audit record。Receipt MUST NOT 包含未披露字段的具体值。
-接收方 MUST 对 Receipt 执行与 Policy 相同的 holder-principal proof 与外层 Event account-owner 交叉绑定；principal proof、outer account actor 或 request binding 任一不匹配时均 fail closed，不能仅凭字段名或本地账户上下文接受。
-
-四类对象的字段 ownership 是单向的：credential schema 定义 claim 语义；Disclosure Policy 只拥有稳定的
-`holder_principal_id`、audience selector、allowed claims / fields、denied fields、consent 与 policy expiry；Presentation
-Request 独占本次 `verifier_id`、`represented_organization_id`、`domain`、`challenge`、claim set 与 request expiry；Response
-和 Receipt 都只用 `(request_id, request_digest)` 绑定 exact Request，不复制这些 request-owned 字段。Policy 匹配要求
-`request.verifier_id` 属于 `policy.audience.verifier_ids` 且
-`request.represented_organization_id == policy.audience.represented_organization_id`；TSP transport 被选用时还必须匹配 policy 可选
-`tsp_vids`。challenge/domain 不进入可复用 Policy。
-
-Wallet 创建 Response 或 Receipt 前 MUST 重算 exact canonical Presentation Request Event digest，并逐字比较二者的
-`request_id` / `request_digest`；proof suite 再从同一 Request 取得 verifier、organization/audience、challenge 与 domain
-构造 presentation transcript。错 verifier、错 organization、错 challenge/domain、请求的 claim/field set 与实际
-disclosed/withheld set 不一致均 fail closed。Request Event 与其 authenticated transport evidence MUST 在最后一份引用它的
-Receipt retention 结束前保存在 holder private account data；缺少或 digest 不匹配时该 Response/Receipt 不可解析，禁止从
-Receipt 字段或当前 Policy 反推。这样 Request 是一次性事实的唯一权威来源，Receipt 只是内容寻址的审计索引。
-
-### 16.3 组织和 Verifier 确认
-
-Wallet MUST NOT 只凭域名、邮箱后缀、TLS 证书或 UI 文案确定组织。
-
-Verifier MUST 通过以下任一方式证明其代表权限：
-
-- 由 represented organization DID 直接对 presentation request 签名。
-- 由 represented organization 为 verifier DID 签发 service authorization claim。
-- 由 trust registry / governance registry 将 verifier VID 映射到 represented organization。
-- 目标 Realm policy 将 verifier DID 列为对应 purpose 的可信 issuer / verifier。
-
-Service authorization claim 示例：
-
-```json
-{
-  "issuer_id": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
-  "subject_account_id": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
-  "claim_kind": "organization_service_authorization",
-  "service": "arkret_verifier",
-  "expires_at": "2026-07-26T00:00:00Z"
-}
-```
-
-### 16.4 Proof Profile 选择
-
-Wallet SHOULD 根据隐私需求选择 proof profile：
-
-| 需求 | 推荐 profile |
-| --- | --- |
-| 广泛 verifier 互操作 | `sd_jwt_vc` |
-| Claim 级选择性披露 | `sd_jwt_vc` 或 `vc_di_bbs_2023` |
-| 不可链接的 derived proof | `vc_di_bbs_2023` 或其他可证明 unlinkability 的 proof suite |
-| 简单服务断言 | 在不要求 unlinkability 时使用 detached JWS claim |
-
-实现 MUST NOT 在所选 proof suite 实际不提供零知识 / 不可链接性、或 presentation 仍包含稳定关联标识符时，声称具备 zero-knowledge 或 unlinkability。
-
-### 16.5 存储模型
-
-| 数据 | 位置 | 加密 |
-| --- | --- | --- |
-| 原始 credential / base proof | wallet 本地加密存储或 holder private account data | 设备密钥 / 恢复密钥 |
-| pairwise DID 私钥 | 设备安全存储 | 优先使用硬件支持的 keystore |
-| disclosure policy | holder private account data | 向 holder 设备 E2EE |
-| presentation request | 临时 inbox 或加密的 private account data | verifier 与 holder 间的传输层加密 |
-| presentation response | 仅发送给 verifier；本地副本可选并加密 | TSP / JWE / DIDComm-like / MLS DM |
-| disclosure receipt | holder private account data | 向 holder 设备 E2EE |
-| status / 撤销缓存 | wallet 缓存或 holder private account data | 向 holder 设备 E2EE |
-
-Station sync surface 与服务运营方 MUST NOT 获得原始 credential 内容、base proof、完整 disclosure policy 或未披露 handle。
-
-### 16.6 传输方式选择
-
-传输方式的优先级：
-
-1. 双方都支持且 policy 要求元数据隐私时使用 `tsp`。
-2. 使用 verifier DID / 服务密钥的 `http_jwe`。
-3. 双方都支持时使用 `didcomm_like` envelope。
-4. verifier 是已知 Arkret 设备 / 服务端点时使用 `to_device`。
-5. holder 与 verifier 共享加密 DM Realm 时使用 `mls_dm`。
-
-若 policy 要求嵌套 / 路由级元数据隐私，而 verifier 不支持 TSP 或等价能力，wallet MUST 拒绝或请求用户显式覆盖。
-
-### 16.7 端到端流程
-
-1. Verifier 发送已签名的 `ak.identity.presentation_request`。
-2. Wallet 验证 verifier DID / VID 与 represented organization 的授权关系。
-3. Wallet 根据 disclosure policy 校验该请求。
-4. 当 `user_consent_required=true` 或请求超出既有 policy 范围时，Wallet 向 holder 提示确认。
-5. Wallet 选择匹配的 pairwise DID 与 credential。
-6. Wallet 使用 privacy-preserving status material 检查 credential 状态。
-7. Wallet 按所选 proof profile 派生 proof。
-8. Wallet 通过所选 transport 发送响应。
-9. Verifier 验证 proof、issuer、status、challenge、domain、audience 与新鲜度。
-10. Wallet 把 disclosure receipt 写入 holder private account data。
-
-### 16.8 失败码
-
-| code | 含义 |
-| --- | --- |
-| `verifier_unauthorized` | Verifier 无法证明其代表 represented organization 的权限。 |
-| `policy_denied` | Holder disclosure policy 拒绝该请求。 |
-| `consent_required` | 披露前需要用户显式同意。 |
-| `unsupported_proof_profile` | 双方无可接受的 proof profile。 |
-| `transport_privacy_required` | Policy 要求 TSP / 嵌套 / 路由或等价隐私传输，但当前不可用。 |
-| `credential_not_found` | Holder 没有匹配的 credential。 |
-| `credential_expired` | 匹配的 credential 已过期。 |
-| `status_unavailable` | 撤销 / 状态材料不可用。 |
-| `overbroad_request` | 请求要求无关 handle、credential id 或全局标识符。 |
-
-### 16.9 安全要求
-
-Wallet MUST：
-
-- 默认采用最小披露。
-- 拒绝"所有 handle / 所有 alias"的请求。
-- 拒绝与当前关系无关的组织 handle。
-- 把 proof 绑定到 verifier 的 challenge、domain 与 audience。
-- 避免向中心化服务上报 holder 身份的在线 status check。
-- 在 receipt 中不保存未披露字段的具体值。
-- 在不同组织间隔离 pairwise DID 密钥与服务端点。
-
-Verifier MUST：
-
-- 只请求必要 claim。
-- 除非 policy 明确允许且 holder 同意，否则不要求全局 subject identifier。
-- 在要求 unlinkability 时不索取 credential id。
-- 把不同 pairwise DID 的 presentation 视为独立 subject，除非 holder 提供 linking proof。
+成功接收后 MAY 把披露保存为加密的 verifier-private evidence，缓存键 MUST 至少包含 `(agent_id, requested_scope_digest, verifier_id, audience)`；accepted-at DID 或 controller lifecycle 变化时 MUST 重新验证或 fail closed。该缓存只属于 verifier 私域，MUST NOT 被另一 verifier 当作其自己的 presentation，也 MUST NOT 写回公开 DID、Realm plaintext、durable Event、pairing code 或通知。实现 MUST NOT 因披露本身"不授予能力"而放宽上述隐私检查，也 MUST NOT 退回 service-local Agent row 作为权威来源。
 
 ## 17. v1 互操作要求
 
@@ -1246,6 +945,5 @@ Verifier MUST：
   违反该作用域规则的事件 schema 在 conformance 测试中 MUST 失败：把 handle 字符串当作**权威 actor 引用字段**（而非显式声明的派生投影或 audit metadata）的 schema 视为 v1 不合规。
 - DNS TXT record 格式 MUST 绑定 `handle`、`subject_account_id`、issuer、`service_id`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。
 - Well-known / Directory response schema MUST 返回 exact `subject_account_id`、issuer 的 `did_core_id`、canonical `handle`、proof、validity 和 optional challenge；公开 handle 由自己 Station 通过已验证的 DID resolution binding 做 `alsoKnownAs` 双向验证，受限 handle 由该 Station 做 issuer claim / audience / policy 验证；客户端消费结果并核对完整 subject 绑定。匿名或未授权调用方查询受限 handle、revoked handle 或不存在 handle 时，response MUST 不可区分。
-- Credential schema、presentation request、disclosure policy 和 disclosure receipt 必须绑定 holder DID、verifier DID、audience、challenge、domain、disclosed fields、withheld fields 和 proof profile。
 - Status list profile MUST 支持凭证撤销和暂停。授权依赖的 credential 无法确认状态时 MUST fail closed。
 - BBS / SD-JWT VC conformance vectors MUST 覆盖选择性披露、challenge/domain 绑定、错误 issuer、过期凭证、撤销凭证和 pairwise DID unlinkability。

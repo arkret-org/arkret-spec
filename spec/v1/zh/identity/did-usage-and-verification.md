@@ -106,14 +106,6 @@ carrier 取得 required `did` / `verification_method`，经 active adapter 验�
 resolution 需要已知 `(principal_id, station_id)` account pair；service resolution 需要 bootstrap
 携带的 `resolution_url` 或已验证的 same-core route。未登记的 route source 一律 fail closed。
 
-### 2.4 TSP VID 不是 DID alias
-
-`tsp_vids[]` 的元素使用
-[`common-ids.schema.json#/$defs/tsp_vid`](../../artifacts/schemas/common-ids.schema.json) 的 closed
-`{kind,value}` union。`kind` 固定为 `did`、`keri_aid`、`urn` 或 `x509`；只有 `kind=did` 的 value
-使用 `did` representation。显式 discriminator 防止 KERI AID、URN 或 X.509 fingerprint 被错误塞进 DID
-类型，也禁止实现从字符串前缀猜测外部 identifier system。
-
 ## 3. 普通业务路径：只使用身份锚点
 
 已经建立可信绑定后，下列操作只需要把 `did_core_id` 当作 opaque identity key，不得因此触发 DID

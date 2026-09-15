@@ -15,7 +15,7 @@ updated: 2026-07-02
 本文为 Arkret 协作图中**通过扩展 profile 接入的对象类型**提供模型层入口：
 
 - **Applet**（`ak:applet:`）：bot / bridge / portal / 集成服务（extension profile，非 v1 core 互操作必需）。
-- **Agent**：A2A / ACP / 外部 agent 协议互通运行时。
+- **Agent**：外部 agent 协议互通运行时。
 - **Blob**（`ak:blob:`）：由 Blob Store 管理的二进制数据，不参与协作图归约。两种 wire 形态：`ak:blob:<uuid>`（metadata row id）与内容寻址特殊形态 `ak:blob:<digest-suite>:<hex>`（v1 为 `sha256` 或 profile-gated `blake3`，见 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)）。
 
 每个对象的完整规范由对应专项文档承担；本文只给出对象语义概述、字段索引与跳转。
@@ -67,7 +67,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 
 ### 3.1 概念
 
-Agent 是 Arkret 协作图中以 **A2A** / **ACP** 等外部 agent 协议进行任务编排的可委派运行时。它可以：
+Agent 是 Arkret 协作图中以外部 agent 协议进行任务编排的可委派运行时。它可以：
 
 - 在 Realm 内以独立 Actor 身份执行受托动作。
 - 接收外部 agent 协议事件并把结果落点到 Strand / Message / Morph。
@@ -84,7 +84,7 @@ Agent 的对象身份与 Applet 类似（独立 DID，或由 controller principa
 
 ### 3.3 详细规范
 
-- A2A / ACP / external agent protocol handoff 不属于 Arkret v1 协议面；runtime 可在部署本地使用这些协议，但私有 endpoint/session/status 不进入共享 Realm history。
+- external agent protocol handoff 不属于 Arkret v1 协议面；runtime 可在部署本地使用这类协议，但私有 endpoint/session/status 不进入共享 Realm history。
 - Agent 落点（结果如何写回 Strand / Message / Morph）：[`../overview/current-model.md` §8](../overview/current-model.md)。
 
 ## 4. Blob

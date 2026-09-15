@@ -68,10 +68,6 @@
       "category": "did_method_log_or_evidence"
     },
     {
-      "pointer": "common-ids.schema.json#/$defs/tsp_vid/oneOf/0/properties/value/$ref",
-      "category": "external_vid_profile"
-    },
-    {
       "pointer": "contact-operations.schema.json#/$defs/contact_delegated_producer_signer/properties/delegated_actor_did/$ref",
       "category": "did_method_log_or_evidence"
     },

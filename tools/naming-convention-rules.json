@@ -343,11 +343,6 @@
       "expected": "reject"
     },
     {
-      "rule_id": "NC-LEXEME-001",
-      "candidate": "arkret_presentation_request",
-      "expected": "reject"
-    },
-    {
       "rule_id": "NC-EVIDENCE-001",
       "candidate": "single_signature_evidence",
       "expected": "reject"
@@ -481,11 +476,6 @@
     {
       "rule_id": "NC-LEXEME-001",
       "candidate": "organization_membership_credential",
-      "expected": "accept"
-    },
-    {
-      "rule_id": "NC-LEXEME-001",
-      "candidate": "PresentationRequest",
       "expected": "accept"
     },
     {

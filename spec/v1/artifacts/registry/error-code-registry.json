@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.1",
-  "generated_at": "2026-09-15T18:45:00+08:00",
+  "version": "2026-09-15.2",
+  "generated_at": "2026-09-16T00:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -437,14 +437,6 @@
       "description": "Wallet and verifier have no mutually supported proof profile for the requested presentation.",
       "type_uri": "https://arkret.org/problems/unsupported_proof_profile",
       "title": "Unsupported proof profile"
-    },
-    {
-      "code": "transport_privacy_required",
-      "http_status": 403,
-      "scope": "service_call",
-      "description": "Effective holder policy requires a privacy-preserving transport mode that is unavailable for this presentation exchange.",
-      "type_uri": "https://arkret.org/problems/transport_privacy_required",
-      "title": "Transport privacy required"
     },
     {
       "code": "credential_not_found",
@@ -1333,14 +1325,6 @@
       "description": "A directory/resolve/search/projection request attempted to obtain a stripped preview, history stub, history snippet, or token-scoped preview that is not allowed by the effective ak.realm.preview_policy. External responses that must be non-enumerating MAY map this to not_found. See zh/governance/history-visibility.md Â§4.",
       "type_uri": "https://arkret.org/problems/preview_policy_denied",
       "title": "Preview policy denied"
-    },
-    {
-      "code": "unsupported_lattice_type",
-      "http_status": 422,
-      "scope": "both",
-      "description": "The Realm schema or Event references a lattice type outside the active, fully specified v1 lattice set. Receivers fail closed; implementation-local CRDT support does not activate a wire lattice.",
-      "type_uri": "https://arkret.org/problems/unsupported_lattice_type",
-      "title": "Unsupported lattice type"
     },
     {
       "code": "organization_registration_challenge_invalid",

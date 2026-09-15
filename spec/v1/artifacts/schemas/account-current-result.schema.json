@@ -768,16 +768,6 @@
         }
       ]
     },
-    "value_identity_disclosure_policy": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "./event-payload.schema.json#/$defs/identity_disclosure_policy_state_payload"
-        }
-      ]
-    },
     "value_invite_lifecycle": {
       "anyOf": [
         {
@@ -3073,9 +3063,6 @@
                   "$ref": "#/$defs/value_handle_discovery"
                 },
                 {
-                  "$ref": "#/$defs/value_identity_disclosure_policy"
-                },
-                {
                   "$ref": "#/$defs/value_invite_lifecycle"
                 },
                 {
@@ -5131,47 +5118,6 @@
                   },
                   "value": {
                     "$ref": "./account-current-result.schema.json#/$defs/value_identity_accountability"
-                  },
-                  "source": false
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "selector": {
-                "properties": {
-                  "cell_id": {
-                    "pattern": "^ak:cell:ak\\.component\\.identity\\.disclosure_policy\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
-                  }
-                }
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "target": {
-                "properties": {
-                  "kind": {
-                    "enum": [
-                      "realm"
-                    ]
-                  }
-                }
-              },
-              "result": {
-                "properties": {
-                  "status": {
-                    "enum": [
-                      "value",
-                      "removed",
-                      "unavailable"
-                    ]
-                  },
-                  "value": {
-                    "$ref": "./account-current-result.schema.json#/$defs/value_identity_disclosure_policy"
                   },
                   "source": false
                 }
@@ -8534,9 +8480,6 @@
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.identity\\.accountability\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
-                        },
-                        {
-                          "pattern": "^ak:cell:ak\\.component\\.identity\\.disclosure_policy\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
                         },
                         {
                           "pattern": "^ak:cell:ak\\.component\\.identity\\.resolution\\.v1:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
