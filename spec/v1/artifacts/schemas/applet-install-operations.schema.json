@@ -556,7 +556,7 @@
           ]
         },
         "effect_ref": {
-          "$ref": "#/$defs/typed_ref"
+          "$ref": "#/$defs/applet_revoke_effect_ref"
         },
         "status": {
           "type": "string",
@@ -609,7 +609,7 @@
         "revoked_refs": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/typed_ref"
+            "$ref": "#/$defs/applet_revoke_effect_ref"
           },
           "uniqueItems": true
         },
@@ -621,6 +621,18 @@
         }
       },
       "additionalProperties": false
+    },
+    "applet_revoke_effect_ref": {
+      "description": "CommittedEventRef for a durable revoke Event, or a local typed resource reference for service-local token, session, or fence effects. Bare EventId and RealmCommitId strings are not valid effect references.",
+      "oneOf": [
+        {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        {
+          "type": "string",
+          "pattern": "^ak:(?!event:|realm_commit:)[a-z][a-z0-9_]*:[A-Za-z0-9._~:/-]+$"
+        }
+      ]
     }
   }
 }

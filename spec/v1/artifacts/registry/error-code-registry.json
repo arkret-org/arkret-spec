@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.3",
-  "generated_at": "2026-09-16T00:45:00+08:00",
+  "version": "2026-09-16.4",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -538,7 +538,7 @@
       "code": "cas_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "An optimistic concurrency precondition failed. For ordinary Event actor-chain authoring, this code is returned only after duplicate-id checks and only when the accepted (realm_id, actor_id) sequence has strictly advanced beyond the submitted signed Event. Authenticated visible callers receive closed details {accepted:false,current_frontier:RealmActorFrontierView}; only that explicit result permits semantic re-author with a new event_id.",
+      "description": "An optimistic concurrency precondition failed because the authority-committed typed current result or stream head no longer equals the submitted expectation. The caller must read current state and create a new signed Event; exact retry retains the original identity.",
       "type_uri": "https://arkret.org/problems/cas_conflict",
       "title": "Cas conflict"
     },
@@ -546,7 +546,7 @@
       "code": "causal_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "Causal dependencies, prev_refs, refs[role=authorized_by], or actor-chain constraints are violated.",
+      "description": "An application-level referenced object, revision, or domain transition is incompatible with current authority-committed state. This code does not describe an Event predecessor graph.",
       "type_uri": "https://arkret.org/problems/causal_conflict",
       "title": "Causal conflict"
     },
@@ -735,30 +735,6 @@
       "title": "State mismatch"
     },
     {
-      "code": "seal_signer_unauthorized",
-      "http_status": 403,
-      "scope": "both",
-      "description": "The submitted Seal signature does not satisfy the predecessor governance state's ak.component.notary.v1 membership and threshold rules. Visibility or ownership of the signing device is never sufficient.",
-      "type_uri": "https://arkret.org/problems/seal_signer_unauthorized",
-      "title": "Seal signer unauthorized"
-    },
-    {
-      "code": "seal_signer_slot_fenced",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "A Seal preparation request differs from the canonical request already frozen for its (realm_id, signer slot, predecessor basis) signing-slot fence, so exactly one signable body ever leaves that signing position. The exact frozen request keeps replaying its byte-identical body instead. The fence is durable protocol state: internal timeouts, lease release or expiry, cache eviction, failover and restart MUST NOT release it, because the device may already have signed the frozen body offline. Only an actually advanced predecessor basis, a formal notary rotation, an advanced signer device generation or an accepted equivocation fault opens a new signing position. A current signer that lost its local journal uses the registered prepare-fence-result read; the prepare 409 never carries frozen material. See zh/authz/event-auth-state-resolution.md section 8, zh/authz/cbs-profiles.md section 3, and zh/sync/service-http-binding.md.",
-      "type_uri": "https://arkret.org/problems/seal_signer_slot_fenced",
-      "title": "Seal signer slot fenced"
-    },
-    {
-      "code": "seal_deferred_future_skew",
-      "http_status": 425,
-      "scope": "both",
-      "description": "The Seal is cryptographically eligible but sealed_at is temporarily beyond verifier wall time plus hard_future_skew_ms. This is non-terminal: retain and retry after the clock advances; do not reject descendants solely for this condition.",
-      "type_uri": "https://arkret.org/problems/seal_deferred_future_skew",
-      "title": "Seal deferred future skew"
-    },
-    {
       "code": "audit_receipt_invalidated",
       "http_status": 409,
       "scope": "both",
@@ -887,22 +863,6 @@
       "title": "Cursor unrecognized"
     },
     {
-      "code": "actor_seq_invalid",
-      "http_status": 409,
-      "scope": "both",
-      "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier.",
-      "type_uri": "https://arkret.org/problems/actor_seq_invalid",
-      "title": "Actor seq invalid"
-    },
-    {
-      "code": "seal_ref_unknown",
-      "http_status": 404,
-      "scope": "both",
-      "description": "A Seal named by an ordinary Event auth_context.authority_refs entry or by a security command seal_basis leaf is not available to the receiving service for the target Realm.",
-      "type_uri": "https://arkret.org/problems/seal_ref_unknown",
-      "title": "Seal ref unknown"
-    },
-    {
       "code": "audience_unknown",
       "http_status": 404,
       "scope": "endpoint",
@@ -991,14 +951,6 @@
       "title": "Frontier unavailable"
     },
     {
-      "code": "frontier_sequence_exhausted",
-      "http_status": 409,
-      "scope": "endpoint",
-      "description": "The requested Realm-scoped actor frontier has accepted actor_seq u64::MAX, so no valid next_actor_seq exists. Producers MUST NOT wrap, reset, or author another Event for that chain.",
-      "type_uri": "https://arkret.org/problems/frontier_sequence_exhausted",
-      "title": "Frontier sequence exhausted"
-    },
-    {
       "code": "mls_genesis_binding_proposal_required",
       "http_status": 422,
       "scope": "endpoint",
@@ -1021,14 +973,6 @@
       "description": "The exact canonical proof_target_basis does not dominate the exact caller-supplied, locally trusted canonical proof_base_basis: at least one base leaf is neither retained as a target leaf nor an ancestor of a target leaf. Concurrent or otherwise unreachable cuts produce this error; byte-identical base and target antichains are a valid zero-transition query and MUST NOT produce it. Missing required Seal/Event/witness material that prevents the service from deciding dominance is frontier_unavailable instead. The service MUST NOT substitute a single head, common descendant, target, or untrusted base. The caller MAY retry only with another complete locally trusted basis or another authorized proof service.",
       "type_uri": "https://arkret.org/problems/mls_governance_anchor_unreachable",
       "title": "Mls governance anchor unreachable"
-    },
-    {
-      "code": "mls_governance_proof_bounds_exceeded",
-      "http_status": 422,
-      "scope": "endpoint",
-      "description": "The complete near-current group_security_frontier outcome cannot fit the caller byte_limit or the v1 1 MiB canonical-response ceiling without splitting a registered frontier cell or completeness witness. The service MUST NOT truncate, omit boundary/nonmembership evidence, return a partial outcome, or split the request. The caller must present a closer independently verified proof_base_basis or fail closed; bulk history uses receipt-bound direct traversal and does not alter this query.",
-      "type_uri": "https://arkret.org/problems/mls_governance_proof_bounds_exceeded",
-      "title": "Mls governance proof bounds exceeded"
     },
     {
       "code": "handle_unverified",
@@ -1493,22 +1437,6 @@
       "description": "The supplied exact versioned operation selector is duplicated, unknown, not advertised on the selected carrier, or outside the selected endpoint family; this code also applies when the endpoint family has no advertised exact candidate. Receivers MUST fail closed without version fallback, alias resolution, or payload-shape inference.",
       "type_uri": "https://arkret.org/problems/unsupported_operation_version",
       "title": "Unsupported operation version"
-    },
-    {
-      "code": "genesis_seal_invalid",
-      "http_status": 422,
-      "scope": "both",
-      "description": "The first Seal of a Realm did not atomically cover and materialize the complete registered bootstrap unit, or it declared an empty covered set or an empty control_event_set_root. The five ak.realm.create writes are genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots in the same unit. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding state is never repairable by later Seals. See zh/authz/cbs-profiles.md section 3.",
-      "type_uri": "https://arkret.org/problems/genesis_seal_invalid",
-      "title": "Genesis seal invalid"
-    },
-    {
-      "code": "seal_incomplete",
-      "http_status": 409,
-      "scope": "both",
-      "description": "Seal coverage has gaps within the receiver's control auth-chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md.",
-      "type_uri": "https://arkret.org/problems/seal_incomplete",
-      "title": "Seal incomplete"
     },
     {
       "code": "franking_proof_unavailable",
@@ -2815,14 +2743,6 @@
       "description": "A `ak.call.summary` event was rejected because its `final_state` is not a terminal call state, the referenced `call_id` has no terminal `ak.call.state` head, or a divergent summary already exists for the call (the summary cell is write-once). Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md Â§7."
     },
     {
-      "code": "causal_refs_too_large",
-      "applies_to": [
-        "schema_validation",
-        "event_envelope"
-      ],
-      "description": "Event Envelope causal_refs exceeds the v1 maximum of 128 entries or contains duplicates. Receiver MUST reject with schema_violation and MUST NOT truncate the causal frontier. See zh/conformance/scalability-constraints.md."
-    },
-    {
       "code": "cbor_bounds_invalid",
       "applies_to": [
         "encoding",
@@ -3006,28 +2926,6 @@
       "description": "A receipted Control Move proposal reached its signed decision_due_at without include, confirmed rejected command result, or a valid bounded signed-defer, or exhausted its immutable absolute_due_at / maximum defer count without include or confirmed rejected command result. This is a governance health and censorship-evidence fault, not an acceptance or Seal-finality result: a later cryptographically valid Seal remains acceptable and the fault stays auditable. See zh/authz/event-auth-state-resolution.md section 7.2."
     },
     {
-      "code": "covered_set_mismatch",
-      "applies_to": [
-        "event_auth_state",
-        "state_resolution"
-      ],
-      "description": "A compaction Seal's covered set does not match the deterministic control view of the interval it claims to compact. Mismatched coverage MUST reject; only full-coverage compaction within seal_compaction_max_interval_ms enables bootstrap. See authz/event-auth-state-resolution.md and fixtures/cbs-lattice-fixture.json."
-    },
-    {
-      "code": "created_at_before_basis_seal",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "Sub-reason for schema_violation when created_at is earlier than the greatest sealed_at among the signed auth_context.authority_refs of an ordinary Event or the seal_basis.leaves of a security command, beyond the symmetric hard_future_skew_ms tolerance. Native anchor units carry no such basis and are exempt; see zh/models/event-and-patch.md."
-    },
-    {
-      "code": "created_at_before_causal_predecessor",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "Sub-reason for schema_violation when created_at is earlier than the greatest created_at among the accepted Events referenced in prev_refs. prev_refs is the causal frontier, so every referenced Event precedes this one; the bound is a signed-value comparison and uses no local clock. Empty prev_refs (genesis) does not carry this bound."
-    },
-    {
       "code": "cross_domain_replay_rejected",
       "applies_to": [
         "identity_creation",
@@ -3111,14 +3009,6 @@
         "service_call"
       ],
       "description": "Sub-reason carried by the ak.invite.revoke that moves a pending Invite to target_state=send_failed: the delivery service could not reach the private invite delivery target after its retry budget. It is a delivery diagnostic only and MUST NOT leak the 3PID plaintext, the invite token or a verification code. See zh/models/governance-objects.md section 5 and zh/sync/third-party-invites.md section 6.1."
-    },
-    {
-      "code": "delta_contains_ordinary_event",
-      "applies_to": [
-        "event_auth_state",
-        "state_resolution"
-      ],
-      "description": "A Seal delta contained a data-plane (ordinary Event) digest. A Seal delta MUST carry newly sealed control-plane event digests only; including a ordinary Event digest is a Seal validation failure and receivers MUST reject the Seal (rejected_seal). See models/event-and-patch.md and fixtures/cbs-lattice-fixture.json."
     },
     {
       "code": "dependency_missing",
@@ -3459,14 +3349,6 @@
         "state_resolution"
       ],
       "description": "External applicant-facing generic join gate failure. Wire response MUST NOT reveal whether a claim was absent, revoked, issuer-unreachable, parent-membership-missing, or challenge-invalid; detailed diagnostics are audit/reviewer-only. See zh/governance/join-policy.md Â§5."
-    },
-    {
-      "code": "genesis_seal_invalid",
-      "applies_to": [
-        "seal",
-        "state_resolution"
-      ],
-      "description": "The first Seal of a Realm did not atomically cover the complete registered bootstrap unit (create writes genesis intent, create log, founding notary, reducer profile and authority root; profile, policy and creator membership are explicit signed slots), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cbs-profiles.md section 3."
     },
     {
       "code": "governance_binding_mismatch",
@@ -4319,14 +4201,6 @@
         "auth_decision"
       ],
       "description": "A ak.self.blob.command.presign.v1 envelope scope does not match the requested blob_ref, method, byte range, purpose, Realm, issuer trust state, or current blob visibility. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md Â§5.4."
-    },
-    {
-      "code": "prev_refs_too_large",
-      "applies_to": [
-        "schema_validation",
-        "event_envelope"
-      ],
-      "description": "Event Envelope prev_refs exceeds the v1 maximum of 128 entries, or duplicates entries where uniqueness is required. Receiver MUST reject with schema_violation. See zh/conformance/scalability-constraints.md."
     },
     {
       "code": "primary_track_required",

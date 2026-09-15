@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 874,
-    "responsibility_identity_material": 549,
+    "typed_object_id": 866,
+    "responsibility_identity_material": 547,
     "registry_catalog_symbol": 14
   },
   "pending_rename_convergence": [],
@@ -342,14 +342,6 @@
       "occurrences": 1,
       "example_path": "identity-resolution.schema.json#/$defs/method_evidence_boundary/properties/from_version_id",
       "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
-    },
-    {
-      "name": "frontier_event_ids",
-      "terminal_signature": "[]",
-      "category": "typed_object_id",
-      "occurrences": 2,
-      "example_path": "service-operation-dtos.schema.json#/$defs/RealmActorFrontierView/allOf/0/then/properties/frontier_event_ids",
-      "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
     },
     {
       "name": "gate_id",

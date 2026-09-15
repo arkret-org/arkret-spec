@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T08:00:00+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -206,10 +206,9 @@
   "authority_source_registry": {
     "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
     "registry_rules": [
-      "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event/cell reference never creates authority.",
-      "The evaluator MUST rederive all activation, actor, resource and lifecycle predicates from accepted signed evidence at the Event CBS basis or the current non-event request basis and MUST fail closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
-      "Profile-scoped sources do not enter issuer_authority_refs, cannot authorize ak.capability.grant, and cannot be widened by Realm owner/admin aggregation.",
-      "When an Event is directly participant-authored, authorization_ref uses the source wire_ref and refs contains the registered binding_ref_role. When executed_by is present, authorization_ref continues to bind the delegated executor grant/delegation; the profile source is an independent conjunctive evaluator gate and is never replaced by that delegation."
+      "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event reference never creates authority.",
+      "The current governance Station rederives activation, actor, resource and lifecycle predicates from its authority-committed current state and fails closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
+      "A successful preflight or cached current result is advisory to the caller and never replaces atomic authorization at RealmCommit issuance."
     ],
     "sources": [
       {
@@ -359,7 +358,7 @@
         "failure_mode": "atomic_rollback"
       }
     ],
-    "version": "2026-09-07.12"
+    "version": "2026-09-16.4"
   },
   "event_kind_registry": {
     "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -448,22 +447,11 @@
       }
     },
     "registry_rules": [
-      "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Signal payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
-      "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
-      "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-      "Each active shared reducer kind declares exact cell_writes with cell_family, cell_subject, execution, state_model, value_shape, closed condition and effect_projection. Effective security writes make the complete Event atomic and require safety finality; otherwise it is ordinary data. Conditional kinds omit static sealed. sequenced_state has no unordered join. Causal writes retain distinct identities, including written null, and select one current value by fixed same-Cell causal depth plus complete Event identity. Conditions are pure functions of signed Event fields; unknown sources fail closed. Closed pre_state_requirements are checked on the registered execution basis and failure leaves zero effects.",
-      "The ak.component.agent.status.v1 lifecycle cell is keyed only by the complete Agent account ActorId: agent-control ak.realm.create and every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate write MUST use the identical single-component composite canonical_json(envelope.actor_id) subject. The Agent actor MUST be the account variant; a service actor is invalid. The Agent principal component is derived only from envelope.actor_id and the controller principal only from envelope.executed_by; the lifecycle payloads carry no duplicate agent or controller coordinate. These writes are delegated controller writes: executed_by and its paired authorization_ref MUST be present for agent-control ak.realm.create and for every ak.self.agent.pause, ak.self.agent.resume, or ak.self.agent.deactivate, enforced by the registered event-kind admission rule (and its Event Envelope schema lock), never only by the generic optional envelope schema. A missing executor pair, a service actor, or a missing exact Station binding fails closed, and Account ActorIds with the same principal_id at different station_id values MUST derive different subjects.",
-      "Every write with transition_contract MUST resolve by cell_family to exactly one closed domain transition contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
-      "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBS fields, reducer_input, or shared cell_contracts.",
-      "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 and ak.component.realm.reducer_profile.v1 are canonically defined in zh/authz/event-auth-state-resolution.md; their genesis values come from ak.realm.create, and subsequent writes use ak.realm.notary and ak.realm.upgrade respectively.",
-      "Registered state models are causal_register, sequenced_state, or_set, counter and ordered_log. Domain transition tables and CAS predicates are validation rules, not additional shared state-model types.",
-      "Every ordered_log append MUST project issuer_seq from envelope.actor_seq exactly. The coordinate is sparse within a cell; join retains every accepted Event sibling and digest order is serialization-only. A registry row MUST NOT declare a cell-local constant or payload counter, slot winner, prefix gap, or authorization effect for ordered_log.",
-      "Ordinary Event eligibility derives from signed auth_context.authority_refs and known closure decisions; eligible data effects converge by their registered CRDT. Safety writes execute in the unique confirmed Realm sequence, without a safety-state join. Event Envelope routing fields MUST NOT be used as ordering authority.",
-      "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST be listed in at least one action's target_event_kinds - admission has a single direction of truth and no per-event capability list. Enforced by tools/artifact_lint; no active durable reducer-input event may lack an admission source (fail-closed).",
-      "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate.",
-      "Every active standard Event kind MUST declare exactly one payload_schema_ref. The reference MUST resolve to an existing schema location and MUST equal the single Event Envelope payload dispatch for that kind. Consumers MUST NOT infer payload schemas from Event.kind spelling, schema-name conventions, or fallback definitions.",
-      "For every v1 built-in reducer-input Event kind, execution, state_model and value_shape are frozen registry authority. The causal_register deterministic ordering is global v1 protocol behavior, not a per-family policy. Realm extension profiles MUST NOT shadow, override or reinterpret a built-in cell family.",
-      "ak.agent.action_approve is a target-Realm security command. The controller and exact agent authority, requested action, target, full approved Event identity, finite window, and all current authority dependencies are checked at execution. Its approval_consumption Cell must be absent; no later write or nonce release is allowed. The approved ordinary Event has no forward reference to the approval command or its Seal. The submission publication_event carries its immutable bytes. Missing evidence is pending, not permission to publish."
+      "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry and resolve to exactly one closed payload schema.",
+      "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm, Circle, or Sidecar stream.",
+      "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
+      "Event has no actor sequence, predecessor, causal-reference, authorization-context, Seal basis, Cell write, CBS proof, or history-key field. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
+      "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -570,7 +558,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
+        "payload": "Agent signing-key revocation. The current governance Station verifies the controller and active key, then commits the exact Event on its authority stream; the payload carries no Seal or authorization basis.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_revoke_payload",
         "id_source": "not_an_object_id"
       },
@@ -793,7 +781,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; close and release execute in confirmed order; confirmed close rejects later release, while prior release changes the log revision and rejects an old close.",
+        "payload": "Terminal audit release-session close. The current governance Station compares release_refs with its authority-committed session projection and serializes close against release Events on the applicable stream.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_close_payload",
         "id_source": "reference"
       },
@@ -2225,7 +2213,7 @@
             "admission": "deny"
           }
         ],
-        "payload": "Agent lifecycle transition to paused state. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within an independent pause revocation freshness window of at most 60 seconds, never merely the session maximum TTL. Reversible via ak.self.agent.resume.",
+        "payload": "Agent lifecycle transition to paused. Current controller authority and the active agent state are checked atomically when the governance Station commits the Event.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_pause_payload",
         "id_source": "not_an_object_id"
       },
@@ -2254,7 +2242,7 @@
             "admission": "deny"
           }
         ],
-        "payload": "Agent lifecycle transition from paused to active. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. At acceptance the reducer MUST use the accepted current control frontier to re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+        "payload": "Agent lifecycle transition from paused to active. The governance Station revalidates controller, agent key, capability, Realm policy and accountability state at commit.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_resume_payload",
         "id_source": "not_an_object_id"
       },
@@ -2727,8 +2715,8 @@
         }
       }
     },
-    "version": "2026-09-16.1",
-    "generated_at": "2026-09-16T08:30:00+08:00",
+    "version": "2026-09-16.4",
+    "generated_at": "2026-09-16T11:30:00+08:00",
     "history_admission_contract": {
       "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
       "consumer_contexts": [
@@ -5831,6 +5819,7 @@
         "surface": "authority_commit",
         "operations": [
           "ak.open.realm_authority.read.bundle.v1",
+          "ak.peer.events.read.resolve_committed.v1",
           "ak.peer.realm_authority.command.handoff.v1"
         ],
         "surface_class": "core"
@@ -7153,6 +7142,17 @@
         }
       },
       {
+        "operation_id": "ak.peer.events.read.resolve_committed.v1",
+        "http": "POST /_arkret/peer/streams/resolve",
+        "grpc": "PeerStreams/ResolveCommitted",
+        "mq": "peer.streams.read.resolve_committed",
+        "notes": "Directory-only exact resolve: authenticate the Directory, revalidate its source-signed DirectorySourceRefAccess, and resolve only byte-identical Event/Commit/stream/position refs contained by that carrier; no scan or caller-supplied Event is accepted as proof.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request",
+        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome"
+      },
+      {
         "operation_id": "ak.peer.events.read.scan.v1",
         "http": "POST /_arkret/peer/streams/scan",
         "grpc": "PeerStreams/Scan",
@@ -7319,7 +7319,7 @@
         "http": "POST /_arkret/peer/signal",
         "grpc": "PeerSignal/Relay",
         "mq": "peer.signal.command.relay",
-        "notes": "Optional Signal Extension single-hop peer relay. The source batches original producer-signed encrypted SignalEnvelope values for one Realm and one destination service. The destination independently verifies peer authentication, current joined-member ActorId routing authority, envelope proof, scope, Seal, signal_class, TTL and encrypted payload binding, then performs only local live fanout. The request MUST NOT carry Idempotency-Key; uncertain outcomes use drop_unconfirmed. A successful request returns an empty response; it reveals no Realm, scope, sender, recipient, binding, support, or per-signal result and is not a durable delivery receipt.",
+        "notes": "Transient encrypted Signal rail. It creates no durable Event or RealmCommit, does not advance any authority stream, and grants no delivery or authorization proof.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 1048576,
         "max_items": 128,
@@ -9045,7 +9045,7 @@
         "http": "POST /_arkret/self/moderation/report",
         "grpc": "SelfModeration/Report",
         "mq": "self.moderation.command.report",
-        "notes": "Carries exactly one direct-holder signed report_event EventInitialSubmission and no unsigned report fields. The Event kind is ak.self.moderation.report; this self endpoint accepts only absent/self provenance and forbids source_provider_id, delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter must equal the authenticated session principal. There is no path Realm: event.realm_id, payload.realm_id, signed scope_ref and the accepted target's derived governance scope must match exactly. Realm-default reports may omit payload.effective_scope; Circle reports must sign the exact Circle scope. The target must be accepted and visible to the reporter; absent, invisible and scope-mismatched targets use the same not_found response. This ordinary Event carries auth_context.authority_refs and no seal_ref and cannot carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs, maps an operation ref to another target or adds a concurrency guard. report_id is derived by retyping the accepted Event id and the stored submit outcome has status=submitted. Exact replay returns that byte-identical outcome without a second log or queue append; the same Event identity with different bytes returns duplicate_conflict. routed_to is omitted for an ordinary reporter and may be returned only when the caller independently holds moderation/governance capability for the exact scope.",
+        "notes": "Carries one caller-signed moderation report Event. The current governance Station revalidates the authenticated reporter, target visibility, effective scope and current authorization, then commits the exact Event on that scope's authority stream. The Event contains only its closed producer, scope, payload and signature fields.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -9132,7 +9132,7 @@
         "http": "POST /_arkret/self/realm-joins/prepare",
         "grpc": "SelfRealmJoin/Prepare",
         "mq": "self.realm_join.command.prepare",
-        "notes": "Prepare exactly one Realm join, knock or invite acceptance. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling the request. The Station resolves the canonical Realm, runs the bounded first-contact bootstrap when it holds no accepted state for that Realm, independently verifies the returned facts against their dependency closure, and freezes the effective join_rule, complete accepted seal_basis, live digest suite, encryption profile, the exact Event kind, canonical payload and preconditions. The client checks target, purpose, request binding and the exact bytes, then signs and submits through ak.self.events.command.submit.v1; it never fetches remote governance evidence, never recomputes Seal roots, never selects a candidate endpoint and never runs a reducer. Preparation is not admission: submit re-checks current authority, freshness and basis, and a stale or conflicting basis requires a fresh preparation instead of rewriting signed material. Registered intents are invite_accept, member_join and knock; restricted_join and application receipts are unsupported_feature. The actor frontier is derived separately from the governance basis under event-and-patch section 2.6, over the union of locally verified accepted state, the applicant's own verified history and the independently verified bootstrap predecessors; remote material never lowers or overrides local history. next_actor_seq zero requires all four decidable initial-state conditions: this service is the account's own Station and therefore the sole authoring entry, the durable authoring record is unbroken since inception across the current device generation lineage, enumeration of that realm and actor completed deterministically and empty, and the verified bootstrap predecessors are empty. Otherwise the operation fails with frontier_unavailable and is recovered through ordinary authorized sync, bootstrap, actor chain repair or fork resolution, never by rejoining to reset the chain.",
+        "notes": "Prepares one join, knock or invite acceptance against the Realm's current governance Station. The Station is discovered from the current authority bundle, not from the inviter or genesis Station. Preparation freezes the exact request and current policy revision; final admission is an authority commit and performs no actor-frontier, Seal-basis or CBS calculation.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -9227,7 +9227,7 @@
         "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
         "grpc": "SelfSecurityTransactions/Continue",
         "mq": "self.security_transaction.command.continue",
-        "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for commit_recovery_unit or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. The commit_recovery_unit artifact is the closed RecoveryTerminalCommit carrying the first new-generation Seal and the recovery receipt, accepted in one atomic commit with both recovery Events, the generation advance, the replacement device projection, the consumed recovery session and the completed terminal result. When all coordinator-owned steps are accepted but the device is offline, terminal_result remains absent; device-attestation readiness is a computed view of the canonical next step and no coordinator phase/state is serialized.",
+        "notes": "Continues only the canonical next transaction step. Recovery's terminal step carries the replacement-device-signed recovery receipt; the current governance Station atomically validates both prepared producer Events, issues their PCR-stream RealmCommit, advances device generation, activates the device and consumes the session. The client never supplies or signs the RealmCommit.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -9271,7 +9271,7 @@
         "http": "POST /_arkret/self/signal",
         "grpc": "SelfSignal/Send",
         "mq": "self.signal.command.send",
-        "notes": "Encrypted-only Signal Extension send rail for ak.schema.signal_envelope.v1. Exact signal type and product target remain inside ciphertext. It MUST NOT persist the envelope as a durable Event or advance actor_seq / Realm frontier.",
+        "notes": "Transient encrypted Signal rail. It creates no durable Event or RealmCommit, does not advance any authority stream, and grants no delivery or authorization proof.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "success_shape_kind": "typed_response",
@@ -9362,8 +9362,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-16.1",
-    "generated_at": "2026-09-16T08:30:00+08:00",
+    "version": "2026-09-16.4",
+    "generated_at": "2026-09-16T11:30:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -13691,11 +13691,11 @@
         "conflicts": []
       }
     ],
-    "version": "2026-09-16.1",
-    "generated_at": "2026-09-16T08:30:00+08:00"
+    "version": "2026-09-13.1",
+    "generated_at": "2026-09-13T10:43:01+08:00"
   },
   "current_result_registry": {
-    "description": "Closed typed current-result families. Selectors are domain types, never Cell IDs.",
+    "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never legacy Cell IDs.",
     "result_kinds": [
       {
         "result_kind": "realm_profile",
@@ -13722,7 +13722,7 @@
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_result"
       }
     ],
-    "version": "2026-09-16.1",
-    "generated_at": "2026-09-16T08:30:00+08:00"
+    "version": "2026-09-16.4",
+    "generated_at": "2026-09-16T11:30:00+08:00"
   }
 }

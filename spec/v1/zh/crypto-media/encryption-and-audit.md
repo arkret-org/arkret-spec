@@ -226,20 +226,20 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 在 sync metadata 中标记该 Realm 为 `e2ee_relaxed=true`,导出 / 备份 / 跨设备时保留该标记
 - 服务端 `ak.server.read.describe.v1.supported_features` **MUST** 列出 `ak.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
 
-**禁止扩展**:本 profile 不允许进一步降级到"不验证 `security_frontier_digest`" / "允许跨 epoch 解密无窗口限制"。降级到此为止；更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
+**禁止扩展**:本 profile 不允许进一步降级到“忽略 `key_access_revision`”或“允许跨 epoch 解密无窗口限制”。降级到此为止；更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
 
-### 2.5 MLS Security Frontier Binding
+### 2.5 MLS authority binding
 
-Arkret v1 把 MLS epoch 只绑定到会改变当前或历史密钥取得者的 accepted control state。普通 Event admission 的 seal_ref 与 MLS security frontier 是正交证明：seal_ref 选择该 Event 的 CBS 授权视图；security_frontier_digest 证明当前 MLS epoch 已覆盖最新 key-access state。任何 Seal 都不得因为被消息引用而要求 MLS Commit 反向覆盖自身。
+Arkret v1 把 MLS epoch 绑定到该 effective scope 当前 authority-committed 的密钥访问修订号。当前治理 Station 在提交 `ak.mls.genesis` / `ak.mls.commit` 前验证成员、设备密钥、scope policy 与 MLS public transition，并把接受结果写入该 Realm 或 Circle 自己的 authority commit stream。MLS 不携带 CBS、Seal、Cell 或治理证明包。
 
 每个 MLS scope 投影唯一 current state：
 
 - mls_group_id；
 - epoch；
-- security_frontier_digest；
+- key_access_revision；
 - commit_ref（genesis 时为 genesis Event ref）。
 
-security_frontier_digest 的输入由 [`mls-security-frontier-registry.json`](../../artifacts/registry/mls-security-frontier-registry.json) 闭合登记，并从 accepted Seal state 与 RFC 9420 current/pending leaf set 确定性重建：
+`key_access_revision` 是由治理 Station 在同一 scope 内维护的单调 `uint64` current result。以下任一 authority-committed 变化实际改变可取得当前或未来 MLS 密钥的主体时，下一次 MLS Genesis/Commit 必须覆盖递增后的 revision：
 
 1. Realm / Circle membership join、leave、remove、ban，以及实际使当前 MLS leaf 无效的 participant terminal；
 2. 当前或 pending MLS leaf 实际引用的 participant device / Agent runtime key authorize、revoke、replacement；
@@ -248,7 +248,7 @@ security_frontier_digest 的输入由 [`mls-security-frontier-registry.json`](..
 
 与当前或 pending leaf 无关的 device/Agent key、普通 capability、message/Strand metadata、moderation、display metadata、media/routing endpoint 和 contact/consent-only state MUST 排除。block、Contact或Consent只在各自被当前操作正式登记为authority gate的路径上立即禁止新 application message、call signal或Welcome；Personal DM只读取双方directional Contact heads，Consent变化对其无效。除非accepted effect同时remove leaf，否则这些变化不单独触发rekey。
 
-producer 不提交任意 Event/Seal ref 清单来定义 frontier。所有实现必须从相同 accepted state 得到逐字节相同的 canonical digest；未知 cell family 或无法闭合依赖时 fail closed。
+producer 不提交任意 Event、Commit 或状态引用清单来定义 revision。它提交预期 revision；治理 Station 将其与提交事务看到的 current result 精确比较。未知或无法闭合的密钥访问变化 fail closed。
 #### 2.5.1 Security binding payload
 
 ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与 MLS proposal 使用同一 mls_governance_binding closed object。必需字段是：
@@ -259,13 +259,13 @@ ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与
 | encoding_profile | 固定 cbor-deterministic-rfc8949-v1 |
 | effective_scope | 唯一 scope 源；Realm-default、Circle 或 native Sidecar，group id 按 §5.1 派生 |
 | previous_epoch / next_epoch | genesis 为 0/0；Commit 必须 next=previous+1 |
-| security_frontier_digest | 按 §2.5 的闭合集合重算 |
+| key_access_revision | 与当前 authority-committed 密钥访问修订号精确相等 |
 | content_scheme | mls_rfc9420 或 mls_exporter_aead_v1，与 accepted Genesis 一致 |
 | durability_policy? | 仅 exporter scheme 必填，none 或 organization_recovery_key |
 | sidecar_binding? | 仅 sidecar scope 必填，绑定 exact participant authority |
 | binding_profile / reducer_profile | 显式解释 profile；缺失或不支持 fail closed |
 
-membership_frontier、covered_seal_refs、policy_root、capability_root 与 discussion_metadata_digest 不再是 wire 字段。它们把同一 accepted state 重复拆成多个 producer-supplied commitments，并导致无关治理变化阻断消息；receiver 改为从 Seal state 直接重算唯一 security_frontier_digest。
+membership_frontier、covered_seal_refs、security_frontier_digest、policy_root、capability_root 与 discussion_metadata_digest 均不是 wire 字段。它们把同一治理判断重复拆成 producer-supplied commitments。receiver 只比较 authority-committed `key_access_revision`、scope、group 与 epoch。
 
 每个 ak.mls.commit MUST 携带 base_epoch_ref、proposal_refs、完整 commit_bytes_b64 与唯一 governance_binding；可选 `commit_message_ref` 若存在必须是 content-addressed Blob ref，其内嵌 digest 必须匹配解码后的完整 Commit bytes。receiver 先验证包含该 payload 的 Event，并在 ref 存在时校验其 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 security frontier。只提供 digest 或 object ref 不合规，payload 不携 sibling `commit_digest`。
 
@@ -276,7 +276,7 @@ producer 在 create、join、restore 后均须维持这一握手 wire-format pol
 错误 wire format/content type。Sidecar 继续适用自己的合同，本条不改变其握手格式。
 
 Station 在 schema、Event proof/capability、canonical scope/group identity、可选 ref 与 inline bytes 的
-exact digest、`governance_binding.previous_epoch -> governance_binding.next_epoch` CAS 和 governance binding 检查之外，MUST 从 exact accepted
+exact digest、`governance_binding.previous_epoch -> governance_binding.next_epoch` CAS 和 `key_access_revision` 检查之外，MUST 从 exact accepted
 base 的耐久公开 group state 解析 Proposal/Commit，验证公开可检查的签名、sender、group、epoch、
 proposal 引用与公开 ratchet-tree 转换，并按 §2.6 建立确切 leaf 来源。by-reference Proposal 必须来自
 同一 base 的 accepted durable Proposal Event，RFC proposal reference 必须匹配其实际认证内容，不能
@@ -299,15 +299,15 @@ binding 的 canonical CBOR map 仅编码本节保留成员；不保留已删除 
 
 #### 2.5.2 Send gate 与 self-heal
 
-E2EE ordinary Event 必须声明 mls_group_id、epoch 与 security_frontier_digest，并携带普通 Event admission 所需的 auth_context.authority_refs。receiver 接受 application message 当且仅当：
+E2EE ordinary Event 必须声明 `mls_group_id`、`epoch` 与 `key_access_revision`。receiver 接受 application message 当且仅当：
 
-1. 自己 Station 已按完整 accepted view 通过 Event 的 seal_ref / CBS admission；客户端不重放此治理判断；
+1. Event 已由其 scope 当前治理 Station 提交并可在对应 authority commit stream 中解析；
 2. group 与 scope 匹配；
-3. epoch 等于 winning MLS epoch；
-4. message 的 security_frontier_digest 等于自己 Station 在该 Event basis 验证的 key-access frontier 结果；
-5. winning genesis/Commit Event 已 accepted，且其完整 RFC 9420 transcript 绑定同一 digest。
+3. epoch 等于 current MLS epoch；
+4. message 的 `key_access_revision` 等于 current MLS group result；
+5. 产生该 epoch 的 Genesis/Commit 已提交，且其 RFC 9420 transcript 绑定相同 revision。
 
-若存在尚未被 winning Commit 覆盖的 key-affecting fact，scope 进入 epoch_update_required，所有新加密 application message、call signal 和 Welcome暂停；返回 mls_governance_binding_stale。无关 capability、metadata、moderation、routing 或 consent-only state 前进时 MUST NOT 产生该错误。
+若 authority-committed key-access 变化尚未被下一 winning Commit 覆盖，scope 进入 `epoch_update_required`，所有新加密 application message、call signal 和 Welcome 暂停；返回 `mls_governance_binding_stale`。无关 capability、metadata、moderation、routing 或 consent-only state 前进时 MUST NOT 产生该错误。
 
 任一 active member 客户端观察到 epoch_update_required 后 MUST 发起 self-heal Commit；并发 proposal/Commit 按现行 MLS winner/CAS 规则收敛。消息数、epoch 存活时长与 routing-token scope 的自保推进上限保持不变。明文 scope 不受 MLS epoch gate，但仍受即时 membership/authorization admission。
 #### 2.5.3 GroupContext extension 与治理结果
@@ -316,47 +316,15 @@ MLS GroupContext extension type 0xF1C0 继续把确定性 CBOR 编码的完整 m
 confirmed_transcript_hash。canonical map 只包含 §2.5.1 的字段；禁止 indefinite-length CBOR、非最短整数、
 重复/乱序 map key、未知字段或 JSON/CBOR 混用。
 
-普通客户端 MUST 使用[服务器信任与结果 §5](../sync/server-trusted-results.md#5-mls-绑定结果)的 self
-query/outcome：自己 Station 对 exact accepted basis 与本地 current/pending RFC 9420 叶集合计算治理结果，
-客户端检查请求绑定及 GroupContext/Event 中的 digest，并执行 RFC 9420 密码学。客户端 MUST NOT 获取或
-保存 proof_base_basis 对应的治理重放检查点，不执行 Merkle、DID history、Seal closure 或 reducer/root 重算。
-新设备、Welcome、creator bootstrap 与历史恢复均适用。服务器结果不携私有 MLS tree secrets，也不替客户端
-选择 leaf set；完整 ActorId 必须区分同 principal 的不同 Station。公开 GroupInfo/ratchet tree 仍走 §5.1.1。
+普通客户端从自己的 Station 读取 typed `mls_group` current result，核对 `effective_scope`、`mls_group_id`、`epoch`、`key_access_revision`、来源 stream 与 commit position，并自行执行完整 RFC 9420 密码学。治理服务器不得索取或返回 MLS 私钥、path secret 或成员 secret。
 
-Peer server 的 `ak.peer.seals.read.mls_governance_proof.v1` 独立使用 `read_request/read_outcome`：
-query 绑定完整 canonical proof_base_basis/proof_target_basis、local_mls_leaves、group_binding purpose、
-base_group_state_ref、Genesis proposal、epochs、binding_profile 与 byte_limit。base 必须是该 peer 已验证的
-accepted cut；target 必须支配 base，base==target 合法。已证明不可达返回 mls_governance_anchor_unreachable，
-必需材料缺失返回 frontier_unavailable。服务不得替换已指定的唯一确认 head 或截断结果。
+跨 Station 验证不使用 MLS governance proof API。接收 Station 通过 authority bundle 找到该 Realm 的 current governance Station，按对应 Realm/Circle stream 拉取并验证 `RealmCommit` 单链，再从已提交 Event 确定性派生相同 current result。缺少 commit 前缀或 public MLS transition material 时返回依赖缺失/暂不可用，不得接受 producer 提供的摘要替代。
 
-Peer verifier MUST 逐条验证 target 的每个 branch 与其签署的 state_root；验证完整 predecessor closure、
-每个 Seal.delta 对应的 every-and-only Events、历史 signer/notary 与 registered dependencies，再以普通 reducer
-验证唯一 target head 的确认状态和确切安全 Cell 证明。notary 轮换必须由 predecessor authority 授权，不能用 current key
-替代历史授权。sparse Merkle membership、range boundaries/nonmembership 和 provenance 必须闭合；安全确认故障、
-recovery reset 与 missing 语义由普通 reducer 决定，禁止临时 JSON merge。最后按同一 frontier registry、Genesis
-binding 和 exact leaves 计算 security_frontier_digest。每个 content-addressed Event/Seal 都按其完整摘要验证；
-event_ids 仅列 sparse provenance，不能替代完整 delta 解析。query_digest/page_digest、1 MiB 完整响应上限、
-64 siblings 上限和每个 closed collection 边界仍适用；没有 cursor、continuation 或 partial frontier。
+#### 2.5.4 Authority current result 信任来源（normative）
 
-向量 ak.vector.mls.security_frontier_key_access_only.v1 继续保证与密钥访问无关的治理 Seal 前进不改变 key-access
-digest，而 active leaf revoke 必须影响它。自己 Station 的结果消费与 peer 的独立证明验证分别验收。
+普通客户端信任已认证账号所属 Station 返回的 current result，并核对账号会话、scope、stream head 与签署意图；客户端不重放治理历史。MLS 本地快照与私钥仍由客户端端到端保护。
 
-#### 2.5.4 SealBasis 信任来源（normative）
-
-普通客户端的治理信任来源是已认证账号所属的 Station。`RealmSealFrontierView` 是该 Station 已验证的
-唯一已确认 Realm head 与 live digest-suite 结果；客户端核对账号会话/Realm 和签署意图即可使用，MUST NOT
-再次从 genesis 建立 T1/T2/T3 治理 pin。配对、Welcome、备份和旧设备迁移均不需要增加治理检查点或 witness。
-MLS 本地快照与私钥的端到端保护继续适用；它们不承担证明自己 Station 诚实的职责。
-
-实际接纳 foreign governance 的服务器仍须独立建立 accepted basis。event-derived Realm 的 genesis 必须
-通过内容绑定 realm_id 派生并核对 create Event；genesis Seal 必须同 Realm、无 predecessor、覆盖该 create，
-并由 create.payload.object.notary 的有效 genesis authority 签署。PCR 按 principal DID 的已验证 inception
-与 critical did_inception root anchor unit 建立锚，不能套用 event-derived create 规则。
-
-服务器从已验证 basis 前移时，必须验证全部新增 Seal/Event 与依赖、唯一确认前缀的可达性及安全状态，
-原子持久化 accepted bytes、验证状态和派生索引；不能仅因另一个服务器提供 frontier、proof 或错误建议而替换
-自身 accepted basis。跨请求/用户/重启复用按[服务器信任与结果 §4](../sync/server-trusted-results.md#4-服务器验证复用)。
-服务器 verifier 向量继续覆盖错 genesis、错 notary、篡改 predecessor 与缺失确认前缀；这些不是客户端冷启动任务。
+实际接纳 foreign Event 的服务器必须独立验证 authority bundle、authority generation、同一 stream 的完整 `previous_commit_ref` 前缀、每个 `RealmCommit` 签名以及 Event digest/position。治理 Station 切换只能通过前后 Station 双签的 planned handoff；接收方必须从已信任 generation 连续验证到新 generation。不同 Realm、Circle 或 Sidecar stream 之间不存在 predecessor 关系，也不得据某条公开 stream 猜测不可见 stream 是否存在。
 
 ### 2.6 KeyPackage Claim 生命周期
 

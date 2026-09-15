@@ -360,41 +360,13 @@
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
-        "event_ids": {
+        "stream_heads": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          }
-        },
-        "actor_frontiers": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "actor_id",
-              "actor_seq",
-              "event_id"
-            ],
-            "properties": {
-              "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/actor_id"
-              },
-              "actor_seq": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "event_id": {
-                "type": "string",
-                "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-              },
-              "hlc": {
-                "type": "string",
-                "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
-              }
-            },
-            "additionalProperties": false
-          }
+            "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+          },
+          "uniqueItems": true,
+          "description": "Authority stream heads from which state_digest was derived."
         }
       },
       "additionalProperties": false

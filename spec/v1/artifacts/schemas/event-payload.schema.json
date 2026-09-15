@@ -883,7 +883,7 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring frontiers is the Control Move envelope seal_basis; the payload carries no frontier field.",
+      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring frontiers is the current authority-committed state; the payload carries no frontier field.",
       "required": [
         "agent_id",
         "key_id",
@@ -1136,7 +1136,7 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
+      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state; the reducer accepts the transition only under the accepted current control frontier.",
       "required": [
         "transition",
         "previous_status",
@@ -1160,7 +1160,7 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
+      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
         "transition",
         "previous_status",
@@ -4388,7 +4388,7 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the Control Move envelope seal_basis (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted Seal covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
+      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted Seal covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
         "device_id",
         "revoked_by",
@@ -6194,7 +6194,7 @@
     },
     "mimi_room_binding_payload": {
       "type": "object",
-      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS security_frontier_digest gate.",
+      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS key_access_revision gate.",
       "required": [
         "profile",
         "mimi_room_uri",
@@ -8267,7 +8267,7 @@
         },
         "media_service_decrypts": {
           "type": "boolean",
-          "description": "Whether a media service listed in plaintext_visible_services may decrypt call media. Defaults to false when absent. It is one of three conditions that MUST all hold (ak.realm.media_service declaration + plaintext_visible_services grant + this toggle). Because it changes who may receive media keys, it enters the media scope security_frontier_digest; a generation that does not cover the current value cannot authorize media decryption. See crypto-media/media-service-binding.md section 8.2."
+          "description": "Whether a media service listed in plaintext_visible_services may decrypt call media. Defaults to false when absent. It is one of three conditions that MUST all hold (ak.realm.media_service declaration + plaintext_visible_services grant + this toggle). Because it changes who may receive media keys, it enters the media scope key_access_revision; a generation that does not cover the current value cannot authorize media decryption. See crypto-media/media-service-binding.md section 8.2."
         },
         "join_policy": {
           "$ref": "#/$defs/join_policy_component"

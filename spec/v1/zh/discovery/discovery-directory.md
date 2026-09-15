@@ -182,7 +182,7 @@ flowchart TB
 
 ### 3.1 `discoverability × join_rule × history_access` 兼容矩阵（normative）
 
-下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（任何写入三轴 cell 的 reducer 在 accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
+下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（任何改变三轴 typed current state 的 Event 在 commit admission 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
 
 | discoverability ↓ \ join_rule → | `public` | `invite` | `knock` | `restricted` | `knock_restricted` | `closed` |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -193,9 +193,9 @@ flowchart TB
 | `invite_only` | ! | ✓ | ✗ | ✓ | ✗ | ✓ |
 | `secret` | ! | ✓ | ✗ | ✗ | ✗ | ✓ |
 
-`history_access` 与上述任一组合正交，且始终只有 `since_join | all_history_for_current_members` 两个当前值。它只控制当前成员的私有历史恢复范围；discoverability 不能授予历史读取或 exporter secret。即使 `discoverability=public`，服务仍 MUST 按 exact current membership incarnation 与该 scope 的 history gate 过滤，并限制 lazy member preview 防止枚举。plaintext scope 仍按公开正文读取合同工作；`mls_rfc9420` 只允许 `since_join`，exporter scope 才可使用二态并通过 private history-key surface 交付。
+`history_access` 与上述任一组合正交，且始终只有 `since_join | all_history_for_current_members` 两个当前值。它只控制治理 Station 可以向当前成员返回多少**明文或其本来有权读取的历史 Event**；discoverability 不能授予历史读取。MLS scope 固定从有效 Add/Welcome 起可读，既不分发加入前 epoch secret，也不存在 private history-key surface。
 
-本矩阵是 cell-level 不变量：实现 MUST 在 `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.join_rule`、`ak.realm.history_access` 或任何其它写入三轴之一的 reducer 接受前，以同一 basis 的 post-write effective 三轴状态执行本表。使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留全部旧值；不得因写入只触及一个 cell 而跳过。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
+本矩阵是 authority-commit admission 不变量：治理 Station 在提交任何会改变三轴的 typed Event 前，MUST 以该 stream 当前 committed state 加上候选 Event 得到的 post-write 状态执行本表。使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 且不得生成 `RealmCommit`。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
 
 ### 3.2 Preview / Peek 与 History Visibility 的关系
 
@@ -235,7 +235,7 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
 }
 ```
 
-`organization_id` 是 cell subject 且必须是 `did_core_id`；策略内容位于 whole-value `value` 内。
+`organization_id` 是该 typed state 的稳定 subject 且必须是 `did_core_id`；策略内容位于 whole-value `value` 内。
 payload **不携带** detached `proof`：治理签名就是该 Event 的 envelope proof（§8.3）。
 
 Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 因为组织 DID 可解析，就公开组织成员列表、官方 Realm 列表、服务拓扑或治理策略全文。
@@ -254,11 +254,11 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 `ak.actor.discovery`、`ak.applet.discovery` 与 `ak.handle.discovery` 是 v1 active discovery state event kind。它们与 `ak.organization.discovery` 使用同一组目录 ingest 规则：resource 自签名声明可发现性，Directory 只索引被 `directory_ids[]` 明确列出的资源，且不得替 resource 重新签名或扩展披露范围。
 
 这些 Event 分别绑定 closed `actor_discovery_state_payload`、`applet_discovery_state_payload` 与 `handle_discovery_state_payload`；通用消费者可使用三者的 `resource_discovery_state` union。每个 exact payload 顶层只有 `resource_id`
-（cell subject）、whole-value `value` 与可选 `state` / `reason`。下表描述 `value` 内的成员：
+（typed subject）、whole-value `value` 与可选 `state` / `reason`。下表描述 `value` 内的成员：
 
 | payload 位置 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- | --- |
-| 顶层 | `resource_id` | ActorId / AppletId / canonical handle | required | 被发现资源的稳定标识，同时是 cell subject；actor 分支使用完整 composite ActorId，principal 与 Station 两分量逐字保留，不接受裸 principal DID/DidCoreId；applet 与 handle 分支分别只接受 typed AppletId 与 canonical handle。 |
+| 顶层 | `resource_id` | ActorId / AppletId / canonical handle | required | 被发现资源的稳定 typed subject；actor 分支使用完整 composite ActorId，principal 与 Station 两分量逐字保留，不接受裸 principal DID/DidCoreId；applet 与 handle 分支分别只接受 typed AppletId 与 canonical handle。 |
 | `value` | `resource_kind` | `enum(actor,applet,handle)` | required | 必须与 Event kind 后缀一致。 |
 | `value` | `discoverability` | §2 enum | required | `public` / `listed` / `restricted` / `unlisted` / `invite_only` / `secret`。 |
 | `value` | `directory_ids` | `did_core_id[]` | required | 被允许索引该资源的稳定 Directory service `did_core_id` 列表。 |
@@ -438,21 +438,21 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 | --- | --- |
 | 真相源 | 资源各自的 Station 上的签名 state event |
 | 授权决策点 | Realm policy / Organization governance / capability evaluator |
-| Join 执行点 | invitee 自己的 Station 首次准入，再按 signed invite / 当前 joined-joined-member ActorId routing projection 选择 `join_candidates[]` 中的成员 Station 转发；最终由 reducer 收敛 |
+| Join 执行点 | invitee 自己的 Station 接收请求，验证当前 `RealmAuthorityBundle`，再把 exact signed Event 转发给当前治理 Station；只有其 `RealmCommit` 构成 accepted |
 | 身份解析器 | DID resolver / identity registry / witness |
 | 消息或历史镜像 | Events API / Sync stream |
 | Service topology 权威 | DID Document `service` entry |
 | 全网爬虫 | 不存在；ingest 仅按 §8 双向 opt-in |
 
-特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任只到“产出 `realm_id + join_candidates[]`，供 invitee 的 Station 选择有界的 joined-member Station 转发目标”为止。客户端始终把 join / invite-accept / knock 提交给自己的 Station；能否实际加入由 Realm 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
+特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant，也不选择替代治理方**。Directory 的 join-side 责任只到“产出 `realm_id + join_candidates[]`，供 invitee 的 Station取得候选 locator”为止。候选只能用来请求并验证 nonce-bound `RealmAuthorityBundle`；客户端始终把 join / invite-accept / knock 提交给自己的 Station，最终能否加入由当前治理 Station在 commit 位置按 Realm `join_rule` 与 policy 决定。
 
 ### 7.3 不变量（normative）
 
 任何符合 v1 的 Directory 实现 MUST 满足：
 
 1. **Rebuildable**：丢失全部本地索引后，Directory 必须能仅凭 `directory_ids` 列出本 DID 的资源 + ingest protocol 重建索引内容。Directory 不得持有任何不可从真相源恢复的"权威"数据。
-2. **Pluralizable**：同一资源 opt-in 多家 Directory 时，针对同一 `(resource_id, source_refs frontier, policy_revision)` 的查询结果 MUST 在 §9.1 normative 字段上一致；不一致 MUST 标记为 `stale=true` 或 `divergent=true`。缺省的 `source_refs` 在该元组里就是空 frontier，与任何非空 frontier 都不相等——两家 Directory 只有在都不可验证时才算同一 frontier。
-3. **Freshness-tagged**：每条返回结果 MUST 携带 `as_of` 与 `policy_revision`。`source_refs` 是**可验证性**字段，不是格式字段：entry 有 Event 来源时 MUST 携带它，让消费者能回真相源自行验签；没有 Event 来源时 MUST 整个省略该成员。实现 MUST NOT 为一条自己从未 author 的 Event 铸造 id，也 MUST NOT 用空数组冒充（schema 保持 `minItems: 1`，所以"存在但为空"不是一种合规形态）。一个伪造的 `source_refs` 比缺省更坏：它看起来可验证，消费者会拿它去解析一个不存在的 Event。消费者 MUST 把缺省的 `source_refs` 当作"该 entry 此刻不可独立验证"，而不是当作已验证。TTL 过期未续约的 entry MUST 标记 `stale=true` 或被移除（见 §8.6）。
+2. **Pluralizable**：同一资源 opt-in 多家 Directory 时，针对同一 `(resource_id, source_refs, policy_revision)` 的查询结果 MUST 在 §9.1 normative 字段上一致；不一致 MUST 标记为 `stale=true` 或 `divergent=true`。每个 source ref 是 `{event_id, commit_id, stream_ref, stream_position}` 闭合四元组，不能只比较 Event ID。
+3. **Freshness-tagged**：每条返回结果 MUST 携带 `as_of` 与 `policy_revision`。有 Event 来源时 `source_refs` MUST 是非空、排序且去重的 `CommittedEventRef[]`；没有 Event 来源时 MUST 整个省略。消费者只有在向已认证 source Station 调用 `ak.peer.events.read.resolve_committed.v1` 并核对 Event、RealmCommit、stream 与 position 四项一致后，才能把它标为独立可验证。普通客户端只消费自己的 Station 已验证的投影，不直接回源。TTL 过期未续约的 entry MUST 标记 `stale=true` 或被移除（见 §8.6）。
 4. **Withdrawable**：资源 governance 通过 §8.7 撤销 opt-in 后，Directory MUST 在 ≤ 1h 内停止披露该资源。
 5. **Plaintext-free**：Directory MUST NOT 持有或转发 Realm 内 plaintext content、E2EE 密文 payload、私 persona DID、pairwise DID 或 governance 密钥材料。
 6. **No-shadow-grant**：Directory MUST NOT 签发 invite token、capability grant、session credential 或任何能绕过 Realm / Organization policy 的认证材料。
@@ -515,8 +515,8 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `discovery_event` | `SignedEvent` | required | 已接受的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。资源类别由五个封闭 Event kind 唯一派生；资源主键按 event-kind registry 的 cell subject 派生：Realm 取 envelope `realm_id`，Organization 取 `payload.organization_id`，Actor / Applet / Handle 取 `payload.resource_id`。投递原签名 Event 与 `/_arkret/peer/contacts` 投递原签名 `ak.contact.*` Event 同形。effective discovery state 是闭合 wrapper 的 `payload.value`，不得把 payload wrapper 当作扁平 state。 |
-| `source_ref_access` | `DirectorySourceRefAccess` | required | source Station 签发的短期闭合回源 carrier；其 `source_refs` 是真相源 event frontier，至少包含产生当前 effective discovery state 的 state Event；Realm 还 MUST 包含 effective `ak.realm.policy_bundle` Event。carrier 同时绑定 source service、目标 Directory、Realm、exact discovery Event、`as_of`、过期时间与 canonical sorted/duplicate-free refs；请求不再并行携带 `source_refs`。Directory 将已验证 refs 做 JCS + SHA-256，所得 digest 是结果的 `policy_revision`。 |
+| `discovery_event` | `SignedEvent` | required | authority-committed 的 `ak.{kind}.discovery` Event 原件，逐字节等于真相源（[`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。资源类别由五个封闭 Event kind 唯一派生；资源主键按 kind 的 typed subject 规则派生：Realm 取 envelope `realm_id`，Organization 取 `payload.organization_id`，Actor / Applet / Handle 取 `payload.resource_id`。effective discovery state 是闭合 wrapper 的 `payload.value`，不得把 payload wrapper 当作扁平 state。 |
+| `source_ref_access` | `DirectorySourceRefAccess` | required | source Station 签发的短期闭合回源 carrier；其 `source_refs` 是 canonical sorted/duplicate-free `CommittedEventRef[]`，每项同时绑定 `{event_id, commit_id, stream_ref, stream_position}`。至少包含产生当前 discovery state 的 committed Event；Realm 还 MUST 包含产生 effective policy bundle 的 committed Event。carrier 同时绑定 source service、目标 Directory、Realm、exact discovery Event、`as_of` 与过期时间。Directory 将已验证四元组做 JCS + SHA-256，所得 digest 是结果的 `policy_revision`。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
 | `supersedes_announce_id` | `ak:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
@@ -546,7 +546,15 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
     "realm_id": "ak:realm:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
     "discovery_event_id": "ak:event:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "source_refs": [
-      "ak:event:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      {
+        "event_id": "ak:event:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "commit_id": "ak:realm_commit:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG"
+        },
+        "stream_position": 42
+      }
     ],
     "as_of": "2026-05-10T08:00:00Z",
     "expires_at": "2026-05-10T08:05:00Z",
@@ -586,11 +594,11 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
 Directory 接受 announce ingest前 MUST 顺序完成：
 
 1. **Transport layer**：验证发送资源服务的 HTTP Message Signature 与目标 service binding。
-2. **Discovery proof**：按 Event proof 既有规则验证 `discovery_event` 的 `proofs[]`（重算 canonical bytes 与 `event_id` 并逐字节比对），确认 effective signer 是资源 governance key 且签发时间在 key 当前 epoch 内（按 DID document key history）；随后按 kind / cell-subject 映射派生资源类别与主键，不存在外层 mismatch 分支。
+2. **Discovery proof**：按 Event proof 既有规则验证 `discovery_event` 的 `proofs[]`（重算 canonical bytes 与 `event_id` 并逐字节比对），并确认其 signer 在该 Event 被 authority commit 时有效；随后按 kind 的 typed subject 规则派生资源类别与主键，不存在外层 mismatch 分支。
 3. **Directory authorization**：确认 `discovery_event.payload.value.directory_ids` 数组包含本 Directory 的 service DID。
-4. **Source refs authority 与首次抽验**：先验证 `source_ref_access` 的 source service detached JWS；其 `ak.directory_source_ref_access_proof.v1` transcript 覆盖 carrier 删除 proof 后的 `payload_digest`、`source_id`、authenticated `directory_id`、`realm_id`、`discovery_event_id`、canonical sorted/duplicate-free `source_refs`、`as_of`、`expires_at`、`verification_method`、`created_at`、Arkret `domain` 与接收 Directory `audience`。carrier 的 discovery Event / `as_of` 必须与本次 announce 逐字相等，source service 必须等于已验证 transport 来源，Directory 必须等于本服务，过期或签名不成立即拒绝。Directory 对**首次 ingest** MUST 从 carrier refs 选择至少一个，并调用既有 `ak.peer.events.read.resolve.v1`，把同一 carrier 放入唯一 `directory_source_ref_access` 字段；请求只可带非空 `event_ids` 子集，禁止 `event_digests`、scan/list 与 `history_traversal_access`。
+4. **Source refs authority 与首次抽验**：先验证 `source_ref_access` 的 source service detached JWS；其 `ak.directory_source_ref_access_proof.v1` transcript 覆盖 carrier 删除 proof 后的 `payload_digest`、`source_id`、authenticated `directory_id`、`realm_id`、`discovery_event_id`、canonical sorted/duplicate-free `source_refs` 四元组、`as_of`、`expires_at`、`verification_method`、`created_at`、Arkret `domain` 与接收 Directory `audience`。carrier 的 discovery Event / `as_of` 必须与本次 announce 逐字相等，source service 必须等于已验证 transport 来源，Directory 必须等于本服务，过期或签名不成立即拒绝。Directory 对**首次 ingest** MUST 从 carrier refs 选择至少一个，并调用 `ak.peer.events.read.resolve_committed.v1`；请求只可带 carrier 中的非空 `CommittedEventRef` 子集，不得使用 scan/list 或只提交 Event ID。
 
-   source Station 在每次 exact resolve 时 MUST 独立重验：caller 的 RFC 9421 service id 等于 carrier `directory_id`；proof 是本 source service 当前或签发时有效 service key 所签；carrier 未过期；`discovery_event_id` 解析到同 Realm 当前 accepted discovery state；Event 的 exact `value.directory_ids` 仍包含该 Directory；Event 未被 successor、withdraw 或 terminal discoverability 撤销；请求中的**每一个** selector 都属于 carrier 的有界 `source_refs`，且返回 Event 属于该 announce 的同一 accepted frontier。任一不成立都按普通 peer exact resolve 的 missing/denied 同形边界零返回、零副作用。公告 id、Directory 自报 refs、source hint 或另一次 announce 的 carrier 都不是 bearer authority；首次只抽验一个不允许请求夹带额外 ref，也不授予普通 federation/history 读取权。
+   source Station 在每次 exact resolve 时 MUST 独立重验：caller 的 RFC 9421 service id 等于 carrier `directory_id`；proof 是本 source service 当前或签发时有效 service key 所签；carrier 未过期；`discovery_event_id` 对应四元组解析到同 Realm 的 authority-committed discovery Event；Event 的 exact `value.directory_ids` 仍包含该 Directory；Event 未被 successor、withdraw 或 terminal discoverability 撤销；请求中的**每一个**四元组都逐字属于 carrier 的有界 `source_refs`，且返回 Event 与 RealmCommit 的四个坐标全部匹配。任一不成立都按 missing/denied 同形边界零返回、零副作用。公告 id、Directory 自报 refs、source hint 或另一次 announce 的 carrier 都不是 bearer authority；首次只抽验一个不允许请求夹带额外 ref，也不授予 stream scan 或其它历史读取权。
 5. **Accept policy**：对照本地 `accept_policy` 检查资源 DID method、trust root、配额、abuse 黑名单。
 
 任一步失败 MUST 拒绝并返回对应错误码；Directory MUST NOT 部分接受或"先索引后审核"。
@@ -685,7 +693,7 @@ Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `accept_policy_kind` | `enum(open, allowlist, trust_root_signed, operator_review)` | `open` = 任意签名资源；`allowlist` = 资源 DID 在显式白名单；`trust_root_signed` = 需要 trust seal 背书；`operator_review` = 人工审核。 |
+| `accept_policy_kind` | `enum(open, allowlist, trust_root_signed, operator_review)` | `open` = 任意签名资源；`allowlist` = 资源 DID 在显式白名单；`trust_root_signed` = 需要 trust-root signature 背书；`operator_review` = 人工审核。 |
 | `accept_policy_ref` | `object?` | 描述如何获得接入资格的可读 ref（URL / DID / governance contact）。 |
 | `default_ttl_seconds` | `int` | 默认 TTL。 |
 | `max_ttl_seconds` | `int` | TTL 上限，MUST ≤ 2,592,000。 |
@@ -739,7 +747,7 @@ POST /_arkret/find/directory/withdraw
 | --- | --- | --- | --- | --- |
 | `ak.find.directory.read.describe.v1` | 无 | 无 | `service_id: did_core_id`; `resource_kinds: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
 | `ak.find.directory.read.search_realms.v1` | 无 | `query: string`; `organization_id: did_core_id`; `source_realm_id: id`; `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；restricted Realm 的 claim presentation 形态见 §2；隐藏资源不得泄露存在性。 |
-| `ak.find.directory.read.resolve_realm.v1` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]` | `realm_preview: object`; `join_rule: string?`; `join_candidates?: ak.schema.realm_join_candidate.v1[]` | `alias` 输入 MUST 解析自 effective `ak.component.realm.alias.v1`（唯一 wire 承载是 `ak.realm.alias`，tombstone 视为不存在；见 [`object-addressing.md` §3.3](./object-addressing.md)），Directory 行只是该 cell 的投影而非独立真相源。`join_candidates[]` 只向 invitee 的 Station 提供从 signed invite / 当前 joined-joined-member ActorId routing projection 裁剪的转发提示，不是客户端可直投列表。若隐私策略不能披露 candidate，响应 MUST 省略；客户端仍只向自己的 Station 提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
+| `ak.find.directory.read.resolve_realm.v1` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]` | `realm_preview: object`; `join_rule: string?`; `join_candidates?: ak.schema.realm_join_candidate.v1[]` | `alias` 输入 MUST 解析自 effective `ak.realm.alias` typed current result（tombstone 视为不存在；见 [`object-addressing.md` §3.3](./object-addressing.md)），Directory 行只是其投影而非独立真相源。`join_candidates[]` 只向 invitee 的 Station提供 current-authority locator，不是客户端可直投列表。若隐私策略不能披露 candidate，响应 MUST 省略；客户端仍只向自己的 Station提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
 | `ak.find.directory.read.resolve_target.v1` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Strand / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；`token` 仅在 `lt ∈ {invite, preview}` 的 link 类型下允许携带，reference 类型 MUST NOT 带 token（见 [`object-addressing.md` §4.1](./object-addressing.md)）；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
 | `ak.find.directory.read.search_organizations.v1` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
 | `ak.find.directory.read.resolve_organization.v1` | 至少一个：`organization_id: did_core_id` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
@@ -860,7 +868,7 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `as_of` | `timestamp` | Directory 上次刷新该条目的时间。 |
-| `source_refs` | `id[]?` | 真相源 event id，供服务端验证、跨 Directory 对账与独立审计定位；普通客户端不据此回源取证。**conditional**：entry 有 Event 来源时 MUST 携带（`minItems: 1`）；没有 Event 来源时 MUST 整个省略，MUST NOT 用空数组冒充（判据见 §7.3 不变量 3）。 |
+| `source_refs` | `CommittedEventRef[]?` | 真相源 committed Event 四元组，供服务端通过 `ak.peer.events.read.resolve_committed.v1` 验证、跨 Directory 对账与独立审计定位；普通客户端不据此回源取证。**conditional**：entry 有 Event 来源时 MUST 携带（`minItems: 1`）；没有 Event 来源时 MUST 整个省略。 |
 | `policy_revision` | `string` | discovery state 的 effective revision；便于跨 Directory 对账。每条 search / resolve 结果 MUST 携带（与 §7.3 不变量 3 一致），不得省略；`ak.find.directory.read.resolve_target.v1` 等泛化解析继承同一 MUST。 |
 | `stale` | `boolean?` | TTL 过期且未续约时为 `true`，客户端 SHOULD 仅作参考。 |
 | `divergent` | `boolean?` | 与同一资源的另一 Directory 视图不一致时为 `true`（实现可选检测）。 |
@@ -868,24 +876,21 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 
 #### 9.1.1 Realm Join Candidate（normative）
 
-`join_candidates[]` 是 invitee Station 的有界转发提示，不是 Realm 级 ingress 权威或授权证明。客户端 MUST 把 `ak.invite.accept`、`ak.member.state{membership="join"}`、`ak.member.state{membership="knock"}` 或 profile 声明的 application receipt 先提交给自己的 Station；该 Station 完成本地 admission 后，才可按 signed invite / 当前 joined-joined-member ActorId routing projection 选择已有 Realm 成员的 Station 转发。
+`join_candidates[]` 是 invitee Station 获取当前 authority bundle 的不可信 locator，不是 Realm 级 ingress 权威或授权证明。客户端 MUST 把 join、knock 或 invite acceptance 先提交给自己的 Station；该 Station用 candidate 向候选 endpoint 请求 nonce-bound `RealmAuthorityBundle`，验证 genesis + handoff chain + current assertion 后，只向已验证的当前治理 Station转发 exact signed Event。
 
 每个 candidate MUST 符合 [`ak.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json)，并满足：
 
 1. `realm_id` MUST 等于解析结果的 canonical Realm ID。
 2. `service_id` MUST 是稳定 service `did_core_id`，不是裸 DID，也不是用户 / 成员 principal `did_core_id`；调用方首次接受新 candidate、candidate binding / policy revision 变化或其 authority freshness 失效时 MUST 验证该 core 与当前 service DID binding，并确认 endpoint 支持 candidate 声明的 `operations`。同一未过期 candidate 命中已接受 binding 时直接复用，不得在每次传输前重新在线解析 DID Document。
-3. `operations` MUST 包含 `ak.peer.events.command.submit.v1`；缺失时 invitee Station 不得将其用于 join-side federation forwarding。客户端不得调用该 candidate。
-4. `expires_at` 过期时，invitee Station MUST 重新解析，不得继续使用缓存 candidate。candidate 不携带 `stale` 或 `policy_revision`——这两个字段属于外层 Directory 结果，不能作为 candidate 自身的 wire 检查项；candidate 自身的 `source_refs` 则是签发方给出的 signed invite / 当前 joined-member Event 依据，属于服务间 provenance，MUST NOT 被解释为客户端回源取证入口。
-5. Candidate 只决定 invitee Station 可将 join material 转交给哪个已有成员 Station；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、Event proof 和 reducer 校验决定。
-6. `join_candidates[].service_id` MUST 来自 signed invite，或按当前 effective joined member ActorId 的封闭规则投影；candidate 仍不授权投递，也不得替 invitee 选择账号。最终 membership 必须携带 invitee 自己接受的完整 ActorId。
-7. Directory / invite link MAY 按 requester、join_rule、discoverability、anti-enumeration policy 裁剪 candidate 数量；不得泄露完整成员 Station 拓扑。对 `restricted` / `unlisted` / `invite_only` / `secret` 的 Realm，MUST 只给出 signed invite 或最小 current member binding 所需的有界集合；部署已知 peer、mirror、notary、search projection 或 URL hint 不得凭自身进入列表。
-8. `seal_basis` 是 candidate `service_id` 在 `as_of` observation coordinate 下该 Realm 的**完整当前已接受 Seal frontier**：恰含该 Realm 的唯一确认 head；候选或相互冲突的安全 lineage 不得作为有效 basis。Seal roots 留在 Seal 自身，不复制到 Event；接收方按所引 Seal 的确认序列重算，客户端不承担该重算。resolver 只有在 signed invite 或 current member binding 已授权该有界披露时才可返回 basis。**它是签发方的观测，只供 invitee Station 做候选选择、陈旧检测与交叉核对：invitee Station MUST NOT 用它 author 本次加入，MUST 改用 [`../sync/federation.md` §5.3.1](../sync/federation.md) 已验证的引导结果；客户端从不接触 candidate。** `seal_basis` 进入 Event digest 且被 proof 绑定，任何服务都不得补填。candidate 不持有完整 Realm Seal frontier 时 MUST NOT 返回。**pre-join 活跃度侧信道收口（normative）**：对非成员 basis 解析 MUST 按 `(realm_id, requester)` 限速并使用固定 timing bucket，且 SHOULD 对 frontier 推进迟滞/分桶。
-9. `encryption_profile` 是签发方在 `as_of` 时**已接受 Realm projection** 的 effective 值，与 `seal_basis` 同样进入 candidate payload digest 并被 candidate proof 绑定。该值供 invitee Station 交叉核对；pre-join client MUST 只用自己 Station 在 `ak.self.realm_join.command.prepare.v1` 结果中给出的已验证 `encryption_profile` 判定 [`../identity/key-management.md`](../identity/key-management.md) §7.11 的加入前 recovery-material gate，取值语义相同：`mls_rfc9420` 表示该 join 会为 invitee 产生 Realm MLS group secret，gate MUST 生效；`none` / `external` 表示 Realm join 本身不产生 Realm 级 MLS 材料，gate 由后续 Circle 加入等已可读状态各自判定。客户端 MUST NOT 为判定该 gate 绕过 membership gate 或读取 membership 门控的 Realm Event 历史（服务端按本节对非成员统一返回 `not_found`，这条读路径不存在）。签发方在该 Realm 的已接受 projection 缺失或不可验证时 MUST NOT 猜测默认值，MUST 省略该 candidate；任何服务都不得补填该字段。
-10. `digest_algorithm` 是签发方在 `as_of` 对完整 `seal_basis` 的 已确认安全投影 验证得到的 current live `DigestSuite`，与 `encryption_profile`、`seal_basis` 一并进入 candidate payload digest 并被 candidate proof 绑定。缺失、同 Realm 出现多 head或任一 leaf / predecessor closure 不可验证时，签发方 MUST 省略整个 candidate。invitee Station 只把它当作交叉核对值；author 使用的 suite MUST 取自 §5.3.1 已验证的引导结果并经 `ak.self.realm_join.command.prepare.v1` 冻结。任何一方 MUST NOT 从 `SealId`、`state_root` 或其他待验证 digest 前缀推断 suite。接收 Realm service 仍须按真实 唯一 predecessor 确认的 suite 重验 Event，candidate 值不一致时拒绝，因此恶意 candidate issuer 只能造成拒绝服务，不能扩张权限。
+3. `service_id` 与可选 `endpoint_url` 只是候选；接收方不得根据 Directory 声明直接认定它是 current authority。
+4. `observed_at` 与 `expires_at` 定义 locator 缓存窗口；过期时必须重新解析，不能把旧 endpoint 当作 authority continuity。
+5. `source` 只能是 `invite | directory | cache`，表示 locator 的取得方式，不表示信任等级。三者都必须走同一 authority bundle 验证。
+6. 验证成功后的 authority bundle 给出 current service、generation、Realm stream head 和 current route；Circle/Sidecar 私有 head 不出现在公开 bundle。join 成功后由申请人自己的 Station从 current authority 拉取签名 typed snapshot 与获准 stream tails，不从 candidate issuer 或 genesis Station拉全历史。
+7. Directory / invite link MAY 按 requester、join_rule、discoverability 和 anti-enumeration policy 裁剪 candidate 数量；不得泄露成员 Station 拓扑。候选不可达或 bundle 无法验证时可以尝试另一个 locator，但多个 locator 最终必须收敛到同一有效 authority chain；互斥 chain 必须 fail closed。
 
 invitee Station 的转发算法 SHOULD 按 `priority` 升序，再按本地可达性与 `service_id` 稳定排序。候选不可达、过期或 fail closed 时 MAY 尝试下一个；客户端只重试自己的 Station。所有重试 MUST 使用同一 canonical `realm_id`，不得跨 Realm 重定向。
 
-客户端 MUST NOT 为发起动作回真相源取证，也 MUST NOT 重算 Seal roots：
+客户端 MUST NOT 为发起动作回真相源取证，也不验证治理历史 reducer：
 
 - 准备执行 join、knock 或 invite 接受时，客户端 MUST 使用 `ak.self.realm_join.command.prepare.v1`；由自己的 Station 解析、验证并冻结待签输入。
 - 跨 Directory 的 `policy_revision` 不一致、`divergent=true` 与关键条目 `stale=true` 是**展示级提示**：刷新与核验由自己的 Station 完成，客户端只在其已验证结果上重新求值，MUST NOT 据此自行拉取远端真相源。
@@ -930,31 +935,24 @@ Result：
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "service_id": "ak:did_core:webvh:z3omZGak5a5es84Ph2kfPs4UP",
           "service_kind": "station",
-          "role": "joined_member_station",
-          "endpoint": "https://principal.acme.example",
-          "operations": [
-            "ak.peer.events.command.submit.v1",
-            "ak.self.events.read.scan.v1"
-          ],
-          "join_methods": [
-            "knock",
-            "restricted_join"
-          ],
-          "priority": 0,
-          "source": "joined_member_account",
-          "source_refs": [
-            "ak:event:AYemPz_ISC7Yf4ytl7vB21-c37l_4W9dmtZFF_yWUcq9"
-          ],
-          "as_of": "2026-05-10T07:55:12Z",
+          "endpoint_url": "https://principal.acme.example",
+          "source": "directory",
+          "observed_at": "2026-05-10T07:55:12Z",
           "expires_at": "2026-05-10T08:05:12Z"
         }
       ],
       "as_of": "2026-05-10T07:55:12Z",
       "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
       "source_refs": [
-        "ak:event:AYemPz_ISC7Yf4ytl7vB21-c37l_4W9dmtZFF_yWUcq9",
-        "ak:event:AVZRcfmbNkWDnY7vFRBfT5-0GKc1emMtu7zh2LD9WziK",
-        "ak:event:AcmUk3Vf28NeA_10d3lhwc2_Ojm518lWJl2oGUshkHp5"
+        {
+          "event_id": "ak:event:AYemPz_ISC7Yf4ytl7vB21-c37l_4W9dmtZFF_yWUcq9",
+          "commit_id": "ak:realm_commit:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "stream_position": 42
+        }
       ]
     }
   ],
@@ -976,7 +974,7 @@ Result：
 }
 ```
 
-**失败不可区分（含时延等同，normative）**：对"不存在"与"未授权访问的隐藏资源"，实现 MUST 使用相同的 status、相同响应结构与**相同时延等级**（constant-time 或固定时延桶，避免按是否走完整 presentation / claim / audience 校验产生可观测时序差）。该要求适用于 `resolve_realm`、`resolve_target`、`resolve_handle`、`resolve_agent_selector`、`list_handles_for_subject`、`search_users` / `search_actors` / `search_realms` 的所有 `not_found` / `unauthorized` 分支。否则攻击者可用时序差分逐个探测 handle / selector / 成员是否存在，即便响应体一致也能去匿名化组织成员名单与关系图。pre-join resolve 若返回 `seal_basis` / head snapshot，服务端还 MUST 对返回给同一 requester 的 head 推进使用固定迟滞 / 分桶：每 `(realm_id, requester)` 在部署声明窗口内最多暴露一次新的 head snapshot，窗口不得随 Realm 实时写入速率变化；未到窗口边界时返回上一可见 snapshot 或不可区分失败，而不是实时 head。实现也可用严格限速替代，但必须声明可测上限（默认 SHOULD ≤ 1 次 / 5 分钟），并在 conformance / ServiceDescribe 中暴露该上限。timing 侧信道收口对齐 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) 的目录 resolve 反枚举 / blinding 条款；`resolve_target`、`resolve_handle` 与 `resolve_agent_selector` 分别由 `ak.vector.directory.resolve_target_blinding.v1`、`ak.vector.directory.resolve_handle_failure_blinding.v1`、`ak.vector.directory.resolve_agent_selector_failure_blinding.v1` 固定。
+**失败不可区分（含时延等同，normative）**：对"不存在"与"未授权访问的隐藏资源"，实现 MUST 使用相同的 status、相同响应结构与**相同时延等级**（constant-time 或固定时延桶，避免按是否走完整 presentation / claim / audience 校验产生可观测时序差）。该要求适用于 `resolve_realm`、`resolve_target`、`resolve_handle`、`resolve_agent_selector`、`list_handles_for_subject`、`search_users` / `search_actors` / `search_realms` 的所有 `not_found` / `unauthorized` 分支。否则攻击者可用时序差分逐个探测 handle / selector / 成员是否存在，即便响应体一致也能去匿名化组织成员名单与关系图。pre-join resolve 只返回有界 locator，不返回 authority stream head；authority freshness 由随后 nonce-bound bundle 独立验证。timing 侧信道收口对齐 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) 的目录 resolve 反枚举 / blinding 条款；`resolve_target`、`resolve_handle` 与 `resolve_agent_selector` 分别由 `ak.vector.directory.resolve_target_blinding.v1`、`ak.vector.directory.resolve_handle_failure_blinding.v1`、`ak.vector.directory.resolve_agent_selector_failure_blinding.v1` 固定。
 
 ## 10. Parent Realm 与 Organization Directory
 

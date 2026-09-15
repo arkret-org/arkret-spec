@@ -60,42 +60,12 @@
       "$ref": "./common-ids.schema.json#/$defs/actor_id"
     },
     "frontier": {
-      "type": "object",
-      "required": [
-        "realm_frontier"
-      ],
-      "properties": {
-        "realm_frontier": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          },
-          "minItems": 1
-        },
-        "actor_frontier": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object",
-            "required": [
-              "actor_seq",
-              "event_id"
-            ],
-            "properties": {
-              "actor_seq": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "event_id": {
-                "type": "string",
-                "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-              }
-            },
-            "additionalProperties": true
-          }
+      "allOf": [
+        {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         }
-      },
-      "additionalProperties": true
+      ],
+      "description": "Exact authority stream head observed for this receipt. The commit chain, not an actor frontier or Event-DAG cut, defines the read-your-writes boundary."
     },
     "observed_at": {
       "$ref": "#/$defs/timestamp"

@@ -7182,16 +7182,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/RealmActorFrontierView/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequest/properties/audience_id",
       "property_name": "audience_id",
       "semantic_category": "responsibility_identity_material",
@@ -7614,16 +7604,6 @@
     {
       "schema_path": "view.schema.json#/$defs/document_morph_projection_outcome/properties/document/properties/updated_by",
       "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "view.schema.json#/$defs/state_frontier/properties/actor_frontiers/items/properties/actor_id",
-      "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
       "external_literal_owner": false,

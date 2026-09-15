@@ -9902,3 +9902,35 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+  /_arkret/peer/streams/resolve:
+    post:
+      operationId: ak.peer.events.read.resolve_committed
+      summary: 'Directory-only exact resolve: authenticate the Directory, revalidate its source-signed DirectorySourceRefAccess,
+        and resolve only byte-identical Event/Commit/stream/position refs contained by that carrier; no scan or caller-supplied
+        Event is accepted as proof'
+      description: 'Directory-only exact resolve: authenticate the Directory, revalidate its source-signed DirectorySourceRefAccess,
+        and resolve only byte-identical Event/Commit/stream/position refs contained by that carrier; no scan or caller-supplied
+        Event is accepted as proof.'
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.events.read.resolve_committed.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request
+      responses:
+        '200':
+          description: Successful Arkret operation outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome
+      security:
+      - serviceHttpMessageSignatures: []

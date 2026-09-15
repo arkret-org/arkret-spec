@@ -47,16 +47,16 @@
       "event_kind": 3,
       "inbound": 51,
       "outbound": 62,
-      "prose": 105,
+      "prose": 104,
       "prose_only": 2,
       "schema_reference": 154,
       "startup_compile": 216,
-      "vectors": 109
+      "vectors": 111
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 107,
+    "without_vector_coverage": 105,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -132,8 +132,6 @@
     "ak.schema.message_prepare_outcome.v1",
     "ak.schema.message_prepare_request.v1",
     "ak.schema.mimi_operations.v1",
-    "ak.schema.mls_commit_submission.v1",
-    "ak.schema.mls_welcome_delivery.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.patch.v1",
     "ak.schema.presence_preference.v1",
@@ -951,6 +949,7 @@
         "owners": [
           "ak.open.realm_authority.read.bundle.v1",
           "ak.peer.events.command.submit.v1",
+          "ak.peer.events.read.resolve_committed.v1",
           "ak.peer.events.read.scan.v1",
           "ak.peer.realm_authority.command.handoff.v1",
           "ak.self.events.command.submit.v1",
@@ -2598,15 +2597,13 @@
       "file": "schemas/mls-commit-submission.schema.json",
       "consumers": {
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.authority_commit_operations.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "required_schema"
       }
     },
     {
@@ -2614,15 +2611,13 @@
       "file": "schemas/mls-welcome-delivery.schema.json",
       "consumers": {
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.mls_commit_submission.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "required_schema"
       }
     },
     {
@@ -3112,7 +3107,6 @@
       "schema_id": "ak.schema.realm_commit.v1",
       "file": "schemas/realm-commit.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"

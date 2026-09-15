@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T08:30:00+08:00",
+  "generated_at": "2026-09-16T12:15:00+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -228,96 +228,6 @@
       },
       "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.recovery_authority_recovery_completion_attestation_transaction_request_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/recovery-authority.schema.json",
-        "json_path": "$.$defs.recovery_completion_attestation.properties",
-        "digest_field": "transaction_request_digest",
-        "content_addressed_refs": [
-          "first_generation_seal_id"
-        ]
-      },
-      "preimage": "Digest of the canonical RecoveryTransaction create request bytes; first_generation_seal_id addresses the committed Seal body, which the create request never contained",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.recovery_authority_recovery_completion_attestation_prepared_plan_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/recovery-authority.schema.json",
-        "json_path": "$.$defs.recovery_completion_attestation.properties",
-        "digest_field": "prepared_plan_digest",
-        "content_addressed_refs": [
-          "first_generation_seal_id"
-        ]
-      },
-      "preimage": "SHA-256 of JCS(prepared_plan), the complete Station-derived plan; first_generation_seal_id addresses only the unsigned Seal body that is one member of that plan",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.recovery_authority_recovery_completion_attestation_terminal_receipt_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/recovery-authority.schema.json",
-        "json_path": "$.$defs.recovery_completion_attestation.properties",
-        "digest_field": "terminal_receipt_digest",
-        "content_addressed_refs": [
-          "first_generation_seal_id"
-        ]
-      },
-      "preimage": "Digest of the complete signed ak.schema.recovery_receipt.v1; first_generation_seal_id addresses the Seal the receipt refers to, not the receipt bytes",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.recovery_authority_recovery_completion_attestation_terminal_commit_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/recovery-authority.schema.json",
-        "json_path": "$.$defs.recovery_completion_attestation.properties",
-        "digest_field": "terminal_commit_digest",
-        "content_addressed_refs": [
-          "first_generation_seal_id"
-        ]
-      },
-      "preimage": "SHA-256 of JCS(RecoveryTerminalCommit), covering the signed Seal and the receipt together; first_generation_seal_id addresses only the Seal body inside it and carries no receipt or signature octet",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.recovery_receipt_root_transaction_request_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/recovery-receipt.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "transaction_request_digest",
-        "content_addressed_refs": [
-          "first_generation_seal_id"
-        ]
-      },
-      "preimage": "Digest of the canonical RecoveryTransaction create request bytes; first_generation_seal_id addresses the committed Seal body, which the create request never contained",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.recovery_receipt_root_prepared_plan_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/recovery-receipt.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "prepared_plan_digest",
-        "content_addressed_refs": [
-          "first_generation_seal_id"
-        ]
-      },
-      "preimage": "SHA-256 of JCS(prepared_plan), the complete Station-derived plan; first_generation_seal_id addresses only the unsigned Seal body that is one member of that plan",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
     }
   ]
 }

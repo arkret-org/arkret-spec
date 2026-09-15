@@ -2889,16 +2889,23 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
     except (KeyError, TypeError):
         completion_properties = {}
         signature_description = ""
-    if "device_authorization_event_digest" in completion_properties:
-        lint.fail(
-            authority_path,
-            "recovery completion attestation signature projection must derive the Event digest from device_authorization_event_id",
-        )
-    if "device_authorization_event_id" not in signature_description:
-        lint.fail(
-            authority_path,
-            "recovery completion attestation signature projection must bind device_authorization_event_id",
-        )
+    for field in ("reanchor_event_ref", "device_authorization_event_ref"):
+        if field not in completion_properties or field not in signature_description:
+            lint.fail(
+                authority_path,
+                f"recovery completion attestation signature projection must bind {field}",
+            )
+    for retired_field in (
+        "device_authorization_event_id",
+        "device_authorization_event_digest",
+        "reanchor_commit_id",
+        "terminal_commit_digest",
+    ):
+        if retired_field in completion_properties:
+            lint.fail(
+                authority_path,
+                f"recovery completion attestation must not retain retired field {retired_field}",
+            )
 
 
 

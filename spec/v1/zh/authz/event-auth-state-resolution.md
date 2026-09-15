@@ -1,379 +1,76 @@
 ---
-title: Event Authorization and State Resolution
+title: Event Authorization And State Resolution
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-15
+updated: 2026-09-16
+see_also:
+  - ../sync/authority-commit-log.md
+  - capabilities.md
+  - ../sync/current-results.md
+  - ../conformance/normative-language.md
 ---
-
-本文规范关键字按 [规范语言](../conformance/normative-language.md) 解释。
 
 ## 1. 权威来源与执行模型
 
-本文件定义共享 Event 的授权、确定性投影和安全事务生效。规范类型与字段形状以 `event-envelope.schema.json`、`seal.schema.json` 及 `contract-registry.json` 为机读真源。未知 kind、字段、状态模型、条件或 critical reference MUST 拒绝，缺少已声明证据 MUST pending，不能推断为 allow。
-
-每项注册 Cell write 声明 `execution=data|security` 与 `state_model`。先从签名 Event 求值该 write 的封闭 `condition`，再派生目标与效果。存在任意有效 security write 时，整个 Event 是原子安全命令；否则是普通数据。没有有效效果的 reducer Event MUST 拒绝。producer MUST NOT 自报执行类别。
-
-普通数据使用 `causal_register`、`or_set`、`ordered_log` 或 issuer-local `counter`。其中 `causal_register` 按 §6 的同 Cell 固定因果全序产生唯一当前值，不以到达顺序、墙钟或 HLC 选值。安全状态使用 `sequenced_state`，按安全域确认命令顺序执行，不定义无序 join。转移表与 CAS 前置条件属于领域验证规则，不是另一种共享寄存器类型。
-
-原子 bootstrap unit 内的所有 Event 共同等待该 unit 的安全决定；D 初始效果不能提前使创建整体成功。后续独立的普通编辑不继承这种等待。安全许可与普通结果 MUST 使用不同注册写入目标，D 效果不能覆盖 S 字段。
+每个 Realm只有一个 current governance Station。它为 Realm、每个 Circle、每个 Sidecar分别维护一条单写者 authority stream。Producer签 Event；governance Station在实际 commit位置验证 current authorization和领域规则并签 `RealmCommit`。
 
 ## 2. 独立接收站准入
 
-用户 MAY 将同一生产者签名 Event 直接提交给任意合资格接收站。接收站 MUST 验证完整 AccountId、producer proof、可携带 signer evidence、注册 admission 分支、授权依赖、scope、重放及资源界限。原账号 Station 不拥有排他的首次准入权；接收站 MUST NOT 以原站在线、原站补签或原站 session introspection 作为普通提交前置条件。
-
-Event `proofs` 恰有一个 `producer_event_proof`，其 signer evidence 解析到该实际 signing key。设备 key 不以 self-reported key 或任意 DID 当前 key 替代。genesis/recovery 按注册的独立根权力验证，不能由普通 capability 冒充。第三方存储收据不是 Event proof，不授予权限。
-
-普通单条 Event 可直接使用 `ak.self.events.command.submit.v1` 的 `ProofAuthenticatedPublication` 分支：`event.proofs` 自身完成请求身份认证，不需要 SessionGrant、handoff、原站设备检查回调或 B 上的新账号。该分支只返回确切提交的结果，不能访问私有账户数据，不能提交安全命令或 bootstrap unit；缺证据 pending，已提供但无效的会话凭据不能被忽略后回退。
-
-采用会话的其它消费面通过 audience、nonce 与持钥证明绑定完整 AccountId 和 scope。会话签发与更新遵守其登记的账户服务合同，不是普通 body-proof 提交的依赖。它 MUST NOT 赋予原站备份解锁、私有 push route、账户管理或未授权的数据访问。
-
-普通数据 `auth_context` 只携带已签名的 `authority_refs`，不重复声明 key 标识或无来源的 epoch。实际 signer/key 由唯一 producer proof 所绑定的确切历史 signer evidence 认证；从 evidence 与授权链派生的实际授权实例 MUST 与原签名 refs 支持的上下文匹配，不能用当前查询结果或同 key 的后来授权替代。proof 不进入 Event 内容摘要，修改 evidence ref 本身不会改变 EventId；其签名绑定不单独阻止持钥者重签。接收者 MUST 保留原完整 Event，拒绝同 EventId 替换 proof 或其它 canonical bytes，不能借重新附证把旧 Event 移入新授权代。接收站 MUST 验证全部相关 grant constraints、父委托链、成员、设备、安装授权和 scope。refs 可以长期缓存，MUST NOT 因 Seal 年龄、无 heartbeat 或签署者离线自动过期。显式业务授权的有效期仍执行，见 §5。
-
-Agent state attestation、controller gate attestation 和设备投影 attestation 的短 TTL 只约束直接消费“当前查询结果”的接口；它们不是普通数据授权租约。普通数据验证这些对象在原 observation 时有效后，可以持久缓存并复用。设备的真实期限从已签 `authorization_window` 读取，Agent 从确切 key/delegation 授权读取，不能把缓存 TTL 当成资格期限。签名 issuer 及其授权证据也按相同的固定历史依据验证，不递归引入每消息在线刷新。安全操作仍执行其注册的当前状态检查。
-
-接收站在同一事务中记录 Event、证明依赖、分类与 outbox；已知 revoke fence 与该 scope 的 live admission MUST 串行化并持久化。相同 Event 身份的重放不重复业务效果，且不能绕过 producer proof 的精确重试验证。
-
-未知撤销允许传播窗口：分区站可按完整且未被本地已知事实否定的授权继续普通聊天。获知撤销后 MUST 立即挡受影响资格的新 live 提交。无法证明全球没有未知更新不等于缺少已引用依赖。
+Account/consumer Station可以验证、排队、转发和缓存，但不能独立产生accepted状态。只有验证 genesis + handoff chain、current assertion、Commit signature、Event ID/proof和同stream连续性后，才能向客户端报告committed。
 
 ## 3. 历史分类与因果依赖
 
-K 为完整已验证输入证据集合。持久分类由 K、对应安全域的确认前缀和注册规则确定，不读取本站首次到达顺序、当前墙钟或收据来源。
-
-- pending：缺必要依赖，不能得到最终分类。
-- eligible：历史授权与全部适用关闭约束成立，且执行依赖可用。
-- quarantined：保留必要证据，但不进入普通业务投影、不触发新通知或副作用。
-- 数学签名、绑定或结构非法：拒绝，不进入业务因果覆盖。
-
-实际曾发生的投递、用户已看到的内容或泄露不能回滚，不属于持久 Cell 投影的收敛保证。历史回放 MUST NOT 重新触发 live 通知、自动化或密钥释放。
-
-普通因果引用不等于执行依赖。引用/回复隔离内容不自动撤销回复者；对隔离基底应用 patch、依赖失效 grant 的操作 MUST 停止投影。有权作者可对有效基底发新的因果后继，不按接收顺序清空历史。`causal_register` 的 `depth(e,c)` 在完整认证依赖可用后固定；后来资格变化只改变候选集合，不从当前 eligible 子图重算历史深度。
-
-比较收敛时必须比较相同可见 scope 和完整必要证据。加密正文的语义验证另外要求同样的必要密钥；Station 只能判定可验证 envelope/密文/公开依赖，不能把不可解密当成正文有效。
+Event没有通用 `actor_seq`、`prev_refs` 或 `causal_refs`。业务依赖使用registry声明的typed payload字段或`refs[]` role。依赖某个accepted事实时使用exact committed ref；业务引用不产生跨stream总序。
 
 ## 4. 授权关闭
 
-安全撤销决定绑定封闭 dependency_kind、目标授权实例、generation Event、action/scope 和精确因果 frontier；来源、匹配坐标和独立开闭区间按 [CBS §5](./cbs-profiles.md#5-授权关闭与有限期) 的 canonical 表验证，不能只比较两个 EventId。关闭集合 C_R 为 frontier 与其完整祖先集合。该决定 MUST 由有权的安全域确认，不能由普通 Event 或任意接收站收据签发。
-
-关闭记录的 `scope_ref` 标识**被关闭授权依赖自身所属的安全 scope**，不是使用该资格的普通 Event 的业务资源 scope。验证者 MUST 从已验证授权来源派生该坐标，不得直接复制普通 Event 的 `scope_ref`。例如 human device 或 Agent key 的授权依赖属于其 exact AccountId 所绑定的 PCR scope；其关闭可影响依赖该资格的任意业务 Realm，不要求 PCR 枚举所有这些 Realm。Realm membership 依赖属于该 Realm，Circle membership 依赖属于该 Circle；Circle 内的 Event 同时使用父 Realm membership 时，仍分别保留这两个授权依赖坐标。grant 的授权依赖 scope 由其已确认的授权记录及登记规则派生。业务资源 scope、grant selector 覆盖、action、audience 和 constraints 仍独立验证；依赖 scope 相同不授予跨资源访问权，也不允许任意 PCR 为其它授权域签发关闭决定。
-
-普通 Event 不等待授权关闭决定。实际撤销时汇集可获得的目标历史，不等待所有副本在线；授权关闭证明只承诺选定集合，不证明世界历史收齐。最大 actor_seq、wall clock、HLC 和摘要排序 MUST NOT 代替完整 Event 身份。普通数据另受 §8 的数据基准收录/关闭约束：该约束冻结一个已公告基准的允许 Event 身份集合，不替代授权资格，也不把业务值写入安全状态根。
-
-使用已关闭资格的 e，仅在历史授权成立且 e 属于每个适用 C_R 时保持 eligible；否则 quarantined。多个适用 cut 允许集取交集，不以较宽后继 cut 复活被另一关闭排除的事件。已验证授权坐标后，任一完整适用关闭集合明确排除 e，或实际执行依赖已有确定的无效结果，即足以 quarantine；其它依赖尚缺材料不能推翻这个已证明的否定结论。尚无确定否定且缺必要 membership 证明时 pending，不把本地查不到当成 non-membership。数学签名、绑定或结构非法仍按拒绝处理。
-
-新加入、重新授权与恢复产生新授权实例或 generation；旧 Event 不得换标签进入新代。父 grant 关闭沿实际采用的授权证明链按 action 传递，链上全部 constraints 仍求值；不把未采用的替代 grant 路径混为必需依赖。Owner transfer 关闭旧 realm_controller_assignment，保留既发 grant 所用 realm_authority_generation；authority reset 按真实根代依赖关闭，不撤销无根代依赖的 participant baseline。
-
-离线分支中真实的旧消息也可能因未被 cut 覆盖而隔离。UI MUST 表达重分类，不能声称已证明这些消息产生在撤销之后。已知撤销禁止新 live 投递，但仍可存储和验证历史证据。
-
-普通对象归档不产生授权 cut。Circle archive/tombstone 关闭整个有效 scope，属于安全命令。普通 archive/restore 由独立的已确认写入权限验证，restore 不要求对象先 active。
+授权不再冻结于producer选择的历史basis。治理 Station在分配Commit前读取current membership、capability、policy、device/Agent authorization和typed target revision；任一条件失败则rejected且不产生Commit。
 
 ## 5. 有限期与时间证明
 
-live gate 以可信误差边界检查显式 not_before/expires_at；时钟无法满足界限时，仅依赖该时间条件的操作 fail closed。持久历史投影不使用 receiver 当前时间，session 到期也不使历史 Event 作废。
-
-producer created_at 不能证明期限内存在。有限期资格的普通 Event 可在期限内按本地验证暂时投递；期限结束后的稳定历史必须有该资格安全域确认的期限内存在锚，覆盖确切 Event/因果集合及有效窗。证明采用 Seal `existence_anchors` 及配置的有界时钟 prepare 规则，详见 [安全域确认](./cbs-profiles.md) §5，不能仅信任 Seal 自报时间。缺锚则待证/隔离，期后补签不能倒灌。
-
-无到期的普通聊天不要求期限锚或周期 Seal。高风险有限期命令在安全事务内验证期限，不使用普通分区放行规则。可信时间证明不能取得时 MUST 保持失败/待证，不能降级为 producer 时间。
+期限以authority admission时的受信时钟和proof自身受约束时间求值。Producer `created_at` 只用于审计/展示，不能延长已撤销权限或决定winner。
 
 ## 6. 因果寄存器
 
-写入身份由 canonical Event 身份与注册 Cell target 唯一确定，业务值不是身份。写过的 null、未写入、同值多写、ABA 与异值并发写 MUST 可区分。不得按 `(value,from)` 去重或接因果边。
-
-对确切 `(Realm, effective scope, CellRef=c)` 的已认证写入 `e`，`P(e,c)` 是其签名 `causal_refs[]` 中经注册 reducer 验证为同 Cell 业务因果前驱的写入集合。合法初始写没有同 Cell 前驱；后继写必须至少引用一个可用同 Cell 来源。只引用别的 Cell、actor chain、语义回复、Seal、HLC 或墙钟不提高该 Cell 排名。
-
-```text
-depth(e,c) = 0                                      若 e 是合法初始写
-depth(e,c) = 1 + max(depth(p,c), p ∈ P(e,c))         其它合法写
-order(e,c) = (depth(e,c), canonical_event_id_bytes(e))
-current(c,K) = argmax(order(e,c), e ∈ eligible_writes(c,K))
-```
-
-`canonical_event_id_bytes` 是完整 typed EventId 的规范解码字节（suite code 与全部 digest octets），按无符号字节升序比较并取较大项；不得比较显示字符串、截断 digest 或 locale。`depth` 是 `0..=9007199254740991` 的 JSON-safe 无符号整数，必须从已认证、无环的同 Cell 依赖图推导，作者不能自报。加一溢出、超过上限、同 Cell 必需前驱缺失或依赖环均 fail closed；缺材料时 pending，不能暂以 0 或 receiver 当前值代替。实现 MAY 缓存已验证深度，但 MUST 能由相同证据重算。
-
-深度在完成认证推导后固定。后来授权/关闭证据变化只改变 `eligible_writes(c,K)`，不得从此时仍 eligible 的父集合重算历史深度；被隔离执行基底的后继仍按既有执行依赖规则失去资格。相同资格上下文中的 join 是对全部候选取固定 `order` 最大值，因而交换、结合、幂等；不得先裁剪为旧式 heads 再挑 winner。不同资格上下文仍须先合并原始证据、重算资格，再选值，不能直接 join 两个赢家。
-
-后继只声明自己实际观察到的来源，不能吸收接收站后来看到的并发写。普通前置检查只对签名 basis 成立，不承诺两个离线写中只成功一个。作者基于当前来源保存的新写，其深度严格高于该来源；未观察到的更深合法分支仍可能胜出。仍获权作者可构造更长分支或试探同深度 EventId，这属于 authorized-writer 内容修改/资源消耗风险，不授予额外 authority，也不得以本地“陈旧”判断 quarantine 合法离线写。
-
-current 只发布唯一赢家的完整 `{event_id,depth,value}` 来源；普通编辑仅以该来源作为同 Cell 基底，不要求取得或引用全部并发候选。snapshot 保留完整 coverage 与赢家排名，并绑定安全确认前缀、授权/关闭依赖和 reducer 合同；未来资格重算所需的落选值、认证依赖和固定深度材料仍须由 replay evidence 保留，不能因 current 单值而 GC。
-
-一致性向量 `ak.vector.lattice.causal_register_supersession.v1` 与 `ak.vector.state_model.causal_transition_heads.v1` MUST 覆盖正常后继超过整个已观察视图、不同到达顺序、同值异身份、null、ABA、同深度身份兜底、无关 Cell/actor_seq 不抬 rank、缺依赖、循环和溢出。向量 ID 为既有稳定标识；其中 `heads` 仅是历史命名，不表示当前协议仍发布多头。
+通用causal register已退役。默认同一typed target按Commit顺序更新；需要防覆盖的kind在payload定义`expected_revision`，比较失败则conflict。
 
 ## 7. 其他普通状态与结构
 
-OR-set 按精确 observed-remove dots 合并；移除只覆盖签名上下文实际观察的 dot。counter 仅按登记的 issuer-local 分片合并。ordered_log 是不可变 Event 集，canonical 排序只用于序列化/展示，不产生权限、因果或唯一赢家。
-
-空间 parent 在各自 basis 验无环、自指、同 Realm 和可读 scope。每个 parent Cell 先按 §6 得到唯一当前边，再在当前边图中把有向环涉及的边全部标 unresolved；不得生成 contains、伪装 root 或按到达顺序选边。有权后继 reparent 可改变当前边。指向终态或不相容 scope 的边不产生有效导航，placement 从不授予读取权。
-
-普通状态转移表属于注册领域合同。每条候选写仍必须相对其签名来源通过转移验证；最终当前状态按 §6 固定排序选出，不因落选而变成无效写。terminal tombstone 的不可逆性必须由登记领域验证保证，不能只依赖 winner 排序。时刻调度产生显式已授权后继 Event，不能按各站首次到达时间改写持久历史。
+Membership、policy、Strand、Message、Relation、Circle和capability由各自typed reducer处理。实现可用内部表/索引，但不得暴露Cell/state-model DSL。
 
 ## 8. 安全状态与 Seal
 
-v1 每个 Realm 构成一个安全域，域内身份控制、授权政策、MLS group 和硬唯一对象共用确认序列。Circle 按 scope 隔离读写权限，不另启可绕过父域撤销的安全序列。不同 Realm 独立；producer 不能另选域缩小联合约束。安全命令的 seal_basis 每域仅一个确认 head；签名 basis 必须位于该域当前确认前缀上。对命令实际读取或写入的每个安全 Cell，从签名 basis 派生 revision（从未写入为 absence），并在执行位置与当前 revision 比较；变化则持久拒绝，业务值相同也不能通过。仅无关 Cell 的后继不使命令失效；显式要求 exact frontier 的专用操作仍执行自己的强前置条件。多域安全效果由同一个本地事务锁定和提交，不能把部分提交当成功。
-
-安全域由唯一治理 Station 耐久串行执行，签署者使用冻结配置的唯一 key。单写者排他、CAS、防重复签发、原子终态与 outbox 遵循 [安全域确认 §1–§3](./cbs-profiles.md)；不声明多节点容错或自动选主。
-
-PCR f=0 客户端 prepare 在 `(realm_id, signer slot, predecessor basis)` 上形成耐久 signing-slot fence；首个 canonical request 与唯一可签 outcome 必须在响应前原子冻结，exact request 只能重放同一 outcome，任何不同 request 都不能取得第二份可签 body。客户端 durable journal 丢失时，唯一恢复载体是认证的 `ak.self.seals.read.prepare_fence_result.v1`：Station 从 session/DPoP 派生 current signer slot，只对仍为 exact current predecessor 的同一合法 signer 返回经过 request hash、完整 binding 与 body digest 复核的原材料；其余命中状态统一非枚举 `not_found`。prepare 的错误 Problem、pending scan、Seal resolve 与内部数据库均不是恢复 wire。该 read 不创建、续租、释放 fence 或推进 frontier，客户端仍必须重新确认 signer intent 后才能签名。完整 HTTP 与 closed DTO 见 [`service-http-binding.md`](../sync/service-http-binding.md)。
-
-commit transcript 恰为 `JCS({context:"ak.seal.commit.v1",seal_digest})` 两个成员。`seal_digest` 已经认证完整 canonical unsigned Seal body，其中包含 realm、configuration、sequence、predecessor 与命令结果，所以 `configuration_ref` 与 `notary_seq` 不在 transcript 里重复携带；transcript 中没有 view、阶段票据或签名数组，签名方也不得自行增删成员。不经普通 prepare operation 产生的 f=0 Seal——例如 [`../identity/security-transactions.md` §2.1](../identity/security-transactions.md) 的 recovery 专用 prepare——签同一形状，不因缺少 prepare 响应而另立约定。
-
-Seal 确认该域的安全命令，并按本节后述独立数据 publication 字段承诺普通 Event 身份及关闭旧数据基准。每条安全命令在确认顺序处对实际状态执行 CAS 与领域转移；相同前置 revision 的竞争命令最多一个成功。失败命令无业务效果且结果持久，超时不等于失败。数据身份收录不是安全命令结果，不把普通业务值加入 `delta` 或 `state_root`。
-
-安全 root 只承诺该域安全状态，不承诺普通消息内容或全球完整性。普通消息不进入 `delta`/`state_root`，不产生 KeyView；其 Event 身份进入独立 data set commitment。普通快照同步不要求签署者在线。
-
-ordinary Event（原子 bootstrap unit 内的初始 D 成员除外）MUST 签名携带该 Realm 一个已确认 Seal 的 `data_basis`。该 basis 标识写入所属的开放数据区间，不要求为每次编辑生成新 Seal，也不替代 `auth_context`。治理 Station 对首次可验证且尚未收录的 ordinary Event 耐久记录 dirty，正常服务下最迟 `300000 ms` 形成数据批次；持续来件不得重置最老 dirty 的时限。没有新身份、未完成关闭公告或其它治理工作时不产生 Seal。
-
-数据批次以独立 `data_delta` 和累计 `data_event_set_root` 收录完整 Event 身份，并可公告关闭某个既有 `data_basis`。公告的 `not_before` 至少晚于公告 Seal 认证时间 `300000 ms`；该义务必须久化，即使此后没有新 Event 也必须产生有实质关闭效果的收尾 Seal。安全即时 Seal MAY 搭载收录/到期关闭，但 MUST NOT 缩短宽限。查询、重复 Event、exact retry、单纯时间经过不得凭空制造 dirty；收尾 Seal 自身不触发下一轮永久空转。
-
-最终 `data_closure` 冻结该 basis 的确切允许 Event 身份集合承诺。已取得“可验证且已耐久接收并承诺纳入本轮关闭集合”的成功不能在关闭竞态中遗漏；缺依赖 pending 不具备该语义。被关闭 basis 的 Event 若有完整 non-membership 证明则 quarantined；缺排除证明仍 pending，不能把本地查不到当成排除。已收录身份不得从身份集合移除，但未来授权关闭或执行依赖失效仍可使其退出 eligible。正常后继可绑定仍开放的新 basis；不得套用“业务来源在旧 cut 内而新 Event 不在即隔离”的错误规则。
-
-data set/closure 的 commitment、分页 material、inclusion/non-membership proof、权限裁剪与 exact retry 使用 §11 和 CBS 登记的统一 typed 合同。Seal 不内联无界 Event JSON，也不得向只有 Seal 元数据读取权的主体泄露私有 Circle/Event 名单。治理不可用、时钟边界不可信或材料不足时保持未确认/待证，不补造停机期间空 Seal。
-
-配置轮换由旧 signer 确认并冻结后继写权，新执行者取得完整前缀与耐久终态/outbox 后才激活。旧备份不得自启平行分支。notary 资格不是 controller 权力，不能取得客户端 MLS 私钥。
-
-`head_eq`/`head_in` 保留领域值检查；它们不携带第二份 revision 镜像。安全 CAS 的身份比较从原签名 basis 独立派生，普通数据只对自己的已签因果 basis 检查值，不获得互斥成功保证。
+Seal已退役。`RealmCommit`是唯一finality；它不携state root、effect list或通用proof。相同stream position出现两个不同有效Commit时，消费方冻结该Realm/stream并保留equivocation evidence。
 
 ## 9. 跨域与不可逆效果
 
-跨 Realm 不变量仅在同一治理 Station 的同一串行化存储事务内支持。完整读写依赖闭包、signed basis、当前 revision、nonce、所有域 Seal、effects 与 outbox 原子提交；需要跨 Station 当前读锁或协调更新时执行前 `failed_precondition`，零写入。不可变历史验证和允许撤销传播的普通 D 消费不产生跨域事务。完整拓扑、失败与副作用恢复合同见 [安全域确认 §6](./cbs-profiles.md#6-跨-realm-原子性)。
+跨Realm/Circle/Sidecar不提供原子提交。不可逆side effect只能在其前置Event committed后执行，并以exact committed ref作幂等键；失败使用领域saga补偿，不伪造跨stream事务。
 
 ## 10. MLS、恢复与快照
 
-成员或真实密钥访问改变先关闭受影响新 key-access，直到 Commit 覆盖该变化。普通消息与无关 metadata 不推进 epoch。客户端保存 exact outbound bytes 与 staged state，确认唯一 Commit 后才安装状态并交付 Welcome。超时查同一结果；明确失败才丢 staged secrets 并从真实当前 epoch 重建。
-
-被移除者仍可构造旧 epoch 密文。已知移除的 receiver 阻止新发言，历史按关闭证明分类；未知移除的分区站仍可能暂时接纳，这是传播窗口。保留成员的合法迟到旧 epoch 历史不因 epoch 较小自动作废，不能为解密回滚密钥。
-
-PCR/root genesis 保持注册原子起点，恢复 generation 单调且权力来自预先授权的恢复策略。旧签名备份不证明最新，缺连续证据或治理签署权不自证接管。稳定 Direct Conversation 全部私有状态丢失时暂停，不新建同 pair 的平行 group。
-
-普通快照保留唯一当前值的身份/深度、完整 coverage、授权/关闭证明，以及未来资格重算可能需要的落选值和认证因果关系。可用归档可以承载旧内容，但不能只存一个 root 然后声称可恢复。不能证明旧值以后无用就不得 GC；依法硬删除后明确不可恢复。
-
-同步复用 direct push、cursor pull、exact-ID dependency resolve。证据最终送达要求存在可达持有者；恶意独占持有者不交付时不承诺活性。配额和背压不得通过各站任意截掉不同 heads 伪装收敛。
+MLS只保留shared `ak.mls.genesis`和`ak.mls.commit` Event。治理 Station跟踪public state与`key_access_revision`，不持有secret。Commit与新增recipient Welcome delivery必须在一个authority transaction中全成或全败。恢复使用authority-signed typed snapshot + 每条获准stream tail。
 
 ## 11. 安全状态根与序列化
 
-`covered(S)` 是 `S.delta` 与唯一 predecessor 的 control covered 集合的并集。`control_event_set_root` 仅覆盖成功安全命令；拒绝结果由 Seal 的签名 `command_results` 直接承诺。普通数据从不进入该集合。`data_covered(S)` 是 `S.data_delta` 与 predecessor 的 data covered 集合并集，`data_event_set_root` 只承诺这些 ordinary Event 身份；两棵树、字段与证明不得互换。genesis 注册原子 unit 的初始 D 效果仍由完整 unit 复算，不进入 data set，也不能宣称这些数据以后必须另被 Seal 覆盖。
-
-含 D/S 的安全原子命令，其 `result_digest` 中 D 效果的完整模型状态 MUST 从该成员签名 `prev_refs` 与 `causal_refs` 可达的完整 D 因果输入、已验证历史资格上下文，以及它确切依赖的 unit 内前序写入重算。未被该成员观察的并发 D 写 MUST NOT 进入这个结果；同一 unit 中仅仅排在前面的 D 写也不自动成为它的因果依赖。`seal_basis` 只固定安全授权与 S revision，不能充当 D 状态快照；接收站当前全局 D 投影不能替代该签名依赖 cut。必要认证材料、资格或因果依赖缺失时整个命令保持 pending，不得把缺失解释为 unwritten/null，也不得先发布其中 D 效果。命令确认后，其全部成功 D/S 操作、唯一终局与发布 outbox MUST 原子保存；S root 与 delta 仍只承诺 S 部分，普通全局 D 投影在相同资格上下文内再合并其它合法并发写，不能反向改变已确认命令的 `result_digest`。
-
-`state_root` 的每个 leaf 恰为 `JCS({cell:<CellRef>,state:{revision_event_id:<EventId>,value:<value>}})`。成员恰为该安全域中已执行成功注册 write 的 `sequenced_state` cell；未写入者无 leaf，写过 null 者保留 leaf。revision 是最后成功写入的 Event 身份，不能用值或 Seal ID 替代。安全 register 的 value 是完整登记业务值；安全 set 的 value 是按 tag_id 排序的全部活跃 `{tag_id,value}` 项，空集为 []，不保存已移除项。安全 set 不进行离线 merge，确切 revision 已防止旧命令复活被删除的 dot。安全 log 保留按登记键排序的完整不可变 entries。上述内部表示不同于可能剥离 tags 的查询展示值；只有 D OR-set 必须保留 removed_tag_ids。D cell、data publication、未登记隐含写入、候选命令都不进入安全 root。
-
-`data_event_set_root` 使用同一 Realm digest suite 和 RFC 6962 构造，leaf_data 是完整 typed Event digest 的 UTF-8 字节，按 typed digest wire bytes 排序。`data_delta` 只含本 Seal 新收录且已完成所需 envelope/历史材料验证的 ordinary Event digest，canonical 排序去重；重复收录非法。`data_closure` 的 allowed-set commitment 使用同一 leaf 规则，但集合限于绑定目标 `data_basis` 且已冻结允许的 Event 身份。分页 material 必须绑定 root、member_count、page index/continuation 与完整性证明；inclusion 证明成员，non-membership 使用认证相邻 leaf 与端点范围。零散 inclusion 不能证明排除，最大 actor_seq、时间戳或每 actor frontier 不能替代确切集合。
-
-cell leaf 按完整 CellRef 的 Unicode code point 升序；covered digest 按 typed digest wire bytes 升序，leaf_data 为完整 typed digest 的 UTF-8 字节，保留 suite 前缀。所有树使用 RFC6962：leaf=H(0x00 || leaf_data)，node=H(0x01 || left || right)，空树=H(empty)，单 leaf 为其带域分隔 leaf hash，递归在小于长度的最大 2 的幂处分割。根的 suite 来自已验证安全配置，不从待验证对象自报摘要推断。
-
-inclusion 使用 index/tree_size/audit path；non-membership 使用认证相邻 leaf 与端点范围证明。只持有单个 Event inclusion 不证明它仍是当前 revision。治理 Station 必须有验证其安全命令所需的完整权限与材料并重放归约；无法验证不得执行。治理结果消费 Station 按 [cbs-profiles §9](./cbs-profiles.md#9-治理结果证明normative) 验证已认证配置、唯一签名和有权读取的确切结论，或使用完整 Seal 与已有确切 Cell/历史证明；依赖同一唯一治理方信任边界，不承担完整历史重放。原始 producer 签名、业务操作绑定、已知撤销和端到端验证不变。任意 service 自签 root 或未验证配置不能替代这条认证路径。普通 snapshot 的 state_digest 与本安全 root 是不同集合，不得逐字比较后声称前者已被 Seal 认证。
+通用state root已删除。Snapshot完整性由manifest signature、typed sections、stream heads、history floors和chunk digests提供；它不授权新写入。
 
 ## 12. Notary 与 reducer 配置
 
-每 Realm 的 `ak.component.notary.v1` 是 `sequenced_state` singleton，genesis 由 realm.create 的显式配置写入；后继仅 realm.notary 和唯一 handoff 生效。owner transfer 不隐含 notary change，notary change 不授予 controller 权力。恢复/旧备份不产生新的自授权 lineage。
-
-`ak.component.realm.reducer_profile.v1` 同样为安全 singleton，genesis 写入明确 active profile，后继仅 realm.upgrade。前置绑定当前 revision 与 source profile，target 和 source→target edge 必须已注册。竞争升级至多一个成功，不产生控制 Bottom。旧数据按其签名授权上下文中的 reducer 合同解释，安全命令在其确认顺序处解释；接收站不得用 latest 软件默认静默重写历史。
+Realm不再选择notary/reducer profile/digest transition。v1 reducer和digest语义由协议版本固定；service key rotation通过service DID method history处理。
 
 ## 13. Hash suite transition
 
-`ak.realm.digest_suite_transition` 在唯一安全序列确认，并且是该 Seal 唯一成功命令。payload 的 from suite 等于 predecessor live suite，to suite 必须 active 且不降级。Transition Event 和其 receipt 保留原 suite；Transition Seal 及后态 root 使用新 suite，`previous_state_root` 使用旧 suite 重算前态，`previous_digest_algorithm` 必须匹配 from suite。typed 历史引用不重哈希；安全 covered 树按 §11 以完整 typed digest 字节构造。
-
-transition 的 snapshot commitment 按原 suite 验证其声明的确切数据集合；它不要求全网普通消息停止或完整收齐。普通离线 Event 使用自身已签授权上下文中有效的 suite；与升级并发的合法旧 suite 数据仍按原合同验证，不能因接收站先见升级便拒绝。安全后继只用新 live suite。genesis 的 realm.create 使用固定 SHA-256 身份桥接，其余 bootstrap 和首 Seal 使用创建意图声明的 suite。
-
-`ak.vector.hash_transition.dual_root_recompute.v1` 与 `ak.vector.hash_transition.fail_closed.v1` 覆盖前后双 root、错 suite、错 snapshot、降级、错误前态和延迟旧授权数据分支。`ak.vector.identity.device_reanchor.v1` 与 `ak.vector.identity.root_anchor_exclusivity.v1` 仍要求唯一已授权恢复起点，不能借 suite 更换自启身份谱系。
+current v1不支持Realm内suite transition。Event/Commit ID使用协议固定suite；未知或错误suite fail closed。
 
 ## 14. 控制面 Control Proposal Ack 与 inclusion obligation
 
-除 [`cbs-profiles.md` §4](./cbs-profiles.md) 定义的 authority-authored human
-self-principal PCR Move 外，控制面 pending Control Move MUST 在 `proposal_intake_sla_ms` 内得到签名
-Control Proposal Ack（控制提案签收）；准入失败通过登记错误返回，不创建第二种安全终局证明。该例外已由 current accepted device 作为
-exact Move 的 author/authority，不产生第二份 Ack 或 decision deadline，但仍必须进入 pending Control
-index，并且只有 accepted successor Seal 能使其生效。**`ak.device.revoke` 明确不属于此 Ack-less 例外**：为固定 pending 阻断及延期审计的唯一 `proposal_ack_digest`，每个 accepted revoke 都 MUST 将 canonical Ack 与 accepted Event、derived exact device/generation record、pending index 原子持久化；无有效 Ack 时零写入。`proposal_intake_sla_ms` 的权威字段是
-[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `proposal_intake_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准，不用本地接收时间。
-
-**Proposal 有界决议（normative）**：`proposal_intake_sla_ms` 只管「多久确认收到」。authority
-接受 proposal ingress 后签发的 Ack 还 MUST 承诺：
-
-```text
-proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count=0, authority_set_ref, signature
-```
-
-机读合同为
-[`control-proposal-decision.schema.json`](../sync/authority-commit-log.md)。
-`ak.self.events.command.submit.v1` / `ak.peer.events.command.submit.v1` 对 accepted 或 byte-identical
-duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_acks[]` 返回已持久化的
-原 Ack；authority-authored self-principal PCR Move 必须省略该数组项，ordinary Event 也不得进入该数组。
-重复提交不得重签或延长任何 deadline。
-Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,000ms，协议硬上限
-24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
-（default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限
-（default 2，协议硬上限 2）。profile / deployment MAY 声明更短窗口或更少 defer，
-不得放宽协议硬上限。`ak.realm.create` 与任何更新这些 Realm 参数的 Control Move 在写入前
-MUST 校验 `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；违反时整个 Event
-MUST 以 `schema_violation` 拒绝。若 `max_proposal_defers > 0`，两者 MUST 严格小于，以保证
-至少存在一个严格递增且不晚于 `absolute_due_at` 的 defer deadline；两者相等时
-`max_proposal_defers` MUST 为 `0`。该判定基于签名 payload 与冻结 basis，是所有 reducer
-必须执行的确定性跨字段校验。
-
-**唯一 authority Ack（normative）**：当接收 Event 的 Station 不持有当前
-notary authority，或本地 signer 不是配置的唯一 signer 时，它不得用服务密钥代签。
-proposal author 必须对唯一真实 authority 使用
-`ak.self.control_proposal_acks.command.issue.v1` 的 typed request；本地 Agent/device signer
-使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。该
-authority 独立验证最终签名 Event、genesis/basis 当前 notary policy、
-Realm、`proposal_digest`、signer membership 与 deadlines，随后签发一次
-`ControlProposalAck`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
-byte-identical retry MUST 返回首次持久化的 authority Ack；不同 Event bytes、authority set
-或时间字段 MUST `duplicate_conflict`，不得重签延长期限。
-
-typed request 必须携带显式 `publication_mode=online|delayed`。`online` 分支 MUST 不携带
-`authorization_lease`，authority 按当前 accepted basis、当前权限与最终签名 Event 重新求值；它不产生
-离线窗口。`delayed` 分支 MUST 携带 `authorization_lease`，并独立验证 lease 的 basis、actor/device、
-scope/action、issuer、有效期及与 exact Event 的绑定。字段组合不匹配、lease 无效或过期时 MUST 拒绝，
-不得删除 lease 或替换 mode 后在同一次请求中降级为 online。request canonical digest 覆盖 mode、Event、
-lease（若有）与 proof bundles；HTTP session/DPoP 或 service signature 认证该请求。authority Ack proof 只覆盖
-下述 immutable Ack body 和 proposal identity，不替代 request authentication，也不把 lease 权限扩展到
-Ack deadline。transport outcome 丢失后相同 canonical request 返回首次持久化 Ack；调用方重新在线求值
-必须显式构造新的 `online` request，authority 仍按当前权限校验，且命中同一 proposal/authority 的既有
-Ack 时不得重签或延长期限。
-
-唯一 authority 返回完整 `ControlProposalAck`，不收集或聚合成员回执。其 `signature` 签名 transcript 为
-`JCS({context:"ak.control_proposal_authority_ack_proof.v1",payload_digest:SHA-256(JCS(ack_without_signature)),verification_method,created_at:received_at})`。
-proof 的 payload_digest 与 created_at MUST 逐字匹配；body 包含 kind、Realm、proposal、deadline、defer_count 与 authority_set_ref。
-`authority_set_ref` 在该合同中是唯一冻结配置的 canonical digest，不能把 lease issuer、恢复门限或多个独立 authority 混入。
-`decision_due_at=received_at+proposal_decision_window_ms`，`absolute_due_at=received_at+proposal_absolute_deadline_ms`，按 UTC instant 计算并验证上限/溢出。
-
-接收者 MUST 从 genesis 或 signed basis 独立认证唯一 signer，重算 body/transcript 并验签，再把 exact Ack、accepted Event、pending index 与 wakeup 原子提交。
-重复 Event 返回首次 exact Ack，不能重签延长时间。Seal 接纳原子保存 lineage、Cell effects、命令终态并清理其 pending index；缺 pending 记录或依赖则整体失败。
-`EventInitialSubmission.control_proposal_ack` 与 `EventFederationSubmission.control_proposal_ack` 是唯一 submission carrier；ordinary Event 禁止携带，proof bundle 不能替代。
-`proposal_ack_digest=SHA-256(JCS(complete Ack including signature))`；签名或字段变化不能覆盖首次事实。
-
-每个决议窗口到期前，authority MUST 产生以下之一：
-
-1. exact proposal unit 在唯一已确认 Seal 的 `command_results` 中取得 committed 或 rejected 终局；
-2. `signed_defer`，携带封闭 `reason_code`、严格递增且不晚于 `absolute_due_at` 的新 `decision_due_at`，并把 `defer_count` 恰好加一。
-
-`signed_defer.reason_code` 恰为 `dependency_missing`、`temporarily_unavailable`。延期不是业务拒绝。只有 Seal 的完整命令结果决定业务成功或拒绝；失败结果无业务效果，其 `reason_code` 使用全局注册错误原因。MUST NOT 再签发独立的拒绝 decision，也不能以缺依赖或延期上限耗尽制造终局拒绝。
-
-每个 defer MUST 引用完整 canonical Ack digest，绑定同一 proposal、Realm 与 authority
-set，并由该 Ack 的唯一授权 signer 对同一 decision payload 产生 `proof`。`decision_digest=SHA-256(JCS(decision_without_proof))`，该 proof的
-`payload_digest`必须等于该值、`created_at`必须等于`decided_at`，签名transcript固定为
-`JCS({context:"ak.control_proposal_decision_proof.v1",payload_digest,
-verification_method,created_at})`；proof不得跨 Ack、decision kind 或 defer count拼接。它还必须
-原样保留 `absolute_due_at`。`signed_defer` 只提供可验证的延期审计，不提供 finality；只有第 1 项的已确认 Seal 提供控制面终局。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
-receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
-
-签名延期的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../sync/authority-commit-log.md)。submit receiver MUST 从 durable store 读取已准入 proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，验证 exact Realm/proposal/authority set/deadline/defer chain 及唯一授权签名，并只对尚未终结的 proposal 原子写延期；caller 不能创建或替换 Ack。已持久化延期的 exact retry 返回首次结果，不能重新延长窗口。终局和延期写入与同一 proposal 的持久决定串行化。
-
-read 的 `proposal_state` 恰为 pending/deferred/overdue/sealed。`sealed` 表示 exact unit 已有唯一终局，不等于业务成功；`accepted_seal_id` 指向该 Seal，消费者 MUST 核验它的对应 `command_results` 是 committed 才宣布成功，rejected 则呈现其真实原因。read 不合成 decision、不清 pending、不以当前 head 代替确切终局。对于 `ak.device.revoke`，仅该命令的已确认 rejected outcome 清除自己的 pending record；其它同目标 proposal 不受影响。唯一安全历史中同一命令不能先拒绝后接受或先接受后拒绝；exact retry 返回同一持久结果。
-
-**逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
-`decision_due_at` 前没有上述两者，或到达 `absolute_due_at` / defer 上限后仍未取得 terminal command result 时：
-
-1. Realm governance health 投影进入 `degraded`，记录 proposal digest、Ack、当前
-   decision chain 与 deadline；
-2. 产生稳定诊断 `control_proposal_decision_overdue`，并允许形成 censorship evidence；
-3. 依赖该 pending Move 的 authoring/readiness，以及无法证明旧授权在 pending revoke /
-   ban / notary change 下仍安全的写入 MUST fail closed；
-4. 与该 Move 无关、仍由 accepted 旧 Seal 合法授权的 ordinary Event MUST NOT 被全局误伤；
-5. 后来抵达且按 Seal 规则有效的 Seal仍正常 accepted；fault 作为可审计证据保留。
-
-不得因“迟到”把同一 cryptographically valid Seal 在不同 receiver 上分成 accepted /
-rejected 两种终态。协议不能强迫停机或恶意 authority 接受 proposal；它能保证的是合规
-authority 给出有界、可验证的决议，并为失约提供 health/fault/recovery/rotation 入口。
-上述 Ack、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
-`ak.vector.cbs.proposal_bounded_decision.v1` 固定。
-
-`ak.self.seals.read.frontier.v1` 与 `ak.peer.seals.read.frontier.v1` 的 Realm current Seal discovery MUST 返回同一 closed
-`RealmSealFrontierView`：`seal_basis.leaves[]` 恰含该 Realm 的一个唯一确认 head。该 View 按 `kind, realm_id, seal_basis, live_digest_suite, governance_health, observation_coordinate` 顺序携带字段。
-`live_digest_suite` MUST 来自 exact `seal_basis` 对应的已确认 effective state，包含已经接受的 digest-suite transition；
-不得从 Seal ID 的哈希前缀猜测。`observation_coordinate={service_id,sequence,observed_at}` 中的 current 仅表示该 service
-在该坐标的 durable view，不是 global wall-clock latest。Peer 响应的 Event `heads[]` 不能替代 Realm 的唯一 confirmed Seal head。
-自己的 authenticated Account Station 负责验证历史与 已确认安全状态与 roots；客户端核对 Realm、会话和本次请求绑定后
-直接使用该 View，不得为订阅、签署 basis 或取得 digest suite 拉取闭包、重放历史或重算 roots。
-Peer server 对 foreign governance 仍独立解析和验证；上述 self 信任不得扩展到任意 remote service 或代替 E2EE 检查。
-服务结果不能被当成某个 Seal 自身签署了额外字段。
-
-`RealmSealFrontierView.governance_health` MUST 从已验证的
-Ack / decision chain 与已确认 Seal 的 exact command_results 派生；pending 明细最多返回 128 项，
-按内嵌 Ack 的 `(control_proposal_ack.absolute_due_at, control_proposal_ack.proposal_digest)`
-canonical 升序。每个 pending 项只携 `control_proposal_ack`、`decisions[]`（仅 `signed_defer`，
-按 `defer_count` 升序）与 `decision_state`，不镜像 `proposal_digest`、`absolute_due_at`、
-`defer_count` 或当前 `decision_due_at`：`proposal_digest` 与 `absolute_due_at` 取自
-`control_proposal_ack`（全链原样保留）；`defer_count = decisions.length`；当前决议期限即 DTO
-语义中的 `current_decision_due_at`，对应 ack / decision 的字段名 `decision_due_at`，取
-`decisions[]` 末项的 `decision_due_at`，无 defer 时取 `control_proposal_ack.decision_due_at`。
-`pending_proposals_complete` MUST 显式说明该数组是否包含此 observation coordinate 的全部
-Ack-required 未决项；超过 128 项时只返回 canonical 前 128 项并置为 false、`status=degraded`。
-这是有明确不完整标记的诊断样本，MUST NOT 被当成安全事项的完整性证明。consumer MUST NOT
-根据未出现于样本中的 digest 推断不存在 pending revoke / ban / notary gate；服务 MUST 从完整
-持久记录按请求的真实授权依赖执行 gate，无法证明无影响的操作仍 fail closed。独立验证过的
-`seal_basis` MUST NOT 因诊断样本超预算而不可读；recovery 与调度 MUST NOT 以 health=healthy
-作为启动前提。Ack-less 项没有决议时钟；不能为使样本完整而补造 Ack。
-
-`status` 仅表示当前决议可用性：样本完整且所有未决项均未 overdue 时为 `healthy`，否则为
-`degraded`。healthy 不等于没有 pending 收紧门，也不等于 MLS 私钥与 Welcome 已恢复。
-迟到但合法的 Seal 确认该 proposal unit 的 committed 或 rejected 结果后，该 proposal MUST 从 pending 集合移除，历史 deadline fault
-仍 MUST 保留可审计的原 Ack、完整 decision chain 与 covering Seal。历史记录不再内嵌于
-`ControlGovernanceHealth`，MUST NOT 决定当前 status，也 MUST NOT 因数量超过 128 而阻断 frontier。
-
-历史读取复用标准 Event query 的可续接分页和 exact control-proposal decision read：获授权的
-审计者枚举可见控制 Event，按其完整 digest 读取原 Ack/decision/accepted_seal_id，再 resolve 并
-验证该 Seal 的签名 `sealed_at` 与 exact unit 的 command_results。每段 signed-defer 的签名时间是否满足
-前一期 deadline、确认命令终局的 Seal 是否迟到，由原签名材料重算；MUST NOT
-用当前墙钟给早已按期终结的事项补造历史 fault。Event query 枚举的是已接受历史，尚未接受或
-已拒绝 proposal 的持有者复用原 Ack 的 digest 做 exact read；这不是面向任意用户的全 Realm
-待办枚举授权。持久问责材料 MUST 按既有审计与授权规则可得；不得为了恢复 healthy 删除记录、
-清除未决 revoke、静默换 Ack authority 或截断签名链。
+Control Proposal Ack、defer window、pending sample和inclusion obligation已退役。治理 Station一次提交返回committed、duplicate、rejected或retryable unavailable；后两者不写共享pending状态。
 
 ### 14.1 持久恢复与积压终结（normative）
 
-在当前合法签发或恢复权威、必要持久材料仍可用、故障停止、已准入积压有限且调度公平的条件下，
-实现 MUST 能继续处理受支持控制操作。恢复首先核对持久 frontier、签名位置、原 Ack/decision/
-Seal 与当前 authority/fence；旧进程或轮换前 key 的重新上线不恢复已失去的签发资格。
-同一治理 Station 的全部 worker MUST 共用持久 frontier CAS 与原子接受边界。lease 超时只是本地
-调度条件，不授权并发控制谱系；崩溃后先查原 durable outcome，未知结果只精确重投或查询。
-
-已 sealed/rejected 的请求返回原结果；旧 basis 或超出 replay window 的请求经当前已登记的
-合法决议路径终结，不能改写原签名 basis。暂缺 Ack/依赖、损坏记录与已验证不合法的请求 MUST
-区分：隔离单项调度故障、保留安全 gate 与可诊断恢复入口，MUST NOT 伪造终局拒绝。
-同 Realm 已证明无依赖的就绪工作和其他 Realm MUST 获得公平处理机会；扫描预算不是队列总量
-上限，重复重启或固定读取第一页不能使已准入义务永久饿死。安全收紧与合法 recovery 要有处理
-机会，但不得违反 barrier 排批或整张 Seal 的原子验证。
-
-合法准入串行化互斥 CAS/领域状态 请求：可以排批、拒绝旧 basis、由有权 author 读取新 heads 后
-重新签署，但 MUST NOT 把普通请求竞争制造成 accepted Bottom。新 Event 自动重试只有在该
-action 的语义、当前权限、目标身份/incarnation 和用户意图均仍成立时才允许；未知语义、值替换
-及外部副作用不得由服务默认覆盖。自动重试不是修改签名事件的通道。原意图已由其他合法操作
-满足时可停止本地动作，但不能声称原 Event 已 accepted。
-
-恢复投影 MUST 用同一已验证历史重建 唯一 revision、结果与 roots；缓存损坏产生的假 Bottom
-不能通过另签业务命令掩盖。轮换后的旧 Ack 仍绑定原 authority set；当前 signer 不能用新
-key 冒签旧 obligation 的 reject。若没有现行 covering Seal/terminal decision/recovery 的合法
-处置路径，必须明确报告所缺权威或材料，不能把无限 defer 宣称为恢复保证。
-
-**compaction 不承担终局（normative）**：首个 Seal **MUST NOT** 是 compaction Seal；
-compaction 前的普通 signing pass 出现任何硬错误时 compaction **MUST** 停止并上浮；
-compaction 成功 **MUST NOT** 作为普通 pending Move 已按期取得 proposal 决议的替代证据。
-
-无声遗漏构成 censorship evidence：
-
-```text
-CensorshipEvidence {
-  control_proposal_ack
-  seal_ref
-  control_event_set_root_non_membership_proof
-  missing_rejection_or_defer_proof
-}
-```
-
-Censorship evidence 是非锚点 Control Move，event kind 为 **`ak.notary.fault.censorship`**（payload schema：`notary_fault_censorship_payload`），写入 `ak.component.notary_fault.v1` cell。它**不**自动罢免 notary：reducer 记录审计 fault 并 MUST 触发治理告警。
-
-
+Account Station可以耐久保存exact signed Event并重试。它必须先刷新current authority；handoff后只向new authority转发。请求结果不确定时按Event ID查询/重放exact bytes，不能重签或生成另一Event冒充重试。
 
 ## 15. Actor 分叉与内容地址碰撞
 
-普通 actor 同位置 sibling 按已验证因果身份保留，执行依赖与授权分类仍逐个验证。超过登记资源界限或属于领域禁止的 sibling 集时，完整争议 scope 隔离；不能只保留先到者。安全命令竞争由唯一确认顺序及 revision 守卫处理，不产生安全状态 join。
-
-相同 EventId 的不同 canonical bytes 是内容地址碰撞，必须保存完整 variants、隔离普通效果并停止依赖该碰撞的安全操作。已经确认的历史 Seal、原始 bytes 和结果不可追溯改写。`ak.fork.resolution` 是登记的安全命令，按完整 subject 与原始 variant bytes 验证 `canonical_winner` / `void_all`；对应 resolution Cell 必须未写入，`head_eq:null` 加确切 revision 防止二次裁决。它不授权任意 Cell reset，不修复已失陷的唯一治理权威，也不通过合并多个 Seal 选出安全 lineage。
-
-collision 的 winner_index 只定位 `conflict_evidence.variants` 中完整 canonical bytes；不能用碰撞的 digest、长度或另一种临时摘要代替。已确认 canonical_winner 是相同 ID 整组隔离的唯一例外：待准入 bytes 必须与确切 winner 相等，并重新验证结构、Realm、suite、完整 AccountId、签名和授权；不得把一个变体的签名直接赋给另一个变体。复用历史 proof 集时也必须对 winner bytes 重新验签。loser 只保留取证，不参与 D 投影。
-
-后继 resolution 只改变其后的有效资格与执行 gate，不能重算已经确认的旧结果或越过未解决碰撞做 compaction。需要当前状态修复时，由有权主体在该已确认裁决之后提交明确的领域安全命令；不存在自动恢复被隔离权限的机制。peer 清除 stale 还须完成 federation 登记的 exact-scope alignment，不能因本地已见裁决或全局 root 相等便替 peer 作证。
-
-`ak.vector.cbs.single_authority_ack.v1` 覆盖唯一 authority Ack、拒绝旧聚合载体、固定期限、exact retry 与 decision-chain binding；业务 producer proof 和 authorization-rule 门限独立保留。
+Actor sibling/fork概念已删除。相同Event ID、不同canonical bytes是内容地址冲突，全部拒绝并告警；相同Event多次提交是幂等。Authority equivocation按§8处理，base v1不自动选winner。

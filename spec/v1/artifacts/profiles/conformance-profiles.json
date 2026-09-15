@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.1",
-  "generated_at": "2026-09-16T08:30:00+08:00",
+  "version": "2026-09-16.4",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2388,8 +2388,7 @@
         "required_artifacts": [
           "governance_binding.binding_profile",
           "governance_binding.reducer_profile",
-          "mls_governance_binding GroupContext extension 0xF1C0",
-          "mls-security-frontier-registry.json"
+          "mls_governance_binding GroupContext extension 0xF1C0"
         ],
         "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
@@ -3763,7 +3762,6 @@
         "required_checks": [
           "ak.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
           "governance_binding.binding_profile and reducer_profile are present and supported",
-          "the unique MLS group current security_frontier_digest equals the rederived current key-access frontier",
           "MIMI draft/profile fields are ignored for security decisions unless mapped to registered Arkret policy/capability state"
         ],
         "downgrade_handling": "The ak.profile.e2ee_relaxed.v1 downgrade MUST NOT be represented to MIMI peers as equivalent to full MLS governance binding. If both sides explicitly support relaxed Arkret semantics, the relaxed federation guard still applies; otherwise the facade MUST reject or quarantine with mimi_room_state_incompatible or a governance binding reason.",
@@ -4599,7 +4597,7 @@
       }
     },
     "ak.profile.mls_governance_binding.full.v1": {
-      "description": "MLS Security Frontier Binding (full): required for E2EE Realms. Each MLS genesis/Commit transcript binds one security_frontier_digest deterministically rederived from accepted key-access state: membership; only keys referenced by current/pending leaves; MLS membership; and encryption/history policy that changes key access. Ordinary Event authorization independently uses its signed auth_context.authority_refs. Capability, metadata, moderation, routing and consent-only changes do not block messages unless their accepted effect actually changes an MLS leaf.",
+      "description": "MLS GroupContext binding for an independently authority-committed Realm or Circle stream. Each Genesis or Commit binds the canonical effective scope, derived MLS group id, epoch transition, and monotonic key_access_revision. Governance authorization is decided by the current governance Station before the Event is committed; MLS carries no CBS or governance-proof bundle.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -4608,11 +4606,6 @@
         {
           "direction": "provide",
           "operation_id": "ak.self.keys.keypackages.command.claim.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.keys.keypackages.command.consume.v1",
           "binding_kind": "http_json"
         },
         {
@@ -4633,11 +4626,12 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.realm_state_snapshot.v1",
-        "ak.schema.service_operation_dtos.v1"
+        "ak.schema.realm_commit.v1",
+        "ak.schema.mls_commit_submission.v1",
+        "ak.schema.mls_welcome_delivery.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json"
+        "authority-commit-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.mls.minimal_metadata_realm.v1"
@@ -4645,41 +4639,27 @@
       "feature_discovery": {
         "required": [
           "mls_governance_binding_extension",
-          "move_based_mls_commit",
-          "security_frontier_digest",
-          "mls_epoch_cell",
-          "governance_binding_profile_required",
-          "mls_governance_proof_bundle",
+          "key_access_revision",
           "mls_group_state_material"
         ],
-        "unsupported_optional": "fail closed on security frontier mismatch"
+        "unsupported_optional": "fail closed on scope, epoch, group id, or key-access revision mismatch"
       },
-      "required_cells": [
-        "ak:cell:ak.component.mls.epoch.v1:<mls_group_id>",
-        "ak:cell:ak.component.mls.key_schedule.v1:<mls_group_id>"
-      ],
       "federation_interop_floor": {
         "is_minimum_for_mls_backed_federation": true,
         "requires_exact_extension_codepoint": "0xF1C0",
         "requires_binding_profile": "ak.profile.mls_governance_binding.full.v1",
-        "requires_reducer_profile": true,
         "forbids_silent_downgrade": [
           "omitting the GroupContext extension",
           "using a deployment-private alternate extension codepoint",
-          "accepting an MLS commit without rederiving security_frontier_digest",
-          "treating ak.profile.e2ee_relaxed.v1 as full binding"
+          "accepting a Commit whose key_access_revision does not equal the current authority projection"
         ]
       },
       "fail_closed_conditions": [
-        "governance_binding GroupContext extension missing from ak.mls.commit",
-        "governance_binding.binding_profile missing or not ak.profile.mls_governance_binding.full.v1 for a full-profile Realm",
-        "governance_binding.reducer_profile missing or mismatched with the negotiated Realm reducer profile",
-        "binding_version, encoding_profile, effective_scope, mls_group_id, previous_epoch, next_epoch, or security_frontier_digest verification mismatch",
-        "producer-supplied arbitrary frontier members instead of registry-closed derivation",
-        "epoch-0 GroupInfo or ratchet tree missing a content-addressed ref, explicit digest, or matching retrievable raw bytes",
-        "leaf_index inferred from KeyPackage/database order instead of occupied leaves in the verified RFC 9420 ratchet tree",
-        "a key-affecting accepted state change not covered by the winning Commit",
-        "an unrelated capability, metadata, moderation, routing, contact or consent-only change incorrectly forcing a Commit"
+        "governance binding missing from ak.mls.commit",
+        "effective_scope or derived mls_group_id mismatch",
+        "previous_epoch or next_epoch mismatch",
+        "key_access_revision differs from the current authority-committed projection",
+        "Commit and recipient Welcome delivery are not accepted as one atomic service transaction"
       ]
     },
     "ak.profile.mls.minimal_metadata_realm.v1": {

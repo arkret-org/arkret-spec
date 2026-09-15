@@ -12,7 +12,7 @@ updated: 2026-08-29
 
 ## 1. 范围
 
-Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不是独立 Event kind，也没有独立 cell：权威值是 `ak.realm.policy_bundle` payload 的 `join_policy` 组件，随 `ak.component.realm.policy_bundle.v1` 的 `sequenced_state` 一起收敛。
+Join Policy 定义加入 Realm 前由当前治理 Station在 commit admission 时自动验证的 gate。它不是独立 Event kind；权威值是 current committed `ak.realm.policy_bundle` payload 的 `join_policy` 组件。
 
 当前 v1 不定义独立的 join application、review 或 cancel 工作流，也不定义这些概念的 HTTP 包装接口、私有 receipt 或审核队列。`ak.member.state{membership="knock"}` 仅表达无正文的加入意向；结构化申请正文、问卷、人工审核和审核者私有投递均不属于当前协议。
 
@@ -33,7 +33,7 @@ Join Policy 定义加入 Realm 前可由 reducer 自动验证的 gate。它不�
 
 `join_rule` 与 `join_policy` 的一致性由 reducer 强制：`join_rule` 为 `restricted` 或 `knock_restricted` 时，`join_policy` MUST 含至少一个自动 gate（`claim_required` / `challenge_response` / `parent_membership`），且 `combinator` 不得使评估结果与声明的入口模式矛盾：只含 `principal_admission` / `cooldown` 硬门时，按 §4 规则 2-3 的求值顺序 `restricted` 的可通过集合与 `public` 完全相同，`knock_restricted` 则退化为 `restricted`。`restricted` 未配任何自动 gate、或 `knock_restricted` 的 gate 组合实际退化为 `restricted` 时，写入 `ak.realm.join_rule` / `ak.realm.policy_bundle` 的 reducer MUST 以 `failed_precondition`、`reason_code=join_rule_policy_mismatch` 拒绝，不接受互相矛盾的入口声明。
 
-允许本次首次跨站引导仅授权本次 intent 必需且各自 scope policy 允许披露的认证事实和原始依赖。治理结果消费 Station 按 cbs-profiles §9 消费 治理结果证明，不读取无关私有治理历史；Realm join/knock 不授予 private Circle 控制正文、相邻 Cell 或其它成员身份的额外读取权。来源 Station 可能由申请人运营，撤销只能停止后续页，不能回收已发送 bytes。该许可不授予普通消息、附件或 MLS 密钥读取；逐页重验与完整验证边界见 [federation §5.3.1](../sync/federation.md#531-有界加入引导normative)。
+首次跨站引导只授权本次 intent 必需且 policy 允许披露的认证事实。申请人的 Station先验证 nonce-bound `RealmAuthorityBundle`，再把 exact signed Event提交给当前治理 Station；Realm join/knock 不授予 private Circle、Sidecar、其它成员身份、普通消息、附件或 MLS secrets 的额外读取权。成功后 bootstrap 只返回签名 typed snapshot 和获准 stream tails，不默认拉全历史。
 
 ## 3. 数据模型
 
@@ -97,7 +97,7 @@ predicate 求交集，必须逐个命中。省略 allowed 字段表示该维度�
 AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate 才按 `all/any` 组合。deny 优先级跨 gate 也不被
 任一 allow 命中覆盖。上述规则使 Account 与包含 account 分支的 Actor 不成为两套含混等价 allowlist。
 
-所有 gate 均必须可由 reducer 根据签名 Event、已接受状态和显式证明确定性重放。依赖服务端私有审核记录、自由文本判断或未登记外部状态的 gate 不得写入当前 v1 policy。
+所有 gate 均必须可由当前治理 Station根据签名 Event、当前 committed typed state和显式证明确定性求值。依赖服务端私有审核记录、自由文本判断或未登记外部状态的 gate 不得写入当前 v1 policy。
 
 ### 3.2 `directory_hint`
 
@@ -105,25 +105,25 @@ AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate
 
 ## 4. 评估规则
 
-1. reducer 先验证 Event envelope、producer proof、CBS basis、capability 与目标 Realm。
+1. 当前治理 Station先验证 Event envelope、producer proof、capability、目标 Realm及本次 Event 的目标 stream；Event 不携带 CBS basis、Seal basis或 predecessor。
 2. 先评估全部 `principal_admission` 和 `cooldown` gate；任一失败即拒绝。
 3. 再按 `combinator` 评估其余自动 gate。`all` 要求全部成功；`any` 要求至少一个成功。
 4. `gate_proofs[]` 的唯一合法项形态是封闭的 [`event-payload.schema.json#/$defs/join_gate_proof`](../../artifacts/schemas/event-payload.schema.json)。每一项以 wire 成员携带绑定元组 `gate_id`、`realm_id`、`applicant_actor_id`、`policy_digest`、`created_at`，并由 `proofs[]`（context `ak.join_gate_proof.v1`，`payload_digest` = 去掉 `proofs` 后本对象的 canonical JSON sha256，登记于 `proof-context-registry.json`）覆盖；reducer MUST 先按字段比较再验签：`realm_id` ≠ 目标 Realm、`applicant_actor_id` ≠ `member_id`、`policy_digest` ≠ 当前 accepted `join_policy` component 的 canonical JSON sha256、`gate_id` 不在 policy 中或 `kind` 与该 gate 的 `kind` 不一致，都是绑定失败。只有 `challenge_response` 与 `claim_required` 两种 gate 接受 proof 项；`parent_membership` / `principal_admission` / `cooldown` 由 reducer 从已接受状态重放，不读 proof。签名 key 的解析路径固定：`challenge_response` 的 `proofs[].verification_method` MUST 经已登记 DID method adapter 解析为 gate `provider_did` 控制的 key；`claim_required` MUST 解析为 `issuer_id` 控制的 key，且 `issuer_id` ∈ `trusted_issuer_ids[]`。freshness 只以该 Event 已签名的 `created_at` 为准，MUST NOT 使用 receiver 本地时钟：`proof.created_at + max_proof_age < event.created_at` 为 `challenge_expired`，`proof.created_at > event.created_at` 或任一绑定 / 签名 / key 解析失败为 `challenge_proof_invalid`；`challenge_failed`（challenge 答案本身核验失败，或 `challenge_response` gate 没有对应 proof 项）与二者互斥，不得混用。policy 含自动 gate 而 Event 未携带对应 proof 项时，结果与 gate 失败相同（对非成员统一 `gate_check_failed`）。同一 `gate_id` 出现两次是 `schema_violation`。
-5. gate 成功仅说明 admission 条件满足，不创建 capability、invite 或 membership。最终 `membership=join` 仍按普通 Event admission 和成员状态机处理。
+5. gate 成功仅说明 admission 条件满足，不创建 capability、invite 或 membership。最终 `membership=join` 只有在同一请求获得有效 `RealmCommit` 后才成为 accepted。
 
 对尚未成为成员的调用方，gate 失败 MUST 使用统一的 `gate_check_failed` 或等价不可枚举结果；不得暴露 allowlist 命中、Realm 存在性、凭证差异或成员状态。详细原因只可写入授权审计，其 reason 集合包含 `claim_invalid`、`challenge_failed`、`challenge_proof_invalid` 与 `challenge_expired`。
 
 ## 5. Knock 与隐私
 
-`ak.member.state{membership="knock"}` 是公开 Control Move，MUST NOT 携带申请正文、自由文本、answers、3PID、附件或审核材料。收到这些字段时 receiver MUST 拒绝，而不是存入 shared Realm history。
+`ak.member.state{membership="knock"}` 是 producer-signed、authority-committed typed Event，MUST NOT 携带申请正文、自由文本、answers、3PID、附件或审核材料。收到这些字段时 receiver MUST 拒绝，而不是存入 shared Realm history。
 
 当前协议没有 knock 对应的标准申请读取面。产品若需要人工申请流程，应作为未来独立治理扩展重新设计完整的身份、加密、审计、保留期和 SDK 契约；不得恢复已删除的局部 HTTP wrapper。
 
 ## 6. 联邦与路由
 
-跨域 join Event 只通过普通 Event 提交/转发面传输。`RealmJoinCandidate` 仅是 invitee Station 可使用的有界转发提示，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
+跨域 join Event 只通过 Event submit/forward surface传输。`RealmJoinCandidate` 仅是 invitee Station用于取得 current authority bundle 的 locator，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
 
-接收方 MUST 独立验证 Realm、Event producer、可携带的 producer signer evidence 与原始授权、candidate provenance、Join Policy、invite/capability 与 CBS basis。Directory/search projection、裸 URL、部署已知 peer 或 mirror 不得成为额外授权来源。
+申请人的 Station MUST 验证 authority bundle并核对 Realm、Event producer与 candidate provenance；当前治理 Station MUST 在 commit位置独立验证 producer signer、Join Policy、invite/capability和 current membership/policy。Directory/search projection、裸 URL、部署已知 peer、邀请人 Station或 mirror不得成为额外授权来源。
 
 ## 7. 规范性引用
 

@@ -134,7 +134,6 @@
       "required": [
         "request_digest",
         "draft",
-        "accepted_actor_frontier",
         "observed_at",
         "expires_at"
       ],
@@ -144,9 +143,6 @@
         },
         "draft": {
           "$ref": "./principal-operations.schema.json#/$defs/prepared_event_draft"
-        },
-        "accepted_actor_frontier": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/RealmActorFrontierView"
         },
         "observed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

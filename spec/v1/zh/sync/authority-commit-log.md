@@ -76,6 +76,19 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
+`exact committed ref` 是闭合四元组 `event_id + commit_id + stream_ref + stream_position`。
+Directory 需要按公告来源向 source Station 取证时，必须调用
+`ak.peer.events.read.resolve_committed.v1`。请求闭合为
+`{realm_id, source_ref_access, refs[]}`：`source_ref_access` 是 source Station 签发且绑定 exact
+Directory、Realm、当前 discovery Event、有效期与允许四元组集合的 `DirectorySourceRefAccess`；
+`refs[]` 的每项必须逐字属于 carrier 的 `source_refs`。source Station 每次调用都重新验证已认证 caller
+等于 `directory_id`、proof/expiry、当前 announce 未被撤销或取代，以及每个四元组仍匹配 exact
+`RealmCommit + Event`。任一检查失败均零返回、零副作用。
+
+其它业务不得把这个 Directory 专用 operation 当作通用 peer history API。任何 verifier 仍必须验证
+Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测性 scan 或脱离 carrier 的 ref
+都不是已接纳证明。该合同只解析各自 stream 内的位置，不建立任何跨 stream 顺序。
+
 ## 6. 读取、验证与完整性边界
 
 消费方对每条获准 stream 独立验证：

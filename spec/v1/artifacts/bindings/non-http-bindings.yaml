@@ -313,6 +313,8 @@ grpc:
       Bundle: ak.open.realm_authority.read.bundle.v1
     PeerRealmAuthority:
       Handoff: ak.peer.realm_authority.command.handoff.v1
+    PeerStreams:
+      ResolveCommitted: ak.peer.events.read.resolve_committed.v1
 mq:
   envelope:
     required:

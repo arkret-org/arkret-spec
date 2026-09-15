@@ -55,6 +55,12 @@ request 明确指定 `stream_ref`、起始 position、limit 和方向；response
 及其可见 Event。页内和跨页都必须检查 position 严格递增和 `previous_commit_ref` 连续。
 
 `POST /_arkret/peer/streams/scan` 使用相同 schema，但要求调用 Station 对该具体 stream 具有复制权。
+
+`POST /_arkret/peer/streams/resolve` 只接受 canonical sorted/unique 的 exact committed refs；每项
+必须同时给出 `event_id`、`commit_id`、`stream_ref` 与 `stream_position`。响应返回匹配的
+`RealmCommit + Event`。调用方必须对缺项、任一字段不匹配、Commit 签名失败或 authority chain
+不成立 fail closed。该操作用于 Directory 首次 ingest 等精确依赖验证，不得退化为按 Event ID
+返回未提交 Event，也不得通过扫描另一条 stream 补齐。
 获准 Realm stream 不自动授权 Circle 或 Sidecar stream。
 
 #### 3.1.4 Typed current 读取
@@ -240,6 +246,7 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 | `ak.peer.erasure_receipt.command.submit.v1` | `POST /_arkret/peer/erasure-receipts` | - | - | request_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body; response_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome |
 | `ak.peer.erasure_receipt.resource.get.v1` | `GET /_arkret/peer/erasure-receipts/{receipt_id}` | - | - | response_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource |
 | `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome |
+| `ak.peer.events.read.resolve_committed.v1` | `POST /_arkret/peer/streams/resolve` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome |
 | `ak.peer.events.read.scan.v1` | `POST /_arkret/peer/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
 | `ak.peer.invites.command.submit.v1` | `POST /_arkret/peer/invites` | - | - | request_schema_ref=schemas/invite-delivery-request.schema.json; response_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome |
 | `ak.peer.keys.keypackages.command.claim.v1` | `POST /_arkret/peer/keys/keypackages/claim` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome |
@@ -406,3 +413,8 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 ### 5.1 MLS 运输
 
 MLS private bytes 保持端到端加密；Station 只处理公开 transition 和 recipient-addressed Welcome ciphertext。
+`ak.peer.events.read.resolve_committed.v1` 是 Directory ingest 的专用 exact-resolve，不是通用 peer
+读取入口。其 body 必须包含 `realm_id`、`source_ref_access` 和 `refs[]`。服务在读任何 Event 前
+MUST 验证 authenticated caller 等于 carrier `directory_id`，carrier 的 source/Realm/proof/expiry 与
+当前 announce 有效，并确认每个 `{event_id, commit_id, stream_ref, stream_position}` 都逐字属于
+carrier `source_refs`。它只返回 exact match；任何缺失或越界必须 fail closed，且不得退化为 scan。

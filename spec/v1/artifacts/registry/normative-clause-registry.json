@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.7",
+  "version": "2026-09-16.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T20:36:01+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -211,7 +211,7 @@
     },
     {
       "clause_id": "AK-NC-014",
-      "status": "active",
+      "status": "deprecated",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#1-权威来源与执行模型",
       "section_digest": "sha256:716362d076bba7d26a7714a3a9b7ab745976b973cc7cd114b071aaafa45ce724",
@@ -229,7 +229,7 @@
     },
     {
       "clause_id": "AK-NC-015",
-      "status": "active",
+      "status": "deprecated",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#11-安全状态根与序列化",
       "section_digest": "sha256:cd6af7a99b3cf7b2b2a53a05e5174e04f118eb7a3df65f19e6f27d9779ecfd92",
@@ -276,7 +276,7 @@
     },
     {
       "clause_id": "AK-NC-018",
-      "status": "active",
+      "status": "deprecated",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-因果寄存器",
       "section_digest": "sha256:9de1bee747494013275e64bdde7d33f642c4abd37b657ac0ef320d72212f90fc",
@@ -395,7 +395,7 @@
     },
     {
       "clause_id": "AK-NC-027",
-      "status": "active",
+      "status": "deprecated",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#2-独立接收站准入",
       "section_digest": "sha256:13732d9ef6896866d618eb998afa29c90457aeeb7c3ba4c76c6c87287f6035de",
@@ -442,7 +442,7 @@
     },
     {
       "clause_id": "AK-NC-031",
-      "status": "active",
+      "status": "deprecated",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
       "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
@@ -488,7 +488,7 @@
     },
     {
       "clause_id": "AK-NC-035",
-      "status": "active",
+      "status": "deprecated",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
       "section_digest": "sha256:6bc6f5d1dab9b3dd74d482b9078db611db69dd9e25be048414456458d11de91f",
@@ -498,7 +498,7 @@
     },
     {
       "clause_id": "AK-NC-036",
-      "status": "active",
+      "status": "deprecated",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#4-state-hash",
       "section_digest": "sha256:df5d0fc512b490fa371f93214ab2b4c3b50f8c4d259195e1a4d0a8da99d2335c",
@@ -510,7 +510,7 @@
     },
     {
       "clause_id": "AK-NC-037",
-      "status": "active",
+      "status": "deprecated",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
       "section_digest": "sha256:6bc6f5d1dab9b3dd74d482b9078db611db69dd9e25be048414456458d11de91f",
@@ -520,7 +520,7 @@
     },
     {
       "clause_id": "AK-NC-038",
-      "status": "active",
+      "status": "deprecated",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
       "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
@@ -550,7 +550,7 @@
     },
     {
       "clause_id": "AK-NC-041",
-      "status": "active",
+      "status": "deprecated",
       "category": "security",
       "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
       "section_digest": "sha256:a2c1b1d5870e0f77ec9310e72033472a59fdce2f2361cda4c801fa7fa9be0e70",
@@ -590,7 +590,7 @@
     },
     {
       "clause_id": "AK-NC-045",
-      "status": "active",
+      "status": "deprecated",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
       "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
@@ -672,7 +672,7 @@
     },
     {
       "clause_id": "AK-NC-054",
-      "status": "active",
+      "status": "deprecated",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#822-human-generic-control-的-portable-signer-evidencenormative",
       "section_digest": "sha256:65afc68d459d9707741ba4c9540a8ff46a2a888aa7a8722c59a486c9a4159329",
@@ -684,7 +684,7 @@
     },
     {
       "clause_id": "AK-NC-055",
-      "status": "active",
+      "status": "deprecated",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#52-已知-mls-artifact-的接纳结果",
       "section_digest": "sha256:2fd5c456fd599dafecb15242b6175bfc3bc3ad7f040e9d605fbae8ebc4708360",

@@ -412,7 +412,7 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. attestation_digest is not a wire field: the signer and the verifier each recompute it as SHA-256(JCS(artifact)) from the typed artifact carried in this object and fill it into the projection, so artifact is authenticated transitively and is not duplicated in the outer projection. For commit_recovery_unit the artifact is the complete RecoveryTerminalCommit, so this single outer signature covers the first new-generation Seal and the recovery receipt together."
+              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. attestation_digest is not a wire field: the signer and the verifier each recompute it as SHA-256(JCS(artifact)) from the typed artifact carried in this object and fill it into the projection, so artifact is authenticated transitively and is not duplicated in the outer projection. For commit_recovery_unit the artifact is the complete recovery receipt artifact, so this single outer signature covers the first recovery RealmCommit and the recovery receipt together."
             }
           },
           "additionalProperties": false
@@ -450,7 +450,7 @@
     },
     "continue_request": {
       "type": "object",
-      "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 0 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request. Recovery has no coordinator-owned prefix: commit_recovery_unit is its single step and the only wire position that carries the first new-generation Seal into the atomic commit.",
+      "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 0 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request. Recovery has no coordinator-owned prefix: commit_recovery_unit is its single step and the only wire position that carries the first recovery RealmCommit into the atomic commit.",
       "required": [
         "request_digest",
         "prepared_plan_digest",
@@ -523,7 +523,7 @@
     },
     "recovery_create_request": {
       "type": "object",
-      "description": "Closed typed recovery intent. The caller states what it wants recovered and supplies the two complete signed Events plus the coordinates of the first new-generation Seal; it never supplies a finished prepared_plan. The Station derives the snapshots, the exact unsigned Seal body and every reserved id inside its own durable prepare transaction, which produces no recovery effect.",
+      "description": "Closed typed recovery intent. The caller states what it wants recovered and supplies the two complete signed Events plus the coordinates of the first recovery RealmCommit; it never supplies a finished prepared_plan. The Station derives the snapshots, the exact prepared authority-commit input body and every reserved id inside its own durable prepare transaction, which produces no recovery effect.",
       "required": [
         "transaction_id",
         "kind",
@@ -553,7 +553,7 @@
     },
     "pcr_policy_recovery_intent": {
       "type": "object",
-      "description": "Caller-authored recovery intent for one RecoveryTransaction. It fixes the verified recovery session, the replacement device, the previous/result PCR generation, the reserved terminal receipt id, the complete signed recovery unit and the coordinates of the first new-generation Seal. It carries no Station-derived material: recovery_session_snapshot_digest, proof_digest, reanchor_batch_receipt_id, first_generation_seal_id and first_generation_seal_body are produced by the Station prepare transaction and exist only in the prepared plan. identity_model appears exactly once, inside that plan binding.",
+      "description": "Caller-authored recovery intent fixing the verified recovery session, replacement device, generation CAS, terminal receipt id, two exact signed producer Events, current PCR stream head and their ordered digests. It contains no Station-signed RealmCommit.",
       "required": [
         "recovery_session_id",
         "replacement_device_id",
@@ -590,7 +590,7 @@
     },
     "recovery_commit_intent": {
       "type": "object",
-      "description": "Closed seal coordinates the Station replays into the exact first new-generation UnsignedSeal. This is the recovery-private counterpart of the ordinary SealPrepareRequestBody: unit_event_digests is the execution order of the closed recovery unit, not a sorted pending-command set, and ak.self.seals.command.prepare.v1 is never reachable from a recovery SessionGrant.",
+      "description": "Closed authority-commit expectation for the PCR stream. predecessor_ref is the exact current stream head and unit_event_digests fixes the two producer Events that the governance Station must commit atomically after all recovery checks succeed.",
       "required": [
         "realm_id",
         "predecessor_ref",
@@ -602,7 +602,7 @@
         },
         "predecessor_ref": {
           "$ref": "#/$defs/realm_commit_id",
-          "description": "The exact current accepted Seal of the Principal Control Realm. The first new-generation Seal is always a successor, so a genesis-null basis is never accepted here."
+          "description": "Exact current RealmCommit id of the Principal Control Realm stream; genesis-null is invalid."
         },
         "unit_event_digests": {
           "type": "array",
@@ -613,21 +613,21 @@
             "type": "string",
             "pattern": "^sha256:[0-9a-f]{64}$"
           },
-          "description": "Exactly [reanchor_digest, authorize_digest] in recovery unit execution order. The prepared plan's unsigned Seal MUST carry this same pair as the unit_event_digests of its single committed command_result."
+          "description": "Exactly [reanchor_digest, authorize_digest] in RealmCommit event order."
         }
       },
       "additionalProperties": false
     },
     "recovery_terminal_commit": {
       "type": "object",
-      "description": "Sole client-attested terminal artifact of a RecoveryTransaction. The replacement device signs the exact first new-generation Seal frozen by the prepare transaction and the recovery receipt that binds it, and delivers both in one commit_recovery_unit continue. No other wire position accepts this Seal: a raw signed recovery Seal without a completed RecoveryTransaction and its completion attestation never reaches accepted finality through ordinary Seal submit, federation or history replay.",
+      "description": "Sole client-attested terminal artifact of a RecoveryTransaction. It carries the exact replacement-device-signed recovery receipt. The governance Station validates it and the prepared producer Events, then atomically issues the PCR-stream RealmCommit; the client artifact never contains or signs that authority record.",
       "required": [
         "recovery_receipt"
       ],
       "properties": {
         "recovery_receipt": {
           "$ref": "./recovery-receipt.schema.json",
-          "description": "Complete ak.schema.recovery_receipt.v1 signed by the same replacement device, binding first_generation_seal_id together with the transaction, request/plan digests, both Events, the generation and the session/policy/proof snapshot."
+          "description": "Complete replacement-device-signed recovery receipt binding the transaction, plan, both producer Event ids, generation CAS and recovery proof snapshot."
         }
       },
       "additionalProperties": false
@@ -692,15 +692,13 @@
     },
     "pcr_policy_recovery_binding": {
       "type": "object",
-      "description": "Reserved public identities of one RecoveryTransaction. Every id here is fixed by the Station prepare transaction before any signable material reaches the client and can never be replaced; the recovery unit, its batch receipt, the first new-generation Seal and the terminal receipt all become observable only in the single atomic commit_recovery_unit commit.",
+      "description": "Reserved producer identities of one RecoveryTransaction. The replacement-device-signed Event ids and terminal receipt id are frozen before admission; the resulting RealmCommit is created only by the governance Station during the atomic terminal step.",
       "required": [
         "identity_model",
         "recovery_session_id",
         "replacement_device_id",
         "reanchor_event_id",
         "authorize_event_id",
-        "reanchor_batch_receipt_id",
-        "reanchor_commit_id",
         "terminal_receipt_id"
       ],
       "properties": {
@@ -719,14 +717,6 @@
         "authorize_event_id": {
           "$ref": "#/$defs/event_id"
         },
-        "reanchor_batch_receipt_id": {
-          "$ref": "#/$defs/receipt_id",
-          "description": "Reserved EventBatchReceipt id for the device_reanchor_unit scope. The replacement device signs it inside the recovery receipt before the two Events are accepted, so it MUST be reserved here at create time and emitted unchanged by the atomic commit."
-        },
-        "reanchor_commit_id": {
-          "$ref": "#/$defs/realm_commit_id",
-          "description": "Content-derived id of prepared_plan.first_generation_seal_body under the Realm digest algorithm. It is the unique Seal identity the replacement device may sign for this transaction and is signed into both the recovery receipt and the coordinator completion attestation."
-        },
         "terminal_receipt_id": {
           "$ref": "#/$defs/receipt_id"
         }
@@ -735,7 +725,7 @@
     },
     "pcr_policy_recovery_plan": {
       "type": "object",
-      "description": "Station-derived closed plan, frozen with the canonical request bytes in one durable prepare transaction that produces no recovery effect: no accepted Event, no committed Seal, no generation advance, no activated device, no consumed session and no terminal result. prepared_plan_digest therefore covers the complete unsigned Seal body as well as the recovery unit.",
+      "description": "Station-derived closed plan frozen with the canonical request in a durable prepare transaction that produces no accepted Event, RealmCommit, generation advance, active device, consumed session or terminal result.",
       "required": [
         "binding",
         "recovery_session_snapshot_digest",
@@ -766,7 +756,7 @@
         },
         "reanchor_commit_intent": {
           "$ref": "#/$defs/recovery_commit_intent",
-          "description": "The exact caller-stated seal coordinates the Station replayed. It MUST equal the create request recovery_intent.first_generation_seal_intent byte for byte."
+          "description": "Exact caller-stated PCR stream head and ordered Event digests; it MUST equal the create request recovery_intent.reanchor_commit_intent byte for byte."
         }
       },
       "additionalProperties": false

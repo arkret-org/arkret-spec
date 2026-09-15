@@ -159,21 +159,7 @@
     "limits": {
       "type": "object",
       "description": "Operational limits such as body size, batch size, TTL, pagination or retention bounds.",
-      "properties": {
-        "mls_governance_proof": {
-          "type": "object",
-          "description": "Required with these exact v1 interoperability bounds when the expanded supported_operation_bundles members contain ak.self.seals.read.mls_governance_proof.v1. The current declaring bundle is ak.operation_bundle.station.http_core.v1; operation IDs MUST NOT be placed in supported_operation_bundles.",
-          "required": [
-            "max_exact_response_bytes"
-          ],
-          "properties": {
-            "max_exact_response_bytes": {
-              "const": 1048576
-            }
-          },
-          "additionalProperties": false
-        }
-      },
+      "properties": {},
       "additionalProperties": true
     },
     "plaintext_visibility": {
@@ -852,32 +838,6 @@
     }
   },
   "allOf": [
-    {
-      "if": {
-        "required": [
-          "supported_operation_bundles"
-        ],
-        "properties": {
-          "supported_operation_bundles": {
-            "contains": {
-              "const": "ak.operation_bundle.station.http_core.v1"
-            }
-          }
-        }
-      },
-      "then": {
-        "required": [
-          "limits"
-        ],
-        "properties": {
-          "limits": {
-            "required": [
-              "mls_governance_proof"
-            ]
-          }
-        }
-      }
-    },
     {
       "if": {
         "properties": {

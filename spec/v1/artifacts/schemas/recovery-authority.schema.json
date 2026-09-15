@@ -115,7 +115,7 @@
     },
     "recovery_completion_attestation": {
       "type": "object",
-      "description": "Coordinator-signed proof created inside the single atomic commit_recovery_unit commit, together with the accepted recovery unit, the committed first new-generation Seal, the advanced generation, the activated replacement device, the consumed recovery session and the completed terminal result. It is the only offline completion evidence accepted by the Account Authority when issuing the post-recovery Standard grant.",
+      "description": "Coordinator-signed proof created after one atomic recovery commit accepted the two producer-signed recovery Events, issued their PCR-stream RealmCommit, advanced the device generation, activated the replacement device, consumed the recovery session and completed the transaction. The two CommittedEventRef values MUST name positions in the same RealmCommit.",
       "required": [
         "schema",
         "transaction_id",
@@ -125,13 +125,12 @@
         "recovery_session_id",
         "terminal_receipt_id",
         "terminal_receipt_digest",
-        "terminal_commit_digest",
         "replacement_device_id",
-        "device_authorization_event_id",
-        "reanchor_commit_id",
         "result_model_generation_ref",
         "completed_at",
-        "auth_data"
+        "auth_data",
+        "reanchor_event_ref",
+        "device_authorization_event_ref"
       ],
       "properties": {
         "schema": {
@@ -159,19 +158,8 @@
         "terminal_receipt_digest": {
           "$ref": "#/$defs/digest"
         },
-        "terminal_commit_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 of RFC 8785 JCS of the complete RecoveryTerminalCommit accepted by commit_recovery_unit. It equals the attestation_digest the replacement device signed in the outer client step attestation, so this attestation commits to the Seal signature and the receipt as one artifact."
-        },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "device_authorization_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "reanchor_commit_id": {
-          "$ref": "./security-transaction.schema.json#/$defs/realm_commit_id",
-          "description": "Identity of the RealmCommit that finalized the recovery re-anchor Event."
         },
         "result_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
@@ -198,10 +186,26 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "Base64URL signature over the closed completion projection, including device_authorization_event_id and reanchor_commit_id."
+              "description": "Base64URL signature over the closed completion projection, including reanchor_event_ref, device_authorization_event_ref and result_model_generation_ref."
             }
           },
           "additionalProperties": false
+        },
+        "reanchor_event_ref": {
+          "allOf": [
+            {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            }
+          ],
+          "description": "CommittedEventRef of the recovery re-anchor Event in the account PCR stream."
+        },
+        "device_authorization_event_ref": {
+          "allOf": [
+            {
+              "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            }
+          ],
+          "description": "CommittedEventRef of the replacement-device authorization Event in the same atomic RealmCommit."
         }
       },
       "additionalProperties": false

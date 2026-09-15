@@ -240,11 +240,11 @@
     "source_refs": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/event_id"
+        "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
       },
       "uniqueItems": true,
       "minItems": 1,
-      "description": "Event ids this entry was derived from, so a consumer can go back to the truth source and verify it. Omit the member entirely when the entry has no Event provenance: an implementation MUST NOT synthesize an id for an Event it never authored, and MUST NOT send an empty array to stand in for one. minItems stays 1 so a present array cannot fake compliance."
+      "description": "Closed Event/Commit/stream/position references from which this entry was derived. A service verifier resolves them only through ak.peer.events.read.resolve_committed.v1 and checks all four coordinates. Omit the member entirely when the entry has no authority-committed Event provenance; never synthesize a ref or send an empty array."
     },
     "intent": {
       "type": "string",

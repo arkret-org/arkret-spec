@@ -73,6 +73,13 @@ RETIRED_FIXTURE_FILES = {
     "websocket-binding-fixture.json",
 }
 
+RETIRED_REGISTRY_FILES = {
+    "history-key-canonical-binding-registry.json",
+    "history-recovery-scalability-registry.json",
+    "history-release-attestation-registry.json",
+    "mls-security-frontier-registry.json",
+}
+
 
 def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -82,6 +89,11 @@ def load_old_decenter(relative_path: str) -> dict:
     raw = subprocess.check_output(
         ["git", "show", f"old-decenter:{relative_path}"], cwd=ROOT
     )
+    return json.loads(raw.decode("utf-8"))
+
+
+def load_head(relative_path: str) -> dict:
+    raw = subprocess.check_output(["git", "show", f"HEAD:{relative_path}"], cwd=ROOT)
     return json.loads(raw.decode("utf-8"))
 
 
@@ -765,6 +777,30 @@ def migrate_registry() -> None:
         "ak.mls.keypackage",
     }
     kinds = [row for row in kinds if row["event_kind"] not in retired]
+    current_payload_descriptions = {
+        "ak.agent.key.revoke": (
+            "Agent signing-key revocation. The current governance Station verifies the "
+            "controller and active key, then commits the exact Event on its authority stream; "
+            "the payload carries no Seal or authorization basis."
+        ),
+        "ak.audit.session.close": (
+            "Terminal audit release-session close. The current governance Station compares "
+            "release_refs with its authority-committed session projection and serializes close "
+            "against release Events on the applicable stream."
+        ),
+        "ak.self.agent.pause": (
+            "Agent lifecycle transition to paused. Current controller authority and the active "
+            "agent state are checked atomically when the governance Station commits the Event."
+        ),
+        "ak.self.agent.resume": (
+            "Agent lifecycle transition from paused to active. The governance Station revalidates "
+            "controller, agent key, capability, Realm policy and accountability state at commit."
+        ),
+    }
+    for row in kinds:
+        replacement = current_payload_descriptions.get(row["event_kind"])
+        if replacement is not None:
+            row["payload"] = replacement
     if not any(row["event_kind"] == "ak.realm.governance_station.change" for row in kinds):
         kinds.append(
             {
@@ -786,6 +822,13 @@ def migrate_registry() -> None:
         kinds, key=lambda row: row["event_kind"]
     )
     event_registry = registry["event_kind_registry"]
+    event_registry["registry_rules"] = [
+        "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry and resolve to exactly one closed payload schema.",
+        "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm, Circle, or Sidecar stream.",
+        "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
+        "Event has no actor sequence, predecessor, causal-reference, authorization-context, Seal basis, Cell write, CBS proof, or history-key field. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
+        "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
+    ]
     event_registry.pop("cell_contracts", None)
     event_registry["bootstrap_event_kinds"] = [
         kind for kind in event_registry.get("bootstrap_event_kinds", []) if kind not in retired
@@ -797,7 +840,7 @@ def migrate_registry() -> None:
     registry.pop("state_model_contracts", None)
     registry.pop("authorization_dependency_registry", None)
     registry["current_result_registry"] = {
-        "description": "Closed typed current-result families. Selectors are domain types, never Cell IDs.",
+        "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never legacy Cell IDs.",
         "result_kinds": [
             {
                 "result_kind": "realm_profile",
@@ -827,6 +870,11 @@ def migrate_registry() -> None:
         "version": registry.get("current_result_registry", {}).get("version", "2026-09-15.1"),
         "generated_at": registry.get("current_result_registry", {}).get("generated_at", registry["generated_at"]),
     }
+    registry["authority_source_registry"]["registry_rules"] = [
+        "A non-grant authorization source is active only when one exact active row is selected by authority_source_id; syntax or an arbitrary Event reference never creates authority.",
+        "The current governance Station rederives activation, actor, resource and lifecycle predicates from its authority-committed current state and fails closed on missing, conflicting, non-canonical or freshness-unknown dependencies.",
+        "A successful preflight or cached current result is advisory to the caller and never replaces atomic authorization at RealmCommit issuance.",
+    ]
     actions = registry.get("capability_action_registry", {}).get("actions", [])
     retired_actions = {
         "ak.mls.proposal",
@@ -1060,6 +1108,14 @@ def migrate_registry() -> None:
             "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
             "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
         ),
+        "ak.peer.events.read.resolve_committed.v1": (
+            "POST /_arkret/peer/streams/resolve",
+            "PeerStreams/ResolveCommitted",
+            "peer.streams.read.resolve_committed",
+            "Directory-only exact resolve: authenticate the Directory, revalidate its source-signed DirectorySourceRefAccess, and resolve only byte-identical Event/Commit/stream/position refs contained by that carrier; no scan or caller-supplied Event is accepted as proof.",
+            "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request",
+            "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome",
+        ),
         "ak.open.realm_authority.read.bundle.v1": (
             "POST /_arkret/open/realm-authority/bundle",
             "OpenRealmAuthority/Bundle",
@@ -1137,6 +1193,38 @@ def migrate_registry() -> None:
         if isinstance(row.get("notes"), str):
             row["notes"] = row["notes"].replace("consent_cell_view", "consent_view")
             row["notes"] = row["notes"].replace("consent_cell_list", "consent_list")
+        operation_id = row.get("operation_id")
+        if operation_id == "ak.self.moderation.command.report.v1":
+            row["notes"] = (
+                "Carries one caller-signed moderation report Event. The current governance Station "
+                "revalidates the authenticated reporter, target visibility, effective scope and "
+                "current authorization, then commits the exact Event on that scope's authority "
+                "stream. The Event contains only its closed producer, scope, payload and signature fields."
+            )
+        elif operation_id == "ak.self.realm_join.command.prepare.v1":
+            row["notes"] = (
+                "Prepares one join, knock or invite acceptance against the Realm's current "
+                "governance Station. The Station is discovered from the current authority bundle, "
+                "not from the inviter or genesis Station. Preparation freezes the exact request "
+                "and current policy revision; final admission is an authority commit and performs "
+                "no actor-frontier, Seal-basis or CBS calculation."
+            )
+        elif operation_id in {
+            "ak.self.signal.command.send.v1",
+            "ak.peer.signal.command.relay.v1",
+        }:
+            row["notes"] = (
+                "Transient encrypted Signal rail. It creates no durable Event or RealmCommit, "
+                "does not advance any authority stream, and grants no delivery or authorization proof."
+            )
+        elif operation_id == "ak.self.security_transaction.command.continue.v1":
+            row["notes"] = (
+                "Continues only the canonical next transaction step. Recovery's terminal step "
+                "carries the replacement-device-signed recovery receipt; the current governance "
+                "Station atomically validates both prepared producer Events, issues their PCR-stream "
+                "RealmCommit, advances device generation, activates the device and consumes the "
+                "session. The client never supplies or signs the RealmCommit."
+            )
     registry["operation_registry"]["operations"] = final_operations
     known_operations = {row["operation_id"] for row in final_operations}
     groups = []
@@ -1153,6 +1241,7 @@ def migrate_registry() -> None:
     authority_operations = sorted(
         {
             "ak.open.realm_authority.read.bundle.v1",
+            "ak.peer.events.read.resolve_committed.v1",
             "ak.peer.realm_authority.command.handoff.v1",
         }
         & known_operations
@@ -1314,17 +1403,11 @@ def migrate_auxiliary_registries() -> None:
     gaps["uncovered_event_kinds"] = [
         row for row in gaps["uncovered_event_kinds"] if row["event_kind"] in active
     ]
-    if not any(
-        row["event_kind"] == "ak.realm.governance_station.change"
+    gaps["uncovered_event_kinds"] = [
+        row
         for row in gaps["uncovered_event_kinds"]
-    ):
-        gaps["uncovered_event_kinds"].append(
-            {
-                "event_kind": "ak.realm.governance_station.change",
-                "priority": "critical",
-                "rationale": "Planned authority handoff vectors land with the new protocol suite.",
-            }
-        )
+        if row["event_kind"] != "ak.realm.governance_station.change"
+    ]
     gaps["uncovered_event_kinds"].sort(key=lambda row: row["event_kind"])
     save(gaps_path, gaps)
 
@@ -1357,6 +1440,39 @@ def migrate_auxiliary_registries() -> None:
             for item in value:
                 strip_retired(item)
     strip_retired(profiles)
+
+    retired_mls_tokens = (
+        "security_frontier",
+        "mls_governance_proof",
+        "mls-security-frontier-registry.json",
+    )
+
+    def strip_retired_mls_contracts(value: object) -> None:
+        if isinstance(value, dict):
+            for key, item in list(value.items()):
+                if any(token in key for token in retired_mls_tokens):
+                    value.pop(key)
+                    continue
+                if isinstance(item, str) and any(
+                    token in item for token in retired_mls_tokens
+                ):
+                    value.pop(key)
+                    continue
+                if isinstance(item, list):
+                    value[key] = [
+                        entry
+                        for entry in item
+                        if not (
+                            isinstance(entry, str)
+                            and any(token in entry for token in retired_mls_tokens)
+                        )
+                    ]
+                strip_retired_mls_contracts(value.get(key))
+        elif isinstance(value, list):
+            for item in value:
+                strip_retired_mls_contracts(item)
+
+    strip_retired_mls_contracts(profiles)
     requirements = profiles.get("vector_group_requirements", {})
     removed_groups = {
         group_id
@@ -1396,6 +1512,71 @@ def migrate_auxiliary_registries() -> None:
             }
         ],
     }
+    mls_profile_id = "ak.profile.mls_governance_binding.full.v1"
+    if mls_profile_id in profiles.get("profile_requirements", {}):
+        profiles["profile_requirements"][mls_profile_id] = {
+            "description": (
+                "MLS GroupContext binding for an independently authority-committed Realm or "
+                "Circle stream. Each Genesis or Commit binds the canonical effective scope, "
+                "derived MLS group id, epoch transition, and monotonic key_access_revision. "
+                "Governance authorization is decided by the current governance Station before "
+                "the Event is committed; MLS carries no CBS or governance-proof bundle."
+            ),
+            "enforcement_phases": ["build", "conformance"],
+            "operation_requirements": [
+                {
+                    "direction": "provide",
+                    "operation_id": "ak.self.keys.keypackages.command.claim.v1",
+                    "binding_kind": "http_json",
+                },
+                {
+                    "direction": "provide",
+                    "operation_id": "ak.self.events.read.scan.v1",
+                    "binding_kind": "http_json",
+                },
+                {
+                    "direction": "provide",
+                    "operation_id": "ak.peer.mls.read.group_state_material.v1",
+                    "binding_kind": "http_json",
+                },
+            ],
+            "inherits": [],
+            "required_event_kinds": ["ak.mls.commit"],
+            "rejected_event_kinds": [],
+            "required_schemas": [
+                "ak.schema.encrypted_envelope.v1",
+                "ak.schema.realm_commit.v1",
+                "ak.schema.mls_commit_submission.v1",
+                "ak.schema.mls_welcome_delivery.v1",
+            ],
+            "required_fixtures": ["authority-commit-fixture.json"],
+            "optional_extensions": ["ak.profile.mls.minimal_metadata_realm.v1"],
+            "feature_discovery": {
+                "required": [
+                    "mls_governance_binding_extension",
+                    "key_access_revision",
+                    "mls_group_state_material",
+                ],
+                "unsupported_optional": "fail closed on scope, epoch, group id, or key-access revision mismatch",
+            },
+            "federation_interop_floor": {
+                "is_minimum_for_mls_backed_federation": True,
+                "requires_exact_extension_codepoint": "0xF1C0",
+                "requires_binding_profile": mls_profile_id,
+                "forbids_silent_downgrade": [
+                    "omitting the GroupContext extension",
+                    "using a deployment-private alternate extension codepoint",
+                    "accepting a Commit whose key_access_revision does not equal the current authority projection",
+                ],
+            },
+            "fail_closed_conditions": [
+                "governance binding missing from ak.mls.commit",
+                "effective_scope or derived mls_group_id mismatch",
+                "previous_epoch or next_epoch mismatch",
+                "key_access_revision differs from the current authority-committed projection",
+                "Commit and recipient Welcome delivery are not accepted as one atomic service transaction",
+            ],
+        }
     known_schema_ids = {
         row["schema_id"]
         for row in load(REGISTRY)["schema_registry"]["schemas"]
@@ -1439,7 +1620,6 @@ def migrate_auxiliary_registries() -> None:
 
     clean_profile_references(profiles)
     save(profiles_path, profiles)
-
     vector_path = ARTIFACT_REGISTRY / "vector-registry.json"
     vectors = load(vector_path)
 
@@ -1817,6 +1997,51 @@ def migrate_auxiliary_registries() -> None:
     save(error_mapping_path, error_mapping)
 
 
+def retire_obsolete_registry_artifacts() -> None:
+    """Remove registries whose complete domain left the v1 protocol."""
+    manifest_path = ARTIFACT_REGISTRY / "registry-manifest.json"
+    manifest = load(manifest_path)
+    manifest["registries"] = [
+        row
+        for row in manifest.get("registries", [])
+        if Path(str(row.get("file", ""))).name not in RETIRED_REGISTRY_FILES
+    ]
+    save(manifest_path, manifest)
+
+    evidence_path = ROOT / "tools/evidence-material-audit.json"
+    evidence = load(evidence_path)
+    for key, value in list(evidence.items()):
+        if not isinstance(value, list):
+            continue
+        evidence[key] = [
+            row
+            for row in value
+            if not (
+                isinstance(row, dict)
+                and Path(str(row.get("file", ""))).name in RETIRED_REGISTRY_FILES
+            )
+        ]
+    save(evidence_path, evidence)
+
+    for file_name in RETIRED_REGISTRY_FILES:
+        path = ARTIFACT_REGISTRY / file_name
+        if path.exists():
+            path.unlink()
+
+
+def retire_mls_governance_proof_discovery() -> None:
+    path = SCHEMAS / "service-describe.schema.json"
+    service_describe = load(path)
+    limits = service_describe.get("properties", {}).get("limits", {})
+    limits.get("properties", {}).pop("mls_governance_proof", None)
+    service_describe["allOf"] = [
+        branch
+        for branch in service_describe.get("allOf", [])
+        if "mls_governance_proof" not in json.dumps(branch, ensure_ascii=False)
+    ]
+    save(path, service_describe)
+
+
 def migrate_retired_lint_registries() -> None:
     feature_path = ARTIFACT_REGISTRY / "feature-registry.json"
     feature = load(feature_path)
@@ -1831,6 +2056,108 @@ def migrate_retired_lint_registries() -> None:
     ]
     save(feature_path, feature)
 
+    error_path = ARTIFACT_REGISTRY / "error-code-registry.json"
+    errors = load(error_path)
+    retired_error_codes = {
+        "actor_seq_invalid",
+        "seal_signer_unauthorized",
+        "seal_signer_slot_fenced",
+        "seal_deferred_future_skew",
+        "seal_ref_unknown",
+        "frontier_sequence_exhausted",
+        "mls_governance_proof_bounds_exceeded",
+        "genesis_seal_invalid",
+        "seal_incomplete",
+    }
+    retired_reason_codes = {
+        "causal_refs_too_large",
+        "covered_set_mismatch",
+        "created_at_before_basis_seal",
+        "created_at_before_causal_predecessor",
+        "delta_contains_ordinary_event",
+        "genesis_seal_invalid",
+        "prev_refs_too_large",
+    }
+    errors["codes"] = [
+        row for row in errors.get("codes", []) if row.get("code") not in retired_error_codes
+    ]
+    errors["reason_codes"] = [
+        row
+        for row in errors.get("reason_codes", [])
+        if (row.get("reason_code") or row.get("reason") or row.get("code"))
+        not in retired_reason_codes
+    ]
+    for row in errors.get("codes", []):
+        if row.get("code") == "cas_conflict":
+            row["description"] = (
+                "An optimistic concurrency precondition failed because the authority-committed "
+                "typed current result or stream head no longer equals the submitted expectation. "
+                "The caller must read current state and create a new signed Event; exact retry "
+                "retains the original identity."
+            )
+        elif row.get("code") == "causal_conflict":
+            row["description"] = (
+                "An application-level referenced object, revision, or domain transition is "
+                "incompatible with current authority-committed state. This code does not describe "
+                "an Event predecessor graph."
+            )
+        description = row.get("description")
+        if isinstance(description, str):
+            row["description"] = description.replace(
+                "security_frontier_digest", "key_access_revision"
+            ).replace("accepted key-access state", "authority-committed key-access revision")
+    save(error_path, errors)
+
+    proof_path = ARTIFACT_REGISTRY / "proof-context-registry.json"
+    proof_contexts = load(proof_path)
+    proof_contexts["contexts"] = [
+        row
+        for row in proof_contexts.get("contexts", [])
+        if row.get("object_family")
+        not in {
+            "events_frontier_leaf",
+            "events_frontier_node",
+            "realm_state_snapshot_auth_state_issuer_local",
+        }
+    ]
+    save(proof_path, proof_contexts)
+
+    digest_path = ARTIFACT_REGISTRY / "digest-suite-registry.json"
+    digest_suites = load(digest_path)
+    digest_suites["registry_rules"] = [
+        "A digest suite is an explicit canonicalization/hash tuple; only active rows are valid on wire.",
+        "Unknown suites in critical Event, RealmCommit, stream-head, receipt, or content-addressed digest fields fail closed.",
+        "Producer Events use the suite selected by their Realm policy. RealmCommit binds each exact Event digest and its same-stream previous_commit_ref; historical references are never rehashed.",
+        "Activating a new suite requires a schema/profile version and conformance vectors; it MUST NOT expand a frozen schema enum in place.",
+    ]
+    save(digest_path, digest_suites)
+
+    service_kind_path = ARTIFACT_REGISTRY / "service-kind-registry.json"
+    service_kinds = load(service_kind_path)
+    for row in service_kinds.get("service_kinds", []):
+        if isinstance(row.get("description"), str) and "Seal" in row["description"]:
+            row["description"] = "Authority commit and current-state attestation surface."
+    save(service_kind_path, service_kinds)
+
+    clause_path = ARTIFACT_REGISTRY / "normative-clause-registry.json"
+    clauses = load(clause_path)
+    retired_clause_tokens = (
+        "Seal",
+        "Cell",
+        "CBS",
+        "actor_seq",
+        "auth_context",
+        "history-key",
+        "mls_governance_proof",
+    )
+    for row in clauses.get("clauses", []):
+        if any(
+            token in json.dumps(row, ensure_ascii=False)
+            for token in retired_clause_tokens
+        ):
+            row["status"] = "deprecated"
+    save(clause_path, clauses)
+
     exemptions_path = (
         ARTIFACT_REGISTRY / "content-addressed-ref-digest-exemption-registry.json"
     )
@@ -1839,6 +2166,8 @@ def migrate_retired_lint_registries() -> None:
         row
         for row in exemptions.get("exemptions", [])
         if (ROOT / "spec/v1/artifacts" / row.get("subject", {}).get("schema_file", "")).exists()
+        and "first_generation_seal_id" not in json.dumps(row, ensure_ascii=False)
+        and "terminal_commit_digest" not in json.dumps(row, ensure_ascii=False)
     ]
     save(exemptions_path, exemptions)
 
@@ -1902,7 +2231,7 @@ def migrate_retired_lint_registries() -> None:
     save(schema_roots_path, schema_roots)
 
     clauses_path = ARTIFACT_REGISTRY / "operation-clause-registry.json"
-    clauses = load_old_decenter(
+    clauses = load_head(
         "spec/v1/artifacts/registry/operation-clause-registry.json"
     )
     for row in clauses.get("clauses", []):
@@ -1967,6 +2296,7 @@ def migrate_openapi() -> None:
         "ak.peer.events.command.submit.v1",
         "ak.self.events.read.scan.v1",
         "ak.peer.events.read.scan.v1",
+        "ak.peer.events.read.resolve_committed.v1",
         "ak.open.realm_authority.read.bundle.v1",
         "ak.peer.realm_authority.command.handoff.v1",
     }
@@ -2091,6 +2421,9 @@ def migrate_non_http_bindings() -> None:
     grpc_services.setdefault("PeerRealmAuthority", {})["Handoff"] = (
         "ak.peer.realm_authority.command.handoff.v1"
     )
+    grpc_services.setdefault("PeerStreams", {})["ResolveCommitted"] = (
+        "ak.peer.events.read.resolve_committed.v1"
+    )
     path.write_text(
         yaml.safe_dump(document, allow_unicode=True, sort_keys=False, width=120),
         encoding="utf-8",
@@ -2106,8 +2439,10 @@ def migrate_service_http_prose() -> None:
 
     old_heading = "#### 2.3.1 Wire-level JSON 示例"
     new_heading = "#### 2.3.1 Authority-commit wire 边界"
-    start = text.index(old_heading if old_heading in text else new_heading)
-    end = text.index("### 2.4 字段级 Schema 索引")
+    selected_heading = old_heading if old_heading in text else new_heading
+    has_legacy_section = selected_heading in text and "### 2.4 字段级 Schema 索引" in text
+    start = text.index(selected_heading) if has_legacy_section else 0
+    end = text.index("### 2.4 字段级 Schema 索引") if has_legacy_section else 0
     replacement = """#### 2.3.1 Authority-commit wire 边界
 
 Producer Event、Station RealmCommit、stream scan、authority bundle 与 handoff 的完整 wire 示例统一由
@@ -2122,23 +2457,30 @@ Producer Event、Station RealmCommit、stream scan、authority bundle 与 handof
 | `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | `schemas/authority-commit-operations.schema.json#/$defs/submit_request` | `schemas/authority-commit-operations.schema.json#/$defs/submit_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。peer transport 身份必须与 forwarding Station 匹配；非 current authority 不得本地接纳。 |
 | `ak.self.events.read.scan.v1` | `POST /_arkret/self/streams/scan` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。一次只读一条获准 stream，并验证该 stream 的连续 predecessor。 |
 | `ak.peer.events.read.scan.v1` | `POST /_arkret/peer/streams/scan` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。federation peer 只能复制 visibility policy 允许的单一 stream。 |
+| `ak.peer.events.read.resolve_committed.v1` | `POST /_arkret/peer/streams/resolve` | `schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request` | `schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome` | Directory 专用精确解析；必须重验 source-signed `DirectorySourceRefAccess` 的 caller/proof/expiry/current announce，并只接受 carrier `source_refs` 的逐字子集。不得退化为 scan。 |
 | `ak.open.realm_authority.read.bundle.v1` | `POST /_arkret/open/realm-authority/bundle` | `schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request` | `schemas/realm-authority-bundle.schema.json` | 请求 fresh nonce；公开响应只披露 Realm stream head 与公开 transition，不披露隐藏 stream。 |
 | `ak.peer.realm_authority.command.handoff.v1` | `POST /_arkret/peer/realm-authority/handoff` | `schemas/authority-commit-operations.schema.json#/$defs/handoff_request` | `schemas/realm-authority-handoff.schema.json` | old/new Station 双签；私下验证 snapshot 与完整 stream-head manifest 后才安装。 |
 
 """
-    text = text[:start] + replacement + text[end:]
+    if has_legacy_section:
+        text = text[:start] + replacement + text[end:]
 
     detail_header = "| `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |\n| --- | --- | --- | --- | --- |\n"
     detail_rows = """| `ak.self.events.command.submit.v1` | `event: Event` | `expected_stream_head?: RealmCommitId`; `mls_commit_submission?` | `status`; `event_id`; `realm_commit?` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。 |
 | `ak.peer.events.command.submit.v1` | `event: Event`; peer authentication | `expected_stream_head?: RealmCommitId`; `mls_commit_submission?` | `status`; `event_id`; `realm_commit?` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。 |
 | `ak.self.events.read.scan.v1` | `realm_id`; `stream_ref`; `after_position` | `limit?`; `cursor?` | `commits[]`; `next_cursor?`; `has_more` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。 |
 | `ak.peer.events.read.scan.v1` | `realm_id`; `stream_ref`; `after_position` | `limit?`; `cursor?` | `commits[]`; `next_cursor?`; `has_more` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。 |
+| `ak.peer.events.read.resolve_committed.v1` | `realm_id`; `source_ref_access`; `refs[]` | 无 | `items[]` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome。`refs[]` 必须是 carrier `source_refs` 的逐字子集。 |
 | `ak.self.events.stream.subscribe.v1` | transport query selector | `after?`; `catchup?` | NDJSON frames | response_schema_ref=schemas/events-subscribe-frame.schema.json。订阅只作为获准 stream 的低延迟提示；缺口仍用逐 stream scan 修复。 |
 | `ak.open.realm_authority.read.bundle.v1` | `realm_id`; `nonce` | 无 | `RealmAuthorityBundle` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request；response_schema_ref=schemas/realm-authority-bundle.schema.json。 |
 | `ak.peer.realm_authority.command.handoff.v1` | `handoff`; `snapshot`; `final_stream_heads[]` | 无 | `RealmAuthorityHandoff` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/handoff_request；response_schema_ref=schemas/realm-authority-handoff.schema.json。 |
 """
     if detail_rows.splitlines()[0] not in text:
         text = text.replace(detail_header, detail_header + detail_rows, 1)
+
+    if "## 3. Events API" not in text or "## 4. Identity API" not in text:
+        path.write_text(text, encoding="utf-8", newline="\n")
+        return
 
     events_start = text.index("## 3. Events API")
     identity_start = text.index("## 4. Identity API")
@@ -2200,6 +2542,7 @@ MLS 或 reducer 失败返回封闭 reason code。任何失败都不得留下 Eve
         "ak.peer.events.command.submit.v1",
         "ak.self.events.read.scan.v1",
         "ak.peer.events.read.scan.v1",
+        "ak.peer.events.read.resolve_committed.v1",
     )
     retired_event_anchor_tokens = (
         "#3311-actor_ids-selector-授权normative",
@@ -2260,14 +2603,152 @@ def reconcile_authority_commit_residuals() -> None:
 
     recovery_path = SCHEMAS / "recovery-authority.schema.json"
     recovery = load(recovery_path)
-    signature = recovery["$defs"]["recovery_completion_attestation"]["properties"][
-        "auth_data"
-    ]["properties"]["signature"]
+    completion = recovery["$defs"]["recovery_completion_attestation"]
+    for retired_field in (
+        "terminal_commit_digest",
+        "device_authorization_event_id",
+        "reanchor_commit_id",
+    ):
+        completion["required"] = [
+            field for field in completion["required"] if field != retired_field
+        ]
+        completion["properties"].pop(retired_field, None)
+    for field_name, description in (
+        (
+            "reanchor_event_ref",
+            "CommittedEventRef of the recovery re-anchor Event in the account PCR stream.",
+        ),
+        (
+            "device_authorization_event_ref",
+            "CommittedEventRef of the replacement-device authorization Event in the same atomic RealmCommit.",
+        ),
+    ):
+        if field_name not in completion["required"]:
+            completion["required"].append(field_name)
+        completion["properties"][field_name] = {
+            "allOf": [
+                {
+                    "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+                }
+            ],
+            "description": description,
+        }
+    completion["description"] = (
+        "Coordinator-signed proof created after one atomic recovery commit accepted the two "
+        "producer-signed recovery Events, issued their PCR-stream RealmCommit, advanced the "
+        "device generation, activated the replacement device, consumed the recovery session "
+        "and completed the transaction. The two CommittedEventRef values MUST name positions "
+        "in the same RealmCommit."
+    )
+    signature = completion["properties"]["auth_data"]["properties"]["signature"]
     signature["description"] = (
         "Base64URL signature over the closed completion projection, including "
-        "device_authorization_event_id and reanchor_commit_id."
+        "reanchor_event_ref, device_authorization_event_ref and result_model_generation_ref."
     )
     save(recovery_path, recovery)
+
+    recovery_receipt_path = SCHEMAS / "recovery-receipt.schema.json"
+    recovery_receipt = load(recovery_receipt_path)
+    recovery_receipt["required"] = [
+        field
+        for field in recovery_receipt.get("required", [])
+        if field not in {"reanchor_batch_receipt_id", "reanchor_commit_id"}
+    ]
+    recovery_receipt.get("properties", {}).pop("reanchor_batch_receipt_id", None)
+    recovery_receipt.get("properties", {}).pop("reanchor_commit_id", None)
+    recovery_receipt["description"] = (
+        "Replacement-device-signed terminal intent for one RecoveryTransaction. It binds the "
+        "two exact producer Event ids, recovery session/policy/proof snapshot and resulting "
+        "device generation expectation. It is signed before authority admission and therefore "
+        "does not contain a RealmCommit id; successful completion is proven separately by the "
+        "coordinator-signed recovery completion attestation and its CommittedEventRef values."
+    )
+    save(recovery_receipt_path, recovery_receipt)
+
+    security_transaction_path = SCHEMAS / "security-transaction.schema.json"
+    security_transaction = load(security_transaction_path)
+    binding = security_transaction["$defs"].get("pcr_policy_recovery_binding", {})
+    binding["required"] = [
+        field
+        for field in binding.get("required", [])
+        if field not in {"reanchor_commit_id", "reanchor_batch_receipt_id"}
+    ]
+    binding.get("properties", {}).pop("reanchor_commit_id", None)
+    binding.get("properties", {}).pop("reanchor_batch_receipt_id", None)
+    binding["description"] = (
+        "Reserved producer identities of one RecoveryTransaction. The replacement-device-signed "
+        "Event ids and terminal receipt id are frozen before admission; the resulting RealmCommit "
+        "is created only by the governance Station during the atomic terminal step."
+    )
+    recovery_intent = security_transaction["$defs"].get(
+        "pcr_policy_recovery_intent", {}
+    )
+    recovery_intent["description"] = (
+        "Caller-authored recovery intent fixing the verified recovery session, replacement "
+        "device, generation CAS, terminal receipt id, two exact signed producer Events, current "
+        "PCR stream head and their ordered digests. It contains no Station-signed RealmCommit."
+    )
+    commit_intent = security_transaction["$defs"].get("recovery_commit_intent", {})
+    commit_intent["description"] = (
+        "Closed authority-commit expectation for the PCR stream. predecessor_ref is the exact "
+        "current stream head and unit_event_digests fixes the two producer Events that the "
+        "governance Station must commit atomically after all recovery checks succeed."
+    )
+    commit_intent["properties"]["predecessor_ref"]["description"] = (
+        "Exact current RealmCommit id of the Principal Control Realm stream; genesis-null is invalid."
+    )
+    commit_intent["properties"]["unit_event_digests"]["description"] = (
+        "Exactly [reanchor_digest, authorize_digest] in RealmCommit event order."
+    )
+    terminal = security_transaction["$defs"].get("recovery_terminal_commit", {})
+    terminal["description"] = (
+        "Sole client-attested terminal artifact of a RecoveryTransaction. It carries the exact "
+        "replacement-device-signed recovery receipt. The governance Station validates it and "
+        "the prepared producer Events, then atomically issues the PCR-stream RealmCommit; the "
+        "client artifact never contains or signs that authority record."
+    )
+    terminal["properties"]["recovery_receipt"]["description"] = (
+        "Complete replacement-device-signed recovery receipt binding the transaction, plan, "
+        "both producer Event ids, generation CAS and recovery proof snapshot."
+    )
+    plan = security_transaction["$defs"].get("pcr_policy_recovery_plan", {})
+    plan["description"] = (
+        "Station-derived closed plan frozen with the canonical request in a durable prepare "
+        "transaction that produces no accepted Event, RealmCommit, generation advance, active "
+        "device, consumed session or terminal result."
+    )
+    plan["properties"]["reanchor_commit_intent"]["description"] = (
+        "Exact caller-stated PCR stream head and ordered Event digests; it MUST equal the create "
+        "request recovery_intent.reanchor_commit_intent byte for byte."
+    )
+    security_description_replacements = {
+        "first new-generation Seal": "first recovery RealmCommit",
+        "first new-generation seal": "first recovery RealmCommit",
+        "first_generation_seal_id": "reanchor_commit_id",
+        "first_generation_seal_body": "prepared recovery commit input",
+        "unsigned Seal": "prepared authority-commit input",
+        "UnsignedSeal": "authority-commit input",
+        "SealPrepareRequestBody": "authority commit submission",
+        "ordinary Seal submit": "ordinary Event submit",
+        "Seal signature": "RealmCommit authority signature",
+        "complete RecoveryTerminalCommit": "complete recovery receipt artifact",
+    }
+
+    def rewrite_security_descriptions(value: object) -> None:
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in {"description", "$comment"} and isinstance(item, str):
+                    for old, new in security_description_replacements.items():
+                        item = item.replace(old, new)
+                    value[key] = item
+                else:
+                    rewrite_security_descriptions(item)
+        elif isinstance(value, list):
+            for item in value:
+                rewrite_security_descriptions(item)
+
+    rewrite_security_descriptions(security_transaction)
+    save(security_transaction_path, security_transaction)
 
     dto_path = SCHEMAS / "service-operation-dtos.schema.json"
     dto = load(dto_path)
@@ -2276,7 +2757,191 @@ def reconcile_authority_commit_residuals() -> None:
         query["properties"]["actor_ids"]["items"] = {
             "$ref": "./common-ids.schema.json#/$defs/actor_id"
         }
+    authz_check = dto["$defs"].get("AuthzCheckRequestBody")
+    if authz_check and isinstance(authz_check.get("description"), str):
+        authz_check["description"] = (
+            "ak.self.authz.read.check.v1 advisory local authorization preflight. "
+            "It is never a cross-service authorization fact and cannot replace the "
+            "current governance Station's admission decision."
+        )
+    signal_outcome = dto["$defs"].get("SignalSubmitOutcome")
+    if signal_outcome and isinstance(signal_outcome.get("description"), str):
+        signal_outcome["description"] = (
+            "Result of transient Signal admission. accepted=true means the service placed "
+            "the encrypted envelope on the short-lived rail; it creates no Event, "
+            "RealmCommit, authority-stream position or durable delivery receipt."
+        )
     save(dto_path, dto)
+
+    message_authoring_path = SCHEMAS / "message-authoring.schema.json"
+    message_authoring = load(message_authoring_path)
+    prepare_outcome = message_authoring["$defs"]["message_prepare_outcome"]
+    prepare_outcome["required"] = [
+        field
+        for field in prepare_outcome.get("required", [])
+        if field != "accepted_actor_frontier"
+    ]
+    prepare_outcome.get("properties", {}).pop("accepted_actor_frontier", None)
+    save(message_authoring_path, message_authoring)
+
+    audit_ryw_path = SCHEMAS / "audit-ryw-receipt.schema.json"
+    audit_ryw = load(audit_ryw_path)
+    audit_ryw["properties"]["frontier"] = {
+        "allOf": [{"$ref": "./realm-commit.schema.json#/$defs/stream_head"}],
+        "description": (
+            "Exact authority stream head observed for this receipt. The commit chain, not an "
+            "actor frontier or Event-DAG cut, defines the read-your-writes boundary."
+        ),
+    }
+    save(audit_ryw_path, audit_ryw)
+
+    view_path = SCHEMAS / "view.schema.json"
+    view = load(view_path)
+    state_frontier = view["$defs"]["state_frontier"]
+    state_frontier["properties"].pop("event_ids", None)
+    state_frontier["properties"].pop("actor_frontiers", None)
+    state_frontier["properties"]["stream_heads"] = {
+        "type": "array",
+        "items": {"$ref": "./realm-commit.schema.json#/$defs/stream_head"},
+        "uniqueItems": True,
+        "description": "Authority stream heads from which state_digest was derived.",
+    }
+    save(view_path, view)
+
+    payload_path = SCHEMAS / "event-payload.schema.json"
+    payload = load(payload_path)
+    description_replacements = {
+        "Control Move envelope seal_basis": "current authority-committed state",
+        "accepted Seal covering the Move": "RealmCommit accepting the Event",
+        "accepted ordered release log at the close seal_basis": "authority-committed ordered release log at close",
+        "security_frontier_digest": "key_access_revision",
+        "accepted Seal state": "authority-committed state",
+    }
+
+    def rewrite_descriptions(value: object) -> None:
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key in {"description", "$comment"} and isinstance(item, str):
+                    for old, new in description_replacements.items():
+                        item = item.replace(old, new)
+                    value[key] = item
+                else:
+                    rewrite_descriptions(item)
+        elif isinstance(value, list):
+            for item in value:
+                rewrite_descriptions(item)
+
+    rewrite_descriptions(payload)
+    save(payload_path, payload)
+
+    applet_edge_path = SCHEMAS / "applet-edge-operations.schema.json"
+    applet_edge = load(applet_edge_path)
+    transaction_outcome = applet_edge["$defs"]["applet_transaction_outcome"]
+    transaction_outcome["properties"]["committed_event_refs"] = {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 1024,
+        "uniqueItems": True,
+        "items": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "description": (
+            "Exact committed references for every durable Event accepted by this transaction. "
+            "A successful or partial outcome cannot be represented by status alone."
+        ),
+    }
+    transaction_outcome["allOf"] = [
+        {
+            "if": {
+                "properties": {"status": {"enum": ["accepted", "partial"]}},
+                "required": ["status"],
+            },
+            "then": {"required": ["committed_event_refs"]},
+            "else": {"not": {"required": ["committed_event_refs"]}},
+        }
+    ]
+    save(applet_edge_path, applet_edge)
+
+    applet_install_path = SCHEMAS / "applet-install-operations.schema.json"
+    applet_install = load(applet_install_path)
+    applet_install["$defs"]["applet_revoke_effect_ref"] = {
+        "description": (
+            "CommittedEventRef for a durable revoke Event, or a local typed resource reference "
+            "for service-local token, session, or fence effects. Bare EventId and RealmCommitId "
+            "strings are not valid effect references."
+        ),
+        "oneOf": [
+            {
+                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+            },
+            {
+                "type": "string",
+                "pattern": "^ak:(?!event:|realm_commit:)[a-z][a-z0-9_]*:[A-Za-z0-9._~:/-]+$",
+            },
+        ],
+    }
+    revoke_step = applet_install["$defs"]["applet_revoke_step"]
+    revoke_step["properties"]["effect_ref"] = {
+        "$ref": "#/$defs/applet_revoke_effect_ref"
+    }
+    revoke_outcome = applet_install["$defs"]["applet_revoke_outcome"]
+    revoke_outcome["properties"]["revoked_refs"]["items"] = {
+        "$ref": "#/$defs/applet_revoke_effect_ref"
+    }
+    save(applet_install_path, applet_install)
+
+    security_doc_path = ROOT / "spec/v1/zh/identity/security-transactions.md"
+    security_doc = security_doc_path.read_text(encoding="utf-8")
+    recovery_section = """## 2. RecoveryTransaction
+
+RecoveryTransaction 保留为账号恢复的单一原子事务，但不再创建或携带 Seal。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权。
+
+### 2.1 create 同时完成专用 prepare，但不产生恢复效果
+
+create 请求固定 verified recovery session、replacement device、`previous_model_generation_ref` / `result_model_generation_ref`、预留 `terminal_receipt_id`、两条完整签名 Event，以及 `reanchor_commit_intent={realm_id,predecessor_ref,unit_event_digests}`。`predecessor_ref` MUST 等于当前 PCR stream head，digest 顺序 MUST 为 `[reanchor, authorize]`。
+
+Station 在一个 durable prepare transaction 中重验 session、policy/proof snapshot、device PoP、generation CAS、当前治理 authority、stream head 与两条 Event；随后冻结 canonical request 和 prepared plan。prepare 不插入 Event、不生成 RealmCommit、不推进 generation、不激活设备、不消费 session。
+
+### 2.2 唯一终态载体
+
+唯一 client-attested step 仍为 `commit_recovery_unit`。其 artifact 是 closed `RecoveryTerminalCommit`，但该名称只表示“恢复事务的终态客户端载体”；wire 内容只有 replacement-device-signed `recovery_receipt`，不含 RealmCommit、authority signature 或预先计算的 commit id。
+
+RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、previous/result generation、session/policy/proof snapshot、backup/welcome 结果与 authoring time。它在 authority admission 前生成，因此 MUST NOT 携 `reanchor_commit_id` 或 `CommittedEventRef`。outer client attestation 绑定该 exact receipt artifact。
+
+### 2.3 唯一原子提交与可观察性
+
+接受 terminal step 时，治理 Station 在同一数据库事务与同一 stream-head/generation CAS 下：
+
+1. 重验 transaction、session、plan、receipt、outer attestation 与两条 Event；
+2. 以 `[reanchor, authorize]` 顺序为 PCR stream 生成并签署一个 RealmCommit；
+3. 原子保存 Event、RealmCommit、stream head、generation advance、replacement device active state、session consumption 与 terminal result；
+4. 生成 `RecoveryCompletionAttestation`。
+
+任一步失败都不得留下可见 Event、RealmCommit 或部分 generation state。成功后两条 Event 的 `CommittedEventRef` 必须具有相同 `stream_ref` 与 `commit_id`，position 按上述顺序递增。
+
+### 2.4 operation 与 grant 边界
+
+`RecoveryCompletionAttestation` 是 Account Authority 签发恢复后 Standard grant 的唯一离线完成证据。其签名投影包含 transaction/request/plan、account/session/receipt、`reanchor_event_ref`、`device_authorization_event_ref`、`result_model_generation_ref` 与 `completed_at`。不再存在 `first_generation_seal_id` 或 `terminal_commit_digest`；RealmCommitId 已绑定 authority-signed commit bytes，不能再叠加一个旧 terminal artifact digest 作为治理根。
+
+### 2.5 幂等、竞争与失败终局
+
+同一 canonical terminal request 重放返回已保存的 receipt、两条 CommittedEventRef 与 completion attestation。相同 transaction id 的不同 bytes 返回 conflict。stream head、generation、session 或 policy 已改变时 fail closed，并且客户端必须创建新的 recovery session/transaction；服务不得改写旧 Event、把它们移到另一 RealmCommit、或由 inviter/旧治理 Station 代签。
+
+"""
+    security_doc = re.sub(
+        r"## 2\. RecoveryTransaction\n.*?(?=## 3\. SecurityRotationTransaction)",
+        recovery_section,
+        security_doc,
+        flags=re.S,
+    )
+    security_doc = security_doc.replace(
+        "RecoveryTerminalCommit 内的 Seal 与 receipt 都由 replacement device",
+        "RecoveryTerminalCommit 内的 recovery receipt 由 replacement device",
+    ).replace(
+        "recovery 还必须分别验证 Seal 的 notary signature transcript 与 receipt 自己的",
+        "recovery 还必须验证 receipt 自己的",
+    )
+    security_doc_path.write_text(security_doc, encoding="utf-8", newline="\n")
 
     freshness_path = ARTIFACT_REGISTRY / "did-freshness-profile-registry.json"
     freshness = load(freshness_path)
@@ -2478,6 +3143,7 @@ def reconcile_authority_commit_residuals() -> None:
         ("log_id", '[["pattern", "^(?!ak:)"]]'),
         ("membership_cell_id", '[["pattern", "^(?!ak:)"], ["type", "\\"string\\""]]'),
         ("missing_event_ids", "[]"),
+        ("frontier_event_ids", "[]"),
         ("target_id", '[["pattern", "^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$"]]'),
         ("transition_key_id", '[["pattern", "^(?!ak:)"]]'),
     }
@@ -2513,8 +3179,8 @@ def reconcile_authority_commit_residuals() -> None:
         if row.get("name") == "context_id":
             row["occurrences"] = 1
     classification["type_derived_summary"] = {
-        "typed_object_id": 874,
-        "responsibility_identity_material": 549,
+        "typed_object_id": 866,
+        "responsibility_identity_material": 547,
         "registry_catalog_symbol": 14,
     }
     save(classification_path, classification)
@@ -2700,6 +3366,8 @@ def main() -> None:
     remove_retired_common_ids()
     prune_service_operation_dtos()
     migrate_auxiliary_registries()
+    retire_obsolete_registry_artifacts()
+    retire_mls_governance_proof_discovery()
     migrate_retired_lint_registries()
     migrate_openapi()
     migrate_non_http_bindings()

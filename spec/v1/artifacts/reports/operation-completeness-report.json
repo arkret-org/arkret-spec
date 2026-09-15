@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T08:00:00+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 217,
+    "total_operations": 218,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 215
+      "typed_schema": 216
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 43
+        "typed_schema": 44
       },
       "deployment_local": {
         "typed_schema": 17
@@ -1086,6 +1086,20 @@
       "openapi_component_refs": {
         "request": "../schemas/authority-commit-operations.schema.json#/$defs/submit_request",
         "response": "../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.events.read.resolve_committed.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/peer/streams/resolve",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

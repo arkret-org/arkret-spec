@@ -231,9 +231,48 @@
         "retry_after_ms": {
           "type": "integer",
           "minimum": 1
+        },
+        "committed_event_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+          },
+          "description": "Exact committed references for every durable Event accepted by this transaction. A successful or partial outcome cannot be represented by status alone."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "accepted",
+                  "partial"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "committed_event_refs"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "committed_event_refs"
+              ]
+            }
+          }
+        }
+      ]
     },
     "applet_actor_view": {
       "type": "object",

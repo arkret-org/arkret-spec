@@ -55,7 +55,7 @@ see_also:
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/security-transactions.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、安全事务、consent gate、联系人关系和 1:1 私聊入口。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限与 Realm typed state。
 7. `sync/authority-commit-log.md`、`sync/client-sync.md`、`sync/signal.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解逐 scope 权威 stream、同步、加密实时 rail 和服务面。
-8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
+8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm，以及 MLS endpoint 从有效 Add/Welcome 起可读的边界。
 9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
 ### 2.1 快速收敛链路（先读）
@@ -176,13 +176,13 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/cbs-profiles.md` | CBS 授权集合 profile、并发类别、genesis ingress authority 与 proof bundle；提案有界决议和终态见 `authz/event-auth-state-resolution.md` §14。 |
+| `authz/cbs-profiles.md` | 退役模型说明与 authority-commit迁移边界；不得作为现行实现合同。 |
 | `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
-| `authz/event-auth-state-resolution.md` | ordinary Event、Control Move、Seal、state model、ordinary causal conflict、auth refs、membership、policy cells、history sharing 与 E2EE covered Seals。 |
+| `authz/event-auth-state-resolution.md` | 当前治理 Station在 commit位置的 producer/authz校验、typed reducer和 committed/rejected状态。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
-| `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、private history-key request/response stream/relay 与 organization-recovery archive。 |
+| `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、plaintext历史和MLS加入后可读边界。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
 
@@ -255,7 +255,7 @@ see_also:
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/realm-state-snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
-| `conformance/scalability-constraints.md` | v1 wire、授权、CBS/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
+| `conformance/scalability-constraints.md` | v1 wire、authority Commit/stream、Snapshot、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
 

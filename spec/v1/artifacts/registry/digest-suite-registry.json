@@ -1,23 +1,14 @@
 {
-  "version": "2026-09-12.9",
-  "generated_at": "2026-09-12T10:15:03+08:00",
+  "version": "2026-09-16.4",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "source_of_truth": true,
   "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
   "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",
   "registry_rules": [
-    "A digest suite id without a dot denotes canonicalization=json_jcs (canonical JSON per zh/conformance/encoding.md §2). The only active JSON-canonicalization suite ids in v1 are the canonical bare ids sha256 and blake3; dotted json_jcs aliases are not registered and MUST fail closed.",
-    "Suites are registered as explicit tuples. Implementations MUST NOT combine canonicalization ids and hash ids freely; only suites present as rows in this registry exist, and only status=active rows are valid on wire.",
-    "A suite prefix not present as an active row MUST fail closed with unsupported_digest_algorithm when it appears in a critical field (event_digest, state_root, prev_refs / refs digest, seal id, receipt digest); in non-critical metadata receivers MAY record it as unknown and preserve raw bytes (zh/conformance/encoding.md §3.2).",
-    "status=reserved rows pin the wire prefix and profile gate but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release.",
-    "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/artifact_lint enforces this binding.",
-    "Realm digest_algorithm has exactly one active live suite. Ordinary Events use the suite in their own signed, verified authority context, including valid delayed Events from before a transition. Safety successors use the current confirmed live suite; a transition retains previous_state_root under the old suite and emits its new roots under the new suite. Historical typed references are never rehashed. See zh/authz/event-auth-state-resolution.md section 13.",
-    "Schema enum values for digest-suite selector fields (e.g. realm.digest_algorithm) MUST be generated from active rows' canonical_id only when publishing a new schema version, then frozen for that schema version. Activating a reserved/new suite requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
-    "The hash_strength_order below is consumed by the suite-transition no-downgrade rule and applies to the hash_algorithm component only; canonicalization component changes are lateral and carry no strength relation.",
-    "The registry is intentionally minimal: new hash algorithms (e.g. SHA-3 family for algorithm diversity, post-quantum hash families) and new canonicalizations enter additively as new rows with their own profile gates and conformance vectors; the <suite>:<hex> wire form needs no rewrite. KDF/ciphersuite algorithm selectors elsewhere in the spec (e.g. key-backup PBKDF2 digest_algorithm, VOPRF SHA-512) are separate value spaces and are NOT digest suites.",
-    "Every suite row has an explicit immutable uint4 wire_code in 0x1..0xF. wire_code MUST NOT be derived from array position, canonical_id ordering, canonicalization name, or hash name; a retired code remains permanently assigned and MUST NOT be reused.",
-    "wire_code 0x0 is permanently invalid. Unassigned or status=reserved codes MUST fail closed when carried by an Event ID. Values 0x10..0xFF are not digest-suite codes: they have a non-zero Event reserved nibble and are permanently invalid as Event headers.",
-    "A suite MUST NOT be activated for the v1 Event-ID format unless digest_length_bytes is exactly 32. The 33-octet Event-ID body is a zero high nibble plus the uint4 wire_code followed by all 32 digest octets; shorter or longer digests MUST NOT be padded, folded, rehashed, or silently truncated into this format.",
-    "Realm IDs use the same low-nibble suite position and the reserved-zero high nibble defined by zh/conformance/encoding.md section 4.1. Every Realm ID, including Principal Control Realm and Agent PCR, is retyped from its genesis Event token: the reserved high nibble MUST be 0 on both tokens and the low-nibble suite code carries over unchanged. Header 0x11 is permanently invalid."
+    "A digest suite is an explicit canonicalization/hash tuple; only active rows are valid on wire.",
+    "Unknown suites in critical Event, RealmCommit, stream-head, receipt, or content-addressed digest fields fail closed.",
+    "Producer Events use the suite selected by their Realm policy. RealmCommit binds each exact Event digest and its same-stream previous_commit_ref; historical references are never rehashed.",
+    "Activating a new suite requires a schema/profile version and conformance vectors; it MUST NOT expand a frozen schema enum in place."
   ],
   "hash_strength_order": {
     "order": [

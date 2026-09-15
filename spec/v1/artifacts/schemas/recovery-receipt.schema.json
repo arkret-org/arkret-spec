@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-receipt.schema.json",
   "title": "Arkret Recovery Receipt",
-  "description": "Replacement-device-signed terminal artifact of one RecoveryTransaction. Bound to the recovery_session_id, identity model, model generation, accepted device authorization path, every proof, backup unlock, and MLS Welcome replay action. It is authored before the atomic commit, as one half of the closed RecoveryTerminalCommit carried by the commit_recovery_unit step, and it is a consumable completed receipt only when paired with the ak.schema.recovery_completion_attestation.v1 produced in that same commit. A pre-authorization failure uses server outcome/audit evidence instead. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
+  "description": "Replacement-device-signed terminal intent for one RecoveryTransaction. It binds the two exact producer Event ids, recovery session/policy/proof snapshot and resulting device generation expectation. It is signed before authority admission and therefore does not contain a RealmCommit id; successful completion is proven separately by the coordinator-signed recovery completion attestation and its CommittedEventRef values.",
   "type": "object",
   "required": [
     "schema",
@@ -22,8 +22,6 @@
     "result_model_generation_ref",
     "authorization_event_id",
     "reanchor_event_id",
-    "reanchor_batch_receipt_id",
-    "reanchor_commit_id",
     "proof_summary",
     "unlocked_backups",
     "welcome_count",
@@ -105,15 +103,6 @@
     "reanchor_event_id": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-    },
-    "reanchor_batch_receipt_id": {
-      "type": "string",
-      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "EventBatchReceipt id of the device_reanchor_unit scope, reserved by the RecoveryTransaction prepare transaction. It MUST equal prepared_plan.binding.reanchor_batch_receipt_id; the receipt is signed before the Events are accepted, so this id cannot be observed from an already accepted batch."
-    },
-    "reanchor_commit_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
-      "description": "RealmCommit that finalized the recovery re-anchor Event."
     },
     "proof_summary": {
       "type": "object",

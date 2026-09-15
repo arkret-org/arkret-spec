@@ -308,6 +308,10 @@
       "new": "ak.peer.events.command.submit.v1"
     },
     {
+      "old": "ak.peer.events.read.resolve_committed",
+      "new": "ak.peer.events.read.resolve_committed.v1"
+    },
+    {
       "old": "ak.peer.events.read.scan",
       "new": "ak.peer.events.read.scan.v1"
     },

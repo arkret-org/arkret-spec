@@ -75,9 +75,9 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | client-local scheme id（不进 wire 互操作面） | `ak.secret_storage.v1`、secret storage 的 `ak.mls.v1` | device-lifecycle.md / key-management.md |
 | 信封 scheme 常量 | `ak.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ak.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
 | hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.invite.claim.binding_proof.v1`、`ak.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
-| feature id（`supported_features` / `supported_features` 值） | `ak.feature.identity.webvh_native_log.v1`、`ak.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
+| feature id（`supported_features` / `supported_features` 值） | `ak.feature.identity.webvh_native_log.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，退役的 MLS governance proof feature 不得继续广告 |
 | DID Document / 外部生态 profile 值 | `ak.organization.governance.v1` | identity-did.md 示例上下文 |
-| E2EE MLS content type | `application/vnd.arkret.identity-link+json` | 定义文档（history-visibility.md）；其 plaintext schema（`ak.schema.identity_link.v1`）仍 MUST 注册，content type 本身不进 durable event registry（不经 reducer / Seal 路径） |
+| E2EE MLS content type | `application/vnd.arkret.identity-link+json` | 定义文档（history-visibility.md）；其 plaintext schema（`ak.schema.identity_link.v1`）仍 MUST 注册，content type 本身不进 durable event registry |
 | Signal plaintext payload kind | `ak.presence`、`ak.typing`、`ak.receipt.read`、`ak.call.signal`、`ak.message.stream` | [`../sync/signal.md` §1.1](../sync/signal.md) 的封闭登记表；每个 kind 的 closed plaintext schema 仍 MUST 注册（`ak.schema.signal_presence.v1` / `ak.schema.signal_typing.v1` / `ak.schema.read_receipt.v1` / `ak.schema.call_signal_plaintext.v1` / `ak.schema.signal_message_stream.v1`），kind 本身位于 ciphertext、不进 event-kind registry，也不分配 `wire_scope` |
 | 标准 account-data tag 词表 | `ak.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 
@@ -122,7 +122,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.event_batch_receipt.v1` | Event Batch Receipt |
 | `ak.schema.cursor.v1` | Cursor |
 | `ak.schema.realm_state_snapshot.v1` | Snapshot Manifest |
-| `ak.schema.realm_state_snapshot.v1` | Snapshot Chunk Payload（reducer cell items；snapshot leaf 原像为 `JCS({cell,state_model,state})`，独立于 Seal `state_root` leaf） |
+| `ak.schema.realm_state_snapshot.v1` | Authority-signed typed current snapshot、per-stream heads、history floors 与 chunk digests |
 | `ak.schema.grant_constraint.v1` | Grant Constraint |
 | `ak.schema.resource_selector.v1` | Resource Selector |
 | `ak.schema.identity_resolution.v1` | did_core_id/did resolution、PCR evidence 与 AuthenticatedServiceResolution |
@@ -200,10 +200,10 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.strand.move` | Strand move between Lists |
 | `ak.strand.reorder` | Strand reorder within List |
 | `ak.strand.tracks.update` | Strand tracks map patch（`ak.schema.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
-| `ak.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes causal_register cell `ak.component.strand.watch.v1`; derives `watches` Relation) |
+| `ak.strand.watch.set` | Set / clear per-(strand, actor) watch subscription；authority按 commit顺序更新 typed current并派生 `watches` Relation |
 | `ak.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
 | `ak.space.update` | Space metadata patch |
-| `ak.space.parent` | Space parent declaration (causal_register cell) |
+| `ak.space.parent` | Space parent declaration；authority按 commit顺序执行 cycle/depth gate |
 | `ak.space.archive` | Space archive (reversible UI hide) |
 | `ak.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
 | `ak.space.tombstone` | Space tombstone (irreversible; contained Strands MUST be relocated first) |
@@ -267,9 +267,9 @@ Schema evolution MUST：
 - reducer 行为变化需提供变更说明
 - 若变更授权、可见性、排序或收敛语义，需声明新 schema 或 reducer profile
 
-v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径（与 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 的 Event Envelope 封闭规则和 [`../models/common-fields.md`](../models/common-fields.md) 的字段默认规则同源）。前向兼容扩展只能通过 schema 显式声明的扩展位承载：已显式声明 `x_*` patternProperties 的逐 Event Invite payload schema、`requirements.critical_extensions[].parameters`，以及不进入 canonical bytes 的 `unsigned`。Event kind-bound payload 不允许 `{}` 空 schema：有限 family 必须由 payload schema 直接以 `$ref` / `oneOf` 闭合。本轮六个审计对象中唯一算法型文档载体是 `ak.schema.define.value`；其 wrapper 仍 closed 且 `value` 必填，schema identity 唯一取自 `value.$id`。receiver 还 MUST 执行 [`payload-validator-profile-registry.json`](../../artifacts/registry/payload-validator-profile-registry.json) 的 `ak.validator.json_schema_2020_12_definition.v1`，验证完整 JSON Schema 2020-12 文档并要求 `value.$id` 存在。`tools/check_payload_validator_profiles.py` 执行同一 profile 与正负 KAT，并对任何重新出现的空 `value` schema fail closed。v1 schema id create-once 且不可变；`ak.schema.update` Event 与 payload alias 已退役，演进只能定义新的 versioned id，再由引用方显式切换。对 schema 允许但实现未识别的扩展位内容，接收方 MUST 在存储、转发、backfill 与 hash / 签名校验的 canonical bytes 中原样保留；reducer 可忽略其语义，但不得剔除。
+v1 canonical object（Event Envelope / RealmCommit / Operation / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径。Event kind-bound payload 不允许 `{}` 空 schema：有限 family 必须由 payload schema直接以 `$ref` / `oneOf` 闭合。扩展只能使用该具体 payload显式声明的 `x_*`/extension member或新的 versioned kind/schema；Event顶层不再提供通用 `requirements` 或 `unsigned` 逃生口。`ak.schema.define.value` 的 wrapper仍 closed且 `value`必填，schema identity唯一取自 `value.$id`。receiver MUST执行 [`payload-validator-profile-registry.json`](../../artifacts/registry/payload-validator-profile-registry.json) 的定义校验 profile。对 schema允许但实现未识别的显式扩展内容，接收方必须在 canonical bytes、存储、转发和签名校验中原样保留。
 
-未知 critical feature MUST fail closed。Event Envelope 的 `requirements` 对象（含 `schema[]` / `features[]` / `critical_extensions[]`）是 v1 固定的扩展声明位置，全部进入 canonical bytes 并参与 `event_digest`。Reducer profile 从 Event 的 CBS governance basis 读取，不在 `requirements` 中重复声明。`requirements.critical_extensions[]` 每项必须包含 `id`、`extension_scope` 和 `fail_closed=true`；entry 顶层不得携带未声明字段，扩展参数必须放入 `parameters`，大对象必须用 `material_digest` 绑定。
+未知 critical feature MUST fail closed。能力协商只来自 ServiceDescribe、Realm current policy、kind/schema registry及具体 typed payload声明；不得把退役的 Event `requirements`、CBS basis或 reducer profile重新引入 wire。
 
 OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical protocol object，内嵌对象 MUST 按 registry schema 解析，并按本节规则处理：未声明字段拒绝，显式扩展位内容保留。
 

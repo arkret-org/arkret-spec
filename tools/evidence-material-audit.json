@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 332,
+  "audited_occurrence_count": 330,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -566,20 +566,6 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
-    },
-    {
-      "file": "history-key-canonical-binding-registry.json",
-      "key": "agent_signer_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "history-recovery-scalability-registry.json",
-      "key": "signer_resolution_evidence_max_canonical_bytes",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "identity-resolution.schema.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T08:00:00+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -87,7 +87,8 @@
         "properties": [
           "status",
           "rejections",
-          "retry_after_ms"
+          "retry_after_ms",
+          "committed_event_refs"
         ],
         "closed": true
       }
@@ -3381,6 +3382,36 @@
             "closed": true
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.peer.events.read.resolve_committed.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "source_ref_access",
+          "refs"
+        ],
+        "properties": [
+          "realm_id",
+          "source_ref_access",
+          "refs"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome",
+        "schema_kind": "object",
+        "required": [
+          "items"
+        ],
+        "properties": [
+          "items"
+        ],
+        "closed": true
       }
     },
     {
@@ -8047,14 +8078,12 @@
         "required": [
           "request_digest",
           "draft",
-          "accepted_actor_frontier",
           "observed_at",
           "expires_at"
         ],
         "properties": [
           "request_digest",
           "draft",
-          "accepted_actor_frontier",
           "observed_at",
           "expires_at"
         ],
