@@ -7464,16 +7464,6 @@
       ]
     },
     {
-      "schema_path": "realm.schema.json#/properties/audit_policy/properties/seal_transparency_auditor_ids",
-      "property_name": "seal_transparency_auditor_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "realm.schema.json#/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
@@ -7896,26 +7886,6 @@
     {
       "schema_path": "sdk-conformance-claim.schema.json#/$defs/proof/properties/kid",
       "property_name": "kid",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "seal-transparency.schema.json#/$defs/auditor_attestation/properties/auditor_id",
-      "property_name": "auditor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "seal-transparency.schema.json#/$defs/proof/properties/verification_method",
-      "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
       "external_literal_owner": false,

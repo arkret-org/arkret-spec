@@ -229,10 +229,6 @@ Snapshot reducer output root 与 snapshot event-set commitment MUST 使用
 snapshot、event-set 与 Seal root 因而共用一套 byte-level 实现；任何无
 `0x00` / `0x01` 域分隔的旧式组合 MUST 被当作 root mismatch 拒绝。
 
-### 3.4 Multihash 兼容（profile-gated）
-
-声明 `ak.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<suite>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
-
 ## 4. ID
 
 协议 wire / canonical object 层的 typed ID 格式：

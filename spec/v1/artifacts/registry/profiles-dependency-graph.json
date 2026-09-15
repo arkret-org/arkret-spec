@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-15.12",
+  "version": "2026-09-15.16",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-09-15T18:45:00+08:00",
+  "generated_at": "2026-09-15T20:27:23+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -47,7 +47,6 @@
     "ak.profile.e2ee_client.v1",
     "ak.profile.e2ee_relaxed.v1",
     "ak.profile.encoding.cbor.v1",
-    "ak.profile.encoding.multihash.v1",
     "ak.profile.enterprise_client.v1",
     "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.federation.high_assurance.v1",
@@ -100,7 +99,6 @@
     "ak.profile.station.v1",
     "ak.profile.station_events_api.v1",
     "ak.profile.traffic_metadata_hardened.v1",
-    "ak.profile.ucan_interop.v1",
     "ak.profile.webrtc_media.v1"
   ],
   "edges": [

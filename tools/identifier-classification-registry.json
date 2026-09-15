@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 667,
-    "typed_object_id": 1177,
+    "responsibility_identity_material": 665,
+    "typed_object_id": 1174,
     "registry_catalog_symbol": 17
   },
   "pending_rename_convergence": [],
@@ -476,7 +476,7 @@
       "name": "log_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
-      "occurrences": 3,
+      "occurrences": 1,
       "example_path": "agent-signer-evidence.schema.json#/$defs/transparency/properties/log_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },

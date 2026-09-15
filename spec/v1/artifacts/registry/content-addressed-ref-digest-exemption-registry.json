@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.1",
+  "version": "2026-09-15.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "generated_at": "2026-09-15T20:27:23+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -410,51 +410,6 @@
         ]
       },
       "preimage": "Merkle root of control-plane cell state; the Seal id is the digest of the whole Seal body",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_control_event_set_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "control_event_set_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The Seal's control_event_set_root field value; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_prev_entry_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "prev_entry_digest",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "Digest of the previous transparency entry's canonical bytes; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.seal_transparency_root_state_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/seal-transparency.schema.json",
-        "json_path": "$.properties",
-        "digest_field": "state_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The Seal's state_root field value; not the Seal id",
       "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {

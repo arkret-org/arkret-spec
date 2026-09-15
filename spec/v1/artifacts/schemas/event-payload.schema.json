@@ -9765,9 +9765,6 @@
         "availability_policy": {
           "$ref": "./realm.schema.json#/properties/availability_policy"
         },
-        "audit_policy": {
-          "$ref": "./realm.schema.json#/properties/audit_policy"
-        },
         "proposal_intake_sla_ms": {
           "$ref": "./realm.schema.json#/properties/proposal_intake_sla_ms"
         },

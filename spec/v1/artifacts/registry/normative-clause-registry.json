@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.6",
+  "version": "2026-09-15.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T01:05:00+08:00",
+  "generated_at": "2026-09-15T20:36:01+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -53,7 +53,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-hash",
-      "section_digest": "sha256:aa55cf183a024bfaa12b43e4a26279a14979989993680f5e54f74b3f7380cd0a",
+      "section_digest": "sha256:bcc13c506b4358923fbb12287dfccf913d04b7265c65e698652a333df235ed37",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [

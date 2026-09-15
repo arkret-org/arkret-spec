@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.19",
+  "version": "2026-09-15.20",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T01:01:00+08:00",
+  "generated_at": "2026-09-15T20:27:23+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10825,17 +10825,6 @@
         "description": "Scope-authorized single-authority governance conclusions and frozen configuration handoffs for governance-result receivers."
       },
       {
-        "schema_id": "ak.schema.seal_transparency.v1",
-        "file": "schemas/seal-transparency.schema.json",
-        "status": "active",
-        "description": "Seal transparency append-only log entry and independent auditor attestation wire schema",
-        "consumer_binding": {
-          "kind": "standalone_schema_alias",
-          "selector": "Seal transparency log/auditor evidence",
-          "normative_ref": "zh/authz/event-auth-state-resolution.md"
-        }
-      },
-      {
         "schema_id": "ak.schema.search_service.v1",
         "file": "schemas/search-service.schema.json",
         "status": "active",
@@ -11124,8 +11113,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-15.2",
-    "generated_at": "2026-09-15T23:40:00+08:00"
+    "version": "2026-09-15.3",
+    "generated_at": "2026-09-15T20:27:23+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",

@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11760,
-    "total_schema_documents": 174,
+    "total_properties": 11728,
+    "total_schema_documents": 173,
     "by_presence_class": {
-      "optional": 3123,
+      "optional": 3121,
       "optional_defaulted": 62,
-      "required": 7452,
-      "required_nullable": 382,
+      "required": 7423,
+      "required_nullable": 381,
       "tristate": 741
     },
     "tristate_occurrences": 741,
@@ -9982,7 +9982,6 @@
         "/$defs/realm_policy_bundle_payload/properties/account_deactivation/properties/member_action": "required",
         "/$defs/realm_policy_bundle_payload/properties/agent_participation": "optional",
         "/$defs/realm_policy_bundle_payload/properties/allowed_third_party_invite_verification_ids": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/audit_policy": "optional",
         "/$defs/realm_policy_bundle_payload/properties/availability_policy": "optional",
         "/$defs/realm_policy_bundle_payload/properties/bottom_escalation_after_ms": "optional",
         "/$defs/realm_policy_bundle_payload/properties/content_encryption_floor": "optional",
@@ -14002,10 +14001,6 @@
         "/allOf/9/if/properties/content_scheme": "required",
         "/properties/agent_participation": "optional",
         "/properties/agent_participation/properties/agent": "required",
-        "/properties/audit_policy": "optional",
-        "/properties/audit_policy/properties/seal_transparency_auditor_ids": "required",
-        "/properties/audit_policy/properties/seal_transparency_auditor_independence": "required",
-        "/properties/audit_policy/properties/seal_transparency_min_attestations": "required",
         "/properties/availability_policy": "optional",
         "/properties/availability_policy/properties/applies_to": "required",
         "/properties/availability_policy/properties/min_holders": "required",
@@ -14597,40 +14592,6 @@
         "/$defs/statement/properties/realm_id": "required",
         "/$defs/statement/properties/results": "required",
         "/$defs/statement/properties/target_seal_ref": "required"
-      }
-    },
-    "seal-transparency.schema.json": {
-      "schema_ids": [
-        "ak.schema.seal_transparency.v1"
-      ],
-      "properties": {
-        "/$defs/auditor_attestation/properties/attested_at": "required",
-        "/$defs/auditor_attestation/properties/auditor_id": "required",
-        "/$defs/auditor_attestation/properties/checks": "required",
-        "/$defs/auditor_attestation/properties/checks/properties/append_only": "required",
-        "/$defs/auditor_attestation/properties/checks/properties/dag_edges_verified": "required",
-        "/$defs/auditor_attestation/properties/checks/properties/seal_signatures": "required",
-        "/$defs/auditor_attestation/properties/checks/properties/set_root_monotonic": "required",
-        "/$defs/auditor_attestation/properties/from_index": "required",
-        "/$defs/auditor_attestation/properties/head_entry_digest": "required",
-        "/$defs/auditor_attestation/properties/log_id": "required",
-        "/$defs/auditor_attestation/properties/realm_id": "required",
-        "/$defs/auditor_attestation/properties/signature": "required",
-        "/$defs/auditor_attestation/properties/to_index": "required",
-        "/$defs/proof/properties/created_at": "required",
-        "/$defs/proof/properties/jws": "required",
-        "/$defs/proof/properties/kind": "required",
-        "/$defs/proof/properties/payload_digest": "required",
-        "/$defs/proof/properties/verification_method": "required",
-        "/properties/control_event_set_root": "required",
-        "/properties/log_id": "required",
-        "/properties/log_index": "required",
-        "/properties/log_signature": "required",
-        "/properties/logged_at": "required",
-        "/properties/prev_entry_digest": "required_nullable",
-        "/properties/realm_id": "required",
-        "/properties/seal_id": "required",
-        "/properties/state_root": "required"
       }
     },
     "seal.schema.json": {

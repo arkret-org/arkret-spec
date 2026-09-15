@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.2",
+  "version": "2026-09-15.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T23:40:00+08:00",
+  "generated_at": "2026-09-15T20:27:23+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1375,17 +1375,6 @@
       "file": "schemas/seal-conclusion.schema.json",
       "status": "active",
       "description": "Scope-authorized single-authority governance conclusions and frozen configuration handoffs for governance-result receivers."
-    },
-    {
-      "schema_id": "ak.schema.seal_transparency.v1",
-      "file": "schemas/seal-transparency.schema.json",
-      "status": "active",
-      "description": "Seal transparency append-only log entry and independent auditor attestation wire schema",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Seal transparency log/auditor evidence",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
-      }
     },
     {
       "schema_id": "ak.schema.search_service.v1",

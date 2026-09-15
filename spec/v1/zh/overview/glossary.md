@@ -315,7 +315,6 @@ see_also:
 | `PIR` | Private Information Retrieval | — | [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) |
 | `ORAM` | Oblivious RAM | — | [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) |
 | `OHTTP` | Oblivious HTTP | RFC 9458 | [`../security/server-threat-model.md`](../security/server-threat-model.md) |
-| `UCAN` | User Controlled Authorization Network | UCAN 规范 | [`../authz/capabilities.md`](../authz/capabilities.md) |
 | `IDNA` | Internationalized Domain Names in Applications | RFC 5890 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
 | `UTS` | Unicode Technical Standard | Unicode UTS 系列 | [`../conformance/encoding.md`](../conformance/encoding.md) |
 | <span class="ak-nowrap">`NFC` / `NFKC`</span> | Normalization Form C / Normalization Form KC | Unicode UAX #15 | [`../conformance/encoding.md`](../conformance/encoding.md) |
