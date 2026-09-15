@@ -78,7 +78,7 @@ def main():
         if path.read_text(encoding="utf-8") != text:
             raise SystemExit("Snapshot state fixture drift")
     else:
-        path.write_text(text, encoding="utf-8")
+        path.write_text(text, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

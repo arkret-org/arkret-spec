@@ -55,7 +55,7 @@ def main() -> None:
         if path.read_text(encoding="utf-8") != fixture_text:
             raise SystemExit("Seal certificate fixture drift")
     else:
-        path.write_text(fixture_text, encoding="utf-8")
+        path.write_text(fixture_text, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

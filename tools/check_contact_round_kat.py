@@ -325,7 +325,7 @@ def main() -> int:
     if args.write:
         rebuild_producer_vectors(fixture)
         rebuild_delegated_actor_vectors(fixture)
-        FIXTURE.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        FIXTURE.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     check_producer_vectors(fixture)
     check_delegated_actor_vectors(fixture)
     domain = fixture.get("domain")
