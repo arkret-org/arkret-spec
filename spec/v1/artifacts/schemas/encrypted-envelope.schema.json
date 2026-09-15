@@ -4,52 +4,106 @@
   "title": "Arkret Encrypted Payload Envelope",
   "description": "Minimal ciphertext wire. purpose, effective scope and Event kind come from the frozen signed outer Event; mls_group_id is derived from that scope; content_scheme comes from the exact referenced winning group state. The canonical pre-encryption header is reconstructed and is not duplicated on wire.",
   "type": "object",
-  "required": ["version", "content_type", "encryption_context", "ciphertext"],
+  "required": [
+    "version",
+    "content_type",
+    "encryption_context",
+    "ciphertext"
+  ],
   "properties": {
-    "version": {"const": "1.0"},
-    "content_type": {"type": "string", "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"},
-    "encryption_context": {"$ref": "#/$defs/encryption_context"},
-    "ciphertext": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"}
+    "version": {
+      "const": "1.0"
+    },
+    "content_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+    },
+    "encryption_context": {
+      "$ref": "#/$defs/encryption_context"
+    },
+    "ciphertext": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
   },
   "additionalProperties": false,
   "$defs": {
     "routing_context": {
       "type": "object",
-      "required": ["target_ref", "routing_tag"],
+      "required": [
+        "target_ref",
+        "routing_tag"
+      ],
       "properties": {
-        "target_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "routing_tag": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"}
+        "target_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "routing_tag": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
       },
       "additionalProperties": false,
       "description": "Present only for a registered reaction outer Event kind. The reaction kind and routing_window=floor(unix_ms(outer.created_at)/3600000) are derived inputs to AAD/KDF and never wire fields. All non-reaction kinds forbid routing_context."
     },
     "standard_mls_encryption_context": {
       "type": "object",
-      "required": ["epoch", "group_state_ref"],
+      "required": [
+        "epoch",
+        "group_state_ref"
+      ],
       "properties": {
-        "epoch": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
-        "group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "routing_context": {"$ref": "#/$defs/routing_context"}
+        "epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "routing_context": {
+          "$ref": "#/$defs/routing_context"
+        }
       },
       "additionalProperties": false,
       "description": "The absence of counter is the structural standard-MLS branch. The referenced winning group state MUST have content_scheme=mls_rfc9420."
     },
     "exporter_mls_encryption_context": {
       "type": "object",
-      "required": ["epoch", "group_state_ref", "counter"],
+      "required": [
+        "epoch",
+        "group_state_ref",
+        "counter"
+      ],
       "properties": {
-        "epoch": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
-        "group_state_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "counter": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
-        "routing_context": {"$ref": "#/$defs/routing_context"}
+        "epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "group_state_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "counter": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "routing_context": {
+          "$ref": "#/$defs/routing_context"
+        }
       },
       "additionalProperties": false,
       "description": "The required canonical-JSON-safe counter is the structural exporter branch. The referenced winning group state MUST have content_scheme=mls_exporter_aead_v1."
     },
     "encryption_context": {
       "oneOf": [
-        {"$ref": "#/$defs/standard_mls_encryption_context"},
-        {"$ref": "#/$defs/exporter_mls_encryption_context"}
+        {
+          "$ref": "#/$defs/standard_mls_encryption_context"
+        },
+        {
+          "$ref": "#/$defs/exporter_mls_encryption_context"
+        }
       ],
       "description": "Closed branch selected by counter presence and cross-checked against the content_scheme frozen by the exact group_state_ref. No caller-supplied scheme selector exists."
     }

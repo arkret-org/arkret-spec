@@ -612,7 +612,7 @@ parent 只是导航关系，不授予读取权，不修改 `scope_circle_id`、R
 Strand 在 board/list 类 Space 中的位置由普通因果寄存器维护：
 
 ```text
-cell_id     := ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>
+cell_id     := state-slot:ak.component.strand.position.v1:<board_space_id>:<strand_id>
 state_model := causal_register
 execution   := data
 value shape := { "list_space_id": id:space, "rank": string } | null

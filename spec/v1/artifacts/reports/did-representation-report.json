@@ -20,8 +20,8 @@
         "did_core_id": "Stable principal or service core that issued a proof, receipt, claim, or registry statement."
       },
       "occurrences_by_profile": {
-        "actor_id": 3,
-        "did_core_id": 36
+        "actor_id": 1,
+        "did_core_id": 31
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
     },
@@ -74,22 +74,6 @@
       "reason": "The complete revocation byline is carrier-specific in each enclosing schema and never permits an ambiguous union at one occurrence."
     },
     {
-      "property_name": "signer_id",
-      "representation_profiles": [
-        "actor_id",
-        "did_core_id"
-      ],
-      "profile_meanings": {
-        "actor_id": "Exact Contact participant actor bound by a bilateral continuity signature.",
-        "did_core_id": "Stable principal or service core selected by a verification method and signer evidence."
-      },
-      "occurrences_by_profile": {
-        "actor_id": 1,
-        "did_core_id": 9
-      },
-      "reason": "Contact continuity signs as an exact actor; general proof evidence binds the stable DID core."
-    },
-    {
       "property_name": "subject_id",
       "representation_profiles": [
         "actor_id",
@@ -101,237 +85,12 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 4
+        "did_core_id": 5
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
-    },
-    {
-      "property_name": "value",
-      "representation_profiles": [
-        "did_url"
-      ],
-      "profile_meanings": {
-        "did_core_id": "Registered complete cell value whose family is a principal reference.",
-        "did_url": "Registered complete cell value whose family is a verification-method reference."
-      },
-      "occurrences_by_profile": {
-        "did_core_id": 0,
-        "did_url": 1
-      },
-      "reason": "The registry-discriminated complete cell value is a generic value slot; its exact family schema determines scalar, collection or identity representation."
     }
   ],
   "entries": [
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/members_coverage/oneOf/1/properties/actor_ids",
-      "property_name": "actor_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/projected_reactions/properties/reactions/items/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/target/oneOf/2/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_circle_metadata/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_circle_metadata/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_morph/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_morph/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_profile_create/properties/accountable_principal_ids",
-      "property_name": "accountable_principal_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_profile_create/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_profile_create/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_realm_authority_root/anyOf/1/properties/controller_actor_id",
-      "property_name": "controller_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_relation/allOf/0/then/properties/to_ref",
-      "property_name": "to_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_relation/allOf/1/then/properties/from_ref",
-      "property_name": "from_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_relation/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_relation/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_space_metadata/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_space_metadata/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_strand_object/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_strand_object/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_view/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "account-current-result.schema.json#/$defs/value_view/properties/updated_by",
-      "property_name": "updated_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
     {
       "schema_path": "account-data-encrypted-value.schema.json#/properties/aad/properties/actor_id",
       "property_name": "actor_id",
@@ -810,16 +569,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "account-subscribe-frame.schema.json#/$defs/ordered_log_sibling_diagnostic/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {
@@ -1453,116 +1202,6 @@
       ]
     },
     {
-      "schema_path": "agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request/properties/agent_authority_id",
-      "property_name": "agent_authority_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state/properties/authority_id",
-      "property_name": "authority_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_attestation/properties/authority_id",
-      "property_name": "authority_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_attestation/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/agent_lifecycle_witness/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/authority_id",
-      "property_name": "authority_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/controller_account_gate_attestation/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/key_state_witness/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "agent-signer-evidence.schema.json#/$defs/key_transition_witness/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "applet-edge-operations.schema.json#/$defs/applet_actor_view/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -2003,18 +1642,8 @@
       ]
     },
     {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence/properties/signer_id",
-      "property_name": "signer_id",
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/base/properties/subject_id",
+      "property_name": "subject_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -2023,7 +1652,7 @@
       ]
     },
     {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_control_signer_evidence/properties/verification_method",
+      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/base/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -2033,104 +1662,13 @@
       ]
     },
     {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_signer_evidence/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/account_device_signer_evidence/properties/verification_method",
+      "schema_path": "authority-set-policy.schema.json#/properties/authorization_rules/items/properties/issuers/items/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/principal_signer_evidence/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did",
-      "property_name": "did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_key_did",
-        "ref:webvh_did"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "availability-receipt.schema.json#/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {
@@ -2621,106 +2159,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "control-proposal-decision.schema.json#/$defs/proof/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/account_device_evidence/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/account_device_selector/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/agent_account_actor_id/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/agent_evidence/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/agent_selector/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/compact_agent_signer_resolution_evidence/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/compact_agent_signer_resolution_evidence/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/query_request/properties/recipient_account_id",
-      "property_name": "recipient_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "current-signer-evidence-operations.schema.json#/$defs/response_core/properties/recipient_account_id",
-      "property_name": "recipient_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
       ]
     },
     {
@@ -3894,16 +3332,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/fork_resolution_event_sibling_position_subject/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/invite_accept_payload/properties/invitee_account_id",
       "property_name": "invitee_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -4194,126 +3622,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/mls_keypackage_payload/properties/endpoint_verification_method",
-      "property_name": "endpoint_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_keypackage_payload/properties/principal_id",
-      "property_name": "principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_proposal_payload/properties/target_actor_id",
-      "property_name": "target_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_envelope/properties/requester_actor_id",
-      "property_name": "requester_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_envelope/properties/requester_agent_id",
-      "property_name": "requester_agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_envelope/properties/requester_agent_verification_method",
-      "property_name": "requester_agent_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_envelope/properties/requester_pairwise_verification_method",
-      "property_name": "requester_pairwise_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_ref/properties/pairwise_verification_method",
-      "property_name": "pairwise_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/recipient_agent_id",
-      "property_name": "recipient_agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/recipient_agent_verification_method",
-      "property_name": "recipient_agent_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/recipient_pairwise_verification_method",
-      "property_name": "recipient_pairwise_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/recipient_principal_id",
-      "property_name": "recipient_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/moderation_decision_payload/properties/issuer_id",
       "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
@@ -4384,26 +3692,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/notary_fault_censorship_payload/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/notary_fault_equivocation_payload/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/organization_discovery_state_payload/properties/organization_id",
       "property_name": "organization_id",
       "semantic_category": "responsibility_identity_material",
@@ -4446,86 +3734,6 @@
     {
       "schema_path": "event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/organization_id",
       "property_name": "organization_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_archive/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_archive/properties/holder_signing_ref",
-      "property_name": "holder_signing_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_archive/properties/key_agreement_ref",
-      "property_name": "key_agreement_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_archive/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_key_tuple/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_key_tuple/properties/holder_signing_ref",
-      "property_name": "holder_signing_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_key_tuple/properties/key_agreement_ref",
-      "property_name": "key_agreement_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_key_tuple/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -4606,6 +3814,16 @@
     {
       "schema_path": "event-payload.schema.json#/$defs/realm_discovery_payload/properties/value/properties/directory_ids",
       "property_name": "directory_ids",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/realm_governance_station_change_payload/properties/new_governance_station_id",
+      "property_name": "new_governance_station_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -4754,26 +3972,6 @@
       ]
     },
     {
-      "schema_path": "genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
       "schema_path": "grant-constraint.schema.json#/properties/approval_actor_ids",
       "property_name": "approval_actor_ids",
       "semantic_category": "responsibility_identity_material",
@@ -4916,426 +4114,6 @@
     {
       "schema_path": "high-risk-authority-proof.schema.json#/$defs/trusted_recovery_service_proof/properties/service_id",
       "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/account_status_view_locator/properties/account_authority_id",
-      "property_name": "account_authority_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/account_status_view_locator/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/agent_evidence_view_locator/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/agent_evidence_view_locator/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/archive_authorization_tuple/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/archive_authorization_tuple/properties/holder_signing_ref",
-      "property_name": "holder_signing_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/archive_authorization_tuple/properties/key_agreement_ref",
-      "property_name": "key_agreement_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/archive_authorization_tuple/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_authority_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_authority_request_body/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/1/properties/origin_quota_domain/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/1/properties/origin_quota_domain/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/2/properties/origin_quota_domain/properties/producer_actor_id",
-      "property_name": "producer_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_receipt/properties/release_id",
-      "property_name": "release_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica/properties/destination_authorization/oneOf/0/properties/member_id",
-      "property_name": "member_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica/properties/destination_authorization/oneOf/1/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica/properties/destination_authorization/oneOf/1/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica/properties/destination_id",
-      "property_name": "destination_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica_outcome/properties/destination_id",
-      "property_name": "destination_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_signing_input/properties/requester_actor_id",
-      "property_name": "requester_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_key_response_signing_input/properties/source_actor_id",
-      "property_name": "source_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_release_attestation/properties/recipient_actor_id",
-      "property_name": "recipient_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_release_attestation/properties/source_actor_id",
-      "property_name": "source_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_source_signer_result/oneOf/0/properties/signer_id",
-      "property_name": "signer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/history_source_signer_result/oneOf/0/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/pairwise_actor_id",
-      "property_name": "pairwise_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/source_actor_id",
-      "property_name": "source_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/minimal_metadata_mls_leaf_signer_evidence/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/organization_recovery_archive_list_query/properties/key_agreement_ref",
-      "property_name": "key_agreement_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/organization_recovery_archive_replica/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/organization_recovery_archive_replica/properties/source_id",
-      "property_name": "source_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/requester_endpoint_authorization/oneOf/1/properties/requester_agent_id",
-      "property_name": "requester_agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/requester_endpoint_authorization/oneOf/1/properties/requester_agent_verification_method",
-      "property_name": "requester_agent_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/rhrk_holder_authority_observation/properties/current_holder_signing_ref",
-      "property_name": "current_holder_signing_ref",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/rhrk_holder_authority_observation/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/rhrk_holder_authority_observation/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/source_authority_locator/oneOf/0/properties/member_id",
-      "property_name": "member_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/source_relay_attestation/properties/destination_release_id",
-      "property_name": "destination_release_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/source_relay_attestation/properties/source_actor_id",
-      "property_name": "source_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/source_relay_attestation/properties/source_id",
-      "property_name": "source_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "history-key.schema.json#/$defs/source_relay_view_locator/properties/relay_id",
-      "property_name": "relay_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -6754,33 +5532,23 @@
       ]
     },
     {
-      "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/accepted_leaf_authorization/properties/agent_verification_method",
-      "property_name": "agent_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "mls-governance-proof-bundle.schema.json#/$defs/mls_security_frontier_leaf/properties/actor_id",
-      "property_name": "actor_id",
+      "schema_path": "mls-welcome-delivery.schema.json#/properties/recipient_actor_id",
+      "property_name": "recipient_actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "mls-welcome-delivery.schema.json#/properties/recipient_endpoint/oneOf/1/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
       ]
     },
     {
@@ -6881,36 +5649,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "offline-publication.schema.json#/$defs/authority_set_policy/properties/authorization_rules/items/properties/issuers/items/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "offline-publication.schema.json#/$defs/authorization_lease/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "offline-publication.schema.json#/$defs/ingress_receipt/properties/qualified_ingress_did",
-      "property_name": "qualified_ingress_did",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did"
       ]
     },
     {
@@ -7124,6 +5862,46 @@
       ]
     },
     {
+      "schema_path": "realm-authority-bundle.schema.json#/$defs/current_assertion/properties/current_service_id",
+      "property_name": "current_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "realm-authority-bundle.schema.json#/properties/current_service_id",
+      "property_name": "current_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "realm-authority-handoff.schema.json#/properties/from_service_id",
+      "property_name": "from_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "realm-authority-handoff.schema.json#/properties/to_service_id",
+      "property_name": "to_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did",
       "property_name": "device_public_key_did",
       "semantic_category": "responsibility_identity_material",
@@ -7164,6 +5942,16 @@
       ]
     },
     {
+      "schema_path": "realm-genesis.schema.json#/properties/governance_station_id",
+      "property_name": "governance_station_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "realm-join-candidate.schema.json#/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
@@ -7174,48 +5962,18 @@
       ]
     },
     {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_application_status_outcome/properties/applicant_account_id",
-      "property_name": "applicant_account_id",
+      "schema_path": "realm-join-intake.schema.json#/$defs/authority_locator_hint/properties/service_id",
+      "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
+      "representation_profile": "did_core_id",
       "external_literal_owner": false,
       "terminal_signature": [
-        "ref:account_id"
+        "ref:did_core_id"
       ]
     },
     {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_application_status_request_body/properties/applicant_account_id",
-      "property_name": "applicant_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_initial_request_body/properties/applicant_account_id",
-      "property_name": "applicant_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome/properties/applicant_account_id",
-      "property_name": "applicant_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/peer_preview_outcome/properties/requester_account_id",
-      "property_name": "requester_account_id",
+      "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body/properties/member_account_id",
+      "property_name": "member_account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
       "external_literal_owner": false,
@@ -7226,86 +5984,6 @@
     {
       "schema_path": "realm-join-intake.schema.json#/$defs/peer_preview_request_body/properties/requester_account_id",
       "property_name": "requester_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/realm_join_invite_target/properties/inviter_account_id",
-      "property_name": "inviter_account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/realm_join_unsigned_event/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/self_application_status_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/self_application_status_request_body/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/self_prepare_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/self_prepare_request_body/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_outcome/properties/account_id",
-      "property_name": "account_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "account_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:account_id"
-      ]
-    },
-    {
-      "schema_path": "realm-join-intake.schema.json#/$defs/self_preview_request_body/properties/account_id",
-      "property_name": "account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
       "external_literal_owner": false,
@@ -7351,76 +6029,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/conflicting_input_record/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/counter_state/properties/value/items/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/log_state/properties/value/items/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot-chunk.schema.json#/$defs/non_accepted_input/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot.schema.json#/$defs/realm_state_snapshot_witness_attestation/properties/witness_id",
-      "property_name": "witness_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot.schema.json#/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "realm-state-snapshot.schema.json#/properties/event_set_commitment/properties/actor_seq_ranges/items/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
       ]
     },
     {
@@ -7894,16 +6502,6 @@
       ]
     },
     {
-      "schema_path": "seal.schema.json#/$defs/signature/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
       "schema_path": "search-service.schema.json#/$defs/search_policy/properties/allowed_service_ids",
       "property_name": "allowed_service_ids",
       "semantic_category": "responsibility_identity_material",
@@ -8031,16 +6629,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/ActorAggregateFrontierView/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
       ]
     },
     {
@@ -8214,66 +6802,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetStatus/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState/properties/signature/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody/properties/actor_ids",
-      "property_name": "actor_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest/properties/audience_id",
       "property_name": "audience_id",
       "semantic_category": "responsibility_identity_material",
@@ -8326,106 +6854,6 @@
     {
       "schema_path": "service-operation-dtos.schema.json#/$defs/InitialSessionGrantIntent/properties/audience_id",
       "property_name": "audience_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationCasToken/properties/destination_id",
-      "property_name": "destination_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationCasToken/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/executed_by",
-      "property_name": "executed_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/executor_id",
-      "property_name": "executor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/executor_proof_key_kid",
-      "property_name": "executor_proof_key_kid",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/join_actor_id",
-      "property_name": "join_actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/member_id",
-      "property_name": "member_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationTerminalCertificate/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/MembershipJoinAcceptedProof/properties/issuer_id",
-      "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
       "external_literal_owner": false,
@@ -8694,46 +7122,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPosition/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionChallenge/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionDisclosure/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/ProjectionAssignedToRelation/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -8804,16 +7192,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/RealmSealFrontierView/properties/observation_coordinate/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/RecoverySessionGrantRequest/properties/audience_id",
       "property_name": "audience_id",
       "semantic_category": "responsibility_identity_material",
@@ -8831,16 +7209,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody/properties/actor_id",
-      "property_name": "actor_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
       ]
     },
     {
@@ -9054,16 +7422,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/SnapshotBootstrap/properties/created_by",
-      "property_name": "created_by",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
       "schema_path": "signal-envelope.schema.json#/$defs/signal_proof/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
@@ -9224,6 +7582,26 @@
       ]
     },
     {
+      "schema_path": "typed-current-result.schema.json#/$defs/member_state_result/properties/selector/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/message_reactions_result/properties/reactions/items/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "view.schema.json#/$defs/document_morph_projection_outcome/properties/document/properties/created_by",
       "property_name": "created_by",
       "semantic_category": "responsibility_identity_material",
@@ -9285,18 +7663,6 @@
     }
   ],
   "responsibility_fields": [
-    {
-      "source": "json_schema",
-      "schema_path": "account-current-result.schema.json#/$defs/value_realm_authority_root/anyOf/1/properties/controller_actor_id",
-      "property_name": "controller_actor_id",
-      "resolved_carrier": "actor_id",
-      "required_subject_class": "actor",
-      "contract_carrier": "actor_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "accepted_realm_authority_root"
-      ]
-    },
     {
       "source": "json_schema",
       "schema_path": "agent-membership-cascade.schema.json#/$defs/agent_cleanup_record/properties/controller_account_id",
@@ -9431,18 +7797,6 @@
     },
     {
       "source": "json_schema",
-      "schema_path": "availability-receipt.schema.json#/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
       "schema_path": "consent-operations.schema.json#/$defs/consent_request_request_body/properties/holder_account_id",
       "property_name": "holder_account_id",
       "resolved_carrier": "account_id",
@@ -9476,20 +7830,6 @@
       "required_evidence": [
         "exact_account_authority_binding"
       ]
-    },
-    {
-      "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/0/cell_writes/9/value_projection/members/0/name",
-      "property_name": "controller_actor_id",
-      "resolved_carrier": "actor_id",
-      "required_subject_class": "actor",
-      "resolved_subject_class": "actor",
-      "contract_carrier": "actor_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "accepted_realm_authority_root"
-      ],
-      "projection_source": "actor_id"
     },
     {
       "source": "json_schema",
@@ -9529,54 +7869,6 @@
     },
     {
       "source": "json_schema",
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_archive/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_archive/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_w3c_method_controller"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_key_tuple/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "event-payload.schema.json#/$defs/organization_recovery_key_tuple/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_w3c_method_controller"
-      ]
-    },
-    {
-      "source": "json_schema",
       "schema_path": "event-payload.schema.json#/$defs/realm_owner_transfer_payload/properties/patch/properties/controller_actor_id",
       "property_name": "controller_actor_id",
       "resolved_carrier": "actor_id",
@@ -9585,126 +7877,6 @@
       "account_scoped": false,
       "required_evidence": [
         "accepted_realm_authority_root"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/archive_authorization_tuple/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/archive_authorization_tuple/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_w3c_method_controller"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/1/properties/origin_quota_domain/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/1/properties/origin_quota_domain/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_w3c_method_controller"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica/properties/destination_authorization/oneOf/1/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/history_key_request_replica/properties/destination_authorization/oneOf/1/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_w3c_method_controller"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/organization_recovery_archive_replica/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/rhrk_holder_authority_observation/properties/holder_service_id",
-      "property_name": "holder_service_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "service",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_holder_service_authority"
-      ]
-    },
-    {
-      "source": "json_schema",
-      "schema_path": "history-key.schema.json#/$defs/rhrk_holder_authority_observation/properties/method_controller_principal_id",
-      "property_name": "method_controller_principal_id",
-      "resolved_carrier": "did_core_id",
-      "required_subject_class": "principal",
-      "contract_carrier": "did_core_id",
-      "account_scoped": false,
-      "required_evidence": [
-        "verified_w3c_method_controller"
       ]
     },
     {

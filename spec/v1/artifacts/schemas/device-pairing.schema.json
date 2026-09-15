@@ -416,7 +416,8 @@
           "description": "Ed25519 signature by the private key of device_public_key_did over the canonical signing input above. The approving device MUST copy it byte-for-byte into device_authorize_payload.device_signature and into the pair_device request device_signature."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.device_authorize_accepted_device_possession_proof.v1"
     }
   }
 }

@@ -1253,9 +1253,6 @@
     },
     "keypackages_claim_outcome": {
       "type": "object",
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.mls.keypackage"
-      ],
       "required": [
         "claim_request_id",
         "claims",

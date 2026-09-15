@@ -194,7 +194,7 @@ defer_count=0, authority_set_ref, signature
 ```
 
 机读合同为
-[`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
+[`control-proposal-decision.schema.json`](../sync/authority-commit-log.md)。
 `ak.self.events.command.submit.v1` / `ak.peer.events.command.submit.v1` 对 accepted 或 byte-identical
 duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_acks[]` 返回已持久化的
 原 Ack；authority-authored self-principal PCR Move 必须省略该数组项，ordinary Event 也不得进入该数组。
@@ -258,7 +258,7 @@ verification_method,created_at})`；proof不得跨 Ack、decision kind 或 defer
 原样保留 `absolute_due_at`。`signed_defer` 只提供可验证的延期审计，不提供 finality；只有第 1 项的已确认 Seal 提供控制面终局。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
 receiver 本地收到 Event、Ack、decision 或 Seal 的时间 MUST NOT 进入规范计算。
 
-签名延期的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。submit receiver MUST 从 durable store 读取已准入 proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，验证 exact Realm/proposal/authority set/deadline/defer chain 及唯一授权签名，并只对尚未终结的 proposal 原子写延期；caller 不能创建或替换 Ack。已持久化延期的 exact retry 返回首次结果，不能重新延长窗口。终局和延期写入与同一 proposal 的持久决定串行化。
+签名延期的标准提交面是 `ak.self.control_proposal_decisions.command.submit.v1`，标准观察面是 `ak.self.control_proposal_decisions.read.get.v1`；机读 request/outcome 位于 [`control-proposal-decision.schema.json`](../sync/authority-commit-log.md)。submit receiver MUST 从 durable store 读取已准入 proposal 与首次 canonical Ack，重算 `proposal_ack_digest`，验证 exact Realm/proposal/authority set/deadline/defer chain 及唯一授权签名，并只对尚未终结的 proposal 原子写延期；caller 不能创建或替换 Ack。已持久化延期的 exact retry 返回首次结果，不能重新延长窗口。终局和延期写入与同一 proposal 的持久决定串行化。
 
 read 的 `proposal_state` 恰为 pending/deferred/overdue/sealed。`sealed` 表示 exact unit 已有唯一终局，不等于业务成功；`accepted_seal_id` 指向该 Seal，消费者 MUST 核验它的对应 `command_results` 是 committed 才宣布成功，rejected 则呈现其真实原因。read 不合成 decision、不清 pending、不以当前 head 代替确切终局。对于 `ak.device.revoke`，仅该命令的已确认 rejected outcome 清除自己的 pending record；其它同目标 proposal 不受影响。唯一安全历史中同一命令不能先拒绝后接受或先接受后拒绝；exact retry 返回同一持久结果。
 

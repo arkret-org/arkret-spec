@@ -1703,34 +1703,6 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
             f"registered origin fields are stale or unreachable: {stale_origins}",
         )
 
-    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
-    event_registry = load_json(lint, event_registry_path)
-    authority_members: list[dict[str, Any]] = []
-
-    def collect_authority_members(value: Any) -> None:
-        if isinstance(value, dict):
-            if value.get("name") == "controller_actor_id":
-                authority_members.append(value)
-            for child in value.values():
-                collect_authority_members(child)
-        elif isinstance(value, list):
-            for child in value:
-                collect_authority_members(child)
-
-    if isinstance(event_registry, dict):
-        collect_authority_members(event_registry)
-        if (
-            len(authority_members) != 1
-            or authority_members[0].get("terminal_category") != "actor_id"
-            or authority_members[0].get("subject_class") != "actor"
-        ):
-            lint.fail(
-                event_registry_path,
-                "Realm authority-root controller_actor_id must appear once with "
-                "machine-readable actor_id/actor projection metadata",
-            )
-
-
 def check_collection_field_contracts(lint: Lint) -> None:
     """Enforce NC-COLLECTION-001 independently of identifier representation.
 

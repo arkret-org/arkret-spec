@@ -1218,159 +1218,19 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 ## 12. Key Backup
 
-Key backup 保存已加密的 exporter history-secret ranges。它只覆盖当前 actor 已经合法取得的历史范围，不保存
-active MLS group state、leaf signer、sender counter、ratchet 或 pending Welcome，也不存在 Agent PCR 的跨-principal
-active-state 例外。Agent 与 ordinary endpoint 的 fresh restore 都只能安装 schema 允许的 history-secret ranges；重新进入
-active group 必须走 current authorization 下的标准 KeyPackage/Add/Welcome（见 [`../identity/key-management.md` §7.5.6](../identity/key-management.md)）。
-
-备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_kind="mls_history"`。`actor_id` 是完整 tagged `ActorId`（`common-ids.schema.json#/$defs/actor_id`），裸 DID 字符串 MUST `schema_violation`；`contents[]` 只承载 `history_secret_ranges` 公开索引，secret bytes 只存在于 `ciphertext` 内。示例：
-
-```json schema=schemas/key-backup.schema.json
-{
-  "backup_id": "ak:backup:01964138-8000-7000-8000-000000000000",
-  "actor_id": {
-    "kind": "account",
-    "account_id": {
-      "principal_id": "ak:did_core:webvh:z6mkfixture",
-      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-    }
-  },
-  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "backup_kind": "mls_history",
-  "backup_version": "kb_1",
-  "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000000",
-  "series_seq": 0,
-  "created_at": "2026-04-26T00:00:00.000Z",
-  "encryption": {
-    "recipient_method": "secret_storage_key",
-    "recipient_key_ref": "mls_group_secrets_backup_key",
-    "aead": {
-      "name": "xchacha20_poly1305",
-      "aead_profile": "ak.aead.xchacha20_poly1305.v1",
-      "nonce": "pZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD"
-    }
-  },
-  "domain_separation": {
-    "subdomain": "mls_epoch"
-  },
-  "contents": [
-    {
-      "item_kind": "history_secret_ranges",
-      "effective_scope": {
-        "kind": "realm",
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
-      },
-      "ranges": [
-        {
-          "from_epoch": 40,
-          "to_epoch": 42
-        }
-      ]
-    }
-  ],
-  "ciphertext": "H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0",
-  "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "auth_data": {
-    "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-    "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
-    "signature_algorithm": "Ed25519",
-    "signature": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
-    "device_authorize_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-  }
-}
-```
-
-备份 MUST 加密给 recovery public key 或 secret storage key。服务端 MUST NOT 能解密。
-
-> **Recipient method 与 fresh-device 恢复（normative）**：上例的 `recipient_method="secret_storage_key"` 仅适用于**已经持有 secret_storage root key 的现有设备**（见 `identity/key-management.md` §7.5.3）。**全新设备 / 新浏览器**在尚未解锁 secret_storage root 之前 MUST NOT 直接用 `secret_storage_key` envelope 恢复 `mls_history`；它 MUST 走以下两步之一：
-> 1. **recovery_public_key（推荐，HPKE）**：`mls_history` envelope 直接加密给 actor 的 recovery public key（`recipient_method="recovery_public_key"`，HPKE base mode，参数见 `identity/key-management.md` §7.5.2）。新设备用经 recovery policy 解锁的 recovery 私钥即可 HPKE-open，无需先持有 secret_storage root。这是 fresh-browser same-account MLS 恢复的规范路径。
-> 2. **先解 root，再用 secret_storage_key**：新设备先用 `passphrase_kdf`（`passphrase_kdf` envelope，见 `identity/key-management.md` §7.5.1），或经 recovery policy 释放 recovery private key 后用 `recovery_public_key` 解出 `secret_storage` 域的 root（取得 `mls_group_secrets_backup_key`），之后才能解 `secret_storage_key` 的 `mls_history` envelope。
->
-> `recipient_method` 取值 MUST 来自 `ak.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key`）。实现 MUST NOT 发出枚举外的值（例如 `device_snapshot_secret`、`threshold_recovery`、`hardware_wrapped_key` 不是合法 wire 值，receiver/validator MUST fail closed）。`threshold_recovery` 与 `hardware_wrapped_key` 也不是 v1 recovery method；trusted recovery service 是 recovery policy / proof 层的 unlock factor，不是 backup envelope recipient method。
-
-规则：
-
-- 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- 任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}`；该成员自动进入完整 envelope 签名转录。`recipient_key_ref` 只能解析到该 accepted policy 的 `method signing entry 的内联 backup_hpke`。`mls_history` / `secret_storage` 在读取/恢复时须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并携带当前 accepted `device_authorize_event_id`；`frontier_ref` 只允许最小值为 1 的整数 `device_generation_ref`。签名输入固定为 `RFC8785_JCS(envelope 删除 auth_data.signature)`，所有实际存在的 required、optional 与 `x_*` 成员自动受认证，不携字段名清单。签名链必须链接到当前 PCR device authorization evidence。
-- 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
-- v1 没有 controller-owned Agent active-state backup 分支。`mls_history` 对所有 actor 都只承载 exporter history-secret ranges；它不携 Agent PCR binding、active MLS state、runtime key 或 pairing readiness。Fresh Agent endpoint 生成新 runtime key，并经标准 KeyPackage/Add/Welcome 重新加入唯一 group。
-- 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
-- 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
-- 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
-- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes_id` / `supersedes_digest`）。普通客户端在恢复或读取时 MUST 先用自己 Station 的 `BackupActiveSeriesState` 确认 canonical `series_id`（见 §7.6.1），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
+v1 authority-commit core只保留 `backup_kind=secret_storage` 的端到端加密备份。治理 Station 可以保存密文、版本链和当前 Realm stream 的 `realm_commit_id` 锚点，但不能解密、补发或据此取得 MLS 成员资格。旧 `mls_history` range、HistoryKey request/response 和 release-service 协议已退役；重新加入 MLS group 必须由当前治理 Station 接受成员 Event 与 `mls_commit_submission`，再通过单独的 `MlsWelcomeDelivery` 私密投递 Welcome。
 
 ### 12.1 Backup API
 
-Station device/key surface 对 encrypted backup object 提供标准操作：
-
-```http
-PUT /_arkret/self/keys/backups/{backup_id}
-GET /_arkret/self/keys/backups
-POST /_arkret/self/keys/backups/{backup_id}/unlock
-DELETE /_arkret/self/keys/backups/{backup_id}
-```
-
-`PUT` 请求体 MUST 是 `ak.schema.key_backup.v1`，且 path 中的 `backup_id` MUST 与 body 中的 `backup_id` 一致。`PUT` 按 `(actor_id, backup_id)` 幂等；同一 `backup_id` 若提交不同 canonical content MUST 返回冲突错误。
-
-`PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes_id` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
-
-`GET /_arkret/self/keys/backups` 支持 series_id / backup_kind 过滤与有界分页，完整排序、cursor、active 指针与缺失状态合同见 `identity/key-management.md` §7.6.1。每页只返回调用方可见的 backup metadata、digest、retention hints 和两个 class 的当前服务器指针；不返回 PCR 验证材料。恢复方不得从某页的唯一 series 推断 active；分页结束前不得声明链完整。列表和逐项读取继续遵守 §7.8 的限速。
-
-`unlock` 返回完整 encrypted backup object：request body MUST 携带 `ak.schema.key_backup_unlock_proof.v1`，并受 fresh PCR device proof 与 rate limit 约束。普通单对象 `delete` MUST 要求当前设备或 accepted recovery policy 允许的高风险证明；current DID proof 只有在同一 account authority pair 的本地 recovery policy 显式启用 DID-root factor 时才可进入。active series 的删除还必须遵守 transaction-bound erase 合同，不得用单对象 operation 伪造完成证据。
+备份上传、读取和删除仍使用 `ak.schema.key_backup.v1`。每个 successor 必须链接同一 series 的直接 predecessor；客户端验证密文摘要、设备签名以及可选 `frontier_ref.realm_commit_id`，但该锚点只证明备份产生时观察到的 Realm stream 位置，不证明任何 Circle 或 Sidecar stream 的位置。
 
 ### 12.2 Retention and Erasure
 
-| Profile | `delete_after` 默认 | `legal_hold` 行为 |
-| --- | --- | --- |
-| `ak.profile.personal_node.v1` | `null`（无自动过期） | clients-only flag；服务端不强制 |
-| `ak.profile.small_team.v1` | `null` | 仅在组织声明 `ak:policy:<id>` 允许时可置 `true` |
-| `ak.profile.organization.v1` | 365d（可被 Realm policy 覆盖） | 服务端 MUST 在 `legal_hold=true` 时阻塞 user-initiated delete |
-| `ak.profile.high_security_organization.v1` | 90d | 服务端 MUST 强制 `legal_hold` 与审计配对 |
-| `ak.profile.sovereign_deployment.v1` | deployment-defined | 与本地法务合规框架对齐 |
+服务端按账户保留策略删除密文；删除备份不删除 RealmCommit 或 Event。客户端不得把服务端持有密文解释为服务端持有解密能力。
 
-要求：
+## 13. Retired History-Key Distribution
 
-- 服务端 MUST 在收到 user erasure 请求（参见 `ak.audit.erasure_receipt` / `ak.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `scope.storage_boundary` 涵盖 `device_secret_store`，相应 `secret_storage` envelope MUST 被删除并产出 `ak.schema.erasure_receipt.v1` 子条目。
-- 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 `identity/key-management.md` §7.8 的高风险审计仍要求落地 `ak.audit.accessed` (`access_kind="key_backup_delete"`).
-- `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 通过受授权的 policy update 完成，并写入审计。
-- 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除 active series 的非尾部 envelope；旧 series 只有在已经被 active-series record 移出 primary source 后，才 MAY 按 retention / erasure 策略整组删除或迁移。若该删除属于`SecurityRotationTransaction`，两个backup kind的pointer、逐series进度、partial retry与complete confirmation一律以[`identity/security-transactions.md` §3](../identity/security-transactions.md)为准。
-- erasure 完成后保留的 `retained_stub_digest` MUST 仅含 metadata 哈希，不含密文与 KDF 参数，以避免间接成为离线爆破证据。
-
-## 13. Private History-Key Request and Response
-
-历史密钥恢复不得使用 public Realm Event 或通用 `DeviceMessageTarget`。唯一 surface、DTO 与 proof transcript 来自
-[`history-key.schema.json`](../../artifacts/schemas/history-key.schema.json) 和
-[`history-visibility.md`](../governance/history-visibility.md)：
-
-- `POST /_arkret/self/history-key-requests` 创建 scope-private durable request；`POST /_arkret/self/history-key-requests/read` 执行无状态列表查询；
-- `POST /_arkret/self/history-key-responses` 发送 immutable manifest/chunk；
-- `POST /_arkret/self/history-key-responses/read` 与 `POST /_arkret/self/history-key-responses/ack` 仅凭 `Arkret-History-Capability` 呈递的 history response capability 读取/确认；URL、query 与 body 均不携 request locator。
-
-Requester 必须在发送前 durable 保存 HPKE private key、canonical request intent、closed
-`trusted_scope_anchor` 及使该 anchor 成为本地 trusted 的 verification checkpoint/material；create 返回后保存
-service receipt 和 sealed history response capability。相同 request id+intent 返回相同 bytes，不同 intent 冲突；retry 不得替换
-requester 选择的任何 authority anchor。
-Source 必须先 durable 保存完整 outbox 后发送；accepted/duplicate 只推进 exact record，重启后不得重封。
-
-Request、source response、service receipt 与 service response record 分别使用 proof-context registry 中的四个 closed
-context，全部复用标准 generic detached-JWS proof shape。Source proof 签入 actor/sender domain/scope/request/receipt/
-response stream/expiry 与 content；不签服务生成的 sent_at 或 release attestation。Service record
-proof 覆盖 sequence、cursor、source-record digest、exact response、sent_at 与条件式 release attestation。Ordinary human/Agent/minimal source sender domain
-按 exact historical active Leaf BasicCredential identity 校验；RHRK holder 使用 archive 钉住的 holder signing binding，
-不得冒充 MLS leaf。
-
-每个 chunk 首次入队是 release 线性化点：服务在同一事务复核 request 当前 membership、source、scope/Circle parent、
-current history frontier、profile-dispatched closed authority predicates、typed locator/digest vector、safety/audit 与 quota，再原子生成
-`HistoryReleaseAttestation`、分配单调 sequence/cursor 并持久化 record。
-Exact retry 返回原 record/receipt 且不重跑已收紧 policy；同 id 异 digest 冲突。Receiver 可 durable 暂存乱序 chunk，
-但 manifest/descriptor、activation slice、current release proof 与 HPKE 全部通过后才安装。
-
-Ack 必须携 `high_water_cursor` 与按顺序 record digest 的
-`{response_id,record_digest,status}`。status 只允许 `installed|cryptographically_rejected|superseded_duplicate`；
-三者均释放 processing quota，只有 installed 计入 range coverage。服务在 ack/GC 后保留有界 idempotency tombstone 到
-原 expiry，避免 exact retry 永久 pending。
-
+旧的 private HistoryKey request/manifest/chunk/response-stream 与跨成员历史密钥释放协议不再属于 v1。治理 Station 只下发调用者当前可见的各条独立 Commit stream；MLS 历史可解密范围完全由客户端实际持有的 MLS/exporter secret 决定。
 
 ## 14. PCR-Policy Device Recovery
 

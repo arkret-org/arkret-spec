@@ -46,8 +46,8 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 | 形态 | 语义 | 示例 |
 | --- | --- | --- |
 | `ak.<symbol-path>` | **符号名称 / 注册表词汇**。`.` 只表达命名空间与分类层级；值命名一种 event、operation、schema、profile、capability action、content kind、Cell Family 或 namespaced key，不直接充当某个协议对象实例的 typed reference。 | `ak.message.create`、`ak.self.events.command.submit.v1`、`ak.schema.event.v1`、`ak.component.strand.discussion.timeline.v1` |
-| `ak:<kind>:<payload>` | **具体实例或引用**。第一个 `:` 把 Arkret namespace 与 ref kind 分开，第二个 `:` 开始该 kind 的实例载荷；载荷由 `id-kind-registry.json` 对应 kind 的 wire form 决定。 | `ak:message:<44-char-event-token>`、`ak:strand:<44-char-event-token>`、`ak:seal:sha256:<digest>`、`ak:trust_domain:<scope>` |
-| `ak:cell:<cell-family>:<subject>` | **复合 typed reference**。外层 `ak:cell:` 表示 CellRef；`<cell-family>` MUST 原样嵌入完整的点分 `ak.component.<family-path>.v<n>` 符号名称；`<subject>` MAY 自身是一个带 `:` 的 typed reference。 | `ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:<44-char-event-token>` |
+| `ak:<kind>:<payload>` | **具体实例或引用**。第一个 `:` 把 Arkret namespace 与 ref kind 分开，第二个 `:` 开始该 kind 的实例载荷；载荷由 `id-kind-registry.json` 对应 kind 的 wire form 决定。 | `ak:message:<44-char-event-token>`、`ak:strand:<44-char-event-token>`、`ak:realm_commit:sha256:<digest>`、`ak:trust_domain:<scope>` |
+| `state-slot:<cell-family>:<subject>` | **复合 typed reference**。外层 `state-slot:` 表示 CellRef；`<cell-family>` MUST 原样嵌入完整的点分 `ak.component.<family-path>.v<n>` 符号名称；`<subject>` MAY 自身是一个带 `:` 的 typed reference。 | `state-slot:ak.component.strand.discussion.timeline.v1:ak:strand:<44-char-event-token>` |
 
 因此，看到 `ak:` 先按“typed ref / special-form ref”解析，看到 `ak.` 先按“registry symbol / namespaced key”解析。CellRef 中同时出现两者是有意的类型组合，不是可选拼写：省略内层 family 的 `ak.` 限定、把外层 CellRef 写成点分名称，或将 `ak.component.*` family 改写为冒号分隔，均不是 canonical wire。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；各点分 symbol 的合法 segment、版本后缀及登记边界以对应 registry/schema 为准。任何缺席于当前 registry/schema 的前缀或拼写都不是 alias，parser MUST fail closed。
 
@@ -106,7 +106,6 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
   | `ak.contact.rejected` | Contact round 已进入拒绝终态的通告。 |
   | `ak.contact.requested` | Contact round 已进入请求状态的通告。 |
   | `ak.direct_conversation.bound` | 四 Event founding unit 已建立绑定的事实通告。 |
-  | `ak.mls.commit_failed` | RFC 9420 Commit 或 Welcome 处理已经失败的结果通告。 |
 
 - **Facet 值设置事件的命名形态（normative）**：写入单个 Realm 配置切面的 event kind 使用**裸名词形态** `ak.<scope>.<facet>`（如 `ak.realm.join_rule`、`ak.realm.history_access`、`ak.member.state`、`ak.call.state`），不追加 `.set`。`.set` 后缀**只保留**给两种情形：(a) 需要与同名 patch 路径区分（`ak.<kind>.stage.set` 对应 `stage` 字段，而 `ak.<kind>.update` 的 patch 路径 MUST NOT 触及 `stage`）；(b) 需要独立 capability 切分（`ak.strand.watch.set` / `ak.policy.set` / `ak.account_data.set` / `ak.rsvp.set`）。两种形态都是 canonical，选择依据 MUST 是上述判据而非作者偏好；新增 facet event 默认取裸名词形态。
 - Capability action 命名约定：
@@ -666,7 +665,7 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见
 [`realm-and-space.md` §2.3](./realm-and-space.md)）。
 
-`ak:cell:` / `ak:cursor:` / `ak:seal:` 等同步 / 状态原语的 wire form 见各自章节与 `artifacts/registry/id-kind-registry.json`，不在本协作图对象 ID 约定表内。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
+`state-slot:` / `ak:cursor:` / `ak:realm_commit:` 等同步 / 状态原语的 wire form 见各自章节与 `artifacts/registry/id-kind-registry.json`，不在本协作图对象 ID 约定表内。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 

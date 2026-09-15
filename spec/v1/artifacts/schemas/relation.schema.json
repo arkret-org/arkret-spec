@@ -82,15 +82,46 @@
   },
   "allOf": [
     {
-      "if": {"properties": {"relation_kind": {"const": "assigned_to"}}, "required": ["relation_kind"]},
-      "then": {"properties": {
-        "from_ref": {"type":"string", "pattern":"^ak:strand:[A-Za-z0-9_-]{44}$"},
-        "to_ref": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
-      }}
+      "if": {
+        "properties": {
+          "relation_kind": {
+            "const": "assigned_to"
+          }
+        },
+        "required": [
+          "relation_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "from_ref": {
+            "type": "string",
+            "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+          },
+          "to_ref": {
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          }
+        }
+      }
     },
     {
-      "if": {"properties": {"relation_kind": {"const": "watches"}}, "required": ["relation_kind"]},
-      "then": {"properties": {"from_ref": {"$ref": "./common-ids.schema.json#/$defs/actor_id"}}}
+      "if": {
+        "properties": {
+          "relation_kind": {
+            "const": "watches"
+          }
+        },
+        "required": [
+          "relation_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "from_ref": {
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          }
+        }
+      }
     },
     {
       "if": {
@@ -121,8 +152,12 @@
     },
     "relation_endpoint": {
       "oneOf": [
-        {"$ref": "#/$defs/object_ref"},
-        {"$ref": "./common-ids.schema.json#/$defs/actor_id"}
+        {
+          "$ref": "#/$defs/object_ref"
+        },
+        {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        }
       ],
       "description": "A typed object-reference string or a structured full ActorId. Equality and deduplication preserve the complete ActorId including Station. This branch represents an actor."
     },

@@ -891,7 +891,7 @@ SDK **MUST NOT** 实现事后从多个 binding 中选择 canonical 的逻辑，�
 
 founding 相关的机读入口是 [`ak.vector.direct_conversation.founding_unit.v1`](../../artifacts/registry/vector-registry.json)
 与 [`ak.vector.direct_conversation.founding_admission.v1`](../../artifacts/registry/vector-registry.json)，
-机读 fixture 见 [`direct-conversation-fixture.json`](../../artifacts/fixtures/direct-conversation-fixture.json)。
+机读 fixture 见 [`direct-conversation-fixture.json`](../sync/authority-commit-log.md)。
 
 Conformance **MUST** 覆盖：
 

@@ -1134,7 +1134,7 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 1. 拉取缺失的 `ak.mls.*` state event、winner `ak.mls.commit`、Welcome 和 `governance_binding` 依赖。
 2. 查询本 actor 授权设备的 encrypted key backup / secret storage。
-3. 对声明 `ak.profile.e2ee_client.v1` 与 `ak.feature.history_key_recovery.v1`、且 current scope 为
+3. 对声明 `ak.profile.e2ee_client.v1` 与 已退役的 history-key extension、且 current scope 为
    `content_scheme=mls_exporter_aead_v1` + `history_access=all_history_for_current_members` 的客户端，MUST
    按 [`history-visibility.md` §6.1](../governance/history-visibility.md) 自动创建/恢复 private history-key request、持续读取
    response stream，并作为 eligible current peer 自动耐久响应。其它 policy/profile 只在明确允许时 MAY 请求

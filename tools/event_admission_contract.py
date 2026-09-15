@@ -1,8 +1,4 @@
-"""Project canonical admission selectors into Event syntax and history guards.
-
-These guards prove branch selection and field presence only. Native authority,
-signatures and accepted-Seal closure remain the named semantic verifiers' work.
-"""
+"""Project producer-admission selectors into the authority-commit Event schema."""
 
 from __future__ import annotations
 
@@ -89,33 +85,19 @@ def schema_definitions(registry: dict) -> dict:
         durable.append(kind)
         kind_guard = {"properties": {"kind": {"const": kind}}, "required": ["kind"]}
         branches = selected_branches(row)
-        if kind not in registry["cell_contracts"]:
-            guards.append({"if": kind_guard, "then": {"not": {"anyOf": [
-                {"required": [field]} for field in ("auth_context", "seal_basis", "preconditions")
-            ]}}})
         if row.get("admission") == "conditional":
             guards.append({"if": kind_guard, "then": {"anyOf": [g for a, g in branches if a != "deny"]}})
     return {
-        "ordinary_publication_event": {
-            "$comment": "Body-proof publication is limited to complete ordinary shared Events; it grants no account session or private account access.",
-            "allOf": [
-                {"$ref": "#/$defs/shared_history_event"},
-                {"required": ["auth_context"], "not": {"required": ["seal_basis"]}},
-                {"properties": {"kind": {"enum": sorted(registry["cell_contracts"])}}},
-                {"properties": {"refs": {"not": {"contains": {"required": ["role"], "properties": {"role": {"const": "bootstrap_genesis"}}}}}}},
-            ],
-        },
         "registered_execution_shape": execution_schema(registry),
         "registered_admission_shape": {
             "$comment": "Generated from canonical event_kind_registry.admission_variants; do not hand-edit. Semantic authority verification is additional.",
             "allOf": guards,
         },
         "shared_history_event": {
-            "$comment": "Generated from canonical history_admission_contract. Every receiving Station verifies the portable producer, authority and causal evidence. Security commands require their scoped final decision; ordinary history uses deterministic eligibility. Syntax alone never grants authority.",
+            "$comment": "A complete producer Event from an authority-committed visibility stream. Consumers verify the producer proof and the matching RealmCommit plus authority chain.",
             "allOf": [
                 {"$ref": "#"},
                 {"properties": {"kind": {"enum": sorted(durable)}}, "required": ["kind"]},
-                {"properties": {"proofs": {"items": {"required": ["signer_resolution_evidence_ref"]}}}},
             ],
         },
     }

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.17",
-  "generated_at": "2026-09-15T20:27:23+08:00",
+  "version": "2026-09-16.1",
+  "generated_at": "2026-09-16T08:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -682,151 +682,15 @@
     "ak.profile.key_backup.memory_hard.v1"
   ],
   "vector_groups": [
-    "ak.vector_group.capability.v1",
-    "ak.vector_group.crypto_signature.v1",
-    "ak.vector_group.encoding.v1",
-    "ak.vector_group.event_envelope_negative.v1",
+    "ak.vector_group.authority_commit.v1",
     "ak.vector_group.discovery.v1",
-    "ak.vector_group.event_kind_lattice_dispatch.v1",
+    "ak.vector_group.error_code_registry_coverage.v1",
     "ak.vector_group.event_kind_payload_coverage.v1",
     "ak.vector_group.operation_registry_coverage.v1",
-    "ak.vector_group.error_code_registry_coverage.v1",
-    "ak.vector_group.federation.v1",
-    "ak.vector_group.privacy_security.v1",
-    "ak.vector_group.reaction.v1",
     "ak.vector_group.redaction.v1",
-    "ak.vector_group.cbs_lattice.v1",
-    "ak.vector_group.security_transaction.v1",
-    "ak.vector_group.sync.v1",
-    "ak.vector_group.mimi_interop.v1"
+    "ak.vector_group.security_transaction.v1"
   ],
   "vector_group_requirements": {
-    "ak.vector_group.capability.v1": {
-      "required_event_kinds": [
-        "ak.capability.grant",
-        "ak.capability.revoke",
-        "ak.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.capability.v1",
-        "ak.schema.grant_constraint.v1",
-        "ak.schema.resource_selector.v1"
-      ],
-      "required_fixtures": [
-        "capability-fixture.json",
-        "authorization-lease-issuance-fixture.json",
-        "protocol-edge-cases-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.authz.read.check.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    "ak.vector_group.crypto_signature.v1": {
-      "required_event_kinds": [
-        "ak.invite.third_party",
-        "ak.invite.claim",
-        "ak.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "crypto-signature-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "ed25519_detached_jws"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": []
-    },
-    "ak.vector_group.encoding.v1": {
-      "required_event_kinds": [
-        "ak.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.cursor.v1",
-        "ak.schema.event_batch_receipt.v1",
-        "ak.schema.seal.v1",
-        "ak.schema.string_profiles.v1"
-      ],
-      "required_fixtures": [
-        "encoding-fixture.json",
-        "string-profile-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "canonical_json",
-          "hlc",
-          "cursor"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": []
-    },
-    "ak.vector_group.event_envelope_negative.v1": {
-      "required_event_kinds": [
-        "ak.message.create",
-        "ak.read_cursor.advance"
-      ],
-      "rejected_event_kinds": [
-        "wire_scope:actor_private_event"
-      ],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.event_payload.v1",
-        "ak.schema.seal.v1",
-        "ak.schema.signal_envelope.v1"
-      ],
-      "required_fixtures": [
-        "event-envelope-negative-fixture.json",
-        "scalability-limits-fixture.json"
-      ],
-      "required_runner_suites": [
-        {
-          "suite": "event_envelope_fixture",
-          "artifact_fixture": "event-envelope-negative-fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "negative_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.control_proposal_acks.command.issue.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
     "ak.vector_group.discovery.v1": {
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -856,28 +720,6 @@
           "binding_kind": "http_json"
         }
       ]
-    },
-    "ak.vector_group.event_kind_lattice_dispatch.v1": {
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [
-        "event-kind-lattice-dispatch-fixture.json"
-      ],
-      "required_runner_suites": [
-        {
-          "suite": "event_kind_lattice_dispatch_fixture",
-          "artifact_fixture": "event-kind-lattice-dispatch-fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "event_kind_lattice_dispatch_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": []
     },
     "ak.vector_group.event_kind_payload_coverage.v1": {
       "required_event_kinds": [],
@@ -954,130 +796,6 @@
       },
       "operation_requirements": []
     },
-    "ak.vector_group.federation.v1": {
-      "required_event_kinds": [
-        "ak.realm.create",
-        "ak.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.cbs_proof_bundle.v1",
-        "ak.schema.event.v1",
-        "ak.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "federation-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "federation_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.peer.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.peer.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    "ak.vector_group.privacy_security.v1": {
-      "required_event_kinds": [
-        "ak.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event_payload.v1",
-        "ak.schema.invite.v1",
-        "ak.schema.notification.v1",
-        "ak.schema.blob.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json",
-        "push-rule-core-fixture.json",
-        "realm-organization-fixture.json",
-        "security-closure-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "privacy_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.find.directory.read.resolve_realm.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.blob.resource.head.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.edge.push.command.notify.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    "ak.vector_group.reaction.v1": {
-      "required_event_kinds": [
-        "ak.message.create",
-        "ak.message.redact",
-        "ak.reaction.add",
-        "ak.reaction.remove",
-        "ak.capability.revoke"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "reaction-fixture.json"
-      ],
-      "optional_extensions": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "feature_discovery": {
-        "required": [
-          "reaction_or_set_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
     "ak.vector_group.redaction.v1": {
       "required_event_kinds": [
         "ak.message.create",
@@ -1087,8 +805,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.event.v1",
-        "ak.schema.event_payload.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "redaction-fixture.json"
@@ -1109,116 +826,6 @@
         {
           "direction": "consume",
           "operation_id": "ak.self.events.read.scan.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    "ak.vector_group.sync.v1": {
-      "required_event_kinds": [
-        "ak.message.create",
-        "ak.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.account_subscribe_frame.v1",
-        "ak.schema.cursor.v1",
-        "ak.schema.realm_state_snapshot.v1"
-      ],
-      "required_fixtures": [
-        "sync-fixture.json",
-        "protocol-edge-cases-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "sync_vector_runner",
-          "stream_frame_sequence_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.account.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    "ak.vector_group.mimi_interop.v1": {
-      "required_event_kinds": [
-        "ak.mimi.room_binding",
-        "ak.mls.keypackage"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.mimi_interop.v1"
-      ],
-      "required_fixtures": [
-        "mimi-interop-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "mimi_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.open.mimi.read.provider_directory.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.open.mimi.command.update_room.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.open.mimi.command.submit_message.v1",
-          "binding_kind": "http_json"
-        }
-      ]
-    },
-    "ak.vector_group.cbs_lattice.v1": {
-      "required_event_kinds": [
-        "ak.member.state",
-        "ak.strand.move",
-        "ak.strand.reorder",
-        "ak.policy.set"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.seal.v1",
-        "ak.schema.event.v1",
-        "ak.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "cbs-lattice-fixture.json",
-        "control-proposal-ack-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "cbs_lattice_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      },
-      "operation_requirements": [
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.events.command.submit.v1",
           "binding_kind": "http_json"
         }
       ]
@@ -1275,6 +882,34 @@
         {
           "direction": "consume",
           "operation_id": "ak.self.keys.backup_series.command.erase.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    "ak.vector_group.authority_commit.v1": {
+      "required_event_kinds": [
+        "ak.realm.governance_station.change"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.realm_commit.v1",
+        "ak.schema.realm_authority_bundle.v1",
+        "ak.schema.realm_authority_handoff.v1"
+      ],
+      "required_fixtures": [
+        "authority-commit-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      },
+      "operation_requirements": [
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.events.read.scan.v1",
           "binding_kind": "http_json"
         }
       ]
@@ -1353,11 +988,6 @@
           "direction": "provide",
           "operation_id": "ak.peer.events.read.scan.v1",
           "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.resolve.v1",
-          "binding_kind": "http_json"
         }
       ],
       "wire_contract_refs": [
@@ -1385,8 +1015,6 @@
         "ak.call.summary",
         "ak.direct_conversation.bound",
         "ak.mls.genesis",
-        "ak.mls.proposal",
-        "ak.mls.welcome",
         "ak.mls.commit"
       ],
       "rejected_event_kinds": [
@@ -1409,17 +1037,8 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [
-        "schema-validation-fixture.json",
-        "encoding-fixture.json",
-        "direct-conversation-fixture.json",
-        "history-key-recovery-fixture.json"
-      ],
-      "required_vectors": [
-        "ak.vector.contact.next_prepare_input.v1",
-        "ak.vector.contact.pending_incoming_prepare.v1",
-        "ak.vector.direct_conversation.send_blocker_authority.v1"
-      ],
+      "required_fixtures": [],
+      "required_vectors": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -1484,7 +1103,6 @@
           "ak.message.redact.own",
           "ak.message.revise.own",
           "ak.mls.commit",
-          "ak.mls.proposal",
           "ak.mls.welcome.own_device",
           "ak.reaction.add",
           "ak.reaction.remove",
@@ -1513,8 +1131,7 @@
             "ak.member.state",
             "ak.strand.create",
             "ak.mls.genesis",
-            "ak.mls.commit",
-            "ak.mls.welcome"
+            "ak.mls.commit"
           ],
           "binding_rule": "exact_accepted_caller_authored_founding_unit_only",
           "user_content_forbidden": true
@@ -1605,7 +1222,6 @@
         "ak.device.revoke",
         "ak.device.list_update",
         "ak.policy.set",
-        "ak.mls.keypackage",
         "ak.consent.grant",
         "ak.consent.revoke"
       ],
@@ -1635,9 +1251,6 @@
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json",
-        "recovery-policy-fixture.json",
-        "schema-validation-fixture.json",
         "pcr-genesis-fixture.json"
       ],
       "optional_extensions": [
@@ -1662,12 +1275,8 @@
           "ak.device.revoke",
           "ak.device.list_update",
           "ak.policy.set",
-          "ak.mls.proposal",
           "ak.mls.genesis",
           "ak.mls.commit",
-          "ak.mls.commit_failed",
-          "ak.mls.welcome",
-          "ak.mls.keypackage",
           "ak.key_backup.active_series",
           "ak.consent.grant",
           "ak.consent.revoke",
@@ -1763,11 +1372,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.describe.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.self.events.command.submit.v1",
           "binding_kind": "http_json"
         },
@@ -1778,22 +1382,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.self.events.read.scan.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.read.frontier.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.seals.read.frontier.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -1808,8 +1397,7 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
         "ak.schema.event_batch_receipt.v1",
-        "ak.schema.cursor.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.cursor.v1"
       ],
       "required_constraint_kinds": [
         "temporal",
@@ -1823,11 +1411,7 @@
         "rate"
       ],
       "required_fixtures": [
-        "encoding-fixture.json",
-        "crypto-signature-fixture.json",
-        "event-envelope-negative-fixture.json",
         "scalability-limits-fixture.json",
-        "sync-fixture.json",
         "protocol-edge-cases-fixture.json"
       ],
       "optional_extensions": [
@@ -1889,9 +1473,7 @@
         "edit_window"
       ],
       "required_fixtures": [
-        "sync-fixture.json",
         "redaction-fixture.json",
-        "reaction-fixture.json",
         "privacy-security-fixture.json",
         "long-text-content-fixture.json"
       ],
@@ -1980,9 +1562,7 @@
       "required_constraint_kinds": [
         "scope_limitation"
       ],
-      "required_fixtures": [
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "discussion_track",
         "realm_state_snapshot_bootstrap"
@@ -2032,10 +1612,7 @@
         "ak.schema.relation.v1",
         "ak.schema.view.v1"
       ],
-      "required_fixtures": [
-        "encoding-fixture.json",
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "prose_requirement_coverage": [
         {
           "requirement": "basic ordering and tie break",
@@ -2139,8 +1716,6 @@
         "ak.schema.read_cursor.v1"
       ],
       "required_fixtures": [
-        "encoding-fixture.json",
-        "sync-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -2225,9 +1800,7 @@
       "required_event_kinds": [
         "ak.device.authorize",
         "ak.device.revoke",
-        "ak.mls.proposal",
-        "ak.mls.commit",
-        "ak.mls.welcome"
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -2236,15 +1809,12 @@
         "ak.schema.key_backup.v1"
       ],
       "required_fixtures": [
-        "crypto-signature-fixture.json",
         "mls-rfc9420-kat-fixture.json",
-        "privacy-security-fixture.json",
-        "sync-fixture.json"
+        "privacy-security-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.agent_signer_evidence.v1",
-        "ak.profile.mls.minimal_metadata_realm.v1",
-        "ak.feature.history_key_recovery.v1"
+        "ak.profile.mls.minimal_metadata_realm.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -2255,9 +1825,7 @@
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       },
-      "conditional_requirements": {
-        "exporter_all_history": "A client creating or joining content_scheme=mls_exporter_aead_v1 with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and consume its own authenticated Station's authorized request/manifest/chunk/response-stream results. It checks exact account, scope, recipient, incarnation and request bindings, retains end-to-end envelope/MLS/key authentication, and performs no accepted-Seal/DID/governance closure traversal. The requester/source loop remains durable and bounded: single-flight request create/resume, no ACK for empty pages, exact source outbox retry and a new manifest when later locally authoritative encrypted material remains uncovered. Missing support is fail closed; standard MLS has no history-recovery fallback."
-      }
+      "conditional_requirements": {}
     },
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state attestation and independent privacy-minimal controller gate. Their maximum 300 second windows constrain direct current-query consumption only; verified ordinary publication evidence remains reusable without periodic refresh and is fenced by known revocation. Historical evidence freezes the original producer proof and authorization evidence, or a distinct receiver receipt. Server and peer consumers verify complete identity/method/history dependencies and reuse unchanged material. Ordinary clients consume authenticated own-Station signing-key results and independently verify message signature/MLS/replay; later terminal transitions do not invalidate previously accepted history.",
@@ -2266,11 +1834,6 @@
         "peer_eligibility"
       ],
       "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-          "binding_kind": "http_json"
-        },
         {
           "direction": "provide",
           "operation_id": "ak.self.signer_keys.read.resolve.v1",
@@ -2283,16 +1846,10 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.controller_account_gate_attestation.v1",
-        "ak.schema.controller_account_gate_attestation_issue_request.v1",
-        "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
-        "ak.schema.agent_signer_evidence.v1",
         "ak.schema.signer_key_query_request.v1",
         "ak.schema.signer_key_query_outcome.v1"
       ],
-      "required_fixtures": [
-        "agent-signer-evidence-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "ak.profile.key_transparency.v1"
       ],
@@ -2332,9 +1889,7 @@
       ],
       "required_constraint_kinds": [],
       "required_cell_namespaces": [],
-      "required_fixtures": [
-        "security-closure-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -2427,7 +1982,6 @@
         "ak.schema.identity_receipt.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -2516,8 +2070,7 @@
         "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json",
-        "crypto-signature-fixture.json"
+        "privacy-security-fixture.json"
       ],
       "optional_extensions": [
         "ak.private_contact_discovery.v1",
@@ -2557,14 +2110,9 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.cursor.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.cursor.v1"
       ],
-      "required_fixtures": [
-        "crypto-signature-fixture.json",
-        "event-envelope-negative-fixture.json",
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "event_batch_receipt",
         "witness_receipt"
@@ -2661,16 +2209,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.control_proposal_decisions.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.control_proposal_decisions.read.get.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.root.identity.read.resolve.v1",
           "binding_kind": "http_json"
         }
@@ -2708,22 +2246,13 @@
         "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
-        "event-envelope-negative-fixture.json",
-        "sync-fixture.json",
-        "cbs-lattice-fixture.json",
-        "capability-fixture.json",
         "privacy-security-fixture.json",
-        "security-closure-fixture.json",
-        "device-revocation-pending-fixture.json",
         "session-grant-issuance-fixture.json"
       ],
-      "required_vectors": [
-        "ak.vector.device.revocation_pending_state.v1"
-      ],
+      "required_vectors": [],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
-        "snapshot_witness",
-        "ak.feature.history_key_recovery.v1"
+        "snapshot_witness"
       ],
       "feature_discovery": {
         "required": [
@@ -2744,7 +2273,6 @@
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
         "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ak.invite.accept or an explicitly profiled equivalent path.",
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
-        "history_key_recovery_conditional_must": "A Station that accepts or serves an mls_exporter_aead_v1 scope with history_access=all_history_for_current_members MUST advertise ak.feature.history_key_recovery.v1 and expose the complete registered self/peer Seal-proof, request, response, relay and RHRK archive operation set. Partial realm_key feature claims are forbidden.",
         "account_authority_surface_must": "The Station MUST publish exactly one auth_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
         "session_grant_issuer_ledger_must": "The Station Account Authority MUST be the sole durable authority for immutable SessionGrant issuance records and active, revoked, or superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, atomically persist issuance before response, provide durable exact replay for issue, refresh, and revoke, and use the same ledger for cascade and introspection.",
         "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, notary, or Event proof.",
@@ -2771,21 +2299,6 @@
           "direction": "provide",
           "operation_id": "ak.peer.events.read.scan.v1",
           "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.sibling_positions.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.frontier.v1",
-          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -2801,14 +2314,9 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.event_batch_receipt.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.event_batch_receipt.v1"
       ],
-      "required_fixtures": [
-        "federation-fixture.json",
-        "event-envelope-negative-fixture.json",
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "prose_requirement_coverage": [
         {
           "requirement": "service DID authentication and destination binding validation",
@@ -3031,22 +2539,14 @@
         "conformance",
         "startup_claim_guard"
       ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.frontier.v1",
-          "binding_kind": "http_json"
-        }
-      ],
+      "operation_requirements": [],
       "inherits": [
         "ak.profile.federation_minimal.v1"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "federation-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "frontier_witness_attestation"
       ],
@@ -3112,7 +2612,6 @@
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json",
         "did-webvh-v1-fixture.json"
       ],
       "optional_extensions": [
@@ -3152,9 +2651,7 @@
         "ak.schema.identity_receipt.v1",
         "ak.schema.handle_claim.v1"
       ],
-      "required_fixtures": [
-        "crypto-signature-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "did:plc_directory_mirror",
         "did:plc_transparency_audit"
@@ -3198,7 +2695,6 @@
         "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
-        "crypto-signature-fixture.json",
         "did-webvh-v1-fixture.json",
         "key-transparency-fixture.json"
       ],
@@ -3526,13 +3022,10 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.seal.v1",
         "ak.schema.applet_package.v1",
         "ak.schema.applet_registration_epoch_transcript.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
-        "federation-fixture.json",
         "applet-registration-epoch-fixture.json"
       ],
       "optional_extensions": [],
@@ -3594,7 +3087,6 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.seal.v1",
         "ak.schema.applet_ghost_operations.v1"
       ],
       "required_capability_actions": [
@@ -3615,13 +3107,8 @@
           "requested_action_binding": "grant.action_in_registration.requested_scopes"
         }
       ],
-      "required_fixtures": [
-        "capability-fixture.json",
-        "federation-fixture.json"
-      ],
-      "required_vectors": [
-        "ak.vector.capability.applet_bridge_non_event_grant_authority.v1"
-      ],
+      "required_fixtures": [],
+      "required_vectors": [],
       "optional_extensions": [
         "third_party_locations",
         "third_party_users"
@@ -3651,9 +3138,7 @@
         "ak.schema.event_payload.v1",
         "ak.schema.capability.v1"
       ],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -3749,16 +3234,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.frontier.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.seals.read.frontier.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.self.authz.read.check.v1",
           "binding_kind": "http_json"
         },
@@ -3784,7 +3259,6 @@
         "ak.schema.capability.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "privacy-security-fixture.json",
         "agent-vectors-fixture.json",
         "agent-mls-keypackage-authorization-fixture.json",
@@ -3881,7 +3355,6 @@
         "ak.schema.key_backup_active_series.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "privacy-security-fixture.json",
         "agent-vectors-fixture.json"
       ],
@@ -3930,7 +3403,6 @@
         "ak.schema.capability.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "agent-vectors-fixture.json"
       ],
       "optional_extensions": [],
@@ -3969,7 +3441,6 @@
         "ak.schema.capability.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "agent-vectors-fixture.json",
         "agent-participation-fixture.json"
       ],
@@ -4042,9 +3513,7 @@
         "schemas/principal-operations.schema.json#/$defs/sidecar_control_frontier"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
-        "privacy-security-fixture.json",
-        "agent-sidecar-fixture.json"
+        "privacy-security-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -4106,7 +3575,6 @@
         "schemas/principal-operations.schema.json#/$defs/participation_replace_request"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "agent-participation-fixture.json"
       ],
       "optional_extensions": [],
@@ -4144,21 +3612,14 @@
       ],
       "required_event_kinds": [
         "ak.member.state",
-        "ak.mls.commit",
-        "ak.mls.welcome"
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.principal_operations.v1"
       ],
-      "required_fixtures": [
-        "direct-conversation-fixture.json",
-        "capability-fixture.json"
-      ],
-      "required_vectors": [
-        "ak.vector.capability.direct_conversation_repair_authority.v1",
-        "ak.vector.direct_conversation.suspend_rejoin.v1"
-      ],
+      "required_fixtures": [],
+      "required_vectors": [],
       "optional_extensions": [],
       "authority_source": "ak.authority.direct_conversation_repair.v1",
       "invariants": [
@@ -4216,9 +3677,7 @@
       "wire_contract_refs": [
         "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission"
       ],
-      "required_fixtures": [
-        "keypackage-lifecycle-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "authority_source": "ak.authority.membership_compensation.v1",
       "actions": {
@@ -4275,7 +3734,6 @@
       ],
       "required_event_kinds": [
         "ak.mimi.room_binding",
-        "ak.mls.keypackage",
         "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
@@ -4284,7 +3742,6 @@
         "ak.schema.encrypted_envelope.v1"
       ],
       "required_fixtures": [
-        "mimi-interop-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -4352,32 +3809,12 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.read.frontier.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.peer.events.command.submit.v1",
           "binding_kind": "http_json"
         },
         {
           "direction": "provide",
           "operation_id": "ak.peer.events.read.scan.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.frontier.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -4399,8 +3836,6 @@
         "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
-        "federation-fixture.json",
-        "capability-fixture.json",
         "did-webvh-v1-fixture.json",
         "key-transparency-fixture.json"
       ],
@@ -4465,32 +3900,12 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.read.frontier.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.peer.events.command.submit.v1",
           "binding_kind": "http_json"
         },
         {
           "direction": "provide",
           "operation_id": "ak.peer.events.read.scan.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.resolve.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.events.read.frontier.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -4518,10 +3933,7 @@
         "ak.schema.realm.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [
-        "federation-fixture.json",
-        "schema-validation-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -4551,11 +3963,6 @@
         {
           "direction": "provide",
           "operation_id": "ak.self.account.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.moderation.read.franking_seal_observation.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -4805,7 +4212,6 @@
         "ak.schema.identity_receipt.v1"
       ],
       "required_fixtures": [
-        "federation-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -4900,13 +4306,9 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.event.v1",
-        "ak.schema.account_subscribe_frame.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.account_subscribe_frame.v1"
       ],
-      "required_fixtures": [
-        "event-envelope-negative-fixture.json",
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "blob_node",
         "push_gateway"
@@ -4977,11 +4379,7 @@
         "ak.schema.strand.v1",
         "ak.schema.message.v1"
       ],
-      "required_fixtures": [
-        "sync-fixture.json",
-        "cbs-lattice-fixture.json",
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "e2ee",
         "push_gateway"
@@ -5045,7 +4443,6 @@
         "ak.schema.moderation_report.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -5107,9 +4504,7 @@
         "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
-        "crypto-signature-fixture.json",
         "privacy-security-fixture.json",
-        "capability-fixture.json",
         "did-webvh-v1-fixture.json",
         "key-transparency-fixture.json"
       ],
@@ -5188,8 +4583,6 @@
         "ak.schema.realm_state_snapshot.v1"
       ],
       "required_fixtures": [
-        "federation-fixture.json",
-        "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -5229,11 +4622,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.peer.mls.read.group_state_material.v1",
           "binding_kind": "http_json"
         }
@@ -5246,13 +4634,10 @@
       "required_schemas": [
         "ak.schema.encrypted_envelope.v1",
         "ak.schema.realm_state_snapshot.v1",
-        "ak.schema.mls_governance_proof_bundle.v1",
         "ak.schema.service_operation_dtos.v1"
       ],
       "required_fixtures": [
-        "crypto-signature-fixture.json",
-        "privacy-security-fixture.json",
-        "mls-governance-proof-fixture.json"
+        "privacy-security-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.mls.minimal_metadata_realm.v1"
@@ -5331,7 +4716,6 @@
       "required_fixtures": [
         "audit-release-fixture.json",
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json",
         "push-rule-core-fixture.json"
       ],
       "optional_extensions": [],
@@ -5373,7 +4757,6 @@
       ],
       "required_event_kinds": [
         "ak.message.create",
-        "ak.mls.welcome",
         "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
@@ -5383,8 +4766,7 @@
         "ak.schema.notification.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json",
-        "federation-fixture.json"
+        "privacy-security-fixture.json"
       ],
       "optional_extensions": [
         "ohttp_relay",
@@ -5498,13 +4880,11 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.audit_ryw_receipt.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.audit_ryw_receipt.v1"
       ],
       "required_fixtures": [
         "audit-release-fixture.json",
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json",
         "push-rule-core-fixture.json"
       ],
       "optional_extensions": [],
@@ -5554,8 +4934,7 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.audit_ryw_receipt.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.audit_ryw_receipt.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -5625,19 +5004,9 @@
         "ak.schema.websocket_dpop_protected_header.v1",
         "ak.schema.websocket_dpop_claims.v1"
       ],
-      "required_vectors": [
-        "ak.vector.binding.websocket.v1"
-      ],
-      "required_fixtures": [
-        "websocket-binding-fixture.json"
-      ],
-      "required_runner_suites": [
-        {
-          "suite": "websocket_binding",
-          "entrypoint": "ak.suite.binding.websocket.v1",
-          "artifact_fixture": "websocket-binding-fixture.json"
-        }
-      ],
+      "required_vectors": [],
+      "required_fixtures": [],
+      "required_runner_suites": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -5750,7 +5119,6 @@
       ],
       "required_fixtures": [
         "circle-scope-fixture.json",
-        "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -5810,9 +5178,7 @@
         "ak.schema.event_payload.v1",
         "ak.schema.message.v1"
       ],
-      "required_fixtures": [
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [
         "ak.profile.draft_sync.v1"
       ],
@@ -5844,9 +5210,7 @@
       "required_schemas": [
         "ak.schema.draft_sync.v1"
       ],
-      "required_fixtures": [
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -5913,9 +5277,7 @@
         "ak.schema.blob.v1",
         "ak.schema.device_message.v1"
       ],
-      "required_fixtures": [
-        "sync-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -5956,7 +5318,6 @@
         "ak.schema.rsvp.v1"
       ],
       "required_fixtures": [
-        "sync-fixture.json",
         "calendar-rsvp-fixture.json"
       ],
       "optional_extensions": [
@@ -6041,9 +5402,7 @@
         "ak.schema.pin.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [
-        "cbs-lattice-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6190,9 +5549,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6211,9 +5568,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6232,9 +5587,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6253,9 +5606,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6274,9 +5625,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6295,9 +5644,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "encoding-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6316,9 +5663,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "encoding-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6337,9 +5682,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "hash-transition-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6379,9 +5722,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "crypto-signature-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -6400,9 +5741,7 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [
-        "crypto-signature-fixture.json"
-      ],
+      "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [

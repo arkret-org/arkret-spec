@@ -241,7 +241,7 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 替代设计：
 
 - 协议事实由普通 Event 或 Control Move 的 `kind + payload` 表达；cell target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
-- `cell_id` 是显式 canonical cell，例如 `ak:cell:ak.component.member.state.v1:<actor-did>`。
+- `cell_id` 是显式 canonical cell，例如 `state-slot:ak.component.member.state.v1:<actor-did>`。
 - 每个 cell family 在 registry 中声明 `execution`、`state_model` 与 `value_shape`；普通 `causal_register` 以固定 `(depth,EventId)` 产生唯一 winner。`bottom` 只保留给另行登记的跨 Cell 领域不变量诊断，安全写入使用唯一确认顺序且不得把安全故障降格为 `bottom`。
 - Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit cell id 与 projected value。
 
@@ -284,7 +284,7 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ak:cell:ak.component.consent.grant.v1:<consent_id>` cell（sequenced_state，value_shape=set），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `state-slot:ak.component.consent.grant.v1:<consent_id>` cell（sequenced_state，value_shape=set），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 

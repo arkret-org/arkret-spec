@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/typed-current-result.schema.json",
+  "title": "Arkret Typed Realm Current Result",
+  "description": "Closed domain result selected without protocol Cell IDs. Every result names the last authority commit that affected the typed target.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/realm_profile_result"
+    },
+    {
+      "$ref": "#/$defs/realm_policy_result"
+    },
+    {
+      "$ref": "#/$defs/member_state_result"
+    },
+    {
+      "$ref": "#/$defs/strand_result"
+    },
+    {
+      "$ref": "#/$defs/message_reactions_result"
+    },
+    {
+      "$ref": "#/$defs/mls_group_result"
+    }
+  ],
+  "$defs": {
+    "revision": {
+      "type": "object",
+      "required": [
+        "commit_id",
+        "stream_position"
+      ],
+      "properties": {
+        "commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "stream_position": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_profile_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_profile"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./realm-profile.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_policy_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_policy"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./policy.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "member_state_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "member_state"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "type": "object",
+          "required": [
+            "membership"
+          ],
+          "properties": {
+            "membership": {
+              "enum": [
+                "join",
+                "knock",
+                "leave",
+                "ban"
+              ]
+            },
+            "joined_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "strand_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "strand_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "strand"
+            },
+            "strand_id": {
+              "type": "string",
+              "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./strand.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "message_reactions_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "reactions"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "message_reactions"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "reactions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id",
+              "key"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "mls_group_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "scope_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "mls_group"
+            },
+            "scope_ref": {
+              "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/mls_group_current"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mls_group_current": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "genesis_event_ref",
+        "current_mls_commit_event_ref",
+        "epoch",
+        "current_key_access_revision",
+        "covered_key_access_revision",
+        "public_tree_ref"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "current_mls_commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "current_key_access_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "covered_key_access_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "public_tree_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

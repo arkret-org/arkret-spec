@@ -170,7 +170,7 @@ canonical CellRef subject 由该 canonical URI 的 exact UTF-8 bytes 按 [`../co
 
 ```text
 mimi://mimi.example.com/rooms/01JSMIMI
-→ ak:cell:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI
+→ state-slot:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI
 ```
 
 实现 MUST NOT 改用 hash 化 subject、URI 片段截取，或在 payload 中另立一个 caller 分配的 room 标识符作为 subject——后者会给同一 room URI 制造第二个身份，使 §4 的 1:1 语义无法在 wire 上强制。canonical 形态与 subject 编码的正反例由 [`ak.vector.encoding.cell_subject_uri.v1`](../../artifacts/registry/vector-registry.json) 唯一闭合。

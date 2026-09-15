@@ -462,8 +462,8 @@
         "principal_genesis_event",
         "current_resolution_event",
         "predecessor_resolution_events",
-        "history_complete",
-        "accepted_seal"
+        "accepted_commit",
+        "history_complete"
       ],
       "properties": {
         "account_id": {
@@ -492,13 +492,13 @@
             "$ref": "#/$defs/resolution_update_event"
           }
         },
+        "accepted_commit": {
+          "$ref": "./realm-commit.schema.json",
+          "description": "The authority-signed RealmCommit that accepted current_resolution_event in the Principal Control Realm stream."
+        },
         "history_complete": {
           "type": "boolean",
           "description": "True exactly when the disclosed segment reaches its requested stop condition: head 0, or the exclusive after_resolution_event_ref ancestor. False means disclosure was truncated and next_audit_cursor is present. Omitted history is unknown rather than absent."
-        },
-        "accepted_seal": {
-          "$ref": "./seal.schema.json",
-          "description": "Accepted Seal covering current_resolution_event. The verifier replays that exact Event through the registered reducer; v1 does not add a second resolution-specific state-cell Merkle proof carrier."
         },
         "next_audit_cursor": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",

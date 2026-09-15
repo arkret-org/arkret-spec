@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.3",
+  "version": "2026-09-16.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T20:27:23+08:00",
+  "generated_at": "2026-09-16T08:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -143,12 +143,6 @@
         "selector": "account_data key ak.account.agent_sidecar_view_state.*",
         "normative_ref": "zh/models/sidecar.md"
       }
-    },
-    {
-      "schema_id": "ak.schema.agent_signer_evidence.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "status": "active",
-      "description": "Portable Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
     },
     {
       "schema_id": "ak.schema.applet.v1",
@@ -300,14 +294,20 @@
       "description": "Content-addressed historical signer-resolution evidence pinned for Event, Station and AvailabilityReceipt signature verification."
     },
     {
+      "schema_id": "ak.schema.authority_commit_operations.v1",
+      "file": "schemas/authority-commit-operations.schema.json",
+      "status": "active",
+      "description": "Authority submission, stream scan, authority bundle and handoff operations."
+    },
+    {
       "schema_id": "ak.schema.authority_set_policy.v1",
       "file": "schemas/authority-set-policy.schema.json",
       "status": "active",
-      "description": "Canonical concrete authority policy rederived from accepted CBS control state and bound by AuthoritySetRef.",
+      "description": "Recovery or admission signer policy accepted at one RealmCommit.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
-        "selector": "schemas/offline-publication.schema.json#/$defs/authority_set_policy",
-        "normative_ref": "zh/authz/offline-publication.md#3"
+        "selector": "schemas/authority-set-policy.schema.json",
+        "normative_ref": "zh/sync/authority-commit-log.md#2-producer-event"
       }
     },
     {
@@ -315,12 +315,6 @@
       "file": "schemas/authz-operations.schema.json",
       "status": "active",
       "description": "Closed response DTO bundle for authorization query operations."
-    },
-    {
-      "schema_id": "ak.schema.availability_receipt.v1",
-      "file": "schemas/availability-receipt.schema.json",
-      "status": "active",
-      "description": "Signed holder commitment that exact Event bytes are available until retention_expires_at. A Seal commits every-and-only required receipt through its canonical availability_receipt_digests array."
     },
     {
       "schema_id": "ak.schema.backup_series_erase_confirmation.v1",
@@ -338,12 +332,6 @@
       "file": "schemas/blob-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for Blob service operations."
-    },
-    {
-      "schema_id": "ak.schema.bottom.v1",
-      "file": "schemas/bottom.schema.json",
-      "status": "active",
-      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses for an explicitly registered cross-Cell domain inconsistency; ordinary causal_register Cells always select one deterministic winner and never produce Bottom"
     },
     {
       "schema_id": "ak.schema.calendar_event.v1",
@@ -373,12 +361,6 @@
       "file": "schemas/capability-grant.schema.json"
     },
     {
-      "schema_id": "ak.schema.cbs_proof_bundle.v1",
-      "file": "schemas/cbs-proof-bundle.schema.json",
-      "status": "active",
-      "description": "Unsigned, independently verified CBS dependency bundle."
-    },
-    {
       "schema_id": "ak.schema.circle.v1",
       "file": "schemas/circle.schema.json",
       "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
@@ -388,17 +370,6 @@
       "file": "schemas/circle-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ak.self.circle.*); see zh/models/circle.md."
-    },
-    {
-      "schema_id": "ak.schema.collision_variant_record.v1",
-      "file": "schemas/collision-variant-record.schema.json",
-      "status": "active",
-      "description": "Stored canonical Event variant bytes referenced by an ak.fork.resolution collision locator.",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "ak.fork.resolution payload collision locator kind=collision_variant_record, resolved through the registered governance-dependency bundle surface",
-        "normative_ref": "zh/authz/event-auth-state-resolution.md"
-      }
     },
     {
       "schema_id": "ak.schema.common_ids.v1",
@@ -453,33 +424,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.control_proposal_decision.v1",
-      "file": "schemas/control-proposal-decision.schema.json",
-      "status": "active",
-      "description": "Closed request/response DTO bundle for single-authority Control Proposal Acks and signed deferrals (ak.self.control_proposal_decision.* operations). Deadlines provide bounded authority decisions, never acceptance or Seal finality."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
-      "file": "schemas/agent-signer-evidence.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation",
-      "status": "active",
-      "description": "Privacy-minimal Account Authority attestation of the controller principal lifecycle gate; never carries service-local account identity or a raw account cell."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
-      "status": "active",
-      "description": "Closed issuance outcome carrying one privacy-minimal controller Account Authority gate attestation."
-    },
-    {
-      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request.v1",
-      "file": "schemas/agent-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/controller_account_gate_attestation_issue_request",
-      "status": "active",
-      "description": "Authenticated S2S request from an Agent PCR authority for the controller Account Authority lifecycle gate needed to assemble signer evidence."
-    },
-    {
       "schema_id": "ak.schema.current_principal_outcome.v1",
       "file": "schemas/identity-resolution.schema.json",
       "fragment": "#/$defs/current_principal_outcome",
@@ -501,6 +445,12 @@
         "selector": "opaque cursor payload selected by purpose",
         "normative_ref": "zh/sync/api-conventions.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.detached_object_signature.v1",
+      "file": "schemas/detached-object-signature.schema.json",
+      "status": "active",
+      "description": "Closed non-Event signature carrier for authority and delivery objects."
     },
     {
       "schema_id": "ak.schema.device_message.v1",
@@ -665,20 +615,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.genesis_notary_outcome.v1",
-      "file": "schemas/genesis-notary-binding.schema.json",
-      "fragment": "#/$defs/genesis_notary_outcome",
-      "status": "active",
-      "description": "Own-Station verified notary configuration copied verbatim into the genesis object; observation is not a validity window or authorization lease."
-    },
-    {
-      "schema_id": "ak.schema.genesis_notary_request.v1",
-      "file": "schemas/genesis-notary-binding.schema.json",
-      "fragment": "#/$defs/genesis_notary_request_body",
-      "status": "active",
-      "description": "Authenticated own-account request for the notary configuration of a Realm genesis the caller will sign."
-    },
-    {
       "schema_id": "ak.schema.grant_constraint.v1",
       "file": "schemas/grant-constraint.schema.json"
     },
@@ -705,12 +641,6 @@
       "file": "schemas/high-risk-authority-proof.schema.json",
       "status": "active",
       "description": "Shared high-risk authority proof family (recovery_unlock / device_quorum / trusted_recovery_service) over an operation's canonical transcript, each branch reusing the common detached-JWS leaf. First consumer: active-series key backup tail deletion (key-management.md §7.8)."
-    },
-    {
-      "schema_id": "ak.schema.history_key.v1",
-      "file": "schemas/history-key.schema.json",
-      "status": "active",
-      "description": "Closed private history-key request, response stream, source relay, response record, organization-recovery archive, and HPKE plaintext DTO family"
     },
     {
       "schema_id": "ak.schema.holder_quarantine.v1",
@@ -932,16 +862,16 @@
       "description": "Closed request/response DTO bundle for MIMI provider interop operations."
     },
     {
-      "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
-      "file": "schemas/mls-governance-proof-bundle.schema.json",
+      "schema_id": "ak.schema.mls_commit_submission.v1",
+      "file": "schemas/mls-commit-submission.schema.json",
       "status": "active",
-      "description": "Closed own-Station MLS binding, accepted-artifact and exact current leaf-removal results, with separate peer governance proof carriers."
+      "description": "Atomic MLS Commit and Welcome submission."
     },
     {
-      "schema_id": "ak.schema.mls_welcome_refs.v1",
-      "file": "schemas/mls-welcome-refs.schema.json",
+      "schema_id": "ak.schema.mls_welcome_delivery.v1",
+      "file": "schemas/mls-welcome-delivery.schema.json",
       "status": "active",
-      "description": "Authenticated exact-recipient Welcome reference discovery with bounded frozen-window continuation."
+      "description": "Producer-signed recipient Welcome delivery."
     },
     {
       "schema_id": "ak.schema.moderation_evidence.v1",
@@ -995,29 +925,9 @@
       }
     },
     {
-      "schema_id": "ak.schema.offline_publication.v1",
-      "file": "schemas/offline-publication.schema.json",
-      "status": "active",
-      "description": "AuthorizationLease and IngressReceipt proof objects."
-    },
-    {
       "schema_id": "ak.schema.patch.v1",
       "file": "schemas/patch.schema.json",
       "description": "Registered schema for the canonical Arkret field-patch wire format."
-    },
-    {
-      "schema_id": "ak.schema.peer_current_signer_evidence_query_outcome.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_outcome",
-      "status": "active",
-      "description": "Peer portable current signer evidence outcome; independent of the unified self signing-key result."
-    },
-    {
-      "schema_id": "ak.schema.peer_current_signer_evidence_query_request.v1",
-      "file": "schemas/current-signer-evidence-operations.schema.json",
-      "fragment": "#/$defs/query_request",
-      "status": "active",
-      "description": "Peer portable current signer evidence request; independent of the unified self signing-key result."
     },
     {
       "schema_id": "ak.schema.personal_productivity.v1",
@@ -1152,6 +1062,24 @@
       "status": "active"
     },
     {
+      "schema_id": "ak.schema.realm_authority_bundle.v1",
+      "file": "schemas/realm-authority-bundle.schema.json",
+      "status": "active",
+      "description": "Genesis-to-current authority discovery proof bundle."
+    },
+    {
+      "schema_id": "ak.schema.realm_authority_handoff.v1",
+      "file": "schemas/realm-authority-handoff.schema.json",
+      "status": "active",
+      "description": "Dual-signed planned authority generation transfer."
+    },
+    {
+      "schema_id": "ak.schema.realm_commit.v1",
+      "file": "schemas/realm-commit.schema.json",
+      "status": "active",
+      "description": "Authority-signed finality record for one Realm, Circle or Sidecar stream."
+    },
+    {
       "schema_id": "ak.schema.realm_genesis.v1",
       "file": "schemas/realm-genesis.schema.json",
       "status": "active"
@@ -1274,17 +1202,6 @@
       "file": "schemas/realm-state-snapshot.schema.json"
     },
     {
-      "schema_id": "ak.schema.realm_state_snapshot_chunk.v1",
-      "file": "schemas/realm-state-snapshot-chunk.schema.json",
-      "status": "active",
-      "description": "Complete registered Realm-scope Cell states and original replay evidence behind manifest chunks[].chunk_ref. Snapshot leaves use JCS({cell,state_model,state}) and are distinct from Seal security-only state_root leaves.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "snapshot manifest chunks[].chunk_ref content-addressed payload",
-        "normative_ref": "zh/conformance/realm-state-snapshot-schema.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
       "file": "schemas/recovery-authority.schema.json",
       "fragment": "#/$defs/recovery_completion_attestation",
@@ -1304,17 +1221,17 @@
       "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
     },
     {
+      "schema_id": "ak.schema.recovery_session.v1",
+      "file": "schemas/recovery-session.schema.json",
+      "status": "active",
+      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
+    },
+    {
       "schema_id": "ak.schema.recovery_terminal_commit.v1",
       "file": "schemas/security-transaction.schema.json",
       "fragment": "#/$defs/recovery_terminal_commit",
       "status": "active",
       "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation Seal together with its recovery receipt. It is the sole wire carrier that brings that Seal into the single atomic commit_recovery_unit commit."
-    },
-    {
-      "schema_id": "ak.schema.recovery_session.v1",
-      "file": "schemas/recovery-session.schema.json",
-      "status": "active",
-      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and did_root plus generic recovery proof transcripts. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
     },
     {
       "schema_id": "ak.schema.registration_did_evidence.v1",
@@ -1363,18 +1280,6 @@
         "selector": "published SDK conformance claim artifact",
         "normative_ref": "zh/conformance/conformance-profiles.md"
       }
-    },
-    {
-      "schema_id": "ak.schema.seal.v1",
-      "file": "schemas/seal.schema.json",
-      "status": "active",
-      "description": "Seal control-plane finality commitment schema"
-    },
-    {
-      "schema_id": "ak.schema.seal_conclusion.v1",
-      "file": "schemas/seal-conclusion.schema.json",
-      "status": "active",
-      "description": "Scope-authorized single-authority governance conclusions and frozen configuration handoffs for governance-result receivers."
     },
     {
       "schema_id": "ak.schema.search_service.v1",
@@ -1518,6 +1423,12 @@
         "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
         "normative_ref": "zh/sync/transport-bindings.md#7"
       }
+    },
+    {
+      "schema_id": "ak.schema.typed_current_result.v1",
+      "file": "schemas/typed-current-result.schema.json",
+      "status": "active",
+      "description": "Closed typed current-result selector and value union."
     },
     {
       "schema_id": "ak.schema.view.v1",

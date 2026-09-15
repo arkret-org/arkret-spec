@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/mls-commit-submission.schema.json",
+  "title": "Arkret MLS Commit Submission",
+  "description": "Atomic authority submission containing one producer-signed MLS Commit Event and every Welcome required by its Add proposals.",
+  "type": "object",
+  "required": [
+    "commit_event",
+    "welcomes",
+    "idempotency_key"
+  ],
+  "properties": {
+    "commit_event": {
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "ak.mls.commit"
+            }
+          }
+        }
+      ]
+    },
+    "welcomes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./mls-welcome-delivery.schema.json"
+      }
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  },
+  "additionalProperties": false
+}

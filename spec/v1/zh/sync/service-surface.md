@@ -216,7 +216,6 @@ GET /_arkret/describe
     "ak.feature.realm_state_snapshot.v1",
     "ak.feature.sync_stream.v1",
     "ak.feature.blob.resumable_upload.tus.v1",
-    "ak.feature.history_key_recovery.v1",
     "ak.feature.mls_exporter_aead.v1"
   ],
   "invite_addressing": {
@@ -317,7 +316,7 @@ GET /_arkret/describe
 
 能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 先从 `supported_operation_bundles` 展开精确 operation/binding pair，再按 `transport_bindings` 的数组顺序选择可用 endpoint，并检查对应 `supported_features` / `limits`，不得探测猜测 endpoint。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `ak.operation_bundle.station.tus_upload.v1`、`ak.feature.blob.resumable_upload.tus.v1` 与一条 `kind="tus"` 的 transport binding；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
-本规范登记的标准 `supported_features` 还包括：`ak.feature.history_key_recovery.v1`（唯一 private exporter-history
+本规范登记的标准 `supported_features` 还包括：已退役的 history-key extension（唯一 private exporter-history
 request/response-stream/S2S relay/RHRK archive 合同）、`ak.feature.mls_exporter_aead.v1`（接受并同步
 `content_scheme=mls_exporter_aead_v1` Realm/Circle；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)
 §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`。声明 `history_key_recovery` 的服务 MUST 同时暴露
@@ -677,7 +676,7 @@ Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态�
 
 普通 `causal_register` 的所有合资格写入身份与固定 depth MUST 作为回放证据保留；业务 current MUST 按 `(depth,EventId)` 返回唯一 `status=value` 及 source，客户端不得重新按到达顺序、HLC 或显示字符串选值。
 
-领域诊断的 closed shape 仍见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；它不是普通寄存器状态、命令 outcome 或安全恢复载体。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
+领域诊断的 closed shape 仍见 [`bottom.schema.json`](../sync/authority-commit-log.md)；它不是普通寄存器状态、命令 outcome 或安全恢复载体。安全 Cell 只有唯一已确认 revision；缺依赖保持 unavailable，已证明的安全确认分叉停止争议后继的授权消费，不能通过通用 recovery 生成另一条合法 lineage。
 
 `event_state="fork_quarantine"` 表示具有可验证 collision、over-fork 或关闭排除证据的 Event 被隔离，按 [Actor 分叉规则](../authz/event-auth-state-resolution.md) §15 处理；普通合法 sibling 的排序落选不得使用该状态。
 

@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 71,
+    "total_fields": 62,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 32,
-      "closed_literal": 14,
-      "validated_open_reason_code": 18
+      "closed_enum": 27,
+      "closed_literal": 11,
+      "validated_open_reason_code": 17
     },
     "unclassified": 0
   },
@@ -236,14 +236,6 @@
       "basis": "JSON Schema enum"
     },
     {
-      "schema_file": "current-signer-evidence-operations.schema.json",
-      "shape": "compact_current_agent_signer_evidence",
-      "field": "schema",
-      "pointer": "#/$defs/compact_current_agent_signer_evidence/properties/schema",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
-    },
-    {
       "schema_file": "directory-operations.schema.json",
       "shape": "psi_padded_problem",
       "field": "status",
@@ -405,14 +397,6 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "AgentMembershipCascadeOutcome",
-      "field": "status",
-      "pointer": "#/$defs/AgentMembershipCascadeOutcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
       "shape": "AuthSessionLogoutRequestBody",
       "field": "reason_code",
       "pointer": "#/$defs/AuthSessionLogoutRequestBody/properties/reason_code",
@@ -426,14 +410,6 @@
       "pointer": "#/$defs/AuthzCheckOutcome/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "ControlGovernanceHealth",
-      "field": "status",
-      "pointer": "#/$defs/ControlGovernanceHealth/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
@@ -469,59 +445,11 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DirectConversationFoundingAcceptanceOutcome",
-      "field": "status",
-      "pointer": "#/$defs/DirectConversationFoundingAcceptanceOutcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
       "shape": "DirectoryWithdrawRequestBody",
       "field": "reason",
       "pointer": "#/$defs/DirectoryWithdrawRequestBody/properties/reason",
       "classification": "bounded_free_text",
       "basis": "human-readable text with schema boundary"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "EventDeliveryTargetStatus",
-      "field": "status",
-      "pointer": "#/$defs/EventDeliveryTargetStatus/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "EventsDependencyMissingProblem",
-      "field": "reason_code",
-      "pointer": "#/$defs/EventsDependencyMissingProblem/properties/reason_code",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "EventsSubmitOutcome",
-      "field": "status",
-      "pointer": "#/$defs/EventsSubmitOutcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "EventsSubmitRejectedRow",
-      "field": "reason_code",
-      "pointer": "#/$defs/EventsSubmitRejectedRow/properties/reason_code",
-      "classification": "validated_open_reason_code",
-      "basis": "^[a-z][a-z0-9_]{0,63}$"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "InviteLiveTargetOccupiedProblem",
-      "field": "reason_code",
-      "pointer": "#/$defs/InviteLiveTargetOccupiedProblem/properties/reason_code",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",

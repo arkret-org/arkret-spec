@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/detached-object-signature.schema.json",
+  "title": "Arkret Detached Object Signature",
+  "description": "Closed detached signature over the canonical unsigned body of an authority or recipient-delivery object. This is not an Event producer proof.",
+  "type": "object",
+  "required": [
+    "context",
+    "signature_algorithm",
+    "verification_method",
+    "signed_digest",
+    "created_at",
+    "sig"
+  ],
+  "properties": {
+    "context": {
+      "enum": [
+        "ak.realm_commit_signature.v1",
+        "ak.realm_authority_handoff_old_signature.v1",
+        "ak.realm_authority_handoff_new_acceptance_signature.v1",
+        "ak.realm_authority_current_assertion_signature.v1",
+        "ak.realm_snapshot_signature.v1",
+        "ak.mls_welcome_delivery_signature.v1"
+      ]
+    },
+    "signature_algorithm": {
+      "const": "Ed25519"
+    },
+    "verification_method": {
+      "$ref": "./event-envelope.schema.json#/$defs/proof/properties/verification_method"
+    },
+    "signed_digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/digest"
+    },
+    "created_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "sig": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{86}$",
+      "description": "Unpadded Base64URL encoding of an Ed25519 signature."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "realm_commit_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_commit_signature.v1"
+            }
+          }
+        }
+      ]
+    },
+    "realm_authority_handoff_old_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_authority_handoff_old_signature.v1"
+            }
+          }
+        }
+      ]
+    },
+    "realm_authority_handoff_new_acceptance_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_authority_handoff_new_acceptance_signature.v1"
+            }
+          }
+        }
+      ]
+    },
+    "realm_authority_current_assertion_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_authority_current_assertion_signature.v1"
+            }
+          }
+        }
+      ]
+    },
+    "realm_snapshot_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_snapshot_signature.v1"
+            }
+          }
+        }
+      ]
+    },
+    "mls_welcome_delivery_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.mls_welcome_delivery_signature.v1"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

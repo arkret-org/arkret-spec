@@ -494,10 +494,6 @@
         },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-        },
-        "current_signer_evidence": {
-          "$ref": "./current-signer-evidence-operations.schema.json#/$defs/agent_evidence",
-          "description": "Complete Agent signer evidence root and recursive dependencies with no known-ref omissions. The consumer recomputes signer_resolution_evidence_ref with the SDK canonical helper."
         }
       },
       "dependentRequired": {
@@ -839,10 +835,6 @@
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
           "description": "Content address of current_signer_evidence.authenticated_signer_evidence. The runtime MUST recompute it from the complete canonical root and reject a mismatch."
-        },
-        "current_signer_evidence": {
-          "$ref": "./current-signer-evidence-operations.schema.json#/$defs/agent_evidence",
-          "description": "Complete activation-time Agent signer evidence root and recursive dependencies, with no known-ref omissions. It is delivered through this existing pairing status operation so ordinary Event authoring needs no new endpoint or online origin lookup."
         }
       },
       "additionalProperties": false,

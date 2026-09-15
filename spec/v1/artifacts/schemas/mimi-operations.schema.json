@@ -869,15 +869,6 @@
         "report_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
           "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Realm, Strand/scope, target, reason, description, evidence, franking and MIMI provenance are read only from this signed Event; its actor MUST equal reporter_authority.actor_id and its payload source_provider_id MUST equal the authenticated transport Provider-ID."
-        },
-        "cbs_proof_bundles": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./cbs-proof-bundle.schema.json"
-          },
-          "description": "Optional receiver-relative CBS dependency bundles. They are transport evidence covered by reporter_authority.proof but are not Event members."
         }
       },
       "additionalProperties": false

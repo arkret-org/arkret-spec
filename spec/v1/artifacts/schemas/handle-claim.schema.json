@@ -2,27 +2,47 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/handle-claim.schema.json",
   "$defs": {
-    "timestamp": { "$ref": "./time.schema.json#/$defs/timestamp" },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
     "nullable_timestamp": {
       "oneOf": [
-        { "$ref": "#/$defs/timestamp" },
-        { "type": "null" }
+        {
+          "$ref": "#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "claim_variant": {
       "oneOf": [
         {
           "type": "object",
-          "required": ["kind"],
-          "properties": { "kind": { "const": "handle_binding" } },
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "handle_binding"
+            }
+          },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["kind", "organization_id"],
+          "required": [
+            "kind",
+            "organization_id"
+          ],
           "properties": {
-            "kind": { "const": "organization_handle" },
-            "organization_id": { "type": "string", "minLength": 1 }
+            "kind": {
+              "const": "organization_handle"
+            },
+            "organization_id": {
+              "type": "string",
+              "minLength": 1
+            }
           },
           "additionalProperties": false
         }
@@ -31,35 +51,73 @@
     "handle_claim_core": {
       "type": "object",
       "required": [
-        "schema", "handle", "handle_aliases", "subject_account_id", "issuer_id",
-        "claim", "visibility", "audience", "issued_at", "expires_at", "source_refs", "proofs"
+        "schema",
+        "handle",
+        "handle_aliases",
+        "subject_account_id",
+        "issuer_id",
+        "claim",
+        "visibility",
+        "audience",
+        "issued_at",
+        "expires_at",
+        "source_refs",
+        "proofs"
       ],
       "properties": {
-        "schema": { "const": "ak.schema.handle_claim_core.v1" },
-        "handle": { "$ref": "string-profiles.schema.json#/$defs/canonical_handle" },
+        "schema": {
+          "const": "ak.schema.handle_claim_core.v1"
+        },
+        "handle": {
+          "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
+        },
         "handle_aliases": {
           "type": "array",
-          "items": { "$ref": "string-profiles.schema.json#/$defs/acct_uri" },
+          "items": {
+            "$ref": "string-profiles.schema.json#/$defs/acct_uri"
+          },
           "uniqueItems": true
         },
-        "subject_account_id": { "$ref": "./common-ids.schema.json#/$defs/account_id" },
-        "issuer_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "claim": { "$ref": "#/$defs/claim_variant" },
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "claim": {
+          "$ref": "#/$defs/claim_variant"
+        },
         "visibility": {
           "type": "string",
-          "enum": ["public", "restricted", "private"]
+          "enum": [
+            "public",
+            "restricted",
+            "private"
+          ]
         },
         "audience": {
           "oneOf": [
-            { "type": "string", "minLength": 1 },
-            { "type": "null" }
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
           ]
         },
-        "issued_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/nullable_timestamp" },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
         "source_refs": {
           "type": "array",
-          "items": { "type": "string", "pattern": "^ak:event:[A-Za-z0-9_-]{44}$" },
+          "items": {
+            "type": "string",
+            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          },
           "uniqueItems": true
         },
         "proofs": {
@@ -67,24 +125,42 @@
           "prefixItems": [
             {
               "allOf": [
-                { "$ref": "./event-envelope.schema.json#/$defs/proof" },
                 {
-                  "required": ["domain", "proof_purpose"],
+                  "$ref": "./event-envelope.schema.json#/$defs/proof"
+                },
+                {
+                  "required": [
+                    "domain",
+                    "proof_purpose"
+                  ],
                   "properties": {
-                    "domain": { "const": "ak.handle_claim_proof.v1" },
-                    "proof_purpose": { "const": "issuer_attestation" }
+                    "domain": {
+                      "const": "ak.handle_claim_proof.v1"
+                    },
+                    "proof_purpose": {
+                      "const": "issuer_attestation"
+                    }
                   }
                 }
               ]
             },
             {
               "allOf": [
-                { "$ref": "./event-envelope.schema.json#/$defs/proof" },
                 {
-                  "required": ["domain", "proof_purpose"],
+                  "$ref": "./event-envelope.schema.json#/$defs/proof"
+                },
+                {
+                  "required": [
+                    "domain",
+                    "proof_purpose"
+                  ],
                   "properties": {
-                    "domain": { "const": "ak.handle_claim_proof.v1" },
-                    "proof_purpose": { "const": "holder_acceptance" }
+                    "domain": {
+                      "const": "ak.handle_claim_proof.v1"
+                    },
+                    "proof_purpose": {
+                      "const": "holder_acceptance"
+                    }
                   }
                 }
               ]
@@ -98,11 +174,30 @@
       "allOf": [
         {
           "if": {
-            "properties": { "visibility": { "const": "public" } },
-            "required": ["visibility"]
+            "properties": {
+              "visibility": {
+                "const": "public"
+              }
+            },
+            "required": [
+              "visibility"
+            ]
           },
-          "then": { "properties": { "audience": { "type": "null" } } },
-          "else": { "properties": { "audience": { "type": "string", "minLength": 1 } } }
+          "then": {
+            "properties": {
+              "audience": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "audience": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
         }
       ]
     },
@@ -110,19 +205,33 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["role", "issuer_id"],
+          "required": [
+            "role",
+            "issuer_id"
+          ],
           "properties": {
-            "role": { "const": "issuer" },
-            "issuer_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" }
+            "role": {
+              "const": "issuer"
+            },
+            "issuer_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["role", "subject_account_id"],
+          "required": [
+            "role",
+            "subject_account_id"
+          ],
           "properties": {
-            "role": { "const": "holder" },
-            "subject_account_id": { "$ref": "./common-ids.schema.json#/$defs/account_id" }
+            "role": {
+              "const": "holder"
+            },
+            "subject_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
           },
           "additionalProperties": false
         }
@@ -130,20 +239,43 @@
     },
     "handle_claim_revocation": {
       "type": "object",
-      "required": ["schema", "claim_digest", "revoked_at", "revoker", "proof"],
+      "required": [
+        "schema",
+        "claim_digest",
+        "revoked_at",
+        "revoker",
+        "proof"
+      ],
       "properties": {
-        "schema": { "const": "ak.schema.handle_claim_revocation.v1" },
-        "claim_digest": { "$ref": "./event-envelope.schema.json#/$defs/digest" },
-        "revoked_at": { "$ref": "#/$defs/timestamp" },
-        "revoker": { "$ref": "#/$defs/revoker" },
+        "schema": {
+          "const": "ak.schema.handle_claim_revocation.v1"
+        },
+        "claim_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "revoker": {
+          "$ref": "#/$defs/revoker"
+        },
         "proof": {
           "allOf": [
-            { "$ref": "./event-envelope.schema.json#/$defs/proof" },
             {
-              "required": ["domain", "proof_purpose"],
+              "$ref": "./event-envelope.schema.json#/$defs/proof"
+            },
+            {
+              "required": [
+                "domain",
+                "proof_purpose"
+              ],
               "properties": {
-                "domain": { "const": "ak.handle_claim_revocation.v1" },
-                "proof_purpose": { "const": "revocation_authorization" }
+                "domain": {
+                  "const": "ak.handle_claim_revocation.v1"
+                },
+                "proof_purpose": {
+                  "const": "revocation_authorization"
+                }
               }
             }
           ]
@@ -154,31 +286,70 @@
     "handle_claim_status_view": {
       "type": "object",
       "required": [
-        "schema", "claim", "status", "as_of", "verifier_id",
-        "verified_at", "revocation", "fresh_until", "status_proof"
+        "schema",
+        "claim",
+        "status",
+        "as_of",
+        "verifier_id",
+        "verified_at",
+        "revocation",
+        "fresh_until",
+        "status_proof"
       ],
       "properties": {
-        "schema": { "const": "ak.schema.handle_claim.v1" },
-        "claim": { "$ref": "#/$defs/handle_claim_core" },
-        "status": { "type": "string", "enum": ["pending", "verified", "revoked"] },
-        "as_of": { "$ref": "#/$defs/timestamp" },
-        "verifier_id": { "$ref": "./common-ids.schema.json#/$defs/did_core_id" },
-        "verified_at": { "$ref": "#/$defs/nullable_timestamp" },
-        "revocation": {
-          "oneOf": [
-            { "$ref": "#/$defs/handle_claim_revocation" },
-            { "type": "null" }
+        "schema": {
+          "const": "ak.schema.handle_claim.v1"
+        },
+        "claim": {
+          "$ref": "#/$defs/handle_claim_core"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "verified",
+            "revoked"
           ]
         },
-        "fresh_until": { "$ref": "#/$defs/timestamp" },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "verifier_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verified_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "revocation": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/handle_claim_revocation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fresh_until": {
+          "$ref": "#/$defs/timestamp"
+        },
         "status_proof": {
           "allOf": [
-            { "$ref": "./event-envelope.schema.json#/$defs/proof" },
             {
-              "required": ["domain", "proof_purpose"],
+              "$ref": "./event-envelope.schema.json#/$defs/proof"
+            },
+            {
+              "required": [
+                "domain",
+                "proof_purpose"
+              ],
               "properties": {
-                "domain": { "const": "ak.handle_claim_status.v1" },
-                "proof_purpose": { "const": "status_attestation" }
+                "domain": {
+                  "const": "ak.handle_claim_status.v1"
+                },
+                "proof_purpose": {
+                  "const": "status_attestation"
+                }
               }
             }
           ]
@@ -187,30 +358,71 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "if": { "properties": { "status": { "const": "verified" } }, "required": ["status"] },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
           "then": {
             "properties": {
-              "verified_at": { "$ref": "#/$defs/timestamp" },
-              "revocation": { "type": "null" }
+              "verified_at": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "revocation": {
+                "type": "null"
+              }
             }
           }
         },
         {
-          "if": { "properties": { "status": { "const": "revoked" } }, "required": ["status"] },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "revoked"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
           "then": {
             "properties": {
-              "revocation": { "$ref": "#/$defs/handle_claim_revocation" }
+              "revocation": {
+                "$ref": "#/$defs/handle_claim_revocation"
+              }
             }
           },
           "else": {
             "properties": {
-              "revocation": { "type": "null" }
+              "revocation": {
+                "type": "null"
+              }
             }
           }
         },
         {
-          "if": { "properties": { "status": { "const": "pending" } }, "required": ["status"] },
-          "then": { "properties": { "verified_at": { "type": "null" } } }
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "verified_at": {
+                "type": "null"
+              }
+            }
+          }
         }
       ]
     }

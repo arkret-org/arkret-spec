@@ -319,8 +319,8 @@
           "minimum": 1
         },
         "acceptance_basis_ref": {
-          "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
-          "description": "Immutable accepted CBS basis whose control state commits this exact recovery policy version."
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "RealmCommit that accepted this exact recovery policy version."
         },
         "recovery_policy_ref": {
           "$ref": "#/$defs/recovery_policy_ref",
@@ -447,8 +447,8 @@
           "minimum": 1
         },
         "acceptance_basis_ref": {
-          "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
-          "description": "Immutable accepted CBS basis whose control state commits this exact recovery policy version."
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "RealmCommit that accepted this exact recovery policy version."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"

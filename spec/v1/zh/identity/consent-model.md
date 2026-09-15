@@ -65,7 +65,7 @@ Consent 表达"我允许某个 peer 发起某类不以 Contact 为授权依据�
 Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal control Realm）内一个 sequenced_state 安全集合 Cell：
 
 ```text
-cell_id  = ak:cell:ak.component.consent.grant.v1:<consent_id>
+cell_id  = state-slot:ak.component.consent.grant.v1:<consent_id>
 state_model = sequenced_state
 value_shape = set
 ```
@@ -164,7 +164,7 @@ ControlMove(ak.consent.revoke) {
     reason: "Bob harassment incident #4711"
   }
   preconditions = [
-    (ak:cell:ak.component.consent.grant.v1:<consent_id>,
+    (state-slot:ak.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
       dots: ["ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"]})
   ]
@@ -184,9 +184,6 @@ Payload-only schema 示例：
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_revoke_payload
 {
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
-  "observed_dot_ids": [
-    "ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV:0"
-  ],
   "revoked_at": "2026-06-15T10:00:00.000Z",
   "reason": "Bob harassment incident #4711"
 }

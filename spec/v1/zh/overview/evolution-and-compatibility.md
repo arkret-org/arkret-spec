@@ -44,7 +44,7 @@ Reducer profile ID 使用 `ak.reducer.*.vN` 命名空间。当前注册的基线
 每个 Realm 恰有一个 reducer-profile singleton control cell：
 
 ```text
-ak:cell:ak.component.realm.reducer_profile.v1:null
+state-slot:ak.component.realm.reducer_profile.v1:null
 ```
 
 其规则如下：

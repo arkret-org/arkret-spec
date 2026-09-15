@@ -1,168 +1,47 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-join-candidate.schema.json",
-  "title": "Arkret Realm Join Candidate",
-  "description": "Time-bounded transport hint used by the invitee's Station to forward Realm join, invite-accept, knock, or restricted-join material to an existing joined member's Station. Clients submit only to their own Station. This object is neither membership identity nor authorization and cannot select or change an AccountId.",
+  "title": "Arkret Realm Authority Locator Hint",
+  "description": "An untrusted route hint for obtaining a nonce-bound RealmAuthorityBundle. It is never proof that the named service is current authority.",
   "type": "object",
   "required": [
     "realm_id",
-    "service_id",
-    "service_resolution",
     "service_kind",
-    "role",
-    "operations",
-    "join_methods",
-    "encryption_profile",
-    "digest_algorithm",
+    "service_id",
     "source",
-    "seal_basis",
-    "as_of",
+    "observed_at",
     "expires_at"
   ],
   "properties": {
     "realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id",
-      "description": "Realm this candidate is bound to. Verifiers MUST reject a candidate used for any other Realm."
-    },
-    "service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Stable service did_core_id that can receive or relay join-side submissions for this Realm."
-    },
-    "service_resolution": {
-      "$ref": "./identity-resolution.schema.json#/$defs/service_resolution_carrier",
-      "description": "First-hop DID method evidence for service_id, inline or through resolution_url. Callers MUST validate the method-native history and current state, project(did)=service_id, freshness, canonical base_url and route-binding projection before transport, then use GET /_arkret/describe only as second-hop capability/metadata confirmation."
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "service_kind": {
-      "type": "string",
       "enum": [
         "station"
-      ],
-      "description": "Join-side submission target. v1 permits only the invitee's or an existing joined member's Station."
+      ]
     },
-    "role": {
-      "type": "string",
-      "enum": [
-        "joined_member_station"
-      ],
-      "description": "The only v1 forwarding role: the Station component of a current joined account member. This is a bounded route hint, not an authorization grant."
+    "service_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },
     "endpoint_url": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https://",
-      "description": "Optional non-authoritative endpoint hint. Callers MUST NOT route from this field or a DID Document endpoint; they MUST obtain and validate service_resolution, use its canonical base_url for first transport, and confirm capabilities through GET /_arkret/describe."
-    },
-    "operations": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^ak\\.[a-z0-9][a-z0-9_.-]*$"
-      },
-      "contains": {
-        "const": "ak.peer.events.command.submit.v1"
-      },
-      "uniqueItems": true,
-      "minItems": 1,
-      "description": "Endpoint-callable operation ids available at this candidate. Join-side forwarding from the invitee Station requires ak.peer.events.command.submit.v1; clients never call the candidate directly."
-    },
-    "join_methods": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "invite_accept",
-          "member_join",
-          "knock",
-          "application",
-          "restricted_join"
-        ]
-      },
-      "uniqueItems": true,
-      "minItems": 1,
-      "description": "Join-side strands this candidate claims to support for this requester and Realm."
-    },
-    "encryption_profile": {
-      "$ref": "./realm.schema.json#/properties/encryption_profile",
-      "description": "Effective encryption_profile of this Realm in the issuer's accepted projection at as_of. Station candidates MUST include it so a pre-join client can apply the E2EE recovery-material gate (identity/key-management.md section 7.11) without reading membership-gated Realm history. The issuer MUST NOT substitute a default when the accepted projection is missing or unverifiable; it MUST omit the candidate instead."
-    },
-    "digest_algorithm": {
-      "$ref": "./realm.schema.json#/properties/digest_algorithm",
-      "description": "Effective live Realm digest suite obtained by the issuer from the verified confirmed safety projection of the complete seal_basis at as_of. It is covered by the candidate payload digest and proof. Missing, competing, or unverifiable confirmed values require omission of the whole candidate; consumers MUST NOT infer the suite from a Seal id or digest prefix."
-    },
-    "priority": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 1000,
-      "description": "Lower values are preferred. Ties are broken deterministically by service_id."
+      "pattern": "^https://"
     },
     "source": {
-      "type": "string",
       "enum": [
-        "invite_hint",
-        "joined_member_account"
-      ],
-      "description": "Bounded route provenance. Only a signed invite or a current joined AccountId plus verified membership may produce a candidate; neither source grants admission authority."
+        "invite",
+        "directory",
+        "cache"
+      ]
     },
-    "source_refs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/event_id"
-      },
-      "uniqueItems": true,
-      "description": "Signed invite or current joined-member Events that justify this candidate."
-    },
-    "frontier_ref": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "Optional digest of the candidate service's advertised Realm frontier at as_of; used only to detect stale hints."
-    },
-    "seal_basis": {
-      "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-      "description": "Exact confirmed safety basis. Every referenced Realm contributes one confirmed head; competing heads from the same Realm are not a valid basis. A cached basis is routing/evidence context, never an independent membership or key-release authorization. Safety commands still validate the exact actual predecessor and registered current gate."
-    },
-    "as_of": {
-      "$ref": "#/$defs/timestamp",
-      "description": "Time when the issuer observed or refreshed this candidate."
+    "observed_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "expires_at": {
-      "$ref": "#/$defs/timestamp",
-      "description": "Time after which clients MUST NOT use this candidate without re-resolving the Realm."
-    },
-    "proofs": {
-      "type": "array",
-      "items": {
-        "$ref": "./event-envelope.schema.json#/$defs/proof"
-      },
-      "minItems": 1,
-      "description": "Optional proof set whose payload_digest binds the complete candidate, including seal_basis, digest_algorithm, encryption_profile, realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside the signed invite or current joined-member ActorId evidence from which its routing service was projected."
-    }
-  },
-  "additionalProperties": false,
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "source": {
-            "const": "invite_hint"
-          }
-        },
-        "required": [
-          "source"
-        ]
-      },
-      "then": {
-        "required": [
-          "proofs"
-        ]
-      }
-    }
-  ],
-  "$defs": {
-    "event_id": {
-      "$ref": "./account-operations.schema.json#/$defs/event_id"
-    },
-    "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     }
-  }
+  },
+  "additionalProperties": false
 }

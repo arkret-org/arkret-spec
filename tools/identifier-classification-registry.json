@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "responsibility_identity_material": 665,
-    "typed_object_id": 1174,
-    "registry_catalog_symbol": 17
+    "typed_object_id": 874,
+    "responsibility_identity_material": 549,
+    "registry_catalog_symbol": 14
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -40,14 +40,6 @@
       "example_path": "event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
-    },
-    {
-      "name": "admission_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 4,
-      "example_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/admission_id",
-      "reason": "Opaque correlation minted for one admission saga; the exact accepted join Event, not this coordinate, carries membership authority."
     },
     {
       "name": "addressed_agent_ids",
@@ -69,17 +61,9 @@
       "name": "agent_key_authorize_event_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "typed_object_id",
-      "occurrences": 2,
+      "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_ref/properties/agent_key_authorize_event_id",
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
-    },
-    {
-      "name": "agent_transition_event_ids",
-      "terminal_signature": "[]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeOutcome/allOf/0/then/properties/agent_transition_event_ids",
-      "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
     },
     {
       "name": "allowed_session_ids",
@@ -113,22 +97,6 @@
       "occurrences": 7,
       "example_path": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_data/properties/approval_request_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "authorization_rule_id",
-      "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_]{0,63}$\"]]",
-      "category": "document_local_symbol",
-      "occurrences": 2,
-      "example_path": "offline-publication.schema.json#/$defs/authorization_lease/properties/authorization_rule_id",
-      "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "backup_origin_id",
-      "terminal_signature": "[[\"pattern\", \"^backup:(?:ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|sha256:[0-9a-f]{64})$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "history-key.schema.json#/$defs/history_candidate_origin_attribution/oneOf/2/properties/origin_ref/properties/backup_origin_id",
-      "reason": "Stable backup-origin quota-domain correlation value; the backup: envelope is not itself an Arkret typed object identity."
     },
     {
       "name": "challenge_id",
@@ -166,7 +134,7 @@
       "name": "claim_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 8,
+      "occurrences": 4,
       "example_path": "directory-operations.schema.json#/$defs/directory_presented_claim/properties/claim_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
@@ -272,7 +240,7 @@
       "name": "device_authorize_event_id",
       "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
       "category": "typed_object_id",
-      "occurrences": 2,
+      "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/mls_welcome_payload/properties/claim_ref/properties/device_authorize_event_id",
       "reason": "Carries an Arkret typed object ID but the schema still declares a loose terminal type; convergence is to pin the typed pattern."
     },
@@ -401,27 +369,11 @@
     },
     {
       "name": "id",
-      "terminal_signature": "[[\"pattern\", \"^(cx|[a-z0-9][a-z0-9-]*(\\\\.[a-z0-9][a-z0-9-]*)+)\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*\\\\.v[0-9]+$\"]]",
-      "category": "registry_catalog_symbol",
-      "occurrences": 1,
-      "example_path": "event-envelope.schema.json#/$defs/critical_extension/properties/id",
-      "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
-    },
-    {
-      "name": "id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~-]+$\"]]",
       "category": "document_local_symbol",
       "occurrences": 1,
       "example_path": "content-block-poll.schema.json#/$defs/poll_answer/properties/id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "id",
-      "terminal_signature": "[[\"type\", \"\\\"string\\\"\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/EventsSubmitRejectedRow/properties/id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
     },
     {
       "name": "identity_creation_lease_id",
@@ -473,28 +425,12 @@
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },
     {
-      "name": "log_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 1,
-      "example_path": "agent-signer-evidence.schema.json#/$defs/transparency/properties/log_id",
-      "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
-    },
-    {
       "name": "mapped_operation_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "registry_catalog_symbol",
       "occurrences": 1,
       "example_path": "mimi-interop.schema.json#/$defs/content_mapping_receipt/properties/mapped_operation_id",
       "reason": "Registry catalog symbol naming a registered entry, not an instance of a protocol object."
-    },
-    {
-      "name": "membership_cell_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/MembershipCompensationDelegationCore/properties/membership_cell_id",
-      "reason": "Opaque destination-local cell coordinate; the current join Event identifies the authoritative membership incarnation."
     },
     {
       "name": "mimi_message_id",
@@ -505,18 +441,10 @@
       "reason": "MIMI / Matrix interop identifier retained verbatim from the external provider surface."
     },
     {
-      "name": "missing_event_ids",
-      "terminal_signature": "[]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids",
-      "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
-    },
-    {
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "external_system_identifier",
-      "occurrences": 11,
+      "occurrences": 10,
       "example_path": "agent-operations.schema.json#/$defs/agent_sidecar_mls_context/properties/mls_group_id",
       "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
@@ -524,7 +452,7 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
-      "occurrences": 5,
+      "occurrences": 4,
       "example_path": "event-payload.schema.json#/$defs/mls_commit_failed_payload/properties/mls_group_id",
       "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
@@ -532,7 +460,7 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 17,
+      "occurrences": 4,
       "example_path": "circle-operations.schema.json#/$defs/circle_view/properties/mls_group_id",
       "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
     },
@@ -759,7 +687,7 @@
       "name": "secret_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_.-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 2,
+      "occurrences": 1,
       "example_path": "key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/secret_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
@@ -814,14 +742,6 @@
       "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
     },
     {
-      "name": "target_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetStatus/properties/target_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "to_version_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
@@ -844,14 +764,6 @@
       "occurrences": 3,
       "example_path": "file-transfer.schema.json#/properties/transfer_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "transition_key_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "agent-signer-evidence.schema.json#/$defs/key_transition_witness/properties/transition_key_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
       "name": "user_facing_response_event_ids",
@@ -908,14 +820,6 @@
       "occurrences": 1,
       "example_path": "view.schema.json#/$defs/dashboard_config/properties/widgets/items/properties/widget_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
-    },
-    {
-      "name": "cell_id",
-      "terminal_signature": "[[\"const\", \"ak:cell:ak.component.identity.resolution.v1:null\"]]",
-      "category": "typed_object_id",
-      "occurrences": 2,
-      "example_path": "event-envelope.schema.json#/$defs/identity_resolution_head_precondition/properties/cell_id",
-      "reason": "Closed constant in the registered ak:cell typed-object identifier namespace."
     }
   ]
 }

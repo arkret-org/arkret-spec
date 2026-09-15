@@ -108,16 +108,12 @@
     "frontier_ref": {
       "type": "object",
       "required": [
-        "frontier_digest",
+        "realm_commit_id",
         "device_generation_ref"
       ],
       "properties": {
-        "frontier_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "seal_ref": {
-          "type": "string",
-          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+        "realm_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
         "device_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",

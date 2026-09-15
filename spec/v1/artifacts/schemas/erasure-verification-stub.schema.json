@@ -316,7 +316,7 @@
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(blob|device|policy|realm_state_snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:seal:(?:sha256|blake3):[0-9a-f]{64}|ak:blob:(?:sha256|blake3):[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|(?:ak:(realm|event|message|strand|morph|relation|view):[A-Za-z0-9_-]{44}|ak:(blob|device|policy|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(?:sha256|blake3):[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     }
   }
 }

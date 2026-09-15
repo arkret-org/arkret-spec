@@ -1,0 +1,75 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.authority_commit.v1"
+  },
+  "schema": "arkret.authority-commit-fixture.v1",
+  "vector_id": "ak.vector.authority_commit.independent_streams.v1",
+  "independent_streams": [
+    {
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "previous_commit_ref": null
+        },
+        {
+          "stream_position": 1,
+          "commit_id": "ak:realm_commit:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "previous_commit_ref": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      ]
+    },
+    {
+      "stream_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "previous_commit_ref": null
+        },
+        {
+          "stream_position": 1,
+          "commit_id": "ak:realm_commit:DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+          "previous_commit_ref": "ak:realm_commit:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        }
+      ]
+    },
+    {
+      "stream_ref": {
+        "kind": "sidecar",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+          "previous_commit_ref": null
+        }
+      ]
+    }
+  ],
+  "handoff_private_manifest": {
+    "head_count": 3,
+    "public_bundle_head_count": 1,
+    "new_generation_first_commit_uses_imported_head": true
+  },
+  "join_bootstrap": {
+    "locator_is_authority": false,
+    "source": "current_governance_station",
+    "returns_snapshot_and_visible_stream_tails": true
+  },
+  "mls_atomic_submission": {
+    "commit_and_welcomes_share_one_transaction": true,
+    "missing_welcome_writes_nothing": true
+  }
+}

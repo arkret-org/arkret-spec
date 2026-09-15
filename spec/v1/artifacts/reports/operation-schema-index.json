@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.20",
+  "version": "2026-09-16.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T20:27:23+08:00",
+  "generated_at": "2026-09-16T08:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1107,6 +1107,40 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "pairing_code",
+          "target_proof"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "pairing_code",
+          "target_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "state",
+          "expires_at"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "state",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1151,38 +1185,6 @@
           "proof_required",
           "one_time_use_consumed",
           "grant"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "principal_id",
-          "agent_authority_id"
-        ],
-        "properties": [
-          "request_id",
-          "principal_id",
-          "agent_authority_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "controller_account_gate_attestation"
-        ],
-        "properties": [
-          "request_id",
-          "controller_account_gate_attestation"
         ],
         "closed": true
       }
@@ -1570,40 +1572,6 @@
       }
     },
     {
-      "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body",
-        "schema_kind": "object",
-        "required": [
-          "device_pairing_request_id",
-          "pairing_code",
-          "target_proof"
-        ],
-        "properties": [
-          "device_pairing_request_id",
-          "pairing_code",
-          "target_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
-        "schema_kind": "object",
-        "required": [
-          "device_pairing_request_id",
-          "state",
-          "expires_at"
-        ],
-        "properties": [
-          "device_pairing_request_id",
-          "state",
-          "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.gate.account.command.pair_device.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1637,36 +1605,6 @@
           "authorized_event_ref",
           "device_grant",
           "key_backup_hint"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body",
-        "schema_kind": "object",
-        "required": [
-          "pairing_code"
-        ],
-        "properties": [
-          "pairing_code"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome",
-        "schema_kind": "object",
-        "required": [
-          "device_pairing_request_id",
-          "bootstrap",
-          "target_proof"
-        ],
-        "properties": [
-          "device_pairing_request_id",
-          "bootstrap",
-          "target_proof"
         ],
         "closed": true
       }
@@ -1911,6 +1849,36 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body",
+        "schema_kind": "object",
+        "required": [
+          "pairing_code"
+        ],
+        "properties": [
+          "pairing_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "bootstrap",
+          "target_proof"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "bootstrap",
+          "target_proof"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.read.onboarding.v1",
       "success_shape_kind": "typed_response",
       "response": {
@@ -2045,8 +2013,7 @@
           "authorized_event_ref",
           "authorized_verification_method",
           "authorized_public_key_digest",
-          "signer_resolution_evidence_ref",
-          "current_signer_evidence"
+          "signer_resolution_evidence_ref"
         ],
         "closed": true
       }
@@ -2296,8 +2263,7 @@
         ],
         "properties": [
           "reporter_authority",
-          "report_event",
-          "cbs_proof_bundles"
+          "report_event"
         ],
         "closed": true
       },
@@ -2537,6 +2503,52 @@
         "required": [],
         "properties": [],
         "closed": false
+      }
+    },
+    {
+      "operation_id": "ak.open.realm_authority.read.bundle.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "nonce"
+        ],
+        "properties": [
+          "realm_id",
+          "nonce"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-authority-bundle.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "genesis_event",
+          "genesis_commit",
+          "authority_transitions",
+          "current_generation",
+          "current_service_id",
+          "current_route_record",
+          "realm_stream_head",
+          "bundle_issued_at",
+          "current_assertion"
+        ],
+        "properties": [
+          "realm_id",
+          "genesis_event",
+          "genesis_commit",
+          "authority_transitions",
+          "current_generation",
+          "current_service_id",
+          "current_route_record",
+          "realm_stream_head",
+          "bundle_issued_at",
+          "current_assertion"
+        ],
+        "closed": true
       }
     },
     {
@@ -3161,40 +3173,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.current_signer_evidence.read.resolve.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "realm_id",
-          "recipient_account_id",
-          "queries"
-        ],
-        "properties": [
-          "request_id",
-          "realm_id",
-          "recipient_account_id",
-          "queries",
-          "known_agent_state_digests",
-          "known_signer_evidence_refs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome",
-        "schema_kind": "object",
-        "required": [
-          "response"
-        ],
-        "properties": [
-          "response"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.peer.device_revocations.command.check.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3322,335 +3300,119 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
-          "service_binding_ref",
-          "events",
-          "cbs_proof_bundles",
-          "unit_kind",
-          "source_acceptance_receipt",
-          "founding_authority_evidence",
-          "cascade_mode",
-          "controller_transition",
-          "agent_transitions",
-          "cleanup_intent_digest"
+          "event",
+          "commit_event",
+          "welcomes",
+          "idempotency_key"
         ],
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationBatchRequestBody",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
             "schema_kind": "object",
             "required": [
-              "service_binding_ref",
-              "events"
+              "event"
             ],
             "properties": [
-              "service_binding_ref",
-              "events",
-              "cbs_proof_bundles"
+              "event"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingFederationSubmission",
+            "schema_ref": "schemas/mls-commit-submission.schema.json",
             "schema_kind": "object",
             "required": [
-              "unit_kind",
-              "events",
-              "source_acceptance_receipt",
-              "founding_authority_evidence"
+              "commit_event",
+              "welcomes",
+              "idempotency_key"
             ],
             "properties": [
-              "unit_kind",
-              "events",
-              "source_acceptance_receipt",
-              "founding_authority_evidence",
-              "cbs_proof_bundles"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeFederationSubmission",
-            "schema_kind": "object",
-            "required": [
-              "unit_kind",
-              "cascade_mode",
-              "service_binding_ref",
-              "controller_transition",
-              "agent_transitions"
-            ],
-            "properties": [
-              "unit_kind",
-              "cascade_mode",
-              "service_binding_ref",
-              "controller_transition",
-              "agent_transitions",
-              "cleanup_intent_digest",
-              "cbs_proof_bundles"
+              "commit_event",
+              "welcomes",
+              "idempotency_key"
             ],
             "closed": true
           }
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
-        "schema_kind": "object",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        "schema_kind": "oneOf",
         "required": [
-          "status",
-          "accepted",
-          "pending_delivery_count"
+          "status"
         ],
         "properties": [
           "status",
-          "accepted",
-          "pending_delivery_count",
-          "ingress_receipts",
-          "control_proposal_acks",
-          "duplicate",
-          "rejections",
-          "quarantine",
-          "frontiers",
-          "cursor",
-          "original_outcome",
-          "agent_membership_cascade"
+          "commit",
+          "reason_code"
         ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.events.read.frontier.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "actor_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "head_ids",
-          "frontier_root",
-          "observed_at",
-          "issuer_id",
-          "signature"
-        ],
-        "properties": [
-          "realm_id",
-          "head_ids",
-          "max_hlc",
-          "frontier_root",
-          "auth_state_root",
-          "policy_frontier_root",
-          "membership_frontier_root",
-          "actor_seq_upper_bounds",
-          "witness_receipts",
-          "observed_at",
-          "issuer_id",
-          "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.events.read.resolve.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "event_ids",
-          "event_digests",
-          "include_payload",
-          "max_response_bytes",
-          "history_traversal_access",
-          "directory_source_ref_access"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "events",
-          "missing_event_ids",
-          "missing_event_digests"
-        ],
-        "properties": [
-          "events",
-          "missing_event_ids",
-          "missing_event_digests"
-        ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "commit"
+            ],
+            "properties": [
+              "status",
+              "commit"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "reason_code"
+            ],
+            "properties": [
+              "status",
+              "reason_code"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
       "operation_id": "ak.peer.events.read.scan.v1",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "realm_ids",
-          "actor_ids",
-          "before",
-          "after",
-          "order",
-          "limit",
-          "filters"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
-        "schema_kind": "object",
-        "required": [
-          "events",
-          "has_more"
-        ],
-        "properties": [
-          "events",
-          "prev_cursor",
-          "next_cursor",
-          "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.events.read.sibling_positions.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsRequestBody",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "positions"
+          "stream_ref",
+          "after_position",
+          "limit"
         ],
         "properties": [
           "realm_id",
-          "positions",
-          "max_response_bytes"
+          "stream_ref",
+          "after_position",
+          "limit"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsOutcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
         "schema_kind": "object",
         "required": [
-          "disclosed_positions",
-          "undisclosed_positions"
+          "commits",
+          "truncated"
         ],
         "properties": [
-          "disclosed_positions",
-          "undisclosed_positions"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.history_key_requests.command.replicate.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica",
-        "schema_kind": "object",
-        "required": [
-          "kind",
-          "request",
-          "request_receipt",
-          "destination_id",
-          "destination_authorization",
-          "replicated_at",
-          "expires_at",
-          "relay_proof"
-        ],
-        "properties": [
-          "kind",
-          "request",
-          "request_receipt",
-          "destination_id",
-          "destination_authorization",
-          "replicated_at",
-          "expires_at",
-          "relay_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_digest",
-          "destination_id",
-          "accepted_at",
-          "service_proof"
-        ],
-        "properties": [
-          "request_digest",
-          "destination_id",
-          "accepted_at",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.history_key_responses.command.relay.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_source_relay",
-        "schema_kind": "object",
-        "required": [
-          "response",
-          "source_relay_attestation"
-        ],
-        "properties": [
-          "response",
-          "source_relay_attestation"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
-        "schema_kind": "object",
-        "required": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "properties": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
+          "commits",
+          "truncated"
         ],
         "closed": true
       }
@@ -3664,6 +3426,8 @@
         "required": [
           "schema",
           "invite_event",
+          "invite_commit",
+          "authority_locator_hints",
           "invite_address",
           "introduction_evidence",
           "idempotency_key"
@@ -3671,6 +3435,8 @@
         "properties": [
           "schema",
           "invite_event",
+          "invite_commit",
+          "authority_locator_hints",
           "invite_address",
           "introduction_evidence",
           "idempotency_key"
@@ -3871,54 +3637,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.organization_recovery_archives.command.replicate.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica",
-        "schema_kind": "object",
-        "required": [
-          "kind",
-          "archive",
-          "container_event_ref",
-          "history_traversal_retention",
-          "source_id",
-          "holder_service_id",
-          "replicated_at",
-          "service_proof"
-        ],
-        "properties": [
-          "kind",
-          "archive",
-          "container_event_ref",
-          "history_traversal_retention",
-          "source_id",
-          "holder_service_id",
-          "replicated_at",
-          "service_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome",
-        "schema_kind": "object",
-        "required": [
-          "archive_replica_digest",
-          "holder_service_id",
-          "archive_sequence",
-          "accepted_at",
-          "service_proof"
-        ],
-        "properties": [
-          "archive_replica_digest",
-          "holder_service_id",
-          "archive_sequence",
-          "accepted_at",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.peer.principal_genesis.command.submit.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3975,45 +3693,91 @@
       }
     },
     {
-      "operation_id": "ak.peer.realm_join.read.application_status.v1",
-      "success_shape_kind": "typed_response",
+      "operation_id": "ak.peer.realm_authority.command.handoff.v1",
+      "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
         "schema_kind": "object",
         "required": [
-          "request_id",
-          "realm_id",
-          "applicant_account_id",
-          "event_id"
+          "handoff",
+          "final_stream_heads",
+          "snapshot",
+          "authority_bundle"
         ],
         "properties": [
-          "request_id",
-          "realm_id",
-          "applicant_account_id",
-          "event_id"
+          "handoff",
+          "final_stream_heads",
+          "snapshot",
+          "authority_bundle"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome",
+        "schema_ref": "schemas/realm-authority-handoff.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "handoff_id",
+          "realm_id",
+          "from_generation",
+          "to_generation",
+          "from_service_id",
+          "to_service_id",
+          "final_stream_heads_digest",
+          "snapshot_ref",
+          "snapshot_digest",
+          "change_event_ref",
+          "change_commit_id",
+          "old_authority_signature",
+          "new_authority_acceptance_signature"
+        ],
+        "properties": [
+          "handoff_id",
+          "realm_id",
+          "from_generation",
+          "to_generation",
+          "from_service_id",
+          "to_service_id",
+          "final_stream_heads_digest",
+          "snapshot_ref",
+          "snapshot_digest",
+          "change_event_ref",
+          "change_commit_id",
+          "old_authority_signature",
+          "new_authority_acceptance_signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.realm_join.read.application_status.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_request",
         "schema_kind": "object",
         "required": [
           "request_id",
           "realm_id",
-          "applicant_account_id",
-          "event_id",
-          "realm_state",
-          "observed_at"
+          "application_event_id"
         ],
         "properties": [
           "request_id",
           "realm_id",
-          "applicant_account_id",
-          "event_id",
-          "realm_state",
-          "decision",
-          "observed_at",
-          "conclusion_set"
+          "application_event_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "commit",
+          "reason_code"
         ],
         "closed": true
       }
@@ -4023,73 +3787,35 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
-        "schema_kind": "oneOf",
-        "required": [],
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "realm_id",
+          "member_account_id",
+          "membership_commit_id"
+        ],
         "properties": [
           "request_id",
           "realm_id",
-          "applicant_account_id",
-          "intent",
-          "cursor"
+          "member_account_id",
+          "membership_commit_id"
         ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_initial_request_body",
-            "schema_kind": "object",
-            "required": [
-              "request_id",
-              "realm_id",
-              "applicant_account_id",
-              "intent"
-            ],
-            "properties": [
-              "request_id",
-              "realm_id",
-              "applicant_account_id",
-              "intent"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body",
-            "schema_kind": "object",
-            "required": [
-              "cursor"
-            ],
-            "properties": [
-              "cursor"
-            ],
-            "closed": true
-          }
-        ]
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome",
         "schema_kind": "object",
         "required": [
           "request_id",
-          "realm_id",
-          "applicant_account_id",
-          "request_digest",
-          "governance_facts",
-          "page_index",
-          "records",
-          "next_cursor",
-          "observed_at",
-          "expires_at"
+          "authority_bundle",
+          "snapshot",
+          "visible_stream_heads"
         ],
         "properties": [
           "request_id",
-          "realm_id",
-          "applicant_account_id",
-          "request_digest",
-          "governance_facts",
-          "page_index",
-          "records",
-          "next_cursor",
-          "observed_at",
-          "expires_at"
+          "authority_bundle",
+          "snapshot",
+          "visible_stream_heads"
         ],
         "closed": true
       }
@@ -4103,9 +3829,7 @@
         "required": [
           "request_id",
           "realm_id",
-          "requester_account_id",
-          "invite_id",
-          "invite_token"
+          "requester_account_id"
         ],
         "properties": [
           "request_id",
@@ -4121,152 +3845,15 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "realm_id",
-          "requester_account_id",
-          "invite_id",
-          "preview",
-          "observed_at",
-          "expires_at"
+          "authority_bundle",
+          "preview"
         ],
         "properties": [
           "request_id",
-          "realm_id",
-          "requester_account_id",
-          "invite_id",
-          "preview",
-          "observed_at",
-          "expires_at"
+          "authority_bundle",
+          "preview"
         ],
         "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.frontier.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "actor_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState",
-        "schema_kind": "object",
-        "required": [
-          "frontier",
-          "service_proof"
-        ],
-        "properties": [
-          "frontier",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.governance_dependencies.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "selectors",
-          "byte_limit"
-        ],
-        "properties": [
-          "realm_id",
-          "selectors",
-          "byte_limit",
-          "history_traversal_access"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "items",
-          "missing_selectors"
-        ],
-        "properties": [
-          "items",
-          "missing_selectors"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.mls_governance_proof.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_request",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/group_security_frontier_outcome",
-        "schema_kind": "object",
-        "required": [
-          "query_digest",
-          "frontier_projection",
-          "proof_material",
-          "page_digest"
-        ],
-        "properties": [
-          "query_digest",
-          "frontier_projection",
-          "proof_material",
-          "page_digest"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.seals.read.resolve.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-            "schema_kind": null,
-            "required": [
-              "seals",
-              "missing_seal_refs"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-            "schema_kind": null,
-            "required": [
-              "missing_conclusion_queries"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
       }
     },
     {
@@ -4685,7 +4272,7 @@
           "identity_model",
           "current_device_generation_ref",
           "device_generation_status",
-          "accepted_seal_frontier",
+          "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
           "challenge",
@@ -4709,7 +4296,7 @@
           "identity_model",
           "current_device_generation_ref",
           "device_generation_status",
-          "accepted_seal_frontier",
+          "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
           "challenge",
@@ -4772,7 +4359,7 @@
           "identity_model",
           "current_device_generation_ref",
           "device_generation_status",
-          "accepted_seal_frontier",
+          "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
           "challenge",
@@ -4796,7 +4383,7 @@
           "identity_model",
           "current_device_generation_ref",
           "device_generation_status",
-          "accepted_seal_frontier",
+          "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
           "challenge",
@@ -6082,48 +5669,6 @@
       }
     },
     {
-      "operation_id": "ak.self.authorization_leases.command.issue.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
-            "schema_kind": null,
-            "required": [
-              "submissions"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody",
-            "schema_kind": null,
-            "required": [
-              "intents"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome",
-        "schema_kind": "object",
-        "required": [
-          "authorization_leases"
-        ],
-        "properties": [
-          "authorization_leases"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.authz.grants.read.effective.v1",
       "success_shape_kind": "typed_response",
       "response": {
@@ -6537,29 +6082,25 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
         "schema_kind": "object",
         "required": [
-          "cell_id",
+          "consent_id",
           "peer",
           "consent_scope",
           "state",
           "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "revision"
         ],
         "properties": [
-          "cell_id",
+          "consent_id",
           "peer",
           "consent_scope",
           "state",
           "expires_at",
           "requested_at",
           "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "revision"
         ],
         "closed": true
       }
@@ -6607,29 +6148,25 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
         "schema_kind": "object",
         "required": [
-          "cell_id",
+          "consent_id",
           "peer",
           "consent_scope",
           "state",
           "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "revision"
         ],
         "properties": [
-          "cell_id",
+          "consent_id",
           "peer",
           "consent_scope",
           "state",
           "expires_at",
           "requested_at",
           "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "revision"
         ],
         "closed": true
       }
@@ -6638,7 +6175,7 @@
       "operation_id": "ak.self.consent.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_list",
         "schema_kind": "object",
         "required": [
           "consents"
@@ -6653,29 +6190,25 @@
       "operation_id": "ak.self.consent.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
         "schema_kind": "object",
         "required": [
-          "cell_id",
+          "consent_id",
           "peer",
           "consent_scope",
           "state",
           "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "revision"
         ],
         "properties": [
-          "cell_id",
+          "consent_id",
           "peer",
           "consent_scope",
           "state",
           "expires_at",
           "requested_at",
           "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "revision"
         ],
         "closed": true
       }
@@ -6730,8 +6263,7 @@
           "request_event_ref",
           "action",
           "reservation_handle",
-          "signed_event",
-          "control_proposal_ack"
+          "signed_event"
         ],
         "closed": true,
         "variants": [
@@ -6771,8 +6303,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event",
-              "control_proposal_ack"
+              "signed_event"
             ],
             "closed": true
           }
@@ -6807,8 +6338,7 @@
           "continuity_evidence",
           "message",
           "reservation_handle",
-          "signed_event",
-          "control_proposal_ack"
+          "signed_event"
         ],
         "closed": true,
         "variants": [
@@ -6850,8 +6380,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event",
-              "control_proposal_ack"
+              "signed_event"
             ],
             "closed": true
           }
@@ -6885,8 +6414,7 @@
           "action",
           "granted_to_peer_scopes",
           "reservation_handle",
-          "signed_event",
-          "control_proposal_ack"
+          "signed_event"
         ],
         "closed": true,
         "variants": [
@@ -6928,8 +6456,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event",
-              "control_proposal_ack"
+              "signed_event"
             ],
             "closed": true
           }
@@ -6964,8 +6491,7 @@
           "predecessor_event_ref",
           "granted_to_peer_scopes",
           "reservation_handle",
-          "signed_event",
-          "control_proposal_ack"
+          "signed_event"
         ],
         "closed": true,
         "variants": [
@@ -7009,8 +6535,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event",
-              "control_proposal_ack"
+              "signed_event"
             ],
             "closed": true
           }
@@ -7045,8 +6570,7 @@
           "predecessor_event_ref",
           "block_peer",
           "reservation_handle",
-          "signed_event",
-          "control_proposal_ack"
+          "signed_event"
         ],
         "closed": true,
         "variants": [
@@ -7090,8 +6614,7 @@
               "operation_id",
               "idempotency_key",
               "reservation_handle",
-              "signed_event",
-              "control_proposal_ack"
+              "signed_event"
             ],
             "closed": true
           }
@@ -7119,110 +6642,6 @@
           "contacts",
           "next_cursor",
           "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.control_proposal_acks.command.issue.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request",
-        "schema_kind": "object",
-        "required": [
-          "event",
-          "publication_mode"
-        ],
-        "properties": [
-          "event",
-          "publication_mode",
-          "authorization_lease",
-          "cbs_proof_bundles"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome",
-        "schema_kind": "object",
-        "required": [
-          "authority_ack"
-        ],
-        "properties": [
-          "authority_ack"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.control_proposal_decisions.command.submit.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body",
-        "schema_kind": "object",
-        "required": [
-          "decision"
-        ],
-        "properties": [
-          "decision"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome",
-        "schema_kind": "object",
-        "required": [
-          "status",
-          "proposal_digest",
-          "decision_digest",
-          "decision_kind",
-          "proposal_state"
-        ],
-        "properties": [
-          "status",
-          "proposal_digest",
-          "decision_digest",
-          "decision_kind",
-          "proposal_state"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.control_proposal_decisions.read.get.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "proposal_digest"
-        ],
-        "properties": [
-          "realm_id",
-          "proposal_digest"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "proposal_digest",
-          "proposal_event_kind",
-          "proposal_authority_kind",
-          "proposal_state"
-        ],
-        "properties": [
-          "realm_id",
-          "proposal_digest",
-          "proposal_event_kind",
-          "proposal_authority_kind",
-          "proposal_state",
-          "control_proposal_ack",
-          "defer_decisions",
-          "fault_reason",
-          "accepted_seal_id"
         ],
         "closed": true
       }
@@ -7469,156 +6888,83 @@
     },
     {
       "operation_id": "ak.self.events.command.submit.v1",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
           "event",
-          "mls_frontier_leaves",
-          "authorization_lease",
-          "cbs_proof_bundles",
-          "control_proposal_ack",
-          "membership_compensation_evidence",
-          "publication_event",
-          "events",
-          "unit_kind",
-          "idempotency_key",
-          "cascade_mode",
-          "controller_transition",
-          "agent_transitions",
-          "cleanup_intent_digest"
+          "commit_event",
+          "welcomes",
+          "idempotency_key"
         ],
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
             "schema_kind": "object",
             "required": [
               "event"
             ],
             "properties": [
-              "event",
-              "mls_frontier_leaves",
-              "authorization_lease",
-              "cbs_proof_bundles",
-              "control_proposal_ack",
-              "membership_compensation_evidence",
-              "publication_event"
+              "event"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
+            "schema_ref": "schemas/mls-commit-submission.schema.json",
             "schema_kind": "object",
             "required": [
-              "events"
+              "commit_event",
+              "welcomes",
+              "idempotency_key"
             ],
             "properties": [
-              "events"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingUnitSubmission",
-            "schema_kind": "object",
-            "required": [
-              "unit_kind",
-              "idempotency_key",
-              "events"
-            ],
-            "properties": [
-              "unit_kind",
-              "idempotency_key",
-              "events",
-              "cbs_proof_bundles"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeSubmission",
-            "schema_kind": "object",
-            "required": [
-              "unit_kind",
-              "cascade_mode",
-              "controller_transition",
-              "agent_transitions"
-            ],
-            "properties": [
-              "unit_kind",
-              "cascade_mode",
-              "controller_transition",
-              "agent_transitions",
-              "cleanup_intent_digest"
+              "commit_event",
+              "welcomes",
+              "idempotency_key"
             ],
             "closed": true
           }
         ]
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
         "schema_kind": "oneOf",
         "required": [
           "status"
         ],
         "properties": [
           "status",
-          "accepted",
-          "pending_delivery_count",
-          "ingress_receipts",
-          "control_proposal_acks",
-          "duplicate",
-          "rejections",
-          "quarantine",
-          "frontiers",
-          "cursor",
-          "original_outcome",
-          "agent_membership_cascade",
-          "unit_kind",
-          "event_ids",
-          "receipt"
+          "commit",
+          "reason_code"
         ],
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
             "schema_kind": "object",
             "required": [
               "status",
-              "accepted",
-              "pending_delivery_count"
+              "commit"
             ],
             "properties": [
               "status",
-              "accepted",
-              "pending_delivery_count",
-              "ingress_receipts",
-              "control_proposal_acks",
-              "duplicate",
-              "rejections",
-              "quarantine",
-              "frontiers",
-              "cursor",
-              "original_outcome",
-              "agent_membership_cascade"
+              "commit"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAcceptanceOutcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
             "schema_kind": "object",
             "required": [
-              "unit_kind",
               "status",
-              "event_ids",
-              "receipt"
+              "reason_code"
             ],
             "properties": [
-              "unit_kind",
               "status",
-              "event_ids",
-              "receipt"
+              "reason_code"
             ],
             "closed": true
           }
@@ -7626,196 +6972,35 @@
       }
     },
     {
-      "operation_id": "ak.self.events.read.delivery_status.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "event_id"
-        ],
-        "properties": [
-          "event_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
-        "schema_kind": "object",
-        "required": [
-          "event_id",
-          "targets"
-        ],
-        "properties": [
-          "event_id",
-          "targets"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.events.read.describe.v1",
-      "success_shape_kind": "service_describe",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "actor_id",
-          "realm_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-describe.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "service_id",
-          "service_resolution",
-          "trust_domain",
-          "service_kind",
-          "protocol_version",
-          "supported_profiles",
-          "supported_features",
-          "auth_metadata",
-          "limits",
-          "plaintext_visibility",
-          "verified_profiles",
-          "interop_surfaces",
-          "development_mode",
-          "supported_operation_bundles",
-          "transport_bindings"
-        ],
-        "properties": [
-          "service_id",
-          "service_resolution",
-          "trust_domain",
-          "service_kind",
-          "protocol_version",
-          "supported_profiles",
-          "supported_reducer_profiles",
-          "profile_bindings",
-          "supported_features",
-          "calendar_tzdb_versions",
-          "auth_metadata",
-          "limits",
-          "plaintext_visibility",
-          "privacy_derivation",
-          "receive_policy_constraints",
-          "rate_limit_policy_id",
-          "rate_limit_policy",
-          "egress_network_policy",
-          "resource_kinds",
-          "private_contact_discovery",
-          "restricted_query_proof",
-          "accept_policy_kind",
-          "accept_policy_ref",
-          "default_ttl_seconds",
-          "max_ttl_seconds",
-          "revalidation_grace_seconds",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
-          "takedown_contact",
-          "rate_limits",
-          "verified_profiles",
-          "interop_surfaces",
-          "development_mode",
-          "supported_operation_bundles",
-          "transport_bindings",
-          "invite_addressing"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.events.read.frontier.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "actor_id"
-        ],
-        "properties": [
-          "actor_id",
-          "realm_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
-        "schema_kind": "object",
-        "required": [
-          "frontier"
-        ],
-        "properties": [
-          "frontier"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.events.read.resolve.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "event_ids",
-          "event_digests",
-          "include_payload",
-          "history_traversal_access",
-          "max_response_bytes"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "events",
-          "missing"
-        ],
-        "properties": [
-          "events",
-          "missing",
-          "unauthorized"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.events.read.scan.v1",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "realm_id",
+          "stream_ref",
+          "after_position",
+          "limit"
+        ],
         "properties": [
-          "realm_ids",
-          "actor_ids",
-          "before",
-          "after",
-          "order",
-          "limit",
-          "filters"
+          "realm_id",
+          "stream_ref",
+          "after_position",
+          "limit"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
         "schema_kind": "object",
         "required": [
-          "events",
-          "has_more"
+          "commits",
+          "truncated"
         ],
         "properties": [
-          "events",
-          "prev_cursor",
-          "next_cursor",
-          "has_more",
-          "realm_state_snapshot_bootstrap"
+          "commits",
+          "truncated"
         ],
         "closed": true
       }
@@ -7943,200 +7128,6 @@
       }
     },
     {
-      "operation_id": "ak.self.genesis_notary.read.resolve.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "account_id",
-          "intended_purpose"
-        ],
-        "properties": [
-          "request_id",
-          "account_id",
-          "intended_purpose"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "account_id",
-          "notary"
-        ],
-        "properties": [
-          "request_id",
-          "account_id",
-          "notary"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_requests.command.create.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_create_outcome",
-        "schema_kind": "object",
-        "required": [
-          "kind",
-          "request",
-          "request_receipt",
-          "sealed_history_response_capability"
-        ],
-        "properties": [
-          "kind",
-          "request",
-          "request_receipt",
-          "sealed_history_response_capability"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_requests.read.list.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_query",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "circle_id",
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_request_list_outcome",
-        "schema_kind": "object",
-        "required": [
-          "requests",
-          "limited"
-        ],
-        "properties": [
-          "requests",
-          "cursor",
-          "limited"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_responses.command.ack.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_request_body",
-        "schema_kind": "object",
-        "required": [
-          "ack_token",
-          "high_water_cursor",
-          "entries"
-        ],
-        "properties": [
-          "ack_token",
-          "high_water_cursor",
-          "entries"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome",
-        "schema_kind": "object",
-        "required": [
-          "acked_through_cursor"
-        ],
-        "properties": [
-          "acked_through_cursor"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_responses.command.send.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_request_body",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt",
-        "schema_kind": "object",
-        "required": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "properties": [
-          "response_id",
-          "source_record_digest",
-          "record_digest",
-          "sequence",
-          "accepted_at",
-          "manifest_admission_digest",
-          "release_attestation_digest",
-          "receipt_digest",
-          "service_proof"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.history_key_responses.read.list.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_query",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "after",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome",
-        "schema_kind": "object",
-        "required": [
-          "entries",
-          "source_signer_results",
-          "limited"
-        ],
-        "properties": [
-          "entries",
-          "source_signer_results",
-          "cipher_suite",
-          "ack_token",
-          "cursor",
-          "limited"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.identity.read.resolution_audit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
@@ -8162,8 +7153,8 @@
           "principal_genesis_event",
           "current_resolution_event",
           "predecessor_resolution_events",
-          "history_complete",
-          "accepted_seal"
+          "accepted_commit",
+          "history_complete"
         ],
         "properties": [
           "account_id",
@@ -8172,8 +7163,8 @@
           "principal_genesis_event",
           "current_resolution_event",
           "predecessor_resolution_events",
+          "accepted_commit",
           "history_complete",
-          "accepted_seal",
           "next_audit_cursor",
           "method_history_evidence"
         ],
@@ -8377,43 +7368,6 @@
       }
     },
     {
-      "operation_id": "ak.self.invites.command.dispatch.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
-        "schema_kind": "object",
-        "required": [
-          "schema",
-          "invite_event_id",
-          "invite_address",
-          "introduction_evidence",
-          "idempotency_key"
-        ],
-        "properties": [
-          "schema",
-          "invite_event_id",
-          "invite_address",
-          "introduction_evidence",
-          "idempotency_key"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
-        "schema_kind": "object",
-        "required": [
-          "status"
-        ],
-        "properties": [
-          "status",
-          "disclosed_outcome",
-          "received_at",
-          "retry_after_ms"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.keys.backup_series.command.erase.v1",
       "success_shape_kind": "schema_resource",
       "request": {
@@ -8425,7 +7379,7 @@
           "prepared_plan_digest",
           "erase_confirmation_digest",
           "series",
-          "authorization_lease"
+          "authority_commit_id"
         ],
         "properties": [
           "transaction_id",
@@ -8433,8 +7387,7 @@
           "prepared_plan_digest",
           "erase_confirmation_digest",
           "series",
-          "authorization_lease",
-          "cbs_proof_bundles"
+          "authority_commit_id"
         ],
         "closed": true
       },
@@ -8582,7 +7535,6 @@
           "created_at",
           "encryption",
           "domain_separation",
-          "contents",
           "ciphertext",
           "ciphertext_digest",
           "auth_data"
@@ -8605,7 +7557,6 @@
           "updated_at",
           "encryption",
           "domain_separation",
-          "contents",
           "ciphertext",
           "ciphertext_digest",
           "plaintext_commitment",
@@ -8671,7 +7622,6 @@
           "created_at",
           "encryption",
           "domain_separation",
-          "contents",
           "ciphertext",
           "ciphertext_digest",
           "auth_data"
@@ -8694,7 +7644,6 @@
           "updated_at",
           "encryption",
           "domain_separation",
-          "contents",
           "ciphertext",
           "ciphertext_digest",
           "plaintext_commitment",
@@ -9088,8 +8037,7 @@
           "account_id",
           "realm_id",
           "intent",
-          "created_at",
-          "hlc"
+          "created_at"
         ],
         "closed": true
       },
@@ -9141,46 +8089,6 @@
       }
     },
     {
-      "operation_id": "ak.self.moderation.read.franking_seal_observation.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "proof_event_id",
-          "target_event_id"
-        ],
-        "properties": [
-          "realm_id",
-          "proof_event_id",
-          "target_event_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome",
-        "schema_kind": "object",
-        "required": [
-          "proof_event",
-          "target_event",
-          "anchor_seal",
-          "service_signer_evidence",
-          "existence_anchor",
-          "ancestry_events"
-        ],
-        "properties": [
-          "proof_event",
-          "target_event",
-          "anchor_seal",
-          "service_signer_evidence",
-          "existence_anchor",
-          "ancestry_events"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.morph.read.list.v1",
       "success_shape_kind": "typed_response",
       "response": {
@@ -9222,47 +8130,6 @@
           "comments",
           "cursor_presence",
           "frontier"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.organization_recovery_archives.read.list.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "recovery_key_id",
-          "key_agreement_ref",
-          "accepted_key_evidence_ref",
-          "holder_trusted_basis"
-        ],
-        "properties": [
-          "effective_scope",
-          "recovery_key_id",
-          "key_agreement_ref",
-          "accepted_key_evidence_ref",
-          "holder_trusted_basis",
-          "from_epoch",
-          "to_epoch",
-          "cursor",
-          "byte_limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome",
-        "schema_kind": "object",
-        "required": [
-          "items",
-          "limited"
-        ],
-        "properties": [
-          "items",
-          "cursor",
-          "limited"
         ],
         "closed": true
       }
@@ -9374,18 +8241,13 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "intent",
-          "created_at"
+          "target",
+          "intent"
         ],
         "properties": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "intent",
-          "created_at",
-          "hlc"
+          "target",
+          "intent"
         ],
         "closed": true
       },
@@ -9394,27 +8256,13 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "request_digest",
-          "governance_facts",
-          "unsigned_event",
-          "observed_at",
-          "expires_at",
-          "accepted_actor_frontier",
-          "authoring_device_generation_ref"
+          "authority_bundle",
+          "realm_stream_head"
         ],
         "properties": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "request_digest",
-          "governance_facts",
-          "unsigned_event",
-          "observed_at",
-          "expires_at",
-          "accepted_actor_frontier",
-          "authoring_device_generation_ref"
+          "authority_bundle",
+          "realm_stream_head"
         ],
         "closed": true
       }
@@ -9423,42 +8271,32 @@
       "operation_id": "ak.self.realm_join.read.application_status.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body",
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_request",
         "schema_kind": "object",
         "required": [
           "request_id",
-          "account_id",
           "realm_id",
-          "event_id"
+          "application_event_id"
         ],
         "properties": [
           "request_id",
-          "account_id",
           "realm_id",
-          "event_id"
+          "application_event_id"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome",
+        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_outcome",
         "schema_kind": "object",
         "required": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "event_id",
-          "origin_state",
-          "observed_at"
+          "status"
         ],
         "properties": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "event_id",
-          "origin_state",
-          "realm_state",
-          "accepted_seal_id",
-          "observed_at"
+          "status",
+          "commit",
+          "reason_code"
         ],
         "closed": true
       }
@@ -9471,12 +8309,10 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "account_id",
           "target"
         ],
         "properties": [
           "request_id",
-          "account_id",
           "target"
         ],
         "closed": true
@@ -9486,23 +8322,13 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "request_digest",
-          "source",
-          "preview",
-          "observed_at",
-          "expires_at"
+          "authority_bundle",
+          "preview"
         ],
         "properties": [
           "request_id",
-          "account_id",
-          "realm_id",
-          "request_digest",
-          "source",
-          "preview",
-          "observed_at",
-          "expires_at"
+          "authority_bundle",
+          "preview"
         ],
         "closed": true
       }
@@ -9573,37 +8399,24 @@
         "schema_ref": "schemas/realm-state-snapshot.schema.json",
         "schema_kind": "object",
         "required": [
-          "id",
+          "snapshot_id",
           "realm_id",
-          "reducer_profile",
-          "security_class",
-          "schema_profile_refs",
-          "state_digest",
-          "frontier",
-          "event_set_commitment",
-          "chunks",
-          "created_by",
+          "authority_generation",
+          "visible_stream_heads",
+          "current_state_entries",
+          "retention_and_history_floor",
           "created_at",
-          "authority_binding",
-          "signature",
-          "eligibility_context"
+          "signature"
         ],
         "properties": [
-          "id",
+          "snapshot_id",
           "realm_id",
-          "reducer_profile",
-          "security_class",
-          "schema_profile_refs",
-          "state_digest",
-          "frontier",
-          "event_set_commitment",
-          "verification_hints",
-          "chunks",
-          "created_by",
+          "authority_generation",
+          "visible_stream_heads",
+          "current_state_entries",
+          "retention_and_history_floor",
           "created_at",
-          "authority_binding",
-          "signature",
-          "eligibility_context"
+          "signature"
         ],
         "closed": true
       }
@@ -9642,483 +8455,6 @@
           "diagnostic"
         ],
         "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.command.prepare.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "predecessor_ref",
-          "event_digests",
-          "hlc"
-        ],
-        "properties": [
-          "realm_id",
-          "predecessor_ref",
-          "event_digests",
-          "hlc"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seal_body"
-        ],
-        "properties": [
-          "seal_body"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.prepare_fence_result.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "predecessor_ref"
-        ],
-        "properties": [
-          "realm_id",
-          "predecessor_ref"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome",
-        "schema_kind": "object",
-        "required": [
-          "frozen_request",
-          "frozen_outcome"
-        ],
-        "properties": [
-          "frozen_request",
-          "frozen_outcome"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.command.submit.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/seal.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "id",
-          "realm_id",
-          "predecessor_ref",
-          "delta",
-          "control_event_set_root",
-          "data_delta",
-          "data_event_set_root",
-          "state_root",
-          "notary_seq",
-          "availability_receipt_digests",
-          "notary_signature",
-          "sealed_at",
-          "hlc",
-          "configuration_ref",
-          "command_results"
-        ],
-        "properties": [
-          "id",
-          "realm_id",
-          "predecessor_ref",
-          "delta",
-          "control_event_set_root",
-          "data_delta",
-          "data_event_set_root",
-          "state_root",
-          "notary_seq",
-          "availability_receipt_digests",
-          "covered_event_digests",
-          "previous_state_root",
-          "previous_digest_algorithm",
-          "notary_signature",
-          "sealed_at",
-          "hlc",
-          "configuration_ref",
-          "command_results",
-          "authorization_closures",
-          "data_closure_announcements",
-          "data_closures",
-          "existence_anchors"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome",
-        "schema_kind": "object",
-        "required": [
-          "seal_id",
-          "accepted_event_digests",
-          "post_state_root"
-        ],
-        "properties": [
-          "seal_id",
-          "accepted_event_digests",
-          "post_state_root"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.frontier.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id",
-          "actor_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState",
-        "schema_kind": "object",
-        "required": [
-          "frontier"
-        ],
-        "properties": [
-          "frontier",
-          "receipts"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.governance_dependencies.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "selectors",
-          "byte_limit"
-        ],
-        "properties": [
-          "realm_id",
-          "selectors",
-          "byte_limit",
-          "history_traversal_access"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome",
-        "schema_kind": "object",
-        "required": [
-          "items",
-          "missing_selectors"
-        ],
-        "properties": [
-          "items",
-          "missing_selectors"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.history_authority.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_request_body",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "properties": [
-          "effective_scope",
-          "actor_id",
-          "seal_basis"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/history-key.schema.json#/$defs/history_authority_outcome",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "query_digest",
-          "authorization_incarnation"
-        ],
-        "properties": [
-          "account_id",
-          "query_digest",
-          "authorization_incarnation",
-          "join_epoch",
-          "history_floor_epoch"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.mls_accepted_artifact.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request_body",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "mls_group_id",
-          "artifact_ref"
-        ],
-        "properties": [
-          "effective_scope",
-          "mls_group_id",
-          "artifact_ref"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome",
-        "schema_kind": "object",
-        "required": [
-          "query_digest",
-          "transition_head",
-          "governance_binding",
-          "mls_frontier_leaves",
-          "mls_leaf_authorizations"
-        ],
-        "properties": [
-          "query_digest",
-          "transition_head",
-          "governance_binding",
-          "mls_frontier_leaves",
-          "mls_leaf_authorizations"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.mls_governance_proof.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [
-          "previous_epoch",
-          "next_epoch"
-        ],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
-            "schema_kind": null,
-            "required": [
-              "proposed_group_genesis_binding"
-            ],
-            "properties": [
-              "previous_epoch",
-              "next_epoch"
-            ],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
-            "schema_kind": null,
-            "required": [],
-            "properties": [
-              "previous_epoch",
-              "next_epoch"
-            ],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body",
-            "schema_kind": null,
-            "required": [
-              "base_group_state_ref"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome",
-        "schema_kind": "object",
-        "required": [
-          "query_digest",
-          "live_digest_suite",
-          "governance_binding"
-        ],
-        "properties": [
-          "query_digest",
-          "live_digest_suite",
-          "governance_binding",
-          "epoch_head"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.mls_membership_removal.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_request_body",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "mls_group_id",
-          "seal_basis",
-          "base_group_state_ref",
-          "epoch",
-          "mls_leaf_set_digest"
-        ],
-        "properties": [
-          "effective_scope",
-          "mls_group_id",
-          "seal_basis",
-          "base_group_state_ref",
-          "epoch",
-          "mls_leaf_set_digest"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "query_digest",
-          "remove_leaf_indices",
-          "seal_basis",
-          "base_group_state_ref",
-          "epoch"
-        ],
-        "properties": [
-          "account_id",
-          "query_digest",
-          "remove_leaf_indices",
-          "seal_basis",
-          "base_group_state_ref",
-          "epoch"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.mls_welcome_refs.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_request",
-        "schema_kind": "object",
-        "required": [
-          "effective_scope",
-          "mls_group_id"
-        ],
-        "properties": [
-          "effective_scope",
-          "mls_group_id",
-          "limit",
-          "cursor"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome",
-        "schema_kind": "object",
-        "required": [
-          "welcome_refs"
-        ],
-        "properties": [
-          "welcome_refs",
-          "next_cursor"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.pending_control.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "predecessor_ref",
-          "limit"
-        ],
-        "properties": [
-          "realm_id",
-          "predecessor_ref",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "predecessor_ref",
-          "event_digests",
-          "has_more"
-        ],
-        "properties": [
-          "realm_id",
-          "predecessor_ref",
-          "event_digests",
-          "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.seals.read.resolve.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody",
-        "schema_kind": null,
-        "required": [],
-        "properties": [],
-        "closed": false
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-            "schema_kind": null,
-            "required": [
-              "seals",
-              "missing_seal_refs"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome",
-            "schema_kind": null,
-            "required": [
-              "missing_conclusion_queries"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
       }
     },
     {

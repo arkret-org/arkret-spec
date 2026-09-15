@@ -79,8 +79,7 @@ ID 语义：
     {
       "kind": "realm_root",
       "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
-      "controller_epoch_at_issuance": 0,
+      "authority_event_ref": "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv",
       "authority_generation": 0
     }
   ],
@@ -394,7 +393,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
 - `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
-- `ak.realm.upgrade`
 - `ak.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`ak.realm.plaintext_visible_services`）
 - `ak.realm.preview_policy`（high risk；修改加入前 / token-scoped preview 可披露字段、历史 stub 或明文 snippet 的策略，target=`ak.realm.preview_policy`）
 - `ak.strand.admin`
@@ -770,7 +768,7 @@ capability 授权状态投影到 cell family `ak.component.capability.grant.v1`�
 - **有效性** = 唯一确认序列中尚未被 observed-remove 的 grant add。Cell 模型是 sequenced_state，值为完整活跃 tagged set；revoke 按确切 revision 执行移除。集合元素并存不代表安全分叉，不能通过无序权限 join 或 Bottom 替代确认。
 - **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
 
-conformance：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
+conformance：[`capability-fixture.json`](../sync/authority-commit-log.md) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
 
 ## 13. Invite、通知与已读状态
 

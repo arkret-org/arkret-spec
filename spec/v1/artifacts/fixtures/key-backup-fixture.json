@@ -277,8 +277,8 @@
       "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/frontier_ref",
       "expect_valid": true,
       "instance": {
-        "frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
-        "device_generation_ref": 7
+        "device_generation_ref": 7,
+        "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       }
     },
     {
@@ -287,94 +287,9 @@
       "expect_valid": false,
       "first_expected_error": "$.device_generation_ref: '7-did-version' is not of type 'integer'",
       "instance": {
-        "frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
-        "device_generation_ref": "7-did-version"
+        "device_generation_ref": "7-did-version",
+        "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       }
-    },
-    {
-      "name": "key_backup_mls_history_envelope_actor_id_valid",
-      "schema_ref": "schemas/key-backup.schema.json",
-      "expect_valid": true,
-      "instance": {
-        "backup_id": "ak:backup:01964138-8000-7000-8000-000000000000",
-        "actor_id": {
-          "kind": "account",
-          "account_id": {
-            "principal_id": "ak:did_core:webvh:z6mkfixture",
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-          }
-        },
-        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_kind": "mls_history",
-        "backup_version": "kb_1",
-        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000000",
-        "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00.000Z",
-        "encryption": {
-          "recipient_method": "secret_storage_key",
-          "recipient_key_ref": "mls_group_secrets_backup_key",
-          "aead": {
-            "name": "xchacha20_poly1305",
-            "aead_profile": "ak.aead.xchacha20_poly1305.v1",
-            "nonce": "pZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD"
-          }
-        },
-        "domain_separation": {
-          "subdomain": "mls_epoch"
-        },
-        "contents": [
-          {
-            "item_kind": "history_secret_ranges",
-            "effective_scope": {
-              "kind": "realm",
-              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
-            },
-            "ranges": [
-              {
-                "from_epoch": 40,
-                "to_epoch": 42
-              }
-            ]
-          }
-        ],
-        "ciphertext": "H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0",
-        "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-        "auth_data": {
-          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
-          "signature_algorithm": "Ed25519",
-          "signature": "Yq2wq5mQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2QWQ8o9tQ3vJ5UcxGsq4Xf0H1qD0S6dbc7Xk3mPZ4Nn2Q",
-          "device_authorize_event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-        }
-      }
-    },
-    {
-      "name": "key_backup_envelope_bare_actor_id_rejected",
-      "schema_ref": "schemas/key-backup.schema.json",
-      "instance_from": "key_backup_mls_history_envelope_actor_id_valid",
-      "mutations": [
-        {
-          "op": "replace",
-          "path": "/actor_id",
-          "value": "ak:did_core:webvh:z6mkfixture"
-        }
-      ],
-      "expect_valid": false,
-      "first_expected_error": "contains:is not valid under any of the given schemas"
-    },
-    {
-      "name": "key_backup_envelope_supersedes_alias_rejected",
-      "schema_ref": "schemas/key-backup.schema.json",
-      "instance_from": "key_backup_mls_history_envelope_actor_id_valid",
-      "mutations": [
-        {
-          "op": "add",
-          "path": "/supersedes",
-          "value": null
-        }
-      ],
-      "expect_valid": false,
-      "first_expected_error": "contains:'supersedes' does not match any of the regexes"
     }
   ]
 }

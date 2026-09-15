@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 49,
+  "version": 50,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-15T19:36:00+08:00",
+  "generated_at": "2026-09-16T08:30:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -651,16 +651,6 @@
         }
       ]
     },
-    "mls_keypackage_payload": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "event-payload.schema.json#/$defs/mls_keypackage_payload",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "moderation_queue_item": {
       "selectors": [
         {
@@ -934,16 +924,6 @@
         }
       ]
     },
-    "seal": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "seal.schema.json",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "service_describe_verified_profiles": {
       "selectors": [
         {
@@ -961,16 +941,6 @@
           "schema_ref": "*",
           "instance_pointer": "",
           "match_scope": "descendants"
-        }
-      ]
-    },
-    "snapshot.chunks[]": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "realm-state-snapshot.schema.json",
-          "instance_pointer": "/chunks/*",
-          "match_scope": "root"
         }
       ]
     },
@@ -1111,16 +1081,6 @@
           "schema_ref": "*",
           "instance_pointer": "",
           "match_scope": "descendants"
-        }
-      ]
-    },
-    "agent_authority_state_evidence": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "agent-signer-evidence.schema.json#/$defs/agent_authority_state_evidence",
-          "instance_pointer": "",
-          "match_scope": "root"
         }
       ]
     },
@@ -1336,24 +1296,6 @@
           "ghost"
         ],
         "value_pointer": "/actor_kind"
-      }
-    },
-    {
-      "id": "agent_authority_state_evidence.lease",
-      "context": "agent_authority_state_evidence",
-      "since_revision": "2026-09-12",
-      "rejection_level": "hard_reject",
-      "replacement": "attestation",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "The signed Agent state object is an observation attestation, not a periodically renewed ordinary-publication authorization lease.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "lease"
-        ]
       }
     },
     {
@@ -2760,24 +2702,6 @@
       }
     },
     {
-      "id": "endpoint_signature",
-      "context": "mls_keypackage_payload",
-      "since_revision": "2026-08-26",
-      "rejection_level": "hard_reject",
-      "replacement": "KeyPackage self-signature plus accepted endpoint authority binding",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "A durable KeyPackage Event cannot reconstruct the complete upload-batch transcript and therefore carries no copied signature.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "endpoint_signature"
-        ]
-      }
-    },
-    {
       "id": "enrollment_authority_binding",
       "context": "retired_device_identity_wire",
       "since_revision": "2026-08-09",
@@ -3778,24 +3702,6 @@
         "kind": "field",
         "values": [
           "recovery_members"
-        ]
-      }
-    },
-    {
-      "id": "notary_sig",
-      "context": "seal",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "notary_signature",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Seal signatures use the full signature noun.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "notary_sig"
         ]
       }
     },
@@ -5100,41 +5006,6 @@
       }
     },
     {
-      "id": "seal.forensic_attribution",
-      "context": "seal",
-      "since_revision": "2026-09-12",
-      "rejection_level": "hard_reject",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Fixed quorum geometry and view-bound signatures replace the removed threshold forensic-attribution mode.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "forensic_attribution"
-        ]
-      }
-    },
-    {
-      "id": "seal.predecessor_refs",
-      "context": "seal",
-      "since_revision": "2026-09-12",
-      "rejection_level": "hard_reject",
-      "replacement": "predecessor_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "A Realm Seal has one predecessor and forms a unique confirmed sequence. Multi-Realm Control Move bases continue to use seal_basis.leaves.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "predecessor_refs"
-        ]
-      }
-    },
-    {
       "id": "security_class",
       "context": "space_payload",
       "since_revision": "2026-05-24",
@@ -5257,24 +5128,6 @@
         "kind": "field",
         "values": [
           "service_types"
-        ]
-      }
-    },
-    {
-      "id": "sha256",
-      "context": "snapshot.chunks[]",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "digest",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Snapshot chunk descriptors use digest with an algorithm prefix.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "sha256"
         ]
       }
     },

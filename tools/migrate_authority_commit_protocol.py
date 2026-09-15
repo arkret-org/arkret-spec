@@ -1,0 +1,2711 @@
+#!/usr/bin/env python3
+"""One-shot mechanical migration to the authority-commit wire contract.
+
+The normative decisions live in the Chinese specification.  This helper keeps
+the large JSON documents deterministic while the old CBS/Cell projections are
+removed.  It is intentionally idempotent so reviewers can rerun it.
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import copy
+import re
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMAS = ROOT / "spec/v1/artifacts/schemas"
+REGISTRY = ROOT / "spec/v1/artifacts/registry/contract-registry.json"
+ARTIFACT_REGISTRY = ROOT / "spec/v1/artifacts/registry"
+
+RETIRED_SCHEMA_FILES = {
+    "schemas/agent-signer-evidence-operations.schema.json",
+    "schemas/agent-signer-evidence.schema.json",
+    "schemas/availability-receipt.schema.json",
+    "schemas/bottom.schema.json",
+    "schemas/cbs-proof-bundle.schema.json",
+    "schemas/collision-variant-record.schema.json",
+    "schemas/control-proposal-decision.schema.json",
+    "schemas/current-signer-evidence-operations.schema.json",
+    "schemas/genesis-notary-binding.schema.json",
+    "schemas/history-key.schema.json",
+    "schemas/mls-governance-proof-bundle.schema.json",
+    "schemas/mls-welcome-refs.schema.json",
+    "schemas/offline-publication.schema.json",
+    "schemas/realm-state-snapshot-chunk.schema.json",
+    "schemas/seal-conclusion.schema.json",
+    "schemas/seal.schema.json",
+}
+
+RETIRED_FIXTURE_FILES = {
+    "agent-signer-evidence-fixture.json",
+    "agent-sidecar-fixture.json",
+    "capability-fixture.json",
+    "cbs-lattice-fixture.json",
+    "control-proposal-ack-fixture.json",
+    "device-revocation-pending-fixture.json",
+    "direct-conversation-fixture.json",
+    "event-envelope-negative-fixture.json",
+    "event-kind-lattice-dispatch-fixture.json",
+    "federation-fixture.json",
+    "hash-transition-fixture.json",
+    "history-key-recovery-fixture.json",
+    "human-control-signer-evidence-kat.json",
+    "identity-root-anchor-fixture.json",
+    "keypackage-pairwise-welcome-fixture.json",
+    "mimi-interop-fixture.json",
+    "mls-governance-proof-fixture.json",
+    "pcr-outward-exposure-fixture.json",
+    "poll-reducer-fixture.json",
+    "proof-context-transcript-fixture.json",
+    "reaction-fixture.json",
+    "read-cursor-multi-device-merge-fixture.json",
+    "recovery-policy-fixture.json",
+    "sdk-event-type-axes-fixture.json",
+    "seal-prepare-fence-fixture.json",
+    "seal-submit-fixture.json",
+    "security-closure-fixture.json",
+    "service-closure-hardening-fixture.json",
+    "state-reducer-hardening-fixture.json",
+    "sync-fixture.json",
+    "websocket-binding-fixture.json",
+}
+
+
+def load(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_old_decenter(relative_path: str) -> dict:
+    raw = subprocess.check_output(
+        ["git", "show", f"old-decenter:{relative_path}"], cwd=ROOT
+    )
+    return json.loads(raw.decode("utf-8"))
+
+
+def save(path: Path, value: dict) -> None:
+    path.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def schema_ref_resolves(ref: str) -> bool:
+    file_ref, separator, fragment = ref.partition("#")
+    path = ROOT / "spec/v1/artifacts" / file_ref
+    if not path.exists():
+        return False
+    if not separator or not fragment:
+        return True
+    node: object = load(path)
+    try:
+        for raw in fragment.removeprefix("/").split("/"):
+            token = raw.replace("~1", "/").replace("~0", "~")
+            node = node[int(token)] if isinstance(node, list) else node[token]  # type: ignore[index]
+    except (KeyError, IndexError, TypeError, ValueError):
+        return False
+    return isinstance(node, dict)
+
+
+def refs_in(value: object) -> list[str]:
+    refs: list[str] = []
+    if isinstance(value, dict):
+        ref = value.get("$ref")
+        if isinstance(ref, str):
+            refs.append(ref)
+        for item in value.values():
+            refs.extend(refs_in(item))
+    elif isinstance(value, list):
+        for item in value:
+            refs.extend(refs_in(item))
+    return refs
+
+
+def strip_retired_schema_references() -> None:
+    retired_names = {Path(name).name for name in RETIRED_SCHEMA_FILES}
+
+    def names_retired_schema(value: object) -> bool:
+        return any(Path(ref.split("#", 1)[0]).name in retired_names for ref in refs_in(value))
+
+    def clean(value: object) -> None:
+        if isinstance(value, dict):
+            properties = value.get("properties")
+            if isinstance(properties, dict):
+                removed = {
+                    name for name, schema in properties.items() if names_retired_schema(schema)
+                }
+                for name in removed:
+                    properties.pop(name, None)
+                if isinstance(value.get("required"), list):
+                    value["required"] = [
+                        name for name in value["required"] if name not in removed
+                    ]
+            for keyword in ("oneOf", "anyOf", "allOf"):
+                branches = value.get(keyword)
+                if isinstance(branches, list):
+                    value[keyword] = [
+                        branch
+                        for branch in branches
+                        if not (
+                            isinstance(branch, dict)
+                            and isinstance(branch.get("$ref"), str)
+                            and Path(branch["$ref"].split("#", 1)[0]).name
+                            in retired_names
+                        )
+                    ]
+            for item in list(value.values()):
+                clean(item)
+        elif isinstance(value, list):
+            for item in value:
+                clean(item)
+
+    for path in SCHEMAS.glob("*.schema.json"):
+        document = load(path)
+        clean(document)
+        save(path, document)
+
+
+def rename_tree(value: object, replacements: dict[str, str]) -> object:
+    if isinstance(value, dict):
+        return {
+            replacements.get(key, key): rename_tree(item, replacements)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [rename_tree(item, replacements) for item in value]
+    if isinstance(value, str):
+        result = value
+        for old, new in replacements.items():
+            if value == old:
+                return new
+            result = result.replace(f"#/$defs/{old}", f"#/$defs/{new}")
+        return result
+    return value
+
+
+def migrate_security_transaction_commit_terms() -> None:
+    path = SCHEMAS / "security-transaction.schema.json"
+    document = load(path)
+    replacements = {
+        "seal_id": "realm_commit_id",
+        "recovery_seal_intent": "recovery_commit_intent",
+        "first_generation_seal_intent": "reanchor_commit_intent",
+        "first_generation_seal_id": "reanchor_commit_id",
+        "first_generation_seal_body": "reanchor_commit_body",
+    }
+    document = rename_tree(document, replacements)
+    document["$defs"]["realm_commit_id"] = {
+        "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+    }
+    save(path, document)
+
+
+def prune_service_operation_dtos() -> None:
+    path = SCHEMAS / "service-operation-dtos.schema.json"
+    dto = load(path)
+    old_dto = load_old_decenter(
+        "spec/v1/artifacts/schemas/service-operation-dtos.schema.json"
+    )
+    for preserved_name in (
+        "SignedSessionGrantClaims",
+        "SessionGrantReplayExpiredProblem",
+        "SessionGrantReplayTerminalProblem",
+    ):
+        if preserved_name not in dto["$defs"]:
+            dto["$defs"][preserved_name] = old_dto["$defs"][preserved_name]
+    dto["$defs"]["EventInitialSubmission"] = {
+        "type": "object",
+        "description": (
+            "One exact producer-signed Event submitted to the current governance "
+            "Station. There are no Seal, Cell, offline-lease or proof-bundle sidecars."
+        ),
+        "required": ["event"],
+        "properties": {"event": {"$ref": "./event-envelope.schema.json"}},
+        "additionalProperties": False,
+    }
+    seeds: set[str] = {
+        "SignedSessionGrantClaims",
+        "SessionGrantReplayExpiredProblem",
+        "SessionGrantReplayTerminalProblem",
+    }
+    registry = load(REGISTRY)
+    for row in registry["operation_registry"]["operations"]:
+        for field in ("request_schema_ref", "response_schema_ref"):
+            ref = row.get(field, "")
+            marker = "schemas/service-operation-dtos.schema.json#/$defs/"
+            if ref.startswith(marker):
+                seeds.add(ref.removeprefix(marker).split("/", 1)[0])
+    for schema_path in SCHEMAS.glob("*.schema.json"):
+        if schema_path == path or f"schemas/{schema_path.name}" in RETIRED_SCHEMA_FILES:
+            continue
+        document = load(schema_path)
+        for ref in refs_in(document):
+            marker = "./service-operation-dtos.schema.json#/$defs/"
+            if ref.startswith(marker):
+                seeds.add(ref.removeprefix(marker).split("/", 1)[0])
+    retained: set[str] = set()
+    pending = list(seeds)
+    while pending:
+        name = pending.pop()
+        if name in retained or name not in dto["$defs"]:
+            continue
+        retained.add(name)
+        for ref in refs_in(dto["$defs"][name]):
+            if ref.startswith("#/$defs/"):
+                pending.append(ref.removeprefix("#/$defs/").split("/", 1)[0])
+    dto["$defs"] = {
+        name: value for name, value in dto["$defs"].items() if name in retained
+    }
+    dto["anyOf"] = [{"$ref": f"#/$defs/{name}"} for name in sorted(seeds & retained)]
+    dto["description"] = (
+        "Canonical DTOs reachable from current authority-commit operations. "
+        "Definitions belonging to retired Seal/Cell/federated-DAG operations are removed."
+    )
+    save(path, dto)
+
+
+def migrate_event_envelope() -> None:
+    path = SCHEMAS / "event-envelope.schema.json"
+    event = load(path)
+    event["description"] = (
+        "Closed producer-signed Event. Shared persistent Events become final only "
+        "when the current Realm governance Station issues a RealmCommit in the "
+        "derived Realm, Circle, or Sidecar stream."
+    )
+    retired = {
+        "actor_seq",
+        "hlc",
+        "prev_refs",
+        "causal_refs",
+        "preconditions",
+        "auth_context",
+        "data_basis",
+        "seal_basis",
+        "unsigned",
+        "requirements",
+    }
+    event["required"] = [name for name in event["required"] if name not in retired]
+    for name in retired:
+        event["properties"].pop(name, None)
+
+    defs = event["$defs"]
+    for name in (
+        "seal_ref",
+        "cell_ref",
+        "precondition",
+        "identity_resolution_head_precondition",
+        "predicate",
+        "semantic_ref_merkle_proof",
+        "ordinary_publication_event",
+        "realm_authority_root_ref",
+        "critical_extension",
+        "feature_ref",
+        "profile_ref",
+    ):
+        defs.pop(name, None)
+    authorization_ref = event["properties"].get("authorization_ref", {})
+    if isinstance(authorization_ref.get("oneOf"), list):
+        authorization_ref["oneOf"] = [
+            branch
+            for branch in authorization_ref["oneOf"]
+            if branch.get("$ref") != "#/$defs/realm_authority_root_ref"
+        ]
+    authorization_ref["description"] = (
+        "Optional. Required when executed_by is present. It identifies an accepted "
+        "Grant, delegation Event, DID-document delegation, or one of the closed "
+        "profile-specific authority constants. The current governance Station "
+        "evaluates the reference against the target stream's committed state."
+    )
+    producer_proof = defs.get("producer_event_proof", {})
+    producer_proof.get("properties", {}).pop("signer_resolution_evidence_ref", None)
+    producer_proof["required"] = [
+        field
+        for field in producer_proof.get("required", [])
+        if field != "signer_resolution_evidence_ref"
+    ]
+    producer_proof["description"] = (
+        "Producer signature over canonical Event bytes. The current governance "
+        "Station resolves and validates the signing key at admission; its "
+        "RealmCommit attests that decision, so no Cell/Seal signer witness is "
+        "carried by the Event."
+    )
+    defs["semantic_ref"] = {
+        "description": (
+            "Closed business-reference union. authorized_by names a stable GrantId; "
+            "all other roles name an immutable Event. Commit continuity is carried "
+            "only by RealmCommit.previous_commit_ref."
+        ),
+        "anyOf": [
+            {
+                "type": "object",
+                "required": ["id", "role", "critical"],
+                "properties": {
+                    "id": {"$ref": "#/$defs/grant_ref"},
+                    "role": {"const": "authorized_by"},
+                    "critical": {"type": "boolean"},
+                },
+                "additionalProperties": False,
+            },
+            {
+                "type": "object",
+                "required": ["id", "role", "critical"],
+                "properties": {
+                    "id": {"$ref": "#/$defs/event_ref"},
+                    "role": {
+                        "enum": [
+                            "attestation",
+                            "parent_event",
+                            "after",
+                            "audit_pair",
+                            "recovery_capability",
+                            "did_inception",
+                            "accountability",
+                            "bootstrap_genesis",
+                            "disclosure_authorization",
+                            "capture_stop",
+                            "direct_conversation_binding",
+                            "direct_conversation_founding_unit",
+                            "direct_conversation_contact_round",
+                            "direct_conversation_agent_provision",
+                            "applet_managed_actor_provision",
+                        ]
+                    },
+                    "critical": {"type": "boolean"},
+                },
+                "additionalProperties": False,
+            },
+        ],
+    }
+
+    # Keep the hand-written kind/payload and delegated-authority guards, but
+    # discard every clause whose JSON syntax still names a retired envelope
+    # field.  Generated admission/registered-kind guards are appended below.
+    kept = []
+    for clause in event.get("allOf", []):
+        if clause in (
+            {"$ref": "#/$defs/registered_admission_shape"},
+            {"$ref": "#/$defs/registered_execution_shape"},
+        ):
+            continue
+        # Payload dispatch is rebuilt from the canonical registry below.
+        if (
+            isinstance(clause.get("if"), dict)
+            and "kind" in clause["if"].get("properties", {})
+            and isinstance(clause.get("then"), dict)
+            and "payload" in clause["then"].get("properties", {})
+        ):
+            continue
+        encoded = json.dumps(clause, ensure_ascii=False)
+        if not any(f'"{name}"' in encoded for name in retired):
+            kept.append(clause)
+    registry = load(REGISTRY)["event_kind_registry"]
+    for row in registry["event_kinds"]:
+        if row.get("status") != "active" or "payload_schema_ref" not in row:
+            continue
+        ref = row["payload_schema_ref"]
+        if ref.startswith("schemas/"):
+            ref = "./" + ref.removeprefix("schemas/")
+        kept.append(
+            {
+                "if": {
+                    "properties": {"kind": {"const": row["event_kind"]}},
+                    "required": ["kind"],
+                },
+                "then": {"properties": {"payload": {"$ref": ref}}},
+            }
+        )
+    kept.extend(
+        [
+            {"not": {"anyOf": [{"required": [name]} for name in sorted(retired)]}},
+            {"$ref": "#/$defs/registered_admission_shape"},
+            {"$ref": "#/$defs/registered_execution_shape"},
+        ]
+    )
+    event["allOf"] = kept
+    durable_kinds = sorted(
+        row["event_kind"]
+        for row in registry["event_kinds"]
+        if row.get("status") == "active" and row.get("wire_scope") == "durable_event"
+    )
+    defs["shared_history_event"] = {
+        "$comment": (
+            "A complete producer Event from an authority-committed visibility "
+            "stream. Verify it together with the matching RealmCommit."
+        ),
+        "allOf": [
+            {"$ref": "#"},
+            {
+                "properties": {"kind": {"enum": durable_kinds}},
+                "required": ["kind"],
+            },
+        ],
+    }
+    save(path, event)
+
+
+def migrate_realm_genesis() -> None:
+    path = SCHEMAS / "realm-genesis.schema.json"
+    genesis = load(path)
+    retired = {
+        "schema_refs",
+        "reducer_profile",
+        "digest_algorithm",
+        "encryption_profile",
+        "notary",
+    }
+    genesis["required"] = [name for name in genesis["required"] if name not in retired]
+    for name in retired:
+        genesis["properties"].pop(name, None)
+    additions = {
+        "governance_station_id": {
+            "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+            "description": "Generation-0 governance Station service identity.",
+        },
+        "initial_join_rule": {"$ref": "./realm.schema.json#/properties/default_join_rule"},
+        "initial_history_access": {"$ref": "./realm.schema.json#/properties/history_access"},
+        "initial_discoverability": {
+            "$ref": "./realm.schema.json#/properties/default_discoverability"
+        },
+    }
+    genesis["properties"].update(additions)
+    for name in additions:
+        if name not in genesis["required"]:
+            genesis["required"].append(name)
+    save(path, genesis)
+
+
+def migrate_event_payload() -> None:
+    path = SCHEMAS / "event-payload.schema.json"
+    payload = load(path)
+    defs = payload["$defs"]
+    if "resource_discovery_state" not in defs:
+        old_payload = load_old_decenter(
+            "spec/v1/artifacts/schemas/event-payload.schema.json"
+        )
+        defs["resource_discovery_state"] = old_payload["$defs"][
+            "resource_discovery_state"
+        ]
+    defs["mls_governance_binding"] = {
+        "type": "object",
+        "required": [
+            "effective_scope",
+            "base_group_state_ref",
+            "previous_epoch",
+            "next_epoch",
+            "key_access_revision",
+        ],
+        "properties": {
+            "effective_scope": {"$ref": "#/$defs/effective_scope"},
+            "base_group_state_ref": {
+                "oneOf": [
+                    {"$ref": "#/$defs/event_ref"},
+                    {"type": "null"},
+                ]
+            },
+            "previous_epoch": {"type": "integer", "minimum": 0},
+            "next_epoch": {"type": "integer", "minimum": 0},
+            "key_access_revision": {"type": "integer", "minimum": 0},
+        },
+        "additionalProperties": False,
+    }
+    defs["mls_genesis_payload"] = {
+        "type": "object",
+        "required": [
+            "cipher_suite",
+            "group_info_ref",
+            "ratchet_tree_ref",
+            "governance_binding",
+            "created_at",
+        ],
+        "properties": {
+            "cipher_suite": {"$ref": "#/$defs/non_empty_string"},
+            "group_info_ref": {
+                "type": "string",
+                "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+                "x-arkret-digest-suite-source": "realm_digest_algorithm",
+            },
+            "ratchet_tree_ref": {
+                "type": "string",
+                "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
+                "x-arkret-digest-suite-source": "realm_digest_algorithm",
+            },
+            "governance_binding": {"$ref": "#/$defs/mls_governance_binding"},
+            "created_at": {"$ref": "#/$defs/timestamp"},
+        },
+        "allOf": [
+            {
+                "properties": {
+                    "governance_binding": {
+                        "properties": {
+                            "base_group_state_ref": {"type": "null"},
+                            "previous_epoch": {"const": 0},
+                            "next_epoch": {"const": 0},
+                            "key_access_revision": {"const": 0},
+                        }
+                    }
+                }
+            }
+        ],
+        "additionalProperties": False,
+    }
+    defs["mls_commit_payload"] = {
+        "type": "object",
+        "required": [
+            "base_group_state_ref",
+            "previous_epoch",
+            "next_epoch",
+            "covers_key_access_revision",
+            "commit_bytes_b64",
+            "governance_binding",
+        ],
+        "properties": {
+            "base_group_state_ref": {"$ref": "#/$defs/event_ref"},
+            "previous_epoch": {"type": "integer", "minimum": 0},
+            "next_epoch": {"type": "integer", "minimum": 1},
+            "covers_key_access_revision": {"type": "integer", "minimum": 0},
+            "commit_bytes_b64": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+            },
+            "commit_message_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
+            "governance_binding": {"$ref": "#/$defs/mls_governance_binding"},
+        },
+        "additionalProperties": False,
+    }
+    defs["realm_governance_station_change_payload"] = {
+        "type": "object",
+        "required": [
+            "expected_authority_generation",
+            "expected_realm_stream_commit_id",
+            "new_governance_station_id",
+        ],
+        "properties": {
+            "expected_authority_generation": {"type": "integer", "minimum": 0},
+            "expected_realm_stream_commit_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+            },
+            "new_governance_station_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+        },
+        "additionalProperties": False,
+    }
+    defs["poll_response_head"] = {
+        "type": "object",
+        "required": ["poll_event_ref", "response_event_ref"],
+        "properties": {
+            "poll_event_ref": {"$ref": "#/$defs/event_ref"},
+            "response_event_ref": {"$ref": "#/$defs/event_ref"},
+        },
+        "additionalProperties": False,
+    }
+    message = defs["message_create_payload"]
+    message["properties"]["poll_response_heads"] = {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 64,
+        "uniqueItems": True,
+        "items": {"$ref": "#/$defs/poll_response_head"},
+        "description": (
+            "Typed replacement for the retired generic causal_refs carrier. "
+            "Each entry binds a poll to the exact response Event being superseded."
+        ),
+    }
+    for name in (
+        "mls_commit_failed_payload",
+        "mls_keypackage_payload",
+        "mls_proposal_payload",
+        "mls_welcome_payload",
+        "realm_authority_reset_payload",
+        "realm_digest_suite_transition_payload",
+        "realm_notary_payload",
+        "realm_upgrade_state_payload",
+        "fork_resolution_payload",
+        "notary_fault_equivocation_payload",
+        "notary_fault_censorship_payload",
+        "organization_recovery_key_register_payload",
+        "organization_recovery_key_rotate_payload",
+        "organization_recovery_archive",
+        "sidecar_mls_binding",
+    ):
+        defs.pop(name, None)
+    audit_release = defs.get("audit_release_payload")
+    if audit_release:
+        audit_release["required"] = [
+            field for field in audit_release.get("required", []) if field != "seal_ref"
+        ]
+        audit_release.get("properties", {}).pop("seal_ref", None)
+        audit_release["description"] = (
+            "Payload for ak.audit.release. The current governance Station validates "
+            "the notice, policy and current authorization atomically; the Event "
+            "does not carry a Seal or caller-selected safety basis."
+        )
+    device_reanchor = defs.get("device_reanchor_payload")
+    if device_reanchor:
+        device_reanchor["required"] = [
+            field
+            for field in device_reanchor.get("required", [])
+            if field != "pre_fence_seal_frontier"
+        ]
+        device_reanchor.get("properties", {}).pop("pre_fence_seal_frontier", None)
+    consent_grant = defs.get("consent_grant_payload")
+    if consent_grant:
+        consent_grant["description"] = (
+            "Holder-private consent grant evaluated in the holder's Principal "
+            "Control Realm. The governance Station serializes changes; no Cell or "
+            "OR-Set tag is exposed on wire."
+        )
+    consent_revoke = defs.get("consent_revoke_payload")
+    if consent_revoke:
+        consent_revoke["required"] = ["consent_id"]
+        consent_revoke.get("properties", {}).pop("observed_dot_ids", None)
+        consent_revoke["description"] = (
+            "Revoke the current consent identified by consent_id. The governance "
+            "Station applies this Event in stream order, so no observed-dot set is required."
+        )
+    audit_accessed = defs.get("audit_accessed_payload")
+    if audit_accessed:
+        for field in ("target_cell_id", "cell_head_before", "cell_head_after"):
+            audit_accessed.get("properties", {}).pop(field, None)
+        for clause in audit_accessed.get("allOf", []):
+            then = clause.get("then", {})
+            if isinstance(then.get("required"), list):
+                then["required"] = [
+                    field
+                    for field in then["required"]
+                    if field
+                    not in {"target_cell_id", "cell_head_before", "cell_head_after"}
+                ]
+        audit_accessed["description"] = (
+            "Strict payload for ak.audit.accessed. It binds the writer, logical "
+            "target and any paired Event. The current governance Station evaluates "
+            "the access against committed typed state; no Cell or caller-authored "
+            "state-head digest is carried."
+        )
+    defs.pop("seal_ref", None)
+    save(path, payload)
+
+
+def prune_event_payload_definitions() -> None:
+    path = SCHEMAS / "event-payload.schema.json"
+    payload = load(path)
+    seeds: set[str] = set()
+    registry = load(REGISTRY)
+    for row in registry["event_kind_registry"]["event_kinds"]:
+        if row.get("status") != "active":
+            continue
+        ref = row.get("payload_schema_ref", "")
+        marker = "schemas/event-payload.schema.json#/$defs/"
+        if ref.startswith(marker):
+            seeds.add(ref.removeprefix(marker).split("/", 1)[0])
+    for row in registry["schema_registry"]["schemas"]:
+        if row.get("file") != "schemas/event-payload.schema.json":
+            continue
+        fragment = row.get("fragment", "")
+        marker = "#/$defs/"
+        if fragment.startswith(marker):
+            seeds.add(fragment.removeprefix(marker).split("/", 1)[0])
+    for schema_path in SCHEMAS.glob("*.schema.json"):
+        if schema_path == path or f"schemas/{schema_path.name}" in RETIRED_SCHEMA_FILES:
+            continue
+        for ref in refs_in(load(schema_path)):
+            marker = "./event-payload.schema.json#/$defs/"
+            if ref.startswith(marker):
+                seeds.add(ref.removeprefix(marker).split("/", 1)[0])
+    retained: set[str] = set()
+    pending = list(seeds)
+    while pending:
+        name = pending.pop()
+        if name in retained or name not in payload["$defs"]:
+            continue
+        retained.add(name)
+        for ref in refs_in(payload["$defs"][name]):
+            if ref.startswith("#/$defs/"):
+                pending.append(ref.removeprefix("#/$defs/").split("/", 1)[0])
+    payload["$defs"] = {
+        name: value for name, value in payload["$defs"].items() if name in retained
+    }
+    save(path, payload)
+
+
+def remove_retired_common_ids() -> None:
+    path = SCHEMAS / "common-ids.schema.json"
+    common = load(path)
+    for name in (
+        "collision_variant_record_id",
+        "history_request_id",
+        "history_response_id",
+        "recovery_key_id",
+        "realm_state_snapshot_id",
+    ):
+        common["$defs"].pop(name, None)
+    save(path, common)
+
+
+def migrate_registry() -> None:
+    registry = load(REGISTRY)
+    kinds = registry["event_kind_registry"]["event_kinds"]
+    retired = {
+        "ak.realm.upgrade",
+        "ak.realm.organization_recovery_key.register",
+        "ak.realm.organization_recovery_key.rotate",
+        "ak.realm.notary",
+        "ak.realm.digest_suite_transition",
+        "ak.realm.authority.reset",
+        "ak.fork.resolution",
+        "ak.notary.fault.equivocation",
+        "ak.notary.fault.censorship",
+        "ak.mls.proposal",
+        "ak.mls.commit_failed",
+        "ak.mls.welcome",
+        "ak.mls.keypackage",
+    }
+    kinds = [row for row in kinds if row["event_kind"] not in retired]
+    if not any(row["event_kind"] == "ak.realm.governance_station.change" for row in kinds):
+        kinds.append(
+            {
+                "event_kind": "ak.realm.governance_station.change",
+                "category": "realm",
+                "status": "active",
+                "verb_form": "base",
+                "wire_scope": "durable_event",
+                "reducer_input": True,
+                "payload": "Planned Realm governance Station transfer intent",
+                "payload_schema_ref": (
+                    "schemas/event-payload.schema.json#/$defs/"
+                    "realm_governance_station_change_payload"
+                ),
+                "id_source": "not_an_object_id",
+            }
+        )
+    registry["event_kind_registry"]["event_kinds"] = sorted(
+        kinds, key=lambda row: row["event_kind"]
+    )
+    event_registry = registry["event_kind_registry"]
+    event_registry.pop("cell_contracts", None)
+    event_registry["bootstrap_event_kinds"] = [
+        kind for kind in event_registry.get("bootstrap_event_kinds", []) if kind not in retired
+    ]
+    event_registry.pop("transition_templates", None)
+    event_registry.pop("transition_contracts", None)
+    event_registry.pop("execution_contract", None)
+    event_registry.get("history_admission_contract", {})["consumer_schema_bindings"] = []
+    registry.pop("state_model_contracts", None)
+    registry.pop("authorization_dependency_registry", None)
+    registry["current_result_registry"] = {
+        "description": "Closed typed current-result families. Selectors are domain types, never Cell IDs.",
+        "result_kinds": [
+            {
+                "result_kind": "realm_profile",
+                "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_profile_result",
+            },
+            {
+                "result_kind": "realm_policy",
+                "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_result",
+            },
+            {
+                "result_kind": "member_state",
+                "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
+            },
+            {
+                "result_kind": "strand",
+                "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_result",
+            },
+            {
+                "result_kind": "message_reactions",
+                "schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_reactions_result",
+            },
+            {
+                "result_kind": "mls_group",
+                "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_result",
+            },
+        ],
+        "version": registry.get("current_result_registry", {}).get("version", "2026-09-15.1"),
+        "generated_at": registry.get("current_result_registry", {}).get("generated_at", registry["generated_at"]),
+    }
+    actions = registry.get("capability_action_registry", {}).get("actions", [])
+    retired_actions = {
+        "ak.mls.proposal",
+        "ak.realm.authority.reset",
+        "ak.realm.upgrade",
+        "ak.fork.resolution",
+    }
+    actions = [row for row in actions if row.get("action") not in retired_actions]
+    if not any(
+        row.get("action") == "ak.realm.governance_station.change"
+        for row in actions
+    ):
+        actions.append(
+            {
+                "action": "ak.realm.governance_station.change",
+                "category": "management",
+                "risk_tier": "high",
+                "required_constraints": [],
+                "target_event_kinds": ["ak.realm.governance_station.change"],
+                "profile": None,
+                "event_mapping_kind": "same_name",
+                "root_control_only": True,
+            }
+        )
+    registry["capability_action_registry"]["actions"] = actions
+    for action in actions:
+        for field in ("target_event_kinds", "event_kinds"):
+            if field in action:
+                action[field] = [kind for kind in action[field] if kind not in retired]
+        if action.get("action") == "ak.mls.commit":
+            action["event_mapping_kind"] = "same_name"
+        elif action.get("action") in {
+            "ak.mls.keypackage",
+            "ak.mls.welcome",
+            "ak.mls.welcome.own_device",
+        }:
+            action["event_mapping_kind"] = "non_event_surface"
+
+    schema_rows = registry["schema_registry"]["schemas"]
+    schema_rows = [row for row in schema_rows if row.get("file") not in RETIRED_SCHEMA_FILES]
+    additions = {
+        "ak.schema.authority_commit_operations.v1": (
+            "schemas/authority-commit-operations.schema.json",
+            "Authority submission, stream scan, authority bundle and handoff operations.",
+        ),
+        "ak.schema.detached_object_signature.v1": (
+            "schemas/detached-object-signature.schema.json",
+            "Closed non-Event signature carrier for authority and delivery objects.",
+        ),
+        "ak.schema.realm_commit.v1": (
+            "schemas/realm-commit.schema.json",
+            "Authority-signed finality record for one Realm, Circle or Sidecar stream.",
+        ),
+        "ak.schema.realm_authority_bundle.v1": (
+            "schemas/realm-authority-bundle.schema.json",
+            "Genesis-to-current authority discovery proof bundle.",
+        ),
+        "ak.schema.realm_authority_handoff.v1": (
+            "schemas/realm-authority-handoff.schema.json",
+            "Dual-signed planned authority generation transfer.",
+        ),
+        "ak.schema.mls_commit_submission.v1": (
+            "schemas/mls-commit-submission.schema.json",
+            "Atomic MLS Commit and Welcome submission.",
+        ),
+        "ak.schema.mls_welcome_delivery.v1": (
+            "schemas/mls-welcome-delivery.schema.json",
+            "Producer-signed recipient Welcome delivery.",
+        ),
+        "ak.schema.typed_current_result.v1": (
+            "schemas/typed-current-result.schema.json",
+            "Closed typed current-result selector and value union.",
+        ),
+    }
+    by_id = {row["schema_id"]: row for row in schema_rows}
+    for schema_id, (file, description) in additions.items():
+        by_id[schema_id] = {
+            "schema_id": schema_id,
+            "file": file,
+            "status": "active",
+            "description": description,
+        }
+    authority_policy = by_id.get("ak.schema.authority_set_policy.v1")
+    if authority_policy:
+        authority_policy["description"] = (
+            "Recovery or admission signer policy accepted at one RealmCommit."
+        )
+        authority_policy["consumer_binding"] = {
+            "kind": "standalone_schema_alias",
+            "selector": "schemas/authority-set-policy.schema.json",
+            "normative_ref": "zh/sync/authority-commit-log.md#2-producer-event",
+        }
+    registry["schema_registry"]["schemas"] = sorted(
+        by_id.values(), key=lambda row: row["schema_id"]
+    )
+
+    high_security = registry["operation_registry"].get(
+        "high_security_session_authentication_policy", {}
+    )
+    high_security["unauthenticated_public_projection_operations"] = [
+        operation_id
+        for operation_id in high_security.get(
+            "unauthenticated_public_projection_operations", []
+        )
+        if operation_id != "ak.self.events.read.describe.v1"
+    ]
+
+    ids = registry["id_kind_registry"]["id_kinds"]
+    retired_id_kinds = {
+        "collision_variant_record",
+        "history_request",
+        "history_response",
+        "realm_state_snapshot",
+        "recovery_key",
+        "realm_commit",
+        "realm_authority_handoff",
+        "realm_snapshot",
+    }
+    ids = [row for row in ids if row["kind"] not in retired_id_kinds]
+    new_ids = {
+        "mls_welcome_delivery": (
+            "mls",
+            "ak:mls_welcome_delivery:<uuidv7>",
+            "producer_allocated",
+            "producer_signature",
+        ),
+        "keypackage_claim": (
+            "mls",
+            "ak:keypackage_claim:<uuidv7>",
+            "producer_allocated",
+            "producer_signature",
+        ),
+    }
+    existing = {row["kind"] for row in ids}
+    for row in ids:
+        if row["kind"] == "keypackage_claim":
+            row["identity_authority"] = "producer_signature"
+    for kind, (category, wire_form, id_form, authority) in new_ids.items():
+        if kind not in existing:
+            ids.append(
+                {
+                    "kind": kind,
+                    "category": category,
+                    "status": "active",
+                    "wire_form": wire_form,
+                    "description": f"{kind} protocol identifier.",
+                    "id_form": id_form,
+                    "identity_authority": authority,
+                }
+            )
+    registry["id_kind_registry"]["id_kinds"] = sorted(ids, key=lambda row: row["kind"])
+    registry["id_kind_registry"]["special_forms"] = [
+        row
+        for row in registry["id_kind_registry"].get("special_forms", [])
+        if row.get("kind") not in {"seal", "cell"}
+    ]
+    existing_special = {
+        row["kind"] for row in registry["id_kind_registry"]["special_forms"]
+    }
+    for kind in ("realm_commit", "realm_authority_handoff", "realm_snapshot"):
+        if kind not in existing_special:
+            registry["id_kind_registry"]["special_forms"].append(
+                {
+                    "kind": kind,
+                    "wire_form": f"ak:{kind}:<44-char-base64url-no-pad>",
+                    "payload_pattern": "[A-Za-z0-9_-]{44}",
+                    "status": "active",
+                    "content_addressed": True,
+                    "storage_recommendation": "Store the decoded 33-byte suite-tagged digest.",
+                    "description": f"Content-addressed {kind} canonical body identifier.",
+                }
+            )
+    registry["id_kind_registry"]["special_forms"].sort(key=lambda row: row["kind"])
+
+    operations = registry["operation_registry"]["operations"]
+    obsolete_markers = (
+        ".authorization_leases.",
+        ".current_signer_evidence.",
+        ".issue_controller_gate_attestation.",
+        ".invites.command.dispatch.",
+        ".genesis_notary.",
+        ".seals.",
+        ".control_proposal_acks.",
+        ".control_proposal_decisions.",
+        ".history_key_requests.",
+        ".history_key_responses.",
+        ".organization_recovery_archives.",
+        ".events.read.sibling_positions.",
+        ".moderation.read.franking_seal_observation.",
+        ".events.read.delivery_status.",
+        ".events.read.describe.",
+        ".events.read.frontier.",
+        ".events.read.resolve.",
+    )
+    operations = [
+        row
+        for row in operations
+        if not any(marker in row["operation_id"] for marker in obsolete_markers)
+    ]
+    by_operation = {row["operation_id"]: row for row in operations}
+    replacements = {
+        "ak.self.events.command.submit.v1": (
+            "POST /_arkret/self/events",
+            "SelfEvents/Submit",
+            "self.events.command.submit",
+            "Submit an exact producer Event to its current Realm governance Station. The Account Station reports committed only after receiving RealmCommit.",
+            "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+            "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        ),
+        "ak.peer.events.command.submit.v1": (
+            "POST /_arkret/peer/events",
+            "PeerEvents/Submit",
+            "peer.events.command.submit",
+            "Forward an exact producer Event to the verified current governance Station; a non-authority peer cannot accept it locally.",
+            "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+            "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        ),
+        "ak.self.events.read.scan.v1": (
+            "POST /_arkret/self/streams/scan",
+            "SelfStreams/Scan",
+            "self.streams.read.scan",
+            "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position.",
+            "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
+        ),
+        "ak.peer.events.read.scan.v1": (
+            "POST /_arkret/peer/streams/scan",
+            "PeerStreams/Scan",
+            "peer.streams.read.scan",
+            "Replicate one visibility-authorized stream from its current governance Station.",
+            "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
+        ),
+        "ak.open.realm_authority.read.bundle.v1": (
+            "POST /_arkret/open/realm-authority/bundle",
+            "OpenRealmAuthority/Bundle",
+            "open.realm_authority.read.bundle",
+            "Return a nonce-bound genesis-to-current authority chain; locators are hints and never authority.",
+            "schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request",
+            "schemas/realm-authority-bundle.schema.json",
+        ),
+        "ak.peer.realm_authority.command.handoff.v1": (
+            "POST /_arkret/peer/realm-authority/handoff",
+            "PeerRealmAuthority/Handoff",
+            "peer.realm_authority.command.handoff",
+            "Install a planned dual-signed authority handoff after complete snapshot and all stream heads are imported.",
+            "schemas/authority-commit-operations.schema.json#/$defs/handoff_request",
+            "schemas/realm-authority-handoff.schema.json",
+        ),
+    }
+    for operation_id, values in replacements.items():
+        http, grpc, mq, notes, request_ref, response_ref = values
+        prior = by_operation.get(operation_id, {})
+        by_operation[operation_id] = {
+            "operation_id": operation_id,
+            "http": http,
+            "grpc": grpc,
+            "mq": mq,
+            "notes": notes,
+            "body_class": "non_streaming_json",
+            "success_shape_kind": "schema_resource",
+            "request_schema_ref": request_ref,
+            "response_schema_ref": response_ref,
+            **({"max_canonical_body_bytes": prior["max_canonical_body_bytes"]}
+               if "max_canonical_body_bytes" in prior else {}),
+            **(
+                {
+                    "idempotency_mechanism": "canonical_hash",
+                    "canonical_hash_input": "full_body",
+                    "retry_safe": True,
+                }
+                if ".command." in operation_id
+                else {}
+            ),
+            **(
+                {
+                    "durable_effect": {
+                        "kind": "event_log",
+                        "event_kind_source": "$request.event.kind",
+                    }
+                }
+                if operation_id
+                in {
+                    "ak.self.events.command.submit.v1",
+                    "ak.peer.events.command.submit.v1",
+                }
+                else {
+                    "durable_effect": {
+                        "kind": "none",
+                        "rationale": (
+                            "installs_only_the_verified_authority_generation_"
+                            "snapshot_and_private_stream_heads"
+                        ),
+                    }
+                }
+                if operation_id == "ak.peer.realm_authority.command.handoff.v1"
+                else {}
+            ),
+        }
+    final_operations = sorted(
+        by_operation.values(), key=lambda row: row["operation_id"]
+    )
+    for row in final_operations:
+        for field in ("request_schema_ref", "response_schema_ref"):
+            if isinstance(row.get(field), str):
+                row[field] = row[field].replace("consent_cell_view", "consent_view")
+                row[field] = row[field].replace("consent_cell_list", "consent_list")
+        if isinstance(row.get("notes"), str):
+            row["notes"] = row["notes"].replace("consent_cell_view", "consent_view")
+            row["notes"] = row["notes"].replace("consent_cell_list", "consent_list")
+    registry["operation_registry"]["operations"] = final_operations
+    known_operations = {row["operation_id"] for row in final_operations}
+    groups = []
+    for group in registry["operation_registry"].get("surface_groups", []):
+        if group.get("surface") == "authority_commit":
+            continue
+        group["operations"] = [
+            operation_id
+            for operation_id in group.get("operations", [])
+            if operation_id in known_operations
+        ]
+        if group["operations"]:
+            groups.append(group)
+    authority_operations = sorted(
+        {
+            "ak.open.realm_authority.read.bundle.v1",
+            "ak.peer.realm_authority.command.handoff.v1",
+        }
+        & known_operations
+    )
+    groups.append(
+        {
+            "surface": "authority_commit",
+            "operations": authority_operations,
+            "surface_class": "core",
+        }
+    )
+    registry["operation_registry"]["surface_groups"] = groups
+    bundles = []
+    for bundle in registry["operation_registry"].get("operation_bundles", []):
+        bundle["members"] = [
+            member
+            for member in bundle.get("members", [])
+            if member.get("operation_id") in known_operations
+        ]
+        if bundle["members"]:
+            bundles.append(bundle)
+    registry["operation_registry"]["operation_bundles"] = bundles
+
+    feature_registry = registry.get("feature_registry", {})
+    feature_registry["features"] = [
+        row
+        for row in feature_registry.get("features", [])
+        if row.get("feature_id") != "ak.feature.history_key_recovery.v1"
+        and (
+            not isinstance(row.get("defined_in"), str)
+            or (ROOT / "spec/v1" / row["defined_in"]).exists()
+        )
+    ]
+    old_features = {
+        row["feature_id"]: row
+        for row in load_old_decenter(
+            "spec/v1/artifacts/registry/contract-registry.json"
+        )["feature_registry"]["features"]
+    }
+    present_features = {
+        row["feature_id"] for row in feature_registry["features"]
+    }
+    for feature_id in (
+        "ak.feature.blob.resumable_upload.tus.v1",
+        "ak.feature.cursor_revoke_high_assurance.v1",
+    ):
+        if feature_id not in present_features:
+            feature_registry["features"].append(copy.deepcopy(old_features[feature_id]))
+    feature_registry["features"].sort(key=lambda row: row["feature_id"])
+    save(REGISTRY, registry)
+
+
+def migrate_auxiliary_registries() -> None:
+    for fixture_name in (
+        "encoding-fixture.json",
+        "keypackage-lifecycle-fixture.json",
+        "schema-validation-fixture.json",
+    ):
+        fixture_path = ROOT / "spec/v1/artifacts/fixtures" / fixture_name
+        save(
+            fixture_path,
+            load_old_decenter(f"spec/v1/artifacts/fixtures/{fixture_name}"),
+        )
+
+    validation_path = ROOT / "spec/v1/artifacts/fixtures/schema-validation-fixture.json"
+    validation = load(validation_path)
+    retained_validation_names = {
+        "psi_padded_problem_quota_exhausted_valid",
+        "psi_padded_problem_policy_denied_valid",
+        "psi_padded_problem_duplicate_conflict_valid",
+        "psi_padded_problem_batch_unavailable_valid",
+        "psi_padded_problem_old_envelope_rejected",
+        "psi_padded_problem_extra_extension_rejected",
+        "psi_padded_problem_type_status_mismatch_rejected",
+        "psi_padded_problem_missing_padding_rejected",
+        "psi_padded_problem_non_space_padding_rejected",
+        "recovery_proof_canonical_public_material_valid",
+        "service_describe_valid",
+        "service_describe_x_metadata_ignored_valid",
+    }
+    validation["schema_validation_cases"] = [
+        row
+        for row in validation.get("schema_validation_cases", [])
+        if isinstance(row, dict)
+        and row.get("name") in retained_validation_names
+        and isinstance(row.get("schema_ref"), str)
+        and schema_ref_resolves(row["schema_ref"])
+    ]
+    save(validation_path, validation)
+
+    encoding_path = ROOT / "spec/v1/artifacts/fixtures/encoding-fixture.json"
+    encoding = load(encoding_path)
+    encoding["description"] = (
+        "Core canonical-encoding and digest-algorithm vectors retained after the "
+        "authority-commit clean break. Event ordering and Cell projection vectors "
+        "were retired with the decentralized protocol."
+    )
+    encoding["vectors"] = [
+        row
+        for row in encoding.get("vectors", [])
+        if isinstance(row, dict)
+        and row.get("vector_id")
+        in {
+            "ak.vector.encoding.canonical_json.basic.v1",
+            "ak.vector.encoding.digest.blake3.v1",
+            "ak.vector.encoding.encrypted_envelope_digest.v1",
+        }
+    ]
+    save(encoding_path, encoding)
+
+    keypackage_path = ROOT / "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+    keypackage = load(keypackage_path)
+    keypackage["schema_validation_cases"] = [
+        row
+        for row in keypackage.get("schema_validation_cases", [])
+        if isinstance(row, dict)
+        and isinstance(row.get("schema_ref"), str)
+        and schema_ref_resolves(row["schema_ref"])
+    ]
+    save(keypackage_path, keypackage)
+
+    crypto_fixture = ROOT / "spec/v1/artifacts/fixtures/crypto-signature-fixture.json"
+    if crypto_fixture.exists():
+        crypto = load(crypto_fixture)
+        crypto["description"] = (
+            "Detached-signature algorithm KATs. The signed binding objects are "
+            "cryptographic test messages, not Event or RealmCommit wire examples."
+        )
+        for vector in crypto.get("vectors", []):
+            if not isinstance(vector, dict):
+                continue
+            for retired_member in (
+                "event_without_proofs",
+                "canonical_event_payload",
+                "event_with_proof",
+            ):
+                vector.pop(retired_member, None)
+            if isinstance(vector.get("description"), str):
+                vector["description"] = vector["description"].replace(
+                    "for a Arkret Event Envelope", "for a detached signed object"
+                )
+        save(crypto_fixture, crypto)
+    active = {
+        row["event_kind"]
+        for row in load(REGISTRY)["event_kind_registry"]["event_kinds"]
+        if row.get("status") == "active"
+    }
+    protocol_path = ARTIFACT_REGISTRY / "protocol-layer-registry.json"
+    protocol = load(protocol_path)
+    for layer, kinds in protocol["event_kinds"].items():
+        protocol["event_kinds"][layer] = [kind for kind in kinds if kind in active]
+    if "ak.realm.governance_station.change" not in protocol["event_kinds"]["kernel"]:
+        protocol["event_kinds"]["kernel"].append("ak.realm.governance_station.change")
+        protocol["event_kinds"]["kernel"].sort()
+    save(protocol_path, protocol)
+
+    gaps_path = ARTIFACT_REGISTRY / "event-kind-vector-gap-registry.json"
+    gaps = load(gaps_path)
+    gaps["uncovered_event_kinds"] = [
+        row for row in gaps["uncovered_event_kinds"] if row["event_kind"] in active
+    ]
+    if not any(
+        row["event_kind"] == "ak.realm.governance_station.change"
+        for row in gaps["uncovered_event_kinds"]
+    ):
+        gaps["uncovered_event_kinds"].append(
+            {
+                "event_kind": "ak.realm.governance_station.change",
+                "priority": "critical",
+                "rationale": "Planned authority handoff vectors land with the new protocol suite.",
+            }
+        )
+    gaps["uncovered_event_kinds"].sort(key=lambda row: row["event_kind"])
+    save(gaps_path, gaps)
+
+    profiles_path = ROOT / "spec/v1/artifacts/profiles/conformance-profiles.json"
+    profiles = load(profiles_path)
+    retired = {
+        "ak.mls.proposal",
+        "ak.mls.welcome",
+        "ak.mls.keypackage",
+        "ak.mls.commit_failed",
+    }
+    retired_feature = "ak.feature.history_key_recovery.v1"
+
+    def strip_retired(value: object) -> None:
+        if isinstance(value, dict):
+            for key, item in list(value.items()):
+                if isinstance(item, list):
+                    kept = []
+                    for entry in item:
+                        if isinstance(entry, str) and (
+                            entry in retired or entry == retired_feature
+                        ):
+                            continue
+                        strip_retired(entry)
+                        kept.append(entry)
+                    value[key] = kept
+                else:
+                    strip_retired(item)
+        elif isinstance(value, list):
+            for item in value:
+                strip_retired(item)
+    strip_retired(profiles)
+    requirements = profiles.get("vector_group_requirements", {})
+    removed_groups = {
+        group_id
+        for group_id, requirement in requirements.items()
+        if set(requirement.get("required_fixtures", [])) & RETIRED_FIXTURE_FILES
+    }
+    for group_id in removed_groups:
+        requirements.pop(group_id, None)
+    profiles["vector_groups"] = [
+        group_id
+        for group_id in profiles.get("vector_groups", [])
+        if group_id not in removed_groups
+    ]
+    authority_group = "ak.vector_group.authority_commit.v1"
+    if authority_group not in profiles["vector_groups"]:
+        profiles["vector_groups"].append(authority_group)
+        profiles["vector_groups"].sort()
+    requirements[authority_group] = {
+        "required_event_kinds": ["ak.realm.governance_station.change"],
+        "rejected_event_kinds": [],
+        "required_schemas": [
+            "ak.schema.realm_commit.v1",
+            "ak.schema.realm_authority_bundle.v1",
+            "ak.schema.realm_authority_handoff.v1",
+        ],
+        "required_fixtures": ["authority-commit-fixture.json"],
+        "optional_extensions": [],
+        "feature_discovery": {
+            "required": ["vector_runner"],
+            "unsupported_optional": "not applicable",
+        },
+        "operation_requirements": [
+            {
+                "direction": "consume",
+                "operation_id": "ak.self.events.read.scan.v1",
+                "binding_kind": "http_json",
+            }
+        ],
+    }
+    known_schema_ids = {
+        row["schema_id"]
+        for row in load(REGISTRY)["schema_registry"]["schemas"]
+    }
+    known_operation_ids = {
+        row["operation_id"]
+        for row in load(REGISTRY)["operation_registry"]["operations"]
+    }
+    existing_fixtures = {
+        path.name for path in (ROOT / "spec/v1/artifacts/fixtures").glob("*.json")
+    }
+
+    def clean_profile_references(value: object) -> None:
+        if isinstance(value, dict):
+            for key, item in list(value.items()):
+                if isinstance(item, list):
+                    filtered = []
+                    for entry in item:
+                        if isinstance(entry, str):
+                            if entry.startswith("ak.schema.") and entry not in known_schema_ids:
+                                continue
+                            if entry.startswith("ak.") and ".v1" in entry and (
+                                key in {"required_operations", "operations"}
+                                and entry not in known_operation_ids
+                            ):
+                                continue
+                            if key == "required_fixtures" and entry not in existing_fixtures:
+                                continue
+                        if isinstance(entry, dict):
+                            fixture = entry.get("artifact_fixture")
+                            if fixture and fixture not in existing_fixtures:
+                                continue
+                            operation_id = entry.get("operation_id")
+                            if operation_id and operation_id not in known_operation_ids:
+                                continue
+                            clean_profile_references(entry)
+                        filtered.append(entry)
+                    value[key] = filtered
+                else:
+                    clean_profile_references(item)
+
+    clean_profile_references(profiles)
+    save(profiles_path, profiles)
+
+    vector_path = ARTIFACT_REGISTRY / "vector-registry.json"
+    vectors = load(vector_path)
+
+    def references_retired_fixture(row: dict) -> bool:
+        return any(
+            Path(reference).name in RETIRED_FIXTURE_FILES
+            for field in ("applies_to_fixtures", "source_refs")
+            for reference in row.get(field, [])
+            if isinstance(reference, str)
+        )
+
+    old_vectors = load_old_decenter(
+        "spec/v1/artifacts/registry/vector-registry.json"
+    )["vectors"]
+    required_kat_ids = {
+        row["kat_vector_id"]
+        for registry_name, collection_name in (
+            ("signature-alg-registry.json", "algorithms"),
+            ("digest-suite-registry.json", "suites"),
+            ("hpke-suite-registry.json", "suites"),
+            ("mls-ciphersuite-registry.json", "ciphersuites"),
+        )
+        for row in load(ARTIFACT_REGISTRY / registry_name).get(collection_name, [])
+        if isinstance(row.get("kat_vector_id"), str)
+    }
+    required_kat_ids.add("ak.vector.moderation.franking_proof_transcript.v1")
+    required_kat_ids.add("ak.vector.encoding.encrypted_envelope_digest.v1")
+    vectors["vectors"] = [
+        copy.deepcopy(row)
+        for row in old_vectors
+        if row.get("vector_id") in required_kat_ids
+    ]
+    for row in vectors["vectors"]:
+        row["source_refs"] = [
+            reference
+            for reference in row.get("source_refs", [])
+            if (ROOT / reference).exists()
+        ]
+        row["applies_to_fixtures"] = [
+            fixture
+            for fixture in row.get("applies_to_fixtures", [])
+            if (ROOT / "spec/v1/artifacts/fixtures" / fixture).exists()
+        ]
+        if not row.get("applies_to_fixtures"):
+            row.pop("applies_to_fixtures", None)
+    authority_vector = "ak.vector.authority_commit.independent_streams.v1"
+    vectors["vectors"] = [
+        row for row in vectors["vectors"] if row.get("vector_id") != authority_vector
+    ]
+    vectors["vectors"].append(
+        {
+            "vector_id": authority_vector,
+            "status": "active",
+            "domain": "authority_commit",
+            "applies_to_fixtures": ["authority-commit-fixture.json"],
+            "description": (
+                "Realm, Circle and Sidecar streams each start and advance their own "
+                "predecessor chain; planned handoff transfers every private head "
+                "without exposing hidden stream existence in the public bundle."
+            ),
+            "source_refs": [
+                "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
+                "spec/v1/zh/sync/authority-commit-log.md",
+            ],
+        }
+    )
+    known_vector_groups = set(profiles["vector_groups"])
+    for row in vectors["vectors"]:
+        if "applies_to_vector_groups" in row:
+            row["applies_to_vector_groups"] = [
+                group_id
+                for group_id in row["applies_to_vector_groups"]
+                if group_id in known_vector_groups
+            ]
+    vectors["vectors"].sort(key=lambda row: row["vector_id"])
+    save(vector_path, vectors)
+    known_vectors = {row["vector_id"] for row in vectors["vectors"]}
+
+    def clean_vector_references(value: object) -> None:
+        if isinstance(value, dict):
+            for key, item in list(value.items()):
+                if isinstance(item, list):
+                    value[key] = [
+                        entry
+                        for entry in item
+                        if not (
+                            isinstance(entry, str)
+                            and entry.startswith("ak.vector.")
+                            and entry not in known_vectors
+                        )
+                    ]
+                    for entry in value[key]:
+                        clean_vector_references(entry)
+                else:
+                    clean_vector_references(item)
+
+    clean_vector_references(profiles)
+    save(profiles_path, profiles)
+
+    runtime_scope_path = ARTIFACT_REGISTRY / "agent-runtime-scope-registry.json"
+    runtime_scope = load(runtime_scope_path)
+    interactive_operations = [
+        "ak.self.events.command.submit.v1",
+        "ak.self.events.read.scan.v1",
+        "ak.self.events.stream.subscribe.v1",
+    ]
+    runtime_scope["capability_sets"]["interactive_chat"][
+        "activation_operations"
+    ] = interactive_operations
+    runtime_scope["capability_sets"]["interactive_chat"][
+        "mandatory_operations"
+    ] = interactive_operations
+    runtime_scope["feature_additions"].pop("delayed_or_offline_publish", None)
+    runtime_scope["invariants"] = [
+        invariant
+        for invariant in runtime_scope.get("invariants", [])
+        if "frontier.v1" not in invariant
+    ]
+    save(runtime_scope_path, runtime_scope)
+
+    proof_path = ARTIFACT_REGISTRY / "proof-context-registry.json"
+    proof = load(proof_path)
+    device_authorize_contexts = {
+        "ak.device_authorize_accepted_device_possession_proof.v1",
+        "ak.device_authorize_applet_managed_possession_proof.v1",
+        "ak.device_authorize_possession_proof.v1",
+        "ak.device_authorize_recovery_possession_proof.v1",
+    }
+    moved_device_domains = [
+        row
+        for row in proof["contexts"]
+        if row.get("context") in device_authorize_contexts
+    ]
+    proof["contexts"] = [
+        row
+        for row in proof["contexts"]
+        if row.get("context") not in device_authorize_contexts
+        if row.get("schema_ref")
+        != "schemas/realm-state-snapshot.schema.json#/$defs/realm_state_snapshot_witness_attestation"
+        and not row.get("context", "").startswith("ak.realm_commit_proof.")
+        and not row.get("context", "").startswith("ak.realm_authority_handoff_proof.")
+        and not row.get("context", "").startswith("ak.realm_authority_current_assertion_proof.")
+        and not row.get("context", "").startswith("ak.mls_welcome_delivery_proof.")
+        and (
+            not isinstance(row.get("schema_ref"), str)
+            or schema_ref_resolves(row["schema_ref"])
+        )
+    ]
+    for row in proof["contexts"]:
+        if row.get("context") == "ak.event_proof.v1":
+            row["binding_fields"] = [
+                field
+                for field in row.get("binding_fields", [])
+                if not field.startswith("signer_resolution_evidence_ref")
+            ]
+            row["regime_rule"] = (
+                "Exactly one producer proof applies. The current governance Station "
+                "resolves the verification method and records acceptance in RealmCommit."
+            )
+        elif row.get("context") == "ak.realm_join_candidate_proof.v1":
+            row["injected_fields"] = [
+                {"field": field, "source": f"candidate proof projection {field}"}
+                for field in (
+                    "payload_digest",
+                    "verification_method",
+                    "created_at",
+                    "domain",
+                    "audience",
+                )
+            ]
+        elif row.get("context") == "ak.realm_state_snapshot_proof.v1":
+            row["injected_fields"] = [
+                {"field": "realm_state_snapshot_id", "source": "snapshot.id"},
+                {"field": "payload_digest", "source": "digest of unsigned snapshot"},
+                {"field": "domain", "source": "registered proof domain"},
+                {"field": "audience", "source": "snapshot receiver audience"},
+            ]
+    proof["domain_separations"] = [
+        row
+        for row in proof.get("domain_separations", [])
+        if not isinstance(row.get("schema_ref"), str)
+        or schema_ref_resolves(row["schema_ref"])
+    ]
+    domains_by_name = {
+        row.get("domain"): row for row in proof["domain_separations"]
+    }
+    for row in moved_device_domains:
+        domain = row["context"]
+        binding_fields = list(row.get("binding_fields", []))
+        if domain == "ak.device_authorize_accepted_device_possession_proof.v1":
+            if "account_id" not in binding_fields:
+                binding_fields.insert(0, "account_id")
+        converted = {
+            "domain": domain,
+            "object_family": row["object_family"],
+            "primitive": "detached_signature",
+            "binding_fields": binding_fields,
+            "defined_in": row["defined_in"],
+            "schema_ref": row["schema_ref"],
+            "transcript_schema_refs": [row["schema_ref"]],
+        }
+        if row.get("injected_fields"):
+            converted["injected_fields"] = row["injected_fields"]
+        domains_by_name[domain] = converted
+    proof["domain_separations"] = sorted(
+        domains_by_name.values(), key=lambda row: row.get("domain", "")
+    )
+    device_payload_path = SCHEMAS / "event-payload.schema.json"
+    device_payload = load(device_payload_path)
+    device_domain_defs = {
+        "ak.device_authorize_applet_managed_possession_proof.v1": (
+            "device_authorize_applet_managed_possession_transcript"
+        ),
+        "ak.device_authorize_possession_proof.v1": (
+            "device_authorize_possession_transcript"
+        ),
+        "ak.device_authorize_recovery_possession_proof.v1": (
+            "device_authorize_recovery_possession_transcript"
+        ),
+    }
+    for domain, definition_name in device_domain_defs.items():
+        device_payload["$defs"][definition_name] = {
+            "allOf": [{"$ref": "#/$defs/device_authorize_payload"}],
+            "x-arkret-signature-domain": domain,
+        }
+        schema_ref = f"schemas/event-payload.schema.json#/$defs/{definition_name}"
+        for row in proof["domain_separations"]:
+            if row.get("domain") == domain:
+                row["schema_ref"] = schema_ref
+                row["transcript_schema_refs"] = [schema_ref]
+    save(device_payload_path, device_payload)
+
+    pairing_path = SCHEMAS / "device-pairing.schema.json"
+    pairing = load(pairing_path)
+    pairing["$defs"]["device_pairing_target_proof"][
+        "x-arkret-signature-domain"
+    ] = "ak.device_authorize_accepted_device_possession_proof.v1"
+    save(pairing_path, pairing)
+
+    for row in proof["domain_separations"]:
+        if row.get("domain") == "ak.mimi_reporter_authority_proof.v1":
+            row["binding_fields"] = [
+                field
+                for field in row.get("binding_fields", [])
+                if field != "cbs_proof_bundles?"
+            ]
+    save(proof_path, proof)
+
+    pcr_path = ARTIFACT_REGISTRY / "pcr-exposure-registry.json"
+    pcr = load(pcr_path)
+    pcr["carrier_kinds"].pop("seal", None)
+    pcr["carrier_kinds"]["realm_commit"] = (
+        "The authority-signed RealmCommit that accepted the disclosed Event."
+    )
+    pcr["event_kinds"] = [
+        row for row in pcr.get("event_kinds", []) if row.get("event_kind") in active
+    ]
+    for event_kind in pcr.get("event_kinds", []):
+        for exposure in event_kind.get("exposures", []):
+            pointers = exposure.get("json_pointers", [])
+            if (
+                "/$defs/principal_resolution_audit_evidence/properties/accepted_seal"
+                in pointers
+            ):
+                exposure["carrier"] = "realm_commit"
+                exposure["json_pointers"] = [
+                    "/$defs/principal_resolution_audit_evidence/properties/accepted_commit"
+                ]
+    save(pcr_path, pcr)
+
+    keypackage_path = SCHEMAS / "keypackage-operations.schema.json"
+    keypackage = load(keypackage_path)
+    keypackage["$defs"].get("keypackages_claim_outcome", {}).pop(
+        "x-arkret-pcr-outward-event-kinds", None
+    )
+    save(keypackage_path, keypackage)
+
+    effect_path = ARTIFACT_REGISTRY / "registered-effect-capability-registry.json"
+    effect = load(effect_path)
+    effect["description"] = "Retired CBS/Cell reducer grammar inventory; authority execution uses typed reducers."
+    effect["capabilities"] = {key: [] for key in effect.get("capabilities", {})}
+    effect["canonical_projection_vectors"] = []
+    effect["evaluator_requirements"] = []
+    save(effect_path, effect)
+
+    classification_path = ARTIFACT_REGISTRY / "classification-field-registry.json"
+    classification = load(classification_path)
+    classification["external_type_fields"] = [
+        row
+        for row in classification.get("external_type_fields", [])
+        if "mls_proposal_payload" not in row.get("json_pointer", "")
+    ]
+    save(classification_path, classification)
+
+    forbidden_path = ARTIFACT_REGISTRY / "forbidden-wire-fields.json"
+    forbidden = load(forbidden_path)
+    retired_contexts = {
+        "mls_keypackage_payload",
+        "seal",
+        "snapshot.chunks[]",
+        "agent_authority_state_evidence",
+    }
+    for context in retired_contexts:
+        forbidden.get("context_definitions", {}).pop(context, None)
+    forbidden["entries"] = [
+        row
+        for row in forbidden.get("entries", [])
+        if row.get("context") not in retired_contexts
+    ]
+    save(forbidden_path, forbidden)
+
+    # The v1 migration table is an inventory of every canonical operation, not
+    # a compatibility alias table. Rebuild it after obsolete operations are
+    # removed and the authority discovery/handoff operations are added.
+    operation_ids = [
+        row["operation_id"]
+        for row in load(REGISTRY)["operation_registry"]["operations"]
+    ]
+    operation_migration_path = ROOT / "tools" / "operation-id-v1-migration.json"
+    operation_migration = load(operation_migration_path)
+    operation_migration["mappings"] = [
+        {"old": operation_id.removesuffix(".v1"), "new": operation_id}
+        for operation_id in sorted(operation_ids)
+    ]
+    save(operation_migration_path, operation_migration)
+
+    error_mapping_path = ARTIFACT_REGISTRY / "operations-error-mapping.json"
+    error_mapping = load(error_mapping_path)
+    error_rows = {
+        row["operation_id"]: row
+        for row in error_mapping.get("operations", [])
+        if row.get("operation_id") in operation_ids
+    }
+    authority_specific = {
+        "ak.self.events.command.submit.v1": [
+            "duplicate_conflict",
+            "failed_precondition",
+            "realm_frozen",
+            "quarantine",
+            "unknown_event_kind",
+        ],
+        "ak.peer.events.command.submit.v1": [
+            "dependency_missing",
+            "duplicate_conflict",
+            "failed_precondition",
+            "realm_frozen",
+            "quarantine",
+            "peer_stale",
+            "unknown_event_kind",
+        ],
+        "ak.open.realm_authority.read.bundle.v1": [],
+        "ak.peer.realm_authority.command.handoff.v1": ["failed_precondition"],
+    }
+    aliases = {
+        row["operation_id"]: row["http"]
+        for row in load(REGISTRY)["operation_registry"]["operations"]
+    }
+    for operation_id in operation_ids:
+        if operation_id not in error_rows:
+            error_rows[operation_id] = {
+                "operation_id": operation_id,
+                "http_alias": aliases[operation_id],
+                "operation_specific": authority_specific.get(operation_id, []),
+                "description": "No operation-specific error codes beyond the universal failure surface.",
+            }
+    for operation_id, codes in authority_specific.items():
+        if operation_id in error_rows:
+            error_rows[operation_id]["http_alias"] = aliases[operation_id]
+            error_rows[operation_id]["operation_specific"] = codes
+            error_rows[operation_id]["description"] = (
+                "Authority-commit operation. Current authorization and stream-head "
+                "checks are evaluated atomically by the current governance Station."
+            )
+    error_mapping["operations"] = [error_rows[key] for key in sorted(error_rows)]
+    save(error_mapping_path, error_mapping)
+
+
+def migrate_retired_lint_registries() -> None:
+    feature_path = ARTIFACT_REGISTRY / "feature-registry.json"
+    feature = load(feature_path)
+    feature["features"] = [
+        row
+        for row in feature.get("features", [])
+        if row.get("feature_id") != "ak.feature.history_key_recovery.v1"
+        and (
+            not isinstance(row.get("defined_in"), str)
+            or (ROOT / "spec/v1" / row["defined_in"]).exists()
+        )
+    ]
+    save(feature_path, feature)
+
+    exemptions_path = (
+        ARTIFACT_REGISTRY / "content-addressed-ref-digest-exemption-registry.json"
+    )
+    exemptions = load(exemptions_path)
+    exemptions["exemptions"] = [
+        row
+        for row in exemptions.get("exemptions", [])
+        if (ROOT / "spec/v1/artifacts" / row.get("subject", {}).get("schema_file", "")).exists()
+    ]
+    save(exemptions_path, exemptions)
+
+    removals_path = ARTIFACT_REGISTRY / "derived-wire-field-removal-lock.json"
+    removals = load(removals_path)
+    retained_removals = []
+    for row in removals.get("removals", []):
+        if row.get("lock_id") == (
+            "ak.lock.derived_wire_field_removal.mls_commit_payload_next_epoch.v1"
+        ):
+            continue
+        schema = row.get("schema")
+        path = row.get("path", "")
+        source = row.get("source", {})
+        if not isinstance(schema, str) or not schema_ref_resolves(f"{schema}#{path}"):
+            continue
+        source_schema = source.get("schema")
+        source_path = source.get("path", "")
+        if isinstance(source_schema, str) and not schema_ref_resolves(
+            f"{source_schema}#{source_path}"
+        ):
+            continue
+        retained_removals.append(row)
+    removals["removals"] = retained_removals
+    save(removals_path, removals)
+
+    fixture_exemptions_path = ROOT / "tools/fixture-typed-id-exemption-registry.json"
+    fixture_exemptions = load(fixture_exemptions_path)
+    fixture_exemptions["entries"] = [
+        row
+        for row in fixture_exemptions.get("entries", [])
+        if (
+            ROOT
+            / "spec/v1/artifacts/fixtures"
+            / str(row.get("pointer", "")).split("#", 1)[0]
+        ).exists()
+    ]
+    save(fixture_exemptions_path, fixture_exemptions)
+
+    collection_path = ROOT / "tools/collection-naming-registry.json"
+    collection = load(collection_path)
+    for key in ("exact_exceptions", "pagination_objects"):
+        collection[key] = [
+            row
+            for row in collection.get(key, [])
+            if schema_ref_resolves(
+                f"schemas/{row.get('file', '')}#{row.get('pointer', '')}"
+            )
+        ]
+    save(collection_path, collection)
+
+    schema_roots_path = ROOT / "tools/schema-root-registry.json"
+    schema_roots = load(schema_roots_path)
+    schema_roots["compatibility_review"]["schema_refs"] = [
+        ref
+        for ref in schema_roots["compatibility_review"].get("schema_refs", [])
+        if schema_ref_resolves(ref)
+        and ref
+        != "schemas/service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims"
+    ]
+    save(schema_roots_path, schema_roots)
+
+    clauses_path = ARTIFACT_REGISTRY / "operation-clause-registry.json"
+    clauses = load_old_decenter(
+        "spec/v1/artifacts/registry/operation-clause-registry.json"
+    )
+    for row in clauses.get("clauses", []):
+        row["source_refs"] = [
+            ref for ref in row.get("source_refs", []) if (ROOT / ref).exists()
+        ]
+        if row.get("clause_id") == "AK-OP-006":
+            row["required_evidence"] = ["authority_commit_fixture"]
+            authority_fixture = (
+                "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
+            )
+            if authority_fixture not in row["source_refs"]:
+                row["source_refs"].append(authority_fixture)
+    save(clauses_path, clauses)
+
+
+def migrate_openapi() -> None:
+    import yaml
+
+    path = ROOT / "spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml"
+    document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    document = rename_tree(
+        document,
+        {
+            "consent_cell_list": "consent_list",
+            "consent_cell_view": "consent_view",
+        },
+    )
+    public_self = document.get(
+        "x-arkret-high-security-session-authentication-policy", {}
+    ).get("unauthenticatedPublicProjectionOperations", [])
+    document["x-arkret-high-security-session-authentication-policy"][
+        "unauthenticatedPublicProjectionOperations"
+    ] = [
+        operation_id
+        for operation_id in public_self
+        if operation_id != "ak.self.events.read.describe.v1"
+    ]
+    operations = load(REGISTRY)["operation_registry"]["operations"]
+    by_base = {row["operation_id"].removesuffix(".v1"): row for row in operations}
+    paths = document["paths"]
+
+    # Preserve every still-registered binding verbatim.  The authority migration
+    # removes retired operations and replaces only the six log/authority routes;
+    # rebuilding unrelated operations from a generic template loses their path,
+    # query, security and success-shape contracts.
+    for route, item in list(paths.items()):
+        for method, operation in list(item.items()):
+            if method.startswith("x-") or not isinstance(operation, dict):
+                continue
+            operation_id = operation.get("operationId")
+            if not operation_id:
+                continue
+            registered = by_base.get(operation_id)
+            if registered is None or registered["http"] != f"{method.upper()} {route}":
+                del item[method]
+        if not any(not key.startswith("x-") for key in item):
+            del paths[route]
+
+    migrated_ids = {
+        "ak.self.events.command.submit.v1",
+        "ak.peer.events.command.submit.v1",
+        "ak.self.events.read.scan.v1",
+        "ak.peer.events.read.scan.v1",
+        "ak.open.realm_authority.read.bundle.v1",
+        "ak.peer.realm_authority.command.handoff.v1",
+    }
+    for row in operations:
+        operation_id = row["operation_id"]
+        if operation_id not in migrated_ids:
+            continue
+        base = operation_id.removesuffix(".v1")
+        method_name, route = row["http"].split(" ", 1)
+        method = method_name.lower()
+        current = {
+            "operationId": base,
+            "summary": row["notes"].split(".", 1)[0],
+            "description": row["notes"],
+            "parameters": [
+                {
+                    "name": "Arkret-Operation",
+                    "in": "header",
+                    "required": True,
+                    "description": "Exact versioned Arkret operation selector.",
+                    "schema": {"type": "string", "const": operation_id},
+                }
+            ],
+            "requestBody": {
+                "required": True,
+                "content": {
+                    "application/json": {
+                        "schema": {"$ref": "../" + row["request_schema_ref"]}
+                    }
+                },
+            },
+            "responses": {
+                "200": {
+                    "description": "Successful Arkret operation outcome.",
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "../" + row["response_schema_ref"]}
+                        }
+                    },
+                }
+            },
+        }
+        if operation_id.startswith("ak.self."):
+            current["security"] = [{"sessionGrantAuth": [], "dpopProof": []}]
+        elif operation_id.startswith("ak.peer."):
+            current["security"] = [{"serviceHttpMessageSignatures": []}]
+        else:
+            current["security"] = []
+        paths.setdefault(route, {})[method] = current
+
+    # Drop components that were reachable only from removed routes while keeping
+    # the exact transitive component closure of every surviving operation.
+    component_schemas = document.get("components", {}).get("schemas", {})
+    retained_components: set[str] = set()
+    pending_components = [
+        ref.removeprefix("#/components/schemas/").split("/", 1)[0]
+        for ref in refs_in(paths)
+        if ref.startswith("#/components/schemas/")
+    ]
+    while pending_components:
+        name = pending_components.pop()
+        if name in retained_components or name not in component_schemas:
+            continue
+        retained_components.add(name)
+        pending_components.extend(
+            ref.removeprefix("#/components/schemas/").split("/", 1)[0]
+            for ref in refs_in(component_schemas[name])
+                if ref.startswith("#/components/schemas/")
+        )
+    if "PsiPaddedProblem" in component_schemas:
+        retained_components.add("PsiPaddedProblem")
+    document["components"]["schemas"] = {
+        name: value
+        for name, value in component_schemas.items()
+        if name in retained_components
+    }
+    document["components"]["schemas"]["PsiPaddedProblem"] = {
+        "$ref": "../schemas/directory-operations.schema.json#/$defs/psi_padded_problem"
+    }
+    document["components"]["schemas"] = dict(
+        sorted(document["components"]["schemas"].items(), key=lambda item: item[0].casefold())
+    )
+    path.write_text(
+        yaml.safe_dump(document, allow_unicode=True, sort_keys=False, width=120),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def migrate_non_http_bindings() -> None:
+    import yaml
+
+    path = ROOT / "spec/v1/artifacts/bindings/non-http-bindings.yaml"
+    document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    operations = load(REGISTRY)["operation_registry"]["operations"]
+    known = {row["operation_id"] for row in operations}
+
+    def clean(value: object) -> object:
+        if isinstance(value, dict):
+            result = {}
+            for key, item in value.items():
+                if isinstance(item, str) and item.startswith("ak.") and item.endswith(".v1"):
+                    if item not in known:
+                        continue
+                cleaned = clean(item)
+                if cleaned not in ({}, []):
+                    result[key] = cleaned
+            return result
+        if isinstance(value, list):
+            return [
+                cleaned
+                for item in value
+                if (cleaned := clean(item)) not in ({}, [])
+            ]
+        return value
+
+    document = clean(document)
+    grpc_services = document.setdefault("grpc", {}).setdefault("services", {})
+    grpc_services.setdefault("OpenRealmAuthority", {})["Bundle"] = (
+        "ak.open.realm_authority.read.bundle.v1"
+    )
+    grpc_services.setdefault("PeerRealmAuthority", {})["Handoff"] = (
+        "ak.peer.realm_authority.command.handoff.v1"
+    )
+    path.write_text(
+        yaml.safe_dump(document, allow_unicode=True, sort_keys=False, width=120),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def migrate_service_http_prose() -> None:
+    path = ROOT / "spec/v1/zh/sync/service-http-binding.md"
+    text = path.read_text(encoding="utf-8")
+    text = text.replace("consent_cell_list", "consent_list")
+    text = text.replace("consent_cell_view", "consent_view")
+
+    old_heading = "#### 2.3.1 Wire-level JSON 示例"
+    new_heading = "#### 2.3.1 Authority-commit wire 边界"
+    start = text.index(old_heading if old_heading in text else new_heading)
+    end = text.index("### 2.4 字段级 Schema 索引")
+    replacement = """#### 2.3.1 Authority-commit wire 边界
+
+Producer Event、Station RealmCommit、stream scan、authority bundle 与 handoff 的完整 wire 示例统一由
+[`authority-commit-fixture.json`](../../artifacts/fixtures/authority-commit-fixture.json)承载。HTTP binding 不再
+复制 Event 示例，避免把 producer Event 与 Station 接纳回执混成一个对象。
+
+#### 2.3.2 治理提交与切换
+
+| Operation | HTTP | Request | Response | Authorization / durability |
+| --- | --- | --- | --- | --- |
+| `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | `schemas/authority-commit-operations.schema.json#/$defs/submit_request` | `schemas/authority-commit-operations.schema.json#/$defs/submit_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。认证 Account Station 只能转发原 Event；只有 verified current governance Station 可签发 Commit。 |
+| `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | `schemas/authority-commit-operations.schema.json#/$defs/submit_request` | `schemas/authority-commit-operations.schema.json#/$defs/submit_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。peer transport 身份必须与 forwarding Station 匹配；非 current authority 不得本地接纳。 |
+| `ak.self.events.read.scan.v1` | `POST /_arkret/self/streams/scan` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。一次只读一条获准 stream，并验证该 stream 的连续 predecessor。 |
+| `ak.peer.events.read.scan.v1` | `POST /_arkret/peer/streams/scan` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request` | `schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。federation peer 只能复制 visibility policy 允许的单一 stream。 |
+| `ak.open.realm_authority.read.bundle.v1` | `POST /_arkret/open/realm-authority/bundle` | `schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request` | `schemas/realm-authority-bundle.schema.json` | 请求 fresh nonce；公开响应只披露 Realm stream head 与公开 transition，不披露隐藏 stream。 |
+| `ak.peer.realm_authority.command.handoff.v1` | `POST /_arkret/peer/realm-authority/handoff` | `schemas/authority-commit-operations.schema.json#/$defs/handoff_request` | `schemas/realm-authority-handoff.schema.json` | old/new Station 双签；私下验证 snapshot 与完整 stream-head manifest 后才安装。 |
+
+"""
+    text = text[:start] + replacement + text[end:]
+
+    detail_header = "| `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |\n| --- | --- | --- | --- | --- |\n"
+    detail_rows = """| `ak.self.events.command.submit.v1` | `event: Event` | `expected_stream_head?: RealmCommitId`; `mls_commit_submission?` | `status`; `event_id`; `realm_commit?` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。 |
+| `ak.peer.events.command.submit.v1` | `event: Event`; peer authentication | `expected_stream_head?: RealmCommitId`; `mls_commit_submission?` | `status`; `event_id`; `realm_commit?` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome。 |
+| `ak.self.events.read.scan.v1` | `realm_id`; `stream_ref`; `after_position` | `limit?`; `cursor?` | `commits[]`; `next_cursor?`; `has_more` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。 |
+| `ak.peer.events.read.scan.v1` | `realm_id`; `stream_ref`; `after_position` | `limit?`; `cursor?` | `commits[]`; `next_cursor?`; `has_more` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request；response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome。 |
+| `ak.self.events.stream.subscribe.v1` | transport query selector | `after?`; `catchup?` | NDJSON frames | response_schema_ref=schemas/events-subscribe-frame.schema.json。订阅只作为获准 stream 的低延迟提示；缺口仍用逐 stream scan 修复。 |
+| `ak.open.realm_authority.read.bundle.v1` | `realm_id`; `nonce` | 无 | `RealmAuthorityBundle` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request；response_schema_ref=schemas/realm-authority-bundle.schema.json。 |
+| `ak.peer.realm_authority.command.handoff.v1` | `handoff`; `snapshot`; `final_stream_heads[]` | 无 | `RealmAuthorityHandoff` | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/handoff_request；response_schema_ref=schemas/realm-authority-handoff.schema.json。 |
+"""
+    if detail_rows.splitlines()[0] not in text:
+        text = text.replace(detail_header, detail_header + detail_rows, 1)
+
+    events_start = text.index("## 3. Events API")
+    identity_start = text.index("## 4. Identity API")
+    events_section = """## 3. Events API
+
+### 3.1 提交与接纳
+
+`POST /_arkret/self/events` 与 `POST /_arkret/peer/events` 接收 exact producer-signed Event。接收 Station 若非
+current governance Station，只能依据已验证的 nonce-bound authority bundle 转发。Current authority 在单一
+数据库事务中验证 Event ID、producer proof、current authorization、typed payload、业务前置条件和目标
+stream head，然后写入 Event、RealmCommit、typed current 与 outbox。
+
+Realm Event 进入 Realm stream；Circle Event 进入该 Circle stream；Sidecar Event 进入该 Sidecar stream。
+每条 stream 各自从 position 0 单调递增，并各自通过 `previous_commit_ref` 形成单链。不同 stream 的
+position、head、提交时刻均不可比较，不存在 Realm 总 Commit 链。
+
+客户端提交成功的唯一 durable 结果是完整 `RealmCommit`。`pending` 只表示转发尚未得到 authority 回执，
+不得用于更新共享 current。相同 Event 的 exact retry 返回既有 Commit；相同幂等键但不同 Event 必须冲突且
+零写入。
+
+### 3.2 MLS 提交
+
+共享 MLS Event 只保留 genesis 与 commit。Proposal 内联在 MLS Commit 中；Welcome 使用单独的
+producer-signed `MlsWelcomeDelivery` 点对点投递，不进入共享 stream。提交 MLS Commit 时 body 同时携带
+`MlsCommitSubmission`，current authority 原子验证上一 MLS commit Event、epoch、commit bytes、成员治理
+结果及 key-access revision，然后才为 Event 签发 RealmCommit。
+
+### 3.3 逐 stream 扫描
+
+`POST /_arkret/self/streams/scan` 与 peer 对应接口一次只能选择一条完整 `stream_ref`。结果按该 stream 的
+`stream_position` 升序返回 Commit 与 Event；第一页必须从请求的 `after_position + 1` 开始，后续每项的
+`previous_commit_ref` 必须等于前项 Commit ID。服务不得跨 stream 合页、补造全局 cursor 或按 Event
+`created_at` 重排。
+
+读权限在每页和每次续订时重新校验。调用方只能证明其获准读取的 stream 连续，不能从 Realm stream 的
+连续性推导未授权 Circle/Sidecar 的存在、缺失或活动。
+
+### 3.4 Authority discovery 与切换
+
+Directory、邀请人 Station 和缓存 locator 只是候选入口。调用方向候选发送 fresh nonce，并验证
+`ak.open.realm_authority.read.bundle.v1` 返回的 genesis、连续双签 handoff chain、current assertion、nonce、
+realm_id、generation 与 endpoint。只有该证明中的 current Station 可作为提交、snapshot 与 tail 来源。
+
+Planned handoff 先私下传送 snapshot、完整 stream-head manifest 与所有缺口，后由 old/new Station 对同一
+transition body 双签。公开 bundle 只披露 Realm stream head 与 private manifest digest。新 generation 在
+每条既有 stream 的第一笔 Commit 分别承接该 stream 的旧 head；不存在跨 stream 的共同 successor。
+
+### 3.5 错误原子性
+
+`not_current_authority` 应携可验证 authority-bundle hint；`stream_head_conflict` 携当前获准 head；proof、权限、
+MLS 或 reducer 失败返回封闭 reason code。任何失败都不得留下 Event-only、Commit-only、typed-current-only
+或 outbox-only 状态。
+
+"""
+    text = text[:events_start] + events_section + text[identity_start:]
+
+    authority_operation_tokens = (
+        "ak.self.events.command.submit.v1",
+        "ak.peer.events.command.submit.v1",
+        "ak.self.events.read.scan.v1",
+        "ak.peer.events.read.scan.v1",
+    )
+    retired_event_anchor_tokens = (
+        "#3311-actor_ids-selector-授权normative",
+        "#316-peer-federation-submissionnormative",
+        "#311-self-submit-admission-与持久化合同normative",
+        "#312-direct-conversation-founding-unit-原子性normative",
+        "#3122-membership-compensation-carriernormative",
+        "#313-重复提交与-digest-preimage-冲突normative",
+        "#314-ordinary-actor-chain-casnormative",
+        "#315-self-submit-status-判别normative",
+        "#317-realm-fanout-deliverynormative",
+    )
+    kept_lines = []
+    for line in text.splitlines():
+        stale_authority_row = (
+            any(token in line for token in authority_operation_tokens)
+            and line.startswith("|")
+            and "authority-commit-operations.schema.json" not in line
+        )
+        if stale_authority_row or any(
+            token in line for token in retired_event_anchor_tokens
+        ):
+            continue
+        kept_lines.append(line)
+    text = "\n".join(kept_lines) + "\n"
+
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def reconcile_authority_commit_residuals() -> None:
+    """Remove machine/prose references whose owning v1 surface was retired."""
+
+    device_path = SCHEMAS / "device-revocation-state.schema.json"
+    device = load(device_path)
+    receipt = device["$defs"]["device_revocation_gate_decision_receipt"]
+    receipt["description"] = (
+        "Origin-Station durable decision made under its local device lock. "
+        "Shared revocation becomes effective only through its authority-committed "
+        "Event; this internal receipt carries no Control Proposal or Seal witness."
+    )
+    receipt["properties"].pop("blocking_proposal_digest", None)
+    receipt["properties"]["accepted_commit_id"] = {
+        "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+        "description": "Present only when decision=revoked.",
+    }
+    receipt["allOf"] = [
+        receipt["allOf"][0],
+        {
+            "if": {
+                "properties": {"decision": {"const": "revoked"}},
+                "required": ["decision"],
+            },
+            "then": {"required": ["accepted_commit_id"]},
+            "else": {"not": {"required": ["accepted_commit_id"]}},
+        },
+    ]
+    save(device_path, device)
+
+    recovery_path = SCHEMAS / "recovery-authority.schema.json"
+    recovery = load(recovery_path)
+    signature = recovery["$defs"]["recovery_completion_attestation"]["properties"][
+        "auth_data"
+    ]["properties"]["signature"]
+    signature["description"] = (
+        "Base64URL signature over the closed completion projection, including "
+        "device_authorization_event_id and reanchor_commit_id."
+    )
+    save(recovery_path, recovery)
+
+    dto_path = SCHEMAS / "service-operation-dtos.schema.json"
+    dto = load(dto_path)
+    query = dto["$defs"].get("EventsQueryPostRequestBody")
+    if query:
+        query["properties"]["actor_ids"]["items"] = {
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        }
+    save(dto_path, dto)
+
+    freshness_path = ARTIFACT_REGISTRY / "did-freshness-profile-registry.json"
+    freshness = load(freshness_path)
+    freshness["call_sites"] = [
+        row
+        for row in freshness.get("call_sites", [])
+        if row.get("site_id")
+        != "ak.gate.account.command.issue_controller_gate_attestation.v1"
+    ]
+    save(freshness_path, freshness)
+
+    did_allowlist_path = ROOT / "tools/did-boundary-allowlist.json"
+    did_allowlist = load_old_decenter("tools/did-boundary-allowlist.json")
+    retired_did_pointers = {
+        "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did/oneOf/0/$ref",
+        "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did/oneOf/1/$ref",
+        "offline-publication.schema.json#/$defs/ingress_receipt/properties/qualified_ingress_did/$ref",
+    }
+    did_allowlist["entries"] = [
+        row
+        for row in did_allowlist.get("entries", [])
+        if not isinstance(row, dict) or row.get("pointer") not in retired_did_pointers
+    ]
+    save(did_allowlist_path, did_allowlist)
+
+    history_release_path = ARTIFACT_REGISTRY / "history-release-attestation-registry.json"
+    if history_release_path.exists():
+        history_release = load(history_release_path)
+        history_release = {
+            "version": "2026-09-16.1",
+            "source_of_truth": True,
+            "status": "retired",
+            "description": "Retired: v1 authority-commit core does not distribute history keys.",
+        }
+        save(history_release_path, history_release)
+
+    hpke_path = ARTIFACT_REGISTRY / "hpke-suite-registry.json"
+    hpke = load(hpke_path)
+    hpke["surface_profiles"] = [
+        row
+        for row in hpke.get("surface_profiles", [])
+        if not str(row.get("plaintext_schema_ref", "")).startswith(
+            "schemas/history-key.schema.json"
+        )
+    ]
+    for row in hpke.get("suites", []):
+        row["source_refs"] = [
+            ref for ref in row.get("source_refs", []) if "history-key.schema.json" not in ref
+        ]
+    save(hpke_path, hpke)
+
+    profiles_path = ROOT / "spec/v1/artifacts/profiles/conformance-profiles.json"
+    profiles = load(profiles_path)
+    for profile in profiles.get("profile_requirements", {}).values():
+        if not isinstance(profile, dict):
+            continue
+        for block_name in ("conditional_requirements", "additional_requirements"):
+            block = profile.get(block_name)
+            if isinstance(block, dict):
+                profile[block_name] = {
+                    key: value
+                    for key, value in block.items()
+                    if "history_key_recovery" not in key
+                    and "history_key_recovery" not in str(value)
+                }
+    save(profiles_path, profiles)
+
+    discovery_path = ROOT / "spec/v1/artifacts/fixtures/discovery-profile-fixture.json"
+    discovery = load(discovery_path)
+    for case in discovery.get("cases", []):
+        if not isinstance(case, dict):
+            continue
+        input_value = case.get("input")
+        if isinstance(input_value, dict) and input_value.get("optional_feature") == (
+            "ak.feature.example.unknown.v1"
+        ):
+            input_value["optional_feature"] = "example.future_optional"
+    save(discovery_path, discovery)
+
+    key_backup_path = ROOT / "spec/v1/artifacts/fixtures/key-backup-fixture.json"
+    key_backup = load(key_backup_path)
+    removed_key_backup_cases = {
+        "key_backup_mls_history_envelope_actor_id_valid",
+        "key_backup_envelope_bare_actor_id_rejected",
+        "key_backup_envelope_supersedes_alias_rejected",
+    }
+    key_backup["schema_validation_cases"] = [
+        row
+        for row in key_backup.get("schema_validation_cases", [])
+        if row.get("name") not in removed_key_backup_cases
+    ]
+    for row in key_backup["schema_validation_cases"]:
+        if row.get("name") in {
+            "key_backup_frontier_integer_generation_valid",
+            "key_backup_frontier_compound_string_generation_rejected",
+        }:
+            instance = row.get("instance", {})
+            instance.pop("frontier_digest", None)
+            instance["realm_commit_id"] = (
+                "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            )
+            if row.get("expect_valid") is False:
+                row["first_expected_error"] = (
+                    "$.device_generation_ref: '7-did-version' is not of type 'integer'"
+                )
+    save(key_backup_path, key_backup)
+
+    key_backup_schema_path = SCHEMAS / "key-backup.schema.json"
+    key_backup_schema = load(key_backup_schema_path)
+    key_backup_schema["properties"]["backup_kind"]["enum"] = ["secret_storage"]
+    key_backup_schema["allOf"] = [
+        row
+        for row in key_backup_schema.get("allOf", [])
+        if "mls_history" not in json.dumps(row, ensure_ascii=False)
+        and "history_secret_ranges" not in json.dumps(row, ensure_ascii=False)
+    ]
+    save(key_backup_schema_path, key_backup_schema)
+
+    producer_fixture_path = (
+        ROOT / "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json"
+    )
+    producer_fixture = load(producer_fixture_path)
+    producer_fixture["driver"]["selected_id_kinds"] = sorted(
+        row["kind"]
+        for row in load(REGISTRY)["id_kind_registry"]["id_kinds"]
+        if row.get("id_form") == "producer_allocated"
+        and row.get("identity_authority") == "producer_signature"
+    )
+    save(producer_fixture_path, producer_fixture)
+
+    collection_path = ROOT / "tools/collection-naming-registry.json"
+    collection = load(collection_path)
+    collection["pagination_objects"] = [
+        row
+        for row in collection.get("pagination_objects", [])
+        if not (
+            row.get("file") == "realm-join-intake.schema.json"
+            and row.get("pointer") == "/$defs/peer_bootstrap_outcome"
+        )
+    ]
+    for row in collection.get("pagination_objects", []):
+        if row.get("file") == "account-subscribe-frame.schema.json" and row.get(
+            "pointer"
+        ) == "/$defs/timeline":
+            row["collection_field"] = "commits"
+            row["reason"] = "timeline.limited reports truncation of authority commits"
+    save(collection_path, collection)
+
+    common_fields_path = ROOT / "spec/v1/zh/models/common-fields.md"
+    common_fields = common_fields_path.read_text(encoding="utf-8")
+    common_fields = "\n".join(
+        line
+        for line in common_fields.splitlines()
+        if "已退役的 MLS 本地诊断" not in line
+    ) + "\n"
+    common_fields_path.write_text(common_fields, encoding="utf-8", newline="\n")
+
+    evidence_path = ROOT / "tools/evidence-material-audit.json"
+    evidence = load(evidence_path)
+
+    def count_key(value: object, target: str) -> int:
+        if isinstance(value, dict):
+            return sum((1 if key == target else 0) + count_key(item, target) for key, item in value.items())
+        if isinstance(value, list):
+            return sum(count_key(item, target) for item in value)
+        return 0
+
+    retained_evidence = []
+    for row in evidence.get("registrations", []):
+        file_name = row.get("file")
+        key = row.get("key")
+        if not isinstance(file_name, str) or not isinstance(key, str):
+            continue
+        candidates = [SCHEMAS / file_name, ARTIFACT_REGISTRY / file_name]
+        target = next((candidate for candidate in candidates if candidate.exists()), None)
+        if target is None:
+            continue
+        occurrences = count_key(load(target), key)
+        if occurrences == 0:
+            continue
+        row["occurrences"] = occurrences
+        retained_evidence.append(row)
+    evidence["registrations"] = retained_evidence
+    evidence["audited_occurrence_count"] = sum(
+        row["occurrences"] for row in retained_evidence
+    )
+    save(evidence_path, evidence)
+
+    classification_path = ROOT / "tools/identifier-classification-registry.json"
+    classification = load(classification_path)
+    stale_classifications = {
+        ("admission_id", '[["pattern", "^(?!ak:)"], ["type", "\\"string\\""]]'),
+        ("agent_transition_event_ids", "[]"),
+        ("authorization_rule_id", '[["pattern", "^[a-z][a-z0-9_]{0,63}$"]]'),
+        ("backup_origin_id", '[["pattern", "^backup:(?:ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|sha256:[0-9a-f]{64})$"]]'),
+        ("cell_id", '[["const", "ak:cell:ak.component.identity.resolution.v1:null"]]'),
+        ("id", '[["pattern", "^(cx|[a-z0-9][a-z0-9-]*(\\\\.[a-z0-9][a-z0-9-]*)+)\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*\\\\.v[0-9]+$"]]'),
+        ("id", '[["type", "\\"string\\""]]'),
+        ("log_id", '[["pattern", "^(?!ak:)"]]'),
+        ("membership_cell_id", '[["pattern", "^(?!ak:)"], ["type", "\\"string\\""]]'),
+        ("missing_event_ids", "[]"),
+        ("target_id", '[["pattern", "^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$"]]'),
+        ("transition_key_id", '[["pattern", "^(?!ak:)"]]'),
+    }
+    classification["classifications"] = [
+        row
+        for row in classification.get("classifications", [])
+        if (row.get("name"), row.get("terminal_signature")) not in stale_classifications
+    ]
+    count_updates = {
+        ("agent_key_authorize_event_id", 2): 1,
+        ("claim_id", 8): 4,
+        ("device_authorize_event_id", 2): 1,
+        ("mls_group_id", 5): 4,
+        ("mls_group_id", 11): 10,
+        ("mls_group_id", 17): 4,
+    }
+    for row in classification["classifications"]:
+        key = (row.get("name"), row.get("occurrences"))
+        if key in count_updates:
+            row["occurrences"] = count_updates[key]
+        if row.get("name") == "secret_id" and row.get("terminal_signature") == (
+            '[["pattern", "^[A-Za-z0-9_.-]+$"]]'
+        ):
+            row["occurrences"] = 1
+        if row.get("name") == "secret_id" and row.get("terminal_signature") == (
+            '[["pattern", "^[a-z0-9_]+$"]]'
+        ):
+            row["occurrences"] = 2
+        if row.get("name") == "contact_round_id" and row.get("terminal_signature") == (
+            '[["pattern", "^(sha256|blake3):[0-9a-f]{64}$"]]'
+        ):
+            row["occurrences"] = 2
+        if row.get("name") == "context_id":
+            row["occurrences"] = 1
+    classification["type_derived_summary"] = {
+        "typed_object_id": 874,
+        "responsibility_identity_material": 549,
+        "registry_catalog_symbol": 14,
+    }
+    save(classification_path, classification)
+
+    role_path = ROOT / "tools/identifier-role-suffix-registry.json"
+    roles = load(role_path)
+    roles["multi_representation_field_contracts"] = [
+        row
+        for row in roles.get("multi_representation_field_contracts", [])
+        if row.get("field") not in {"signer_id", "value"}
+    ]
+    roles["responsibility_field_contracts"] = [
+        row
+        for row in roles.get("responsibility_field_contracts", [])
+        if row.get("field") not in {"holder_service_id", "method_controller_principal_id"}
+    ]
+    roles["registered_network_locator_fields"] = [
+        row
+        for row in roles.get("registered_network_locator_fields", [])
+        if row.get("field") != "inclusion_proof_url"
+    ]
+    roles["exact_exceptions"] = [
+        row
+        for row in roles.get("exact_exceptions", [])
+        if isinstance(row.get("file"), str)
+        and isinstance(row.get("pointer"), str)
+        and schema_ref_resolves(f"schemas/{row['file']}#{row['pointer']}")
+    ]
+    save(role_path, roles)
+
+    prose_fields_path = ROOT / "tools/prose-field-table-registry.json"
+    prose_fields = load(prose_fields_path)
+    retained_bindings = []
+    for row in prose_fields.get("bindings", []):
+        schema_ref = row.get("schema_ref")
+        if schema_ref == "cursor.schema.json#":
+            continue
+        if not isinstance(schema_ref, str) or not schema_ref_resolves(
+            "schemas/" + schema_ref
+        ):
+            continue
+        if schema_ref == "event-envelope.schema.json#":
+            row["external_field_mentions"] = [
+                value
+                for value in row.get("external_field_mentions", [])
+                if value not in {"authorized_by", "inclusion_proof"}
+            ]
+        retained_bindings.append(row)
+    prose_fields["bindings"] = retained_bindings
+    save(prose_fields_path, prose_fields)
+
+    naming_matrix_path = ROOT / "tools/naming-rule-coverage-matrix.json"
+    naming_matrix = load(naming_matrix_path)
+    for row in naming_matrix.get("rules", []):
+        if row.get("rule_id") != "NC-LIFECYCLE-001":
+            continue
+        row["entry_points"] = [
+            entry
+            for entry in row.get("entry_points", [])
+            if entry != "state_contract_closure"
+        ]
+        enforced_by = row.get("enforced_by", {})
+        enforced_by["functions"] = [
+            function
+            for function in enforced_by.get("functions", [])
+            if function != "foundation.py:check_state_contract_closure"
+        ]
+        row["residual_gap"] = (
+            "Lifecycle naming remains a semantic review rule; the old Cell state "
+            "contract closure was retired by the authority-commit clean break."
+        )
+    save(naming_matrix_path, naming_matrix)
+
+    device_lifecycle_path = ROOT / "spec/v1/zh/crypto-media/device-lifecycle.md"
+    device_lifecycle = device_lifecycle_path.read_text(encoding="utf-8")
+    device_lifecycle = re.sub(
+        r"## 12\. Key Backup\n.*?(?=## 14\. PCR-Policy Device Recovery)",
+        """## 12. Key Backup
+
+v1 authority-commit core只保留 `backup_kind=secret_storage` 的端到端加密备份。治理 Station 可以保存密文、版本链和当前 Realm stream 的 `realm_commit_id` 锚点，但不能解密、补发或据此取得 MLS 成员资格。旧 `mls_history` range、HistoryKey request/response 和 release-service 协议已退役；重新加入 MLS group 必须由当前治理 Station 接受成员 Event 与 `mls_commit_submission`，再通过单独的 `MlsWelcomeDelivery` 私密投递 Welcome。
+
+### 12.1 Backup API
+
+备份上传、读取和删除仍使用 `ak.schema.key_backup.v1`。每个 successor 必须链接同一 series 的直接 predecessor；客户端验证密文摘要、设备签名以及可选 `frontier_ref.realm_commit_id`，但该锚点只证明备份产生时观察到的 Realm stream 位置，不证明任何 Circle 或 Sidecar stream 的位置。
+
+### 12.2 Retention and Erasure
+
+服务端按账户保留策略删除密文；删除备份不删除 RealmCommit 或 Event。客户端不得把服务端持有密文解释为服务端持有解密能力。
+
+## 13. Retired History-Key Distribution
+
+旧的 private HistoryKey request/manifest/chunk/response-stream 与跨成员历史密钥释放协议不再属于 v1。治理 Station 只下发调用者当前可见的各条独立 Commit stream；MLS 历史可解密范围完全由客户端实际持有的 MLS/exporter secret 决定。
+
+""",
+        device_lifecycle,
+        flags=re.DOTALL,
+    )
+    device_lifecycle_path.write_text(
+        device_lifecycle, encoding="utf-8", newline="\n"
+    )
+
+    for fixture_name in ("scalability-limits-fixture.json",):
+        fixture_path = ROOT / "spec/v1/artifacts/fixtures" / fixture_name
+        fixture = load(fixture_path)
+        known_operations = {
+            row["operation_id"]
+            for row in load(REGISTRY)["operation_registry"]["operations"]
+        }
+        fixture["cases"] = [
+            row
+            for row in fixture.get("cases", [])
+            if not isinstance(row, dict)
+            or not isinstance(row.get("input"), dict)
+            or not isinstance(row["input"].get("generator"), dict)
+            or row["input"]["generator"].get("operation_id") in known_operations
+        ]
+        save(fixture_path, fixture)
+
+    event_doc = ROOT / "spec/v1/zh/models/event-and-patch.md"
+    text = event_doc.read_text(encoding="utf-8")
+    if "#### 4.2.4" not in text:
+        text += """
+
+#### 4.2.4 Redactable content slots (normative)
+
+- Message: `content`、`encrypted_content`
+- Strand: `content`、`encrypted_content`、`tracks.synthesis.content`、`tracks.synthesis.encrypted_content`
+- Morph: `content`、`encrypted_content`
+
+普通更新只能用 `set` 写入空内容；清除这些 slot 必须走登记的 terminal redaction Event。
+
+#### 4.2.5 Typed-reducer managed paths (normative)
+
+Generic patch path MUST NOT 操作 reducer-managed 字段：`id`、`schema`、`realm_id`、`created_by`、`created_at`、`updated_by`、`updated_at`、`state`、`state_changed_at`（完整的按对象封闭集由 `registry/reducer-managed-path-registry.json` 给出）。这些是 typed reducer 的固定输出，不是 Cell 投影。
+"""
+        event_doc.write_text(text, encoding="utf-8", newline="\n")
+
+    for prose_path in (ROOT / "spec/v1/zh").rglob("*.md"):
+        prose = prose_path.read_text(encoding="utf-8")
+        prose = prose.replace(
+            "ak.feature.example.unknown.v1", "ak.feature.detached_jws.v1"
+        )
+        prose = prose.replace(
+            "ak.feature.history_key_recovery.v1", "retired.history_key_recovery"
+        )
+        prose = prose.replace("`ak.mls.commit_failed`", "`ak.mls.commit` 的本地失败诊断")
+        prose = prose.replace("ak:seal:", "ak:realm_commit:")
+        prose = prose.replace("ak:cell:", "state-slot:")
+        prose = prose.replace("ak:history_request:", "history-request:")
+        prose = prose.replace("ak:history_response:", "history-response:")
+        prose = prose.replace(
+            "ak.schema.realm_state_snapshot_chunk.v1", "ak.schema.realm_state_snapshot.v1"
+        )
+        prose = prose.replace(
+            "ak.schema.agent_signer_evidence.v1", "ak.schema.detached_object_signature.v1"
+        )
+        prose = prose.replace(
+            "ak.schema.collision_variant_record.v1", "ak.schema.realm_commit.v1"
+        )
+        for retired_target in (
+            "../../artifacts/fixtures/capability-fixture.json",
+            "../../artifacts/schemas/seal-conclusion.schema.json",
+            "../../artifacts/schemas/control-proposal-decision.schema.json",
+            "../../artifacts/schemas/history-key.schema.json",
+            "../../artifacts/fixtures/direct-conversation-fixture.json",
+            "../../artifacts/fixtures/reaction-fixture.json",
+            "../../artifacts/schemas/seal.schema.json",
+            "../../artifacts/schemas/availability-receipt.schema.json",
+            "../../artifacts/schemas/bottom.schema.json",
+        ):
+            prose = prose.replace(retired_target, "../sync/authority-commit-log.md")
+        prose_path.write_text(prose, encoding="utf-8", newline="\n")
+
+
+def main() -> None:
+    migrate_registry()
+    migrate_event_envelope()
+    migrate_realm_genesis()
+    migrate_event_payload()
+    migrate_security_transaction_commit_terms()
+    strip_retired_schema_references()
+    prune_event_payload_definitions()
+    remove_retired_common_ids()
+    prune_service_operation_dtos()
+    migrate_auxiliary_registries()
+    migrate_retired_lint_registries()
+    migrate_openapi()
+    migrate_non_http_bindings()
+    migrate_service_http_prose()
+    reconcile_authority_commit_residuals()
+
+
+if __name__ == "__main__":
+    main()

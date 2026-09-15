@@ -8,7 +8,7 @@
     "realm_id",
     "scope_ref",
     "sender_actor_id",
-    "seal_ref",
+    "authority_commit_id",
     "signal_class",
     "sent_at",
     "expires_at",
@@ -29,9 +29,8 @@
       "$ref": "./common-ids.schema.json#/$defs/device_id",
       "description": "Closed sender discriminator: required exactly for an ordinary account-device sender and absent exactly for an Agent sender. null and sentinels are forbidden. Absence only selects the candidate Agent branch; source and recipient still verify accepted Agent classification and current runtime authority."
     },
-    "seal_ref": {
-      "type": "string",
-      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+    "authority_commit_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
     },
     "signal_class": {
       "type": "string",

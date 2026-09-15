@@ -497,65 +497,17 @@
       ],
       "additionalProperties": true
     },
-    "ordered_log_sibling_diagnostic": {
-      "type": "object",
-      "description": "User-visible diagnostic for multiple accepted ordered-log siblings at one actor_seq. Every listed sibling remains in timeline.events and the joined state leaf; none is a winner or loser.",
-      "required": [
-        "cell_id",
-        "issuer_id",
-        "issuer_seq",
-        "reason",
-        "event_ids",
-        "event_digests"
-      ],
-      "properties": {
-        "cell_id": {
-          "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
-        },
-        "issuer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "issuer_seq": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "reason": {
-          "const": "actor_seq_siblings"
-        },
-        "event_ids": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          }
-        },
-        "event_digests": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^[a-z0-9_]+:[0-9a-f]+$"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
     "timeline": {
       "type": "object",
       "required": [
-        "events",
+        "commits",
         "limited"
       ],
       "properties": {
-        "events": {
+        "commits": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_item"
           },
           "maxItems": 100
         },
@@ -570,13 +522,6 @@
         "preview_only": {
           "type": "boolean",
           "description": "Fallback path of client-sync.md §5.2: when timeline.limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events as preview only. Window-level: repeated identically in every segment of a frozen baseline window; the server must not switch between the two §5.2 paths because one segment ran out of budget."
-        },
-        "ordered_log_siblings": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/ordered_log_sibling_diagnostic"
-          },
-          "description": "Accepted ordered-log sibling groups affecting this timeline window. Clients render every event normally and MAY group them in conflict/audit UI; no event may be hidden as a loser."
         }
       },
       "additionalProperties": true
@@ -669,35 +614,6 @@
             "additionalProperties": false
           }
         },
-        "bottoms": {
-          "type": "array",
-          "description": "Non-authoritative diagnostics for unresolved ordinary projections. Safety state is never a joined competing value. See zh/sync/service-surface.md §5.3.",
-          "items": {
-            "type": "object",
-            "required": [
-              "cell_id",
-              "status",
-              "bottom"
-            ],
-            "properties": {
-              "cell_id": {
-                "type": "string",
-                "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
-              },
-              "status": {
-                "type": "string",
-                "enum": [
-                  "bottom",
-                  "conflict"
-                ]
-              },
-              "bottom": {
-                "$ref": "./bottom.schema.json"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
         "baseline": {
           "$ref": "#/$defs/realm_detail_baseline"
         },
@@ -774,11 +690,6 @@
                 {
                   "required": [
                     "event_states"
-                  ]
-                },
-                {
-                  "required": [
-                    "bottoms"
                   ]
                 },
                 {

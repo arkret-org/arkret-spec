@@ -1,182 +1,73 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-state-snapshot.schema.json",
-  "$defs": {
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "realm_state_snapshot_witness_attestation": {
-      "type": "object",
-      "x-arkret-proof-context": "ak.realm_state_snapshot_witness_attestation_proof.v1",
-      "description": "One witness statement that the snapshot issuer held snapshot-sealing authority for this exact reduced state at manifest created_at. It is a distinct object family from the manifest itself: the witness signs the canonical SnapshotWitnessAttestation projection of realm-state-snapshot-schema.md section 5.1 under context ak.realm_state_snapshot_witness_attestation_proof.v1, which binds the snapshot identity, state, frontier, event-set commitment and authority state but excludes every signature and proof field, so a witness never signs a transcript containing its own or another witness's signature. The manifest-level ak.realm_state_snapshot_proof.v1 context MUST NOT be reused here.",
-      "required": [
-        "witness_id",
-        "proof"
-      ],
-      "properties": {
-        "witness_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Stable did_core_id of the witness. The proof verification_method stays a DID URL whose bare controller did is validated and projected to this value by the registered method adapter; direct DID/core-id string comparison is forbidden. Quorum counting is per witness_id, so several keys of one witness count once."
-        },
-        "proof": {
-          "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "description": "Detached proof whose payload_digest is the SHA-256 typed digest of the JCS canonical SnapshotWitnessAttestation projection (realm-state-snapshot-schema.md section 5.1). Verifiers MUST recompute the projection from the manifest and this row's witness_id and MUST reject any other transcript. The exact eligibility_context is included, so a proof cannot be reused across different authority, closure or reducer-contract contexts.",
-          "x-canonical-bytes-include": [
-            "context",
-            "witness_id",
-            "realm_state_snapshot_id",
-            "realm_id",
-            "reducer_profile",
-            "schema_profile_refs",
-            "security_class",
-            "state_digest",
-            "frontier",
-            "event_set_commitment",
-            "issuer",
-            "authority_kind",
-            "auth_state_digest",
-            "auth_frontier",
-            "realm_state_snapshot_created_at",
-            "eligibility_context"
-          ],
-          "x-canonical-bytes-exclude": [
-            "signature",
-            "witness_attestations",
-            "verification_hints",
-            "chunks",
-            "created_by",
-            "checked_at"
-          ]
-        }
-      },
-      "additionalProperties": false
-    }
-  },
-  "title": "Arkret Snapshot Manifest",
-  "x-arkret-proof-context": "ak.realm_state_snapshot_proof.v1",
+  "title": "Arkret Realm Snapshot",
+  "description": "Authority-signed typed materialization for current bootstrap. It includes only requester-visible streams and is followed by each stream's commit tail; it is not a Cell tree, replay container or independent omission proof.",
   "type": "object",
   "required": [
-    "id",
+    "snapshot_id",
     "realm_id",
-    "reducer_profile",
-    "security_class",
-    "schema_profile_refs",
-    "state_digest",
-    "frontier",
-    "event_set_commitment",
-    "chunks",
-    "created_by",
+    "authority_generation",
+    "visible_stream_heads",
+    "current_state_entries",
+    "retention_and_history_floor",
     "created_at",
-    "authority_binding",
-    "signature",
-    "eligibility_context"
+    "signature"
   ],
   "properties": {
-    "id": {
-      "type": "string",
-      "pattern": "^ak:realm_state_snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    "snapshot_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_snapshot_id"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "reducer_profile": {
-      "type": "string",
-      "pattern": "^ak\\.reducer(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+    "authority_generation": {
+      "type": "integer",
+      "minimum": 0
     },
-    "security_class": {
-      "type": "string",
-      "enum": [
-        "standard",
-        "high_assurance"
-      ],
-      "default": "standard",
-      "description": "Snapshot verification class. high_assurance requires verification_hints with inclusion challenge and non-accepted-input digests."
+    "visible_stream_heads": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+      }
     },
-    "schema_profile_refs": {
+    "current_state_entries": {
       "type": "array",
       "items": {
-        "type": "string",
-        "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
-      },
-      "minItems": 1,
-      "uniqueItems": true
+        "$ref": "./typed-current-result.schema.json"
+      }
     },
-    "state_digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-      "description": "RFC 6962 domain-separated Merkle root of the complete registered Realm-scope Cell states in the snapshot chunks. Each leaf is H(0x00 || JCS({cell:item.id,state_model:item.state_model,state:item.state})); internal nodes are H(0x01||left||right), odd tails are promoted, and leaves are ordered by CellRef Unicode code point. H is the authenticated Realm digest suite. Snapshot leaves include the fixed state_model, full causal coverage and deterministic winner rank, tombstones, log entries or safety revision as applicable; they are distinct from Seal security-only state_root leaves and its separate data-event identity root. The manifest signature binds reducer_profile, schema_profile_refs and eligibility_context. A verifier resolves original replay evidence, recomputes eligibility at that exact context, and reproduces both state_digest and event_set_commitment. Neither commitment alone proves the snapshot correct."
-    },
-    "frontier": {
+    "retention_and_history_floor": {
       "type": "object",
-      "$comment": "This is a true frontier (boundary head event ids of the snapshot), not a cumulative covered-set enumeration. Seal coverage is recursive via predecessor_ref + delta.",
       "required": [
-        "event_ids",
-        "timeline_hlc"
+        "history_access",
+        "stream_floors"
       ],
       "properties": {
-        "event_ids": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          }
-        },
-        "timeline_hlc": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
-        }
-      },
-      "additionalProperties": true
-    },
-    "event_set_commitment": {
-      "type": "object",
-      "description": "Commitment to the set of events whose replay produces state_digest. merkle_event_set_v1 uses the same RFC 6962 domain-separated family as state_digest and Seal roots: leaf=H(0x00||leaf_data), node=H(0x01||left||right), odd tail promoted. Algorithm + root + covered_event_count name the canonical reduction; actor_seq_ranges may further bind per-actor sequences. Boundary Event IDs are carried once by top-level frontier.event_ids.",
-      "required": [
-        "algorithm",
-        "root",
-        "covered_event_count"
-      ],
-      "properties": {
-        "algorithm": {
-          "type": "string",
+        "history_access": {
           "enum": [
-            "ordered_event_id_sha256_v1",
-            "merkle_event_set_v1"
+            "since_join",
+            "all_history_for_current_members"
           ]
         },
-        "root": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "covered_event_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "actor_seq_ranges": {
+        "stream_floors": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
             "type": "object",
             "required": [
-              "actor_id",
-              "from_seq",
-              "to_seq",
-              "root"
+              "stream_ref",
+              "oldest_position"
             ],
             "properties": {
-              "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              "stream_ref": {
+                "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
               },
-              "from_seq": {
+              "oldest_position": {
                 "type": "integer",
                 "minimum": 0
-              },
-              "to_seq": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "root": {
-                "type": "string",
-                "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
               }
             },
             "additionalProperties": false
@@ -185,237 +76,12 @@
       },
       "additionalProperties": false
     },
-    "verification_hints": {
-      "type": "object",
-      "required": [
-        "verification_profile"
-      ],
-      "properties": {
-        "verification_profile": {
-          "type": "string",
-          "enum": [
-            "standard",
-            "high_assurance"
-          ]
-        },
-        "inclusion_proof_url": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://"
-        },
-        "challenge_window_seconds": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "conflict_records_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "soft_failed_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "quarantined_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
-        },
-        "erasure_stubs_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Digest of the erasure_stubs[] rows concatenated across chunk payloads in ascending chunk index order (realm-state-snapshot-schema.md section 3). MUST be present when any chunk carries an erasure stub; erased cells are not state_digest leaves, so this is their only commitment."
-        }
-      },
-      "additionalProperties": true
-    },
-    "chunks": {
-      "type": "array",
-      "description": "Content-addressed descriptors of the chunk payloads. Each chunk_ref resolves to the canonical JSON bytes of one ak.schema.realm_state_snapshot_chunk.v1 payload (realm-state-snapshot-chunk.schema.json); the descriptor carries no sibling digest.",
-      "items": {
-        "type": "object",
-        "required": [
-          "chunk_ref",
-          "size_bytes"
-        ],
-        "properties": {
-          "chunk_ref": {
-            "$ref": "./common-ids.schema.json#/$defs/blob_ref"
-          },
-          "size_bytes": {
-            "type": "integer",
-            "minimum": 0
-          }
-        },
-        "additionalProperties": false
-      },
-      "minItems": 1
-    },
-    "created_by": {
-      "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Complete ActorId of the snapshot issuer (account, service, Realm notary, or federation witness). The signature transcript binds this identity; its DID URL verification_method is independently validated against the selected ActorId branch."
-    },
     "created_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Issuer-local timestamp when the snapshot manifest was sealed. RFC 3339 UTC, MUST end with 'Z'. Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
-    },
-    "authority_binding": {
-      "type": "object",
-      "description": "Evidence that created_by was authorized to seal this snapshot at created_at. Verifiers MUST reject the snapshot when this binding cannot be checked against Realm policy / witness quorum at or before created_at. authority_kind=witness_quorum additionally requires the typed witness_attestations list below; there is no untyped alternative carrier.",
-      "required": [
-        "authority_kind",
-        "auth_state_digest",
-        "auth_frontier",
-        "checked_at"
-      ],
-      "properties": {
-        "authority_kind": {
-          "type": "string",
-          "enum": [
-            "realm_owner",
-            "realm_policy_state_snapshot_issuer",
-            "witness_quorum"
-          ]
-        },
-        "auth_state_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Hash of the authorization state used to verify snapshot issuer authority."
-        },
-        "auth_frontier": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Realm auth/policy frontier proving the signer authority at created_at."
-        },
-        "checked_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "witness_attestations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/realm_state_snapshot_witness_attestation"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Typed witness quorum evidence. Rows MUST be sorted by witness_id in UTF-8 byte order and witness_id MUST be unique across rows. Each witness signs the signature-free SnapshotWitnessAttestation projection first; the issuer then signs the manifest containing this final ordered list. Quorum admission uses only the accepted Realm auth/policy state resolved from auth_frontier / auth_state_digest at manifest created_at."
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "authority_kind": {
-                "const": "witness_quorum"
-              }
-            },
-            "required": [
-              "authority_kind"
-            ]
-          },
-          "then": {
-            "required": [
-              "witness_attestations"
-            ]
-          }
-        }
-      ]
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "signature": {
-      "$ref": "./event-envelope.schema.json#/$defs/proof",
-      "description": "Detached proof over the JCS canonical snapshot manifest bytes with only the signature field omitted. The signed transcript therefore binds id, realm_id, reducer_profile, schema_profile_refs, state_digest, frontier, event_set_commitment, chunks (content-addressed chunk_ref / size_bytes), security_class, verification_hints, created_by, created_at, and authority_binding — including the final sorted authority_binding.witness_attestations list, so a rewritten, truncated or reordered witness set invalidates this signature. Because security_class is signed (and required), a high_assurance -> standard downgrade cannot be performed without invalidating the signature. This transcript uses context ak.realm_state_snapshot_proof.v1; each witness attestation uses the separate ak.realm_state_snapshot_witness_attestation_proof.v1 context and never signs this transcript, which is what keeps the two levels acyclic. The exact eligibility_context is included, so a proof cannot be reused across different authority, closure or reducer-contract contexts.",
-      "x-canonical-bytes-include": [
-        "id",
-        "realm_id",
-        "reducer_profile",
-        "schema_profile_refs",
-        "state_digest",
-        "frontier",
-        "event_set_commitment",
-        "chunks",
-        "security_class",
-        "verification_hints",
-        "created_by",
-        "created_at",
-        "authority_binding",
-        "eligibility_context"
-      ],
-      "x-canonical-bytes-exclude": [
-        "signature"
-      ]
-    },
-    "eligibility_context": {
-      "type": "object",
-      "required": [
-        "authority_refs",
-        "closure_command_refs",
-        "reducer_contract_digest"
-      ],
-      "properties": {
-        "authority_refs": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-          }
-        },
-        "closure_command_refs": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          }
-        },
-        "reducer_contract_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest",
-          "description": "SHA-256 of RFC8785 JCS of the complete canonical contract-registry.json object used to validate and project this snapshot; not a generated-language source hash or an HTTP response digest."
-        }
-      },
-      "additionalProperties": false,
-      "description": "Exact verified authority prefixes, applicable closures and canonical reducer contract. SHA-256(JCS(this object)) is every chunk eligibility_context_digest. The manifest has a fixed Realm-wide scope, including realm_genesis; it grants no access to private Circle or Sidecar events or authority evidence. Digest references do not expand disclosure permissions. Missing required authorized replay material keeps verification pending and cannot be represented as complete state."
+      "$ref": "./detached-object-signature.schema.json#/$defs/realm_snapshot_signature"
     }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "security_class": {
-            "const": "high_assurance"
-          }
-        },
-        "required": [
-          "security_class"
-        ]
-      },
-      "then": {
-        "required": [
-          "verification_hints"
-        ],
-        "properties": {
-          "verification_hints": {
-            "required": [
-              "verification_profile",
-              "inclusion_proof_url",
-              "challenge_window_seconds",
-              "conflict_records_digest",
-              "soft_failed_digest",
-              "quarantined_digest"
-            ],
-            "properties": {
-              "verification_profile": {
-                "const": "high_assurance"
-              }
-            }
-          }
-        }
-      }
-    }
-  ],
-  "patternProperties": {
-    "^x_[a-z][a-z0-9_]{0,63}$": true
   },
   "additionalProperties": false
 }

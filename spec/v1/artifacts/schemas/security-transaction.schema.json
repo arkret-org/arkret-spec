@@ -204,9 +204,14 @@
           "oneOf": [
             {
               "type": "object",
-              "required": ["kind", "principal_id"],
+              "required": [
+                "kind",
+                "principal_id"
+              ],
               "properties": {
-                "kind": { "const": "principal" },
+                "kind": {
+                  "const": "principal"
+                },
                 "principal_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did_core_id"
                 }
@@ -215,9 +220,14 @@
             },
             {
               "type": "object",
-              "required": ["kind", "device_id"],
+              "required": [
+                "kind",
+                "device_id"
+              ],
               "properties": {
-                "kind": { "const": "device" },
+                "kind": {
+                  "const": "device"
+                },
                 "device_id": {
                   "$ref": "./common-ids.schema.json#/$defs/device_id"
                 }
@@ -508,8 +518,8 @@
     "receipt_id": {
       "$ref": "./erasure-receipt-operations.schema.json#/$defs/receipt_id"
     },
-    "seal_id": {
-      "$ref": "./seal.schema.json#/$defs/seal_ref"
+    "realm_commit_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
     },
     "recovery_create_request": {
       "type": "object",
@@ -551,7 +561,7 @@
         "result_model_generation_ref",
         "terminal_receipt_id",
         "reanchor_unit",
-        "first_generation_seal_intent"
+        "reanchor_commit_intent"
       ],
       "properties": {
         "recovery_session_id": {
@@ -572,27 +582,26 @@
         "reanchor_unit": {
           "$ref": "#/$defs/prepared_event_unit"
         },
-        "first_generation_seal_intent": {
-          "$ref": "#/$defs/recovery_seal_intent"
+        "reanchor_commit_intent": {
+          "$ref": "#/$defs/recovery_commit_intent"
         }
       },
       "additionalProperties": false
     },
-    "recovery_seal_intent": {
+    "recovery_commit_intent": {
       "type": "object",
       "description": "Closed seal coordinates the Station replays into the exact first new-generation UnsignedSeal. This is the recovery-private counterpart of the ordinary SealPrepareRequestBody: unit_event_digests is the execution order of the closed recovery unit, not a sorted pending-command set, and ak.self.seals.command.prepare.v1 is never reachable from a recovery SessionGrant.",
       "required": [
         "realm_id",
         "predecessor_ref",
-        "unit_event_digests",
-        "hlc"
+        "unit_event_digests"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "predecessor_ref": {
-          "$ref": "#/$defs/seal_id",
+          "$ref": "#/$defs/realm_commit_id",
           "description": "The exact current accepted Seal of the Principal Control Realm. The first new-generation Seal is always a successor, so a genesis-null basis is never accepted here."
         },
         "unit_event_digests": {
@@ -605,10 +614,6 @@
             "pattern": "^sha256:[0-9a-f]{64}$"
           },
           "description": "Exactly [reanchor_digest, authorize_digest] in recovery unit execution order. The prepared plan's unsigned Seal MUST carry this same pair as the unit_event_digests of its single committed command_result."
-        },
-        "hlc": {
-          "$ref": "./seal.schema.json#/$defs/hlc",
-          "description": "Frozen before the first create request; an exact retry repeats it unchanged."
         }
       },
       "additionalProperties": false
@@ -617,14 +622,9 @@
       "type": "object",
       "description": "Sole client-attested terminal artifact of a RecoveryTransaction. The replacement device signs the exact first new-generation Seal frozen by the prepare transaction and the recovery receipt that binds it, and delivers both in one commit_recovery_unit continue. No other wire position accepts this Seal: a raw signed recovery Seal without a completed RecoveryTransaction and its completion attestation never reaches accepted finality through ordinary Seal submit, federation or history replay.",
       "required": [
-        "first_generation_seal",
         "recovery_receipt"
       ],
       "properties": {
-        "first_generation_seal": {
-          "$ref": "./seal.schema.json",
-          "description": "Complete Seal. Every signed body field MUST be byte-identical to prepared_plan.first_generation_seal_body; only the derived id and the replacement-device notary_signature are added. id MUST equal prepared_plan.binding.first_generation_seal_id."
-        },
         "recovery_receipt": {
           "$ref": "./recovery-receipt.schema.json",
           "description": "Complete ak.schema.recovery_receipt.v1 signed by the same replacement device, binding first_generation_seal_id together with the transaction, request/plan digests, both Events, the generation and the session/policy/proof snapshot."
@@ -700,7 +700,7 @@
         "reanchor_event_id",
         "authorize_event_id",
         "reanchor_batch_receipt_id",
-        "first_generation_seal_id",
+        "reanchor_commit_id",
         "terminal_receipt_id"
       ],
       "properties": {
@@ -723,8 +723,8 @@
           "$ref": "#/$defs/receipt_id",
           "description": "Reserved EventBatchReceipt id for the device_reanchor_unit scope. The replacement device signs it inside the recovery receipt before the two Events are accepted, so it MUST be reserved here at create time and emitted unchanged by the atomic commit."
         },
-        "first_generation_seal_id": {
-          "$ref": "#/$defs/seal_id",
+        "reanchor_commit_id": {
+          "$ref": "#/$defs/realm_commit_id",
           "description": "Content-derived id of prepared_plan.first_generation_seal_body under the Realm digest algorithm. It is the unique Seal identity the replacement device may sign for this transaction and is signed into both the recovery receipt and the coordinator completion attestation."
         },
         "terminal_receipt_id": {
@@ -743,8 +743,7 @@
         "previous_model_generation_ref",
         "result_model_generation_ref",
         "reanchor_unit",
-        "first_generation_seal_intent",
-        "first_generation_seal_body"
+        "reanchor_commit_intent"
       ],
       "properties": {
         "binding": {
@@ -765,13 +764,9 @@
         "reanchor_unit": {
           "$ref": "#/$defs/prepared_event_unit"
         },
-        "first_generation_seal_intent": {
-          "$ref": "#/$defs/recovery_seal_intent",
+        "reanchor_commit_intent": {
+          "$ref": "#/$defs/recovery_commit_intent",
           "description": "The exact caller-stated seal coordinates the Station replayed. It MUST equal the create request recovery_intent.first_generation_seal_intent byte for byte."
-        },
-        "first_generation_seal_body": {
-          "$ref": "./seal.schema.json#/$defs/unsigned_seal",
-          "description": "The sole signable body for this transaction. Its single committed command_result carries unit_event_digests exactly [reanchor_digest, authorize_digest]. Once this body is visible to the client, the (realm_id, replacement signer slot, predecessor_ref) signing-slot fence MUST NOT release to prepare a second body for the same slot; an expired transaction permanently refuses this body and a further recovery needs a new session and a new replacement device key slot."
         }
       },
       "additionalProperties": false

@@ -5,18 +5,6 @@
   "$comment": "Bindings between a normative prose field table and the schema object it documents. check_prose_field_tables requires the table rows and the schema properties to carry the same names in the same order, and requires every field name mentioned in the object own descriptions to be either declared by that object or listed in external_field_mentions.",
   "bindings": [
     {
-      "document": "spec/v1/zh/conformance/encoding.md",
-      "schema_ref": "cursor.schema.json#",
-      "external_field_mentions": [
-        "account_id",
-        "device_id",
-        "next_cursor",
-        "prev_cursor",
-        "principal_id",
-        "service_id"
-      ]
-    },
-    {
       "document": "spec/v1/zh/crypto-media/call-state.md",
       "schema_ref": "event-payload.schema.json#/$defs/call_summary_payload",
       "external_field_mentions": [
@@ -130,9 +118,7 @@
       "document": "spec/v1/zh/models/event-and-patch.md",
       "schema_ref": "event-envelope.schema.json#",
       "external_field_mentions": [
-        "authorized_by",
         "event_digest",
-        "inclusion_proof",
         "registration_epoch",
         "sidecar_id"
       ]
@@ -208,14 +194,6 @@
     },
     {
       "document": "spec/v1/zh/models/strand-and-message.md",
-      "schema_ref": "event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext",
-      "external_field_mentions": [
-        "actor_id",
-        "target_ref"
-      ]
-    },
-    {
-      "document": "spec/v1/zh/models/strand-and-message.md",
       "schema_ref": "event-payload.schema.json#/$defs/reaction_payload",
       "external_field_mentions": [
         "actor_id",
@@ -268,13 +246,6 @@
       "external_field_mentions": [
         "principal_id",
         "station_id"
-      ]
-    },
-    {
-      "document": "spec/v1/zh/sync/federation.md",
-      "schema_ref": "service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome",
-      "external_field_mentions": [
-        "realm_state_snapshot_bootstrap"
       ]
     },
     {

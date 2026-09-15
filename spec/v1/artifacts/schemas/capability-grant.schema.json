@@ -103,7 +103,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "maxItems": 16,
-      "description": "The authority this grant was issued under. Every grant has one: a root controller’s grant anchors on the authority-root cell, and any further grant anchors on the grants its issuer already holds. The typed ref is the only distinction within the unified grant shape. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants at read time without any cascading write.",
+      "description": "The committed authority this grant was issued under. A root controller's grant anchors on the accepted Realm authority Event; any further grant anchors on grants its issuer already holds. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants without a cascading write.",
       "items": {
         "oneOf": [
           {
@@ -128,8 +128,7 @@
             "required": [
               "kind",
               "realm_id",
-              "cell_ref",
-              "controller_epoch_at_issuance",
+              "authority_event_ref",
               "authority_generation"
             ],
             "properties": {
@@ -139,22 +138,18 @@
               "realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
               },
-              "cell_ref": {
-                "$ref": "./event-envelope.schema.json#/$defs/realm_authority_root_ref"
-              },
-              "controller_epoch_at_issuance": {
-                "type": "integer",
-                "minimum": 0,
-                "description": "The controller epoch under which this grant was issued. It proves the issuer controlled the root at issuance and nothing more: it is issuance audit, not a liveness version. Comparing it to the current epoch would make ak.realm.owner.transfer kill the whole authority tree."
+              "authority_event_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id",
+                "description": "The accepted Realm genesis or owner-transfer Event that established the issuing controller."
               },
               "authority_generation": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "The authority generation this grant is anchored to. Unlike the epoch this IS compared to the cell's current value: ak.realm.authority.reset advances it precisely so an entire authority tree stops resolving."
+                "description": "The governance Station generation at issuance. It is checked against the committed authority history rather than a mutable Cell."
               }
             },
             "additionalProperties": false,
-            "description": "The Realm authority-root cell. A rooted terminal: it never contributes an edge to the cycle check. realm_id is explicit rather than inherited from the envelope because ak.capability.derived can carry roots from another Realm."
+            "description": "A committed Realm authority root. It is terminal for cycle checks. realm_id is explicit because ak.capability.derived can carry roots from another Realm."
           }
         ]
       }
@@ -168,13 +163,13 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "description": "Reducer-derived set of roots this grant ultimately descends from: the direct realm_root refs plus the union of every grant ref's own roots. Plural because multiple parents, and ak.capability.derived inheritance across a Realm link, can reach different roots or generations. Deduplicated on (realm_id, cell_ref, authority_generation) and sorted canonically by unsigned-byte order; controller_epoch_at_issuance is per-grant issuance audit and is deliberately not part of the identity key.",
+      "description": "Reducer-derived set of committed authority roots this grant ultimately descends from: direct realm_root refs plus the union of every parent grant's roots. Deduplicated on (realm_id, authority_event_ref, authority_generation) and sorted canonically by unsigned-byte order.",
       "items": {
         "type": "object",
         "required": [
           "kind",
           "realm_id",
-          "cell_ref",
+          "authority_event_ref",
           "authority_generation"
         ],
         "properties": {
@@ -184,8 +179,8 @@
           "realm_id": {
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
-          "cell_ref": {
-            "$ref": "./event-envelope.schema.json#/$defs/realm_authority_root_ref"
+          "authority_event_ref": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
           },
           "authority_generation": {
             "type": "integer",

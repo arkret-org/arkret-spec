@@ -93,8 +93,7 @@
         "target_device_generation_ref",
         "proposal_event_id",
         "accepted_at",
-        "acceptance_seq",
-        "control_proposal_ack"
+        "acceptance_seq"
       ],
       "properties": {
         "schema": {
@@ -125,10 +124,6 @@
           "type": "integer",
           "minimum": 1,
           "description": "Monotonic sequence assigned by the origin Station in the same atomic commit as accepted_at and the pending index."
-        },
-        "control_proposal_ack": {
-          "$ref": "./control-proposal-decision.schema.json#/$defs/control_proposal_ack",
-          "description": "Mandatory canonical Ack committed with the accepted revoke. ak.device.revoke is excluded from the authority-authored Ack-less exception. Ack.received_at records Ack issuance and is not the pending record's accepted_at."
         }
       }
     },
@@ -157,13 +152,6 @@
             },
             "denied_actions": {
               "$ref": "#/$defs/denied_actions"
-            },
-            "decisions": {
-              "type": "array",
-              "maxItems": 2,
-              "items": {
-                "$ref": "./control-proposal-decision.schema.json#/$defs/signed_defer"
-              }
             },
             "fault_reason": {
               "const": "control_proposal_decision_overdue"
@@ -248,16 +236,11 @@
         {
           "type": "object",
           "required": [
-            "status",
-            "deciding_seal_id"
+            "status"
           ],
           "properties": {
             "status": {
               "const": "revocation_rejected"
-            },
-            "deciding_seal_id": {
-              "$ref": "./seal.schema.json#/$defs/seal_ref",
-              "description": "The unique confirmed Seal whose command_results rejects this exact proposal. Verify the proposal unit, original device/generation binding and terminal outcome; rejection clears only this proposal pending gate."
             }
           }
         }
@@ -273,15 +256,11 @@
           "type": "object",
           "required": [
             "status",
-            "covering_seal_id",
             "sealed_at"
           ],
           "properties": {
             "status": {
               "const": "revoked"
-            },
-            "covering_seal_id": {
-              "$ref": "./seal.schema.json#/$defs/seal_ref"
             },
             "sealed_at": {
               "$ref": "#/$defs/timestamp"
@@ -392,7 +371,7 @@
     },
     "device_revocation_gate_decision_receipt": {
       "type": "object",
-      "description": "Origin-Station-signed durable linearization receipt. Under the same database lock/serializable transaction used to accept ak.device.revoke, the origin derives the current authorization Event and generation from its own durable projection, compares them with any expected binding in the request, and atomically records (action_class,intent_digest) at linearization_seq before signing. Derivation is a partial function: a device with no current accepted authorization has no derived selector and returns authority_mismatch; authorization_absent is deliberately not a separate decision. Only an allow carries the derived target_device_authorize_event_id and target_device_generation_ref, and that pair is the sole source for the issued grant's device_binding; the issuer MUST copy it verbatim and MUST NOT accept a binding from client input. No other decision discloses the derived binding, so a generation_mismatch cannot be turned into a silent re-issue at the new generation. Exact replay returns byte-identical output. An allow records that exact immutable issue/refresh intent as lawfully admitted before any later revocation_pending transition; a later pending transition blocks only intents linearized after it. The issuer MUST atomically commit the same immutable intent plus this receipt before expires_at and MUST NOT mint a new/different intent after pending. The receipt authorizes no different intent and cannot be refreshed or reused after expiry. An unauthorized caller, an account this service does not host, an unknown or not-currently-authorized device and a device outside the named account all return the same authority_mismatch. A malformed internal row that claims to be current/verified while omitting its authorization Event or generation is an integrity failure, not an authorization-absence decision. A block can name pending/revoked without disclosing any other private device state. The outcome is exchanged only on the registered deployment-internal authenticated channel between the account's bound Account Authority and this exact origin Station, so authenticity and integrity come from that channel: the receipt carries no detached proof and no verification method. The shape is closed in both directions -- a consumer MUST reject a receipt that carries either member, and MUST NOT accept a receipt that did not arrive over that authenticated channel. This applies only to this internal outcome; every externally consumable receipt keeps its own signature.",
+      "description": "Origin-Station durable decision made under its local device lock. Shared revocation becomes effective only through its authority-committed Event; this internal receipt carries no Control Proposal or Seal witness.",
       "required": [
         "account_id",
         "device_id",
@@ -449,13 +428,9 @@
           "$ref": "#/$defs/timestamp",
           "description": "Hard receipt-use deadline no later than 30 seconds after linearized_at. It is a freshness bound, not a cache TTL and not a revocation deadline."
         },
-        "blocking_proposal_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "For revocation_pending, the lexicographically smallest proposal_digest among all surviving pending records for the exact device/generation at linearization_seq. This deterministic witness does not imply that no other pending record exists."
-        },
-        "covering_seal_id": {
-          "$ref": "./seal.schema.json#/$defs/seal_ref",
-          "description": "For revoked, the covering Seal of the revoked record with the smallest (acceptance_seq, proposal_digest) among all revoked records for the exact device/generation at linearization_seq."
+        "accepted_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Present only when decision=revoked."
         }
       },
       "allOf": [
@@ -499,28 +474,6 @@
           "if": {
             "properties": {
               "decision": {
-                "const": "revocation_pending"
-              }
-            },
-            "required": [
-              "decision"
-            ]
-          },
-          "then": {
-            "required": [
-              "blocking_proposal_digest"
-            ],
-            "not": {
-              "required": [
-                "covering_seal_id"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "decision": {
                 "const": "revoked"
               }
             },
@@ -530,47 +483,15 @@
           },
           "then": {
             "required": [
-              "covering_seal_id"
-            ],
-            "not": {
-              "required": [
-                "blocking_proposal_digest"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "decision": {
-                "enum": [
-                  "allow",
-                  "authority_mismatch",
-                  "generation_mismatch"
-                ]
-              }
-            },
-            "required": [
-              "decision"
+              "accepted_commit_id"
             ]
           },
-          "then": {
-            "allOf": [
-              {
-                "not": {
-                  "required": [
-                    "blocking_proposal_digest"
-                  ]
-                }
-              },
-              {
-                "not": {
-                  "required": [
-                    "covering_seal_id"
-                  ]
-                }
-              }
-            ]
+          "else": {
+            "not": {
+              "required": [
+                "accepted_commit_id"
+              ]
+            }
           }
         }
       ],

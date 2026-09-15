@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-delivery.schema.json",
   "title": "Arkret Invite Delivery",
-  "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private carrier that delivers directed-invite credential material to the invitee's devices on the notify branch (zh/sync/invite-addressing.md section 7). The cell is written by the recipient Station, so it cannot be a client-encrypted envelope; invite_token is a server-issued private locator that MUST NOT enter the Invite object or Realm history (zh/models/governance-objects.md section 5.3).",
+  "description": "Actor-private holder state containing directed-invite credentials and untrusted current-authority locator hints. It is not a Cell and is not part of Realm history.",
   "type": "object",
   "required": [
     "schema",
@@ -34,6 +34,7 @@
         "realm_id",
         "inviter_account_id",
         "invite_token",
+        "authority_locator_hints",
         "received_at",
         "expires_at"
       ],
@@ -55,6 +56,16 @@
           "minLength": 1,
           "maxLength": 512,
           "description": "Opaque server-issued private invite locator token used by the invitee's accept path. Clients MUST treat it as an opaque string and MUST NOT persist it anywhere outside this cell or equivalent holder-private state."
+        },
+        "authority_locator_hints": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./realm-join-intake.schema.json#/$defs/authority_locator_hint"
+          },
+          "description": "Routing hints only. The invitee must fetch and verify a nonce-bound RealmAuthorityBundle before any preview, join submission, or bootstrap request."
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

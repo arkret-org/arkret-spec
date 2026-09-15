@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.3",
+  "version": "2026-09-16.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T21:26:02+08:00",
+  "generated_at": "2026-09-16T08:30:00+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -52,18 +52,6 @@
       },
       "derivation": "controller principal := envelope.executed_by.account_id.principal_id; executed_by is mandatory for this kind by event-kind-aware admission",
       "spec_anchor": "spec/v1/zh/models/realm-and-space.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.agent_lifecycle_witness_status.v1",
-      "ruling": "2026-09-02-1951 A4",
-      "schema": "schemas/agent-signer-evidence.schema.json",
-      "path": "/$defs/agent_lifecycle_witness",
-      "removed": "status",
-      "source": {
-        "field": "cell_value"
-      },
-      "derivation": "status := cell_value (the Merkle leaf preimage member); provenance.kind pins cell_value alone",
-      "spec_anchor": "spec/v1/zh/identity/key-management.md"
     },
     {
       "lock_id": "ak.lock.derived_wire_field_removal.agent_pause_payload_agent_id.v1",
@@ -158,54 +146,6 @@
       "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_absolute_due_at.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "absolute_due_at",
-      "source": {
-        "field": "control_proposal_ack"
-      },
-      "derivation": "absolute_due_at := control_proposal_ack.absolute_due_at",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_current_decision_due_at.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "current_decision_due_at",
-      "source": {
-        "field": "decisions"
-      },
-      "derivation": "current_decision_due_at := decisions[-1].decision_due_at, or control_proposal_ack.decision_due_at when decisions is empty",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_defer_count.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "defer_count",
-      "source": {
-        "field": "decisions"
-      },
-      "derivation": "defer_count := len(decisions) once decisions is tightened to signed_defer",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.control_governance_health_pending_proposal_digest.v1",
-      "ruling": "2026-09-02-1951 A5",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/ControlGovernanceHealth/properties/pending_proposals/items",
-      "removed": "proposal_digest",
-      "source": {
-        "field": "control_proposal_ack"
-      },
-      "derivation": "proposal_digest := control_proposal_ack.proposal_digest; the array sort key reads the embedded ack",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.did_key_method_history_evidence_adapter_version.v1",
       "ruling": "2026-09-02-1951 A8",
       "schema": "schemas/identity-resolution.schema.json",
@@ -230,72 +170,6 @@
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_created_at.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "created_at",
-      "source": {
-        "schema": "schemas/service-operation-dtos.schema.json",
-        "path": "/$defs/EventsFrontierFederationPeerState",
-        "field": "observed_at"
-      },
-      "derivation": "created_at := observed_at; the freshness window is judged on observed_at",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_payload_digest.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "payload_digest",
-      "source": {
-        "schema": "schemas/service-operation-dtos.schema.json",
-        "path": "/$defs/EventsFrontierFederationPeerState",
-        "field": "frontier_root"
-      },
-      "derivation": "payload_digest := SHA-256(JCS(nine-field transcript rebuilt from the outer response))",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_scheme.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "scheme",
-      "source": {
-        "field": "jws"
-      },
-      "derivation": "scheme := ed25519-detached-jws; the protected header alg is the only algorithm source",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_signed_payload.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "signed_payload",
-      "source": {
-        "schema": "schemas/service-operation-dtos.schema.json",
-        "path": "/$defs/EventsFrontierFederationPeerState",
-        "field": "frontier_root"
-      },
-      "derivation": "signed_payload := the nine-field transcript rebuilt from the outer response; diagnostics are printed locally, never mirrored on the wire",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.events_frontier_signature_typ.v1",
-      "ruling": "2026-09-02-1952 §1",
-      "schema": "schemas/service-operation-dtos.schema.json",
-      "path": "/$defs/EventsFrontierFederationPeerState/properties/signature",
-      "removed": "typ",
-      "source": {
-        "field": "jws"
-      },
-      "derivation": "typ := the registered domain ak.events.frontier.signature.v1 (x-arkret-signature-domain); constant, never on the wire",
-      "spec_anchor": "spec/v1/zh/sync/federation.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.file_transfer_key_envelope_aad_digest.v1",
       "ruling": "2026-09-02-1953 §2.2",
       "schema": "schemas/file-transfer.schema.json",
@@ -306,18 +180,6 @@
       },
       "derivation": "AAD := the unique projection written into zh/models/file-transfer.md in the same change (record members plus the envelope header); the digest is recomputed locally",
       "spec_anchor": "spec/v1/zh/models/file-transfer.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.fork_resolution_collision_winner_verdict_winner_preimage.v1",
-      "ruling": "2026-09-02-2001 E5",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/fork_resolution_collision_winner_verdict",
-      "removed": "winner_preimage",
-      "source": {
-        "field": "winner_index"
-      },
-      "derivation": "winner := conflict_evidence.variants[winner_index], winner_index in {0, 1}; no third copy of the canonical bytes",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
       "lock_id": "ak.lock.derived_wire_field_removal.founding_device_descriptor_device_key_digest.v1",
@@ -562,18 +424,6 @@
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.welcome_refs_outcome_limited.v1",
-      "ruling": "2026-09-12-1825 A11",
-      "schema": "schemas/mls-welcome-refs.schema.json",
-      "path": "/$defs/welcome_refs_outcome",
-      "removed": "limited",
-      "source": {
-        "field": "next_cursor"
-      },
-      "derivation": "More pages iff next_cursor is present; a nonterminal page is nonempty.",
-      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.realm_list_page_complete.v1",
       "ruling": "2026-09-12-1825 A11",
       "schema": "schemas/account-subscribe-frame.schema.json",
@@ -584,19 +434,6 @@
       },
       "derivation": "Complete iff next_cursor is absent; a nonterminal page is nonempty.",
       "spec_anchor": "spec/v1/zh/sync/client-sync.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.genesis_notary_outcome_intended_purpose.v1",
-      "ruling": "2026-09-12-1825 E4",
-      "schema": "schemas/genesis-notary-binding.schema.json",
-      "path": "/$defs/genesis_notary_outcome",
-      "removed": "intended_purpose",
-      "source": {
-        "path": "/$defs/genesis_notary_request_body",
-        "field": "intended_purpose"
-      },
-      "derivation": "The caller retains the exact submitted purpose; the response never echoes it.",
-      "spec_anchor": "spec/v1/zh/sync/server-trusted-results.md"
     },
     {
       "lock_id": "ak.lock.derived_wire_field_removal.mls_governance_binding_realm_id.v1",
@@ -671,18 +508,6 @@
       "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.mls_commit_payload_next_epoch.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/mls_commit_payload",
-      "removed": "next_epoch",
-      "source": {
-        "field": "governance_binding"
-      },
-      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.mls_genesis_payload_mls_group_id.v1",
       "ruling": "2026-09-12-1825",
       "schema": "schemas/event-payload.schema.json",
@@ -716,44 +541,6 @@
         "field": "governance_binding"
       },
       "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.mls_welcome_payload_mls_group_id.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/mls_welcome_payload",
-      "removed": "mls_group_id",
-      "source": {
-        "field": "governance_binding"
-      },
-      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.mls_welcome_payload_epoch.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/mls_welcome_payload",
-      "removed": "epoch",
-      "source": {
-        "field": "governance_binding"
-      },
-      "derivation": "The sole governance_binding supplies effective scope and previous/next epochs; group identity is derived from its canonical scope bytes. Verify actual RFC9420 GroupContext independently.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.mls_commit_failed_payload_reporter_device_id.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/mls_commit_failed_payload",
-      "removed": "reporter_device_id",
-      "source": {
-        "schema": "schemas/event-envelope.schema.json",
-        "path": "",
-        "field": "proofs"
-      },
-      "derivation": "Reporter device is the fragment of the sole producer proof verification_method; validate its actor and authorization.",
       "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
     },
     {
@@ -1253,71 +1040,6 @@
       },
       "derivation": "Authenticated source, registered device routes and declared deployment profile deterministically select timing; never trust a per-notify override.",
       "spec_anchor": "spec/v1/zh/discovery/push-notifications.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_effective_scope.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/mls-governance-proof-bundle.schema.json",
-      "path": "/$defs/accepted_transition",
-      "removed": "effective_scope",
-      "source": {
-        "path": "/$defs/accepted_artifact_outcome",
-        "field": "governance_binding"
-      },
-      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_mls_group_id.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/mls-governance-proof-bundle.schema.json",
-      "path": "/$defs/accepted_transition",
-      "removed": "mls_group_id",
-      "source": {
-        "path": "/$defs/accepted_artifact_outcome",
-        "field": "governance_binding"
-      },
-      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_previous_epoch.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/mls-governance-proof-bundle.schema.json",
-      "path": "/$defs/accepted_transition",
-      "removed": "previous_epoch",
-      "source": {
-        "path": "/$defs/accepted_artifact_outcome",
-        "field": "governance_binding"
-      },
-      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_next_epoch.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/mls-governance-proof-bundle.schema.json",
-      "path": "/$defs/accepted_transition",
-      "removed": "next_epoch",
-      "source": {
-        "path": "/$defs/accepted_artifact_outcome",
-        "field": "governance_binding"
-      },
-      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.accepted_transition_content_scheme.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/mls-governance-proof-bundle.schema.json",
-      "path": "/$defs/accepted_transition",
-      "removed": "content_scheme",
-      "source": {
-        "path": "/$defs/accepted_artifact_outcome",
-        "field": "governance_binding"
-      },
-      "derivation": "Read the same accepted outcome governance_binding; group id is canonical scope-key UTF-8 encoded as unpadded base64url.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
     },
     {
       "lock_id": "ak.lock.derived_wire_field_removal.query_signing_key_actor.v1",

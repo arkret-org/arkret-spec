@@ -53,8 +53,8 @@ see_also:
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/strand-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/security-transactions.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、安全事务、consent gate、联系人关系和 1:1 私聊入口。
-6. `authz/capabilities.md`、`authz/cbs-profiles.md`、`authz/event-auth-state-resolution.md`、`authz/offline-publication.md`：理解权限、CBS 授权形态、Realm 状态机和离线发布。
-7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/signal.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解 durable 写入、同步、加密实时 rail 和服务面。
+6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限与 Realm typed state。
+7. `sync/authority-commit-log.md`、`sync/client-sync.md`、`sync/signal.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解逐 scope 权威 stream、同步、加密实时 rail 和服务面。
 8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
 9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
@@ -63,7 +63,7 @@ see_also:
 1. `overview/glossary.md`
 2. `models/overview.md` + `models/realm-and-space.md` + `models/strand-and-message.md`
 3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
-4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
+4. `sync/authority-commit-log.md` + `sync/client-sync.md`（含 snapshot、逐 stream continuity、decryption_pending）
 
 ### 2.2 从产品概念找章节
 
@@ -193,6 +193,7 @@ see_also:
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/server-trusted-results.md` | 客户端信任自己 Station 的治理结果、服务器验证复用及端到端职责。 |
 | `sync/current-results.md` | 服务器 typed current selector、完整 因果 heads、版本化替代/删除与有界基线。 |
+| `sync/authority-commit-log.md` | Realm、每个 Circle、每个 Sidecar 各自独立的权威 Commit stream、join bootstrap 与治理 Station handoff。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、服务器当前结果、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Station、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
@@ -203,7 +204,7 @@ see_also:
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
 | `sync/websocket-binding.md` | （optional profile）`ak.profile.binding.websocket.v1`：三条 stream operation 的 WebSocket 承载、帧 schema、DPoP 绑定、重连与 flow control。 |
-| `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态。 |
+| `sync/federation.md` | 跨域转发、当前治理 Station 发现、逐 stream Commit 复制与跨域加入。 |
 | `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、sovereign deployment 下 External Collaboration Realm 的强制 policy、enclave、导入导出和撤销规则。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领的 wire strand、token handoff、claim submit 与不可枚举响应；身份语义同时在 §4.2 交叉登记。 |
 

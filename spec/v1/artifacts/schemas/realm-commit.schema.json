@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-commit.schema.json",
+  "title": "Arkret Realm Commit",
+  "description": "The only shared Realm acceptance, ordering, finality and replication record. Every visibility scope has an authority-signed predecessor chain.",
+  "type": "object",
+  "required": [
+    "commit_id",
+    "realm_id",
+    "stream_ref",
+    "stream_position",
+    "previous_commit_ref",
+    "event_ref",
+    "authority_generation",
+    "authority_ref",
+    "committed_at",
+    "signature"
+  ],
+  "properties": {
+    "commit_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "stream_ref": {
+      "$ref": "#/$defs/stream_ref"
+    },
+    "stream_position": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "previous_commit_ref": {
+      "oneOf": [
+        {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "event_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id"
+    },
+    "authority_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "authority_ref": {
+      "oneOf": [
+        {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        {
+          "$ref": "./common-ids.schema.json#/$defs/realm_authority_handoff_id"
+        }
+      ]
+    },
+    "committed_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "signature": {
+      "$ref": "./detached-object-signature.schema.json#/$defs/realm_commit_signature"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stream_position": {
+            "const": 0
+          }
+        },
+        "required": [
+          "stream_position"
+        ]
+      },
+      "then": {
+        "properties": {
+          "previous_commit_ref": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "previous_commit_ref": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "stream_ref": {
+      "description": "Closed visibility-stream selector. Realm, each Circle and each Sidecar have independent continuous positions so hidden scopes do not leak through global gaps.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "sidecar_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "sidecar"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "sidecar_id": {
+              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "stream_head": {
+      "type": "object",
+      "required": [
+        "stream_ref",
+        "stream_position",
+        "commit_id"
+      ],
+      "properties": {
+        "stream_ref": {
+          "$ref": "#/$defs/stream_ref"
+        },
+        "stream_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

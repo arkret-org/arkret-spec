@@ -123,9 +123,7 @@
       "required": [
         "proof_event",
         "target_event",
-        "anchor_seal",
         "service_signer_evidence",
-        "existence_anchor",
         "ancestry_events"
       ],
       "properties": {
@@ -135,16 +133,8 @@
         "target_event": {
           "$ref": "./event-envelope.schema.json"
         },
-        "anchor_seal": {
-          "$ref": "./seal.schema.json",
-          "description": "Confirmed security Seal whose existence_anchors contains existence_anchor. The franking-proof Event remains an ordinary Event and is never inserted into Seal.delta or a data observation root."
-        },
         "service_signer_evidence": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
-        },
-        "existence_anchor": {
-          "$ref": "./seal.schema.json#/$defs/existence_anchor",
-          "description": "Must exactly equal an anchor_seal.existence_anchors member, with the franking grant and generation and an authenticated ordinary-Event frontier containing proof_event directly or transitively."
         },
         "ancestry_events": {
           "type": "array",

@@ -1,9 +1,9 @@
 version: '2026-09-11'
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
-coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once
-  in this binding artifact. Operations marked http_only_variant=true MUST NOT appear here. tools/artifact_lint enforces
-  both directions after parsing this file as YAML.
+coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once in this
+  binding artifact. Operations marked http_only_variant=true MUST NOT appear here. tools/artifact_lint enforces both directions
+  after parsing this file as YAML.
 frame_schemas:
   websocket:
     required:
@@ -103,8 +103,6 @@ grpc:
       List: ak.self.contact.read.list.v1
       Tombstone: ak.self.contact.command.tombstone.v1
       ScopeUpdate: ak.self.contact.command.scope_update.v1
-    SelfInvites:
-      Dispatch: ak.self.invites.command.dispatch.v1
     SelfCircle:
       Create: ak.self.circle.command.create.v1
       List: ak.self.circle.read.list.v1
@@ -155,57 +153,14 @@ grpc:
       SearchRealms: ak.find.directory.read.search_realms.v1
       SearchUsers: ak.find.directory.read.search_users.v1
       Withdraw: ak.find.directory.command.withdraw.v1
-    SelfAuthorizationLeases:
-      Issue: ak.self.authorization_leases.command.issue.v1
-    SelfControlProposalAcks:
-      Issue: ak.self.control_proposal_acks.command.issue.v1
-    SelfControlProposalDecisions:
-      Submit: ak.self.control_proposal_decisions.command.submit.v1
-      Get: ak.self.control_proposal_decisions.read.get.v1
     SelfEvents:
-      Describe: ak.self.events.read.describe.v1
-      DeliveryStatus: ak.self.events.read.delivery_status.v1
-      Frontier: ak.self.events.read.frontier.v1
       Get: ak.self.events.resource.get.v1
       Query: ak.self.events.read.scan.v1
-      Resolve: ak.self.events.read.resolve.v1
       Subscribe: ak.self.events.stream.subscribe.v1
       Submit: ak.self.events.command.submit.v1
-    SelfSeals:
-      Frontier: ak.self.seals.read.frontier.v1
-      GovernanceDependencies: ak.self.seals.read.governance_dependencies.v1
-      Prepare: ak.self.seals.command.prepare.v1
-      PrepareFenceResult: ak.self.seals.read.prepare_fence_result.v1
-      MlsGovernanceProof: ak.self.seals.read.mls_governance_proof.v1
-      MlsAcceptedArtifact: ak.self.seals.read.mls_accepted_artifact.v1
-      MlsWelcomeRefs: ak.self.seals.read.mls_welcome_refs.v1
-      MlsMembershipRemoval: ak.self.seals.read.mls_membership_removal.v1
-      HistoryAuthority: ak.self.seals.read.history_authority.v1
-      Resolve: ak.self.seals.read.resolve.v1
-      Submit: ak.self.seals.command.submit.v1
-      PendingControl: ak.self.seals.read.pending_control.v1
-    SelfHistoryKey:
-      RequestCreate: ak.self.history_key_requests.command.create.v1
-      RequestList: ak.self.history_key_requests.read.list.v1
-      ResponseAck: ak.self.history_key_responses.command.ack.v1
-      ResponseList: ak.self.history_key_responses.read.list.v1
-      ResponseSend: ak.self.history_key_responses.command.send.v1
-      OrganizationRecoveryArchiveList: ak.self.organization_recovery_archives.read.list.v1
     PeerEvents:
-      Frontier: ak.peer.events.read.frontier.v1
       Query: ak.peer.events.read.scan.v1
-      Resolve: ak.peer.events.read.resolve.v1
-      SiblingPositions: ak.peer.events.read.sibling_positions.v1
       Submit: ak.peer.events.command.submit.v1
-    PeerSeals:
-      Frontier: ak.peer.seals.read.frontier.v1
-      GovernanceDependencies: ak.peer.seals.read.governance_dependencies.v1
-      MlsGovernanceProof: ak.peer.seals.read.mls_governance_proof.v1
-      Resolve: ak.peer.seals.read.resolve.v1
-    PeerHistoryKey:
-      RequestReplicate: ak.peer.history_key_requests.command.replicate.v1
-      ResponseRelay: ak.peer.history_key_responses.command.relay.v1
-      OrganizationRecoveryArchiveReplicate: ak.peer.organization_recovery_archives.command.replicate.v1
     PeerDeviceRevocations:
       Check: ak.peer.device_revocations.command.check.v1
     PeerAccountStatus:
@@ -220,8 +175,6 @@ grpc:
       Submit: ak.peer.invites.command.submit.v1
     PeerContacts:
       Submit: ak.peer.contacts.command.submit.v1
-    PeerCurrentSignerEvidence:
-      Resolve: ak.peer.current_signer_evidence.read.resolve.v1
     PeerKeys:
       KeyPackagesClaim: ak.peer.keys.keypackages.command.claim.v1
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.read.claim.v1
@@ -289,8 +242,6 @@ grpc:
       Resolve: ak.self.signer_keys.read.resolve.v1
     SelfCurrentPrincipal:
       Resolve: ak.self.current_principal.read.resolve.v1
-    SelfGenesisNotary:
-      Resolve: ak.self.genesis_notary.read.resolve.v1
     SelfMedia:
       IceConfig: ak.self.media.read.ice_config.v1
     SelfMediaServiceBinding:
@@ -334,7 +285,6 @@ grpc:
       Rotate: ak.self.invite_locator.command.rotate.v1
       Revoke: ak.self.invite_locator.command.revoke.v1
     SelfModeration:
-      FrankingSealObservation: ak.self.moderation.read.franking_seal_observation.v1
       Report: ak.self.moderation.command.report.v1
     SelfSpace:
       List: ak.self.space.read.list.v1
@@ -359,6 +309,10 @@ grpc:
       Head: ak.self.realm_state_snapshot.read.manifest_head.v1
     SelfRelationConflicts:
       Candidates: ak.self.relation_conflicts.read.candidates.v1
+    OpenRealmAuthority:
+      Bundle: ak.open.realm_authority.read.bundle.v1
+    PeerRealmAuthority:
+      Handoff: ak.peer.realm_authority.command.handoff.v1
 mq:
   envelope:
     required:
@@ -385,52 +339,18 @@ mq:
     self.security_transaction.command.create: ak.self.security_transaction.command.create.v1
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get.v1
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue.v1
-    self.control_proposal_acks.command.issue: ak.self.control_proposal_acks.command.issue.v1
-    self.control_proposal_decisions.command.submit: ak.self.control_proposal_decisions.command.submit.v1
-    self.control_proposal_decisions.read.get: ak.self.control_proposal_decisions.read.get.v1
-    self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
-    self.seals.command.prepare: ak.self.seals.command.prepare.v1
-    self.seals.read.prepare_fence_result: ak.self.seals.read.prepare_fence_result.v1
-    self.seals.command.submit: ak.self.seals.command.submit.v1
-    self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
-    self.seals.read.frontier: ak.self.seals.read.frontier.v1
-    self.seals.read.resolve: ak.self.seals.read.resolve.v1
-    self.seals.read.mls_governance_proof: ak.self.seals.read.mls_governance_proof.v1
-    self.seals.read.mls_accepted_artifact: ak.self.seals.read.mls_accepted_artifact.v1
-    self.seals.read.mls_welcome_refs: ak.self.seals.read.mls_welcome_refs.v1
-    self.seals.read.mls_membership_removal: ak.self.seals.read.mls_membership_removal.v1
-    self.seals.read.history_authority: ak.self.seals.read.history_authority.v1
-    self.seals.read.governance_dependencies: ak.self.seals.read.governance_dependencies.v1
-    self.history_key_requests.command.create: ak.self.history_key_requests.command.create.v1
-    self.history_key_requests.read.list: ak.self.history_key_requests.read.list.v1
-    self.history_key_responses.command.send: ak.self.history_key_responses.command.send.v1
-    self.history_key_responses.read.list: ak.self.history_key_responses.read.list.v1
-    self.history_key_responses.command.ack: ak.self.history_key_responses.command.ack.v1
-    self.organization_recovery_archives.read.list: ak.self.organization_recovery_archives.read.list.v1
-    self.events.read.scan.resolve: ak.self.events.read.resolve.v1
     self.events.read.scan: ak.self.events.read.scan.v1
     self.relation_conflicts.read.candidates: ak.self.relation_conflicts.read.candidates.v1
     self.events.stream.subscribe: ak.self.events.stream.subscribe.v1
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1
     peer.device_revocations.command.check: ak.peer.device_revocations.command.check.v1
-    peer.events.read.scan.resolve: ak.peer.events.read.resolve.v1
     peer.events.read.scan: ak.peer.events.read.scan.v1
-    peer.events.read.sibling_positions: ak.peer.events.read.sibling_positions.v1
-    peer.events.read.scan.frontier: ak.peer.events.read.frontier.v1
-    peer.seals.read.frontier: ak.peer.seals.read.frontier.v1
-    peer.seals.read.resolve: ak.peer.seals.read.resolve.v1
-    peer.seals.read.mls_governance_proof: ak.peer.seals.read.mls_governance_proof.v1
-    peer.seals.read.governance_dependencies: ak.peer.seals.read.governance_dependencies.v1
-    peer.history_key_requests.command.replicate: ak.peer.history_key_requests.command.replicate.v1
-    peer.history_key_responses.command.relay: ak.peer.history_key_responses.command.relay.v1
-    peer.organization_recovery_archives.command.replicate: ak.peer.organization_recovery_archives.command.replicate.v1
     peer.account_status.query.resolve: ak.peer.account_status.read.resolve.v1
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material.v1
     peer.invites.command.submit: ak.peer.invites.command.submit.v1
     peer.contacts.command.submit: ak.peer.contacts.command.submit.v1
-    peer.current_signer_evidence.query.resolve: ak.peer.current_signer_evidence.read.resolve.v1
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim.v1
     peer.keys.query.lookup: ak.peer.keys.read.lookup.v1
@@ -474,7 +394,6 @@ mq:
     self.realm_join.command.prepare: ak.self.realm_join.command.prepare.v1
     self.signer_keys.query.resolve: ak.self.signer_keys.read.resolve.v1
     self.current_principal.query.resolve: ak.self.current_principal.read.resolve.v1
-    self.genesis_notary.query.resolve: ak.self.genesis_notary.read.resolve.v1
     self.media_service_binding.query.resolve: ak.self.media_service_binding.read.resolve.v1
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get.v1
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace.v1
@@ -517,7 +436,6 @@ mq:
     self.keys.backups.command.issue_delete_challenge: ak.self.keys.backups.command.issue_delete_challenge.v1
     self.keys.backups.resource.delete: ak.self.keys.backups.resource.delete.v1
     self.moderation.command.report: ak.self.moderation.command.report.v1
-    self.moderation.read.franking_seal_observation: ak.self.moderation.read.franking_seal_observation.v1
     self.space.query.list: ak.self.space.read.list.v1
     self.strand.query.list: ak.self.strand.read.list.v1
     self.morph.query.list: ak.self.morph.read.list.v1
@@ -550,7 +468,6 @@ mq:
     open.service.query.resolution: ak.open.service.read.resolution.v1
     edge.push.command.notify: ak.edge.push.command.notify.v1
     self.authz.query.check: ak.self.authz.read.check.v1
-    self.seals.read.pending_control: ak.self.seals.read.pending_control.v1
 libp2p:
   envelope:
     required:

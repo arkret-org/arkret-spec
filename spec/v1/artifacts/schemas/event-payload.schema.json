@@ -1453,7 +1453,7 @@
     },
     "audit_accessed_payload": {
       "type": "object",
-      "description": "Strict payload for ak.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same ordered submit batch, equivalent control transaction, or an accepted pre-read event with RYW receipt.",
+      "description": "Strict payload for ak.audit.accessed. It binds the writer, logical target and any paired Event. The current governance Station evaluates the access against committed typed state; no Cell or caller-authored state-head digest is carried.",
       "required": [
         "access_kind",
         "writer_actor_id",
@@ -1481,36 +1481,12 @@
         "target_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "target_cell_id": {
-          "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
-        },
         "paired_event_id": {
           "$ref": "#/$defs/event_ref"
         },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_ref",
           "description": "Required when access_kind=e2ee_late_recovery; identifies the original encrypted event whose plaintext became available through late key recovery."
-        },
-        "cell_head_before": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/digest"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "cell_head_after": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/digest"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "purpose": {
           "type": "string",
@@ -1540,10 +1516,7 @@
           "then": {
             "required": [
               "target_actor_id",
-              "target_cell_id",
-              "paired_event_id",
-              "cell_head_before",
-              "cell_head_after"
+              "paired_event_id"
             ]
           }
         },
@@ -1560,8 +1533,7 @@
           },
           "then": {
             "required": [
-              "target_actor_id",
-              "target_cell_id"
+              "target_actor_id"
             ]
           }
         },
@@ -1831,7 +1803,7 @@
     "audit_release_payload": {
       "$comment": "Reducer rejections for this payload carry registered sub-reasons: no active binding for the declared effective_scope is failed_precondition reason audit_release_binding_missing; effective_scope disagreeing with the active binding (or a Realm-scoped binding used to cover Circle history) is audit_release_scope_mismatch; a release without a valid prior ak.audit.session.notice for the same session/binding/scope is audit_release_notice_missing; targeting the current active MLS epoch is audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.1 / §4.4 / §5.2.",
       "type": "object",
-      "description": "Payload for ak.audit.release. A sealed audit release manifest for a bounded historical window. It appends to the control-plane ordered log ak.component.audit.release.v1 keyed by session_id only while the accepted session FSM head is notice. Same-basis close dominates and rejects the release. The payload records release metadata and wrapped material digests only; plaintext MUST NOT be inlined.",
+      "description": "Payload for ak.audit.release. The current governance Station validates the notice, policy and current authorization atomically; the Event does not carry a Seal or caller-selected safety basis.",
       "required": [
         "session_id",
         "binding_id",
@@ -1840,7 +1812,6 @@
         "applet_id",
         "service_id",
         "release_mode",
-        "seal_ref",
         "approver_actor_id",
         "notice_ref",
         "purpose_kind",
@@ -1887,9 +1858,6 @@
           },
           "minItems": 1,
           "uniqueItems": true
-        },
-        "seal_ref": {
-          "$ref": "./seal.schema.json#/$defs/seal_ref"
         },
         "approver_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -3441,7 +3409,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. A security command on ak:cell:ak.component.consent.grant.v1:<consent_id>, whose sequenced_state value is the active tagged grant set. A committed grant adds its exact tag; a committed revoke removes only the observed tags in confirmed command order. Grant and revocation history is audit evidence and is not an unordered merge input. Lives in the holder's Principal Control Realm (or holder-private actor stream); MUST NOT be written to a shared Collaboration Realm. Realm role taxonomy: zh/models/realm-and-space.md §2.7.",
+      "description": "Holder-private consent grant evaluated in the holder's Principal Control Realm. The governance Station serializes changes; no Cell or OR-Set tag is exposed on wire.",
       "required": [
         "consent_id",
         "peer",
@@ -3493,25 +3461,15 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ak:cell:ak.component.consent.grant.v1:<consent_id> (the same cell written by ak.consent.grant). Payload observed_dot_ids MUST match the Control Move effect's observed_dot_ids so schema validation and audit can see exactly what was removed.",
+      "description": "Revoke the current consent identified by consent_id. The governance Station applies this Event in stream order, so no observed-dot set is required.",
       "required": [
-        "consent_id",
-        "observed_dot_ids"
+        "consent_id"
       ],
       "properties": {
         "consent_id": {
           "type": "string",
           "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "MUST equal the consent_id of the ak.consent.grant being revoked."
-        },
-        "observed_dot_ids": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/or_set_dot"
-          },
-          "description": "Exact add dots being removed. A full revoke, including consent_scope=any cascade, MUST enumerate every active dot that becomes inactive; implicit cascade without dot enumeration is invalid."
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
@@ -4050,7 +4008,7 @@
     },
     "cross_object_redaction_target_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|realm_state_snapshot):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
       "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
     },
     "device_authorize_payload": {
@@ -4357,7 +4315,6 @@
         "recovery_session_id",
         "previous_device_generation",
         "new_device_generation",
-        "pre_fence_seal_frontier",
         "replacement_authorize_payload_digest"
       ],
       "properties": {
@@ -4395,39 +4352,6 @@
         "did_root_evidence_digest": {
           "$ref": "#/$defs/digest",
           "description": "Required only when recovery_authority_kind=did_root; proves the optional factor enabled by the frozen PCR policy."
-        },
-        "pre_fence_seal_frontier": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "object",
-              "required": [
-                "leaves",
-                "control_event_set_root",
-                "state_root"
-              ],
-              "properties": {
-                "leaves": {
-                  "type": "array",
-                  "minItems": 1,
-                  "maxItems": 64,
-                  "items": {
-                    "$ref": "#/$defs/seal_ref"
-                  },
-                  "uniqueItems": true
-                },
-                "control_event_set_root": {
-                  "$ref": "#/$defs/digest"
-                },
-                "state_root": {
-                  "$ref": "#/$defs/digest"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
         },
         "replacement_authorize_payload_digest": {
           "$ref": "#/$defs/digest",
@@ -4699,47 +4623,6 @@
         }
       ]
     },
-    "history_authorization_incarnation": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_membership_incarnation_ref"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm"
-            },
-            "realm_membership_incarnation_ref": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_membership_incarnation_ref",
-            "circle_membership_incarnation_ref"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle"
-            },
-            "realm_membership_incarnation_ref": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            },
-            "circle_membership_incarnation_ref": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            }
-          },
-          "additionalProperties": false
-        }
-      ],
-      "description": "Closed history-delivery authorization incarnation. Circle reactivation/Add must causally cover the exact current parent-Realm incarnation; independent Realm and Circle MLS epochs are never compared."
-    },
     "encrypted_envelope": {
       "$ref": "./encrypted-envelope.schema.json"
     },
@@ -4754,9 +4637,6 @@
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
-    },
-    "base64url": {
-      "$ref": "./agent-operations.schema.json#/$defs/base64url"
     },
     "hierarchy_link_status": {
       "type": "string",
@@ -5632,11 +5512,6 @@
         }
       ]
     },
-    "keypackage_ref": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Opaque content-addressed or service-scoped MLS KeyPackage reference. Hash-shaped refs MUST use keypackage_digest for digest bytes."
-    },
     "list_space_id": {
       "type": "string",
       "pattern": "^ak:space:[A-Za-z0-9_-]{44}$",
@@ -6016,6 +5891,16 @@
         },
         "mimi_provenance": {
           "$ref": "#/$defs/mimi_message_provenance"
+        },
+        "poll_response_heads": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/poll_response_head"
+          },
+          "description": "Typed replacement for the retired generic causal_refs carrier. Each entry binds a poll to the exact response Event being superseded."
         }
       },
       "additionalProperties": false
@@ -6398,148 +6283,44 @@
       },
       "additionalProperties": false
     },
-    "mls_commit_failed_payload": {
-      "type": "object",
-      "required": [
-        "effective_scope",
-        "mls_group_id",
-        "commit_ref",
-        "epoch",
-        "failure_stage",
-        "failed_at"
-      ],
-      "properties": {
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "description": "Exact MLS scope of the failed Commit/Welcome. MUST match the referenced event governance binding and the canonical group-id derivation."
-        },
-        "mls_group_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1
-        },
-        "commit_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "welcome_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "failure_stage": {
-          "enum": [
-            "welcome_decrypt",
-            "transcript_verify",
-            "governance_binding",
-            "group_state_update",
-            "keypackage_claim",
-            "security_frontier_mismatch",
-            "unsupported_cipher_suite",
-            "storage_failure",
-            "unknown_epoch",
-            "other"
-          ]
-        },
-        "error_code": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "failed_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
     "mls_commit_payload": {
       "type": "object",
       "required": [
-        "base_epoch_ref",
-        "proposal_refs",
+        "base_group_state_ref",
+        "previous_epoch",
+        "next_epoch",
+        "covers_key_access_revision",
         "commit_bytes_b64",
         "governance_binding"
       ],
-      "not": {
-        "required": [
-          "proposal_ref"
-        ]
-      },
       "properties": {
-        "base_epoch_ref": {
-          "$ref": "#/$defs/object_ref"
+        "base_group_state_ref": {
+          "$ref": "#/$defs/event_ref"
         },
-        "proposal_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_ref"
-          },
-          "uniqueItems": true
+        "previous_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "covers_key_access_revision": {
+          "type": "integer",
+          "minimum": 0
         },
         "commit_bytes_b64": {
           "type": "string",
           "minLength": 1,
-          "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "Unpadded base64url encoding of the complete RFC 9420 MLSMessage carrying a Commit. For Realm/Circle effective scopes it MUST be PublicMessage; PrivateMessage and bare Commit bodies are rejected. Sidecar retains its own contract. The containing Event authenticates the bytes; optional commit_message_ref must match their exact digest. Public processing verifies only public structure/signatures/tree transitions, never secret membership or confirmation MACs; members still perform full RFC 9420 checks."
+          "pattern": "^[A-Za-z0-9_-]+$"
         },
         "commit_message_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/blob_ref",
-          "description": "Optional content-addressed reference to the exact decoded commit_bytes_b64 bytes. The embedded suite and digest are the sole wire commitment and this ref never replaces the required inline bytes."
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
-        },
-        "organization_recovery_archive": {
-          "$ref": "#/$defs/organization_recovery_archive"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "governance_binding": {
-                "properties": {
-                  "content_scheme": {
-                    "const": "mls_exporter_aead_v1"
-                  },
-                  "durability_policy": {
-                    "const": "organization_recovery_key"
-                  }
-                },
-                "required": [
-                  "content_scheme",
-                  "durability_policy"
-                ]
-              }
-            },
-            "required": [
-              "governance_binding"
-            ]
-          },
-          "then": {
-            "required": [
-              "organization_recovery_archive"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "organization_recovery_archive"
-              ]
-            }
-          }
-        },
-        {
-          "properties": {
-            "governance_binding": {
-              "properties": {
-                "next_epoch": {
-                  "minimum": 1
-                }
-              }
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "mls_epoch_range": {
@@ -6569,7 +6350,6 @@
         "governance_binding",
         "created_at"
       ],
-      "$comment": "Genesis binding epochs are exactly 0/0. Creator principal is Event.actor_id and creator device is the sole producer proof method fragment. Parse exact public GroupInfo/tree and authenticate initial leaf provenance before atomic acceptance. No outer scope/group/epoch mirror is carried.",
       "properties": {
         "cipher_suite": {
           "$ref": "#/$defs/non_empty_string"
@@ -6577,20 +6357,15 @@
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Content-addressed reference to the exact RFC 9420 GroupInfo bytes. The digest suite MUST equal the Realm digest_algorithm and the embedded digest is computed over the raw bytes returned as group_info_bytes_b64 by the standard group-state-material operation. It is the sole wire carrier of that digest; no sibling group_info_digest is carried (encoding.md 4.0.1)."
+          "x-arkret-digest-suite-source": "realm_digest_algorithm"
         },
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Content-addressed reference to the exact RFC 9420 ratchet_tree extension bytes for epoch 0. The digest suite MUST equal the Realm digest_algorithm and the embedded digest is computed over the raw bytes returned as ratchet_tree_bytes_b64 by the standard group-state-material operation. It is the sole wire carrier of that digest; no sibling ratchet_tree_digest is carried (encoding.md 4.0.1)."
+          "x-arkret-digest-suite-source": "realm_digest_algorithm"
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
-        },
-        "organization_recovery_archive": {
-          "$ref": "#/$defs/organization_recovery_archive"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -6598,48 +6373,19 @@
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "governance_binding": {
-                "properties": {
-                  "content_scheme": {
-                    "const": "mls_exporter_aead_v1"
-                  },
-                  "durability_policy": {
-                    "const": "organization_recovery_key"
-                  }
-                },
-                "required": [
-                  "content_scheme",
-                  "durability_policy"
-                ]
-              }
-            },
-            "required": [
-              "governance_binding"
-            ]
-          },
-          "then": {
-            "required": [
-              "organization_recovery_archive"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "organization_recovery_archive"
-              ]
-            }
-          }
-        },
-        {
           "properties": {
             "governance_binding": {
               "properties": {
+                "base_group_state_ref": {
+                  "type": "null"
+                },
                 "previous_epoch": {
                   "const": 0
                 },
                 "next_epoch": {
+                  "const": 0
+                },
+                "key_access_revision": {
                   "const": 0
                 }
               }
@@ -6649,235 +6395,28 @@
       ],
       "additionalProperties": false
     },
-    "organization_recovery_key_tuple": {
-      "type": "object",
-      "required": [
-        "recovery_key_id",
-        "method_controller_principal_id",
-        "holder_service_id",
-        "key_agreement_ref",
-        "holder_signing_ref",
-        "hpke_suite",
-        "frozen_public_key_b64u"
-      ],
-      "properties": {
-        "recovery_key_id": {
-          "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
-        },
-        "method_controller_principal_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Controller projection of the registered holder signing method; distinct from the holder service authority route in holder_service_id."
-        },
-        "holder_service_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Registered history-key holder service authority/route, distinct from method_controller_principal_id."
-        },
-        "key_agreement_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "holder_signing_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "hpke_suite": {
-          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
-        },
-        "frozen_public_key_b64u": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
-          "description": "Canonical unpadded base64url encoding of exactly 32 raw X25519 public-key bytes. Decoding failure, padding, non-canonical re-encoding or any other length is schema_invalid."
-        }
-      },
-      "additionalProperties": false,
-      "description": "One logical Realm-authority organization recovery public-key tuple. hpke_suite is fixed to the v1 X25519/ChaCha20-Poly1305 profile. Resolving key_agreement_ref at admission must yield a current exact method whose raw key bytes equal frozen_public_key_b64u and whose controller projects to method_controller_principal_id. Resolving holder_signing_ref must yield a current signing method with the same controller. Custody topology and threshold policy are not wire fields."
-    },
-    "organization_recovery_holder_acceptance": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "new_key_tuple",
-        "holder_trusted_basis",
-        "holder_proof"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "new_key_tuple": {
-          "$ref": "#/$defs/organization_recovery_key_tuple"
-        },
-        "holder_trusted_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
-        },
-        "holder_proof": {
-          "$ref": "./event-envelope.schema.json#/$defs/proof",
-          "x-arkret-proof-context": "ak.organization_recovery_key_holder_acceptance_proof.v1",
-          "description": "Holder proof over RFC 8785 JCS of {realm_id,new_key_tuple,holder_trusted_basis}. proof.verification_method MUST equal new_key_tuple.holder_signing_ref byte-for-byte, resolve current, and its controller MUST project to new_key_tuple.method_controller_principal_id. The proof key is that exact method key. The proof is excluded from its own transcript."
-        }
-      },
-      "additionalProperties": false
-    },
-    "organization_recovery_key_register_payload": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "new_key_tuple",
-        "holder_trusted_basis",
-        "holder_acceptance"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "new_key_tuple": {
-          "$ref": "#/$defs/organization_recovery_key_tuple"
-        },
-        "holder_trusted_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
-        },
-        "holder_acceptance": {
-          "$ref": "#/$defs/organization_recovery_holder_acceptance"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Closed Realm Control Move that registers the first active organization recovery key after Realm create is already activated. All duplicated acceptance fields must match byte-for-byte. holder_trusted_basis is the complete canonical holder-pinned accepted Seal basis with exactly one confirmed head per Realm containing the Realm-create evidence, or a later holder-pinned basis that causally covers it. Registration is a CAS from no active tuple."
-    },
-    "organization_recovery_key_rotate_payload": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "expected_previous_key_evidence_ref",
-        "expected_previous_key_evidence_seal_ref",
-        "new_key_tuple",
-        "holder_trusted_basis",
-        "holder_acceptance"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "expected_previous_key_evidence_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "expected_previous_key_evidence_seal_ref": {
-          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-        },
-        "new_key_tuple": {
-          "$ref": "#/$defs/organization_recovery_key_tuple"
-        },
-        "holder_trusted_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis"
-        },
-        "holder_acceptance": {
-          "$ref": "#/$defs/organization_recovery_holder_acceptance"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Closed CAS rotation of the unique active Realm recovery-key tuple. expected_previous_key_evidence_ref/Seal must equal the current effective tuple provenance. The new holder acceptance anchor must be that prior holder-trusted evidence Seal or a holder-pinned accepted successor. Historical tuples remain verifiable and archives are never rewritten."
-    },
-    "organization_recovery_archive": {
-      "type": "object",
-      "required": [
-        "effective_scope",
-        "mls_group_id",
-        "epoch",
-        "transition_digest",
-        "recovery_key_id",
-        "method_controller_principal_id",
-        "holder_service_id",
-        "key_agreement_ref",
-        "holder_signing_ref",
-        "hpke_suite",
-        "frozen_public_key_b64u",
-        "accepted_key_evidence_ref",
-        "holder_trusted_basis",
-        "enc",
-        "ciphertext"
-      ],
-      "properties": {
-        "effective_scope": {
-          "$ref": "#/$defs/history_effective_scope"
-        },
-        "mls_group_id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 18446744073709551615
-        },
-        "transition_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "recovery_key_id": {
-          "$ref": "./common-ids.schema.json#/$defs/recovery_key_id"
-        },
-        "method_controller_principal_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "Controller projection of the holder signing authority retained in this archive; distinct from the holder service authority route in holder_service_id."
-        },
-        "holder_service_id": {
-          "$ref": "#/$defs/did_core_id",
-          "description": "History-key holder service authority/route, distinct from method_controller_principal_id."
-        },
-        "key_agreement_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "holder_signing_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "hpke_suite": {
-          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
-        },
-        "frozen_public_key_b64u": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{43}$",
-          "description": "Byte-for-byte equal to the registered tuple's canonical unpadded base64url of 32 X25519 public-key bytes."
-        },
-        "accepted_key_evidence_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "holder_trusted_basis": {
-          "$ref": "./event-envelope.schema.json#/properties/seal_basis",
-          "description": "Complete canonical accepted Seal basis with exactly one confirmed head per Realm independently verified and pinned by the holder in the register/rotate acceptance transcript. Direct Seal traversal from this basis to the archive target must replay accepted_key_evidence_ref into the effective registered tuple; a source or service cannot manufacture, narrow or replace the basis."
-        },
-        "enc": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$",
-          "maxLength": 2048
-        },
-        "ciphertext": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$",
-          "maxLength": 16384
-        }
-      },
-      "additionalProperties": false,
-      "description": "Exactly one RHRK archive for this exporter transition. transition_digest is the mls_transition_digest: the digest derived from exact decoded Commit bytes for Commit and the closed Genesis core digest excluding organization_recovery_archive, outer EventId and proofs. accepted_key_evidence_ref identifies the exact register/rotate Event; its reducer-effective tuple is proved by direct Seal replay from holder_trusted_basis to the archive target, never by a singular activation Seal field. HPKE info/AAD binds every public field above except enc/ciphertext and never the containing EventId."
-    },
     "mls_governance_binding": {
       "type": "object",
       "required": [
-        "binding_version",
-        "encoding_profile",
         "effective_scope",
+        "base_group_state_ref",
         "previous_epoch",
         "next_epoch",
-        "security_frontier_digest",
-        "content_scheme",
-        "binding_profile",
-        "reducer_profile"
+        "key_access_revision"
       ],
       "properties": {
-        "binding_version": {
-          "const": 1
-        },
-        "encoding_profile": {
-          "const": "cbor-deterministic-rfc8949-v1"
-        },
         "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "description": "Tagged MLS governance scope. Realm-default groups use {kind:'realm', realm_id}; Circle groups use {kind:'circle', realm_id, circle_id}; Sidecar groups use {kind:'sidecar', realm_id, sidecar_id}. This field, not Strand id or track, determines key and participant scope."
+          "$ref": "#/$defs/effective_scope"
+        },
+        "base_group_state_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/event_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "previous_epoch": {
           "type": "integer",
@@ -6887,813 +6426,9 @@
           "type": "integer",
           "minimum": 0
         },
-        "security_frontier_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Canonical digest of the closed key-access frontier for this MLS scope: effective membership; only participant device/Agent keys referenced by current or pending MLS leaves; MLS group membership; and encryption/history policy that changes current or historical key access. Capability, ordinary metadata, moderation, routing, contact and consent-only facts are excluded unless their accepted effect actually removes an MLS leaf. Producers do not supply an arbitrary event list; every verifier rederives the digest from accepted Seal state."
-        },
-        "content_scheme": {
-          "enum": [
-            "mls_rfc9420",
-            "mls_exporter_aead_v1"
-          ]
-        },
-        "durability_policy": {
-          "enum": [
-            "none",
-            "organization_recovery_key"
-          ]
-        },
-        "sidecar_binding": {
-          "$ref": "#/$defs/sidecar_mls_binding",
-          "description": "Required exactly for effective_scope.kind='sidecar'; forbidden for Realm and Circle MLS scopes."
-        },
-        "binding_profile": {
-          "type": "string",
-          "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
-          "description": "Explicit operation-local profile that defines how this governance binding is interpreted. Full E2EE uses ak.profile.mls_governance_binding.full.v1; the only v1 downgrade profile is ak.profile.e2ee_relaxed.v1. Receivers MUST fail closed when this field is missing, unsupported, inconsistent with the effective Realm policy derived from mls_send_pause, or unsupported by ServiceDescribe. It is not a Realm active-profile declaration."
-        },
-        "reducer_profile": {
-          "type": "string",
-          "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
-          "description": "Reducer profile used to derive the closed security_frontier_digest projection. Receivers MUST fail closed when this field does not equal the Realm reducer-profile cell at the binding's authenticated frontier."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "content_scheme": {
-                "const": "mls_exporter_aead_v1"
-              }
-            },
-            "required": [
-              "content_scheme"
-            ]
-          },
-          "then": {
-            "required": [
-              "durability_policy"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "durability_policy"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "effective_scope": {
-                "properties": {
-                  "kind": {
-                    "const": "sidecar"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            },
-            "required": [
-              "effective_scope"
-            ]
-          },
-          "then": {
-            "required": [
-              "sidecar_binding"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "sidecar_binding"
-              ]
-            }
-          }
-        }
-      ],
-      "$comment": "The only scope carrier is effective_scope. Parse and compare the MLS GroupContext group identity and epoch against its deterministic derivation and this binding; removing outer mirrors never removes cryptographic checks.",
-      "additionalProperties": false
-    },
-    "mls_keypackage_payload": {
-      "type": "object",
-      "required": [
-        "principal_id",
-        "keypackage_ref",
-        "keypackage_digest",
-        "cipher_suites",
-        "state",
-        "expires_at",
-        "created_at"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "device_id",
-            "device_authorize_event_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "endpoint_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "intended_realm_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "endpoint_verification_method",
-            "agent_key_authorize_event_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "device_id"
-                ]
-              },
-              {
-                "required": [
-                  "device_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "intended_realm_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "endpoint_verification_method",
-            "intended_realm_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "device_id"
-                ]
-              },
-              {
-                "required": [
-                  "device_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "properties": {
-        "keypackage_id": {
-          "type": "string",
-          "pattern": "^ak:mls:kp:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Arkret MLS-profile KeyPackage identity. This is the registered ak:mls:kp:<uuidv7> special form, not an opaque external identifier."
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "endpoint_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "device_authorize_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "agent_key_authorize_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "intended_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "keypackage_ref": {
-          "$ref": "#/$defs/keypackage_ref"
-        },
-        "keypackage_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Canonical hash of the MLS KeyPackage bytes identified by keypackage_ref."
-        },
-        "cipher_suites": {
-          "$ref": "#/$defs/string_list"
-        },
-        "capabilities": {
-          "$ref": "#/$defs/string_list"
-        },
-        "state": {
-          "enum": [
-            "published",
-            "claimed",
-            "consumed",
-            "revoked",
-            "retired"
-          ]
-        },
-        "claim_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "mls_proposal_payload": {
-      "type": "object",
-      "required": [
-        "mls_group_id",
-        "base_epoch",
-        "proposal_type",
-        "proposal_bytes_b64",
-        "proposal_digest",
-        "governance_binding"
-      ],
-      "properties": {
-        "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "base_epoch": {
+        "key_access_revision": {
           "type": "integer",
           "minimum": 0
-        },
-        "proposal_type": {
-          "enum": [
-            "add",
-            "update",
-            "remove",
-            "psk",
-            "reinit",
-            "group_context_extensions",
-            "app_custom"
-          ],
-          "description": "Declared Proposal type. The support decision for each token is the matching row of artifacts/registry/mls-proposal-admission-registry.json: app_custom is structurally admissible but has no active application_proposal_types row in v1, so a decoded app_custom Proposal MUST be rejected with unsupported_feature rather than schema_violation. A token that does not equal the decoded Proposal type is schema_violation only after the sender class and decoded Proposal type rows have both been found active."
-        },
-        "proposal_bytes_b64": {
-          "$ref": "#/$defs/base64url",
-          "description": "Unpadded base64url encoding of the complete RFC 9420 MLSMessage carrying a Proposal. For Realm/Circle effective scopes it MUST be PublicMessage; PrivateMessage and bare Proposal bodies are rejected. Sidecar retains its own contract. Exact bytes are inline and durable; by-reference Commit processing matches the RFC proposal reference against these authenticated contents, not the EventId. On Realm/Circle scopes the decoded sender class MUST be the active member row of artifacts/registry/mls-proposal-admission-registry.json, and the sender leaf credential and signature key MUST equal the verified Event producer executed_by ?? actor_id; ExternalSender, NewMemberProposal and NewMemberCommit senders are rejected with unsupported_feature."
-        },
-        "proposal_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "SHA-256 digest of the decoded proposal_bytes_b64 bytes. Receivers MUST verify it before admitting the Proposal to an MLS proposal store."
-        },
-        "target_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Complete accepted target membership identity, including its Station. The endpoint signing principal alone is not membership authority."
-        },
-        "target_authorization_incarnation": {
-          "$ref": "#/$defs/history_authorization_incarnation",
-          "description": "Required only for add. Exact current Realm or Realm+Circle membership incarnation that this Add admits; the effective scope in governance_binding selects the matching branch. A winning Commit consuming this proposal is the unique replay-derived join_epoch source for that incarnation."
-        },
-        "governance_binding": {
-          "$ref": "#/$defs/mls_governance_binding"
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "proposal_type": {
-                "const": "add"
-              }
-            },
-            "required": [
-              "proposal_type"
-            ]
-          },
-          "then": {
-            "required": [
-              "target_actor_id",
-              "target_authorization_incarnation"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "target_authorization_incarnation"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "mls_welcome_payload": {
-      "type": "object",
-      "required": [
-        "keypackage_ref",
-        "claim_id",
-        "claim_ref",
-        "claim_envelope",
-        "claim_receipt",
-        "ciphertext",
-        "commit_ref",
-        "governance_binding",
-        "expires_at"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "recipient_principal_id",
-            "recipient_device_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "recipient_agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_pairwise_actor_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_pairwise_verification_method"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "recipient_principal_id",
-            "recipient_agent_id",
-            "recipient_agent_verification_method",
-            "agent_key_authorize_event_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "recipient_device_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_pairwise_actor_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_pairwise_verification_method"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "recipient_pairwise_actor_id",
-            "recipient_pairwise_verification_method"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "recipient_principal_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_device_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "properties": {
-        "recipient_principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "recipient_device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "recipient_agent_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "recipient_agent_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "agent_key_authorize_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "recipient_pairwise_actor_id": {
-          "type": "string",
-          "pattern": "^ak:did_core:key:z6Mk[A-Za-z0-9]+$"
-        },
-        "recipient_pairwise_verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "Exact did:key:<multibase>#<same-multibase> method for recipient_pairwise_actor_id; receivers MUST verify canonical Ed25519 multibase equality."
-        },
-        "sender_device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "keypackage_ref": {
-          "$ref": "#/$defs/keypackage_ref"
-        },
-        "claim_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "claim_ref": {
-          "type": "object",
-          "description": "KeyPackage claim binding validated before Welcome decryption. Exactly one trust branch is present: PCR-authorized device, independently authorized Agent runtime, or Realm-local minimal-metadata pairwise did:key endpoint.",
-          "required": [
-            "claim_id",
-            "keypackage_ref",
-            "keypackage_digest",
-            "capabilities_digest"
-          ],
-          "oneOf": [
-            {
-              "required": [
-                "device_authorize_event_id"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "agent_key_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "pairwise_actor_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "pairwise_verification_method"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
-                "agent_key_authorize_event_id"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "device_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "pairwise_actor_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "pairwise_verification_method"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
-                "pairwise_actor_id",
-                "pairwise_verification_method"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "device_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "agent_key_authorize_event_id"
-                    ]
-                  }
-                ]
-              }
-            }
-          ],
-          "properties": {
-            "claim_id": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/non_empty_string"
-                },
-                {
-                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                }
-              ]
-            },
-            "keypackage_ref": {
-              "$ref": "#/$defs/keypackage_ref"
-            },
-            "keypackage_digest": {
-              "$ref": "#/$defs/digest"
-            },
-            "capabilities_digest": {
-              "$ref": "#/$defs/digest"
-            },
-            "device_authorize_event_id": {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            "agent_key_authorize_event_id": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Accepted active ak.agent.key.authorize Event for the claimed Agent runtime key."
-            },
-            "pairwise_actor_id": {
-              "type": "string",
-              "pattern": "^ak:did_core:key:z6Mk[A-Za-z0-9]+$"
-            },
-            "pairwise_verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            }
-          },
-          "additionalProperties": false
-        },
-        "claim_envelope": {
-          "type": "object",
-          "description": "Closed requester device, Agent, or Realm-local pairwise signature binding the claimed KeyPackage to this Welcome, Realm, exact claim_request_id challenge and Welcome digest before decrypting the Welcome. Device/Agent signer authority is established by accepted authorization Events whose unique producer proofs and signer evidence validate independently; the pairwise signer is established by its exact did:key method and Realm-local actor. No separate signer-evidence sidecar is carried in this claim envelope.",
-          "required": [
-            "keypackage_ref",
-            "keypackage_digest",
-            "intended_realm_id",
-            "claim_id",
-            "requester_actor_id",
-            "welcome_digest",
-            "created_at",
-            "signature"
-          ],
-          "oneOf": [
-            {
-              "required": [
-                "requester_device_id",
-                "requester_device_authorize_event_id"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "requester_agent_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_agent_verification_method"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_agent_key_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_pairwise_verification_method"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
-                "requester_agent_id",
-                "requester_agent_verification_method",
-                "requester_agent_key_authorize_event_id"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "requester_device_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_device_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_pairwise_verification_method"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
-                "requester_pairwise_verification_method"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "requester_device_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_device_authorize_event_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_agent_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_agent_verification_method"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "requester_agent_key_authorize_event_id"
-                    ]
-                  }
-                ]
-              }
-            }
-          ],
-          "properties": {
-            "keypackage_ref": {
-              "$ref": "#/$defs/keypackage_ref"
-            },
-            "keypackage_digest": {
-              "$ref": "#/$defs/digest"
-            },
-            "intended_realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "claim_id": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/non_empty_string"
-                },
-                {
-                  "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-                }
-              ]
-            },
-            "requester_actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            },
-            "requester_device_id": {
-              "$ref": "#/$defs/device_id"
-            },
-            "requester_device_authorize_event_id": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            },
-            "requester_agent_id": {
-              "$ref": "#/$defs/did_core_id"
-            },
-            "requester_agent_verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "requester_agent_key_authorize_event_id": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
-            },
-            "requester_pairwise_verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "welcome_digest": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/digest"
-                },
-                {
-                  "pattern": "^sha256:[0-9a-f]{64}$"
-                }
-              ],
-              "description": "Exactly sha256:<lowercase-hex SHA-256 of the raw RFC 9420 Welcome bytes obtained by strictly decoding top-level ciphertext as canonical unpadded base64url>."
-            },
-            "created_at": {
-              "$ref": "#/$defs/timestamp"
-            },
-            "signature": {
-              "type": "object",
-              "required": [
-                "kid",
-                "sig"
-              ],
-              "properties": {
-                "kid": {
-                  "$ref": "#/$defs/non_empty_string"
-                },
-                "signature_algorithm": {
-                  "type": "string",
-                  "enum": [
-                    "Ed25519",
-                    "ML-DSA-65"
-                  ]
-                },
-                "sig": {
-                  "$ref": "#/$defs/non_empty_string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "claim_receipt": {
-          "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt",
-          "description": "Destination-signed receipt used for both same-service and remote claims. The receiving destination Station validates it against its durable claim ledger before accepting the Welcome."
-        },
-        "ciphertext": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/base64url"
-            },
-            {
-              "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-][AQgw]|[A-Za-z0-9_-]{2}[AEIMQUYcgkosw048])?$"
-            }
-          ],
-          "description": "Canonical unpadded base64url encoding of the complete RFC 9420 Welcome message. Receivers MUST decode successfully, reject padding and non-canonical encodings, and require re-encoding the decoded bytes to be byte-identical to this field."
-        },
-        "commit_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "governance_binding": {
-          "$ref": "#/$defs/mls_governance_binding"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -8054,66 +6789,6 @@
     "non_empty_string": {
       "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
     },
-    "notary_fault_censorship_payload": {
-      "type": "object",
-      "description": "Notary censorship evidence: a signed control-plane receipt whose event digest is provably absent from the obliged Seal's control_event_set_root and that received neither confirmed rejected command result nor defer. Does NOT automatically disqualify the notary; adds an audit fault record. See authz/event-auth-state-resolution.md section 7.2.",
-      "required": [
-        "signer_id",
-        "receipt",
-        "seal_ref",
-        "non_membership_proof"
-      ],
-      "properties": {
-        "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "receipt": {
-          "type": "object",
-          "description": "The signed control-plane receipt issued under proposal_intake_sla_ms (event_digest, received_at, receipt_seq, issuer, signature).",
-          "required": [
-            "event_digest",
-            "received_at",
-            "signature"
-          ],
-          "additionalProperties": true
-        },
-        "seal_ref": {
-          "type": "string",
-          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
-          "description": "The Seal that was obliged to include / confirmed rejected command result / defer the receipted Control Move."
-        },
-        "non_membership_proof": {
-          "type": "object",
-          "description": "Sorted-neighbor non-membership proof for the receipted event digest against seal_ref's control_event_set_root."
-        },
-        "missing_rejection_or_defer_proof": {
-          "type": "object",
-          "description": "Optional structured evidence that no confirmed rejected command result / defer covering the receipt exists in the obliged window."
-        }
-      },
-      "additionalProperties": false
-    },
-    "notary_fault_equivocation_payload": {
-      "type": "object",
-      "description": "Notary equivocation evidence: two Seals signed by signer_id that violate the slot rule (same (realm_id, notary_seq) with different canonical bytes, or notary_seq=k+1 not descending from the same signer's notary_seq=k). Admission is verification-only: the two conflicting notary signatures are the complete authorization; no capability grant is consulted. See authz/event-auth-state-resolution.md section 7.1.",
-      "required": [
-        "signer_id",
-        "seal_a",
-        "seal_b"
-      ],
-      "properties": {
-        "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "seal_a": {
-          "$ref": "./seal.schema.json"
-        },
-        "seal_b": {
-          "$ref": "./seal.schema.json"
-        }
-      },
-      "additionalProperties": false
-    },
     "nullable_timestamp": {
       "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
@@ -8139,7 +6814,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob|realm_state_snapshot):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "or_set_dot": {
       "type": "string",
@@ -9041,35 +7716,6 @@
     "rank": {
       "$ref": "./event-envelope.schema.json#/$defs/rank"
     },
-    "reaction_encrypted_payload_plaintext": {
-      "type": "object",
-      "description": "Plaintext JSON encrypted into reaction_payload.encrypted_payload.ciphertext for ak.reaction.add / ak.reaction.remove in E2EE realms. The outer reaction_payload.key remains required and carries the service-visible routing tag; this plaintext carries the real reaction key and optional user content.",
-      "required": [
-        "key"
-      ],
-      "properties": {
-        "key": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128,
-          "description": "Canonical reaction key after client-side normalization: a single NFC Unicode emoji cluster or profile-registered short tag. This is the real reaction key, not the outer HMAC routing tag."
-        },
-        "annotation": {
-          "type": "string",
-          "maxLength": 2048,
-          "description": "Optional user-visible annotation associated with the reaction."
-        },
-        "remove_add_event_ids": {
-          "type": "array",
-          "description": "Optional client-side convergence accelerator for ak.reaction.remove: add event ids that this remove intends to tombstone. MUST be omitted on ak.reaction.add. Service-side reducers still rely on the outer event actor_id, target_ref, key, and causal frontier.",
-          "items": {
-            "$ref": "#/$defs/event_ref"
-          },
-          "uniqueItems": true
-        }
-      },
-      "additionalProperties": false
-    },
     "reaction_payload": {
       "type": "object",
       "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The cell is a core OR-Set of reaction assertions and both kinds project one or_set_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
@@ -9191,31 +7837,6 @@
       },
       "additionalProperties": false
     },
-    "realm_authority_reset_payload": {
-      "type": "object",
-      "description": "ak.realm.authority.reset — advance the authority generation. Every grant anchored to the previous generation fails at read time without any cascading write. Destructive: this is not how a controller hands the Realm over, and it MUST carry an independent confirmation.",
-      "required": [
-        "realm_id",
-        "expected_state_digest",
-        "destructive_confirmation"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "expected_state_digest": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "JCS SHA-256 digest of the authority-root cell value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
-        },
-        "destructive_confirmation": {
-          "type": "string",
-          "const": "ak.realm.authority.reset",
-          "description": "Explicit confirmation token. A reset discards an entire authority tree, so it MUST NOT be reachable by replaying a transfer body."
-        }
-      },
-      "additionalProperties": false
-    },
     "realm_create_payload": {
       "type": "object",
       "description": "Minimal identity and security-root payload for ak.realm.create. User-visible, mutable, policy and reducer-derived Realm state is carried only by registered bootstrap facets. Every genesis, including Principal Control Realm and Agent PCR, requires a canonical 32-octet genesis_salt.",
@@ -9247,40 +7868,6 @@
         "verification_stub_required": {
           "type": "boolean",
           "default": true
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_digest_suite_transition_payload": {
-      "type": "object",
-      "description": "Payload for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. The containing Transition Seal commits the pre-transition governance view with previous_state_root and the post-transition view with state_root.",
-      "required": [
-        "from_digest_algorithm",
-        "to_digest_algorithm",
-        "transition_realm_state_snapshot_ref",
-        "realm_state_snapshot_commitment"
-      ],
-      "properties": {
-        "from_digest_algorithm": {
-          "type": "string",
-          "enum": [
-            "sha256",
-            "blake3"
-          ]
-        },
-        "to_digest_algorithm": {
-          "type": "string",
-          "enum": [
-            "sha256",
-            "blake3"
-          ]
-        },
-        "transition_realm_state_snapshot_ref": {
-          "type": "string",
-          "pattern": "^ak:realm_state_snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "realm_state_snapshot_commitment": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -9402,23 +7989,6 @@
         },
         "reason": {
           "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_notary_payload": {
-      "type": "object",
-      "description": "Payload for ak.realm.notary. The enclosing Control Move MUST CAS the current ak.component.notary.v1 head and the current notary authority MUST finalize the containing Seal.",
-      "required": [
-        "realm_id",
-        "notary"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "notary": {
-          "$ref": "./realm.schema.json#/properties/notary"
         }
       },
       "additionalProperties": false
@@ -9930,21 +8500,6 @@
       },
       "additionalProperties": false
     },
-    "realm_upgrade_state_payload": {
-      "type": "object",
-      "description": "Realm reducer-profile upgrade payload. target_reducer_profile is the new value written to the Realm reducer-profile singleton control cell. The Event's standard head_eq precondition binds the current cell value.",
-      "required": [
-        "target_reducer_profile"
-      ],
-      "properties": {
-        "target_reducer_profile": {
-          "type": "string",
-          "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
-          "description": "Registered reducer profile id this Realm upgrades to."
-        }
-      },
-      "additionalProperties": false
-    },
     "relation_create_payload": {
       "type": "object",
       "properties": {
@@ -10201,20 +8756,6 @@
       },
       "additionalProperties": false
     },
-    "resource_discovery_state": {
-      "description": "Union used by generic SDK consumers; Event kinds bind one exact closed branch.",
-      "anyOf": [
-        {
-          "$ref": "#/$defs/actor_discovery_state_payload"
-        },
-        {
-          "$ref": "#/$defs/applet_discovery_state_payload"
-        },
-        {
-          "$ref": "#/$defs/handle_discovery_state_payload"
-        }
-      ]
-    },
     "rsvp_encrypted_response": {
       "description": "Encrypted RSVP response envelope. The content_type is pinned so a receiver can route the ciphertext to exactly one decrypted schema; the plaintext MUST validate against rsvp_response.",
       "allOf": [
@@ -10371,9 +8912,6 @@
       },
       "additionalProperties": false
     },
-    "seal_ref": {
-      "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
-    },
     "sidecar_context_attach_payload": {
       "type": "object",
       "description": "Controller-signed versioned attachment of a source Realm context to an existing native Sidecar. It creates no Strand or Relation protocol object.",
@@ -10467,33 +9005,6 @@
       "properties": {
         "encryption_profile": {
           "const": "mls_rfc9420"
-        }
-      },
-      "additionalProperties": false
-    },
-    "sidecar_mls_binding": {
-      "type": "object",
-      "required": [
-        "sidecar_id",
-        "participant_authority_digest",
-        "control_frontier"
-      ],
-      "properties": {
-        "sidecar_id": {
-          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-        },
-        "participant_authority_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Digest of the exact Sidecar identity, controller, and the Realm-scoped desired Agent roster derived from accepted ownership, lifecycle, and Realm membership facts."
-        },
-        "control_frontier": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/non_empty_string"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Sorted accepted refs that materialize Sidecar genesis, ownership, lifecycle, authorization, Realm participation and key readiness. No Circle membership or Sidecar selection Event may appear."
         }
       },
       "additionalProperties": false
@@ -10780,372 +9291,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "fork_resolution_event_sibling_position_subject": {
-      "type": "object",
-      "description": "The disputed authoring position itself. Realm comes from the resolution Event envelope. prev_frontier_digest is deliberately absent: a single-bucket overflow and a cross-bucket overflow at the same position must normalize to one cell, so the bucket belongs to the evidence and never to the cell subject.",
-      "required": [
-        "kind",
-        "actor_id",
-        "actor_seq"
-      ],
-      "properties": {
-        "kind": {
-          "const": "event_sibling_position"
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "actor_seq": {
-          "type": "integer",
-          "minimum": 0
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_event_id_collision_subject": {
-      "type": "object",
-      "description": "The colliding Event identity. The verdict governs only the projection inside the resolution Event's own Realm; variants carried by another Realm are adjudicated by that Realm's own recovery authority.",
-      "required": [
-        "kind",
-        "event_id"
-      ],
-      "properties": {
-        "kind": {
-          "const": "event_id_collision"
-        },
-        "event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_bucket_overflow": {
-      "type": "object",
-      "description": "Exactly 17 verified siblings sharing one prev_frontier_digest: the minimal set that proves the v1 single-bucket ceiling of 16 was passed. A producer is never required to enumerate every sibling an attacker may still submit.",
-      "required": [
-        "kind",
-        "prev_frontier_digest",
-        "event_ids"
-      ],
-      "properties": {
-        "kind": {
-          "const": "bucket_overflow"
-        },
-        "prev_frontier_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "event_ids": {
-          "type": "array",
-          "minItems": 17,
-          "maxItems": 17,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          },
-          "description": "Canonical bytewise-ascending, duplicate-free. Every entry MUST resolve to a fully verified Event in the same Realm, actor and actor_seq that recomputes into this bucket."
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_actor_seq_overflow": {
-      "type": "object",
-      "description": "Exactly 65 verified siblings at one position across any number of buckets: the minimal set that proves the v1 cumulative ceiling of 64 was passed.",
-      "required": [
-        "kind",
-        "event_ids"
-      ],
-      "properties": {
-        "kind": {
-          "const": "actor_seq_overflow"
-        },
-        "event_ids": {
-          "type": "array",
-          "minItems": 65,
-          "maxItems": 65,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          },
-          "description": "Canonical bytewise-ascending, duplicate-free. Every entry MUST resolve to a fully verified Event in the same Realm, actor and actor_seq; entries MAY span buckets."
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_domain_non_joinable": {
-      "type": "object",
-      "description": "Siblings whose reducer writes to one registered cell family cannot join under that family's lattice. The receiver re-runs the join from the registry rather than trusting a producer-asserted conflict; there is no separate conflict-rule registry.",
-      "required": [
-        "kind",
-        "cell_family",
-        "event_ids"
-      ],
-      "properties": {
-        "kind": {
-          "const": "domain_non_joinable"
-        },
-        "cell_family": {
-          "type": "string",
-          "pattern": "^ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
-          "description": "Registered cell family whose lattice the receiver re-evaluates to confirm the siblings are not joinable."
-        },
-        "event_ids": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          },
-          "description": "Canonical bytewise-ascending, duplicate-free verified siblings at the subject position whose writes to cell_family are not joinable."
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_collision_preimage_locator": {
-      "description": "One complete canonical Event preimage, carried inline or by reference. The reference branch exists because base64 of an Event close to the 1 MiB ceiling cannot fit inside a resolution Event that is itself bounded by 1 MiB.",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "canonical_event_bytes_b64u"
-          ],
-          "properties": {
-            "kind": {
-              "const": "inline_canonical_bytes"
-            },
-            "canonical_event_bytes_b64u": {
-              "$ref": "#/$defs/base64url",
-              "description": "Canonical unpadded base64url of the complete canonical Event preimage bytes."
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "collision_variant_record_id",
-            "collision_variant_record_digest"
-          ],
-          "properties": {
-            "kind": {
-              "const": "collision_variant_record"
-            },
-            "collision_variant_record_id": {
-              "$ref": "./common-ids.schema.json#/$defs/collision_variant_record_id"
-            },
-            "collision_variant_record_digest": {
-              "$ref": "#/$defs/digest",
-              "description": "Digest of the complete canonical record under the Realm's active digest suite at the resolution basis: <suite>(JCS(record)) over the whole object, proof included. It is not the proof's own payload_digest, whose preimage deletes proof. A missing record is a typed dependency miss; an invalid record rejects the Seal."
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "fork_resolution_full_hash_collision": {
-      "type": "object",
-      "description": "Exactly two byte-distinct preimages that independently recompute to the subject event_id. Fewer than two, duplicate bytes, or a carried-id-only reference is not collision evidence.",
-      "required": [
-        "kind",
-        "variants"
-      ],
-      "properties": {
-        "kind": {
-          "const": "full_hash_collision"
-        },
-        "variants": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": {
-            "$ref": "#/$defs/fork_resolution_collision_preimage_locator"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_sibling_winner_verdict": {
-      "type": "object",
-      "description": "One sibling at the subject position becomes canonical. The winner MUST be a member of this Move's own evidence set.",
-      "required": [
-        "kind",
-        "winner_event_id"
-      ],
-      "properties": {
-        "kind": {
-          "const": "canonical_winner"
-        },
-        "winner_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_collision_winner_verdict": {
-      "type": "object",
-      "description": "One collision variant becomes canonical. winner_index selects the complete canonical-bytes locator at conflict_evidence.variants[0] or [1], so the verdict does not carry a third copy of an inline or referenced preimage. A digest-only or carried-id-only winner MUST be rejected as witness_disagreement.",
-      "required": [
-        "kind",
-        "winner_index"
-      ],
-      "properties": {
-        "kind": {
-          "const": "canonical_winner"
-        },
-        "winner_index": {
-          "type": "integer",
-          "enum": [
-            0,
-            1
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_void_all_verdict": {
-      "type": "object",
-      "description": "Every current and future variant at the subject position, inside this Realm, is void: none enters the accepted frontier or the reducer input set, and no later-arriving variant revives it. The actor's authoring chain therefore terminates below the voided position, so this verdict is only correct when no legal variant exists.",
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "const": "void_all"
-        }
-      },
-      "additionalProperties": false
-    },
-    "fork_resolution_payload": {
-      "description": "Authorized fork resolution. subject names the disputed scope and is the whole cell subject; conflict_evidence proves the scope is disputed without entering the cell subject; verdict normalizes it. Authorization is carried only by a critical recovery_capability ref, never by mirrored payload authority.",
-      "type": "object",
-      "required": [
-        "subject",
-        "conflict_evidence",
-        "verdict"
-      ],
-      "properties": {
-        "subject": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/fork_resolution_event_sibling_position_subject"
-            },
-            {
-              "$ref": "#/$defs/fork_resolution_event_id_collision_subject"
-            }
-          ]
-        },
-        "conflict_evidence": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/fork_resolution_bucket_overflow"
-            },
-            {
-              "$ref": "#/$defs/fork_resolution_actor_seq_overflow"
-            },
-            {
-              "$ref": "#/$defs/fork_resolution_domain_non_joinable"
-            },
-            {
-              "$ref": "#/$defs/fork_resolution_full_hash_collision"
-            }
-          ]
-        },
-        "verdict": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/fork_resolution_sibling_winner_verdict"
-            },
-            {
-              "$ref": "#/$defs/fork_resolution_collision_winner_verdict"
-            },
-            {
-              "$ref": "#/$defs/fork_resolution_void_all_verdict"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "subject": {
-                "properties": {
-                  "kind": {
-                    "const": "event_sibling_position"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "conflict_evidence": {
-                "oneOf": [
-                  {
-                    "$ref": "#/$defs/fork_resolution_bucket_overflow"
-                  },
-                  {
-                    "$ref": "#/$defs/fork_resolution_actor_seq_overflow"
-                  },
-                  {
-                    "$ref": "#/$defs/fork_resolution_domain_non_joinable"
-                  }
-                ]
-              },
-              "verdict": {
-                "oneOf": [
-                  {
-                    "$ref": "#/$defs/fork_resolution_sibling_winner_verdict"
-                  },
-                  {
-                    "$ref": "#/$defs/fork_resolution_void_all_verdict"
-                  }
-                ]
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "subject": {
-                "properties": {
-                  "kind": {
-                    "const": "event_id_collision"
-                  }
-                },
-                "required": [
-                  "kind"
-                ]
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "conflict_evidence": {
-                "$ref": "#/$defs/fork_resolution_full_hash_collision"
-              },
-              "verdict": {
-                "oneOf": [
-                  {
-                    "$ref": "#/$defs/fork_resolution_collision_winner_verdict"
-                  },
-                  {
-                    "$ref": "#/$defs/fork_resolution_void_all_verdict"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      ]
     },
     "realm_media_service_payload": {
       "$comment": "Payload for ak.realm.media_service. The media descriptor lives under payload.value (a state_payload envelope), never flattened onto payload. This def is closed on purpose: the descriptor is the trust root for media token issuance (service_id, ice_config_endpoint and every foci[].token_endpoint per zh/crypto-media/media-service-binding.md section 2.1), and it was previously typed only as the open state_payload, which let a deployment carry provider-specific token issuer configuration inside a signed Realm policy cell while a spec-shaped consumer read nothing at all. Issuer configuration -- signing key ids, token audiences, TTLs, backend API credentials -- is deployment configuration of the service named by foci[].token_endpoint. It MUST NOT be carried here: putting it in the cell would make an issuer key rotation require a Realm policy Event holding ak.realm.media_service or ak.policy.manage capability, and would publish issuer internals to every Realm member. See zh/crypto-media/media-service-binding.md section 2.",
@@ -12048,6 +10193,81 @@
         }
       ],
       "description": "Relation create input: the full Relation object schema minus the id, the banned `type` name, and the reducer-managed `effective_scope`. Reusing relation.schema.json makes the Relation create shape decidable by schema exactly like the Strand / Morph / Space create shapes, while relation.schema.json's own `fields` property keeps the free edge-metadata surface open. Semantic validation MUST require payload.relation.created_by to match the top-level actor_id and payload.relation.created_at to match the top-level created_at before acceptance."
+    },
+    "realm_governance_station_change_payload": {
+      "type": "object",
+      "required": [
+        "expected_authority_generation",
+        "expected_realm_stream_commit_id",
+        "new_governance_station_id"
+      ],
+      "properties": {
+        "expected_authority_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_realm_stream_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "new_governance_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "poll_response_head": {
+      "type": "object",
+      "required": [
+        "poll_event_ref",
+        "response_event_ref"
+      ],
+      "properties": {
+        "poll_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "response_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resource_discovery_state": {
+      "description": "Union used by generic SDK consumers; Event kinds bind one exact closed branch.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/actor_discovery_state_payload"
+        },
+        {
+          "$ref": "#/$defs/applet_discovery_state_payload"
+        },
+        {
+          "$ref": "#/$defs/handle_discovery_state_payload"
+        }
+      ]
+    },
+    "device_authorize_applet_managed_possession_transcript": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_authorize_payload"
+        }
+      ],
+      "x-arkret-signature-domain": "ak.device_authorize_applet_managed_possession_proof.v1"
+    },
+    "device_authorize_possession_transcript": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_authorize_payload"
+        }
+      ],
+      "x-arkret-signature-domain": "ak.device_authorize_possession_proof.v1"
+    },
+    "device_authorize_recovery_possession_transcript": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/device_authorize_payload"
+        }
+      ],
+      "x-arkret-signature-domain": "ak.device_authorize_recovery_possession_proof.v1"
     }
   },
   "x-arkret-public-handshake-contract": {

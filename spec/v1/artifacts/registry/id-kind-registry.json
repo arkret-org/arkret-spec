@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.1",
+  "version": "2026-09-16.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T19:36:00+08:00",
+  "generated_at": "2026-09-16T08:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -171,14 +171,6 @@
   },
   "special_forms": [
     {
-      "kind": "cursor",
-      "wire_form": "ak:cursor:<base64url>",
-      "payload_pattern": "[A-Za-z0-9_-]+",
-      "status": "active",
-      "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
-      "description": "Opaque sync/query cursor; not a typed-UUIDv7 object ID."
-    },
-    {
       "kind": "blob",
       "wire_form": "ak:blob:<digest-suite>:<digest>",
       "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
@@ -188,37 +180,37 @@
       "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs. The embedded digest is the sole wire carrier of the referenced bytes' digest; same-carrier sibling digest mirrors are forbidden (encoding.md 4.0.1)."
     },
     {
+      "kind": "cursor",
+      "wire_form": "ak:cursor:<base64url>",
+      "payload_pattern": "[A-Za-z0-9_-]+",
+      "status": "active",
+      "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
+      "description": "Opaque sync/query cursor; not a typed-UUIDv7 object ID."
+    },
+    {
+      "kind": "did_core",
+      "wire_form": "ak:did_core:<method>:<core>",
+      "payload_pattern": "[a-z0-9]+:[^\\s/?#]+",
+      "status": "active",
+      "storage_recommendation": "Store the complete canonical value for equality and indexing; generic consumers MUST NOT split or normalize the adapter-defined core segment.",
+      "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare did. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
+    },
+    {
+      "kind": "membership_compensation_delegation",
+      "wire_form": "ak:membership_compensation_delegation:sha256:<lowercase_hex>",
+      "payload_pattern": "sha256:[0-9a-f]{64}",
+      "status": "active",
+      "content_addressed": true,
+      "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference; the reference is the only wire carrier of that digest.",
+      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(core)) over the profile-defined closed core that carries neither delegation_id nor signature. The delegation object, terminal certificate and single-use CAS token carry only this typed reference; no sibling delegation_digest exists (encoding.md 4.0.1)."
+    },
+    {
       "kind": "mls",
       "wire_form": "ak:mls:<profile>:<profile_id>",
       "payload_pattern": "[a-z0-9_]+:[A-Za-z0-9._:-]+",
       "status": "profile_extension",
       "storage_recommendation": "Store profile and raw profile_id separately.",
       "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed-UUIDv7. payload_pattern is the core-registered outer value space the profile MUST stay inside; the profile MAY narrow it further but MUST NOT accept an octet outside it."
-    },
-    {
-      "kind": "pseudonym",
-      "wire_form": "ak:pseudonym:<scope_id>:<random>",
-      "payload_pattern": "[a-z0-9_]+:[A-Za-z0-9_-]+",
-      "status": "profile_extension",
-      "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
-      "description": "Profile-scoped pseudonymous reference. Each consuming profile defines its own scope boundary and narrows the core-registered outer payload_pattern; it MUST NOT accept an octet outside that space. E2EE credential pseudonyms are Realm-scoped, while push pseudonyms are scoped to the registered recipient service, principal, device, route and salt epoch. Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
-    },
-    {
-      "kind": "plan",
-      "wire_form": "ak:plan:<base64url>",
-      "payload_pattern": "[A-Za-z0-9_-]+",
-      "status": "active",
-      "storage_recommendation": "Store as an opaque install-plan token; do not parse it as UUIDv7.",
-      "description": "Applet install-plan identifier. The suffix is an opaque non-empty base64url token."
-    },
-    {
-      "kind": "service_registration_receipt",
-      "wire_form": "ak:service_registration_receipt:<sha256-hex>",
-      "payload_pattern": "[0-9a-f]{64}",
-      "status": "active",
-      "content_addressed": true,
-      "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
-      "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt claims))."
     },
     {
       "kind": "organization_registration_challenge",
@@ -257,46 +249,56 @@
       "description": "Content-addressed OrganizationRegistrationReceipt identifier. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt_claims)), where receipt_claims is exactly the receipt object with registration_receipt_id and proof both omitted; it is the same content-addressed family as service_registration_receipt and MUST NOT be reused as a Realm capability, membership, notary designation or service delegation."
     },
     {
-      "kind": "membership_compensation_delegation",
-      "wire_form": "ak:membership_compensation_delegation:sha256:<lowercase_hex>",
-      "payload_pattern": "sha256:[0-9a-f]{64}",
+      "kind": "plan",
+      "wire_form": "ak:plan:<base64url>",
+      "payload_pattern": "[A-Za-z0-9_-]+",
+      "status": "active",
+      "storage_recommendation": "Store as an opaque install-plan token; do not parse it as UUIDv7.",
+      "description": "Applet install-plan identifier. The suffix is an opaque non-empty base64url token."
+    },
+    {
+      "kind": "pseudonym",
+      "wire_form": "ak:pseudonym:<scope_id>:<random>",
+      "payload_pattern": "[a-z0-9_]+:[A-Za-z0-9_-]+",
+      "status": "profile_extension",
+      "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
+      "description": "Profile-scoped pseudonymous reference. Each consuming profile defines its own scope boundary and narrows the core-registered outer payload_pattern; it MUST NOT accept an octet outside that space. E2EE credential pseudonyms are Realm-scoped, while push pseudonyms are scoped to the registered recipient service, principal, device, route and salt epoch. Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
+    },
+    {
+      "kind": "realm_authority_handoff",
+      "wire_form": "ak:realm_authority_handoff:<44-char-base64url-no-pad>",
+      "payload_pattern": "[A-Za-z0-9_-]{44}",
       "status": "active",
       "content_addressed": true,
-      "storage_recommendation": "Store the 32-byte delegation digest or the complete typed content-addressed reference; the reference is the only wire carrier of that digest.",
-      "description": "Content-addressed membership-compensation delegation reference. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(core)) over the profile-defined closed core that carries neither delegation_id nor signature. The delegation object, terminal certificate and single-use CAS token carry only this typed reference; no sibling delegation_digest exists (encoding.md 4.0.1)."
+      "storage_recommendation": "Store the decoded 33-byte suite-tagged digest.",
+      "description": "Content-addressed realm_authority_handoff canonical body identifier."
     },
     {
-      "kind": "seal",
-      "wire_form": "ak:seal:<digest-suite>:<digest>",
-      "payload_pattern": "(?:sha256|blake3):[0-9a-f]{64}",
+      "kind": "realm_commit",
+      "wire_form": "ak:realm_commit:<44-char-base64url-no-pad>",
+      "payload_pattern": "[A-Za-z0-9_-]{44}",
       "status": "active",
       "content_addressed": true,
-      "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
-      "description": "Content-addressed Seal identifier using an active digest-suite id (v1: sha256 or profile-gated blake3), the same suite-tagged shape as ak:blob:<digest-suite>:<digest>. The suite segment is not fixed to sha256: a Seal id is a critical field, so its suite prefix MUST equal the Realm digest_algorithm and MUST be an active row of registry/digest-suite-registry.json; any other prefix fails closed with unsupported_digest_algorithm. See spec/v1/zh/authz/event-auth-state-resolution.md section 6."
+      "storage_recommendation": "Store the decoded 33-byte suite-tagged digest.",
+      "description": "Content-addressed realm_commit canonical body identifier."
     },
     {
-      "kind": "cell",
-      "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
-      "payload_pattern": "ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*",
+      "kind": "realm_snapshot",
+      "wire_form": "ak:realm_snapshot:<44-char-base64url-no-pad>",
+      "payload_pattern": "[A-Za-z0-9_-]{44}",
       "status": "active",
-      "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
-      "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the registry declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
+      "content_addressed": true,
+      "storage_recommendation": "Store the decoded 33-byte suite-tagged digest.",
+      "description": "Content-addressed realm_snapshot canonical body identifier."
     },
     {
-      "kind": "did_core",
-      "wire_form": "ak:did_core:<method>:<core>",
-      "payload_pattern": "[a-z0-9]+:[^\\s/?#]+",
+      "kind": "service_registration_receipt",
+      "wire_form": "ak:service_registration_receipt:<sha256-hex>",
+      "payload_pattern": "[0-9a-f]{64}",
       "status": "active",
-      "storage_recommendation": "Store the complete canonical value for equality and indexing; generic consumers MUST NOT split or normalize the adapter-defined core segment.",
-      "description": "Stable DID-derived principal, actor or service identity core. It is not a DID, is not directly resolvable, and MUST be projected only by a registered DID method adapter from a canonical bare did. Registered as a special form rather than an id_form because its identity authority is the external DID method, not an Arkret producer or Event digest."
-    },
-    {
-      "kind": "trust_domain",
-      "wire_form": "ak:trust_domain:<scope>",
-      "payload_pattern": "[a-z0-9][a-z0-9._\\-:]{0,127}",
-      "status": "active",
-      "storage_recommendation": "Store the complete canonical ak:trust_domain:<scope> value by default. A compressed schema may store the raw scope only in an explicitly named trust_domain_scope column and MUST restore the typed prefix at the persistence boundary.",
-      "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk root, recovery and authorization proofs. NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
+      "content_addressed": true,
+      "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
+      "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt claims))."
     },
     {
       "kind": "signer_evidence",
@@ -306,9 +308,32 @@
       "content_addressed": true,
       "storage_recommendation": "Store the complete typed content-addressed identifier together with the exact canonical signer-evidence bytes.",
       "description": "Content-addressed authenticated signer-resolution evidence reference. The suffix is the SHA-256 digest of the complete canonical evidence object under its registered digest rule."
+    },
+    {
+      "kind": "trust_domain",
+      "wire_form": "ak:trust_domain:<scope>",
+      "payload_pattern": "[a-z0-9][a-z0-9._\\-:]{0,127}",
+      "status": "active",
+      "storage_recommendation": "Store the complete canonical ak:trust_domain:<scope> value by default. A compressed schema may store the raw scope only in an explicitly named trust_domain_scope column and MUST restore the typed prefix at the persistence boundary.",
+      "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk root, recovery and authorization proofs. NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
     }
   ],
   "id_kinds": [
+    {
+      "kind": "account_status_record",
+      "category": "account",
+      "status": "active",
+      "wire_form": "ak:account_status_record:<44-char-suite-tagged-full-digest-token>",
+      "description": "Immutable Account Authority issuer-ledger lifecycle record identity derived from the complete closed unsigned record core.",
+      "id_form": "suite_tagged_full_digest",
+      "identity_authority": "issuer_record",
+      "derivation_contract_ref": "#/id_kind_registry/account_status_record_identity_contract",
+      "storage_identity_key": [
+        "account_authority_id",
+        "account_id",
+        "status_seq"
+      ]
+    },
     {
       "kind": "actor_profile",
       "category": "core_object",
@@ -343,6 +368,15 @@
       "identity_authority": "producer_signature"
     },
     {
+      "kind": "attestation",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "ak:attestation:<uuidv7>",
+      "description": "Attestation object ID for registered attestation object families.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
       "kind": "audit_binding",
       "category": "audit",
       "status": "active",
@@ -352,6 +386,18 @@
       "identity_authority": "event",
       "genesis_event_kinds": [
         "ak.audit.applet_binding.create"
+      ]
+    },
+    {
+      "kind": "audit_release",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "ak:audit_release:<44-char-event-token>",
+      "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.audit.release"
       ]
     },
     {
@@ -367,16 +413,13 @@
       ]
     },
     {
-      "kind": "audit_release",
-      "category": "audit",
+      "kind": "authorization_lease",
+      "category": "authz",
       "status": "active",
-      "wire_form": "ak:audit_release:<44-char-event-token>",
-      "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.audit.release"
-      ]
+      "wire_form": "ak:authorization_lease:<uuidv7>",
+      "description": "Basis-bound AuthorizationLease identifier.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
     },
     {
       "kind": "backup",
@@ -440,20 +483,20 @@
       ]
     },
     {
-      "kind": "rtc_participant",
-      "category": "media",
-      "status": "active",
-      "wire_form": "ak:rtc_participant:<uuidv7>",
-      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
       "kind": "capability",
       "category": "authz",
       "status": "active",
       "wire_form": "ak:capability:<uuidv7>",
       "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<44-char-event-token>.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "chunk",
+      "category": "chunk",
+      "status": "active",
+      "wire_form": "ak:chunk:<uuidv7>",
+      "description": "Realm state snapshot or blob chunk ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },
@@ -473,16 +516,13 @@
       ]
     },
     {
-      "kind": "sidecar",
-      "category": "core_object",
+      "kind": "claim",
+      "category": "identity_authz",
       "status": "active",
-      "wire_form": "ak:sidecar:<44-char-event-token>",
-      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_account_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.sidecar.create"
-      ]
+      "wire_form": "ak:claim:<uuidv7>",
+      "description": "Claim or attestation ID",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
     },
     {
       "kind": "consent",
@@ -490,41 +530,6 @@
       "status": "active",
       "wire_form": "ak:consent:<uuidv7>",
       "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "strand",
-      "category": "core_object",
-      "status": "active",
-      "wire_form": "ak:strand:<44-char-event-token>",
-      "referenceability": [
-        "relation_endpoint",
-        "notification_source",
-        "read_cursor_scope_ref"
-      ],
-      "description": "Strand object ID",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.strand.create"
-      ]
-    },
-    {
-      "kind": "chunk",
-      "category": "chunk",
-      "status": "active",
-      "wire_form": "ak:chunk:<uuidv7>",
-      "description": "Realm state snapshot or blob chunk ID",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "claim",
-      "category": "identity_authz",
-      "status": "active",
-      "wire_form": "ak:claim:<uuidv7>",
-      "description": "Claim or attestation ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },
@@ -589,35 +594,6 @@
       ]
     },
     {
-      "kind": "session_grant",
-      "category": "authz",
-      "status": "active",
-      "wire_form": "ak:session_grant:<44-char-suite-tagged-full-digest-token>",
-      "description": "Short-lived signed SessionGrant credential ID derived from the Account Authority's closed immutable issuance record. JWT jti carries this typed ID; it is neither an Event ID nor an ak:grant capability ID.",
-      "id_form": "suite_tagged_full_digest",
-      "identity_authority": "issuer_record",
-      "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
-      "storage_identity_key": [
-        "issuer_id",
-        "typed_id"
-      ]
-    },
-    {
-      "kind": "account_status_record",
-      "category": "account",
-      "status": "active",
-      "wire_form": "ak:account_status_record:<44-char-suite-tagged-full-digest-token>",
-      "description": "Immutable Account Authority issuer-ledger lifecycle record identity derived from the complete closed unsigned record core.",
-      "id_form": "suite_tagged_full_digest",
-      "identity_authority": "issuer_record",
-      "derivation_contract_ref": "#/id_kind_registry/account_status_record_identity_contract",
-      "storage_identity_key": [
-        "account_authority_id",
-        "account_id",
-        "status_seq"
-      ]
-    },
-    {
       "kind": "invite",
       "category": "authz",
       "status": "active",
@@ -636,6 +612,15 @@
       "status": "active",
       "wire_form": "ak:invite_locator:<uuidv7>",
       "description": "Non-secret Station administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "keypackage_claim",
+      "category": "mls",
+      "status": "active",
+      "wire_form": "ak:keypackage_claim:<uuidv7>",
+      "description": "keypackage_claim protocol identifier.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },
@@ -664,6 +649,27 @@
       "description": "Transient Signal Message preview stream instance ID; never a durable object or Event identity",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "mls_welcome_delivery",
+      "category": "mls",
+      "status": "active",
+      "wire_form": "ak:mls_welcome_delivery:<uuidv7>",
+      "description": "mls_welcome_delivery protocol identifier.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "moderation_queue_item",
+      "category": "moderation",
+      "status": "active",
+      "wire_form": "ak:moderation_queue_item:<44-char-event-token>",
+      "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.self.moderation.report"
+      ]
     },
     {
       "kind": "morph",
@@ -731,6 +737,23 @@
       "identity_authority": "producer_signature"
     },
     {
+      "kind": "realm",
+      "category": "core_object",
+      "status": "active",
+      "wire_form": "ak:realm:<44-char-event-token>",
+      "referenceability": [
+        "relation_endpoint",
+        "read_cursor_scope_kind"
+      ],
+      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_access, MLS group binding, and federation policy.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.realm.create"
+      ],
+      "id_form_note": "All Realm IDs are 33-byte Event tokens (encoding.md section 4.1): reserved-zero high nibble, uint4 digest suite, then all 32 digest octets, encoded as 44 unpadded Base64URL characters. The token is byte-identical to its ak.realm.create Event token; retyping only swaps the typed prefix."
+    },
+    {
       "kind": "receipt",
       "category": "receipt",
       "status": "active",
@@ -740,38 +763,11 @@
       "identity_authority": "producer_signature"
     },
     {
-      "kind": "authorization_lease",
-      "category": "authz",
-      "status": "active",
-      "wire_form": "ak:authorization_lease:<uuidv7>",
-      "description": "Basis-bound AuthorizationLease identifier.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "recovery_key",
-      "category": "identity",
-      "status": "active",
-      "wire_form": "ak:recovery_key:<uuidv7>",
-      "description": "Producer-allocated Organization Recovery Key registration identity, frozen across its authorized rotation lineage.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
       "kind": "recovery_session",
       "category": "identity",
       "status": "active",
       "wire_form": "ak:recovery_session:<uuidv7>",
       "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by RecoveryTransaction proofs. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "attestation",
-      "category": "audit",
-      "status": "active",
-      "wire_form": "ak:attestation:<uuidv7>",
-      "description": "Attestation object ID for registered attestation object families.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },
@@ -804,18 +800,6 @@
       ]
     },
     {
-      "kind": "moderation_queue_item",
-      "category": "moderation",
-      "status": "active",
-      "wire_form": "ak:moderation_queue_item:<44-char-event-token>",
-      "description": "Moderation queue item ID derived as a second, distinct typed output of the accepted ak.self.moderation.report Event.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.self.moderation.report"
-      ]
-    },
-    {
       "kind": "request",
       "category": "transport",
       "status": "active",
@@ -825,13 +809,48 @@
       "identity_authority": "producer_signature"
     },
     {
-      "kind": "realm_state_snapshot",
-      "category": "realm_state_snapshot",
+      "kind": "rtc_participant",
+      "category": "media",
       "status": "active",
-      "wire_form": "ak:realm_state_snapshot:<uuidv7>",
-      "description": "Realm state snapshot manifest ID",
+      "wire_form": "ak:rtc_participant:<uuidv7>",
+      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_id, ice_bucket(issued_at))` by the media service token issuer, where v1 ice_bucket is the fixed 300-second UTC bucket. MUST NOT carry any actor-identifying material; only appears in an `ak.call.state.roster_delta` join participant value and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "scheduled_send",
+      "category": "account_private",
+      "status": "active",
+      "wire_form": "ak:scheduled_send:<uuidv7>",
+      "description": "Producer-allocated identity of a principal-private scheduled-send plan. It is not an Event or Message identity and MUST NOT be retyped into either one.",
+      "id_form": "producer_allocated",
+      "identity_authority": "producer_signature"
+    },
+    {
+      "kind": "session_grant",
+      "category": "authz",
+      "status": "active",
+      "wire_form": "ak:session_grant:<44-char-suite-tagged-full-digest-token>",
+      "description": "Short-lived signed SessionGrant credential ID derived from the Account Authority's closed immutable issuance record. JWT jti carries this typed ID; it is neither an Event ID nor an ak:grant capability ID.",
+      "id_form": "suite_tagged_full_digest",
+      "identity_authority": "issuer_record",
+      "derivation_contract_ref": "#/id_kind_registry/issuer_record_identity_contract",
+      "storage_identity_key": [
+        "issuer_id",
+        "typed_id"
+      ]
+    },
+    {
+      "kind": "sidecar",
+      "category": "core_object",
+      "status": "active",
+      "wire_form": "ak:sidecar:<44-char-event-token>",
+      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_account_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.sidecar.create"
+      ]
     },
     {
       "kind": "space",
@@ -850,6 +869,23 @@
       ]
     },
     {
+      "kind": "strand",
+      "category": "core_object",
+      "status": "active",
+      "wire_form": "ak:strand:<44-char-event-token>",
+      "referenceability": [
+        "relation_endpoint",
+        "notification_source",
+        "read_cursor_scope_ref"
+      ],
+      "description": "Strand object ID",
+      "id_form": "event_derived",
+      "identity_authority": "event",
+      "genesis_event_kinds": [
+        "ak.strand.create"
+      ]
+    },
+    {
       "kind": "subscription",
       "category": "discovery",
       "status": "active",
@@ -857,23 +893,6 @@
       "description": "Directory notification subscription identifier.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "realm",
-      "category": "core_object",
-      "status": "active",
-      "wire_form": "ak:realm:<44-char-event-token>",
-      "referenceability": [
-        "relation_endpoint",
-        "read_cursor_scope_kind"
-      ],
-      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_access, MLS group binding, and federation policy.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.realm.create"
-      ],
-      "id_form_note": "All Realm IDs are 33-byte Event tokens (encoding.md section 4.1): reserved-zero high nibble, uint4 digest suite, then all 32 digest octets, encoded as 44 unpadded Base64URL characters. The token is byte-identical to its ak.realm.create Event token; retyping only swaps the typed prefix."
     },
     {
       "kind": "transaction",
@@ -899,42 +918,6 @@
       "genesis_event_kinds": [
         "ak.view.create"
       ]
-    },
-    {
-      "kind": "scheduled_send",
-      "category": "account_private",
-      "status": "active",
-      "wire_form": "ak:scheduled_send:<uuidv7>",
-      "description": "Producer-allocated identity of a principal-private scheduled-send plan. It is not an Event or Message identity and MUST NOT be retyped into either one.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "history_request",
-      "category": "scope_private",
-      "status": "active",
-      "wire_form": "ak:history_request:<uuidv7>",
-      "description": "Producer-allocated immutable scope-private history-key request identity.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "history_response",
-      "category": "scope_private",
-      "status": "active",
-      "wire_form": "ak:history_response:<uuidv7>",
-      "description": "Producer-allocated immutable history-key response record identity.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "collision_variant_record",
-      "category": "audit",
-      "status": "active",
-      "wire_form": "ak:collision_variant_record:<uuidv7>",
-      "description": "Stored canonical Event variant bytes used as full-hash collision evidence by ak.fork.resolution.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
     }
   ],
   "uuid_pattern_producer_allocated": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",

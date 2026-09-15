@@ -1,477 +1,95 @@
 ---
-title: 账号服务器信任与结果消费
+title: Authority-Attested Results
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-15
-sidebar:
-  label: 服务器信任与结果
+updated: 2026-09-16
+see_also:
+  - ../conformance/normative-language.md
+  - authority-commit-log.md
+  - service-http-binding.md
 ---
 
-本文规范用语遵循 [规范性语言](../conformance/normative-language.md)。
+# Authority-attested 结果
+
+规范关键字按[规范语言](../conformance/normative-language.md)解释。
+
+用户已经信任自己的 Account Station 进行会话、账号和本地可见性处理，但 Realm 共享事实的 finality
+只能来自 current governance Station 的 RealmCommit 或绑定该 authority generation 的 typed snapshot。
 
 ## 1. 信任方与角色
 
-普通客户端 MUST 信任当前完整 AccountId 所属 Station 在已认证账号会话下给出的治理验证结果。信任绑定完整 AccountId、Station service、当前设备/会话与所调用 operation；客户端 MUST NOT 将任意 Directory、远端 Realm 服务、Blob/Media endpoint、URL 或第三方自报的 verified 状态视为自己的 Station。建立账号会话之前，预期 Station 身份及认证绑定 MUST 按 §1.2 从用户明确选择或部署独立预配的信任起点建立；describe 自洽不构成独立身份背书。
+v1 保留三类可被 Account Station 转达的权威结果：
 
-角色按实际动作划分，不按程序或 SDK 包名划分：
+- `RealmCommit`：证明 exact Event 已在某一 Realm/Circle/Sidecar stream 的唯一 position 被接纳；
+- `RealmStateSnapshot`：证明指定 authority generation 下的 typed current sections 和调用者获准 stream heads；
+- `TypedCurrentResult`：返回封闭 selector 的 current value 及最后影响它的 Commit revision。
 
-| 动作 | 责任方 |
-| --- | --- |
-| 接纳 Event/Seal、联邦输入、历史 signer、DID method history/witness、授权/reducer/root 与有效分支 | 接纳/复制材料的服务器 |
-| 查询当前或指定 accepted basis 的治理事实、成员 incarnation、历史访问范围及准备操作输入 | 自己 Station |
-| 响应结构、请求/账号/Realm/scope/对象绑定、cursor 原子安装、用户意图与待签字节核对 | 客户端 |
-| 设备私钥、用户带外设备信任、MLS Commit/Welcome/KeyPackage 密码学、内容/附件/备份认证与解密 | 端到端客户端 |
-| 独立审计、服务间可移植证据及外部导入验证 | 实际承担该独立角色的验证者 |
+服务不得返回一个既无 RealmCommit 又无 typed snapshot/current signature 绑定的 `accepted=true`。
 
-客户端 MUST NOT 为认证自己 Station 的结果而下载完整治理闭包、重放历史 signer/Seal/reducer、重算治理 roots 或执行 omission challenge；此类工作也 MUST NOT 成为首页、进入 Realm、发送前准备、Welcome、Signal 或历史密钥恢复的前置。客户端的本地内容归约、解密及离线编辑不承担服务器治理接纳职责。
+## 2. 消费方验证
 
-服务器 MUST 验证不可信客户端和远端服务的输入。共享 SDK 中的服务器 verifier MUST 保留独立适用范围，不能用客户端信任规则跳过首次 admission、联邦验证或审计验证。
+消费 Station 必须：
 
-## 1.1 攻击者与责任矩阵
+1. 从 Realm genesis 开始验证连续 handoff chain；
+2. 确认签名者是该 generation 的 current governance Station；
+3. 验证 object ID、detached signature 投影和 nonce/audience；
+4. 对 Commit 验证同 stream 的 position/predecessor 连续性；
+5. 对 snapshot/current 验证 selector 和可见性没有扩张到其它 Circle/Sidecar。
 
-| 输入/威胁 | 保留的验证与责任 |
-| --- | --- |
-| 网络攻击者、远端 Station、第三方服务 | 认证 transport 与 exact destination；服务器独立验证首次 admission、可移植证据和治理，不继承远端 verified 标志。 |
-| 已撤销/过期设备或 Agent key、只有会话凭据者 | 自己 Station 在当前动作/Signal self 投递执行 current authority、PoP、expiry/fence；session 与缓存公钥均不代替授权实例。 |
-| 同组恶意成员、篡改密文 | 客户端逐项核对 producer signature、MLS credential/tree/transcript、AAD/AEAD、replay、对象与收件人绑定。 |
-| 恶意自己 Station | 不承诺独立检测其治理谎报；客户端仍核对签字意图、已知身份/撤销、exact授权实例、端到端认证与安装代际。 |
-| Authentication Method Provider、issuer key 或 Account Authority 局部失陷 | 分别按 [服务端威胁模型 §2.1a](../security/server-threat-model.md) 判断身份因子、签名能力与 ledger/status authority，不能合并为任意账号权限；诚实 Station 仍验证当前授权与实际 producer proof。 |
-| Station 运营方/管理员 | 只有已授权 operation 的账号状态、ACL、审计与保留职责；管理身份不替代用户签名、E2EE 密钥或 accepted recovery policy。整站被控制时适用恶意自己 Station 一行。 |
+客户端仍独立验证 Event producer proof、MLS/attachment 密码学和用户意图。Authority signature 不能替代 producer signature。
 
-MLS tree 是此前已验证身份的连续性锚；首次身份绑定仍由接入认证与用户带外确认建立。leaf 尚存不证明当前未撤销。
-稳定公钥 bytes 与 exact Event/epoch/authorization 结果必须分开缓存；同 actor/method/key 的重授权不能发生 ABA 混装。
+## 3. 转发与缓存
 
-### 1.2 普通客户端的 Station 接入（normative）
+Account Station 可以缓存已验证结果并对自己账号开放，但必须保留 exact authority bytes 和验证状态。
+它不得改变 revision、合并多个 stream 为一个伪全局序，或用本地接收时间作为 finality。
 
-本节是普通客户端首次登录、恢复连接与重新接入自己 Station 的唯一合同；不要求客户端实现 DID method-native 历史 verifier，也不授权它把任意外部服务当作自己 Station。
-
-1. **独立起点**：客户端 MUST 从用户明确选择的 Station HTTPS base URL，或部署独立预配的 base URL 与预期身份/认证绑定开始。搜索结果、邀请、二维码及 redirect 只提供候选，不得自动替换该选择。TLS MUST 验证被选择 origin 的证书；预配的 `service_id`、`trust_domain` 或认证绑定一旦存在，服务自报 MUST 与之匹配，不能覆盖它。明确启用的本地开发 transport 例外仍受既有开发规则约束，不授予生产身份保证。
-2. **公开发现**：在发送任何既有账号凭据之前，从该 base 读取 `GET /_arkret/describe`。MUST 按 [service-http-binding §2.3](./service-http-binding.md) 执行无自动 redirect、大小、压缩与超时限制，检查 `protocol_version="1.0"`、`service_kind="station"`、唯一 canonical HTTP JSON base 与实际选择一致，以及合法的 `service_id`、`trust_domain` 和 `auth_metadata`。这里由受信 origin 发布 Station 绑定；`service_resolution` 的存在不使客户端承担完整 WebVH 日志验证。describe 自洽不证明该 origin 是某个人或组织的真实服务。
-3. **认证绑定**：MUST 从 `auth_metadata.account_authority.gate_account_base_url` 派生全部客户端 account 操作，校验其 origin 与 `account_authority.origin` 一致；不得按 operation 猜地址或从缺失 base 回退。所用方法的 `method`、`issuer_uri`、`provider_uri`、`openid_configuration_url`、`client_id`、`scopes` 与 `grant_exchange` 按已公布配置绑定。Station、Authority 与 IdP 可以分 origin；OIDC 的 issuer、client、redirect、state、nonce、PKCE 与 DPoP 验证继续适用。
-4. **持久接纳**：客户端 MUST 在开始认证或重用凭据前，耐久保存并核对所选 base URL、`service_id`、`trust_domain`、Authority origin/base 与认证方法配置。认证方法/其 scopes 的集合顺序、协议惰性 `x_*`、动态 limits/features 与未改变上述绑定的常规签名 key rotation，不构成认证权威替换。持久状态不随登出、进程重启、账号切换或缓存淘汰自动丢弃；并发首次安装必须比较已有绑定，不允许后写覆盖。保存或读取失败 MUST 阻止后续凭据发送，不能按首次接入处理。
-5. **变化与重新接入**：恢复连接 MUST 先重新取得公开 describe 并比较持久绑定；三元身份不变但 Authority/issuer/方法配置变化也不能静默接受。失配时停止认证、refresh 和既有凭据发送，保留旧绑定及账号材料；只有用户显式重新选择并确认新绑定，或独立受信部署管理渠道授权更新后，才可安装新绑定并重新认证。不得向新权威转交旧 handoff、authorization code、refresh token 或 SessionGrant，不得仅以“重试”“重新连接”或清缓存代替重新接入。身份变化不迁移旧 Account/PCR；base URL 迁移亦须按此边界重新接入。
-6. **缓存与请求**：同一连接期间可复用已核对绑定，不能每个 self 请求额外增加 describe/历史验证。得知认证 metadata 变化时 MUST 使相应发现缓存失效并按第 5 项处理；不因未变的 advertised feature 重置会话。每次认证回调、签名/提交与会话恢复仍核对本次冻结的完整账号、目的地及用户意图。
-7. **独立服务**：已登记的自己 Station 结果面按其 operation 消费。未登录的 Directory 等独立消费不取得 Station 可信结果资格；需要认证候选真实性时，必须由实际承担 [service-surface §2.6](./service-surface.md) 的独立验证者提供验证，或待已有自己 Station 的登记结果可用。不能验证的候选不得标记 verified 或作为隐式账号接入依据。Station、registry、联邦接收方与独立审计者的原生验证职责不变。
-
-首次 origin 选错、独立预配渠道或受信 WebPKI/origin 失陷属于残余暴露；正常 TLS 验证仍防御仅控制网络的主动攻击者。持久绑定只能延续已经作出的选择，不能追溯证明首次选择正确；恶意 Station 的后续治理结果按 §1.1 处理。
-
-## 2. 结果绑定与可用性
-
-服务器结果 MUST 绑定请求的完整账号及该 operation 所需的 Realm/effective scope、对象/动作与当前或历史观察坐标。需要 accepted Seal basis 的治理事实或签署准备结果 MUST 绑定准确 basis；纯身份/PCR 定位结果不因此追加 Seal 或 authoring 权限。客户端只消费本次认证请求的结果，不把已缓存的另一个账号、Station、scope 或操作的成功状态搬到当前请求。
-
-已授权可见的查询中，尚未验证、依赖缺失、未决分支与有效的空状态 MUST 可区分。未验证材料 MUST NOT 被报告为 accepted、无权限、已删除或成功。存在性受保护的目标仍遵守相应 operation 的 outward-disclosure 与非枚举失败规则；内部验证原因不能通过错误码、响应大小或时序旁路泄露。
-
-请求接受、后台排队、治理状态 accepted、操作完成与端到端内容可解密是不同状态。依赖治理结果的写入、成员变化或密钥释放 MUST 等待所需验证和当前授权；只读界面 MAY 展示已确认的局部内容。一个 Realm 的等待 MUST NOT 阻断其它 Realm 或账号导航。
-
-缓存有效性 MUST 按 exact basis、规则/贡献上下文与相应 freshness 判断。leave/rejoin、设备撤销、key generation/fence、fork/recovery、权限变化及账号切换 MUST 使对应当前授权结果失效；历史 accepted 事实不能反向成为当前授权。已知撤销不得因旧结果尚在 TTL 内而继续使用。
-
-服务器不可用时，客户端保留已确认的有限本地内容，并将需要刷新权威状态的操作置为等待；MUST NOT 以客户端完整治理重放作为恢复方式。客户端不提供对自己 Station 恶意伪造治理结果的独立检测保证。
-
-## 3. 签署与端到端边界
-
-服务器可以准备 exact basis、cell heads、预条件和 canonical 待签材料。客户端签署前 MUST 核对完整 actor/subject、Realm/scope、动作、用户意图与 exact bytes；签署后服务器 MUST NOT 补填 basis、替换目标或改写 payload。状态变化导致材料不再可接纳时，应按该操作的冲突与重试合同重新准备，不修改已签材料。
-
-device-signed PCR Seal 与用户 DID 控制操作仍由授权设备持钥签署；签署设备消费自己 Station 准备并验证的治理输入，MUST NOT 因签名者角色被要求重放账号或 Realm 的全部治理历史。普通在线操作不得无条件增加额外通用 challenge/prepare/commit 轮次；仅使用该 operation 已登记的准备与提交合同。
-
-服务器提供的设备授权事实不等于用户带外确认。客户端 MUST 保留设备密钥绑定、既有带外验证状态、密钥变化处理、KeyPackage 自签、MLS transcript 与内层内容认证。服务器无法读取的 encrypted MemberIdentity 明文及内层 proof 不能声称已由服务器核验；客户端仍验证其 realm/actor/subject 与密码学绑定，公开 signer 授权由自己 Station 提供。
-
-内容寻址 hash、加密附件 segment AEAD、备份认证和下载边界检查继续适用。Blob/Media 的外部传输与直接密钥释放仍遵守其已确认 binding 和 plaintext visibility。地址簿私有发现的 PSI/VOPRF 及其密码学证明由参与该私有协议的客户端处理，MUST NOT 为服务器验证而上传联系人明文。
+Authority handoff 后，旧 generation 的历史 Commit 仍可验，但旧 Station 签发的新 position 无效。缓存在每次写入前
+必须刷新 authority bundle。
 
 ## 4. 服务器验证复用
 
-客户端确认自己已知的 Control Move 是否被 Seal 接受时，MUST 使用
-`ak.self.control_proposal_decisions.read.get.v1` 的 exact `(realm_id, proposal_digest)` 结果。
-自己 Station 返回 `proposal_state=sealed` 且绑定同一 Event kind、digest 与 `accepted_seal_id`，只确认该 Event 已有安全终局。客户端 MUST resolve 此确切 Seal，核对唯一对应 `command_results` 单元；仅 `outcome=committed` 才是业务成功，`outcome=rejected` 是业务拒绝。pending/deferred/overdue 不能当作终局。客户端保留已签 intent 的确切内容与摘要绑定，
-但 MUST NOT 为这项确认拉取 Seal 前驱闭包、DID history 或治理重放检查点。若还需取得接纳后追加的 Event envelope，
-只 resolve 已知的确切 Event 并核对原始签署输入不变。`accepted_seal_id` MUST 是唯一确认序列中
-`command_results[]` 首次直接包含该 Event 的 Seal（成功或拒绝均属终局）；同一 Event 出现第二个直接终局结果或同一位置出现两个确认 Seal 都是安全故障，必须停止该安全域，不得按字节序挑选赢家。该引用不是完整 frontier，不得直接代替 authoring
-`seal_basis`。服务器先按当前会话检查该 Event 可见性，查询命中的 durable
-proposal/covering-Seal 状态；不得为单 Event 确认枚举整个站点的 canonical Events。
+MLS current 只包含 public group state、epoch、group-state ref、`current_key_access_revision` 和
+`covered_key_access_revision`。两个 revision 不等时，治理 Station 拒绝新 encrypted application Event 和 Welcome admission，
+直到有效 MLS Commit 覆盖 current revision。
 
-同一服务器 MUST 将治理接纳与逐请求授权分离。对相同 Realm/scope、exact accepted basis、canonical bytes/acceptance pin、历史 authority 与规则/贡献上下文，验证结果及派生视图 MUST 持久共享；不得只因用户、设备、请求 ID 或重复读取变化而重新全量验证。并发相同目标的计算 MUST 合并，所有等待者分别执行当前读取/动作授权。
-
-accepted bytes、验证标记、视图根和必要索引 MUST 原子提交。重启后只恢复有完整验证来源的结果；缺失、受损、规则或贡献上下文失效的部分必须重建。原始材料持久化不等于已验证状态，内存中句柄缓存不能替代耐久视图。
-
-新增历史只执行实际新增验证和必要依赖计算；分支合并、fence/recovery 或规则变化只重算真实受影响部分。根计算若按现行编码需要读取累计集合，实现 MUST 如实保留并计量该成本，不得把响应分页或落盘称为恒定时间验证。首次参与某段历史的治理结果消费 Station按 [cbs-profiles §9](../authz/cbs-profiles.md#9-治理结果证明normative) 认证所需结论，不承担完整控制历史重放；治理执行与独立重放审计职责不变。
+Welcome 是 producer-signed recipient delivery object，与 Add Commit 原子入队。它不是 Realm Event，不产生独立
+RealmCommit。接收者按 `welcome_id` 幂等 ACK；ACK 不改变已接纳 Commit 的 finality。
 
 ## 5. MLS 绑定结果
 
-本节所有 self operation 的预算错误分开处理：收到的 request canonical bytes 超过其上限使用
-HTTP 413 / `payload_too_large`；合规请求所需完整响应无法满足结果预算使用 `limit_exceeded`
-（既有 HTTP 映射为 413），不截断原子事实。仅结构或数组项数违反 schema、且 request bytes 未超界
-使用 HTTP 422 / `schema_violation`。HTTP/gRPC/MQ 保持同一错误原因分类；SDK 本地预检不得把
-请求字节错误混成结果预算错误。统一优先级见 scalability-constraints §2.1.9。
+单 authority 模型不证明治理 Station 没有审查、扣留或错误接纳一个真实 producer Event。它只提供统一顺序、
+即时 current authorization 判断和获准 stream 的连续性。需要 Byzantine transparency 的部署必须使用未来的独立 witness
+profile，不得恢复 CBS/Seal/Cell 双平面。
 
-`ak.self.seals.read.mls_governance_proof.v1` 的 self surface MUST 使用
-`mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body` 与 `self_read_outcome`。
-名称中的 proof 不赋予客户端独立治理验证职责。Peer 同名 operation 继续使用独立的
-`read_request/read_outcome` 证明合同；self MUST NOT 接受旧 proof DTO 或返回 Merkle/历史材料。
+## 6. 稳定引用锚点
 
-请求字段按 `effective_scope, mls_group_id, local_mls_leaves, seal_basis, base_group_state_ref?,
-proposed_group_genesis_binding?, previous_epoch, next_epoch` 排列。scope 仅限 Realm/Circle，group 必须由 scope
-派生；leaves 必须是本地 MLS 已验证的 current/pending 完整叶集合，按 leaf_index 严格递增，1..65536 项，
-credential_ref 不重复且每项不超过 2048 字符，请求 canonical bytes 不超过 8 MiB。它不是全部 Realm 历史。
-epoch 只允许 0→0 或 n→n+1；后者必须提供准确的 base_group_state_ref。0→0 禁止 base ref；只有未存在
-accepted Genesis 时携 proposed_group_genesis_binding，proposal、accepted immutable Genesis 和并发冲突仍遵守
-现有 Genesis 错误合同。该 proposal MUST 逐字取自调用方已耐久落盘的 creator bootstrap transaction record
-（[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)），MUST NOT 由 current
-projection、Realm profile、history facet 或默认值重建；Station 仍不得代为默认。固定使用 `ak.security_frontier.v1` 选择规则和 full MLS binding profile。
+下列章节号供既有领域页引用，不恢复已退役的专用 Seal 查询。
 
-服务器 MUST 对每次请求检查当前账号的 Realm/Circle 可见性，并读取 exact seal_basis 对应的已确认状态，
-不得静默替换为当前单一 head。沿现有 frontier registry、exact local leaves 与不可变 Genesis binding 计算
-security_frontier_digest；其公式与 peer verifier 相同。服务器不得返回未验证的 cells 或用空状态掩盖依赖缺失。
-successor 的 epoch cell 必须具有 next_epoch=请求 previous_epoch 且 transition_ref=请求 base_group_state_ref；
-不匹配返回 state_mismatch。权限检查不能由共享历史缓存命中代替。
+### 1.1 攻击者与责任矩阵
 
-响应字段按 `query_digest, live_digest_suite, governance_binding, epoch_head?` 排列。
-query_digest 为 SHA-256(UTF8("ak.mls-governance-frontier-query-v1") || 0x00 || JCS(exact request))。
-它绑定请求，MUST NOT 被解释为对恶意服务器的认证证明。响应不重复 leaves；完整 canonical bytes 不超过
-1 MiB，超界失败而不截断、不分页。epoch_head 为请求 basis 的完整 winning epoch cell 值，可直接进入已签
-head_eq；没有 accepted epoch 时省略，缺安全确认材料必须失败，不能以省略表示未验证。
+Account Station 只对 session、本地可见性与缓存负责，不产生 Realm finality。
 
-客户端 MUST 校验 exact query、basis、scope/group/epoch、profile、用户提议和本地 leaves 的绑定；接收已签
-MLS binding 时还要核对服务器给出的 security_frontier_digest 与该 binding 相等。客户端保留 MLS tree、
-transcript、Commit/Welcome、credential/KeyPackage 和 AEAD 检查，MUST NOT 再取治理闭包、Merkle witnesses
-或本地重放生成相同结果。缓存只保存有界请求/结果，绑定账号会话并在已知权限变化时失效，迟到响应不得跨
-会话安装。历史 MLS transition 的治理判断由自己 Station 在其准确已签 basis 完成，不能用当前授权替代历史
-成员判断，也不能用历史授权替代当前读取许可。
+### 1.2 普通客户端的 Station 接入（normative）
 
-### 5.1 Accepted transition 的公开输入
-
-EventInitialSubmission 与 EventFederationSubmission 在 event 之后、authorization_lease 之前携带
-mls_frontier_leaves；该字段仅在 ak.mls.genesis/ak.mls.commit 必填，其它 kind 禁止（包括 null）。
-数组使用 MlsSecurityFrontierLeaf 的同一 closed 类型、1..65536 项、严格递增 leaf_index、无重复 credential_ref
-及 2048 字符 credential 边界，整体 submission 的 canonical bytes 仍不得超过 8 MiB。
-
-该集合 MUST 与最终签署的 Genesis/Commit 的 post-transition 公开叶意图相同。scope、group、epochs、
-base_group_state_ref、Genesis binding 与治理 basis 从该 Event 自身的签署字段取得；服务器在 exact basis
-按同一 registry 投影公式重算 security_frontier_digest，MUST 与 signed governance_binding 相等。
-preflight 的另一组叶、旧的 claim 前叶集合、少叶/多叶、错完整 ActorId 或并发赢家的不同输入均不得替代。
-未验证或无法取得所需历史 authority 的输入不得标为 accepted。
-
-Realm/Circle 的公开 leaves 意图还 MUST 与 encryption-and-audit §2.5.1 的 PublicMessage 握手及
-§5.1.1 的 Genesis 公开 GroupInfo/tree 交叉验证。服务器按确切公开 staged transition 解释 consumed
-Proposal、Add/Remove/Update 和新 leaf instance，不能仅凭提交者自报 leaves 或相等的前后三元组
-构造来源。公开 tree 与必要 accepted leaf provenance 同此 admission 原子保存；不得要求成员 secrets
-或声称已验证秘密 MAC。minimal-metadata 只使用其既有 pairwise 公开材料，Sidecar 合同不受本条扩展。
-
-解释 staged transition 时，服务器 MUST 先按 [`../crypto-media/encryption-and-audit.md` §5.2.1](../crypto-media/encryption-and-audit.md)
-的固定顺序判定每条 consumed Proposal 与该 Commit 自身的 RFC 9420 sender class 与 Proposal 类型：只有
-[`mls-proposal-admission-registry.json`](../../artifacts/registry/mls-proposal-admission-registry.json) 的 active row
-可以进入 leaf provenance 计算。ExternalSender、NewMemberProposal、NewMemberCommit、`external_init` 与未登记
-codepoint 的 AppCustom MUST 以 `unsupported_feature` fail closed，MUST NOT 误报 `schema_violation`，也 MUST NOT
-发布部分 transition、部分 leaf 来源或“已接纳但未消费”的中间态。Member sender 的叶必须在 exact accepted base 中
-已占用，且其 credential 与 signature key 等于该 Event 已验证的 producer `executed_by ?? actor_id`；不满足时按同一
-节的第 7 步返回 `failed_precondition` 或 `signature_invalid`，不得降级成不受支持特性。
-
-该 evidence 位于 Event digest preimage 外；它的完整内容通过现有 security_frontier_digest 和 Event proof
-绑定，不新增自引用 Event ID、独立 signature 或客户端治理 checkpoint。服务器 MUST 将它与首次 durable
-admission、accepted Event 和必要关联索引原子持久化；同 Event 的冲突输入不得覆盖既有输入。Peer push/resolve
-转发首次接纳的完全相同输入，接收服务器独立验证，不因源服务器自报或缓存命中而跳过。
-
-普通 self frontier query 的临时缓存、短命 claim record、消息到达次序或“第一个空 leaf index”均不是 accepted
-输入的替代来源。服务器结果对 exact accepted transition 提供其公开叶意图，客户端将它与真实 RFC 9420
-tree、credential/signature key、GroupContext 和 exact Proposal/Commit bytes 绑定；不能把服务器的治理结果
-当作服务器已经应用私有 MLS tree。冷 Welcome 不再依赖完整治理历史来猜测叶的成员归属。
+Realm finality 信任锨是 genesis + handoff chain 确定的 current governance Station。
 
 ### 5.2 已知 MLS artifact 的接纳结果
 
-`ak.self.seals.read.mls_accepted_artifact.v1`（`POST /_arkret/self/seals/mls-accepted-artifact`）接收
-`MlsAcceptedArtifactRequestBody {effective_scope, mls_group_id, artifact_ref}`，仅选择一个已知 Realm/Circle
-内的 Genesis、Commit 或 Welcome。请求 canonical bytes 上限 64 KiB；完整结果上限 16 MiB，独立于请求上限，
-无 continuation。请求不得携证明基点、客户端检查点、完整历史或 caller 自报的叶集合。
+MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 
-`MlsAcceptedArtifactOutcome` 按顺序包含：
+#### 5.2.1 认证收件人的 Welcome 引用发现
 
-| 字段 | 含义 |
-| --- | --- |
-| query_digest | SHA-256(`ak.mls-accepted-artifact-query-v1` + NUL + JCS(request)) |
-| transition_head | artifact 对应的已接纳 Genesis/Commit，使用 MlsAcceptedTransition；scope/epoch 仅取 governance_binding |
-| governance_binding | 该 transition 的原始 signed governance binding |
-| mls_frontier_leaves | §5.1 在该 transition admission 中原子保存的 exact final public leaves |
-| mls_leaf_authorizations | 按 leaf_index 严格递增的完整历史 endpoint 授权关联，与 mls_frontier_leaves 的 occupied index 集合完全相同 |
-
-`MlsAcceptedLeafAuthorization` 是结果专用 closed 对象，字段顺序为 `leaf_index`、
-`device_authorize_event_id?`、`agent_verification_method?`、`agent_key_authorize_event_id?`。
-ordinary DeviceId credential 必须且只能携 `device_authorize_event_id`；Agent credential 必须且只能携
-`agent_verification_method` 与 `agent_key_authorize_event_id`；minimal-metadata pairwise 只能携 `leaf_index`，
-其 did:key method 从真实 leaf key 和 pairwise credential 确定。所有 optional 字段禁止 null。
-完整 Account（含 Station）与 credential 复用同 index 的 frontier leaf；不得再复制 Actor、设备、公钥或成员 incarnation。
-两数组必须严格同序、同 index 集合，无重复、缺项、多项或位置推测；客户端复用既有 endpoint identity 与
-verified leaf binding 验证器核对真实 MLS tree，再与私有 MLS 状态同事务安装。
-
-该关联钉住 transition 当时的授权，MUST 从已验证的 Genesis/Add 来源耐久取得；保留叶继承，Remove 终止，
-实际 Remove+Add 即使复用全部公开字段也必须采用新 Add 来源。服务器不得在查询时按当前 key/device 重新选授权。
-新 Add 的当前授权验证仍然执行，但不得代替旧叶的历史授权。缺少任一历史来源返回 frontier_unavailable，
-不得回退当前目录、claim、Welcome hint、空引用或任意候选。当前授权后续撤销不重写历史结果，但当前请求者资格仍独立检查。
-精确缓存以完整账号会话、scope/group 和 transition ref 绑定，不能仅以 governance binding 或 epoch 选中缓存项。
-
-这不是第二份叶目录：授权关联仅补足结果消费所缺字段，不进入 `MlsSecurityFrontierLeaf`，不改变 submission、
-security frontier 或 membership removal 的既有 digest preimage；响应仍受完整 16 MiB 与 65,536 叶上限约束，
-不得截断、分页或省略 pairwise 行。超过响应预算返回 limit_exceeded。
-
-服务器 MUST 同时检查当前请求者的 Realm/PCR/Circle 读取资格和该 artifact 的精确读取可见性；先前作者身份、
-旧成员身份、临时 claim、可读一个 Event 或共享验证缓存命中都不替代当前范围授权。Welcome 还必须匹配本会话
-实际获准的 device/Agent/pairwise recipient。查询不得扩大历史内容、私有 Circle 或设备收件人的读取权限。
-
-成功只表示：artifact 已被非隔离 accepted Seal 覆盖；Genesis/Commit 自身就是 transition_head.transition_ref，
-Welcome 的 commit_ref 则等于该 ref；transition_head 是服务器当前 winning epoch 的 exact accepted predecessor chain
-在目标 epoch 的祖先。并发候选不得按到达顺序、最大 epoch 或单独的 covering Seal 任择。未 sealed 或当前验证
-尚未完成返回 frontier_unavailable；不属于当前 winning chain 返回 state_mismatch；不可见与不存在统一 not_found。
-若相应 basis 暴露冲突或缺依赖，MUST 失败，不以旧缓存、空叶集合或另一个候选填补。
-
-服务器从已验证状态和确切已接纳索引判断以上事实，可共享相同历史结果，但逐次执行当前授权。返回的 leaf input
-必须对应 transition 自身，而不是现在的 directory 或后续 epoch 的成员集合。查询结果不包含 ancestry Events，
-不要求客户端重放链；多个调用者不各自从 Genesis 建立治理证明。
-
-客户端只在匹配的 Account Station/账号会话及尚未失效的范围内消费结果；跨账号或已知撤销之后到达的结果不得安装。
-它检查 query、scope/group、目标 Event ref、epoch、binding 和实际 RFC 9420 tree/credential/signature key/Commit/
-Welcome transcript 的相符性，保留实际端到端密码学。此结果是服务器接纳判断，不是客户端 VerifiedMlsGovernanceFrontier；
-不得制造空 checkpoint、page digest 或全历史 fallback。必要的真实 Proposal/Commit bytes 仍按已知 exact refs 获取，
-不得扩展成遍历所有治理历史。旧 accepted-artifact helper 及其历史候选排序/祖先重放缓存须删除。
-
-### 5.2.1 认证收件人的 Welcome 引用发现
-
-通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。
-
-`ak.self.seals.read.mls_welcome_refs.v1`（`POST /_arkret/self/seals/mls-welcome-refs`）在请求者自己的
-Account Station 上接收 closed `MlsWelcomeRefsRequestBody {effective_scope, mls_group_id, limit?, cursor?}`。
-scope 精确选择一个 Realm 或 Circle，group 必须属于此 scope。limit 默认 20、最小 1、最大 100；
-响应为 closed
-`MlsWelcomeRefsOutcome {welcome_refs, next_cursor?}`，只返回真实 `ak.mls.welcome` Event refs，
-不返回 artifact bytes、Seal 证明或客户端检查点。仅由 `next_cursor` 是否存在表达是否还有下一页；存在时至少返回
-一个 ref；末页允许空列表且不携 next_cursor。单个 opaque cursor 最多 4096 字符，服务器必须在签发前
-计算包括 cursor 和容器在内的完整响应字节，不能签发无法装入下一合法请求的 cursor。若相同 scope/group、
-effective limit 和 continuation 的下一请求无法满足 §8.1 预算，必须在返回未完成第一页前以 `limit_exceeded`
-失败；不得先给调用者一个无法继续的成功窗口。
-
-收件身份仅从已认证会话推导，禁止 caller 指定任意 recipient。收件 endpoint 完全由该会话 SessionGrant 的
-signed `holder_binding` 分支确定：`human_device` 与 `agent_runtime` 分支绑定完整 AccountId（包括 Station）
-与设备或 Agent 的精确认证 endpoint；minimal-metadata pairwise 收件人使用
-`{kind="minimal_metadata_pairwise",realm_id,actor_id,verification_method}` 分支，它在完整 AccountId 之外还
-绑定 exact verification method 与 Realm affinity，并按
-[`../identity/key-management.md` §6.5](../identity/key-management.md) 在每次 admission 重新判定当前持有与
-撤销。AgentRuntime 使用获准 Agent 的认证引用、method 和 session endpoint，controller 的会话不能代领；
-pairwise 窗口同样不得由 controller、其它设备或 Realm membership 代领。本请求保持封闭的
-`{effective_scope, mls_group_id, limit?, cursor?}`，MUST NOT 为任何 endpoint class 新增 proof 字段。
-`holder_binding.realm_id` 必须与 `effective_scope` 所选 Realm（Circle scope 取其所属 Realm）逐字一致，
-否则按不可见规则返回 `not_found`。
-每页必须重新检查当前 Realm/PCR/Circle 资格、精确 recipient、成员 incarnation 和私有 Circle 可见性；
-不可见或不存在统一 `not_found`，当前 accepted 权威结果尚不可用返回 `frontier_unavailable`，不得退回旧授权。
-
-服务器维护按 recipient、scope/group 与稳定接纳序号可索引的 Welcome 资格记录。只枚举当前 winning
-transition chain 上已经 accepted、未 quarantine、未撤销、未到期且尚未终结消费的 Welcome。Event、
-accepted transition/eligibility 及索引必须同事务发布；普通提交、联邦接纳、exact retry、collision/quarantine
-和 recovery 都必须接入同一边界。不得通过扫描全 Realm Events、全成员目录或对每个候选重放 ancestry
-来建立一页。查询工作和临时内存必须由页限制及固定字节预算界定，历史长度不参与单页扫描界限。
-
-首次请求冻结稳定 observation upper bound；顺序为稳定接纳序号、Event ref，后续新增不插入此窗口。
-cursor 为 operation-specific opaque continuation，绑定完整认证 endpoint、scope/group、effective limit、
-固定筛选、观察上界、accepted eligibility revision 和最后输出坐标。后续请求必须使用同一 effective limit。
-篡改、跨账户/设备/Agent/Station/scope/group、资格 revision 改变、窗口过期或索引修复导致窗口不可继续，
-均返回 `cursor_invalid`；当前读取权限已失去仍按上述不可见规则处理。winning chain、recipient method、
-incarnation、撤销、到期或消费变化必须使受影响窗口失效；无关 Seal 更新不得使窗口失效。
-客户端只重开此 scope/group 的发现窗口，不得因此重扫全部 Realms。服务器必须保留窗口所需索引版本，
-或显式使 cursor 失效；不得静默跨越未决索引槽位、重标新窗口为旧窗口或漏掉旧记录。
-
-发现和分页均无消费副作用；device-message ACK 只确认通知队列投递，不删除尚可发现的 Welcome。
-重复发现不重复 consume KeyPackage，不恢复已删除的私钥，也不证明本设备仍持有解密材料。
-ordinary single-use KeyPackage 和 last-resort 的终态必须按 exact claim/Welcome 记录，不能用整个已发布
-KeyPackage 的状态替代；last-resort 一个 claim 消费不隐藏其它仍合法 claim。既有 exact-retry consume
-receipt、私钥生命周期及本地 E2E durable checkpoint 规则继续适用，缺失私钥走既有恢复或重新加入。
-
-客户端逐个 ref 复用 §5.2 的当前 accepted-artifact 判断和已有 exact Event 读取，并完成真实 MLS
-Commit/Proposal/Welcome、recipient、claim 与本地 tree 的 E2E 校验。安装仍服从既有 durable snapshot
-barrier；没有收到队列消息就不能伪造消息 ID 或 ACK。发现的总分页开销与后续 artifact 读取开销必须分别
-度量。schema/count-only 错误使用 `schema_violation`；实际请求字节超界使用 413 `payload_too_large`，
-完整响应或合法 continuation 无法封装使用 `limit_exceeded`；不得截断 ref
-或返回越界的部分成功结果。HTTP、gRPC `SelfSeals/MlsWelcomeRefs` 与 MQ
-`self.seals.read.mls_welcome_refs` 共享上述认证、请求、响应及错误语义。
-
-### 5.3 当前成员加入身份
-
-`ak.self.seals.read.history_authority.v1`（`POST /_arkret/self/seals/history-authority`）只查询一个
-`HistoryAuthorityRequestBody {effective_scope, actor_id, seal_basis}`。scope 为 Realm 或 Circle；actor 使用完整
-ActorId；seal_basis 必须等于本次服务器当前 已确认 basis（每 Realm 恰一个 head），陈旧或不同 basis 返回 state_mismatch。
-请求与完整响应分别不超过 64 KiB；不支持批量成员、通配范围或 continuation。
-
-`HistoryAuthorityOutcome` 字段顺序为 `account_id, query_digest, authorization_incarnation, join_epoch?, history_floor_epoch?`；后两项规则见 §5.4。
-account_id 是与实际认证会话绑定的完整 AccountId；AgentRuntime 使用其 Agent AccountId，不改写成 controller 或人类账号。query_digest 为
-SHA-256(`ak.history-authority-query-v1` + NUL + JCS(request))；basis 与 request 相等；incarnation 使用
-history-key 的唯一 AuthorizationIncarnation 类型，表示此 basis 下 actor 当前有效的那次 Realm join，以及
-Circle scope 需要的当前 Circle activation。返回已失效的旧 join、把最大 actor_seq 当 join、按 Events 到达顺序
-选择，或对冲突任取一个分支均禁止。Circle activation 必须按既有标准因果规则覆盖当前 Realm incarnation。
-
-服务器先检查本次认证会话、Realm 成员信息的当前读取资格与 Circle 隐私边界，逐次检查目标在该 scope 的当前
-成员状态。Scope/target 不可见或目标未加入统一 not_found；accepted state 缺依赖或无法取得唯一 incarnation
-返回 frontier_unavailable。历史验证共享不共享上述请求授权；不得把查询变成跨 Circle 的成员枚举入口。
-成功不授予 caller MLS Add、消息发送或历史密钥释放权限，后续提交仍执行标准授权及其 signed basis/CAS。
-
-客户端检查 exact request digest、Account Station/账号会话、scope 对应的 incarnation 分支与 basis 后，将该结果
-用于 MLS Add 或历史请求的 intent authoring。它不获取 membership Event/Seal 全闭包，不自行回放 join/leave。
-结果缺失时该操作保持未就绪；账号切换、已知离开/撤销或 basis 更新后，迟到结果不得覆盖新上下文。
-服务器使用已 accepted 的标准 reducer/CAS head 与因果索引求值，不能以即时 directory 的显示状态替代。
-
-### 5.4 当前历史授权与范围下界
-
-`ak.self.seals.read.history_authority.v1`（`POST /_arkret/self/seals/history-authority`）查询
-`HistoryAuthorityRequestBody {effective_scope, actor_id, seal_basis}`。其当前账号、Agent 实际认证 AccountId、
-成员可见性、scope 隐私、确切确认 basis、缺失/冲突与迟到响应边界均遵循 §5.3；请求与完整响应各 ≤64 KiB。
-query_digest 使用 SHA-256(`ak.history-authority-query-v1` + NUL + JCS(request))，这是 §5.3 的同一 operation 和唯一查询域。
-
-`HistoryAuthorityOutcome` 顺序为 `account_id, query_digest, authorization_incarnation,
-join_epoch?, history_floor_epoch?`。所有结果来自同一个已 accepted basis：
-
-- incarnation 使用 §5.3 的当前 Realm join / Circle activation 因果身份。
-- join_epoch 是既有 winning MLS lineage 与该 incarnation 所决定的加入轮次。尚无唯一可用 MLS lineage 时仍成功返回 membership/incarnation，但同时省略 join_epoch 与 history_floor_epoch；确需历史的调用方把这两个字段缺失视为 frontier_unavailable，不能猜测为 0。
-- history_floor_epoch 按 scope 自己的 accepted history_access cell 求值：since_join 为 join_epoch，
-  all_history_for_current_members 为 0。Circle 不继承 Realm policy；缺失、未确认或未知策略均不可用。
-  floor 必须为 0 或 join_epoch，接收方不据此推断另一种治理策略或自行回放历史。
-
-发起方用该结果填写 HistoryKeyRequest 的 incarnation 并选择恢复范围下界；不签入治理检查点。响应源查询
-目标 actor 的当前结果，在签名 manifest 之前裁剪候选范围，且目标 incarnation 必须仍与原请求一致。
-此查询不授予历史密钥读取、manifest 提交或密钥释放权限：服务器仍逐次校验 requester/source/endpoint、
-当前成员、T1、retention、receipt 与请求绑定。当前策略收紧或 leave/rejoin 后不得复用旧授权结果释放密钥。
-客户端仍验证 HPKE/MLS、AEAD、签名及 exact packet/recipient/scope 绑定，不获取治理历史作为此查询的前置。
-首次缺少输入时只让该历史任务保持 pending，不阻塞已可读的新消息或全局账号同步。
-
-### 5.5 当前 MLS 叶移除判定
-
-`ak.self.seals.read.mls_membership_removal.v1`（`POST /_arkret/self/seals/mls-membership-removal`）
-接收 closed `MlsMembershipRemovalRequestBody {effective_scope, mls_group_id, seal_basis, base_group_state_ref, epoch, mls_leaf_set_digest}`。scope 仅限 Realm/Circle，不包含 Sidecar。通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。
-`mls_leaf_set_digest` 固定为 `sha256:` 加 `SHA-256(JCS(canonical_leaves))` 的小写 hex；canonical_leaves 使用 §5 的完整 MlsSecurityFrontierLeaf 集合，按 leaf_index 严格递增、无重复 credential_ref、1..65536 项。客户端从自己已验证的 exact current tree 计算；服务器从 base_group_state_ref 原子保存的 accepted public ledger 独立计算并比较，不能接纳 pending tree、lazy roster 子集或重新上传的完整 leaves。
-group 必须由 scope 派生，epoch 是该 base transition 的 post-transition epoch，包括 accepted Genesis 的 0。
-
-自己 Station MUST 逐次检查实际认证账号的当前 scope 可见性与成员信息读取资格，再在同一观察下核对
-seal_basis 等于当前完整 已确认 basis（每 Realm 恰一个 head）、base_group_state_ref 等于该 basis 的唯一 winning epoch head
-transition_ref、epoch 等于其 next_epoch，并核对所提交 digest 等于 §5.1 保存的 exact base post-transition
-公开输入的 canonical digest。不可见或不存在统一 not_found；可见目标的陈旧 basis/base/epoch 或不同 leaf-set digest 返回 state_mismatch。
-缺 accepted 状态、冲突或依赖返回 frontier_unavailable，MUST NOT 选择最大 epoch 或另一个分支继续。
-
-判定必须使用每个 exact leaf 在 accepted Genesis/Add 时获得的 Realm join、Circle activation（如适用）、
-设备 generation 或 Agent method 授权及 credential/key 绑定。服务器 MUST 在接纳时将这些已验证来源与
-transition/leaf ledger 原子持久化；沿 winning successor 对保留叶继承来源，对合法新增或重新加入的叶记录
-新的来源。普通 MLS Update/Commit path 只更新 RFC 9420 允许更新的 encryption_key，继承原 endpoint、
-membership incarnation、signature_key 与其 authorization binding；设备/Agent 签名密钥或授权改变必须按
-[MLS 历史叶绑定](../crypto-media/encryption-and-audit.md) 的 replacement/remove+add 规则建立新 leaf instance。
-服务器 MUST 解析 winning transition 的确切 accepted proposal_refs 与所需公开 Proposal/KeyPackage 输入，
-按真实 Remove/Add 区分保留叶和新增叶；即使新增叶复用了同一 index、ActorId 和 credential_ref，仍记录新的
-admission 来源。缺少可验证公开输入时返回 frontier_unavailable，不以相等的前后三元组推断叶被保留。
-不能只用 leaf_index、相同 ActorId、
-当前目录状态或新一次 join 替代旧叶的加入身份。公开 leaves 本身不携 incarnation，不能伪称仅凭该数组已
-证明加入身份；缺少上述来源时返回 frontier_unavailable，由服务器恢复其验证索引，不要求客户端补历史。
-
-服务器按当前 basis 的标准 Realm/Circle 成员、设备撤销/generation/fence 与 Agent 授权规则完整计算：
-仅当该叶原有资格已明确失效时，将其 index 放入移除集合。leave/rejoin 不恢复旧 incarnation 的叶；同 Actor
-的新合法叶不因此被一并移除。尚未验证、安全确认故障、暂时不可读取或缺材料不能当作明确失效；任一叶无法判定时
-整个请求失败，不返回部分集合。结果不授予 caller MLS Commit 权限，不豁免正常 authoring、signed basis、
-CAS、credential 与 RFC 9420 检查；需要移除自己的客户端遵循既有退出/其他有权成员提交规则，不能自签
-违反 MLS 约束的 Remove。
-
-closed `MlsMembershipRemovalOutcome` 字段顺序为 `account_id, query_digest,
-remove_leaf_indices, seal_basis, base_group_state_ref, epoch`。account_id 为实际认证的完整 AccountId（AgentRuntime 不改写成 controller）；
-query_digest 为 SHA-256(`ak.mls-membership-removal-query-v1` + NUL + JCS(exact request))，因此也绑定
-完整叶集合的摘要及 scope/group/base/epoch；它不是恶意服务器的认证证明。响应的 basis/base/epoch MUST 是服务器实际求值且与请求一致的 snapshot。indices 是该 exact accepted ledger 中真实 occupied leaf indices 的严格递增、无重复子集，
-0..65536 项；只有完整求值成功才允许空集合。不分页、不截断；
-通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。gRPC
-`SelfSeals/MlsMembershipRemoval` 与 MQ `self.seals.read.mls_membership_removal` 采用相同合同。
-
-客户端仅核对完整账号/Station/会话、exact query/basis/epoch head 和索引子集，再对仍相同的本地 MLS tree
-执行明确 indices 的 Remove；MUST NOT 扩成同 Actor 全部叶的 Remove。应用前若本地 base、epoch、leaves、
-scope 或会话变化，或已知权限变化，则丢弃结果重新查询；迟到响应不能安装到新树。客户端不回放
-membership Events、不构造私有历史 frontier，也不因 lazy member 缺失猜测移除。查询失败只让本 scope 的
-自动移除保持未就绪，不阻塞账号列表和其它 Realm；实际 MLS tree、Commit 与内容密码学继续在客户端验证。
+调用方通过 Commit Event ref 与 typed MLS current 判断 winning transition，不通过独立 Seal proof。
 
 ### 5.6 按次 current 与精确历史签名公钥
 
-普通客户端 MUST 通过唯一 `ak.self.signer_keys.read.resolve.v1`（`POST /_arkret/self/signer-keys/query`）从自己 Account Station 取得签名公钥结果，不下载或重放 Agent PCR、Account gate、DID history、Seal lineage 或 ASRE 闭包。Station MUST 验证来源，或复用来源完整的耐久验证结果；每次请求另行执行当前披露权限。peer portable evidence、controller gate 与服务器 verifier 保留，不能把远端未验证公钥重新包装为 self 成功。
+授权结果绑定 exact selector、authority generation、current revision 与 caller audience。
 
-closed `SignerKeyQueryRequestBody` 字段依次为 `request_id, realm_id, recipient_account_id, queries`；closed `SignerKeyQueryOutcome` 依次为 `request_id, realm_id, recipient_account_id, results`。机读合同为 `signer-key-operations.schema.json` 的 `query_request_body/query_outcome`。recipient_account_id MUST 逐字等于认证 SessionGrant 的完整账号，其 Station MUST 是服务本请求的自己 Station。结果 context MUST 逐字回显请求；每个请求 selector 恰有一个结果，不省略、不重复、不加入额外项。未认证请求遵循既有 401 合同；recipient 与会话完整账号或服务 Station 不符 MUST 返回 `404 not_found`，不执行 selector 查询。self 不接受 peer 压缩提示或 portable dependencies。
+### 5.8 DID result
 
-`queries` 为 1..64 个唯一 selector，按以下四种 closed 分支及字段顺序编码：
+DID 解析证据可以作为 producer/service proof 验证输入，但不代表 Event 已提交。
 
-| 分支 | 字段顺序 |
-| --- | --- |
-| 当前普通设备 | `verification_mode:"current_admission", sender_kind:"account_device", actor, device_id, verification_method` |
-| 当前 Agent | `verification_mode:"current_admission", sender_kind:"agent", actor, verification_method` |
-| 历史普通设备 | `verification_mode:"historical_event", sender_kind:"account_device", actor, device_id, verification_method, event_id` |
-| 历史 Agent | `verification_mode:"historical_event", sender_kind:"agent", actor, verification_method, event_id` |
+### 5.9 Media result
 
-actor MUST 为实际 signer 的完整 Account ActorId，不以 principal 加本机 Station 猜测。普通设备 method 的 DID 经登记 adapter 投影 MUST 等于 actor.account_id.principal_id，fragment MUST 逐字等于 device_id；Agent 必须有独立已验证的 Agent 分类。current 普通设备 selector 也 MUST 绑定待验证 Signal 的原 proof method，不能仅按设备 ID 取任意当前键。历史 selector MUST 与 exact Event 的 `executed_by ?? actor_id`、实际 producer proof method/device、realm_id 一致。
-
-**self 历史接收方唯一（normative）**：receiver 固定为 recipient_account_id.station_id / 当前认证服务，不是 caller 可选择字段。Station 仅对自己已耐久接纳且本次 requester 可读的 exact Event 返回历史结果；仅 origin 或任意第三方曾接纳不构成自己的历史成功。必要材料仍通过既有标准 federation/dependency 接口取得并验证，完成本地 accepted 与来源保留后才能返回。未接纳、不可读或缺依据使用 unavailable，不得为本查询新增远端 receiver 选择、私有 peer API 或新的 receipt 族。peer Agent portable historical evidence 中的 receiver 与独立 receipt 仍保留，且 MUST 绑定本地接收方；其独立接纳时间不得混同原 producer 时间。
-
-current 成功项按序为 `{selector,status:"resolved",key}`。key 使用查询专用 closed `QuerySigningKey {public_key_b64u, authorization_ref}`：actor/method MUST 仅从 enclosing selector 取得，key MUST NOT 重复携带这两个字段；32-byte Ed25519 public_key_b64u 必须规范无填充 base64url，authorization_ref 必须为该 key 的真实适用 accepted 授权 Event。当前 Agent 与设备都使用同一入口；Station 可将请求有界拆为既有 peer current 16-selector 查询，转换后仍须核对原 self method/actor，不能放宽总体预算或省略来源验证。
-
-Signal frame 无 enclosing query selector，仍使用完整 `StationSigningKey {actor, verification_method, public_key_b64u, authorization_ref}`；peer portable evidence 保持自己的独立来源合同。SDK MAY 从 selector 与 key 构造本地完整缓存类型，但 MUST NOT 将身份镜像重新写入 self wire result。结果关联 MUST 使用完整 selector 的相等性，包含 mode、sender kind、完整 AccountId、device（适用时）、method 和历史 Event（适用时），MUST NOT 使用数组位置；乱序不影响关联，重复、缺失或多余 selector MUST 拒绝整份结果。
-
-**不缓存 current 授权（normative）**：本查询的 current 结果只供冻结的本次操作消费；同次批处理或完全相同且已经在途的查询 MAY 合并，完成结果不得供未来操作或重连使用。Signal 使用 [signal.md §3](./signal.md) 的 authenticated self 投递 gate，客户端 MUST NOT 再逐条发起 signer 查询。Station 在发出 exact frame 前重新执行相同 current 授权，包括撤销、fence、expiry 和成员 gate；peer relay 接管不能代替该 gate。稳定公钥 bytes MAY 缓存，但 `(actor, method, key)` 不能替代 exact authorization Event/MLS transition 实例；同 key 重新授权必须按独立授权实例核对。迟到响应、会话/账号变化、已知撤销或 Signal TTL 失效时均不得消费。
-
-历史普通设备成功项按序为 `{selector,status:"resolved",key,accepted_at}`，key 为 closed `HistoricalDeviceSigningKey {public_key_b64u}`。Station 从原 Event 的唯一 producer proof 与精确 signer evidence 独立取得历史 key，验证完整 AccountId、设备、授权实例和签名绑定。`accepted_at` 仅记录该授权事实的生效时点，不证明 Event 首次准入，也不使后来的关闭失效。不得用当前 keys/query 或后来授权补认过去签名；缺必要历史依赖 unresolved。历史消息资格另按适用关闭集合判断。
-
-历史 Agent 成功项按序为 `{selector,status:"resolved",key,accepted_at}`，key 使用上述 QuerySigningKey 并保留真实 authorization_ref，供端到端历史 MLS leaf 绑定使用。Station MUST 验证 exact Event 原 producer evidence 与本地适用的 admission/独立 receipt，以原接纳语境确认 Agent key/授权。accepted_at MUST 等于原 producer admission 时间，MUST NOT 填入 receiver 独立接纳时间。Station 内部 MUST 保留实际验证所用 immutable frozen 历史来源及其与 Event 原 producer_signer_resolution_evidence_ref 的真实关系；self outcome 不回传无客户端消费者的来源地址。不得以后来 current 授权修补历史，或因历史 signer 后来离开/撤销而否定有效历史。
-
-所有不可用项按序为 `{selector,status:"unavailable"}`。拒绝/缺失结果不得提升消息为 verified。当前分支的撤销/冲突/过期与历史原接纳无效/缺材料均使用此同形结果，不能以细分 reason 泄漏隐藏状态；服务器内部 MAY 记录原因。
-
-Station MUST 将原 accepted Event、producer proof、授权证据与验证其签名必需的来源及保留关系维持在同一耐久接纳边界；该要求也适用于 ordinary Event，不能仅给 Control Event 保留历史 signer 来源。GC MUST NOT 先删除仍可读取 Event 所需的来源。原 signer ref 沿现有治理依赖接口精确定位，已完整验证的耐久状态可复用，不重新拉取整段历史。缺失或损坏不可把裸缓存公钥当作成功；应 unavailable，正常新接纳不得以“以后再补”跳过保留义务。
-
-历史结果 MAY 按自己 Station/recipient、Realm、exact Event、派生本地 receiver、完整 actor/device/method、原 producer admission 坐标与适用 Agent source ref 缓存；MUST NOT 跨账号或模式复用，不授予后续读取或 current 权限。客户端仍验真实 producer 签名、历史 MLS active leaf/epoch/group、AAD/AEAD 与 replay/TTL；自己 Station 成功不等于加密内容认证成功。minimal-metadata 不使用本普通 signer 查询，继续其专用 MLS 身份合同。
-
-单结果 ≤16 KiB；无分页或递归依赖下载，不得返回部分成功。通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。HTTP/gRPC/MQ 采用同一请求、结果与角色边界。
-
-### 5.7 已登录当前 Principal 与 PCR 定位
-
-普通已登录客户端 MUST 使用 [identity-did.md §4.2.3](../identity/identity-did.md#423-已认证账号的当前-principal-与唯一-pcr) 的 `ak.self.current_principal.read.resolve.v1`，取得 exact AccountId 的已接纳 current projection 与唯一 PCR。Station 验证外部方法历史；客户端只校验请求/会话/route 与字段绑定，不下载公开 attestation/history 或账号审计闭包。projection `updated_at` 不授予未来操作权限。本入口只解决已认证账号定位，不替代首次 Station 接入、公证服务或媒体路由绑定；Realm genesis notary 见 §5.8，已加入 Realm 的媒体服务绑定见 §5.9。
-
-### 5.8 Realm genesis 的 notary 签署输入
-
-`ak.self.genesis_notary.read.resolve.v1`（`POST /_arkret/self/genesis-notary/query`）向已认证账号返回它即将 author 的 Realm genesis 所需的 notary 配置。它是 §3 的签署准备输入，不是授权结果：成功不创建 Realm、不预留标识、不授予 create 或 authoring 权限，也不替代 caller 对 `ak.realm.create` 及其所在 bootstrap unit 的真实签名。
-
-closed `GenesisNotaryRequestBody` 字段按序为 `request_id, account_id, intended_purpose`。`account_id` MUST 逐字等于当前认证会话的完整账号，且其 Station MUST 是服务本请求的自己 Station。`intended_purpose` 是 closed `collaboration | direct_conversation`，MUST 等于 caller 将写入 genesis 的 `purpose`；`principal_control`、`agent_control` 与 `applet_managed_control` 的 signer 由各自已接纳的身份规则确定，MUST NOT 从本入口取得，服务器也 MUST NOT 以服务密钥替代 principal、设备或 Agent 的 signer。
-
-closed `GenesisNotaryOutcome` 字段按序为 `request_id, account_id, notary`。`notary` 复用 [realm.schema.json](../../artifacts/schemas/realm.schema.json) 的唯一 `notary` 类型，是可逐字写入 `payload.object.notary` 的完整值。Station MUST 按 [event-auth-state-resolution.md §10](../authz/event-auth-state-resolution.md#12-notary-与-reducer-配置) 的默认与本部署 trust domain 已接纳的 policy 确定该值，并对其中唯一 descriptor 完成 service DID 的 method-native 当前状态验证与该 verification method 的 assertion 能力核对。descriptor 的 `verification_method` MUST 由 Station 按其真实 Seal 签名密钥选定并逐字返回；客户端与共享 SDK MUST NOT 以固定 fragment、DID 字符串拼接、describe 字段或另取的当前 DID Document 构造它。结果 MUST NOT 携带 method history evidence、witness 记录、normalized DID Document、signer evidence 闭包或 Realm 标识。
-
-客户端在签署前 MUST 核对：closed 结构与预算、`request_id`、完整 `account_id` 与当前会话/预期 Station route，以及唯一 descriptor 的自洽性——`verification_method` 的 controller DID 经登记 adapter 投影等于该 descriptor 的 `actor_id`、`key_kind` 与 `jose_algorithm` 是登记的 active 组合、冻结公钥按 `key_kind` 从 `frozen_public_key_b64u` 解码为 canonical key bytes；需要摘要时本地计算 SHA-256，且配置恰含唯一 signer。本两类 purpose 的唯一 descriptor 的 `actor_id.kind` MUST 为 `service`。signer 归属由部署 policy 决定：默认是 `account_id.station_id` 所属服务身份，部署也 MAY 指定已接纳的治理 Station；客户端 MUST 按结果原样使用，MUST NOT 把非本 Station 的 signer 替换成自己的 Station，也 MUST NOT 因它不是本 Station 而自行替换 signer。任一项不符 MUST 放弃创建；MUST NOT 改写、补齐、部分采用或与本地默认值合并该值，也 MUST NOT 为核对它下载 service DID method history、witness 记录或 signer evidence 闭包。
-
-本结果不携观察时间，也不构成有效期或授权租约。一旦 genesis 被接纳，冻结的 descriptor 就是历史 Seal signer 事实：Station 后续更换签名密钥 MUST 走 `ak.realm.notary` Control Move，MUST NOT 追溯改写已接纳的 genesis 值，也 MUST NOT 因本结果陈旧而使已接纳 Realm 失效。一次结果只用于本次创建意图；账号、Station 或 session 变化后 MUST 重新查询，迟到结果 MUST NOT 安装。
-
-通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。错会话账号、错 Station 或目标不可见 MUST 返回同一 `404 not_found`。已认证且可见但本 Station 尚无可用已验证 notary 配置——签名密钥未就绪、部署 policy 依赖缺失或方法状态未决——MUST 返回 `503 temporarily_unavailable`，MUST NOT 返回占位 descriptor、空对象或旧缓存。
-
-### 5.9 已加入 Realm 的媒体服务绑定
-
-`ak.self.media_service_binding.read.resolve.v1`（`POST /_arkret/self/media-service-bindings/query`）为已加入 Realm 的成员返回该 Realm 当前已接纳 `ak.component.realm.media_service.v1` cell 所锚定媒体服务的已验证路由与签名公钥。它只解析服务身份、用途与路由，MUST NOT 被解释为加入通话、领取 backend token、释放媒体密钥或授权明文可见服务。
-
-closed `MediaServiceBindingRequestBody` 字段按序为 `request_id, realm_id`。请求 MUST NOT 携带 caller 自选的 service id、DID、base URL、候选 origin 或 method evidence；服务身份只从该 Realm 当前已接纳 cell 取得。
-
-closed `MediaServiceBindingOutcome` 字段按序为 `request_id, realm_id, route, signing_keys, observed_at, expires_at`。Station 内部保留本次可见性与 cell 求值的完整 已确认 basis（每 Realm 恰一个 head），不向客户端回显。`route` 使用唯一 `ServiceResolutionProjection` 类型（[service-surface.md §2.6](./service-surface.md)，字段顺序 `service_id, service_kind, did, method_history_head, version_id, resolution_event_ref, base_url`）；其 `service_id` MUST 逐字等于该 cell 当前值的 `service_id`，`service_kind` MUST 为 `media_service`。`signing_keys` 是 1..16 个 closed `{verification_method, public_key_b64u}`，逐项取自同一已验证当前 DID Document 中该服务的 assertion 能力 Ed25519 公钥；`verification_method` 在结果内唯一，其去 fragment 的 controller DID MUST 等于 `route.did`。结果 MUST NOT 携带 method history evidence、witness 记录、normalized DID Document、describe 全文或任何第三方 attestation 闭包。
-
-Station MUST 逐次检查本次认证会话对该 Realm 的当前成员可见性，再在同一观察下读取已接纳 cell，并按 [service-surface.md §2.6](./service-surface.md) 完成 DID method-native 当前状态验证、唯一 ArkretService 入口选择与 describe 反向绑定，同时保持已接纳 method 状态不回退。不可见、非成员或该 Realm 没有已接纳媒体锚定统一 `404 not_found`；可见但依赖不足、方法状态未决或 describe 反向绑定尚未完成 MUST 返回 `503 temporarily_unavailable`，MUST NOT 返回空 route、旧缓存或未验证候选。检测到同一 service DID 的分叉或状态回退 MUST fail closed，MUST NOT 改用另一个候选 origin。
-
-客户端 MUST 核对 closed 结构与预算、`request_id`、`realm_id`、完整账号/Station/会话与预期 route，并把 `route.service_id` 与自己已安装的 `ak.realm.media_service` 当前值逐字比较；不相等 MUST fail closed（`media_service_binding_uncovered`），MUST NOT 采用结果中的路由。客户端还 MUST 核对该 cell 的 `ice_config_endpoint` 与每个 `foci[].token_endpoint` 的 origin 落在 `route.base_url` 之内，再向它们发起请求。`participant_binding.issuer_kid` 与 ICE config 响应签名的 kid MUST 命中 `signing_keys` 中的某个 `verification_method`；不命中 MUST 返回 `token_issuer_unauthorised`。客户端 MUST NOT 为验签逐 token 在线解析 DID，也 MUST NOT 自行获取 service DID 日志、witness 记录或 describe。
-
-`expires_at` 只界定本结果中路由与签名公钥的复用窗口，MUST NOT 晚于 `observed_at` 之后 300 秒，也 MUST NOT 超过 Station 自身已验证 method evidence 或绑定的有效边界；它不是授权租约，不延长任何 backend token、TURN credential 或 participant binding 的 TTL。窗口内该 cell 变化、Realm 成员或 Circle 资格变化、账号或 Station 切换以及已知的 service 分叉 MUST 立即使结果失效；过期或失效后 MUST 重新查询，迟到结果 MUST NOT 安装到新上下文。
-
-本结果不改变媒体明文与密钥释放边界：`media_service_decrypts`、`plaintext_visible_services`、当前 epoch `security_frontier_digest` 覆盖与用户明确确认仍按 [media-service-binding.md §8.2](../crypto-media/media-service-binding.md) 在客户端判定，SFrame/AEAD、录制与转写 exporter label、backend token 分支与 TTL 检查继续由客户端执行。
-
-通用预算与错误映射见 [scalability-constraints §8.1](../conformance/scalability-constraints.md#81-self-operation-预算与通用错误)；机器字节上限由各 schema 的 `x-arkret-max-canonical-bytes` 固定。MUST NOT 截断 `signing_keys`。
-
-### 5.10 自己 Station 的设备目录结果
-
-普通客户端通过 `ak.self.keys.read.lookup.v1`（`POST /_arkret/self/keys/query`）从自己 Station 取得设备目录结果。它是关系门控的**跨账号 / 跨 Station** 面：路径含 self 只表示由自己 Station 服务本次请求，MUST NOT 被理解为响应只描述本账号。关系门控、非枚举失败形态与封闭 `failures[].reason_code` 词表以 [`../crypto-media/device-lifecycle.md` §8.2](../crypto-media/device-lifecycle.md) 为准。
-
-该 self 结果是自己 Station **已验证**的有限设备投影，加上客户端后续确实使用的 `signer_evidence_ref`。它 MUST NOT 携带客户端自己不验证的 origin proof 外壳，客户端也 MUST NOT 存储该外壳。设备投影核心值完整保留：当前完整 AccountId 与 device、identity/HPKE public key、authorization Event、generation、status、authorization window 与观察/新鲜度时态；外层 AccountId 与 device map key 的一致性仍校验。
-
-返回 self 结果的 Station MUST 先验证远端 origin attestation、完整 AccountId、generation 与有效性，再生成该投影；MUST NOT 把未验证的 peer row 去掉 proof 就当作已验证结果。remote 不可验证 MUST NOT 回空成功集合、省略 row 或空设备列表掩盖故障，必须按该 operation 的取材失败原因返回。
-
-客户端仍核对已绑定 Station、目标完整 AccountId/device、key、generation、authorization window 与时态，并按本地带外设备信任约束使用；换账号/会话、已知撤销、generation fence 与重启恢复之后 MUST NOT 借旧结果放行新设备。对真实 Event、MLS、AEAD、prekey、附件与备份的密码学验证不因本结果减少，带外 key pin 不删除；客户端信任的是自己 Station 给出的 scoped 设备治理结果，不是任何 origin 自报 key。
-
-`signer_evidence_ref` MUST 继续指向 origin 生成并持久保存的原完整不可变 evidence；MUST NOT 从已去掉 proof 的 self 投影重新计算该 ref，也 MUST NOT 删除后续 Event / 历史闭包实际使用的 ref。peer outcome、Station ↔ Station 取材与历史可携带证据保持完整签名链（§5.6 的历史结果与 [`../governance/history-visibility.md`](../governance/history-visibility.md) 的 attester 闭包不变）。客户端本地 authoring 恢复只保存该可信 self 投影及实际使用的引用与时态，MUST NOT 用无签名值填充声明为完整签名证据的类型。
-
-## 6. 规范与 conformance
-
-full/e2ee 客户端 conformance 检查请求绑定、结果消费、端到端密码学和恢复行为；服务器 conformance 检查治理历史、DID/外部证据、admission、当前授权与共享增量状态。客户端没有治理历史 verifier 不构成不合规；服务器接受未经验证的远端材料构成不合规。
-
-相同 fixture 可以提供服务器有效/无效输入及客户端成功/pending/错绑定结果，但 MUST 分别标明角色；不能要求客户端执行服务器 verifier runner 才能声明产品 profile。SDK 发布同时包含两种角色时，仍须分别证明各自适用的条款。
-
-第三方 service delegation、公开身份声明及其发行者历史由自己 Station 验证；只有具体 operation 已登记的结果才能交给普通客户端消费。Realm genesis notary 与已加入 Realm 的媒体服务绑定分别由 §5.8、§5.9 的登记载体承担；尚未登记专用载体的第三方服务资格仍由各自 operation 的既有合同处理，普通客户端只能把相应功能视为未验证/不可用。Conformance artifact 是 `service-surface.md` §3 规定的 verifier/admin/auditor portable claim，不是普通客户端的运行时结果。实现 MUST NOT 为上述空档新造通用 service 结果，也不得让普通客户端回退到自行验证 artifact 或发行者历史。服务器代核验不能将自报 claim 变成独立认证。
+Media 内容完整性由 blob ref 和 producer-signed 引用证明；可见性和接纳位置由 RealmCommit/current result 证明。

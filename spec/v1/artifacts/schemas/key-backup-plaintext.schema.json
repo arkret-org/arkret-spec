@@ -3,48 +3,113 @@
   "$id": "https://arkret.org/v1/schemas/key-backup-plaintext.schema.json",
   "title": "Arkret Key Backup Plaintext Keybag",
   "type": "object",
-  "required": ["schema", "backup_id", "backup_kind", "series_id", "series_seq", "items"],
+  "required": [
+    "schema",
+    "backup_id",
+    "backup_kind",
+    "series_id",
+    "series_seq",
+    "items"
+  ],
   "properties": {
-    "schema": {"const": "ak.schema.key_backup_plaintext.v1"},
-    "backup_id": {"type": "string", "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
-    "backup_kind": {"enum": ["secret_storage", "mls_history"]},
-    "series_id": {"type": "string", "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
-    "series_seq": {"type": "integer", "minimum": 0},
-    "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/history_effective_scope"},
-    "items": {"type": "array", "minItems": 1}
+    "schema": {
+      "const": "ak.schema.key_backup_plaintext.v1"
+    },
+    "backup_id": {
+      "type": "string",
+      "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_kind": {
+      "enum": [
+        "secret_storage",
+        "mls_history"
+      ]
+    },
+    "series_id": {
+      "type": "string",
+      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "series_seq": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "effective_scope": {
+      "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1
+    }
   },
   "oneOf": [
     {
       "properties": {
-        "backup_kind": {"const": "secret_storage"},
-        "items": {"items": {"$ref": "#/$defs/secret_storage_item"}}
+        "backup_kind": {
+          "const": "secret_storage"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/secret_storage_item"
+          }
+        }
       },
-      "not": {"required": ["effective_scope"]}
+      "not": {
+        "required": [
+          "effective_scope"
+        ]
+      }
     },
     {
       "properties": {
-        "backup_kind": {"const": "mls_history"},
-        "items": {"items": {"$ref": "./history-key.schema.json#/$defs/history_secret_range", "description": "Every packed secret in a portable backup MUST have local_authoritative origin from direct export of locally verified MLS state. A received history-response or RHRK-opened candidate is forbidden even after it successfully decrypts an Event."}}
+        "backup_kind": {
+          "const": "mls_history"
+        }
       },
-      "required": ["effective_scope"]
+      "required": [
+        "effective_scope"
+      ]
     }
   ],
   "$defs": {
     "secret_storage_item": {
       "type": "object",
-      "required": ["item_kind", "secret_id", "secret_b64u"],
+      "required": [
+        "item_kind",
+        "secret_id",
+        "secret_b64u"
+      ],
       "properties": {
         "item_kind": {
-          "enum": ["recovery_key_share", "account_data_namespace_key", "mls_account_secret", "mls_private_plaintext", "mls_group_secrets_backup_key", "private_account_state"]
+          "enum": [
+            "recovery_key_share",
+            "account_data_namespace_key",
+            "mls_account_secret",
+            "mls_private_plaintext",
+            "mls_group_secrets_backup_key",
+            "private_account_state"
+          ]
         },
-        "secret_id": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+$"},
-        "secret_b64u": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-        "secret_generation": {"type": "integer", "minimum": 0}
+        "secret_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "secret_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "secret_generation": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
-      "patternProperties": {"^x_[a-z][a-z0-9_]{0,63}$": true},
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
       "additionalProperties": false
     }
   },
-  "patternProperties": {"^x_[a-z][a-z0-9_]{0,63}$": true},
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
   "additionalProperties": false
 }

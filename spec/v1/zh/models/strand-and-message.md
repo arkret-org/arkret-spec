@@ -309,7 +309,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 整个变更由单个 ordinary Event 的 reducer projection 原子写入同一 `causal_register` cell；并发更新按固定 `(depth,EventId)` 得到唯一 current，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用确切 current source，不得依赖接收顺序静默覆盖。
 
 Strand authoring 复用 current 的 `{value,source:{event_id,depth}}`，不定义第二份来源镜像。
-标题、描述、字段、track、日历都按 [通用 patch 基线规则](./event-and-patch.md#431-patch-reducer-的唯一输入normative)
+标题、描述、字段、track、日历都按 [typed reducer 规则](./event-and-patch.md#3-typed-reducer)
 固定值与来源；多个已观察来源的显式合并由普通 patch 加签名覆盖的 `expected_state_digest` 完成。
 日历 schedule frontier 仅用于 RSVP 领域投影，不能替代对象 patch 的来源。
 
@@ -448,7 +448,7 @@ Wire 形态：`ak.strand.watch.set` durable event 写入下文 §8.3 描述的 c
 ```text
 event_kind  := ak.strand.watch.set
 cell_family := ak.component.strand.watch.v1
-cell_id     := ak:cell:ak.component.strand.watch.v1:<strand_id>:<watcher_actor_id>
+cell_id     := state-slot:ak.component.strand.watch.v1:<strand_id>:<watcher_actor_id>
 lattice     := causal_register
 bottom      := reject
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
@@ -898,7 +898,7 @@ Message timeline 的同步与 reducer 行为：
 
 ### 9.8 表情回复（Reaction）
 
-Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 OR-Set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`artifacts/fixtures/reaction-fixture.json`](../../artifacts/fixtures/reaction-fixture.json)。
+Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 OR-Set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`artifacts/fixtures/reaction-fixture.json`](../sync/authority-commit-log.md)。
 
 #### 9.8.1 事件与 payload
 

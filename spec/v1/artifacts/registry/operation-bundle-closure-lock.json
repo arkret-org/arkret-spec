@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.6",
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "version": "2026-09-12.8",
+  "generated_at": "2026-09-15T20:27:24+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -87,7 +87,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
-      "sha256": "sha256:bb7321e2685d38691c2e0a64842386dcd6df971d569f6d3540aca253418ef126"
+      "sha256": "sha256:fa69550f9f0797a047521280b4f9003af87f837f68b00646958a767ce6c9289a"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
@@ -114,10 +114,6 @@
       "sha256": "sha256:fa2ec018cbcfeb1b0ca35bc8d0284e9ea8c447193a103cdb20c3436c2e81321a"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.station.current_signer_evidence.v1",
-      "sha256": "sha256:50add2b605aefacb810bb8753fac18b4097f99381e4eaf91f8fdbf06a7af00c0"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
       "sha256": "sha256:e46c58aafde8c1358bd90a8e392647ad42cad4c341086cde146a35817f64cf2a"
     },
@@ -126,12 +122,8 @@
       "sha256": "sha256:327b13926746e62347899019ffe8b0b408493cd2bfbf4b65e0bb4ace4315e5a6"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.station.history_key_recovery.v1",
-      "sha256": "sha256:4db332b9d44b2392f5a1ee590eb9483a01f00e89ea0d9d9367cfe2d5ad5b367a"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
-      "sha256": "sha256:8e22c23b917ee85e0ba74107322161cb0ebdfdebf7cd4c05f21b18b1186bf308"
+      "sha256": "sha256:e669707dc9c36971ac03e4d13e7621a36438cf60cf1048a036449582aab94402"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",

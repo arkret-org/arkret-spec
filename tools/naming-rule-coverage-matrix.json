@@ -806,13 +806,11 @@
       "enforced_by": {
         "predicates": [],
         "functions": [
-          "foundation.py:check_state_contract_closure",
           "prose.py:check_naming_predicates"
         ],
         "registries": []
       },
       "entry_points": [
-        "state_contract_closure",
         "naming_predicates"
       ],
       "tests": [
@@ -820,7 +818,7 @@
         "tools/test_fsm_reachability_lint.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "The lifecycle state contract is closed against its registry and any schema reusing the reserved `stage` name outside the protocol-level 8-value axis fails; whether a new field should be `status` rather than `state` is still a semantic call."
+      "residual_gap": "Lifecycle naming remains a semantic review rule; the old Cell state contract closure was retired by the authority-commit clean break."
     },
     {
       "rule_id": "NC-ACTION-001",

@@ -127,7 +127,7 @@ Control Move 按 Seal 的 command_results 顺序产生持久 committed/rejected 
 
 ### 3.3 Seal 验证
 
-Seal 的 wire contract 见 [`seal.schema.json`](../../artifacts/schemas/seal.schema.json)，完整语义见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+Seal 的 wire contract 见 [`seal.schema.json`](../sync/authority-commit-log.md)，完整语义见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 
 接收方 MUST 至少验证：
 
@@ -229,7 +229,7 @@ Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts
 
 ### 6.2 AvailabilityReceipt
 
-AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。Seal 直接签入其 full canonical `receipt_digest`；完整 receipt 与历史 signer evidence 经 typed governance-dependency resolve 获取。它不替代事件签名、授权验证或 state-model 收敛。
+AvailabilityReceipt（schema [`availability-receipt.schema.json`](../sync/authority-commit-log.md)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。Seal 直接签入其 full canonical `receipt_digest`；完整 receipt 与历史 signer evidence 经 typed governance-dependency resolve 获取。它不替代事件签名、授权验证或 state-model 收敛。
 
 ### 6.3 Audit RYW Receipt
 
@@ -282,7 +282,7 @@ Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以
 - `id`（snapshot 自身 id）
 - `realm_id`
 - `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
-- `state_digest`（**必填**）——对 Realm-scope snapshot 全部 chunk 的完整注册 Cell 状态求 RFC 6962 Merkle root，leaf_data 恰为 `JCS({cell:item.id,state_model:item.state_model,state:item.state})`，`H` 使用已认证的 Realm digest suite，完整规则见 [snapshot §4](../conformance/realm-state-snapshot-schema.md#4-state-hash)。该叶子包含固定状态模型与完整 C/H、tombstone 或安全 revision，与只承诺 S 的 Seal `state_root` 叶子不同。`security_class` 不改变算法或承诺对象。`state_digest`、`control_event_set_root` 与 `event_set_commitment` 分别校验，不能互相代入；接收者仍须在确切 `eligibility_context` 下从原始证据重算资格与投影。
+- `state_digest`（**必填**）——对 snapshot 的完整 typed-current entry 集合求规范 Merkle root；完整规则见 [snapshot schema](../conformance/realm-state-snapshot-schema.md)。该摘要与各 stream head 独立校验，不能互相代入。
 - `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；接纳外部 snapshot 的服务器 MUST 验证它）
 - `frontier`（covered Event frontier / Seal basis）
 - `chunks`（chunk digests）
@@ -326,7 +326,7 @@ Snapshot 后续恢复流程：
 - 只有相同 `event_id` 且相同 canonical preimage 的重复投递才是 exact duplicate，并 MAY 作为幂等成功处理。携带相同 ID 但重算结果不同是 `event_id_digest_mismatch`，必须在进入 ID bucket 前拒绝，不能影响既有 accepted Event。
 - 若两个不同 canonical preimage 在同一 suite 下重算出同一个 `event_id`，这是完整 hash collision evidence。提交响应 MUST 拒绝新到变体；本地状态处置 MUST 把该 ID 的全部已验证变体作为一组进入 quarantine，包括此前已 accepted 的变体、由任一变体创建的 Event-derived object、未 final writes，以及引用该 ID 的后继。先到顺序、较早 accepted 或字典序都不能证明哪一变体“正确”。
 - 节点 MUST 从所有 data cell join 输入移除这些变体经 reducer 派生的 writes；尚未被 accepted Seal 覆盖的 Control Move 同样移除。已被 accepted Seal 覆盖的控制面事实不得从 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。碰撞下两个变体的 `event_digest` 相同，Seal 承诺无法指认覆盖的是哪一个 preimage，因此归一裁决按 canonical bytes 指认、历史 Seal 输入不得事后重算、碰撞区间不得被 compaction 跨越——见 [`event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md)。
-- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受当前唯一 signer 确认的专用 fork-resolution Seal 所覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.collision_variant_record.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 只用于取得全部已知变体，最终解除仍必须由上述 accepted fork-resolution authority 驱动；current-v1 不存在历史范围 attestation 或同 scope witness quorum 解除分支，任何普通成功、root 相等或数据库直清都不是解除 authority。
+- submit、probe、backfill 或本地审计任一路径发现完整 hash collision，都 MUST 执行同一整组 quarantine。raw/quarantine 查询以完整 Event ID 定位碰撞 bucket，并返回全部已知 canonical 变体，不得 first-row-wins。operator-approved 解除只接受当前唯一 signer 确认的专用 fork-resolution Seal 所覆盖的 `ak.fork.resolution`：`subject.kind=event_id_collision` 时 `conflict_evidence.kind=full_hash_collision` 必须携恰两个 locator，每个 locator 或内联完整 canonical preimage bytes，或按 `ak.schema.realm_commit.v1` 引用（接近 1 MiB 的原 Event 必须走引用分支，否则 resolution Event 自身越界）；winner 必须以同一完整 bytes 的 locator 指认或使用 `void_all`；digest-only winner 以 `witness_disagreement` 拒绝。碰撞组跨 Realm 时，本 Realm 的裁决只治理本 Realm 内的投影，不改写其它 Realm 的变体。raw replay 只用于取得全部已知变体，最终解除仍必须由上述 accepted fork-resolution authority 驱动；current-v1 不存在历史范围 attestation 或同 scope witness quorum 解除分支，任何普通成功、root 相等或数据库直清都不是解除 authority。
 - **accepted `canonical_winner` 归一是本条整组 quarantine 的唯一封闭豁免（normative）**：当本 Realm 已有一条 accepted 的 `ak.fork.resolution`，其 `subject.kind=event_id_collision`、subject 逐字等于该 `event_id`、`verdict.kind=canonical_winner`，且待准入 bytes 与该 verdict 的 `conflict_evidence.variants[winner_index]` 解出的 bytes 逐字相等时，receiver MUST 按 [`../authz/event-auth-state-resolution.md` §15](../authz/event-auth-state-resolution.md) 第 3 点把 winner 准入为该 ID 的 accepted 变体，并 MUST NOT 因此报 `witness_disagreement` 或再次整组 quarantine。豁免的触发条件只有这一条：**不存在满足上述四项的 accepted `ak.fork.resolution` 时，第二个 preimage 仍按本节整组 quarantine**，普通提交 MUST NOT 触发它；winner 仍 MUST 独立通过结构 / suite / `realm_id` / `event_id` 重算前置检查，并按 §15 第 3 点复用该 `event_id` 已验证的 proof 集合重跑 binding 校验；loser 保留为 forensic 变体，其派生 writes 按本节既有规则移除。MUST NOT 用 `event_digest`、另一 suite discriminator、长度或局部 byte slice 指认待准入变体，也 MUST NOT 经私有 endpoint、operator 命令或数据库直写完成取代。
 
 ## 13. 授权时序

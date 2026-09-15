@@ -116,12 +116,12 @@
       "new": "ak.gate.account.command.abandon_identity_creation.v1"
     },
     {
-      "old": "ak.gate.account.command.introspect_session_grant",
-      "new": "ak.gate.account.command.introspect_session_grant.v1"
+      "old": "ak.gate.account.command.finalize_device_pairing",
+      "new": "ak.gate.account.command.finalize_device_pairing.v1"
     },
     {
-      "old": "ak.gate.account.command.issue_controller_gate_attestation",
-      "new": "ak.gate.account.command.issue_controller_gate_attestation.v1"
+      "old": "ak.gate.account.command.introspect_session_grant",
+      "new": "ak.gate.account.command.introspect_session_grant.v1"
     },
     {
       "old": "ak.gate.account.command.issue_did_binding_challenge",
@@ -152,16 +152,8 @@
       "new": "ak.gate.account.command.pair_agent_key.v1"
     },
     {
-      "old": "ak.gate.account.command.finalize_device_pairing",
-      "new": "ak.gate.account.command.finalize_device_pairing.v1"
-    },
-    {
       "old": "ak.gate.account.command.pair_device",
       "new": "ak.gate.account.command.pair_device.v1"
-    },
-    {
-      "old": "ak.gate.account.read.claim_device_pairing_code",
-      "new": "ak.gate.account.read.claim_device_pairing_code.v1"
     },
     {
       "old": "ak.gate.account.command.refresh_session_grant",
@@ -182,6 +174,10 @@
     {
       "old": "ak.gate.account.exchange.create_handoff",
       "new": "ak.gate.account.exchange.create_handoff.v1"
+    },
+    {
+      "old": "ak.gate.account.read.claim_device_pairing_code",
+      "new": "ak.gate.account.read.claim_device_pairing_code.v1"
     },
     {
       "old": "ak.gate.account.read.onboarding",
@@ -260,6 +256,10 @@
       "new": "ak.open.mimi.read.provider_directory.v1"
     },
     {
+      "old": "ak.open.realm_authority.read.bundle",
+      "new": "ak.open.realm_authority.read.bundle.v1"
+    },
+    {
       "old": "ak.open.service.read.resolution",
       "new": "ak.open.service.read.resolution.v1"
     },
@@ -292,10 +292,6 @@
       "new": "ak.peer.contacts.command.submit.v1"
     },
     {
-      "old": "ak.peer.current_signer_evidence.read.resolve",
-      "new": "ak.peer.current_signer_evidence.read.resolve.v1"
-    },
-    {
       "old": "ak.peer.device_revocations.command.check",
       "new": "ak.peer.device_revocations.command.check.v1"
     },
@@ -312,28 +308,8 @@
       "new": "ak.peer.events.command.submit.v1"
     },
     {
-      "old": "ak.peer.events.read.frontier",
-      "new": "ak.peer.events.read.frontier.v1"
-    },
-    {
-      "old": "ak.peer.events.read.resolve",
-      "new": "ak.peer.events.read.resolve.v1"
-    },
-    {
       "old": "ak.peer.events.read.scan",
       "new": "ak.peer.events.read.scan.v1"
-    },
-    {
-      "old": "ak.peer.events.read.sibling_positions",
-      "new": "ak.peer.events.read.sibling_positions.v1"
-    },
-    {
-      "old": "ak.peer.history_key_requests.command.replicate",
-      "new": "ak.peer.history_key_requests.command.replicate.v1"
-    },
-    {
-      "old": "ak.peer.history_key_responses.command.relay",
-      "new": "ak.peer.history_key_responses.command.relay.v1"
     },
     {
       "old": "ak.peer.invites.command.submit",
@@ -356,12 +332,12 @@
       "new": "ak.peer.mls.read.group_state_material.v1"
     },
     {
-      "old": "ak.peer.organization_recovery_archives.command.replicate",
-      "new": "ak.peer.organization_recovery_archives.command.replicate.v1"
-    },
-    {
       "old": "ak.peer.principal_genesis.command.submit",
       "new": "ak.peer.principal_genesis.command.submit.v1"
+    },
+    {
+      "old": "ak.peer.realm_authority.command.handoff",
+      "new": "ak.peer.realm_authority.command.handoff.v1"
     },
     {
       "old": "ak.peer.realm_join.read.application_status",
@@ -374,22 +350,6 @@
     {
       "old": "ak.peer.realm_join.read.preview",
       "new": "ak.peer.realm_join.read.preview.v1"
-    },
-    {
-      "old": "ak.peer.seals.read.frontier",
-      "new": "ak.peer.seals.read.frontier.v1"
-    },
-    {
-      "old": "ak.peer.seals.read.governance_dependencies",
-      "new": "ak.peer.seals.read.governance_dependencies.v1"
-    },
-    {
-      "old": "ak.peer.seals.read.mls_governance_proof",
-      "new": "ak.peer.seals.read.mls_governance_proof.v1"
-    },
-    {
-      "old": "ak.peer.seals.read.resolve",
-      "new": "ak.peer.seals.read.resolve.v1"
     },
     {
       "old": "ak.peer.signal.command.relay",
@@ -580,10 +540,6 @@
       "new": "ak.self.applet.revoke.command.preview.v1"
     },
     {
-      "old": "ak.self.authorization_leases.command.issue",
-      "new": "ak.self.authorization_leases.command.issue.v1"
-    },
-    {
       "old": "ak.self.authz.grants.read.effective",
       "new": "ak.self.authz.grants.read.effective.v1"
     },
@@ -688,18 +644,6 @@
       "new": "ak.self.contact.read.list.v1"
     },
     {
-      "old": "ak.self.control_proposal_acks.command.issue",
-      "new": "ak.self.control_proposal_acks.command.issue.v1"
-    },
-    {
-      "old": "ak.self.control_proposal_decisions.command.submit",
-      "new": "ak.self.control_proposal_decisions.command.submit.v1"
-    },
-    {
-      "old": "ak.self.control_proposal_decisions.read.get",
-      "new": "ak.self.control_proposal_decisions.read.get.v1"
-    },
-    {
       "old": "ak.self.current_principal.read.resolve",
       "new": "ak.self.current_principal.read.resolve.v1"
     },
@@ -724,22 +668,6 @@
       "new": "ak.self.events.command.submit.v1"
     },
     {
-      "old": "ak.self.events.read.delivery_status",
-      "new": "ak.self.events.read.delivery_status.v1"
-    },
-    {
-      "old": "ak.self.events.read.describe",
-      "new": "ak.self.events.read.describe.v1"
-    },
-    {
-      "old": "ak.self.events.read.frontier",
-      "new": "ak.self.events.read.frontier.v1"
-    },
-    {
-      "old": "ak.self.events.read.resolve",
-      "new": "ak.self.events.read.resolve.v1"
-    },
-    {
       "old": "ak.self.events.read.scan",
       "new": "ak.self.events.read.scan.v1"
     },
@@ -750,30 +678,6 @@
     {
       "old": "ak.self.events.stream.subscribe",
       "new": "ak.self.events.stream.subscribe.v1"
-    },
-    {
-      "old": "ak.self.genesis_notary.read.resolve",
-      "new": "ak.self.genesis_notary.read.resolve.v1"
-    },
-    {
-      "old": "ak.self.history_key_requests.command.create",
-      "new": "ak.self.history_key_requests.command.create.v1"
-    },
-    {
-      "old": "ak.self.history_key_requests.read.list",
-      "new": "ak.self.history_key_requests.read.list.v1"
-    },
-    {
-      "old": "ak.self.history_key_responses.command.ack",
-      "new": "ak.self.history_key_responses.command.ack.v1"
-    },
-    {
-      "old": "ak.self.history_key_responses.command.send",
-      "new": "ak.self.history_key_responses.command.send.v1"
-    },
-    {
-      "old": "ak.self.history_key_responses.read.list",
-      "new": "ak.self.history_key_responses.read.list.v1"
     },
     {
       "old": "ak.self.identity.read.resolution_audit",
@@ -798,10 +702,6 @@
     {
       "old": "ak.self.invite_receive_policy.resource.replace",
       "new": "ak.self.invite_receive_policy.resource.replace.v1"
-    },
-    {
-      "old": "ak.self.invites.command.dispatch",
-      "new": "ak.self.invites.command.dispatch.v1"
     },
     {
       "old": "ak.self.keys.backup_series.command.erase",
@@ -876,20 +776,12 @@
       "new": "ak.self.moderation.command.report.v1"
     },
     {
-      "old": "ak.self.moderation.read.franking_seal_observation",
-      "new": "ak.self.moderation.read.franking_seal_observation.v1"
-    },
-    {
       "old": "ak.self.morph.read.list",
       "new": "ak.self.morph.read.list.v1"
     },
     {
       "old": "ak.self.morph.resource.get",
       "new": "ak.self.morph.resource.get.v1"
-    },
-    {
-      "old": "ak.self.organization_recovery_archives.read.list",
-      "new": "ak.self.organization_recovery_archives.read.list.v1"
     },
     {
       "old": "ak.self.read_cursor.command.advance",
@@ -938,54 +830,6 @@
     {
       "old": "ak.self.relation_conflicts.read.candidates",
       "new": "ak.self.relation_conflicts.read.candidates.v1"
-    },
-    {
-      "old": "ak.self.seals.command.prepare",
-      "new": "ak.self.seals.command.prepare.v1"
-    },
-    {
-      "old": "ak.self.seals.read.prepare_fence_result",
-      "new": "ak.self.seals.read.prepare_fence_result.v1"
-    },
-    {
-      "old": "ak.self.seals.command.submit",
-      "new": "ak.self.seals.command.submit.v1"
-    },
-    {
-      "old": "ak.self.seals.read.frontier",
-      "new": "ak.self.seals.read.frontier.v1"
-    },
-    {
-      "old": "ak.self.seals.read.governance_dependencies",
-      "new": "ak.self.seals.read.governance_dependencies.v1"
-    },
-    {
-      "old": "ak.self.seals.read.history_authority",
-      "new": "ak.self.seals.read.history_authority.v1"
-    },
-    {
-      "old": "ak.self.seals.read.mls_accepted_artifact",
-      "new": "ak.self.seals.read.mls_accepted_artifact.v1"
-    },
-    {
-      "old": "ak.self.seals.read.mls_governance_proof",
-      "new": "ak.self.seals.read.mls_governance_proof.v1"
-    },
-    {
-      "old": "ak.self.seals.read.mls_membership_removal",
-      "new": "ak.self.seals.read.mls_membership_removal.v1"
-    },
-    {
-      "old": "ak.self.seals.read.mls_welcome_refs",
-      "new": "ak.self.seals.read.mls_welcome_refs.v1"
-    },
-    {
-      "old": "ak.self.seals.read.pending_control",
-      "new": "ak.self.seals.read.pending_control.v1"
-    },
-    {
-      "old": "ak.self.seals.read.resolve",
-      "new": "ak.self.seals.read.resolve.v1"
     },
     {
       "old": "ak.self.security_transaction.command.continue",

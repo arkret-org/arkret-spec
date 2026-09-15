@@ -5,7 +5,9 @@
   "description": "Closed decrypted plaintext shape for ak.dnd_schedule. Period ordering, IANA canonical-name validation, overlap/adjacency rejection, and tzdb equality are semantic validation steps in addition to this schema.",
   "$comment": "Conformance vector: ak.vector.dnd.schedule_boundary_validation.v1",
   "type": "object",
-  "required": ["dnd"],
+  "required": [
+    "dnd"
+  ],
   "properties": {
     "dnd": {
       "$ref": "#/$defs/dnd_settings"
@@ -19,7 +21,10 @@
     },
     "period": {
       "type": "object",
-      "required": ["start", "end"],
+      "required": [
+        "start",
+        "end"
+      ],
       "properties": {
         "start": {
           "$ref": "#/$defs/hhmm"
@@ -32,7 +37,12 @@
     },
     "schedule": {
       "type": "object",
-      "required": ["timezone", "tzdb_version", "all_day", "periods"],
+      "required": [
+        "timezone",
+        "tzdb_version",
+        "all_day",
+        "periods"
+      ],
       "properties": {
         "timezone": {
           "type": "string",
@@ -63,7 +73,9 @@
                 "const": true
               }
             },
-            "required": ["all_day"]
+            "required": [
+              "all_day"
+            ]
           },
           "then": {
             "properties": {
@@ -78,7 +90,11 @@
     },
     "dnd_settings": {
       "type": "object",
-      "required": ["enabled", "schedule", "exceptions"],
+      "required": [
+        "enabled",
+        "schedule",
+        "exceptions"
+      ],
       "properties": {
         "enabled": {
           "type": "boolean"

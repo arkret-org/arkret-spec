@@ -251,7 +251,7 @@ raw-key索引与显示只允许 SDK唯一 `agent_signing_public_key_digest` 对d
 
 `ak.component.agent.key.v1` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。cell subject MUST 使用 SDK `composite_subject([agent_id, key_id])`，不得用字符串拼接或 diagnostic subject。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key cell 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key cell 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `seal_basis` 观察到的对应 key cell 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。Station MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、cell/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 Seal 的 resolved cell 独立证明，不依赖服务端私有投影。
 
-`ak.schema.agent_signer_evidence.v1` 是 structural XOR：顶层只能是 `verification_mode=current_admission` 或
+`ak.schema.detached_object_signature.v1` 是 structural XOR：顶层只能是 `verification_mode=current_admission` 或
 `verification_mode=historical_event` 两种 closed object 之一，二者字段集合不同，不能通过改 tag 或增删一个
 frontier 互换。共享 `admission_evidence` 只含 `agent_authority_state_evidence`、隐私最小化的
 `controller_account_gate_attestation` 及无自引用的 `admission_evidence_digest`。raw public key不是秘密；Agent/controller
@@ -585,14 +585,11 @@ DID 更新或 notary。其它 Agent signer-evidence 与 scope disclosure 消费�
 
 Agent PCR genesis MUST 使用 `purpose="agent_control"`，MUST NOT 携带 human-only `founding_device_descriptor`（`genesis_salt` 与其它 Realm 一样必填），并遵守共享 PCR profile、`history_access=since_join`、`encryption_profile=mls_rfc9420` 与两条 `e2ee_required` floor；`created_by` 与 notary 都绑定同一完整 Agent account ActorId。Controller 受托创建或写入 Agent PCR 时，Event `actor_id` 是控制事实所属 Agent 的完整 account ActorId，`executed_by` 是 controller 的完整 account ActorId，`authorization_ref` 是上述 DID delegation 或其可验证 materialized grant；proof verification method 必须属于 controller，不得由服务端伪造 Agent 签名。Agent actor 使用 `service` variant、`executed_by` 或配对 `authorization_ref` 缺失，或缺少 exact Station binding 时，receiver MUST fail closed；对 agent-control genesis 与 `ak.self.agent.pause/resume/deactivate`，该 executor pair 的存在由 event-kind admission 规则（`event-kind-registry.json` 的 admission_variants 及其 Event Envelope schema 锁）强制，不依赖通用 envelope 的可选 `executed_by`。Agent 与 controller 的 principal 分量只从 `actor_id` / `executed_by` 取得，payload 不再携 `agent_id` / `controller_principal_id` 镜像。同一 `principal_id` 在不同 `station_id` 下是不同 Account ActorId，MUST 派生不同 lifecycle cell subject，禁止退化为裸 DidCoreId 或 `composite(DidCoreId)`。Agent PCR 的 MLS group state MUST 由 controller E2EE client 本地生成；服务端只能保存 ciphertext、公开 envelope metadata 与 reducer 所需的承诺/证明，不得生成、托管或解密该 private state。Agent profile、`ak.agent.key.authorize/revoke` 与 `ak.self.agent.pause/resume/deactivate` 写入 Agent PCR。Controller-owned `ak.agent.provision` 保持在 controller PCR，并原子投影 Agent provisioning、accountability、selector 与 `principal_control_realm_id` claim 事实；后续独立变更仍可使用通用 accountability/selector Event。该 provision MUST 先于 Agent PCR genesis 成型并在另一次提交中被接受，genesis 的准入由 §3.6.3 的反查绑定，二者 MUST 由同一 Station 承载。Realm-specific capability grant 仍写入所治理 action 所属 Realm。Pairing request 与 approval notification 永远不写入任一 PCR。
 
-Agent PCR 的 Seal 由 `POST /_arkret/self/seals`（`ak.self.seals.command.submit.v1`）直接提交；Seal 不是 Event，也不经 EventInitialSubmission。若 accepted Agent DID delegation 的 purpose 覆盖 `principal_control_realm_recovery`，该 delegation 同时授权当前 controller device 为此 Agent PCR 的 delegated notary signer；receiver MUST 从唯一 signed Agent PCR create Event 精确验证 `(Agent account ActorId, controller account ActorId, realm_id, authorization_ref)`。Agent PCR Event 必须由 producer 签名 Realm `scope_ref`，reducer 独立复核。首个非空 Seal MUST 无 predecessor 并原子覆盖 Agent PCR founding anchor unit；Station、Account Authority 或其他 service 不得用 service key 代替 Agent/controller 签署。
-
-Agent PCR 的单条 create 虽无 `seal_basis`，仍是 closed-anchor Control Move。Controller
-client MUST 从该候选 create 重算完整 founding notary authority，并由 accepted delegation 下的
-当前 controller device 为 exact create digest 签 Control Proposal Ack；Station MUST 在同一
-事务提交 receipt、canonical create 与 pending Control index。首 Seal 的原子提交再把同一 digest
-标记 sealed，并同时提交 Seal lineage 与 registered cell effects；不得出现“Event log 已有 create，
-但 pending store 无该 digest”或以 service key/无 Control Proposal Ack 绕过 proposal 轨道的中间状态。
+Agent PCR 的共享写入和其它 Realm 一样，使用 `POST /_arkret/self/events`提交 exact producer-signed Event。
+Controller device 必须按 accepted delegation 签署 Agent PCR create/control Event；治理 Station 验证 exact
+`(Agent account ActorId, controller account ActorId, realm_id, authorization_ref)` 和 current authority，成功后签发
+Realm stream 的 `RealmCommit(position=0)` 或后续 Commit。Station、Account Authority 或其它 service 的
+signature 只能证明接纳顺序，不得替代 Agent/controller producer proof。
 
 Agent 不建立独立的面向用户 Recovery Key，也不得要求用户为每个 Agent 保存另一套 24 词。Agent DID / PCR 管理连续性来自当前 controller delegation；可移植 backup 只保存该 actor 合法持有的 history-secret ranges，不保存或恢复 Agent PCR active MLS state。解开历史密钥不授予 Agent DID 控制、agent-control authoring 或业务 capability；fresh endpoint 仍必须用 current delegation 经标准 KeyPackage/Add/Welcome 重新加入，任何恢复后的写入仍验证当前 Agent DID delegation、controller 状态与目标 Event authorization。
 

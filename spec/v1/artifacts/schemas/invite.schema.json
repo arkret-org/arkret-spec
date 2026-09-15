@@ -370,7 +370,6 @@
         "third_party_invite",
         "invite_expires_at",
         "invite_state",
-        "accepted_seal_id",
         "observed_at",
         "expires_at",
         "signature"
@@ -411,10 +410,6 @@
         "invite_state": {
           "const": "pending",
           "description": "The Station attests the invite is pending on the observed basis. There is no attestation shape for any other invite state; a non-pending invite yields no attestation at all."
-        },
-        "accepted_seal_id": {
-          "$ref": "./seal.schema.json#/$defs/seal_ref",
-          "description": "The unique confirmed non-quarantined Seal whose command_results contains the ak.invite.third_party Event. An Event belongs to at most one command result in the confirmed history, so multiple direct covering Seals are invalid. It is an acceptance observation, not an authoring seal_basis or the current confirmed head."
         },
         "observed_at": {
           "$ref": "#/$defs/timestamp",

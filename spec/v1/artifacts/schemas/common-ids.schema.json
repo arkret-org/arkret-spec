@@ -13,28 +13,28 @@
       "type": "string",
       "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
     },
+    "realm_commit_id": {
+      "type": "string",
+      "pattern": "^ak:realm_commit:[A-Za-z0-9_-]{44}$",
+      "description": "Content-addressed identity of a closed unsigned RealmCommit body. The suffix uses the fixed v1 digest suite and the same canonical 33-octet token encoding as Event IDs."
+    },
+    "realm_authority_handoff_id": {
+      "type": "string",
+      "pattern": "^ak:realm_authority_handoff:[A-Za-z0-9_-]{44}$",
+      "description": "Content-addressed identity of one closed old-to-new Realm authority handoff."
+    },
+    "realm_snapshot_id": {
+      "type": "string",
+      "pattern": "^ak:realm_snapshot:[A-Za-z0-9_-]{44}$",
+      "description": "Content-addressed identity of an authority-signed typed Realm snapshot."
+    },
+    "mls_welcome_delivery_id": {
+      "type": "string",
+      "pattern": "^ak:mls_welcome_delivery:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "circle_id": {
       "type": "string",
       "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
-    },
-    "collision_variant_record_id": {
-      "type": "string",
-      "pattern": "^ak:collision_variant_record:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Producer-allocated identity of one stored canonical Event preimage used as full-hash collision evidence. It is a transport identity for bounded governance-dependency resolution only; the authority is the record proof plus the recomputed Event identity, never this id."
-    },
-    "history_request_id": {
-      "type": "string",
-      "pattern": "^ak:history_request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Globally unique history-request object identity; it is never scoped by response stream, requester, service or effective scope."
-    },
-    "history_response_id": {
-      "type": "string",
-      "pattern": "^ak:history_response:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Globally unique history-response object identity; reuse under another request response stream is duplicate_conflict."
-    },
-    "recovery_key_id": {
-      "type": "string",
-      "pattern": "^ak:recovery_key:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "sidecar_id": {
       "type": "string",

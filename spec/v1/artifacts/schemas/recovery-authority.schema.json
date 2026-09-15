@@ -69,7 +69,7 @@
     },
     "issue_recovery_completion_grant_request": {
       "type": "object",
-      "description": "Closed request proving completed PCR recovery and the exact current replacement device generation. The Account Authority MUST check that terminal_receipt and completion_attestation agree on the same first_generation_seal_id and that this Seal is the committed current head of the replacement device generation. Ordinary account authentication, admin approval, or current DID control without an enabled PCR recovery factor cannot satisfy this request or reactivate a deactivated account.",
+      "description": "Closed request proving completed PCR recovery and the exact current replacement device generation. The Account Authority checks the committed re-anchor through its RealmCommit.",
       "required": [
         "transaction_id",
         "transaction_request_digest",
@@ -128,7 +128,7 @@
         "terminal_commit_digest",
         "replacement_device_id",
         "device_authorization_event_id",
-        "first_generation_seal_id",
+        "reanchor_commit_id",
         "result_model_generation_ref",
         "completed_at",
         "auth_data"
@@ -169,9 +169,9 @@
         "device_authorization_event_id": {
           "$ref": "#/$defs/event_id"
         },
-        "first_generation_seal_id": {
-          "$ref": "./security-transaction.schema.json#/$defs/seal_id",
-          "description": "Identity of the first new-generation Seal committed by this recovery. It equals prepared_plan.binding.first_generation_seal_id and the seal id signed in the terminal receipt. A verifier that cannot resolve this committed Seal MUST NOT treat the recovery as complete."
+        "reanchor_commit_id": {
+          "$ref": "./security-transaction.schema.json#/$defs/realm_commit_id",
+          "description": "Identity of the RealmCommit that finalized the recovery re-anchor Event."
         },
         "result_model_generation_ref": {
           "$ref": "#/$defs/pcr_generation_ref"
@@ -198,7 +198,7 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url signature over RFC 8785 JCS of the fixed projection {schema,transaction_id,transaction_request_digest,prepared_plan_digest,account_id,recovery_session_id,terminal_receipt_id,terminal_receipt_digest,terminal_commit_digest,replacement_device_id,device_authorization_event_id,first_generation_seal_id,result_model_generation_ref,completed_at}. The Event digest is decoded from the suite-bearing device_authorization_event_id."
+              "description": "Base64URL signature over the closed completion projection, including device_authorization_event_id and reanchor_commit_id."
             }
           },
           "additionalProperties": false

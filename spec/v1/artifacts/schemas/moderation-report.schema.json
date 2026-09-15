@@ -35,8 +35,7 @@
                 "realm_id",
                 "scope_ref",
                 "actor_id",
-                "payload",
-                "auth_context"
+                "payload"
               ],
               "not": {
                 "anyOf": [
@@ -74,7 +73,7 @@
           ]
         }
       ],
-      "description": "Direct-holder signed ak.self.moderation.report ordinary Event. The self endpoint accepts only absent/self provenance and forbids delegated executor, Applet and MIMI-facade provenance. event.actor_id and payload.reporter MUST equal the authenticated session principal. event.realm_id, payload.realm_id, the signed scope_ref and the accepted target's derived governance scope MUST match exactly. A Realm-default report may omit payload.effective_scope; a Circle report MUST sign the exact Circle scope. The target MUST be accepted and visible to the reporter; absent, invisible and scope-mismatched targets all return the same not_found response. This ordinary Event carries auth_context.authority_refs and no seal_ref and MUST NOT carry seal_basis or preconditions. The service forwards exact signed bytes through ordinary Event admission and never authors, rebuilds, co-signs or adds guards."
+      "description": "Direct-holder signed ak.self.moderation.report Event. The current governance Station resolves current authorization and scope, then commits the exact Event or rejects it; the request carries no Seal, Cell, predecessor or caller-selected authorization basis."
     },
     "moderation_report_request_body": {
       "type": "object",

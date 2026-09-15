@@ -6,15 +6,8 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 408,
+  "audited_occurrence_count": 332,
   "registrations": [
-    {
-      "file": "account-current-result.schema.json",
-      "key": "accepted_key_evidence_ref",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Registered source evidence reference retained in the concrete complete cell value, not a second proof object."
-    },
     {
       "file": "account-operations.schema.json",
       "key": "account_registration_evidence_summary",
@@ -80,7 +73,7 @@
     {
       "file": "agent-operations.schema.json",
       "key": "current_signer_evidence",
-      "occurrences": 4,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -96,64 +89,9 @@
       "reason": "Content-addresses the authenticated root inside current_signer_evidence so the runtime can persist and cite the exact offline signer-resolution closure."
     },
     {
-      "file": "agent-signer-evidence.schema.json",
-      "key": "admission_evidence",
-      "occurrences": 3,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed composite of the Agent authority snapshot, privacy-minimal controller Account Authority gate and their exact digest."
-    },
-    {
-      "file": "agent-signer-evidence.schema.json",
-      "key": "admission_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Unambiguously names the JCS digest of the two-field admission evidence core; it is a commitment, not a second proof container."
-    },
-    {
-      "file": "agent-signer-evidence.schema.json",
-      "key": "agent_authority_state_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed composite of one Agent's authority state view and the authority-signed attestation over its digest. The state itself spans more than two material families before the attestation is counted: a signing key binding, a capability authorization, a key state witness, a key transition witness, an Agent lifecycle witness and the Seal lineage closure that ties them to one frontier."
-    },
-    {
-      "file": "agent-signer-evidence.schema.json",
-      "key": "current_admission_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed current-mode aggregate containing exact request observation and the three independently verified admission gates."
-    },
-    {
-      "file": "agent-signer-evidence.schema.json",
-      "key": "historical_event_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Frozen verification material with the original producer proof and authorization evidence, or a distinct receiver receipt."
-    },
-    {
       "file": "applet-edge-operations.schema.json",
       "key": "applet_service_signer_evidence",
-      "occurrences": 2,
+      "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -193,17 +131,6 @@
         "attestation"
       ],
       "reason": "Defines the complete managed Principal signer root and exact Station attester closure."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "managed_actor_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the accepted managed Actor Principal root and attester closure delivered for ordinary authoring."
     },
     {
       "file": "applet-edge-operations.schema.json",
@@ -252,51 +179,14 @@
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "account_authority_signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "account_device_control_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment",
-        "transcript"
-      ],
-      "reason": "Carries the signed principal inception plus exact Event and Seal commitments needed to replay the portable human Control signer history."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "account_device_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Retains the signed origin Station device projection with its Service attester closure for ordinary-human history response verification.",
-      "material_families": [
-        "proof",
-        "attestation"
-      ]
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "agent_signer_evidence",
-      "occurrences": 2,
+      "occurrences": 1,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation"
       ],
       "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
-    },
-    {
-      "file": "authenticated-signer-resolution-evidence.schema.json",
-      "key": "attester_signer_evidence_ref",
-      "occurrences": 3,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
@@ -323,13 +213,6 @@
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
       "key": "signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "availability-receipt.schema.json",
-      "key": "holder_signer_evidence_ref",
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
@@ -393,7 +276,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 37,
+      "occurrences": 35,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -407,7 +290,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_class",
-      "occurrences": 17,
+      "occurrences": 16,
       "disposition": "registry_contract",
       "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
     },
@@ -461,184 +344,6 @@
       "reason": "Names the already-authenticated carrier or route coordinate required before a stable core may enter a registered resolution boundary; it carries no evidence instance."
     },
     {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "account_authority_signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "account_device_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries the origin-signed current device projection attestation together with its embedded verification proof."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "admission_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "admission_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "agent_authority_state_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "agent_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Carries the authenticated current Agent signer root and its bounded content-addressed dependency closure."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "attester_signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "authenticated_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Carries the registered composite Agent signer authority root selected for this exact current query."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "compact_agent_admission_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "compact_agent_authority_state_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "compact_agent_signer_resolution_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "compact_current_agent_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Transport-only projection of the canonical Agent authority aggregate. Only already verified state may be omitted; hydration precedes digest calculation and closure authentication.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ]
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "evidence_item",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed union of account-device projection material and the Agent signer-evidence closure."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "evidences",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Plural response collection whose items are the closed account-device or Agent current-evidence branches."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "known_signer_evidence_refs",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addressed reusable Agent state or signer dependency coordinate; hydration preserves the full canonical root."
-    },
-    {
-      "file": "current-signer-evidence-operations.schema.json",
-      "key": "signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Locates the immutable historical signer evidence containing this exact device attestation."
-    },
-    {
       "file": "did-binding-contracts.schema.json",
       "key": "evidence_dependencies",
       "occurrences": 1,
@@ -677,7 +382,7 @@
     {
       "file": "did-freshness-profile-registry.json",
       "key": "evidence_class",
-      "occurrences": 23,
+      "occurrences": 22,
       "disposition": "registry_contract",
       "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },
@@ -750,25 +455,6 @@
       "reason": "Reverse-binding commitment to the complete frozen registration DID evidence accepted for PCR genesis."
     },
     {
-      "file": "event-envelope.schema.json",
-      "key": "evidence_ref",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "A critical extension may bind extension-specific proof, attestation, or receipt Events."
-    },
-    {
-      "file": "event-envelope.schema.json",
-      "key": "signer_resolution_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
       "file": "event-kind-registry.json",
       "key": "evidence_class",
       "occurrences": 1,
@@ -781,13 +467,6 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Generated shared-history verifier dependency categories from canonical history_admission_contract; no wire object is introduced."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "accepted_key_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
       "file": "event-payload.schema.json",
@@ -810,17 +489,6 @@
         "receipt"
       ],
       "reason": "Carries the registered heterogeneous Agent-key approval material."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "conflict_evidence",
-      "occurrences": 3,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "commitment",
-        "transcript"
-      ],
-      "reason": "Closed union over two registered material families: committed verified sibling identity sets re-evaluated against a registered cell family lattice, and complete canonical Event variant transcripts carried inline or by collision-variant record reference."
     },
     {
       "file": "event-payload.schema.json",
@@ -867,20 +535,6 @@
     },
     {
       "file": "event-payload.schema.json",
-      "key": "expected_previous_key_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "expected_previous_key_evidence_seal_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "event-payload.schema.json",
       "key": "introduction_evidence_digest",
       "occurrences": 2,
       "disposition": "qualifier",
@@ -898,13 +552,6 @@
         "transcript"
       ],
       "reason": "The signed Applet registration Event manifest carries the single method-native registration-time identity transcript and its accepted key commitments."
-    },
-    {
-      "file": "forbidden-wire-fields.json",
-      "key": "agent_authority_state_evidence",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Names the exact forbidden-field context for the Agent authority evidence container; it does not carry evidence material."
     },
     {
       "file": "forbidden-wire-fields.json",
@@ -926,81 +573,6 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "accepted_key_evidence_ref",
-      "occurrences": 4,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "agent_evidence_view_locator",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "agent_signer_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "identity_link_signer_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Locates the content-addressed Principal signer evidence for the encrypted IdentityLink proof verification method."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "minimal_metadata_mls_leaf_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment"
-      ],
-      "reason": "Carries a content-addressed MLS identity-link and winning group-state commitment used to verify one retained pairwise response signer."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "recipient_agent_control_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "release_service_signer_evidence_ref",
-      "occurrences": 2,
-      "disposition": "qualifier",
-      "reason": "Locates the exact content-addressed release-service signer evidence covered by the record or lost-descriptor proof."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment"
-      ],
-      "reason": "Exact minimal-metadata carrier retained for receiver-local encrypted IdentityLink and MLS LeafNode authentication; public Principal authority comes from the Account Station result, without client governance replay."
-    },
-    {
-      "file": "history-key.schema.json",
-      "key": "source_signer_evidence_ref",
-      "occurrences": 3,
-      "disposition": "qualifier",
-      "reason": "Locates the exact content-addressed historical signer evidence bound by the response source proof."
     },
     {
       "file": "history-recovery-scalability-registry.json",
@@ -1214,14 +786,14 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 37,
+      "occurrences": 35,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },
     {
       "file": "operation-registry.json",
       "key": "evidence_class",
-      "occurrences": 13,
+      "occurrences": 12,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for registered operations."
     },
@@ -1311,28 +883,6 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "key": "ackless_self_principal_admission_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment"
-      ],
-      "reason": "Carries stable producer-device and accepted device-authorization references plus the signed Seal-basis commitment for replaying the one Ack-less human self-principal PCR admission class."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "key": "authenticated_signer_resolution_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Carries a closed registered evidence object whose proof and attestation components are validated together."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
       "key": "contact_round_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -1345,30 +895,6 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "key": "founding_authority_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Closed XOR authorization evidence for one Direct Conversation founding unit, carried only by the federation submission where the source Station projects it across the trust-domain boundary: the human branch carries Contact acceptance receipts and current proofs, the controller_agent branch carries provision and controller-binding commitments. The self founding submission carries no copy."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "key": "membership_compensation_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Carries the closed delegation signature, accepted-join attestation, terminal certificate and destination-bound single-use commitment required to validate one compensation submission."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
       "key": "method_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -1378,17 +904,6 @@
         "commitment"
       ],
       "reason": "DID methods may return history commitments, verification proofs, and witness attestations."
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "key": "minimal_metadata_mls_leaf_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "commitment"
-      ],
-      "reason": "Carries the exact content-addressed MLS identity-link evidence selected by governance dependency resolution."
     },
     {
       "file": "service-operation-dtos.schema.json",

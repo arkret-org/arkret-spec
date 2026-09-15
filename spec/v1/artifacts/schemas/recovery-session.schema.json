@@ -88,26 +88,22 @@
     },
     "publication_authority_context": {
       "type": "object",
-      "description": "Server-snapshotted accepted PCR recovery authority for publishing the re-anchor unit. It never grants the replacement device a generic lease issuer role.",
+      "description": "Server-snapshotted PCR recovery authority evaluated by the current governance Station.",
       "required": [
-        "basis_ref",
+        "authority_commit_id",
         "scope_ref",
-        "authority_set_ref",
         "authority_set_policy",
         "allowed_actions"
       ],
       "properties": {
-        "basis_ref": {
-          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
+        "authority_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
         "scope_ref": {
           "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
         },
-        "authority_set_ref": {
-          "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
-        },
         "authority_set_policy": {
-          "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
+          "$ref": "./authority-set-policy.schema.json"
         },
         "allowed_actions": {
           "type": "array",
@@ -138,7 +134,7 @@
         "identity_model",
         "current_device_generation_ref",
         "device_generation_status",
-        "accepted_seal_frontier",
+        "realm_stream_head",
         "publication_authority_context",
         "publication_authority_context_digest",
         "challenge",
@@ -201,8 +197,8 @@
             "conflicted"
           ]
         },
-        "accepted_seal_frontier": {
-          "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_seal_frontier"
+        "realm_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         },
         "publication_authority_context": {
           "$ref": "#/$defs/publication_authority_context"

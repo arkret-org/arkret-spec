@@ -23,7 +23,7 @@
     "authorization_event_id",
     "reanchor_event_id",
     "reanchor_batch_receipt_id",
-    "first_generation_seal_id",
+    "reanchor_commit_id",
     "proof_summary",
     "unlocked_backups",
     "welcome_count",
@@ -111,10 +111,9 @@
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "EventBatchReceipt id of the device_reanchor_unit scope, reserved by the RecoveryTransaction prepare transaction. It MUST equal prepared_plan.binding.reanchor_batch_receipt_id; the receipt is signed before the Events are accepted, so this id cannot be observed from an already accepted batch."
     },
-    "first_generation_seal_id": {
-      "type": "string",
-      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
-      "description": "Identity of the first new-generation Seal committed by this recovery. It MUST equal prepared_plan.binding.first_generation_seal_id and the id of the Seal carried beside this receipt in the same RecoveryTerminalCommit. Signing it here is what stops the terminal receipt from being rebound to a different Seal body or to a recovery whose Seal was never committed."
+    "reanchor_commit_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+      "description": "RealmCommit that finalized the recovery re-anchor Event."
     },
     "proof_summary": {
       "type": "object",

@@ -1000,7 +1000,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 ### 5.5 Commit / Welcome 处理失败报告
 
-客户端本地处理 winning `ak.mls.commit`、`ak.mls.welcome` 或其 `governance_binding` 失败时，MAY 发布 `ak.mls.commit_failed` 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
+客户端本地处理 winning `ak.mls.commit`、`ak.mls.welcome` 或其 `governance_binding` 失败时，MAY 发布 已退役的 MLS 本地诊断 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
 
 `ak.mls.commit_failed.payload` MUST 至少包含：
 

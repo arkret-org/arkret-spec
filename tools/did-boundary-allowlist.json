@@ -60,14 +60,6 @@
       "category": "resolution_or_did_document"
     },
     {
-      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did/oneOf/0/$ref",
-      "category": "did_method_log_or_evidence"
-    },
-    {
-      "pointer": "authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence/allOf/0/properties/authenticated_resolution/properties/normalized_did_document/properties/did/oneOf/1/$ref",
-      "category": "did_method_log_or_evidence"
-    },
-    {
       "pointer": "contact-operations.schema.json#/$defs/contact_delegated_producer_signer/properties/delegated_actor_did/$ref",
       "category": "did_method_log_or_evidence"
     },
@@ -134,10 +126,6 @@
     {
       "pointer": "invite.schema.json#/$defs/third_party_invite_present_request_body/properties/subject_did/$ref",
       "category": "registration_or_binding"
-    },
-    {
-      "pointer": "offline-publication.schema.json#/$defs/ingress_receipt/properties/qualified_ingress_did/$ref",
-      "category": "resolution_or_did_document"
     },
     {
       "pointer": "principal-operations.schema.json#/$defs/pcr_genesis_submit_request/properties/did/$ref",

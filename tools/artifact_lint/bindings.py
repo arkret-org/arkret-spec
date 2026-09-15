@@ -566,7 +566,6 @@ def check_service_describe_alignment(lint: Lint) -> None:
         return
     describe_bindings = [
         ("/_arkret/describe", "get"),
-        ("/_arkret/self/events/describe", "query"),
         ("/_arkret/root/identity/describe", "get"),
         ("/_arkret/self/account/describe", "get"),
         ("/_arkret/find/directory/describe", "get"),
@@ -717,9 +716,10 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
                         f"{operation_id} {label} must not reference account/DID dedicated schema {schema.get('$ref')}",
                     )
 
+    dto_document = load_json(lint, ARTIFACTS / "schemas" / "service-operation-dtos.schema.json")
+    dto_defs = dto_document.get("$defs", {}) if isinstance(dto_document, dict) else {}
     human_session_grant_required = set(
-        (resolve_openapi_component_schema(lint, openapi_path, components, "HumanSessionGrantRequest") or {})
-        .get("required", [])
+        (dto_defs.get("HumanSessionGrantRequest", {}) or {}).get("required", [])
     )
     if not {"audience_id", "accepted_device_possession_proof"}.issubset(human_session_grant_required):
         lint.fail(
@@ -727,7 +727,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
             "HumanSessionGrantRequest.required must include audience_id and accepted_device_possession_proof",
         )
     agent_session_grant_proof_required = set(
-        (resolve_openapi_component_schema(lint, openapi_path, components, "AgentSessionGrantRequest") or {})
+        (dto_defs.get("AgentSessionGrantRequest", {}) or {})
         .get("properties", {})
         .get("proof", {})
         .get("required", [])
@@ -882,6 +882,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.self.account.read.describe.v1",
         "ak.open.identity.read.resolution.v1",
         "ak.open.service.read.resolution.v1",
+        "ak.open.realm_authority.read.bundle.v1",
         "ak.find.directory.read.describe.v1",
         "ak.edge.applet.read.describe.v1",
         "ak.edge.applet.read.protocol_metadata.v1",

@@ -8,12 +8,11 @@
     "purpose",
     "genesis_salt",
     "trust_domain",
-    "schema_refs",
-    "reducer_profile",
-    "digest_algorithm",
     "security_class",
-    "encryption_profile",
-    "notary"
+    "governance_station_id",
+    "initial_join_rule",
+    "initial_history_access",
+    "initial_discoverability"
   ],
   "properties": {
     "schema": {
@@ -45,23 +44,21 @@
     "trust_domain": {
       "$ref": "./realm.schema.json#/$defs/trust_domain"
     },
-    "schema_refs": {
-      "$ref": "./realm.schema.json#/properties/schema_refs"
-    },
-    "reducer_profile": {
-      "$ref": "./realm.schema.json#/properties/reducer_profile"
-    },
-    "digest_algorithm": {
-      "$ref": "./realm.schema.json#/properties/digest_algorithm"
-    },
     "security_class": {
       "$ref": "./realm.schema.json#/properties/security_class"
     },
-    "encryption_profile": {
-      "$ref": "./realm.schema.json#/properties/encryption_profile"
+    "governance_station_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Generation-0 governance Station service identity."
     },
-    "notary": {
-      "$ref": "./realm.schema.json#/properties/notary"
+    "initial_join_rule": {
+      "$ref": "./realm.schema.json#/properties/default_join_rule"
+    },
+    "initial_history_access": {
+      "$ref": "./realm.schema.json#/properties/history_access"
+    },
+    "initial_discoverability": {
+      "$ref": "./realm.schema.json#/properties/default_discoverability"
     }
   },
   "allOf": [

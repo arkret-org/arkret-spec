@@ -583,7 +583,7 @@ Resolver policy MUST 至少定义：
 
 principal 创建时，注册方 MUST 接收 `did`，用 method adapter 验证其 inception/current control、method history 与本地 trust policy，并确认 `project(did)` 逐字等于待创建的 `did_core_id`。验证通过后，PCR genesis 的 `initial_resolution` MUST 同时承诺 `did`、`method_history_head` 与 `version_id`；服务端不得只把它留在临时注册会话或私有账号表。
 
-PCR reducer MUST 以 create-locked cell family `ak.component.identity.resolution.v1` 初始化当前 resolution。后续更新只允许 durable Event `ak.identity.resolution.update`；其 payload 只携 `next {did, method_history_head, version_id}`，前序状态只来自 Event envelope 中唯一一条针对 `ak:cell:ak.component.identity.resolution.v1:null` 的 `head_eq` precondition，其 `value` 是完整的 current `resolution_projection`。admission MUST 验证：
+PCR reducer MUST 以 create-locked cell family `ak.component.identity.resolution.v1` 初始化当前 resolution。后续更新只允许 durable Event `ak.identity.resolution.update`；其 payload 只携 `next {did, method_history_head, version_id}`，前序状态只来自 Event envelope 中唯一一条针对 `state-slot:ak.component.identity.resolution.v1:null` 的 `head_eq` precondition，其 `value` 是完整的 current `resolution_projection`。admission MUST 验证：
 
 创建协议需要持久化的是 **immutable creation anchor**，不是 current source ref：它可以引用携
 `initial_resolution` 的 PCR genesis，或引用一个由该 genesis 唯一交叉绑定、且已经独立验证 method evidence

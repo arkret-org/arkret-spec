@@ -3,7 +3,6 @@ x-arkret-high-security-session-authentication-policy:
   appliesToOperationIdPrefix: ak.self.
   protectedOperationDefault: rfc9421_session_public_key_required
   unauthenticatedPublicProjectionOperations:
-  - ak.self.events.read.describe.v1
   - ak.self.account.read.describe.v1
   newOperationsFailClosed: true
 info:
@@ -36,8 +35,7 @@ info:
     read.scan, read.frontier}`, `ak.peer.events.{command.submit, read.resolve, read.scan, read.frontier}`, `ak.self.account.{read.viewer,
     stream.subscribe, command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
 
-    `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`,
-    `ak.self.authz.{read.check,
+    `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
 
     grants.query.effective}`, and the ServiceDescribe envelope. The corresponding
 
@@ -88,13 +86,13 @@ info:
 
     relationship and attack-surface class. The "trust circle" terminology is an
 
-    explanatory metaphor, not an authorization result. The current classifiers are: `self` (the authenticated session
-    of the caller), `gate` (authentication entry), `root` (identity /
+    explanatory metaphor, not an authorization result. The current classifiers are: `self` (the authenticated session of the
+    caller), `gate` (authentication entry), `root` (identity /
 
     DID trust root; not root/admin privilege), `find` (directory discovery), `peer` (federation server-to-server
 
-    wire; reserved namespace branch), `open` (external protocol interop or out-of-band handoff, e.g. MIMI / invite
-    locators; not public/no-auth access),
+    wire; reserved namespace branch), `open` (external protocol interop or out-of-band handoff, e.g. MIMI / invite locators;
+    not public/no-auth access),
 
     `edge` (push / bridge gateways).
 
@@ -343,8 +341,6 @@ components:
       schema:
         type: string
   schemas:
-    AcceptedDevicePossessionProof:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof
     AccountDataDeleteOutcome:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
     AccountDataDeleteRequestBody:
@@ -363,11 +359,6 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_handoff_outcome
     AccountHandoffRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_handoff_request_body
-    AccountId:
-      type: string
-      pattern: ^[A-Za-z0-9._:-]{1,128}$
-      description: Deployment-local account identifier. It is not a Arkret principal DID and not a protocol object
-        typed ID.
     AccountLogoutOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
     AccountLogoutRequestBody:
@@ -395,14 +386,8 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
     AccountView:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_view
-    ActorAggregateFrontierView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ActorAggregateFrontierView
-    ActorProfile:
-      $ref: ../schemas/actor-profile.schema.json
     AgentDeactivateRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body
-    AgentHumanApprovalProblem:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_human_approval_error_details
     AgentKeyPairOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
     AgentKeyPairRequestBody:
@@ -439,12 +424,6 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome
     AgentRuntimeApprovalStatusRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body
-    AgentSessionGrantRefreshRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequest
-    AgentSessionGrantRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest
-    AgentSessionRefreshProof:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AgentSessionRefreshProof
     AgentSidecarEnsureOutcome:
       $ref: ../schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome
     AgentSidecarEnsureRequestBody:
@@ -459,8 +438,6 @@ components:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
     AppletInstallOutcome:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
-    AppletInstallPlan:
-      $ref: ../schemas/applet-install-plan.schema.json
     AppletInstallPreviewOutcome:
       $ref: ../schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome
     AppletInstallPreviewRequestBody:
@@ -493,10 +470,6 @@ components:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome
     AppletTransactionRequestBody:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body
-    AuthorizationLeaseIssueOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome
-    AuthorizationLeaseIssueRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequestBody
     AuthSessionLogoutOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome
     AuthSessionLogoutRequestBody:
@@ -511,34 +484,6 @@ components:
       $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_outcome
     BlobUploadRequestBody:
       $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_request_body
-    BooleanFilter:
-      $ref: ../schemas/query.schema.json#/$defs/boolean_filter
-    BottomDiagnostic:
-      $ref: ../schemas/bottom.schema.json
-    CellQueryEnvelope:
-      type: object
-      description: Wire envelope for a single ordinary projected cell. `status=value` carries one resolved value;
-        `status=conflict` carries the complete typed Bottom diagnostic for unresolved causal-register heads. Safety
-        command rejection, missing dependencies and sequenced state are returned by their dedicated operation or
-        availability outcomes. See zh/sync/service-surface.md §5.3 and zh/authz/event-auth-state-resolution.md §5.1.
-      required:
-      - cell
-      - status
-      properties:
-        cell:
-          type: string
-          pattern: ^ak:cell:ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+:[A-Za-z0-9._~=-]*(?::[A-Za-z0-9._~=-]+)*$
-        status:
-          type: string
-          enum:
-          - value
-          - conflict
-        value:
-          description: Effective ordinary value when status=value. Shape follows the registered causal_register,
-            or_set, counter or ordered_log contract.
-        bottom:
-          $ref: '#/components/schemas/BottomDiagnostic'
-      additionalProperties: false
     CircleCreateRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
     CircleList:
@@ -553,157 +498,10 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
-    CollectionCrosstabPosition:
-      type: object
-      required:
-      - model
-      - row_key
-      - column_key
-      - sort_key
-      properties:
-        model:
-          type: string
-          const: crosstab_cell
-        row_key:
-          type: string
-          minLength: 1
-        column_key:
-          type: string
-          minLength: 1
-        sort_key:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CollectionFieldValuePosition:
-      type: object
-      required:
-      - model
-      - container_id
-      - rank
-      properties:
-        model:
-          type: string
-          const: field_value
-        container_id:
-          type: string
-          minLength: 1
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-      additionalProperties: false
-    CollectionRelationPosition:
-      type: object
-      required:
-      - model
-      - scope_container_id
-      - container_id
-      - relation_kind
-      - relation_id
-      - rank
-      properties:
-        model:
-          type: string
-          const: relation
-        scope_container_id:
-          type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}$
-        container_id:
-          type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}$
-        relation_kind:
-          type: string
-          minLength: 1
-        relation_id:
-          type: string
-          pattern: ^ak:relation:[A-Za-z0-9_-]{44}$
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-      additionalProperties: false
-    CollectionTimeWindowPosition:
-      type: object
-      required:
-      - model
-      - start
-      - sort_key
-      properties:
-        model:
-          type: string
-          const: time_window
-        start:
-          $ref: ../schemas/time.schema.json#/$defs/timestamp
-        end:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        timezone:
-          type: string
-          minLength: 1
-        sort_key:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CompositeProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - widgets
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: composite
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ak:view:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        widgets:
-          type: array
-          items:
-            $ref: '#/components/schemas/CompositeProjectionWidget'
-        stale:
-          type: boolean
-      additionalProperties: false
-    CompositeProjectionWidget:
-      type: object
-      required:
-      - id
-      - title
-      - projection
-      - frontier
-      properties:
-        id:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        projection:
-          type: string
-          enum:
-          - collection
-          - timeline
-          - graph
-          - document
-          - composite
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        result:
-          type: object
-        error:
-          $ref: '#/components/schemas/Problem'
-      additionalProperties: false
     ConsentCellList:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_list
     ConsentCellView:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_view
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_view
     ConsentGrantRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_grant_request_body
     ConsentRequestOutcome:
@@ -738,34 +536,13 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome
     ContactTombstoneRequestBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request
-    ControllerAccountGateAttestationIssueOutcome:
-      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_outcome
-    ControllerAccountGateAttestationIssueRequestBody:
-      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/controller_account_gate_attestation_issue_request
-    ControlProposalDecisionReadOutcome:
-      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_outcome
-    ControlProposalDecisionReadRequestBody:
-      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_read_request_body
-    ControlProposalDecisionSubmitOutcome:
-      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_outcome
-    ControlProposalDecisionSubmitRequestBody:
-      $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_decision_submit_request_body
     CurrentPrincipalOutcome:
       $ref: ../schemas/identity-resolution.schema.json#/$defs/current_principal_outcome
     CurrentPrincipalRequestBody:
       $ref: ../schemas/identity-resolution.schema.json#/$defs/current_principal_request_body
-    CurrentSignerEvidenceQueryOutcome:
-      $ref: ../schemas/current-signer-evidence-operations.schema.json#/$defs/query_outcome
-    CurrentSignerEvidenceQueryRequestBody:
-      $ref: ../schemas/current-signer-evidence-operations.schema.json#/$defs/query_request
     Cursor:
       type: string
       pattern: ^ak:cursor:[A-Za-z0-9_-]+$
-    DeviceId:
-      type: string
-      pattern: ^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    DeviceMessageEnvelope:
-      $ref: ../schemas/device-message.schema.json
     DeviceMessagesAckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome
     DeviceMessagesAckRequestBody:
@@ -776,21 +553,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome
     DeviceMessagesSendRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody
-    DeviceMessageTarget:
-      type: object
-      required:
-      - kind
-      - expires_at
-      - content
-      properties:
-        kind:
-          type: string
-          pattern: ^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$
-        content:
-          type: object
-        expires_at:
-          $ref: ../schemas/time.schema.json#/$defs/timestamp
-      additionalProperties: false
     DevicePairingBootstrap:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap
     DevicePairingCodeClaimOutcome:
@@ -815,8 +577,6 @@ components:
       $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome
     DeviceRevocationGateCheckRequestBody:
       $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body
-    DeviceRevocationState:
-      $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_record
     DidBindingChallengeOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome
     DidBindingChallengeRequestBody:
@@ -883,184 +643,20 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
     DocumentMorphProjectionOutcome:
       $ref: ../schemas/view.schema.json#/$defs/document_morph_projection_outcome
-    DocumentProjectionSection:
-      type: object
-      required:
-      - object
-      - sort_key
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        sort_key:
-          type: string
-          minLength: 1
-        depth:
-          type: integer
-          minimum: 0
-        body:
-          type: object
-        redacted:
-          type: boolean
-      additionalProperties: false
-    DocumentProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - sections
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: document
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ak:view:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        sections:
-          type: array
-          items:
-            $ref: '#/components/schemas/DocumentProjectionSection'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        stale:
-          type: boolean
-      additionalProperties: false
     ErasureReceiptResource:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource
     ErasureReceiptSubmitOutcome:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome
     ErasureReceiptSubmitRequestBody:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body
-    EventDeliveryStatusOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome
-    EventDeliveryStatusRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody
-    EventFederationSubmission:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission
     EventId:
       type: string
       pattern: ^ak:event:[A-Za-z0-9_-]{44}$
-    EventsActorCasConflictProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictProblem
-    EventsDependencyMissingProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsDependencyMissingProblem
-    EventsFrontierFederationPeerState:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState
-    EventsFrontierState:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState
-    EventsQueryOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome
-    EventsResolveOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome
-    EventsResolveRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody
-    EventsSubmitBatchRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody
-    EventsSubmitFederationRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody
-    EventsSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
     EventsSubscribeFrame:
       x-arkret-schema-ref: ../schemas/events-subscribe-frame.schema.json
       $ref: ../schemas/events-subscribe-frame.schema.json
-    EventStateView:
-      type: object
-      description: Per-event protocol-state field surfaced on /account/subscribe and /events responses (zh/sync/service-surface.md
-        §5.3, zh/authz/event-auth-state-resolution.md §13). Implementations MUST attach this on every reducer-input
-        Event included in a timeline/state response so clients can render fail-closed UI without recomputing the
-        join.
-      required:
-      - event_id
-      - event_digest
-      - event_state
-      properties:
-        event_id:
-          type: string
-          pattern: ^ak:event:[A-Za-z0-9_-]{44}$
-        event_digest:
-          type: string
-          description: Canonical hash of the event's canonical bytes (excluding proofs and unsigned); equals proof.event_digest.
-            Used as the Seal frontier item for this event. Algorithm family aligned with schemas/seal.schema.json#/$defs/event_digest
-            — active digest suites per registry/digest-suite-registry.json (v1 sha256 / blake3, 64 hex).
-          pattern: ^(?:sha256|blake3):[0-9a-f]{64}$
-        event_state:
-          type: string
-          enum:
-          - data_local
-          - data_observed
-          - control_pending
-          - control_sealed
-          - failed_precondition
-          - failed_plane
-          - failed_bottom
-          - rejected_seal
-          - fork_quarantine
-        bottom:
-          $ref: '#/components/schemas/BottomDiagnostic'
-      additionalProperties: false
-    EventSubmitEnvelope:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope
     EventView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventView
-    FacetName:
-      type: string
-      enum:
-      - container
-      - replyable
-      - schedulable
-      - assignable
-      - stateful
-      - rankable
-      - reviewable
-      - notifiable
-      - documentable
-      - renderable
-    FederationServiceBindingRef:
-      type: object
-      description: 'Request-level service binding snapshot carried by federation
-
-        service-to-service ak.peer.events.command.submit.v1 calls. This is metadata for the
-
-        receiver to verify the sender''s delivery decision; client writes omit it.
-
-        '
-      required:
-      - realm_id
-      - realm_policy_digest
-      - membership_frontier
-      - destination_kind
-      properties:
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        realm_policy_digest:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-        membership_frontier:
-          type: array
-          items:
-            type: string
-            pattern: ^ak:event:[A-Za-z0-9_-]{44}$
-        destination_kind:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    FieldFilter:
-      $ref: ../schemas/query.schema.json#/$defs/field_filter
-    GenesisNotaryOutcome:
-      $ref: ../schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_outcome
-    GenesisNotaryRequestBody:
-      $ref: ../schemas/genesis-notary-binding.schema.json#/$defs/genesis_notary_request_body
     GhostActorProvisionOutcome:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
     GhostActorProvisionRequestBody:
@@ -1069,131 +665,8 @@ components:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_outcome
     GhostPreviewRequestBody:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_preview_request_body
-    GovernanceDependencyResolveOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GovernanceDependencyResolveOutcome
-    GrantId:
-      type: string
-      pattern: ^ak:grant:[A-Za-z0-9_-]{44}$
     GrantList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantList
-    GraphProjectionEdge:
-      type: object
-      required:
-      - relation_id
-      - relation_kind
-      - from_ref
-      - to_ref
-      properties:
-        relation_id:
-          type: string
-          pattern: ^ak:relation:[A-Za-z0-9_-]{44}$
-        relation_kind:
-          type: string
-          minLength: 1
-        from_ref:
-          type: string
-          pattern: ^(ak:(realm|space|circle|strand|message|morph):[A-Za-z0-9_-]{44}|did:.+)$
-        to_ref:
-          type: string
-          pattern: ^(ak:(realm|space|circle|strand|message|morph):[A-Za-z0-9_-]{44}|did:.+)$
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-        truncated:
-          type: boolean
-      additionalProperties: false
-    GraphProjectionNode:
-      type: object
-      required:
-      - object
-      - depth
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        depth:
-          type: integer
-          minimum: 0
-        lazy:
-          type: boolean
-        truncated:
-          type: boolean
-      additionalProperties: false
-    GraphProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - nodes
-      - edges
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: graph
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ak:view:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/GraphProjectionNode'
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/GraphProjectionEdge'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        limited:
-          type: boolean
-        stale:
-          type: boolean
-      additionalProperties: false
-    HandleClaim:
-      $ref: ../schemas/handle-claim.schema.json
-    HistoryAuthorityOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_authority_outcome
-    HistoryAuthorityRequestBody:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_authority_request_body
-    HistoryKeyRequest:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request
-    HistoryKeyRequestCreateOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_create_outcome
-    HistoryKeyRequestListOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_list_outcome
-    HistoryKeyRequestListQuery:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_list_query
-    HistoryKeyRequestReplica:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_replica
-    HistoryKeyRequestReplicaOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_request_replica_outcome
-    HistoryKeyResponseAckOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome
-    HistoryKeyResponseAckRequestBody:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_ack_request_body
-    HistoryKeyResponseListOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_outcome
-    HistoryKeyResponseListQuery:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_list_query
-    HistoryKeyResponseSendReceipt:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_receipt
-    HistoryKeyResponseSendRequestBody:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_response_send_request_body
-    HistoryKeySourceRelay:
-      $ref: ../schemas/history-key.schema.json#/$defs/history_key_source_relay
-    HumanSessionGrantRefreshRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRefreshRequest
-    HumanSessionGrantRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/HumanSessionGrantRequest
     IdentityAbandonmentOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome
     IdentityAbandonmentRequestBody:
@@ -1210,26 +683,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome
     IdentityResolveOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome
-    InboxView:
-      type: object
-      required:
-      - items
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionRow'
-        next_cursor:
-          type: string
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-      additionalProperties: false
     InviteDeliveryOutcome:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
     InviteDeliveryRequestBody:
       $ref: ../schemas/invite-delivery-request.schema.json
-    InviteLiveTargetOccupiedProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/InviteLiveTargetOccupiedProblem
     InviteLocatorIssueOutcome:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome
     InviteLocatorIssueRequestBody:
@@ -1293,9 +750,9 @@ components:
     MediaServiceBindingRequestBody:
       $ref: ../schemas/media-service-binding-result.schema.json#/$defs/media_service_binding_request_body
     MessagePrepareOutcome:
-      $ref: '../schemas/message-authoring.schema.json#/$defs/message_prepare_outcome'
+      $ref: ../schemas/message-authoring.schema.json#/$defs/message_prepare_outcome
     MessagePrepareRequestBody:
-      $ref: '../schemas/message-authoring.schema.json#/$defs/message_prepare_request_body'
+      $ref: ../schemas/message-authoring.schema.json#/$defs/message_prepare_request_body
     MimiIdentifierQueryOutcome:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
     MimiIdentifierQueryRequestBody:
@@ -1332,77 +789,12 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
     MimiUpdateConsentRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
-    MlsAcceptedArtifactOutcome:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_outcome
-    MlsAcceptedArtifactRequestBody:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/accepted_artifact_request_body
-    MlsGovernanceFrontierOutcome:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_outcome
-    MlsGovernanceFrontierRequestBody:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/self_read_request_body
-    MlsGovernanceProofBundle:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_outcome
-    MlsGovernanceProofRequestBody:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/read_request
     MlsGroupStateMaterialOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
     MlsGroupStateMaterialRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody
-    MlsMembershipRemovalOutcome:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_outcome
-    MlsMembershipRemovalRequestBody:
-      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/membership_removal_request_body
-    MlsWelcomeRefsOutcome:
-      $ref: ../schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_outcome
-    MlsWelcomeRefsRequestBody:
-      $ref: ../schemas/mls-welcome-refs.schema.json#/$defs/welcome_refs_request
-    ModerationQueueView:
-      type: object
-      required:
-      - items
-      - has_more
-      properties:
-        items:
-          type: array
-          items:
-            $ref: ../schemas/moderation-queue-item.schema.json
-        next_cursor:
-          type: string
-        has_more:
-          type: boolean
-        counts:
-          type: object
-      additionalProperties: false
     ModerationReportOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
-    ObjectLookupOutcome:
-      type: object
-      required:
-      - object
-      - visibility
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        state_after:
-          $ref: '#/components/schemas/StateFrontier'
-        visibility:
-          type: string
-          enum:
-          - visible
-          - redacted
-          - partial
-      additionalProperties: false
-    ObjectRef:
-      type: string
-      pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}$
-    OrganizationRecoveryArchiveListOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome
-    OrganizationRecoveryArchiveListQuery:
-      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query
-    OrganizationRecoveryArchiveReplica:
-      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica
-    OrganizationRecoveryArchiveReplicaOutcome:
-      $ref: ../schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome
     OrganizationRegistrationChallenge:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge
     OrganizationRegistrationChallengeRequestBody:
@@ -1419,18 +811,6 @@ components:
       $ref: ../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_outcome
     PcrGenesisSubmitRequestBody:
       $ref: ../schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request
-    PeerEventsQueryOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsQueryOutcome
-    PeerEventsResolveOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome
-    PeerEventsResolveRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody
-    PeerEventsSiblingPositionsOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsOutcome
-    PeerEventsSiblingPositionsRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsSiblingPositionsRequestBody
-    PeerGovernanceDependencyResolveRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerGovernanceDependencyResolveRequestBody
     PeerKeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome
     PeerKeyPackagesClaimQueryOutcome:
@@ -1449,252 +829,12 @@ components:
       $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
     Problem:
       $ref: ../schemas/http-problem-details.schema.json
-    ProjectionAssignedToRelation:
-      type: object
-      additionalProperties: false
-      required:
-      - relation_id
-      - actor_id
-      properties:
-        relation_id:
-          type: string
-          pattern: ^ak:relation:[A-Za-z0-9_-]{44}$
-        actor_id:
-          type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-          maxLength: 512
-      description: Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone
-        the assignment; actor_id mirrors the Relation to_ref.
     ProjectionMorphList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
-    ProjectionMorphRow:
-      type: object
-      additionalProperties: false
-      required:
-      - morph_id
-      - realm_id
-      - morph_kind
-      - state
-      properties:
-        morph_id:
-          type: string
-          pattern: ^ak:morph:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        morph_kind:
-          type: string
-        state:
-          type: string
-          enum:
-          - active
-          - archived
-          - redacted
-        title:
-          type:
-          - string
-          - 'null'
-        created_by:
-          type:
-          - string
-          - 'null'
-        created_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        updated_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        state_changed_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-    ProjectionObject:
-      type: object
-      required:
-      - id
-      - type
-      properties:
-        id:
-          type: string
-          pattern: ^ak:(realm|space|circle|strand|message|morph):[A-Za-z0-9_-]{44}$
-        type:
-          type: string
-          enum:
-          - realm
-          - space
-          - circle
-          - strand
-          - message
-          - morph
-        morph_kind:
-          type: string
-        facets:
-          type: array
-          items:
-            $ref: '#/components/schemas/FacetName'
-          uniqueItems: true
-        title:
-          type: string
-        fields:
-          type: object
-      additionalProperties: false
-    ProjectionRow:
-      type: object
-      required:
-      - object
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        render:
-          type: string
-          enum:
-          - card
-          - row
-          - tile
-          - compact
-          - badge
-          - message
-        display:
-          type: object
-        position:
-          oneOf:
-          - $ref: '#/components/schemas/CollectionFieldValuePosition'
-          - $ref: '#/components/schemas/CollectionRelationPosition'
-          - $ref: '#/components/schemas/CollectionTimeWindowPosition'
-          - $ref: '#/components/schemas/CollectionCrosstabPosition'
-          - type: object
-            required:
-            - sort_key
-            properties:
-              sort_key:
-                type: string
-                minLength: 1
-            additionalProperties: false
-        state:
-          type: object
-      additionalProperties: false
     ProjectionSpaceList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
-    ProjectionSpaceRow:
-      type: object
-      additionalProperties: false
-      required:
-      - space_id
-      - realm_id
-      - kind
-      - title
-      - state
-      properties:
-        space_id:
-          type: string
-          pattern: ^ak:space:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        kind:
-          type: string
-          description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
-        title:
-          type: string
-        parent_space_id:
-          type:
-          - string
-          - 'null'
-        rank:
-          type:
-          - string
-          - 'null'
-        state:
-          type: string
-          enum:
-          - active
-          - archived
-          - tombstoned
-        created_by:
-          type:
-          - string
-          - 'null'
-        created_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        updated_by:
-          type:
-          - string
-          - 'null'
-        updated_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        state_changed_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
     ProjectionStrandList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList
-    ProjectionStrandRow:
-      type: object
-      additionalProperties: false
-      required:
-      - strand_id
-      - realm_id
-      - state
-      properties:
-        strand_id:
-          type: string
-          pattern: ^ak:strand:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        state:
-          type: string
-          enum:
-          - active
-          - archived
-          - redacted
-        state_changed_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        title:
-          type:
-          - string
-          - 'null'
-          description: Derived display title from plaintext-visible Strand metadata.title; null when metadata is
-            encrypted or hidden from the service profile.
-        summary:
-          type:
-          - string
-          - 'null'
-          description: Derived display summary from plaintext-visible Strand metadata.summary; null when metadata
-            is encrypted or hidden from the service profile.
-        board_space_id:
-          type:
-          - string
-          - 'null'
-          pattern: ^ak:space:[A-Za-z0-9_-]{44}$
-          description: Derived board Space id from ak.component.strand.position.v1; not canonical Strand object
-            state.
-        list_space_id:
-          type:
-          - string
-          - 'null'
-          pattern: ^ak:space:[A-Za-z0-9_-]{44}$
-          description: Derived list Space id from ak.component.strand.position.v1; not canonical Strand object state.
-        rank:
-          type:
-          - string
-          - 'null'
-          description: Derived rank within list_space_id from ak.component.strand.position.v1.
-        assigned_actor_ids:
-          type: array
-          items:
-            $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
-          description: Derived current full ActorIds from visible active Relation(relation_kind=assigned_to, from_ref=strand_id),
-            preserving Station identity. Empty or absent means the Strand is unassigned for this projection caller.
-            This is read-model state, not canonical Strand object metadata.
-        assigned_to_relations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionAssignedToRelation'
-          description: Read-only active assigned_to Relation edges backing assigned_actor_ids. Clients use relation_id
-            to tombstone assignments.
-        created_by:
-          type:
-          - string
-          - 'null'
-        created_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
-        updated_at:
-          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
     PsiPaddedProblem:
       $ref: ../schemas/directory-operations.schema.json#/$defs/psi_padded_problem
     PushNotifyOutcome:
@@ -1711,43 +851,12 @@ components:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body
     PushUnregisterDeviceRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
-    QueryFilter:
-      $ref: ../schemas/query.schema.json#/$defs/query_filter
-    QueryRequestBody:
-      $ref: ../schemas/query.schema.json#/$defs/query_request_body
-    RawQueryOutcome:
-      type: object
-      required:
-      - projection
-      - rows
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: raw
-        rows:
-          type: array
-          items:
-            type: object
-        next_cursor:
-          type: string
-          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
-        total_estimate:
-          type: integer
-          minimum: 0
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        stale:
-          type: boolean
-      additionalProperties: false
     ReadCursorAdvanceRequestBody:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body
     ReadCursorList:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list
     ReadMarkerOutcome:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
-    RealmActorFrontierView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView
     RealmEffectivePolicyOutcome:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
     RealmExport:
@@ -1785,65 +894,14 @@ components:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_list
     RealmOrganizationRelationshipList:
       $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
-    RealmSealFrontierView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
     RecoveryCompletionGrantOutcome:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome
     RecoveryCompletionGrantRequestBody:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request
-    ReferenceProjectionState:
-      type: string
-      description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses
-        to accessible, lazy link, or locked anti-enumeration stubs.
-      enum:
-      - accessible
-      - lazy_link
-      - locked
     RelationConflictCandidatesOutcome:
       $ref: ../schemas/relation.schema.json#/$defs/relation_conflict_candidates_outcome
     RelationConflictCandidatesRequestBody:
       $ref: ../schemas/relation.schema.json#/$defs/relation_conflict_candidates_request_body
-    RelationQuery:
-      $ref: ../schemas/query.schema.json#/$defs/relation_query
-    SearchMatch:
-      type: object
-      required:
-      - object
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        score:
-          # lint-waiver(type:number): Search ranking score is a non-canonical, non-signed query-time annotation.
-          # It MUST NOT enter canonical Event bytes or signed artefacts.
-          type: number
-        highlights:
-          type: array
-          items:
-            type: object
-      additionalProperties: false
-    SearchMatchList:
-      type: object
-      required:
-      - matches
-      properties:
-        matches:
-          type: array
-          items:
-            $ref: '#/components/schemas/SearchMatch'
-        next_cursor:
-          type: string
-        total_estimate:
-          type: integer
-          minimum: 0
-      additionalProperties: false
-    SearchRequestBody:
-      $ref: ../schemas/query.schema.json#/$defs/search_request_body
-    SelfEventsSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfEventsSubmitOutcome
-    SelfGovernanceDependencyResolveRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfGovernanceDependencyResolveRequestBody
-    SelfInviteDispatchRequestBody:
-      $ref: ../schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body
     ServiceDescribe:
       $ref: ../schemas/service-describe.schema.json
     ServiceRegistrationEnsureRequestBody:
@@ -1860,8 +918,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
     SessionGrantReplayExpiredProblem:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantReplayExpiredProblem
-    SessionGrantReplayProblem:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantReplayProblem
     SessionGrantReplayTerminalProblem:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantReplayTerminalProblem
     SessionGrantRequestBody:
@@ -1876,202 +932,6 @@ components:
       $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_outcome
     SignerKeyQueryRequestBody:
       $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_request_body
-    SnapshotBootstrap:
-      type: object
-      description: Optional ak.peer.events.read.scan.v1 acceleration hint for federation pull / backfill. realm_state_snapshot_ref
-        is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest,
-        realm_state_snapshot_frontier, chunk digests, created_by, and created_at before use (manifest fields are
-        bound by the manifest signature transcript — see schemas/realm-state-snapshot.schema.json). Snapshot authority
-        issuer is projected from created_by.
-      required:
-      - realm_state_snapshot_ref
-      - state_digest
-      - realm_state_snapshot_frontier
-      - created_by
-      - created_at
-      - signature
-      properties:
-        realm_state_snapshot_ref:
-          type: string
-          description: External pointer to the Snapshot manifest; MUST equal schemas/realm-state-snapshot.schema.json#/properties/id.
-        state_digest:
-          type: string
-        realm_state_snapshot_frontier:
-          type: array
-          items:
-            type: string
-        created_by:
-          type: string
-          description: DID of the snapshot issuer; bound by the manifest signature transcript.
-        created_at:
-          $ref: ../schemas/time.schema.json#/$defs/timestamp
-          description: RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest
-            signature transcript.
-        signature:
-          type: object
-        verification_hints:
-          type: object
-    SortSpec:
-      $ref: ../schemas/query.schema.json#/$defs/sort_spec
-    SpaceHierarchyChild:
-      type: object
-      required:
-      - realm_id
-      - edge_status
-      properties:
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        edge_status:
-          $ref: '#/components/schemas/SpaceHierarchyEdgeState'
-        accessible:
-          type: boolean
-        lazy_link:
-          type: boolean
-        reference_projection_status:
-          $ref: '#/components/schemas/ReferenceProjectionState'
-        summary:
-          type: object
-      additionalProperties: false
-    SpaceHierarchyEdge:
-      type: object
-      required:
-      - parent_space_id
-      - child_space_id
-      - edge_status
-      properties:
-        parent_space_id:
-          type: string
-          pattern: ^ak:space:[A-Za-z0-9_-]{44}$
-        child_space_id:
-          type: string
-          pattern: ^ak:space:[A-Za-z0-9_-]{44}$
-        edge_status:
-          $ref: '#/components/schemas/SpaceHierarchyEdgeState'
-        relation_kind:
-          type: string
-      additionalProperties: false
-    SpaceHierarchyEdgeState:
-      type: string
-      description: Derived status of a parent-child hierarchy edge.
-      enum:
-      - confirmed
-      - unconfirmed_link
-      - rejected
-      - tombstoned
-    SpaceHierarchyView:
-      type: object
-      required:
-      - root_space_id
-      - children
-      properties:
-        root_space_id:
-          type: string
-          pattern: ^ak:space:[A-Za-z0-9_-]{44}$
-        root:
-          $ref: '#/components/schemas/ProjectionObject'
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpaceHierarchyChild'
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpaceHierarchyEdge'
-        next_cursor:
-          type: string
-        cycle_detected:
-          type: boolean
-      additionalProperties: false
-    StateFrontier:
-      type: object
-      required:
-      - state_digest
-      properties:
-        state_digest:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-        event_ids:
-          type: array
-          items:
-            type: string
-            pattern: ^ak:event:[A-Za-z0-9_-]{44}$
-        actor_frontiers:
-          type: array
-          items:
-            type: object
-            required:
-            - actor_id
-            - actor_seq
-            - event_id
-            properties:
-              actor_id:
-                type: string
-                pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-                maxLength: 512
-              actor_seq:
-                type: integer
-                minimum: 0
-              event_id:
-                type: string
-                pattern: ^ak:event:[A-Za-z0-9_-]{44}$
-              hlc:
-                type: string
-                pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
-            additionalProperties: false
-      additionalProperties: false
-    StrandDiscussionList:
-      type: object
-      required:
-      - strands
-      properties:
-        strands:
-          type: array
-          items:
-            $ref: '#/components/schemas/StrandDiscussionSummary'
-        summaries:
-          type: object
-        next_cursor:
-          type: string
-        state_after:
-          $ref: '#/components/schemas/StateFrontier'
-      additionalProperties: false
-    StrandDiscussionSummary:
-      type: object
-      required:
-      - strand
-      properties:
-        strand:
-          $ref: '#/components/schemas/ProjectionObject'
-        relation:
-          type: object
-        summary:
-          type: object
-        unread:
-          type: integer
-          minimum: 0
-      additionalProperties: false
-    StrandDiscussionTimelineView:
-      type: object
-      required:
-      - entries
-      properties:
-        entries:
-          type: array
-          items:
-            $ref: '#/components/schemas/TimelineProjectionRow'
-        messages:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionObject'
-        next_cursor:
-          type: string
-        state_after:
-          $ref: '#/components/schemas/StateFrontier'
-      additionalProperties: false
-    StrandId:
-      type: string
-      pattern: ^ak:strand:[A-Za-z0-9_-]{44}$
     ThirdPartyInviteAcceptanceAttestationOutcome:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome
     ThirdPartyInviteAcceptanceAttestationRequestBody:
@@ -2092,96 +952,6 @@ components:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome
     ThirdPartyInviteProvisionRequestBody:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body
-    TimelineProjectionRow:
-      type: object
-      required:
-      - id
-      - entry_type
-      - sort_key
-      properties:
-        id:
-          type: string
-          minLength: 1
-        entry_type:
-          type: string
-          enum:
-          - event
-          - message
-          - activity
-          - system
-          - tombstone
-        event_id:
-          type: string
-          pattern: ^ak:event:[A-Za-z0-9_-]{44}$
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        actor_id:
-          type: string
-        created_at:
-          $ref: ../schemas/time.schema.json#/$defs/timestamp
-        sort_key:
-          type: string
-          minLength: 1
-        thread_id:
-          type: string
-          pattern: ^ak:(strand|message):[A-Za-z0-9_-]{44}$
-        body:
-          type: object
-        redacted:
-          type: boolean
-      additionalProperties: false
-    TimelineProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - entries
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: timeline
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ak:view:[A-Za-z0-9_-]{44}$
-        realm_id:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        entries:
-          type: array
-          items:
-            $ref: '#/components/schemas/TimelineProjectionRow'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        limited:
-          type: boolean
-        stale:
-          type: boolean
-      additionalProperties: false
-    ViewRenderer:
-      type: string
-      enum:
-      - board
-      - list
-      - table
-      - calendar
-      - gantt
-      - timeline
-      - thread
-      - chat
-      - forum
-      - graph
-      - tree
-      - document
-      - dashboard
-      - custom
   responses:
     MethodNotAllowed:
       description: Method not allowed.
@@ -2200,9 +970,9 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     PsiBatchUnavailable:
-      description: The match batch is unknown, belongs to another device, or expired (error code psi_batch_unavailable).
-        Causes are intentionally merged and use the match-phase Class B shape. The pinned epoch is retained for
-        the full advertised completion TTL.
+      description: The match batch is unknown, belongs to another device, or expired (error code psi_batch_unavailable). Causes
+        are intentionally merged and use the match-phase Class B shape. The pinned epoch is retained for the full advertised
+        completion TTL.
       headers:
         Cache-Control:
           schema:
@@ -2227,8 +997,8 @@ components:
                 status:
                   const: 410
     PsiDuplicateConflict:
-      description: The device-scoped batch_id was reused with different canonical blind or match bytes (error code
-        duplicate_conflict). No evaluation is performed.
+      description: The device-scoped batch_id was reused with different canonical blind or match bytes (error code duplicate_conflict).
+        No evaluation is performed.
       headers:
         Cache-Control:
           schema:
@@ -2253,9 +1023,8 @@ components:
                 status:
                   const: 409
     PsiPolicyDenied:
-      description: Requester/batch-level policy denial (error code policy_denied). This is a PSI Class B failure
-        and uses the request phase's exact body bucket and advertised delay distribution; it contains no per-target
-        information.
+      description: Requester/batch-level policy denial (error code policy_denied). This is a PSI Class B failure and uses
+        the request phase's exact body bucket and advertised delay distribution; it contains no per-target information.
       headers:
         Cache-Control:
           schema:
@@ -2280,10 +1049,9 @@ components:
                 status:
                   const: 403
     PsiQuotaExhausted:
-      description: PSI window quota exhausted (error code psi_quota_exhausted), returned only at first blind admission.
-        The body has the exact blind-phase Content-Length bucket and advertised delay distribution. Retry-After
-        is decimal seconds until quota-window roll, rounded up to a 300-second multiple with minimum 300. See discovery-directory.md
-        §6.4.
+      description: PSI window quota exhausted (error code psi_quota_exhausted), returned only at first blind admission. The
+        body has the exact blind-phase Content-Length bucket and advertised delay distribution. Retry-After is decimal seconds
+        until quota-window roll, rounded up to a 300-second multiple with minimum 300. See discovery-directory.md §6.4.
       headers:
         Retry-After:
           description: Decimal seconds, a positive multiple of 300.
@@ -2330,7 +1098,6 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-
 paths:
   /_arkret/describe:
     get:
@@ -2347,9 +1114,9 @@ paths:
       - name: service_kind
         in: query
         required: false
-        description: Registered service_describe role to select. Required when one public binding exposes multiple
-          co-located roles; the response describes exactly the selected role. Omission on a multi-role binding returns
-          param_missing; an illegal or unavailable role returns param_invalid.
+        description: Registered service_describe role to select. Required when one public binding exposes multiple co-located
+          roles; the response describes exactly the selected role. Omission on a multi-role binding returns param_missing;
+          an illegal or unavailable role returns param_invalid.
         schema:
           $ref: '#/components/schemas/ServiceDescribe/properties/service_kind'
       responses:
@@ -2360,8 +1127,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
         '400':
-          description: param_missing when a shared multi-role binding requires service_kind; param_invalid for an
-            illegal or unavailable role.
+          description: param_missing when a shared multi-role binding requires service_kind; param_invalid for an illegal
+            or unavailable role.
         '404':
           $ref: '#/components/responses/NotFound'
         '405':
@@ -2847,8 +1614,8 @@ paths:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
           maxLength: 512
-        description: Optional target principal. If omitted, the server resolves the principal from the authenticated
-          SessionGrant. If present, it must equal that principal.
+        description: Optional target principal. If omitted, the server resolves the principal from the authenticated SessionGrant.
+          If present, it must equal that principal.
       responses:
         '200':
           description: Active recovery policy projection
@@ -3037,189 +1804,12 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/security-transaction.schema.json
-  /_arkret/self/control-proposal-acks:
-    post:
-      operationId: ak.self.control_proposal_acks.command.issue
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.control_proposal_acks.command.issue.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_request
-      responses:
-        '200':
-          description: Immutable authority Ack signed by one current Control authority.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/control-proposal-decision.schema.json#/$defs/control_proposal_ack_issue_outcome
-  /_arkret/self/control-proposal-decisions:
-    post:
-      operationId: ak.self.control_proposal_decisions.command.submit
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.control_proposal_decisions.command.submit.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ControlProposalDecisionSubmitRequestBody'
-      responses:
-        '200':
-          description: Signed proposal decision accepted or replayed byte-identically.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ControlProposalDecisionSubmitOutcome'
-  /_arkret/self/control-proposal-decisions/query:
-    post:
-      operationId: ak.self.control_proposal_decisions.read.get
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.control_proposal_decisions.read.get.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ControlProposalDecisionReadRequestBody'
-      responses:
-        '200':
-          description: Durable canonical Ack, decision chain and Seal state for the exact proposal.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ControlProposalDecisionReadOutcome'
-  /_arkret/self/authorization-leases:
-    post:
-      operationId: ak.self.authorization_leases.command.issue
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.authorization_leases.command.issue.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthorizationLeaseIssueRequestBody'
-      responses:
-        '200':
-          description: One authority-issued publication lease per requested Event.
-          headers:
-            Idempotency-Key:
-              $ref: '#/components/headers/IdempotencyKey'
-            X-Arkret-Request-Id:
-              $ref: '#/components/headers/XArkretRequestId'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthorizationLeaseIssueOutcome'
   /_arkret/self/events:
-    query:
-      operationId: ak.self.events.read.scan
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.events.read.scan.v1
-      security:
-      - {}
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Read a filtered Event range with cursor pagination.
-      description: 'Canonical RFC 10008 QUERY binding for `ak.self.events.read.scan.v1`.
-
-        The JSON content carries the selector, cursor, ordering, filter, and
-
-        completeness inputs.
-
-        '
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
-      responses:
-        '200':
-          description: Event read page
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsQueryOutcome'
-        '400':
-          description: '`param_invalid` — unrecognized `order` value, malformed cursor, or invalid selector.'
     post:
       operationId: ak.self.events.command.submit
-      x-arkret-proof-auth-schema:
-        $ref: '../schemas/service-operation-dtos.schema.json#/$defs/ProofAuthenticatedPublication'
-      x-arkret-auth:
-        public_metadata: false
-        proof_in_body: true
-        proof_field: event.proofs
-        notes: >-
-          The no-session branch MUST validate
-          service-operation-dtos.schema.json#/$defs/ProofAuthenticatedPublication
-          and independently verify the original producer, cached authority,
-          scope, dependencies and locally known revocation fences. It accepts
-          only a single ordinary shared Event and grants no account access.
-          Invalid supplied credentials fail closed and never fall through.
+      summary: Submit an exact producer Event to its current Realm governance Station
+      description: Submit an exact producer Event to its current Realm governance Station. The Account Station reports committed
+        only after receiving RealmCommit.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -3228,70 +1818,22 @@ paths:
         schema:
           type: string
           const: ak.self.events.command.submit.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody
-      description: 'Ordinary Event publication plus the discriminated
-
-        `direct_conversation_founding` branch, which is the only carrier for a
-
-        Direct Conversation founding unit (zh/identity/contact-and-direct-conversation.md
-
-        §5.5). That branch carries exactly four founder-authored Events in fixed
-
-        wire order, closed XOR founding authority evidence and an `idempotency_key`,
-
-        and returns `DirectConversationFoundingAcceptanceOutcome` with the
-
-        source-signed receipt. The service allocates no identifier: `realm_id`
-
-        and `main_strand_id` are retyped from the first and third Event IDs.
-
-        Local Realm acceptance atomically freezes the complete distinct remote
-
-        target set and outbox intents. A missing verified route creates durable
-
-        `pending_route`; it does not reject the Event. The response exposes only
-
-        `pending_delivery_count`; clients derive aggregate state as pending iff
-
-        the count is non-zero.
-
-        '
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_request
       responses:
         '200':
-          description: Event accepted (or duplicate / partial; see status field)
-          headers:
-            Idempotency-Key:
-              $ref: '#/components/headers/IdempotencyKey'
-            X-Arkret-Request-Id:
-              $ref: '#/components/headers/XArkretRequestId'
+          description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SelfEventsSubmitOutcome'
-        '409':
-          description: '`duplicate_conflict` — the same `idempotency_key` was reused with a
-
-            different founding unit; or `conflict` with reason_code
-
-            `direct_conversation_slot_already_committed` — the pair''s founding
-
-            slot was already closed by a different unit. Both write zero Events.
-
-            '
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
   /_arkret/self/events/subscribe:
     get:
       operationId: ak.self.events.stream.subscribe
@@ -3347,9 +1889,9 @@ paths:
         explode: true
       - name: actor_ids
         in: query
-        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed
-          ActorId. Decode and validate against common-ids actor_id before authorization; bare DID values are forbidden.
-          UNION within, intersection with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
+        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed ActorId.
+          Decode and validate against common-ids actor_id before authorization; bare DID values are forbidden. UNION within,
+          intersection with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
         schema:
           type: array
           items:
@@ -3362,14 +1904,13 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as ak.self.events.read.scan.v1's `after=`
-          parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ak.self.events.read.scan.v1's `after=` parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
         in: query
-        description: When true and `after` is present, the server first replays the bounded catch-up range from
-          `after=` to the current frontier, then transitions to live. This is not full-history retrieval.
+        description: When true and `after` is present, the server first replays the bounded catch-up range from `after=` to
+          the current frontier, then transitions to live. This is not full-history retrieval.
         schema:
           type: boolean
           default: false
@@ -3380,76 +1921,6 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
-  /_arkret/self/events/delivery-status:
-    query:
-      operationId: ak.self.events.read.delivery_status
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.events.read.delivery_status.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: Read durable Realm fanout delivery state for one visible Event.
-      description: 'Returns the complete frozen target set using stable opaque target IDs.
-
-        Unknown and invisible Events share `not_found`. A row includes
-
-        `service_id` only when the caller can currently read the exact member
-
-        ActorId whose deterministic route projection contributed that target. This QUERY performs no
-
-        route resolution, retry, or delivery state transition.
-
-        '
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EventDeliveryStatusRequestBody'
-      responses:
-        '200':
-          description: Current durable fanout target state
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventDeliveryStatusOutcome'
-        '404':
-          description: '`not_found` — Event is unknown or not visible to the caller.'
-  /_arkret/self/events/describe:
-    query:
-      operationId: ak.self.events.read.describe
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.events.read.describe.v1
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsDescribeRequestBody
-      responses:
-        '200':
-          description: Events API capabilities
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/events/{event_id}:
     get:
       operationId: ak.self.events.resource.get
@@ -3484,605 +1955,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventView'
-  /_arkret/self/events/resolve:
-    query:
-      operationId: ak.self.events.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.events.read.resolve.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EventsResolveRequestBody'
-      responses:
-        '200':
-          description: Resolved events keyed by event_id / event_digest
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsResolveOutcome'
-  /_arkret/self/events/frontier:
-    query:
-      operationId: ak.self.events.read.frontier
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.events.read.frontier.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierRequestBody
-      responses:
-        '200':
-          description: Event frontier visible to caller
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsFrontierState'
-  /_arkret/self/seals/frontier:
-    query:
-      operationId: ak.self.seals.read.frontier
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.frontier.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody
-      responses:
-        '200':
-          description: Complete verified durable current Realm Seal frontier
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierState
-  /_arkret/self/seals/resolve:
-    query:
-      operationId: ak.self.seals.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.resolve.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SelfSealResolveRequestBody
-      responses:
-        '200':
-          description: Exact resolved Seal rows and same-shape missing refs
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
-  /_arkret/self/seals/prepare:
-    post:
-      operationId: ak.self.seals.command.prepare
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.command.prepare.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Prepare the one unsigned PCR successor Seal frozen for this signer slot.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareRequestBody
-      responses:
-        '200':
-          description: Station-validated unsigned Seal body frozen for this signing slot; no historical dependencies
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareOutcome
-        '409':
-          description: A different request already froze the only signable body for this signer slot
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-  /_arkret/self/seals/prepare-fence-result:
-    post:
-      operationId: ak.self.seals.read.prepare_fence_result
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.prepare_fence_result.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Recover the verified request and outcome already frozen for the current signer slot.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultRequestBody
-      responses:
-        '200':
-          description: Exact verified frozen prepare request and outcome for the current signer slot
-          headers:
-            Cache-Control:
-              required: true
-              schema:
-                type: string
-                const: no-store
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealPrepareFenceResultOutcome
-        '404':
-          description: No recoverable current-signer fence is visible for this exact current predecessor
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-  /_arkret/self/seals:
-    post:
-      operationId: ak.self.seals.command.submit
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.command.submit.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Submit a current-device-signed Seal for a visible Realm.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/seal.schema.json
-      responses:
-        '200':
-          description: Seal accepted or idempotently observed
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealSubmitOutcome
-  /_arkret/self/seals/mls-governance-proof:
-    post:
-      operationId: ak.self.seals.read.mls_governance_proof
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.mls_governance_proof.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Evaluate exact MLS leaf intent against the authenticated Account Station accepted state.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MlsGovernanceFrontierRequestBody'
-      responses:
-        '200':
-          description: One deterministic complete response for the exact near-current frontier selector
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MlsGovernanceFrontierOutcome'
-  /_arkret/self/seals/governance-dependencies:
-    post:
-      operationId: ak.self.seals.read.governance_dependencies
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.governance_dependencies.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Resolve exact AvailabilityReceipt, signer-resolution evidence, registry snapshot manifests, and registry
-        artifacts.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelfGovernanceDependencyResolveRequestBody'
-      responses:
-        '200':
-          description: Complete same-shape dependency result or an operation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GovernanceDependencyResolveOutcome'
-  /_arkret/self/history-key-requests:
-    post:
-      operationId: ak.self.history_key_requests.command.create
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.history_key_requests.command.create.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Durably create one immutable scope-private history-key request.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeyRequest'
-      responses:
-        '200':
-          description: First durable accepted request receipt and sealed history response capability; exact retry
-            returns the same bytes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyRequestCreateOutcome'
-  /_arkret/self/history-key-requests/read:
-    post:
-      operationId: ak.self.history_key_requests.read.list
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.history_key_requests.read.list.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: List unexpired requests for one exact effective scope.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeyRequestListQuery'
-      responses:
-        '200':
-          description: Current-member projection or the RHRK-holder intersecting-request projection; RHRK evidence
-            resolution separately permits the complete Control Move/Seal closure required to verify a matching archive.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyRequestListOutcome'
-  /_arkret/self/history-key-responses:
-    post:
-      operationId: ak.self.history_key_responses.command.send
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.history_key_responses.command.send.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Durably enqueue one immutable manifest or independently sealed chunk.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeyResponseSendRequestBody'
-      responses:
-        '200':
-          description: First accepted small immutable HistoryKeyResponseSendReceipt; exact retry returns the same
-            bytes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyResponseSendReceipt'
-  /_arkret/self/history-key-responses/read:
-    post:
-      operationId: ak.self.history_key_responses.read.list
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.history_key_responses.read.list.v1
-      security:
-      - historyResponseCapabilityAuth: []
-      summary: Read the ordered durable capability-addressed response stream.
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeyResponseListQuery'
-      responses:
-        '200':
-          description: Sequence-ordered normal records and signed lost descriptors with an ack token bound to every
-            entry tuple
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyResponseListOutcome'
-  /_arkret/self/history-key-responses/ack:
-    post:
-      operationId: ak.self.history_key_responses.command.ack
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.history_key_responses.command.ack.v1
-      security:
-      - historyResponseCapabilityAuth: []
-      summary: Advance the response-stream high-water only across durable record dispositions.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeyResponseAckRequestBody'
-      responses:
-        '200':
-          description: Durable contiguous acknowledgement outcome
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyResponseAckOutcome'
-  /_arkret/self/organization-recovery-archives/read:
-    post:
-      operationId: ak.self.organization_recovery_archives.read.list
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.organization_recovery_archives.read.list.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Recipient-bound byte-paged projection of RHRK archives for one exact historical key tuple.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationRecoveryArchiveListQuery'
-      responses:
-        '200':
-          description: Matching archive rows with container Event refs and archive-lifetime direct traversal retention
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationRecoveryArchiveListOutcome'
-  /_arkret/peer/history-key-requests/replicate:
-    post:
-      operationId: ak.peer.history_key_requests.command.replicate
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.history_key_requests.command.replicate.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: Privately replicate one immutable history request to the service projected from an exact member ActorId
-        or to an RHRK holder service.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeyRequestReplica'
-      responses:
-        '200':
-          description: First durable accepted replica receipt; exact retry returns the same bytes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyRequestReplicaOutcome'
-  /_arkret/peer/history-key-responses/relay:
-    post:
-      operationId: ak.peer.history_key_responses.command.relay
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.history_key_responses.command.relay.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: Privately relay an immutable source record to the request receipt's frozen release service.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HistoryKeySourceRelay'
-      responses:
-        '200':
-          description: Byte-identical small immutable HistoryKeyResponseSendReceipt created or replayed by the destination
-            release service
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryKeyResponseSendReceipt'
-  /_arkret/peer/seals/mls-governance-proof:
-    post:
-      operationId: ak.peer.seals.read.mls_governance_proof
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.seals.read.mls_governance_proof.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: Execute one near-current stateless MLS group-security-frontier query.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MlsGovernanceProofRequestBody'
-      responses:
-        '200':
-          description: Deterministic complete near-current frontier proof response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MlsGovernanceProofBundle'
-  /_arkret/peer/seals/governance-dependencies:
-    post:
-      operationId: ak.peer.seals.read.governance_dependencies
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.seals.read.governance_dependencies.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: Resolve exact governance dependencies; optional pending-archive traversal access is the only retained-cut
-        exception.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PeerGovernanceDependencyResolveRequestBody'
-      responses:
-        '200':
-          description: Complete same-shape dependency result or an operation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GovernanceDependencyResolveOutcome'
-  /_arkret/peer/organization-recovery-archives/replicate:
-    post:
-      operationId: ak.peer.organization_recovery_archives.command.replicate
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.organization_recovery_archives.command.replicate.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: Privately replicate one immutable RHRK archive and its archive-lifetime direct traversal retention
-        to the holder service.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationRecoveryArchiveReplica'
-      responses:
-        '200':
-          description: First durable accepted archive replica receipt; exact retry returns the same bytes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationRecoveryArchiveReplicaOutcome'
   /_arkret/peer/principal-genesis:
     post:
       operationId: ak.peer.principal_genesis.command.submit
@@ -4144,9 +2016,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PcrGenesisSubmitOutcome'
         '409':
-          description: The account already has a different authoritative PCR genesis. Event-derived ids never collide
-            across two genesis attempts, so this uniqueness is enforced at the account dimension rather than by
-            realm_id equality.
+          description: The account already has a different authoritative PCR genesis. Event-derived ids never collide across
+            two genesis attempts, so this uniqueness is enforced at the account dimension rather than by realm_id equality.
           content:
             application/problem+json:
               schema:
@@ -4437,17 +2308,16 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Derive the current device binding and linearize an exact immutable device-bound action intent against
-        origin revocation state.
-      description: The authenticated Account Authority supplies only selectors it can verify itself. The origin
-        Station derives the current authorization Event and PCR-local integer generation from its own durable device
-        projection under the same serializable fence used for revoke acceptance, compares them with any expected
-        binding in the request, and persists an exact-intent signed decision receipt. A validated request always
-        returns HTTP 200 with a closed allow, revocation_pending, revoked, authority_mismatch or generation_mismatch
-        receipt; 409 device_revocation_pending/device_revoked belongs only to the protected business operation.
-        Only allow carries the derived binding, which is the sole source for the issued grant device_binding. An
-        allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent bytes; introspection
-        carries no receipt.
+      summary: Derive the current device binding and linearize an exact immutable device-bound action intent against origin
+        revocation state.
+      description: The authenticated Account Authority supplies only selectors it can verify itself. The origin Station derives
+        the current authorization Event and PCR-local integer generation from its own durable device projection under the
+        same serializable fence used for revoke acceptance, compares them with any expected binding in the request, and persists
+        an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending,
+        revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only
+        to the protected business operation. Only allow carries the derived binding, which is the sole source for the issued
+        grant device_binding. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent
+        bytes; introspection carries no receipt.
       requestBody:
         required: true
         content:
@@ -4456,82 +2326,20 @@ paths:
               $ref: '#/components/schemas/DeviceRevocationGateCheckRequestBody'
       responses:
         '200':
-          description: Signed durable allow, revocation_pending, revoked, authority_mismatch or generation_mismatch
-            decision receipt. A validated request always uses this typed 200 outcome; 409 gate errors belong to
-            the blocked business operation.
+          description: Signed durable allow, revocation_pending, revoked, authority_mismatch or generation_mismatch decision
+            receipt. A validated request always uses this typed 200 outcome; 409 gate errors belong to the blocked business
+            operation.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceRevocationGateCheckOutcome'
   /_arkret/peer/events:
-    query:
-      operationId: ak.peer.events.read.scan
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.events.read.scan.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Read a federation peer Event range with cursor pagination.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
-      responses:
-        '200':
-          description: Federation peer Event read page
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PeerEventsQueryOutcome'
     post:
       operationId: ak.peer.events.command.submit
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Federation peer event push.
-      description: 'Accepts a service-to-service federation event batch. This is the only
-
-        canonical HTTP binding for federation event push; client/self event
-
-        submission remains under `/_arkret/self/events`. A federated
-
-        `ak.member.state` compensation submission carries the unchanged
-
-        transport-only `membership_compensation_evidence`; the receiver applies
-
-        the same exact admission, incarnation, action, executor and single-use
-
-        checks as initial submission. The request union also registers the
-
-        discriminated `direct_conversation_founding` branch for the Direct
-
-        Conversation founding exception (zh/sync/federation.md §4.0.4): it carries
-
-        exactly four ordered Events, the source founding acceptance receipt and
-
-        bounded dependencies, omits `service_binding_ref` because the Realm does
-
-        not yet exist at the receiver, and reports a missing dependency as the
-
-        top-level 409 below rather than a per-item partial.
-
-        '
+      summary: Forward an exact producer Event to the verified current governance Station; a non-authority peer cannot accept
+        it locally
+      description: Forward an exact producer Event to the verified current governance Station; a non-authority peer cannot
+        accept it locally.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4540,217 +2348,21 @@ paths:
         schema:
           type: string
           const: ak.peer.events.command.submit.v1
-      - in: header
-        name: Idempotency-Key
-        required: false
-        description: 'Conditional batch idempotency / replay key (federation.md section 3.2
-
-          and 8.5). Required whenever the sender wants request-level idempotency,
-
-          a batch replay key, or uncertain-outcome transport retry dedup; when
-
-          present it MUST be covered by the HTTP Message Signature transcript.
-
-          A byte-identical retry reuses the same key only when no response was
-
-          received. Every received submit response terminates that key; any later
-
-          evaluation, including a byte-identical post-backfill submit, MUST use a
-
-          fresh key (or omit the header).
-
-          '
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_request
       responses:
         '200':
-          description: Federation event batch accepted, duplicated, partially rejected, or quarantined.
+          description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsSubmitOutcome'
-        '409':
-          description: Registered atomic federation unit rejected with zero writes because exact Event or CBS dependencies
-            are missing. error.code is dependency_missing and error.details conforms to EventsDependencyMissingProblem.
-          content:
-            application/problem+json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/Problem'
-                - type: object
-                  properties:
-                    error:
-                      type: object
-                      properties:
-                        code:
-                          const: dependency_missing
-                        details:
-                          $ref: '#/components/schemas/EventsDependencyMissingProblem'
-  /_arkret/peer/events/resolve:
-    query:
-      operationId: ak.peer.events.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.events.read.resolve.v1
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PeerEventsResolveRequestBody'
-      responses:
-        '200':
-          description: Resolved Event federation submissions and retained publication evidence visible to the authenticated
-            federation peer
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PeerEventsResolveOutcome'
-  /_arkret/peer/events/sibling-positions:
-    query:
-      operationId: ak.peer.events.read.sibling_positions
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.events.read.sibling_positions.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PeerEventsSiblingPositionsRequestBody'
-      responses:
-        '200':
-          description: Complete canonical sibling set at each adjudicated position, or the same-shape undisclosed
-            bucket
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PeerEventsSiblingPositionsOutcome'
-  /_arkret/peer/events/frontier:
-    query:
-      operationId: ak.peer.events.read.frontier
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.events.read.frontier.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsFrontierRequestBody
-      responses:
-        '200':
-          description: Federation peer frontier response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsFrontierFederationPeerState'
-  /_arkret/peer/seals/frontier:
-    query:
-      operationId: ak.peer.seals.read.frontier
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.seals.read.frontier.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealFrontierRequestBody
-      responses:
-        '200':
-          description: Authenticated complete Realm Seal frontier
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerSealFrontierState
-  /_arkret/peer/seals/resolve:
-    query:
-      operationId: ak.peer.seals.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.seals.read.resolve.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerSealResolveRequestBody
-      responses:
-        '200':
-          description: Authenticated exact Seal-only resolve result
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SealResolveOutcome
+      - serviceHttpMessageSignatures: []
   /_arkret/peer/invites:
     post:
       operationId: ak.peer.invites.command.submit
@@ -5002,38 +2614,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeysQueryOutcome'
-  /_arkret/peer/current-signer-evidence/query:
-    post:
-      operationId: ak.peer.current_signer_evidence.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.current_signer_evidence.read.resolve.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Resolve origin-signed current sender authority for a cold recipient.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CurrentSignerEvidenceQueryRequestBody'
-      responses:
-        '200':
-          description: Origin-signed exact-context current signer evidence or an indistinguishable empty result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CurrentSignerEvidenceQueryOutcome'
   /_arkret/peer/realm-joins/preview:
     post:
       operationId: ak.peer.realm_join.read.preview
@@ -5457,11 +3037,10 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
-      description: Bounded account long polling. Initial sync returns the first Realm summary page and segmented
-        account baseline. Realm details require an explicit bounded filter. The notifications channel carries one
-        closed union - Agent runtime approval rows and ordinary source-Event current rows - on a single position,
-        baseline channel and budget; there is no separate notification list operation. See client-sync sections
-        2.3, 3.1 and 13.
+      description: Bounded account long polling. Initial sync returns the first Realm summary page and segmented account baseline.
+        Realm details require an explicit bounded filter. The notifications channel carries one closed union - Agent runtime
+        approval rows and ordinary source-Event current rows - on a single position, baseline channel and budget; there is
+        no separate notification list operation. See client-sync sections 2.3, 3.1 and 13.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5473,9 +3052,8 @@ paths:
       - in: header
         name: X-Arkret-Wait-For
         required: false
-        description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta
-          frame until the local frontier covers target.event_id, or emits an error frame (timeout / frontier_stale
-          / temporarily_unavailable).
+        description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until
+          the local frontier covers target.event_id, or emits an error frame (timeout / frontier_stale / temporarily_unavailable).
         schema:
           type: string
           pattern: ^ak:cursor:[A-Za-z0-9_-]+$
@@ -5495,25 +3073,25 @@ paths:
           pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: catchup
         in: query
-        description: End this bounded catchup round with catchup_complete. Baselines may continue across rounds
-          and have separate completion markers.
+        description: End this bounded catchup round with catchup_complete. Baselines may continue across rounds and have separate
+          completion markers.
         schema:
           type: boolean
           default: false
       - name: filter
         in: query
-        description: Bounded Realm/Strand detail interest. Omission or empty realms means global channels only.
-          One percent-encoded RFC 8785 JSON query value. Empty objects and arrays are preserved. Repeated parameters,
-          dotted keys and non-canonical JSON are rejected.
+        description: Bounded Realm/Strand detail interest. Omission or empty realms means global channels only. One percent-encoded
+          RFC 8785 JSON query value. Empty objects and arrays are preserved. Repeated parameters, dotted keys and non-canonical
+          JSON are rejected.
         content:
           application/json:
             schema:
               $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/account_filter
       - name: realm_list
         in: query
-        description: First summary page or continuation of a frozen summary snapshot. Omit on incremental calls
-          to request no additional list page. One percent-encoded RFC 8785 JSON query value. Empty objects and arrays
-          are preserved. Repeated parameters, dotted keys and non-canonical JSON are rejected.
+        description: First summary page or continuation of a frozen summary snapshot. Omit on incremental calls to request
+          no additional list page. One percent-encoded RFC 8785 JSON query value. Empty objects and arrays are preserved.
+          Repeated parameters, dotted keys and non-canonical JSON are rejected.
         content:
           application/json:
             schema:
@@ -5523,12 +3101,12 @@ paths:
         schema:
           type: boolean
           default: false
-        description: Explicitly replace detail interest while preserving authenticated global stream positions;
-          requires after and filter.
+        description: Explicitly replace detail interest while preserving authenticated global stream positions; requires after
+          and filter.
       responses:
         '200':
-          description: One bounded NDJSON round, at most 16 frames and 16 MiB; each canonical frame is at most 8
-            MiB. Resume from the last durably installed cursor. catchup_complete ends this round, not every baseline.
+          description: One bounded NDJSON round, at most 16 frames and 16 MiB; each canonical frame is at most 8 MiB. Resume
+            from the last durably installed cursor. catchup_complete ends this round, not every baseline.
           content:
             application/x-ndjson:
               schema:
@@ -6221,45 +3799,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
-  /_arkret/self/invites/dispatch:
-    post:
-      operationId: ak.self.invites.command.dispatch
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.invites.command.dispatch.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Dispatch an already accepted invite through the inviter Station.
-      description: 'Accepts an accepted invite Event id plus private delivery evidence from
-
-        the authenticated inviter. The Station resolves its own stored
-
-        canonical Event bytes and requires their author to be the session actor.
-
-        Remote delivery constructs the peer body from those exact stored bytes;
-
-        local delivery uses the same receive-policy path without re-authoring.
-
-        '
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelfInviteDispatchRequestBody'
-      responses:
-        '200':
-          description: Generic invite delivery outcome.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_arkret/self/invite-locators:
     post:
       operationId: ak.self.invite_locator.command.issue
@@ -6493,7 +4032,8 @@ paths:
         '404':
           description: '`not_found` — no such Realm, domain, or the caller may not know the group exists.'
         '409':
-          description: '`failed_precondition` — `relation_conflict_group_not_visible`, `relation_conflict_material_unavailable`, or `relation_conflict_material_page_gap`.'
+          description: '`failed_precondition` — `relation_conflict_group_not_visible`, `relation_conflict_material_unavailable`,
+            or `relation_conflict_material_page_gap`.'
   /_arkret/self/realms/{realm_id}/spaces:
     get:
       operationId: ak.self.space.read.list
@@ -6819,8 +4359,8 @@ paths:
           type: string
           const: ak.find.directory.read.private_contact_discovery.v1
       description: Two-round OPRF set-membership PSI (zh/discovery/discovery-directory.md §6.2/§6.3); the request/response
-        phase field discriminates the blind and match rounds correlated by batch_id. Per-target conditions are encoded
-        as unmatched bits inside the fixed-cardinality hit_bitmap and never surface as error codes.
+        phase field discriminates the blind and match rounds correlated by batch_id. Per-target conditions are encoded as
+        unmatched bits inside the fixed-cardinality hit_bitmap and never surface as error codes.
       security:
       - bearerAuth: []
       requestBody:
@@ -6831,8 +4371,8 @@ paths:
               $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryRequestBody'
       responses:
         '200':
-          description: Phase-discriminated PSI success outcome (blind evaluations or fixed-cardinality match hit
-            bitmap), padded to the exact advertised phase Content-Length bucket
+          description: Phase-discriminated PSI success outcome (blind evaluations or fixed-cardinality match hit bitmap),
+            padded to the exact advertised phase Content-Length bucket
           headers:
             Cache-Control:
               schema:
@@ -7222,8 +4762,8 @@ paths:
       - name: subject_actor_id
         in: query
         required: true
-        description: Percent-encoded RFC 8785 JCS serialization of one closed ActorId. The server parses and validates
-          the decoded JSON before exact identity comparison; bare DID input is forbidden.
+        description: Percent-encoded RFC 8785 JCS serialization of one closed ActorId. The server parses and validates the
+          decoded JSON before exact identity comparison; bare DID input is forbidden.
         schema:
           type: string
           minLength: 1
@@ -7292,8 +4832,8 @@ paths:
       - name: after
         in: query
         required: false
-        description: Return queued device messages strictly after this read-only continuation cursor. Pair with
-          response `next_cursor`; advancing it never acknowledges or deletes messages.
+        description: Return queued device messages strictly after this read-only continuation cursor. Pair with response `next_cursor`;
+          advancing it never acknowledges or deletes messages.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: limit
@@ -7491,7 +5031,6 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/actor-profile-operations.schema.json#/$defs/resolve_request
-
   /_arkret/self/account/current-principal:
     post:
       operationId: ak.self.current_principal.read.resolve
@@ -7520,37 +5059,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CurrentPrincipalOutcome'
-
-  /_arkret/self/genesis-notary/query:
-    post:
-      operationId: ak.self.genesis_notary.read.resolve
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.genesis_notary.read.resolve.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Resolve the own-Station notary configuration for a Realm genesis the caller will author.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenesisNotaryRequestBody'
-      responses:
-        '200':
-          description: Verified notary configuration to freeze verbatim into the genesis object; it grants no authoring
-            authority and reserves no Realm.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenesisNotaryOutcome'
-
   /_arkret/self/media-service-bindings/query:
     post:
       operationId: ak.self.media_service_binding.read.resolve
@@ -7574,13 +5082,12 @@ paths:
               $ref: '#/components/schemas/MediaServiceBindingRequestBody'
       responses:
         '200':
-          description: Verified media service route and signing keys bound to the accepted anchor; the reuse window
-            releases no media key, backend token or plaintext authorization.
+          description: Verified media service route and signing keys bound to the accepted anchor; the reuse window releases
+            no media key, backend token or plaintext authorization.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MediaServiceBindingOutcome'
-
   /_arkret/self/messages/prepare:
     post:
       operationId: ak.self.messages.command.prepare
@@ -7776,9 +5283,9 @@ paths:
               schema:
                 $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence
         '400':
-          description: param_invalid when history_depth is outside 0..256, when after_resolution_event_ref accompanies
-            history_depth 0, or with reason resolution_history_ancestor_unknown when the supplied ancestor is not
-            in this account's current resolution lineage.
+          description: param_invalid when history_depth is outside 0..256, when after_resolution_event_ref accompanies history_depth
+            0, or with reason resolution_history_ancestor_unknown when the supplied ancestor is not in this account's current
+            resolution lineage.
           content:
             application/problem+json:
               schema:
@@ -7964,10 +5471,10 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.high_risk_authority_proof.v1
-          branch signing the canonical delete-intent transcript bound to a valid unconsumed server-issued challenge;
-          the server verifies challenge freshness, path/audience binding and the branch-specific authority before
-          deleting, and consumes the challenge in the same transaction (key-management.md §7.8/§7.8.1).
+        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.high_risk_authority_proof.v1 branch
+          signing the canonical delete-intent transcript bound to a valid unconsumed server-issued challenge; the server verifies
+          challenge freshness, path/audience binding and the branch-specific authority before deleting, and consumes the challenge
+          in the same transaction (key-management.md §7.8/§7.8.1).
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8049,7 +5556,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body'
+              $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body
       responses:
         '200':
           description: Durable one-use challenge bound to the current device and exact backup
@@ -8067,9 +5574,9 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.key_backup_unlock_proof.v1
-          object; the server MUST verify it against the recovery session, caller, requesting device key, active-series
-          record, and target envelope before returning the full ciphertext (key-management.md §7.7.1 / §7.8).
+        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.key_backup_unlock_proof.v1 object; the
+          server MUST verify it against the recovery session, caller, requesting device key, active-series record, and target
+          envelope before returning the full ciphertext (key-management.md §7.7.1 / §7.8).
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8144,8 +5651,8 @@ paths:
       - in: query
         name: series_id
         required: false
-        description: Filter by backup series. When present, response metadata is ordered by series_seq ascending
-          so clients can rebuild the chain.
+        description: Filter by backup series. When present, response metadata is ordered by series_seq ascending so clients
+          can rebuild the chain.
         schema:
           type: string
           pattern: ^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
@@ -8179,40 +5686,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsList'
-  /_arkret/self/moderation/franking/seal-observation:
-    post:
-      operationId: ak.self.moderation.read.franking_seal_observation
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.moderation.read.franking_seal_observation.v1
-      description: Returns the exact durable ordinary franking-proof Event, its target Event, one confirmed security
-        Seal containing the exact existence_anchor, the ordinary Event ancestry needed by that anchor, and historical
-        receiving-service signer evidence. The proof Event never enters Seal.delta or a data observation root. Authorization
-        and all absent, invisible, Realm-mismatched, or binding-mismatched selectors fail through the same not_found
-        anti-oracle result. Ordinary message send, acceptance and replication never wait for this optional security evidence.
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_request
-      responses:
-        '200':
-          description: Independently verifiable franking proof and optional bounded-time existence anchor
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/moderation-evidence.schema.json#/$defs/franking_seal_observation_outcome
-        '404':
-          $ref: '#/components/responses/NotFound'
   /_arkret/self/moderation/report:
     post:
       operationId: ak.self.moderation.command.report
@@ -8224,13 +5697,13 @@ paths:
         schema:
           type: string
           const: ak.self.moderation.command.report.v1
-      description: Accepts exactly one direct-holder signed ak.self.moderation.report ordinary Event in report_event.
-        The authenticated session principal must equal both event.actor_id and payload.reporter. The signed Event
-        realm/scope must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched
-        targets all return not_found. The service forwards exact bytes through ordinary Event admission and never
-        authors, rebuilds, co-signs or adds preconditions. Exact replay returns the stored submitted outcome; the
-        same Event id with different bytes returns duplicate_conflict. routed_to is omitted unless the caller independently
-        holds moderation/governance capability for the exact scope.
+      description: Accepts exactly one direct-holder signed ak.self.moderation.report ordinary Event in report_event. The
+        authenticated session principal must equal both event.actor_id and payload.reporter. The signed Event realm/scope
+        must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched targets all return
+        not_found. The service forwards exact bytes through ordinary Event admission and never authors, rebuilds, co-signs
+        or adds preconditions. Exact replay returns the stored submitted outcome; the same Event id with different bytes returns
+        duplicate_conflict. routed_to is omitted unless the caller independently holds moderation/governance capability for
+        the exact scope.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -8299,8 +5772,8 @@ paths:
       - name: station_id
         in: query
         required: true
-        description: Station that owns the account authority for this principal. Together with principal_id this
-          is the complete public selector.
+        description: Station that owns the account authority for this principal. Together with principal_id this is the complete
+          public selector.
         schema:
           type: string
           pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
@@ -9687,12 +7160,11 @@ paths:
             audit_field: delivery_authentication_record
             request_body_field: false
             directions:
-              node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID
-                MUST equal the Applet registration service_id.
-              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare did MUST be
-                validated by the registered method adapter and project to both Source-Service-ID and the active
-                effective install service_id. Direct DID/core-id comparison and did_core_id fragment concatenation
-                are forbidden.
+              node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal
+                the Applet registration service_id.
+              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; its canonical bare did MUST be validated
+                by the registered method adapter and project to both Source-Service-ID and the active effective install service_id.
+                Direct DID/core-id comparison and did_core_id fragment concatenation are forbidden.
           covered_components:
           - '@method'
           - '@target-uri'
@@ -9734,9 +7206,9 @@ paths:
       - in: header
         name: Idempotency-Key
         required: true
-        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and
-          is scoped by operation_id, direction, Source-Service-ID and Destination-Service-ID; the cached record
-          also binds Content-Digest and delivery_authentication_record.
+        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and is scoped
+          by operation_id, direction, Source-Service-ID and Destination-Service-ID; the cached record also binds Content-Digest
+          and delivery_authentication_record.
         schema:
           type: string
       responses:
@@ -9930,8 +7402,8 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: authoring_request.proof
-        notes: The Applet service verifies the target Station proof and the package-bound caller-signed administration
-          Event set carried by the closed authoring request.
+        notes: The Applet service verifies the target Station proof and the package-bound caller-signed administration Event
+          set carried by the closed authoring request.
       responses:
         '200':
           description: Exact service-authored managed actor creation bundle
@@ -10010,9 +7482,9 @@ paths:
     post:
       operationId: ak.self.applet.ghost.command.preview
       summary: Issue the current signed Ghost managed-actor authoring request.
-      description: The active Applet service supplies only the Realm, exact external tuple, and optional display
-        name. The Station derives all current installation and hosting coordinates and durably supersedes any prior
-        uncommitted generation for the same subject before returning exact bytes.
+      description: The active Applet service supplies only the Realm, exact external tuple, and optional display name. The
+        Station derives all current installation and hosting coordinates and durably supersedes any prior uncommitted generation
+        for the same subject before returning exact bytes.
       security:
       - httpMessageSignature: []
         sourceServiceId: []
@@ -10703,8 +8175,8 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: The OIDC code-exchange proof and request DPoP proof MUST resolve to the same holder key. The Account
-          Authority binds the returned account_handoff_grant to that key's RFC 7638 thumbprint.
+        notes: The OIDC code-exchange proof and request DPoP proof MUST resolve to the same holder key. The Account Authority
+          binds the returned account_handoff_grant to that key's RFC 7638 thumbprint.
       summary: Exchange account authentication for a holder-bound onboarding handoff.
       description: 'Exchanges an OIDC authorization code at the issuer token endpoint and
 
@@ -10765,8 +8237,8 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
-        notes: Authorization is `DPoP <account_handoff_grant>` and the DPoP header key MUST match the live handoff
-          holder. The operation is read-only and grants no command authority.
+        notes: Authorization is `DPoP <account_handoff_grant>` and the DPoP header key MUST match the live handoff holder.
+          The operation is read-only and grants no command authority.
       summary: Read the Account Authority's current onboarding projection.
       description: 'Reloads the durable identity-creation lease or established binding for
 
@@ -10808,8 +8280,8 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
-        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key, current lease
-          holder, and lease fence.
+        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key, current lease holder, and
+          lease fence.
       summary: Reserve a DID inception operation and issue a fresh root-control challenge.
       description: 'Validates the complete unpublished DID operation, derives principal_id
 
@@ -10837,9 +8309,9 @@ paths:
         '
       responses:
         '200':
-          description: Persisted single-use identity-binding transcript with independent positive TTL <=300s. Issuance
-            never renews the lease and uses a separate account/audience/holder budget; same-binding reauthentication
-            can reuse the proof.
+          description: Persisted single-use identity-binding transcript with independent positive TTL <=300s. Issuance never
+            renews the lease and uses a separate account/audience/holder budget; same-binding reauthentication can reuse the
+            proof.
           content:
             application/json:
               schema:
@@ -10936,9 +8408,9 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
-        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key. The presented
-          handoff MUST be a fresh one and MUST NOT be the grant presented when the challenge was issued; the authentication
-          strength behind it is deployment governance.
+        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key. The presented handoff MUST
+          be a fresh one and MUST NOT be the grant presented when the challenge was issued; the authentication strength behind
+          it is deployment governance.
       summary: Explicitly abandon a provisional identity whose PCR was never accepted.
       description: 'Consumes the abandonment challenge and performs the abandonment in one
 
@@ -11010,9 +8482,9 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: Generic DID-first registration may use the closed body proof branch. Account-first identity_creation
-          MUST use `DPoP <account_handoff_grant>` plus matching DPoP and the current lease/fence; the root control
-          proof binds the persisted challenge transcript and exact DID operation digest.
+        notes: Generic DID-first registration may use the closed body proof branch. Account-first identity_creation MUST use
+          `DPoP <account_handoff_grant>` plus matching DPoP and the current lease/fence; the root control proof binds the
+          persisted challenge transcript and exact DID operation digest.
       summary: Bind or create a deployment-local account record for a principal.
       description: 'Auth Server lifecycle operation. The request uses principal_id rather
 
@@ -11105,15 +8577,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionGrantOutcome'
         '403':
-          description: Human device is unauthorized (device_unauthorized, zero grant) or Agent high-risk scope requires
-            out-of-band controller approval (claim_required).
+          description: Human device is unauthorized (device_unauthorized, zero grant) or Agent high-risk scope requires out-of-band
+            controller approval (claim_required).
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
         '409':
-          description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable.
-            A terminal replay carries closed session_grant_id/state details and never creates a replacement grant.
+          description: Conflicting canonical intent, terminal recorded replay, or replay record no longer decidable. A terminal
+            replay carries closed session_grant_id/state details and never creates a replacement grant.
           content:
             application/problem+json:
               schema:
@@ -11149,8 +8621,8 @@ paths:
                           details:
                             $ref: '#/components/schemas/SessionGrantReplayTerminalProblem'
         '410':
-          description: The recorded exact-replay outcome has expired; the issuer returns its session_grant_id/state
-            and creates no replacement.
+          description: The recorded exact-replay outcome has expired; the issuer returns its session_grant_id/state and creates
+            no replacement.
           content:
             application/problem+json:
               schema:
@@ -11223,9 +8695,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionRevokeOutcome'
         '409':
-          description: The stable revoke request identity conflicts with a different canonical intent, or replay
-            retention no longer proves whether the mutation committed. Both outcomes fail closed with zero new state
-            changes.
+          description: The stable revoke request identity conflicts with a different canonical intent, or replay retention
+            no longer proves whether the mutation committed. Both outcomes fail closed with zero new state changes.
           content:
             application/problem+json:
               schema:
@@ -11299,8 +8770,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionGrantOutcome'
         '409':
-          description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable.
-            A terminal replay carries closed session_grant_id/state details and never creates a second successor.
+          description: Conflicting refresh intent, terminal recorded successor, or replay record no longer decidable. A terminal
+            replay carries closed session_grant_id/state details and never creates a second successor.
           content:
             application/problem+json:
               schema:
@@ -11336,8 +8807,8 @@ paths:
                           details:
                             $ref: '#/components/schemas/SessionGrantReplayTerminalProblem'
         '410':
-          description: The recorded successor has expired; the issuer returns its session_grant_id/state and creates
-            no second successor.
+          description: The recorded successor has expired; the issuer returns its session_grant_id/state and creates no second
+            successor.
           content:
             application/problem+json:
               schema:
@@ -11527,66 +8998,6 @@ paths:
       variables:
         host:
           default: localhost
-    post:
-      operationId: ak.gate.account.command.issue_controller_gate_attestation
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.command.issue_controller_gate_attestation.v1
-      security:
-      - httpMessageSignature: []
-      x-arkret-auth:
-        public_metadata: false
-        holder_proof: false
-        notes: Authenticated S2S only. The receiver independently verifies the request's service identity and method
-          evidence and normalized DID Document before using its active assertion key for RFC 9421. Bearer does not
-          replace the signature. The verified source service must equal request.agent_authority_id and service_id
-          in the controller current AcceptedAtServiceBinding.
-      summary: Issue the Account Authority controller lifecycle gate used in Agent signer evidence.
-      description: 'The Account Authority reads its own current account binding/status
-
-        projection and signs one privacy-minimal controller lifecycle snapshot
-
-        under ak.controller_account_gate.v1. The attestation lifetime is at most
-
-        300 seconds. It intentionally omits operation, request digest, audience
-
-        and challenge; each signed message binds its actual operation and scope.
-
-        The independently signed gate is reusable until expiry. Unknown principal,
-
-        missing current binding, wrong source service and unauthorized callers
-
-        are indistinguishable. No account_id or raw account cell is returned.
-
-        The HTTP signature covers method, target URI/path, Content-Digest,
-
-        Source/Destination-Service-ID, operation id and request id. DidCoreId,
-
-        URL, bearer and caller-supplied keys are not verification-key sources.
-
-        '
-      responses:
-        '200':
-          description: Byte-stable controller gate attestation issuance outcome.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ControllerAccountGateAttestationIssueOutcome'
-        '404':
-          description: Uniform non-enumerating outcome for unknown, unbound, wrong-service or unauthorized requests.
-        '409':
-          description: The request_id was already bound to a different canonical intent.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ControllerAccountGateAttestationIssueRequestBody'
   /_arkret/gate/account/logout:
     servers:
     - url: https://{host}
@@ -11609,8 +9020,8 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_proof: true
-        notes: Account hard logout MUST present the current ak.session.grant as Authorization bearer and a DPoP
-          proof whose ath binds that grant and whose htm/htu bind POST /_arkret/gate/account/logout.
+        notes: Account hard logout MUST present the current ak.session.grant as Authorization bearer and a DPoP proof whose
+          ath binds that grant and whose htm/htu bind POST /_arkret/gate/account/logout.
       summary: Account Authority hard logout.
       description: 'Ordinary hard logout at the Account Authority (account-lifecycle §4.1),
 
@@ -11786,9 +9197,9 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: target_proof
-        notes: The candidate device authenticates with `DPoP <account_handoff_grant>` plus matching DPoP for a bound
-          pending account handoff. That handoff is the only source of the exact AccountId the body proof signs; the
-          service MUST NOT read account membership from a request member or a server-side side channel.
+        notes: The candidate device authenticates with `DPoP <account_handoff_grant>` plus matching DPoP for a bound pending
+          account handoff. That handoff is the only source of the exact AccountId the body proof signs; the service MUST NOT
+          read account membership from a request member or a server-side side channel.
       summary: Bind a staged pairing record to an exact AccountId.
       description: 'The one authenticated step between the account-less stage and any
 
@@ -11881,9 +9292,9 @@ paths:
       x-arkret-auth:
         public_metadata: false
         proof_in_body: false
-        notes: The caller MUST be a current accepted, non-pending-revocation device of an exact AccountId. The
-          pairing code is the whole input and MUST stay in the JSON body, never in URL path or query string, so it
-          never reaches an access log or an analytics event.
+        notes: The caller MUST be a current accepted, non-pending-revocation device of an exact AccountId. The pairing code
+          is the whole input and MUST stay in the JSON body, never in URL path or query string, so it never reaches an access
+          log or an analytics event.
       summary: Claim one pending pairing request by its eight-character code.
       description: 'Lets an already authorized device find the exact pending pairing
 
@@ -11943,11 +9354,11 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Agent runtime key pairing. Admission validates current controller/Agent authority, the fresh
-        pairing handle, the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession
-        and the accepted control frontier. Backup availability and history-only MLS material are neither inputs
-        nor readiness gates. The operation validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize
-        on approval. Agent runtime private keys are locally generated and never uploaded or restored.
+      description: Agent runtime key pairing. Admission validates current controller/Agent authority, the fresh pairing handle,
+        the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession and the accepted control
+        frontier. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation
+        validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize on approval. Agent runtime
+        private keys are locally generated and never uploaded or restored.
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -11976,8 +9387,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AgentKeyPairOutcome'
         '409':
-          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid,
-            etc.)
+          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
       requestBody:
         required: true
         content:
@@ -12016,24 +9426,23 @@ paths:
         schema:
           type: string
           const: ak.self.agent.command.provision.v1
-      description: Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0.
-        phase=prepare requires the authenticated controller account's controller_station_id, validates the pair
-        against the current session, then verifies caller-supplied did and returns its exact accepted initial_resolution,
-        controller PCR, delegation ref, scope digest and allocation without generating a DID/private key or choosing
-        a PCR id. The controller freezes the PCR create with that commitment, derives principal_control_realm_id
-        from its event_id and commits one controller-signed ak.agent.provision Event. Ordinary admission atomically
-        projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR
-        acceptance returns awaiting_did_binding; only the controller-signed continuous DID entry 1 carrying the
-        exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable
-        ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
+      description: Agent provisioning. The controller first publishes a signed PCR-independent did:webvh entry 0. phase=prepare
+        requires the authenticated controller account's controller_station_id, validates the pair against the current session,
+        then verifies caller-supplied did and returns its exact accepted initial_resolution, controller PCR, delegation ref,
+        scope digest and allocation without generating a DID/private key or choosing a PCR id. The controller freezes the
+        PCR create with that commitment, derives principal_control_realm_id from its event_id and commits one controller-signed
+        ak.agent.provision Event. Ordinary admission atomically projects provision/accountability/selector/realm-id-claim
+        and returns awaiting_pcr_genesis. Separate PCR acceptance returns awaiting_did_binding; only the controller-signed
+        continuous DID entry 1 carrying the exact create-locked binding exposes Agent/pairing/list/get and returns complete.
+        requested_scope is an immutable ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
       - sessionGrantAuth: []
         dpopProof: []
       responses:
         '200':
-          description: Prepare returns awaiting_controller_event; commit returns awaiting_pcr_genesis; PCR acceptance
-            returns awaiting_did_binding; accepting the exact controller-signed DID binding entry 1 makes replay
-            return complete with pending PCR recovery and the runtime pairing handle.
+          description: Prepare returns awaiting_controller_event; commit returns awaiting_pcr_genesis; PCR acceptance returns
+            awaiting_did_binding; accepting the exact controller-signed DID binding entry 1 makes replay return complete with
+            pending PCR recovery and the runtime pairing handle.
           content:
             application/json:
               schema:
@@ -12074,14 +9483,14 @@ paths:
   /_arkret/self/agents/{agent_id}/renew-pairing:
     post:
       operationId: ak.self.agent.command.renew_pairing
-      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle and the unchanged
-        requested_scope_digest DID commitment. All previously issued handles stay permanently unresolvable. An Agent
-        without an active accepted runtime-key authorization uses bootstrap; an Agent holding an active authorized
-        key (lifecycle active or paused) uses replacement while lifecycle intent, existing keys and grants stay
-        untouched until one controller-signed authorization atomically supersedes the prior keys. Generic views
-        expose the handle and active authorization set with independent readiness blockers and never expose runtime_state
-        or backup readiness; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues
-        Realm grants. Pair commit does not depend on history-only backup availability; deactivated rejects.
+      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle and the unchanged requested_scope_digest
+        DID commitment. All previously issued handles stay permanently unresolvable. An Agent without an active accepted runtime-key
+        authorization uses bootstrap; an Agent holding an active authorized key (lifecycle active or paused) uses replacement
+        while lifecycle intent, existing keys and grants stay untouched until one controller-signed authorization atomically
+        supersedes the prior keys. Generic views expose the handle and active authorization set with independent readiness
+        blockers and never expose runtime_state or backup readiness; that diagnostic is pairing-poll-local. Neither branch
+        creates, revokes, or re-issues Realm grants. Pair commit does not depend on history-only backup availability; deactivated
+        rejects.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -12180,10 +9589,10 @@ paths:
   /_arkret/self/agents/{agent_id}/deactivate:
     post:
       operationId: ak.self.agent.command.deactivate
-      description: Terminally deactivate an Agent with one controller-authorized lifecycle Event. Once accepted,
-        the parent lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage,
-        presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous
-        cleanup is not a success prerequisite.
+      description: Terminally deactivate an Agent with one controller-authorized lifecycle Event. Once accepted, the parent
+        lifecycle AND gate makes every subordinate key, session, pairing handle, capability grant, KeyPackage, presence and
+        future submission ineffective; client-authored revoke bundles are forbidden and asynchronous cleanup is not a success
+        prerequisite.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -12226,8 +9635,7 @@ paths:
           const: ak.self.agent.sidecar.command.ensure.v1
       description: 'Prepare persists only a private reservation. First commit accepts exactly
 
-        the controller-signed ak.sidecar.create Event; sidecar_id retypes the creating Event''s full 44-character
-        token
+        the controller-signed ak.sidecar.create Event; sidecar_id retypes the creating Event''s full 44-character token
 
         from that Event. A separate ak.sidecar.context.attach Event records only a
 
@@ -12261,8 +9669,8 @@ paths:
   /_arkret/self/agent-sidecars/{sidecar_id}:
     get:
       operationId: ak.self.agent.sidecar.resource.get
-      description: Return one Agent Sidecar owned by the authenticated controller, including desired/effective Agent
-        access and readiness. Foreign, unauthorized, and nonexistent IDs are indistinguishable.
+      description: Return one Agent Sidecar owned by the authenticated controller, including desired/effective Agent access
+        and readiness. Foreign, unauthorized, and nonexistent IDs are indistinguishable.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -12290,8 +9698,8 @@ paths:
   /_arkret/self/agent-sidecars:
     get:
       operationId: ak.self.agent.sidecar.read.list
-      description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows
-        the result without exposing other controllers' objects.
+      description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows the result
+        without exposing other controllers' objects.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -12324,9 +9732,9 @@ paths:
   /_arkret/self/agents/{agent_id}/participation:
     put:
       operationId: ak.self.agent.participation.resource.replace
-      description: Replace one controller-private per-scope participation selection at its Account Authority. First
-        write uses expected_version=0; successful writes increment by one. Selection grants no capability and is
-        intersected with current target policy at action time.
+      description: Replace one controller-private per-scope participation selection at its Account Authority. First write
+        uses expected_version=0; successful writes increment by one. Selection grants no capability and is intersected with
+        current target policy at action time.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -12358,8 +9766,7 @@ paths:
               $ref: '#/components/schemas/AgentParticipationReplaceRequestBody'
     get:
       operationId: ak.self.agent.participation.resource.get
-      description: Get the Account Authority's current versioned per-scope participation selections (controller-self
-        only).
+      description: Get the Account Authority's current versioned per-scope participation selections (controller-self only).
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -12383,37 +9790,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentParticipationOutcome'
-  /_arkret/self/seals/pending-control:
-    query:
-      operationId: ak.self.seals.read.pending_control
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.seals.read.pending_control.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read a bounded set of pending own/delegated PCR Control Moves.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlRequestBody
-      responses:
-        '200':
-          description: Pending digests at the exact requested basis
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PcrPendingControlOutcome
-  /_arkret/self/seals/mls-accepted-artifact:
+  /_arkret/open/realm-authority/bundle:
     post:
-      operationId: ak.self.seals.read.mls_accepted_artifact
+      operationId: ak.open.realm_authority.read.bundle
+      summary: Return a nonce-bound genesis-to-current authority chain; locators are hints and never authority
+      description: Return a nonce-bound genesis-to-current authority chain; locators are hints and never authority.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -12421,28 +9802,26 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.seals.read.mls_accepted_artifact.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read current accepted MLS artifact status and exact retained public leaf input from the Account Station.
+          const: ak.open.realm_authority.read.bundle.v1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsAcceptedArtifactRequestBody'
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/authority_bundle_request
       responses:
         '200':
-          description: Exact currently accepted artifact and winning transition facts, with independently bounded
-            public leaf input.
+          description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MlsAcceptedArtifactOutcome'
-  /_arkret/self/seals/mls-welcome-refs:
+                $ref: ../schemas/realm-authority-bundle.schema.json
+      security: []
+  /_arkret/peer/streams/scan:
     post:
-      operationId: ak.self.seals.read.mls_welcome_refs
+      operationId: ak.peer.events.read.scan
+      summary: Replicate one visibility-authorized stream from its current governance Station
+      description: Replicate one visibility-authorized stream from its current governance Station.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -12450,27 +9829,27 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.seals.read.mls_welcome_refs.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Discover currently eligible Welcome references for the authenticated recipient in a frozen scope window.
+          const: ak.peer.events.read.scan.v1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsWelcomeRefsRequestBody'
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request
       responses:
         '200':
-          description: Bounded references only, with an opaque continuation when limited.
+          description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MlsWelcomeRefsOutcome'
-  /_arkret/self/seals/mls-membership-removal:
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome
+      security:
+      - serviceHttpMessageSignatures: []
+  /_arkret/peer/realm-authority/handoff:
     post:
-      operationId: ak.self.seals.read.mls_membership_removal
+      operationId: ak.peer.realm_authority.command.handoff
+      summary: Install a planned dual-signed authority handoff after complete snapshot and all stream heads are imported
+      description: Install a planned dual-signed authority handoff after complete snapshot and all stream heads are imported.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -12478,27 +9857,27 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.seals.read.mls_membership_removal.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read exact current MLS leaf removal indices from the Account Station.
+          const: ak.peer.realm_authority.command.handoff.v1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsMembershipRemovalRequestBody'
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/handoff_request
       responses:
         '200':
-          description: Atomic complete removal subset, bounded to 1 MiB without a historical proof.
+          description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MlsMembershipRemovalOutcome'
-  /_arkret/self/seals/history-authority:
+                $ref: ../schemas/realm-authority-handoff.schema.json
+      security:
+      - serviceHttpMessageSignatures: []
+  /_arkret/self/streams/scan:
     post:
-      operationId: ak.self.seals.read.history_authority
+      operationId: ak.self.events.read.scan
+      summary: Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position
+      description: Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -12506,21 +9885,20 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.seals.read.history_authority.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read current history authorization from the Account Station.
+          const: ak.self.events.read.scan.v1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HistoryAuthorityRequestBody'
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request
       responses:
         '200':
-          description: Current history floor and join epoch, at most 64 KiB.
+          description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HistoryAuthorityOutcome'
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []

@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/consent-operations.schema.json",
   "title": "Arkret Consent Cell Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for holder-private consent cells. Only holders/controllers receive consent_cell_view; peer request submission returns an opaque outcome and never exposes cell state.",
+  "description": "Closed request/response DTOs for holder-private consent state serialized by the current governance Station.",
   "anyOf": [
     {
-      "$ref": "#/$defs/consent_cell_view"
+      "$ref": "#/$defs/consent_view"
     },
     {
-      "$ref": "#/$defs/consent_cell_list"
+      "$ref": "#/$defs/consent_list"
     },
     {
       "$ref": "#/$defs/consent_grant_request_body"
@@ -50,23 +50,20 @@
         "no_consent"
       ]
     },
-    "consent_cell_view": {
+    "consent_view": {
       "type": "object",
       "required": [
-        "cell_id",
+        "consent_id",
         "peer",
         "consent_scope",
         "state",
         "updated_at",
-        "active_grant_dots",
-        "grant_dots",
-        "revoked_dots"
+        "revision"
       ],
       "properties": {
-        "cell_id": {
+        "consent_id": {
           "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Consent cell id (ak:cell:ak.component.consent.grant.v1:<consent_id>)."
+          "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "peer": {
           "$ref": "#/$defs/consent_peer"
@@ -86,29 +83,13 @@
         "updated_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "active_grant_dots": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Currently-active grant dots (not yet observed/revoked, within validity window)."
-        },
-        "grant_dots": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "revoked_dots": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
         }
       },
       "additionalProperties": false
     },
-    "consent_cell_list": {
+    "consent_list": {
       "type": "object",
       "required": [
         "consents"
@@ -117,7 +98,7 @@
         "consents": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/consent_cell_view"
+            "$ref": "#/$defs/consent_view"
           }
         }
       },
@@ -125,7 +106,7 @@
     },
     "consent_grant_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.consent.grant Control Move and nothing else. consent_id, peer, consent_scope, not_before and expires_at all live in grant_event.event.payload; the holder is taken from the path. consent_id is producer-allocated, so the caller mints it: it is the cell subject (ak:cell:ak.component.consent.grant.v1:<consent_id>), and the security-set add dot is 'ak:event:<enclosing event_id>:<write_index>' (zh/identity/consent-model.md section 3.2). A service that wrote this element itself would be putting consent into replicated cell state that no Event in the log explains.",
+      "description": "Carries one caller-signed ak.consent.grant Event. The current governance Station validates and serializes the update.",
       "required": [
         "grant_event"
       ],
@@ -161,7 +142,7 @@
     },
     "consent_revoke_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.consent.revoke Control Move and nothing else. Its payload.observed_dot_ids MUST enumerate every active dot that becomes inactive, and the caller reads those dots back from consent_cell_view.active_grant_dots: an observe-remove OR-Set revoker has to name the exact dots or two concurrent revokes race, one removing the old dot and the other the new one while the UI reports success (zh/identity/consent-model.md section 3.2). A consent_scope=any cascade is no exception.",
+      "description": "Carries one caller-signed ak.consent.revoke Event. The current governance Station applies it after the current consent revision without OR-Set dots.",
       "required": [
         "revoke_event"
       ],

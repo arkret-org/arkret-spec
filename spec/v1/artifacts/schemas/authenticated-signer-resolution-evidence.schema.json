@@ -2,19 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/authenticated-signer-resolution-evidence.schema.json",
   "title": "Arkret Authenticated Signer Resolution Evidence",
-  "description": "Content-addressed immutable signer-key resolution material retained for historical verification. The evidence ref is derived from the SHA-256 digest of the complete RFC 8785 JCS object; callers never substitute a current resolver result.",
+  "description": "Compact historical signer-key evidence. Cell and Seal witnesses are retired; a governance Station binds the resolved key to one committed stream revision.",
   "oneOf": [
-    {
-      "$ref": "#/$defs/service_signer_evidence"
-    },
     {
       "$ref": "#/$defs/principal_signer_evidence"
     },
     {
-      "$ref": "#/$defs/account_device_signer_evidence"
-    },
-    {
-      "$ref": "#/$defs/account_device_control_signer_evidence"
+      "$ref": "#/$defs/service_signer_evidence"
     },
     {
       "$ref": "#/$defs/agent_signer_evidence"
@@ -23,229 +17,90 @@
   "$defs": {
     "signer_evidence_ref": {
       "type": "string",
-      "pattern": "^ak:signer_evidence:sha256:[0-9a-f]{64}$",
-      "description": "ak:signer_evidence:sha256:<hex>, where hex is SHA-256(RFC8785-JCS(complete evidence object)). The embedded hex is the sole wire carrier of the evidence digest; a carrier that holds this ref MUST NOT also carry a sibling *_digest mirror of it (encoding.md 4.0.1)."
+      "pattern": "^ak:signer_evidence:sha256:[0-9a-f]{64}$"
     },
-    "service_signer_evidence": {
+    "public_key_jwk": {
+      "type": "object",
+      "minProperties": 2,
+      "additionalProperties": true
+    },
+    "base": {
       "type": "object",
       "required": [
-        "kind",
-        "signer_id",
+        "signer_kind",
+        "subject_id",
         "verification_method",
-        "authenticated_resolution"
+        "public_key_jwk",
+        "authority_commit_id",
+        "resolved_at"
       ],
       "properties": {
-        "kind": {
-          "const": "service"
+        "signer_kind": {
+          "enum": [
+            "principal",
+            "service",
+            "agent"
+          ]
         },
-        "signer_id": {
+        "subject_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
         },
-        "authenticated_resolution": {
-          "$ref": "./agent-signer-evidence-operations.schema.json#/$defs/authenticated_service_resolution"
+        "public_key_jwk": {
+          "$ref": "#/$defs/public_key_jwk"
+        },
+        "authority_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "resolved_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
+      "additionalProperties": false
+    },
+    "principal_signer_evidence": {
       "allOf": [
         {
+          "$ref": "#/$defs/base"
+        },
+        {
           "properties": {
-            "authenticated_resolution": {
-              "properties": {
-                "normalized_did_document": {
-                  "properties": {
-                    "did": {
-                      "oneOf": [
-                        {
-                          "$ref": "./common-ids.schema.json#/$defs/did_key_did"
-                        },
-                        {
-                          "$ref": "./common-ids.schema.json#/$defs/webvh_did"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
+            "signer_kind": {
+              "const": "principal"
             }
           }
         }
-      ],
-      "additionalProperties": false,
-      "description": "Retain method-native evidence and its normalized DID document together. signer_id equals authenticated_resolution.service_id. Verify the complete native history and verification_method authorization at the retained state. Durable historical evidence permits did:key or complete did:webvh history; did:web cannot prove historical signer authority. Current route cache expiry does not retroactively invalidate retained evidence. Complete canonical evidence is at most 1 MiB."
+      ]
     },
-    "principal_signer_evidence": {
-      "type": "object",
-      "required": [
-        "kind",
-        "signer_id",
-        "verification_method",
-        "public_resolution",
-        "normalized_did_document",
-        "attester_signer_evidence_ref"
-      ],
-      "properties": {
-        "kind": {
-          "const": "principal"
+    "service_signer_evidence": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
         },
-        "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "public_resolution": {
-          "$ref": "./identity-resolution.schema.json#/$defs/public_principal_resolution"
-        },
-        "normalized_did_document": {
-          "type": "object",
-          "description": "Exact normalized DID document whose digest and history position are authenticated by public_resolution.method_history_evidence."
-        },
-        "attester_signer_evidence_ref": {
-          "$ref": "#/$defs/signer_evidence_ref"
-        }
-      },
-      "additionalProperties": false,
-      "description": "attester_signer_evidence_ref resolves to a service-kind leaf that historically verifies the Station projection attestation. Current route or DID expiry is not a retrospective validity input."
-    },
-    "account_device_signer_evidence": {
-      "type": "object",
-      "required": [
-        "kind",
-        "signer_id",
-        "verification_method",
-        "device_projection_attestation",
-        "attester_signer_evidence_ref"
-      ],
-      "properties": {
-        "kind": {
-          "const": "account_device"
-        },
-        "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "device_projection_attestation": {
-          "$ref": "./keys-operations.schema.json#/$defs/device_projection_attestation"
-        },
-        "attester_signer_evidence_ref": {
-          "$ref": "#/$defs/signer_evidence_ref"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Verify the exact signed device projection and its attester closure. This branch authorizes an ordinary human Account device for shared CBS Data and for registry-declared actor_private_event Events with reducer_input=false; it does not authorize generic Control, Agent/Service actors, Signal, notary, DID/root-control, or session/transport fallback. For ordinary publication the cache expires_at limits current-query freshness only; authorization_window and applicable generation/revocation closures govern actual authority. Preserve the full AccountId, Station, device, original authorization instance, generation, verification method and signing-key binding."
-    },
-    "account_device_control_signer_evidence": {
-      "type": "object",
-      "required": [
-        "kind",
-        "signer_id",
-        "account_id",
-        "device_id",
-        "verification_method",
-        "authorization_event_ref",
-        "authorized_generation_ref",
-        "generation_event_ref",
-        "confirmation_seal_ref",
-        "pcr_genesis_event_ref",
-        "principal_registration_anchor",
-        "history_event_refs",
-        "history_seal_refs"
-      ],
-      "properties": {
-        "kind": {
-          "const": "account_device_control"
-        },
-        "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "account_id": {
-          "$ref": "./common-ids.schema.json#/$defs/account_id"
-        },
-        "device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "authorization_event_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "authorized_generation_ref": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "generation_event_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "confirmation_seal_ref": {
-          "type": "string",
-          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
-        },
-        "pcr_genesis_event_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "principal_registration_anchor": {
-          "$ref": "./principal-registration-anchor.schema.json"
-        },
-        "history_event_refs": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 4096,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
-          }
-        },
-        "history_seal_refs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 4096,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+        {
+          "properties": {
+            "signer_kind": {
+              "const": "service"
+            }
           }
         }
-      },
-      "additionalProperties": false,
-      "description": "Portable ordinary-human Control signer root. signer_id equals account_id.principal_id; verification_method is rooted in the DID the verifier derives from principal_registration_anchor and has the exact device_id fragment. authorization_event_ref identifies the original fully signed ak.device.authorize, authorized_generation_ref and generation_event_ref identify its frozen generation, confirmation_seal_ref is the first successful confirming Seal, and pcr_genesis_event_ref plus principal_registration_anchor form the independent trust anchor. principal_registration_anchor is the closed adapter-discriminated union whose branch the registered registration_anchor_kind selects: the verifier re-derives did, method_history_head, version_id, the normalized DID document and the root verification method and key from that branch alone, requires them to equal the PCR genesis initial_resolution coordinates byte-for-byte, and verifies the genesis root producer proof against the derived root key. A registration_did_evidence receipt, an identity_creation_control_proof or any current resolver or database result is not this anchor and MUST NOT substitute for it. history_event_refs and history_seal_refs are UTF-8 byte-sorted, duplicate-free exact references for the minimal closed PCR prefix through confirmation_seal_ref; the objects are fetched through existing exact Event/Seal transports and are not inlined or replaced by current projections. A verifier MUST obtain every referenced object, verify the complete prefix, original possession and producer proofs, exact committed outcome and historical notary configuration, and match the derived Account/device/method/key/generation/window before accepting a generic Control Event. This branch does not authorize Data, notary, DID update, recovery-factor, SessionGrant or Signal actions. Complete canonical evidence is at most 1 MiB."
+      ]
     },
     "agent_signer_evidence": {
-      "type": "object",
-      "required": [
-        "kind",
-        "signer_id",
-        "verification_method",
-        "agent_signer_evidence",
-        "attester_signer_evidence_ref",
-        "account_authority_signer_evidence_ref"
-      ],
-      "properties": {
-        "kind": {
-          "const": "agent"
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
         },
-        "signer_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
-        },
-        "agent_signer_evidence": {
-          "$ref": "./agent-signer-evidence.schema.json"
-        },
-        "attester_signer_evidence_ref": {
-          "$ref": "#/$defs/signer_evidence_ref"
-        },
-        "account_authority_signer_evidence_ref": {
-          "$ref": "#/$defs/signer_evidence_ref"
+        {
+          "properties": {
+            "signer_kind": {
+              "const": "agent"
+            }
+          }
         }
-      },
-      "additionalProperties": false,
-      "description": "Authenticate the exact Agent Authority and Account Authority proofs and all original producer evidence recursively. Historical verification uses immutable authorization evidence and applicable closure decisions; no receiver admission signature is required."
+      ]
     }
   }
 }

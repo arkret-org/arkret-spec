@@ -45,32 +45,67 @@
     "managed_actor_proof": {
       "type": "object",
       "description": "Closed Applet managed-actor request/bundle proof. audience_id is the exact recipient service DidCoreId: basis.service_id for the request and basis.target_station_id for the bundle. It is an identity binding, not a generic string or multi-audience selector.",
-      "required": ["kind", "verification_method", "payload_digest", "created_at", "audience_id", "jws"],
+      "required": [
+        "kind",
+        "verification_method",
+        "payload_digest",
+        "created_at",
+        "audience_id",
+        "jws"
+      ],
       "properties": {
-        "kind": { "const": "detached_jws" },
-        "verification_method": { "$ref": "./common-ids.schema.json#/$defs/did_url" },
-        "payload_digest": { "$ref": "#/$defs/digest" },
-        "created_at": { "$ref": "#/$defs/timestamp" },
-        "audience_id": { "$ref": "#/$defs/did_core_id" },
-        "jws": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$" }
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "audience_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
       },
       "additionalProperties": false
     },
     "ghost_external_tuple": {
       "type": "object",
-      "required": ["protocol", "instance_id", "external_id"],
+      "required": [
+        "protocol",
+        "instance_id",
+        "external_id"
+      ],
       "properties": {
-        "protocol": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$" },
+        "protocol": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
         "instance_id": {
           "allOf": [
-            { "$ref": "./account-operations.schema.json#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+            {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
           ]
         },
         "external_id": {
           "allOf": [
-            { "$ref": "./account-operations.schema.json#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+            {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
           ]
         }
       },
@@ -329,35 +364,96 @@
     "authoring_request": {
       "type": "object",
       "x-arkret-signature-domain": "ak.applet_managed_actor_authoring_request_proof.v1",
-      "required": ["schema", "purpose", "basis", "hosting_notary", "issued_at", "expires_at", "proof"],
+      "required": [
+        "schema",
+        "purpose",
+        "basis",
+        "hosting_notary",
+        "issued_at",
+        "expires_at",
+        "proof"
+      ],
       "properties": {
-        "schema": { "const": "ak.schema.applet_managed_actor_authoring_request.v1" },
-        "purpose": { "enum": ["install_bot", "provision_ghost"] },
-        "basis": {
-          "oneOf": [
-            { "$ref": "#/$defs/install_authoring_request_basis" },
-            { "$ref": "#/$defs/ghost_authoring_request_basis" }
+        "schema": {
+          "const": "ak.schema.applet_managed_actor_authoring_request.v1"
+        },
+        "purpose": {
+          "enum": [
+            "install_bot",
+            "provision_ghost"
           ]
         },
-        "plan_digest": { "$ref": "#/$defs/digest" },
-        "hosting_notary": { "$ref": "./realm.schema.json#/$defs/notary_signer_descriptor" },
-        "issued_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
-        "proof": { "$ref": "#/$defs/managed_actor_proof" }
+        "basis": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/install_authoring_request_basis"
+            },
+            {
+              "$ref": "#/$defs/ghost_authoring_request_basis"
+            }
+          ]
+        },
+        "plan_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "hosting_notary": {
+          "$ref": "./realm.schema.json#/$defs/notary_signer_descriptor"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/managed_actor_proof"
+        }
       },
       "allOf": [
         {
-          "if": { "required": ["purpose"], "properties": { "purpose": { "const": "install_bot" } } },
+          "if": {
+            "required": [
+              "purpose"
+            ],
+            "properties": {
+              "purpose": {
+                "const": "install_bot"
+              }
+            }
+          },
           "then": {
-            "required": ["plan_digest"],
-            "properties": { "basis": { "$ref": "#/$defs/install_authoring_request_basis" } }
+            "required": [
+              "plan_digest"
+            ],
+            "properties": {
+              "basis": {
+                "$ref": "#/$defs/install_authoring_request_basis"
+              }
+            }
           }
         },
         {
-          "if": { "required": ["purpose"], "properties": { "purpose": { "const": "provision_ghost" } } },
+          "if": {
+            "required": [
+              "purpose"
+            ],
+            "properties": {
+              "purpose": {
+                "const": "provision_ghost"
+              }
+            }
+          },
           "then": {
-            "properties": { "basis": { "$ref": "#/$defs/ghost_authoring_request_basis" } },
-            "not": { "required": ["plan_digest"] }
+            "properties": {
+              "basis": {
+                "$ref": "#/$defs/ghost_authoring_request_basis"
+              }
+            },
+            "not": {
+              "required": [
+                "plan_digest"
+              ]
+            }
           }
         }
       ],

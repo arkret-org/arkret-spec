@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/authority-commit-operations.schema.json",
+  "title": "Arkret Authority Commit Operations",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/submit_request"
+    },
+    {
+      "$ref": "#/$defs/submit_outcome"
+    },
+    {
+      "$ref": "#/$defs/stream_scan_request"
+    },
+    {
+      "$ref": "#/$defs/stream_scan_outcome"
+    },
+    {
+      "$ref": "#/$defs/authority_bundle_request"
+    },
+    {
+      "$ref": "#/$defs/handoff_request"
+    }
+  ],
+  "$defs": {
+    "submit_request": {
+      "description": "One ordinary producer Event, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "event"
+          ],
+          "properties": {
+            "event": {
+              "$ref": "./event-envelope.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "$ref": "./mls-commit-submission.schema.json"
+        }
+      ]
+    },
+    "submit_outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "commit"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "committed",
+                "duplicate"
+              ]
+            },
+            "commit": {
+              "$ref": "./realm-commit.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "reason_code"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "rejected",
+                "retryable_unavailable"
+              ]
+            },
+            "reason_code": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "stream_scan_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "stream_ref",
+        "after_position",
+        "limit"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "after_position": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "additionalProperties": false
+    },
+    "stream_item": {
+      "type": "object",
+      "required": [
+        "commit",
+        "event"
+      ],
+      "properties": {
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "event": {
+          "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+        }
+      },
+      "additionalProperties": false
+    },
+    "stream_scan_outcome": {
+      "type": "object",
+      "required": [
+        "commits",
+        "truncated"
+      ],
+      "properties": {
+        "commits": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/stream_item"
+          }
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "authority_bundle_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "nonce"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "handoff_request": {
+      "type": "object",
+      "required": [
+        "handoff",
+        "final_stream_heads",
+        "snapshot",
+        "authority_bundle"
+      ],
+      "properties": {
+        "handoff": {
+          "$ref": "./realm-authority-handoff.schema.json"
+        },
+        "final_stream_heads": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+          },
+          "description": "Private state-transfer manifest whose canonical digest equals handoff.final_stream_heads_digest. It is not included in the public authority bundle."
+        },
+        "snapshot": {
+          "$ref": "./realm-state-snapshot.schema.json"
+        },
+        "authority_bundle": {
+          "$ref": "./realm-authority-bundle.schema.json"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

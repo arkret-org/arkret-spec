@@ -34,7 +34,7 @@
     {
       "name": "optional_unknown_feature_is_not_claimed",
       "input": {
-        "optional_feature": "ak.feature.example.unknown.v1"
+        "optional_feature": "example.future_optional"
       },
       "expected": {
         "decision": "omit_or_report_unsupported",

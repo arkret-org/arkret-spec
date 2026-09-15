@@ -137,7 +137,7 @@ Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制
 
 - 禁止公共 federation(MUST)。
 - 禁止公共 directory listing(MUST)。
-- frontier 交换只通过 `/_arkret/peer/events/frontier` 对 allowlist peer 开放（见 [`federation.md` §4.5.1](federation.md)）；sovereign profile 不定义匿名 frontier 探测面，避免 `frontier_root` 摘要被多次轮询推断 Realm 活跃度时间序列。
+- 逐 stream 复制只通过 `/_arkret/peer/streams/scan` 对 allowlist peer 开放（见 [`federation.md` §4.5.1](federation.md)）；sovereign profile 不定义匿名 head 探测面，避免 stream 活跃度被轮询推断。
 - Station sync surface / Directory 只接受 allowlist service DID(MUST)。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内(MUST)。
 - E2EE 默认开启(MUST);需要合规审查时使用 auditable E2EE，且必须向成员显示。

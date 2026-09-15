@@ -152,7 +152,7 @@ CbsProofBundle、exact Seal resolve、governance dependency resolve 继续承载
 普通客户端仍消费自己 Station 的结果，不取得本节证明。注册/genesis 尚无先验 Seal，仍验证完整原子 anchor unit、
 外部身份根和精确 RealmId；不能由待证明的 notary 自证其起点、PCR/controller delegation 或外部 DID。
 
-唯一新增的公共证据是 [seal-conclusion.schema.json](../../artifacts/schemas/seal-conclusion.schema.json)。
+唯一新增的公共证据是 [seal-conclusion.schema.json](../sync/authority-commit-log.md)。
 它认证已确认事实，不修改 Seal canonical bytes、Seal 签名 transcript、state_root 或既有 Merkle 树，
 不引入安全命令、独立授权、controller 权力、witness 服务或新的确认序列。原 Seal/证明可按既有方式离线验证；
 其中未获授权的正文、整 Cell、相邻叶或辅助记录不得为满足消费者重放而披露。

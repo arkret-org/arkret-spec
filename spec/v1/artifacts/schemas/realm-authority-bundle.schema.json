@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realm-authority-bundle.schema.json",
+  "title": "Arkret Realm Authority Bundle",
+  "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams.",
+  "type": "object",
+  "required": [
+    "realm_id",
+    "genesis_event",
+    "genesis_commit",
+    "authority_transitions",
+    "current_generation",
+    "current_service_id",
+    "current_route_record",
+    "realm_stream_head",
+    "bundle_issued_at",
+    "current_assertion"
+  ],
+  "properties": {
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "genesis_event": {
+      "$ref": "./event-envelope.schema.json"
+    },
+    "genesis_commit": {
+      "$ref": "./realm-commit.schema.json"
+    },
+    "authority_transitions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/authority_transition"
+      }
+    },
+    "current_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "current_service_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
+    "current_route_record": {
+      "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+    },
+    "realm_stream_head": {
+      "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+    },
+    "bundle_issued_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "current_assertion": {
+      "$ref": "#/$defs/current_assertion"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "authority_transition": {
+      "type": "object",
+      "required": [
+        "change_event",
+        "change_commit",
+        "handoff"
+      ],
+      "properties": {
+        "change_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "change_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "handoff": {
+          "$ref": "./realm-authority-handoff.schema.json"
+        }
+      },
+      "additionalProperties": false,
+      "description": "The Event must be ak.realm.governance_station.change in the Realm stream; all IDs and consecutive generations must match the handoff."
+    },
+    "current_assertion": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "current_generation",
+        "current_service_id",
+        "last_handoff_ref",
+        "realm_stream_head",
+        "nonce",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "current_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "current_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "last_handoff_ref": {
+          "oneOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/realm_authority_handoff_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "realm_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 22,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_authority_current_assertion_signature"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

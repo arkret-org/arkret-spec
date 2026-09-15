@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.5",
+  "version": "2026-09-16.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-12T06:56:52+08:00",
+  "generated_at": "2026-09-16T08:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -768,11 +768,10 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.mls.commit",
-        "ak.mls.commit_failed"
+        "ak.mls.commit"
       ],
       "profile": null,
-      "event_mapping_kind": "aggregate_admin"
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.mls.genesis",
@@ -790,33 +789,18 @@
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.keypackage"
-      ],
+      "target_event_kinds": [],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.mls.proposal",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.proposal"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "ak.mls.welcome",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.welcome"
-      ],
+      "target_event_kinds": [],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "ak.mls.welcome.own_device",
@@ -827,11 +811,9 @@
         "welcome_recipient_is_active_device_of_same_participant",
         "mls_group_matches_current_active_direct_conversation_generation"
       ],
-      "target_event_kinds": [
-        "ak.mls.welcome"
-      ],
+      "target_event_kinds": [],
       "profile": "ak.profile.direct_conversation_realm.v1",
-      "event_mapping_kind": "scope_suffix_variant",
+      "event_mapping_kind": "non_event_surface",
       "notes": "Narrow Direct Conversation participant authority for welcoming another currently authorized device of the same stable participant. It cannot add a third principal or a device of the other participant."
     },
     {
@@ -1157,11 +1139,7 @@
         "ak.realm.policy",
         "ak.realm.join_rule",
         "ak.realm.history_access",
-        "ak.realm.organization_recovery_key.register",
-        "ak.realm.organization_recovery_key.rotate",
         "ak.realm.discovery",
-        "ak.realm.digest_suite_transition",
-        "ak.realm.notary",
         "ak.realm.preview_policy",
         "ak.realm.policy_bundle",
         "ak.realm.asset_privacy_policy",
@@ -1201,19 +1179,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "operation_verb"
-    },
-    {
-      "action": "ak.realm.authority.reset",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.authority.reset"
-      ],
-      "profile": null,
-      "root_control_only": true,
-      "notes": "Advances the authority generation, invalidating every grant anchored to the previous one at read time. Destructive root control; never grantable.",
-      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.realm.create",
@@ -1323,7 +1288,6 @@
         "ak.circle.update",
         "ak.container.move_item",
         "ak.container.rebalance",
-        "ak.fork.resolution",
         "ak.invite.cancel",
         "ak.invite.claim",
         "ak.invite.create",
@@ -1335,11 +1299,7 @@
         "ak.message.revise",
         "ak.mimi.room_binding",
         "ak.mls.commit",
-        "ak.mls.commit_failed",
         "ak.mls.genesis",
-        "ak.mls.keypackage",
-        "ak.mls.proposal",
-        "ak.mls.welcome",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
         "ak.morph.archive",
@@ -1356,7 +1316,6 @@
         "ak.realm.alias",
         "ak.realm.archive",
         "ak.realm.asset_privacy_policy",
-        "ak.realm.digest_suite_transition",
         "ak.realm.discovery",
         "ak.realm.freeze",
         "ak.realm.history_access",
@@ -1364,10 +1323,7 @@
         "ak.realm.join_rule",
         "ak.realm.link",
         "ak.realm.media_service",
-        "ak.realm.notary",
         "ak.realm.organization",
-        "ak.realm.organization_recovery_key.register",
-        "ak.realm.organization_recovery_key.rotate",
         "ak.realm.plaintext_visible_services",
         "ak.realm.policy",
         "ak.realm.policy_bundle",
@@ -1379,7 +1335,6 @@
         "ak.realm.search_policy",
         "ak.realm.set_default_strand",
         "ak.realm.unfreeze",
-        "ak.realm.upgrade",
         "ak.redaction",
         "ak.relation.create",
         "ak.relation.resolve",
@@ -1435,7 +1390,6 @@
         "ak.container.move_item",
         "ak.container.rebalance",
         "ak.event.read",
-        "ak.fork.resolution",
         "ak.invite.cancel",
         "ak.invite.claim",
         "ak.invite.create",
@@ -1450,7 +1404,6 @@
         "ak.mls.commit",
         "ak.mls.genesis",
         "ak.mls.keypackage",
-        "ak.mls.proposal",
         "ak.mls.welcome",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
@@ -1487,7 +1440,6 @@
         "ak.realm.preview_policy",
         "ak.realm.profile",
         "ak.realm.set_default_strand",
-        "ak.realm.upgrade",
         "ak.receipt.broadcast",
         "ak.relation.create",
         "ak.relation.resolve",
@@ -1643,17 +1595,6 @@
       ],
       "target_event_kinds": [
         "ak.realm.profile"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.realm.upgrade",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.upgrade"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
@@ -1988,17 +1929,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.fork.resolution",
-      "category": "general",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.fork.resolution"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.consent.grant",
       "category": "personal",
       "risk_tier": "high",
@@ -2199,6 +2129,18 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.governance_station.change",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.governance_station.change"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "root_control_only": true
     }
   ],
   "event_mapping_kind_definitions": {

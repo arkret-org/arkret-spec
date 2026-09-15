@@ -458,39 +458,9 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             raise SystemExit(f"contract registry missing section {section}")
         section_payload = copy.deepcopy(section_payload)
         if section == "event_kind_registry":
-            cell_contracts = section_payload.pop("cell_contracts", None)
-            if not isinstance(cell_contracts, dict):
-                raise SystemExit("event_kind_registry missing cell_contracts object")
             event_rows = section_payload.get("event_kinds")
             if not isinstance(event_rows, list):
                 raise SystemExit("event_kind_registry.event_kinds must be an array")
-            known_kinds = {
-                event_row.get("event_kind")
-                for event_row in event_rows
-                if isinstance(event_row, dict)
-            }
-            unknown_contracts = sorted(set(cell_contracts) - known_kinds)
-            if unknown_contracts:
-                raise SystemExit(
-                    "cell_contracts references unknown event kinds: "
-                    + ", ".join(unknown_contracts)
-                )
-            for event_row in event_rows:
-                if not isinstance(event_row, dict):
-                    continue
-                event_kind = event_row.get("event_kind")
-                contract = cell_contracts.get(event_kind)
-                if contract is None:
-                    continue
-                if not isinstance(contract, dict):
-                    raise SystemExit(f"cell contract for {event_kind} must be an object")
-                overlapping = sorted(set(event_row) & set(contract))
-                if overlapping:
-                    raise SystemExit(
-                        f"cell contract for {event_kind} overlaps inline fields: "
-                        + ", ".join(overlapping)
-                    )
-                event_row.update(copy.deepcopy(contract))
         elif section == "id_kind_registry":
             templates = section_payload.get("wire_form_generation")
             id_rows = section_payload.get("id_kinds")
@@ -1341,7 +1311,6 @@ def run_long_text_schema_test() -> int:
         [sys.executable, "-m", "unittest", "tools.test_long_text_schema",
          "tools.test_private_transfer_and_view_schema",
          "tools.test_encrypted_envelope_schema",
-         "tools.test_device_history_evidence_schema",
          "tools.test_agent_pairing_bootstrap_schema"], cwd=ROOT
     )
     return result.returncode
@@ -1381,11 +1350,7 @@ def run_operation_closure_locks(mode: str) -> int:
 
 def cmd_generate(_: argparse.Namespace) -> int:
     synchronize_event_admission(ROOT, check=False)
-    current_values_status = subprocess.run(
-        [sys.executable, str(ROOT / "tools/generate_current_result_values.py")], cwd=ROOT
-    ).returncode
     write_capability_action_derivations()
-    write_authorization_dependency_schema()
     write_id_wire_form_derivations()
     write_openapi_policy_projection()
     selector_status = run_openapi_operation_selector("generate")
@@ -1404,7 +1369,6 @@ def cmd_generate(_: argparse.Namespace) -> int:
         [
             name
             for name, status in (
-                ("current result value mappings", current_values_status),
                 ("openapi operation selector", selector_status),
                 ("operation closure locks", closure_status),
                 ("operation completeness report", completeness_status),
@@ -1437,7 +1401,6 @@ def verdict(command: str, failed: Sequence[str]) -> int:
 
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_capability_action_derivations()
-    errors.extend(check_authorization_dependency_schema())
     try:
         synchronize_event_admission(ROOT, check=True)
     except ValueError as exc:
@@ -1457,20 +1420,8 @@ def cmd_check(_: argparse.Namespace) -> int:
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     checks = (
-        ("Seal commit certificate KAT", lambda: subprocess.run([sys.executable, "tools/regenerate_seal_certificate_fixture.py", "--check"], cwd=ROOT).returncode),
-        ("snapshot state digest KAT", lambda: subprocess.run([sys.executable, "tools/regenerate_snapshot_state_fixture.py", "--check"], cwd=ROOT).returncode),
-        ("single-authority read conclusions", lambda: subprocess.run([sys.executable, "-m", "tools.test_seal_conclusions"], cwd=ROOT).returncode),
-        ("residual simplification", lambda: subprocess.run([sys.executable, "-m", "tools.test_residual_simplification"], cwd=ROOT).returncode),
-        ("protocol simplification", lambda: subprocess.run([sys.executable, "-m", "tools.test_protocol_simplification"], cwd=ROOT).returncode),
-        ("scoped execution and causal state", lambda: subprocess.run([sys.executable, "-m", "tools.test_seal_scope_contract"], cwd=ROOT).returncode),
-        ("independent admission and historical eligibility", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_event_admission_contract.py")], cwd=ROOT).returncode),
-        ("current result atomic budget", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_result_budget.py")], cwd=ROOT).returncode),
-        ("self signer result schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_self_signer_result_schema.py")], cwd=ROOT).returncode),
+        ("authority commit protocol", lambda: subprocess.run([sys.executable, "-m", "tools.test_authority_commit_protocol"], cwd=ROOT).returncode),
         ("current principal schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode),
-        ("service binding result schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_service_binding_result_schema.py")], cwd=ROOT).returncode),
-        ("current result value mappings", lambda: subprocess.run(
-            [sys.executable, str(ROOT / "tools/generate_current_result_values.py"), "--check"], cwd=ROOT
-        ).returncode),
         ("openapi operation selector", lambda: run_openapi_operation_selector("check")),
         ("operation closure locks", lambda: run_operation_closure_locks("check")),
         ("operation completeness report", lambda: run_operation_completeness_report("check")),
@@ -1488,7 +1439,6 @@ def cmd_check(_: argparse.Namespace) -> int:
         ("session grant KAT", run_session_grant_kat_check),
         ("contact round KAT", run_contact_round_kat_check),
         ("handle claim KAT", run_handle_claim_kat_check),
-        ("human Control signer evidence KAT", run_human_control_signer_evidence_kat_check),
         ("artifact versions", run_artifact_version_check),
         ("artifact lint", run_lint),
         ("prose lint", run_prose_lint),

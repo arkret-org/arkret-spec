@@ -12,12 +12,10 @@
       "schemas/account-operations.schema.json#/$defs/account_registration_invitation_policy",
       "schemas/account-operations.schema.json#/$defs/account_registration_rate_limit_policy",
       "schemas/account-operations.schema.json#/$defs/account_registration_verification_policy",
-      "schemas/event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext",
       "schemas/file-transfer.schema.json#/$defs/file_transfer_key_message",
       "schemas/file-transfer.schema.json#/$defs/key_envelope",
       "schemas/object-addressing.schema.json#/$defs/address_link_kind",
       "schemas/object-addressing.schema.json#/$defs/signed_address_link_token_claims",
-      "schemas/service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims",
       "schemas/string-profiles.schema.json#/$defs/canonical_domain"
     ]
   }

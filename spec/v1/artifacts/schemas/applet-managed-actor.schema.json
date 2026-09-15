@@ -6,19 +6,34 @@
   "$defs": {
     "ghost_external_tuple": {
       "type": "object",
-      "required": ["protocol", "instance_id", "external_id"],
+      "required": [
+        "protocol",
+        "instance_id",
+        "external_id"
+      ],
       "properties": {
-        "protocol": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$" },
+        "protocol": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
         "instance_id": {
           "allOf": [
-            { "$ref": "./account-operations.schema.json#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+            {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
           ]
         },
         "external_id": {
           "allOf": [
-            { "$ref": "./account-operations.schema.json#/$defs/non_empty_string" },
-            { "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor" }
+            {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
           ]
         }
       },

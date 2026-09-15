@@ -11,8 +11,12 @@
     "accepted_signing_keys"
   ],
   "properties": {
-    "did": { "$ref": "./common-ids.schema.json#/$defs/did" },
-    "document_digest": { "$ref": "./account-operations.schema.json#/$defs/sha256_digest" },
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "document_digest": {
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+    },
     "method_version_evidence": {
       "$ref": "./applet-registration-epoch-transcript.schema.json#/$defs/did_method_version"
     },
@@ -30,17 +34,31 @@
       "oneOf": [
         {
           "properties": {
-            "did": { "$ref": "./common-ids.schema.json#/$defs/webvh_did" },
+            "did": {
+              "$ref": "./common-ids.schema.json#/$defs/webvh_did"
+            },
             "method_version_evidence": {
-              "properties": { "method": { "const": "did:webvh" } }
+              "properties": {
+                "method": {
+                  "const": "did:webvh"
+                }
+              }
             }
           }
         },
         {
           "properties": {
-            "did": { "type": "string", "pattern": "^did:key:[^\\s/?#]+$", "maxLength": 2048 },
+            "did": {
+              "type": "string",
+              "pattern": "^did:key:[^\\s/?#]+$",
+              "maxLength": 2048
+            },
             "method_version_evidence": {
-              "properties": { "method": { "const": "did:key" } }
+              "properties": {
+                "method": {
+                  "const": "did:key"
+                }
+              }
             }
           }
         }

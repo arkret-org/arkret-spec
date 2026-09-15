@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/mls-welcome-delivery.schema.json",
+  "title": "Arkret MLS Welcome Delivery",
+  "description": "Producer-signed recipient delivery queued atomically with its winning MLS Commit. This is not a shared Realm Event and does not receive an independent RealmCommit.",
+  "type": "object",
+  "required": [
+    "welcome_id",
+    "realm_id",
+    "effective_scope",
+    "commit_event_ref",
+    "recipient_actor_id",
+    "recipient_endpoint",
+    "keypackage_claim_ref",
+    "ciphertext_b64",
+    "producer_proof"
+  ],
+  "properties": {
+    "welcome_id": {
+      "$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id"
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "effective_scope": {
+      "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+    },
+    "commit_event_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id"
+    },
+    "recipient_actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+    },
+    "recipient_endpoint": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "device_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "device"
+            },
+            "device_id": {
+              "$ref": "./common-ids.schema.json#/$defs/device_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "verification_method"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_runtime"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "keypackage_claim_ref": {
+      "type": "string",
+      "pattern": "^ak:keypackage_claim:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "ciphertext_b64": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "producer_proof": {
+      "$ref": "./detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature"
+    }
+  },
+  "additionalProperties": false
+}

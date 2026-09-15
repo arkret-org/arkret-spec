@@ -550,7 +550,7 @@ Arkret Station 向 Applet 推送 Event/Signal 批次，或按 §7.3.2 交付已�
       "scope_ref": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
       "sender_actor_id": "ak:did_core:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
       "sender_device_id": "ak:device:019640ed-8000-7000-8000-000000000001",
-      "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "seal_ref": "ak:realm_commit:sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "signal_class": "session",
       "sent_at": "2026-07-30T12:00:00Z",
       "expires_at": "2026-07-30T12:00:30Z",

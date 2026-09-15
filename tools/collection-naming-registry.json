@@ -27,16 +27,6 @@
       "reason": "authentication is the W3C DID Core verification-relationship collective name retained by the normalized projection; its closed array entries each carry one verification_method reference"
     },
     {
-      "file": "agent-signer-evidence.schema.json",
-      "pointer": "/$defs/key_state_witness/properties/cell_value",
-      "reason": "closed canonical cell-value tuple, not a collection of role objects"
-    },
-    {
-      "file": "agent-signer-evidence.schema.json",
-      "pointer": "/$defs/key_transition_witness/properties/cell_value",
-      "reason": "closed canonical cell-value tuple, not a collection of role objects"
-    },
-    {
       "file": "calendar-event.schema.json",
       "pointer": "/$defs/recurrence/properties/by_day",
       "reason": "registered recurrence grammar operator whose array value is one by-day expression"
@@ -80,81 +70,6 @@
       "file": "view.schema.json",
       "pointer": "/$defs/collection_config/properties/item_order_by",
       "reason": "registered ordered collection clause grammar; item_order_by names the whole ordered clause"
-    },
-    {
-      "file": "realm-state-snapshot-chunk.schema.json",
-      "pointer": "/properties/soft_failed",
-      "reason": "role stem pinned by the manifest's verification_hints.soft_failed_digest and by the realm-state-snapshot-schema.md section 6 gap_attribution category literal soft_failed; each row is one non_accepted_input reference, and a second spelling such as soft_failed_inputs would split one wire vocabulary in two"
-    },
-    {
-      "file": "realm-state-snapshot-chunk.schema.json",
-      "pointer": "/properties/quarantined",
-      "reason": "role stem pinned by the manifest's verification_hints.quarantined_digest and by the realm-state-snapshot-schema.md section 6 gap_attribution category literal quarantined; each row is one non_accepted_input reference"
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/15/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/19/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/24/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/25/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/31/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/34/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/35/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/42/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/51/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/56/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "account-current-result.schema.json",
-      "pointer": "/$defs/entry/allOf/57/then/properties/result/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "realm-state-snapshot-chunk.schema.json",
-      "pointer": "/$defs/log_state/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
-    },
-    {
-      "file": "realm-state-snapshot-chunk.schema.json",
-      "pointer": "/$defs/counter_state/properties/value",
-      "reason": "This fixed slot carries one complete registry-typed Cell value. Its family or state_model discriminator fixes the scalar or collection representation; it is not an untyped object identifier."
     }
   ],
   "pagination_objects": [
@@ -189,11 +104,11 @@
     {
       "file": "account-subscribe-frame.schema.json",
       "pointer": "/$defs/timeline",
-      "collection_field": "events",
+      "collection_field": "commits",
       "companion_fields": [
         "limited"
       ],
-      "reason": "timeline.limited reports truncation of timeline events; ordered_log_siblings is independent diagnostics"
+      "reason": "timeline.limited reports truncation of authority commits"
     },
     {
       "file": "account-subscribe-frame.schema.json",
@@ -285,33 +200,6 @@
       "reason": "directory user search paginates user results"
     },
     {
-      "file": "history-key.schema.json",
-      "pointer": "/$defs/history_key_request_list_outcome",
-      "collection_field": "requests",
-      "companion_fields": [
-        "limited"
-      ],
-      "reason": "history-key request list truncation applies to requests"
-    },
-    {
-      "file": "history-key.schema.json",
-      "pointer": "/$defs/history_key_response_list_outcome",
-      "collection_field": "entries",
-      "companion_fields": [
-        "limited"
-      ],
-      "reason": "entries are true response-log entries and limited reports their truncation"
-    },
-    {
-      "file": "history-key.schema.json",
-      "pointer": "/$defs/organization_recovery_archive_list_outcome",
-      "collection_field": "items",
-      "companion_fields": [
-        "limited"
-      ],
-      "reason": "the archive list paginates heterogeneous items"
-    },
-    {
       "file": "keys-operations.schema.json",
       "pointer": "/$defs/keys_backups_list",
       "collection_field": "backups",
@@ -362,26 +250,6 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/EventsQueryOutcome",
-      "collection_field": "events",
-      "companion_fields": [
-        "has_more",
-        "next_cursor"
-      ],
-      "reason": "event query outcome paginates events"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/PeerEventsQueryOutcome",
-      "collection_field": "events",
-      "companion_fields": [
-        "has_more",
-        "next_cursor"
-      ],
-      "reason": "peer event query outcome paginates events without the self-only snapshot bootstrap"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
       "pointer": "/$defs/IdentityLogListOutcome",
       "collection_field": "entries",
       "companion_fields": [
@@ -421,15 +289,6 @@
       "reason": "projection strand list paginates strands"
     },
     {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/PcrPendingControlOutcome",
-      "collection_field": "event_digests",
-      "companion_fields": [
-        "has_more"
-      ],
-      "reason": "has_more describes only the bounded pending Control Move selection, not the predecessor basis"
-    },
-    {
       "file": "account-subscribe-frame.schema.json",
       "pointer": "/$defs/realm_list_page",
       "collection_field": "items",
@@ -437,24 +296,6 @@
         "next_cursor"
       ],
       "reason": "Account Realm summaries paginate a frozen account-private snapshot; absence of next_cursor marks its terminal page."
-    },
-    {
-      "file": "mls-welcome-refs.schema.json",
-      "pointer": "/$defs/welcome_refs_outcome",
-      "collection_field": "welcome_refs",
-      "companion_fields": [
-        "next_cursor"
-      ],
-      "reason": "Authenticated recipient discovery paginates only Welcome Event references."
-    },
-    {
-      "file": "realm-join-intake.schema.json",
-      "pointer": "/$defs/peer_bootstrap_outcome",
-      "collection_field": "records",
-      "companion_fields": [
-        "next_cursor"
-      ],
-      "reason": "Request-authorized governance replay records share one frozen basis and opaque continuation cursor."
     }
   ]
 }
