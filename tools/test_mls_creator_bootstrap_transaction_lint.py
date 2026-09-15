@@ -160,6 +160,88 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
             errors,
         )
 
+    def test_amendment_allowed_after_realm_accepted_fails(self) -> None:
+        # The ruling confines in-place amendment to genesis_intent_persisted: from
+        # realm_accepted on, the pinned governance outcome and the
+        # selector-dependent random material already depend on the selector.
+        def mutate(registry):
+            for row in registry["states"]:
+                if row["state_id"] == "realm_accepted":
+                    row["amendment_rule"] = "closed_intent_atomic_replacement"
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(
+            any("realm_accepted" in error and "amend" in error for error in errors),
+            errors,
+        )
+
+    def test_late_state_amendment_without_a_self_arrow_still_fails(self) -> None:
+        # Marking a late state amendable without registering its arrow must not
+        # slip through the arrow-coverage check by having no arrow at all.
+        def mutate(registry):
+            for row in registry["states"]:
+                if row["state_id"] == "genesis_queued":
+                    row["amendment_rule"] = "closed_intent_atomic_replacement"
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(
+            any("genesis_queued" in error for error in errors),
+            errors,
+        )
+
+    def test_amendment_arrow_without_crash_cases_fails(self) -> None:
+        def mutate(fixture):
+            fixture["crash_cases"] = [
+                case
+                for case in fixture["crash_cases"]
+                if case["transition"] != "genesis_intent_persisted_to_genesis_intent_persisted"
+            ]
+
+        errors = self._run(mutate_fixture=mutate)
+        self.assertTrue(
+            any(
+                "genesis_intent_persisted_to_genesis_intent_persisted" in error
+                for error in errors
+            ),
+            errors,
+        )
+
+    def test_amendable_record_identity_field_fails(self) -> None:
+        def mutate(registry):
+            registry["selector_amendment"]["amendable_fields"].append("effective_scope")
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(
+            any("effective_scope" in error for error in errors),
+            errors,
+        )
+
+    def test_sidecar_scope_not_excluded_fails(self) -> None:
+        def mutate(registry):
+            registry["scope_kind_applicability"]["applicable_scope_kinds"] = [
+                "realm",
+                "circle",
+                "sidecar",
+            ]
+            registry["scope_kind_applicability"]["excluded_scope_kinds"] = []
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(
+            any("sidecar" in error for error in errors),
+            errors,
+        )
+
+    def test_silent_scope_kind_fails(self) -> None:
+        def mutate(registry):
+            registry["scope_kind_applicability"]["excluded_scope_kinds"] = ["sidecar"]
+            registry["scope_kind_applicability"]["applicable_scope_kinds"] = ["realm"]
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(
+            any("every registered effective_scope kind" in error for error in errors),
+            errors,
+        )
+
     def test_terminal_failure_state_with_an_exit_fails(self) -> None:
         def mutate(registry):
             for row in registry["states"]:

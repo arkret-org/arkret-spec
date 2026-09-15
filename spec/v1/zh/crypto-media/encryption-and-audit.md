@@ -840,6 +840,10 @@ Welcome／设备迁移／恢复路径，MUST NOT 接管该记录重新生成材�
 本地锁、UI 去重与 effect 去抖 MUST NOT 被当作协议互斥，跨设备的最终互斥仍然只由同 effective scope 唯一 accepted
 Genesis 的服务端槽位提供。
 
+**适用 scope kind**：本事务只适用于 `effective_scope.kind` 为 `realm` 与 `circle` 的 scope；机读真源是 registry 的
+`scope_kind_applicability`。`effective_scope.kind="sidecar"` 保持 §2.5.1 的独立握手 profile，本节不改变 Sidecar 合同：
+客户端 MUST NOT 为 sidecar scope 开启、重入或索引该记录，也 MUST NOT 把 Sidecar 握手读成本状态机的一次实例。
+
 **状态顺序**：正式顺序是 `genesis_intent_persisted -> realm_accepted -> governance_result_pinned ->
 epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready`。已 accepted 但尚无
 Genesis 的 MLS Realm MAY 带着 `genesis_intent_persisted -> realm_accepted` 已满足的后置条件进入该事务；无论入口在
@@ -861,6 +865,20 @@ MUST NOT 被解释为授权任何 peer、Station 或 federation 对端采信另�
 `ak.realm.profile`、`ak.realm.history_access` facet 与任何 current/UI projection MUST NOT 复制这两个 selector，也
 MUST NOT 被用来反推它们。v1 不登记任何从 facet、projection 或旧 UI 组合窄推断 selector 的兼容分支；缺正式记录的
 旧本地数据按已有 accepted Genesis 收敛、明确无 Genesis 时显式废弃重建、accepted 状态未知时保持不可写。
+
+**selector 的就地修改**：创建者 MAY 在 `genesis_intent_persisted` 状态内改变该选择，且**仅限该状态**；机读真源是
+registry 的 `selector_amendment` 与各 state 的 `amendment_rule`，箭头是自环 transition
+`genesis_intent_persisted_to_genesis_intent_persisted`。修改 MUST 是整份 closed intent（`content_scheme`、
+`durability_policy` 与由其派生的 `proposed_group_genesis_binding`）在同一 logical key 下的**一次原子耐久替换**，
+MUST NOT 是只改其中一个 selector 的部分 patch；替换同样 MUST 先于 0→0 governance query 与任何依赖该 selector 的
+随机材料。logical key、immutable 的 creator device 与 signer method、已冻结的 exact signed Realm-create unit 及由其
+派生的 create Event id MUST 保持不变，因此这不是第二次 attempt，也不开第二条 active 记录。之所以此时可改：
+`content_scheme` 与 `durability_policy` 按构造**不在** Realm create payload 内（本节与
+[`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md) 明令禁止携带），替换它们不会使已签名或在途的
+create unit 失效；而依赖这两个 selector 的随机材料与 governance pin 都发生在 `realm_accepted` 之后，因此在
+`genesis_intent_persisted` 内创建者尚未选定任何外部可观察的事实。进入 `realm_accepted` 及其后的任何状态（含全部终态）
+后，closed intent 即 immutable：MUST NOT 就地修改，只能走完本次 attempt，或进入终态后按 `rejected` 规则开启新的
+attempt generation——而新 generation 的 selector 仍继承原 durable intent。
 
 **原子 cut point**：registry `atomic_cut_points[]` 逐条登记，判定要点为：
 

@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
-      "version": "2026-09-15",
-      "generated_at": "2026-09-15T21:40:00+08:00",
-      "content_digest": "sha256:02f31a4a61f7820b44278bece1e88e9a01ae2af0e9edcaac70ce77a1ff778d9f"
+      "version": "2026-09-15.2",
+      "generated_at": "2026-09-15T23:10:00+08:00",
+      "content_digest": "sha256:bf0fd451fa9131c11d387a8ce10652a60d515498e12067ee46cf0d1c894e7f93"
     },
     {
       "path": "spec/v1/artifacts/registry/mls-extension-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-15.4",
-      "generated_at": "2026-09-15T22:10:00+08:00",
-      "content_digest": "sha256:17739365768c99d7efe273d4f87b4d603bd4518fc8cfb38e7f0287c76e705522"
+      "version": "2026-09-15.5",
+      "generated_at": "2026-09-15T23:10:00+08:00",
+      "content_digest": "sha256:eec37f20443aa9691d067ac64d42265c29c1cb39b7839320dc9c198c2bb3c1f9"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",

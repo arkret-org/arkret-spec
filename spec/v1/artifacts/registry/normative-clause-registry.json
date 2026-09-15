@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.4",
+  "version": "2026-09-15.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T22:10:00+08:00",
+  "generated_at": "2026-09-15T23:10:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -697,8 +697,8 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建者-bootstrap-transactionnormative",
-      "section_digest": "sha256:9a8521e3018d98517511eac92de62a7a24d7721ba06c9a517437a5384ba074b5",
-      "requirement": "A creator client keeps exactly one client-local durable transaction per (owner_actor_id, effective_scope, operation=mls_genesis) and advances it only along the registered arrows genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. The selector is persisted before the first Realm-create side effect, before any 0->0 query and before any selector-dependent randomness; the signed Genesis bytes and the outbound queue item are established atomically; ready and the send-gate index are published atomically. Only an exact accepted Event proves completion, the record never reaches a wire, projection, Account Data key, sync or federation surface, and it never authorizes a peer to trust another party's local state.",
+      "section_digest": "sha256:490856cbae0f0a4010d9a3a273608ed6277ff708addf34ec3e11aefe4e488799",
+      "requirement": "A creator client keeps exactly one client-local durable transaction per (owner_actor_id, effective_scope, operation=mls_genesis) for a realm or circle scope, never for a sidecar scope, and advances it only along the registered arrows genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. The selector is persisted before the first Realm-create side effect, before any 0->0 query and before any selector-dependent randomness; while the record is still at genesis_intent_persisted the whole closed creation intent MAY be replaced in one atomic durable commit and it is immutable from realm_accepted on; the signed Genesis bytes and the outbound queue item are established atomically; ready and the send-gate index are published atomically. Only an exact accepted Event proves completion, the record never reaches a wire, projection, Account Data key, sync or federation surface, and it never authorizes a peer to trust another party's local state.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.creator_bootstrap_recovery.v1"

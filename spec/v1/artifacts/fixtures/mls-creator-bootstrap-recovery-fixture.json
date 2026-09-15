@@ -16,7 +16,8 @@
     "the accepted Genesis bytes are byte-identical to the bytes frozen in the outbound queue item",
     "deleting every current and UI projection before the recoverer runs does not change any outcome",
     "no run reaches write-ready from an HTTP success, a duplicate code, a queue item, an emitted flag or a page projection",
-    "no run writes this record or any of its fields onto a Realm Event, a current projection, an Account Data key, a sync surface or a federation surface"
+    "no run writes this record or any of its fields onto a Realm Event, a current projection, an Account Data key, a sync surface or a federation surface",
+    "no run amends the closed creation intent at or after realm_accepted, and no run opens a second record for the same logical key when the selector changes at genesis_intent_persisted"
   ],
   "crash_cases": [
     {
@@ -41,6 +42,31 @@
         "the record carries the complete owner_actor_id, the canonical effective_scope and operation=mls_genesis",
         "content_scheme, the conditional durability_policy and the complete closed proposed_group_genesis_binding are readable without any projection",
         "the create Event id is derived from the frozen signed unit, not from a server response"
+      ]
+    },
+    {
+      "name": "genesis_intent_persisted_to_genesis_intent_persisted__crash_before_commit",
+      "transition": "genesis_intent_persisted_to_genesis_intent_persisted",
+      "injection": "pre_commit",
+      "expected_state": "genesis_intent_persisted",
+      "expected": "resume_from_the_previous_closed_intent",
+      "invariants": [
+        "the replacement never became durable, so the previously committed content_scheme, durability_policy and proposed_group_genesis_binding are still the only readable intent",
+        "a selector the user picked but the client never committed authorizes nothing and is not recovered from UI state",
+        "no second record exists for the same (owner_actor_id, effective_scope, operation) key"
+      ]
+    },
+    {
+      "name": "genesis_intent_persisted_to_genesis_intent_persisted__crash_after_commit",
+      "transition": "genesis_intent_persisted_to_genesis_intent_persisted",
+      "injection": "post_commit",
+      "expected_state": "genesis_intent_persisted",
+      "expected": "resume_from_the_replaced_closed_intent",
+      "invariants": [
+        "the whole closed intent was replaced atomically; no run observes the new content_scheme beside the old durability_policy or the old proposed_group_genesis_binding",
+        "the superseded selector is no longer readable and is never used to rebuild the 0->0 query",
+        "the logical key, the immutable creator device and signer method, the frozen signed Realm-create unit and the create Event id derived from it are unchanged",
+        "the replacement precedes the 0->0 governance query and every selector-dependent random material"
       ]
     },
     {
@@ -205,6 +231,17 @@
   ],
   "scenario_cases": [
     {
+      "name": "selector_amendment_at_genesis_intent_persisted",
+      "given": "the record is at genesis_intent_persisted with content_scheme=mls_exporter_aead_v1 and a durability_policy, and the creator changes the choice to mls_rfc9420 before any 0->0 query",
+      "action": "commit the replacement intent and run the recoverer after a reload",
+      "expected": "resume_from_the_replaced_closed_intent",
+      "invariants": [
+        "the whole closed intent including proposed_group_genesis_binding is replaced in one durable commit, never patched field by field",
+        "the already signed ak.realm.create unit stays valid because its closed payload carries neither selector",
+        "no second active record and no second attempt generation is created"
+      ]
+    },
+    {
       "name": "realm_create_response_loss",
       "given": "the record is at genesis_intent_persisted and the ak.realm.create response is dropped",
       "action": "reload the client and run the recoverer",
@@ -314,6 +351,17 @@
         "automatic authoring, queue retry and the send gate all stop",
         "clearing a flag and starting over is refused",
         "original recovery material is not erased automatically"
+      ]
+    },
+    {
+      "name": "selector_amendment_after_realm_accepted",
+      "given": "the record has reached realm_accepted and the creator asks for a different content_scheme",
+      "action": "attempt to replace the closed creation intent",
+      "expected": "fail_closed",
+      "invariants": [
+        "the durable intent is unchanged and no partial field is written",
+        "the only legal continuations are finishing this attempt or reaching a terminal state and opening a new attempt generation",
+        "a new attempt generation inherits the selector from the original durable intent and never re-reads it from UI state, a default, a Realm profile or a facet"
       ]
     }
   ]

@@ -5836,11 +5836,35 @@ MLS_CREATOR_BOOTSTRAP_STATE_KEYS = (
     "authority_source",
     "entry_predicate",
     "required_durable_fields",
+    "amendment_rule",
     "allowed_exits",
     "retry_rule",
     "gc_rule",
     "failure_disposition",
 )
+
+MLS_CREATOR_BOOTSTRAP_AMENDMENT_RULES = frozenset(
+    {"closed_intent_atomic_replacement", "forbidden"}
+)
+
+MLS_CREATOR_BOOTSTRAP_AMENDMENT_KEYS = (
+    "amendable_state",
+    "forbidden_from_state",
+    "transition_id",
+    "granularity",
+    "amendable_fields",
+    "immutable_fields",
+    "rationale",
+    "exit_rule",
+)
+
+MLS_CREATOR_BOOTSTRAP_SCOPE_KIND_KEYS = (
+    "applicable_scope_kinds",
+    "excluded_scope_kinds",
+    "rule",
+)
+
+MLS_CREATOR_BOOTSTRAP_SCOPE_KINDS = ("realm", "circle", "sidecar")
 
 MLS_CREATOR_BOOTSTRAP_TRANSITION_KEYS = (
     "transition_id",
@@ -5867,6 +5891,8 @@ MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER = (
 )
 
 MLS_CREATOR_BOOTSTRAP_SCENARIOS = (
+    "selector_amendment_at_genesis_intent_persisted",
+    "selector_amendment_after_realm_accepted",
     "realm_create_response_loss",
     "governance_query_response_loss",
     "public_blob_partial_upload",
@@ -5878,6 +5904,171 @@ MLS_CREATOR_BOOTSTRAP_SCENARIOS = (
     "terminal_reject",
     "local_corruption",
 )
+
+
+def check_mls_creator_bootstrap_scope_kinds(
+    lint: Lint, registry_path: Path, registry: dict[str, Any]
+) -> None:
+    """Refuse a creator bootstrap registry that stays silent about Sidecar scopes.
+
+    encryption-and-audit.md section 2.5.1 gives effective_scope.kind="sidecar" its
+    own handshake profile. A registry that only says "effective scope" invites an
+    implementation to drive a Sidecar through this FSM, so the applicable kinds are
+    stated positively and the excluded kind is named.
+    """
+
+    block = registry.get("scope_kind_applicability")
+    if not isinstance(block, dict):
+        lint.fail(registry_path, "scope_kind_applicability must be an object")
+        return
+    if tuple(block.keys()) != MLS_CREATOR_BOOTSTRAP_SCOPE_KIND_KEYS:
+        lint.fail(
+            registry_path,
+            "scope_kind_applicability must declare exactly "
+            f"{list(MLS_CREATOR_BOOTSTRAP_SCOPE_KIND_KEYS)} in that order",
+        )
+        return
+    applicable = block["applicable_scope_kinds"]
+    excluded = block["excluded_scope_kinds"]
+    for key, value in (("applicable_scope_kinds", applicable), ("excluded_scope_kinds", excluded)):
+        if not isinstance(value, list) or len(set(value)) != len(value):
+            lint.fail(
+                registry_path,
+                f"scope_kind_applicability.{key} must be a duplicate-free array",
+            )
+            return
+    if not applicable:
+        lint.fail(registry_path, "scope_kind_applicability.applicable_scope_kinds must be non-empty")
+        return
+    unknown = sorted((set(applicable) | set(excluded)) - set(MLS_CREATOR_BOOTSTRAP_SCOPE_KINDS))
+    if unknown:
+        lint.fail(registry_path, f"scope_kind_applicability names unregistered scope kinds: {unknown}")
+    if set(applicable) & set(excluded):
+        lint.fail(registry_path, "a scope kind cannot be both applicable and excluded")
+    if set(applicable) | set(excluded) != set(MLS_CREATOR_BOOTSTRAP_SCOPE_KINDS):
+        lint.fail(
+            registry_path,
+            "scope_kind_applicability must take a position on every registered effective_scope kind "
+            f"{list(MLS_CREATOR_BOOTSTRAP_SCOPE_KINDS)}",
+        )
+    if "sidecar" not in excluded:
+        lint.fail(
+            registry_path,
+            "sidecar MUST be excluded: encryption-and-audit.md section 2.5.1 keeps its independent "
+            "handshake profile and this transaction does not change the Sidecar contract",
+        )
+    rule = block["rule"]
+    if not isinstance(rule, str) or "sidecar" not in rule:
+        lint.fail(registry_path, "scope_kind_applicability.rule must state the Sidecar exclusion")
+
+
+def check_mls_creator_bootstrap_amendment(
+    lint: Lint,
+    registry_path: Path,
+    registry: dict[str, Any],
+    state_rows: dict[str, dict[str, Any]],
+) -> str | None:
+    """Keep in-place selector amendment confined to genesis_intent_persisted.
+
+    The ruling allows a creator to replace the whole closed creation intent while
+    nothing outside the device can have observed it, and forbids it from
+    realm_accepted on, where the pinned governance outcome and the
+    selector-dependent random material already exist. The decay this refuses is a
+    registry that keeps the prose but quietly lets a later state stay amendable.
+    """
+
+    block = registry.get("selector_amendment")
+    if not isinstance(block, dict):
+        lint.fail(registry_path, "selector_amendment must be an object")
+        return None
+    if tuple(block.keys()) != MLS_CREATOR_BOOTSTRAP_AMENDMENT_KEYS:
+        lint.fail(
+            registry_path,
+            f"selector_amendment must declare exactly {list(MLS_CREATOR_BOOTSTRAP_AMENDMENT_KEYS)} in that order",
+        )
+        return None
+    for key in ("amendable_state", "forbidden_from_state", "transition_id", "granularity", "rationale", "exit_rule"):
+        if not isinstance(block[key], str) or not block[key].strip():
+            lint.fail(registry_path, f"selector_amendment.{key} must be a non-empty string")
+            return None
+    amendable_state = block["amendable_state"]
+    forbidden_from_state = block["forbidden_from_state"]
+    for key, value in (("amendable_state", amendable_state), ("forbidden_from_state", forbidden_from_state)):
+        if value not in state_rows:
+            lint.fail(registry_path, f"selector_amendment.{key} is not a registered state: {value!r}")
+            return None
+    if block["transition_id"] != f"{amendable_state}_to_{amendable_state}":
+        lint.fail(
+            registry_path,
+            f"selector_amendment.transition_id must be {amendable_state}_to_{amendable_state}",
+        )
+    for key in ("amendable_fields", "immutable_fields"):
+        value = block[key]
+        if not isinstance(value, list) or not value or len(set(value)) != len(value) or not all(
+            isinstance(item, str) and item.strip() for item in value
+        ):
+            lint.fail(
+                registry_path,
+                f"selector_amendment.{key} must be a non-empty duplicate-free array of non-empty strings",
+            )
+            return None
+    overlap = sorted(set(block["amendable_fields"]) & set(block["immutable_fields"]))
+    if overlap:
+        lint.fail(registry_path, f"selector_amendment lists the same field as amendable and immutable: {overlap}")
+    identity = registry.get("record_identity")
+    if isinstance(identity, dict):
+        locked = set(identity.get("logical_key_fields") or []) | set(
+            identity.get("immutable_non_key_fields") or []
+        )
+        leaked = sorted(locked & set(block["amendable_fields"]))
+        if leaked:
+            lint.fail(
+                registry_path,
+                f"selector_amendment.amendable_fields may not include a record identity field: {leaked}",
+            )
+
+    amendable_rows = sorted(
+        state_id
+        for state_id, row in state_rows.items()
+        if row.get("amendment_rule") == "closed_intent_atomic_replacement"
+    )
+    if amendable_rows != [amendable_state]:
+        lint.fail(
+            registry_path,
+            "exactly one state may carry amendment_rule=closed_intent_atomic_replacement and it MUST be "
+            f"selector_amendment.amendable_state {amendable_state!r}; found {amendable_rows}",
+        )
+    if state_rows[amendable_state]["ordinal"] != 1:
+        lint.fail(registry_path, f"{amendable_state} may only be amendable as the first state of the chain")
+    if state_rows[forbidden_from_state]["ordinal"] != state_rows[amendable_state]["ordinal"] + 1:
+        lint.fail(
+            registry_path,
+            f"selector_amendment.forbidden_from_state must be the state immediately after {amendable_state}",
+        )
+    still_amendable = sorted(
+        state_id
+        for state_id, row in state_rows.items()
+        if row.get("amendment_rule") != "forbidden"
+        and row["ordinal"] >= state_rows[forbidden_from_state]["ordinal"]
+    )
+    if still_amendable:
+        lint.fail(
+            registry_path,
+            f"the closed creation intent is immutable from {forbidden_from_state} on, but these states "
+            f"still allow amendment: {still_amendable}",
+        )
+    if amendable_state not in state_rows[amendable_state]["allowed_exits"]:
+        lint.fail(
+            registry_path,
+            f"{amendable_state} is amendable but does not list itself in allowed_exits",
+        )
+    for state_id, row in state_rows.items():
+        if state_id != amendable_state and state_id in (row.get("allowed_exits") or []):
+            lint.fail(
+                registry_path,
+                f"{state_id} forbids amendment but declares an in-place exit to itself",
+            )
+    return amendable_state
 
 
 def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
@@ -5943,6 +6134,11 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
                 registry_path,
                 f"{state_id}.required_durable_fields must be a non-empty array of non-empty strings",
             )
+        if row["amendment_rule"] not in MLS_CREATOR_BOOTSTRAP_AMENDMENT_RULES:
+            lint.fail(
+                registry_path,
+                f"{state_id}.amendment_rule must be one of {sorted(MLS_CREATOR_BOOTSTRAP_AMENDMENT_RULES)}",
+            )
         exits = row["allowed_exits"]
         if not isinstance(exits, list) or len(exits) != len(set(exits)):
             lint.fail(registry_path, f"{state_id}.allowed_exits must be a duplicate-free array")
@@ -5963,6 +6159,11 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
     for state_id in MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER:
         if state_id not in state_rows:
             lint.fail(registry_path, f"the ruled progress chain requires state {state_id!r}")
+
+    check_mls_creator_bootstrap_scope_kinds(lint, registry_path, registry)
+    amendable_state = check_mls_creator_bootstrap_amendment(
+        lint, registry_path, registry, state_rows
+    )
 
     transitions = registry.get("transitions")
     if not isinstance(transitions, list) or not transitions:
@@ -6002,12 +6203,27 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
                 registry_path,
                 f"{transition_id} is not listed in {from_state}.allowed_exits",
             )
+        if from_state is not None and from_state == to_state and from_state != amendable_state:
+            lint.fail(
+                registry_path,
+                f"{transition_id} is a self transition on {from_state}, but only the amendable state "
+                "may re-enter itself; a state that forbids amendment MUST NOT carry an in-place arrow",
+            )
         expected_id = f"{from_state or 'absent'}_to_{to_state}"
         if transition_id != expected_id:
             lint.fail(registry_path, f"{transition_id} must be named {expected_id}")
         for key in ("commit_boundary", "crash_before_commit", "crash_after_commit"):
             if not isinstance(row[key], str) or not row[key].strip():
                 lint.fail(registry_path, f"{transition_id}.{key} must be a non-empty string")
+
+    if amendable_state is not None:
+        amendment_arrow = f"{amendable_state}_to_{amendable_state}"
+        if amendment_arrow not in transition_ids:
+            lint.fail(
+                registry_path,
+                f"selector_amendment names {amendable_state} amendable but {amendment_arrow} is not "
+                "registered; an in-place amendment needs its own arrow so the crash vector covers it",
+            )
 
     chain = ["absent_to_" + MLS_CREATOR_BOOTSTRAP_PROGRESS_ORDER[0]] + [
         f"{a}_to_{b}"

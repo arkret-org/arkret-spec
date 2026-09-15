@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15",
+  "version": "2026-09-15.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T21:40:00+08:00",
+  "generated_at": "2026-09-15T23:10:00+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit MLS content-scheme selection to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -10,6 +10,8 @@
     "The creator device and signer method are immutable fields of the record and are deliberately not part of the logical key, so a reload, a second window of the same account and a re-entry on the same device all find the same record, while a different device never silently opens a second Genesis. A device that does not hold this record's private state and signer MUST wait for the accepted result and proceed through Welcome, device migration or recovery; it MUST NOT take the record over and regenerate material.",
     "Each local authoring vault holds at most one active record per (effective_scope, operation), enforced by a partial unique constraint or an equivalent atomic compare-and-swap. A process lock, a UI guard or a de-duplicated effect is not protocol mutual exclusion; mutual exclusion across devices remains the single accepted-Genesis slot of the same effective scope.",
     "content_scheme and durability_policy are a local creation intent while the record is at genesis_intent_persisted. They become the group's protocol-immutable values only once the record reaches genesis_accepted. The Realm create closed payload, the Realm profile, the history facet and any current or UI projection MUST NOT copy them and MUST NOT be used to infer them.",
+    "The closed creation intent MAY be amended in place, and only while the record is at genesis_intent_persisted. An amendment is one atomic durable replacement of the whole closed intent under the unchanged logical key, never a partial patch of a single selector, and it is registered as the self transition genesis_intent_persisted_to_genesis_intent_persisted. From realm_accepted on, and in every terminal state, the intent is immutable; a creator who wants a different selector must finish this attempt or reach a terminal state and open a new attempt generation.",
+    "This transaction applies to effective_scope.kind realm and circle only. effective_scope.kind=\"sidecar\" keeps the independent handshake profile of zh/crypto-media/encryption-and-audit.md section 2.5.1 and is out of scope here; a client MUST NOT open this record for a sidecar scope.",
     "A recoverer reads the durable record and executes the single next arrow its current state allows. A retryable transport failure, a page reload, a process crash and an unavailable accepted-Genesis query do not change the logical state. Rebuilding material from UI state is never a recovery path.",
     "Any change to a field of an active attempt after the Genesis is signed is not a retry and MUST fail closed. A second window or a background effect may only join the existing record.",
     "v1 registers no compatibility branch that infers the selector from an accepted history facet, a Realm projection or an old UI combination. Development data without a formal record follows the retention rules: converge on an existing accepted Genesis, fail closed and explicitly discard the stale local draft when there is definitely none, and stay unwritable while the accepted state is unknown.",
@@ -28,6 +30,38 @@
     ],
     "active_record_uniqueness": "one active record per (effective_scope, operation) per local authoring vault, enforced by a partial unique constraint or an equivalent atomic compare-and-swap",
     "protocol_mutual_exclusion": "the single accepted ak.mls.genesis slot of the same effective scope"
+  },
+  "scope_kind_applicability": {
+    "applicable_scope_kinds": [
+      "realm",
+      "circle"
+    ],
+    "excluded_scope_kinds": [
+      "sidecar"
+    ],
+    "rule": "effective_scope.kind=\"sidecar\" keeps the independent handshake profile of zh/crypto-media/encryption-and-audit.md section 2.5.1; this transaction does not change the Sidecar contract. A conforming client MUST NOT open, resume or key this record on a sidecar scope, and a Sidecar handshake MUST NOT be read as an instance of this state machine."
+  },
+  "selector_amendment": {
+    "amendable_state": "genesis_intent_persisted",
+    "forbidden_from_state": "realm_accepted",
+    "transition_id": "genesis_intent_persisted_to_genesis_intent_persisted",
+    "granularity": "whole_closed_intent_atomic_durable_replacement",
+    "amendable_fields": [
+      "content_scheme",
+      "durability_policy",
+      "proposed_group_genesis_binding"
+    ],
+    "immutable_fields": [
+      "owner_actor_id",
+      "effective_scope",
+      "operation",
+      "creator_device_id",
+      "creator_signer_method",
+      "mls_group_id",
+      "the associated exact signed Realm-create unit and the create Event id derived from it"
+    ],
+    "rationale": "content_scheme and durability_policy are forbidden in the ak.realm.create payload by construction, so replacing them invalidates neither an already signed nor an in-flight create unit; every consumer of the two selectors, the selector-dependent random material and the pinned governance binding, first runs after realm_accepted. While the record is still at genesis_intent_persisted the creator has therefore chosen nothing that anyone else can already have observed.",
+    "exit_rule": "Amendment is legal only inside genesis_intent_persisted. From realm_accepted on, and in every terminal state, the closed intent is immutable: the only ways forward are to finish this attempt or to reach a terminal state and open a new attempt generation, which inherits the selector from the original durable intent."
   },
   "disclosure_boundary": {
     "wire_exposure": "none",
@@ -58,11 +92,13 @@
         "the complete closed proposed_group_genesis_binding",
         "the associated exact signed Realm-create unit and the create Event id derived from it"
       ],
+      "amendment_rule": "closed_intent_atomic_replacement",
       "allowed_exits": [
+        "genesis_intent_persisted",
         "realm_accepted",
         "quarantined"
       ],
-      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the selector from UI state, a default, a Realm profile, an accepted history facet or any projection.",
+      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the selector from UI state, a default, a Realm profile, an accepted history facet or any projection. A creator who changes the selection while the record is still in this state does not open a second attempt: the whole closed intent is replaced atomically through genesis_intent_persisted_to_genesis_intent_persisted.",
       "gc_rule": "retain_until_ready",
       "failure_disposition": "quarantined"
     },
@@ -79,6 +115,7 @@
         "the accepted authority-root resolution result",
         "every field of the previous state, which stays immutable"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "governance_result_pinned",
         "superseded",
@@ -102,6 +139,7 @@
         "the complete validated outcome bytes",
         "the single governance_binding adopted from that outcome"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "epoch0_state_persisted",
         "superseded",
@@ -126,6 +164,7 @@
         "the frozen created_at",
         "the exact unsigned Genesis core"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "genesis_queued",
         "superseded",
@@ -148,6 +187,7 @@
         "the outbound_queue_item_id of the associated ledger item",
         "the public blob refs"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "genesis_accepted",
         "rejected",
@@ -170,6 +210,7 @@
         "the accepted-at and result binding",
         "the queue item, kept as completed-but-retained until local artifacts converge"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "artifacts_converged",
         "quarantined"
@@ -190,6 +231,7 @@
         "the public-material binding",
         "the complete consistency check results"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "ready",
         "quarantined"
@@ -207,6 +249,7 @@
       "required_durable_fields": [
         "minimal terminal receipt: the logical key, the accepted Genesis Event id and digest, the immutable Genesis binding, the accepted artifact ref and the ready commit position"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [],
       "retry_rule": "A crash around this commit leaves either artifacts_converged with the last step retryable, or ready and the send-gate index both visible. A ready flag visible without the artifact record is an inconsistency, not a retry state.",
       "gc_rule": "compact_pre_genesis_material_atomically",
@@ -224,6 +267,7 @@
         "the stage at which the rejection occurred",
         "the last verified accepted-or-absent result"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [
         "realm_accepted",
         "superseded"
@@ -242,6 +286,7 @@
         "the winning Genesis Event id and its immutable binding",
         "the loser Event id and digest, when this record had signed one"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [],
       "retry_rule": "None. The local loser queue item is stopped and removed, the local private state MUST NOT be matched to the winner and MUST NOT become ready, and the scope proceeds only through Welcome, device migration or recovery.",
       "gc_rule": "erase_mismatched_secrets_after_terminal_diagnostics_are_durable",
@@ -262,6 +307,7 @@
         "the accepted winner, when one is known",
         "the reason code and the time of detection"
       ],
+      "amendment_rule": "forbidden",
       "allowed_exits": [],
       "retry_rule": "None. Automatic authoring, queue retry and the send gate all stop. Clearing a flag and starting over is not a repair.",
       "gc_rule": "retain_recovery_material_by_default",
@@ -276,6 +322,14 @@
       "commit_boundary": "The selector record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 query and before any selector-dependent random material.",
       "crash_before_commit": "No attempt exists. The next run starts from an explicit selection and MUST NOT infer a selector from a Realm that may already have been created.",
       "crash_after_commit": "The record exists and the recoverer continues from genesis_intent_persisted, reusing the frozen selector and the derived create Event id."
+    },
+    {
+      "transition_id": "genesis_intent_persisted_to_genesis_intent_persisted",
+      "from_state": "genesis_intent_persisted",
+      "to_state": "genesis_intent_persisted",
+      "commit_boundary": "The complete closed creation intent, including the regenerated proposed_group_genesis_binding, is replaced in one atomic durable commit under the unchanged logical key. A partial patch of content_scheme or durability_policy alone is not a legal write, and the commit MUST still precede the first network side effect of the 0->0 governance query and any selector-dependent random material.",
+      "crash_before_commit": "The previous closed intent is still the only durable one, and the recoverer continues from it. A selector shown in the UI but never committed authorizes nothing.",
+      "crash_after_commit": "The replacement is the only durable intent, the superseded selector is unreadable, and the frozen Realm-create unit, its derived create Event id and the immutable record fields are unchanged."
     },
     {
       "transition_id": "genesis_intent_persisted_to_realm_accepted",

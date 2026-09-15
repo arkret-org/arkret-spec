@@ -1045,14 +1045,16 @@ Expected：
 
 逐箭头 crash/reload：对 registry `transitions[]` 的每一条箭头，runner MUST 分别在该箭头的 durable commit **之前**与
 **之后**注入 crash/reload，并断言 fixture 中同名 `pre_commit` / `post_commit` case 的 `expected_state` 与 invariants。
-八条箭头依次是 `absent -> genesis_intent_persisted`、`genesis_intent_persisted -> realm_accepted`、
+九条箭头依次是 `absent -> genesis_intent_persisted`、`genesis_intent_persisted -> genesis_intent_persisted`
+（selector 就地修改的自环）、`genesis_intent_persisted -> realm_accepted`、
 `realm_accepted -> governance_result_pinned`、`governance_result_pinned -> epoch0_state_persisted`、
 `epoch0_state_persisted -> genesis_queued`、`genesis_queued -> genesis_accepted`、
 `genesis_accepted -> artifacts_converged`、`artifacts_converged -> ready`。
 
-场景覆盖：runner 还 MUST 覆盖 Realm-create response loss、0→0 response loss、public blob 部分上传、
+场景覆盖：runner 还 MUST 覆盖 `genesis_intent_persisted` 内的 selector 就地修改、`realm_accepted` 之后的 selector
+修改尝试、Realm-create response loss、0→0 response loss、public blob 部分上传、
 sign-before-enqueue、enqueue commit 后响应丢失、accepted 后本地确认丢失、artifact 部分持久化、另一 Genesis 获胜、
-terminal reject 与 local corruption 十类，对应 fixture 的 `scenario_cases[]`。
+terminal reject 与 local corruption 十二类，对应 fixture 的 `scenario_cases[]`。
 
 Expected：
 
@@ -1064,6 +1066,11 @@ Expected：
   exact accepted Event 是完成权威。
 - selector MUST 在 Realm create 首次网络副作用、0→0 query 与任何随机材料之前耐久落盘；先建 Realm 再补 selector、
   或从 accepted history facet / Realm projection / 默认值反推 selector 均为不通过。
+- `genesis_intent_persisted` 内的 selector 修改 MUST 是整份 closed intent 的一次原子耐久替换：崩溃后要么只见旧
+  intent、要么只见新 intent，MUST NOT 出现新 `content_scheme` 与旧 `durability_policy` 或旧
+  `proposed_group_genesis_binding` 并存的中间态；logical key、immutable creator 字段、已冻结的 signed Realm-create unit
+  与其 create Event id MUST 不变，且 MUST NOT 产生第二条 active 记录。`realm_accepted` 及其后的任何状态上执行就地修改
+  MUST fail closed 且零写入。
 - 签名后改动 active attempt 的任一字段 MUST fail closed；`another_genesis_wins` MUST 进入 `superseded` 且本地私有状态
   MUST NOT 与 winner 配平，`terminal_reject` 的新 attempt generation MUST 继承原 durable intent 的 selector，
   `local_corruption` MUST 进入 `quarantined` 且不自动擦除原始恢复材料。
