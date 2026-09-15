@@ -225,6 +225,14 @@ _INLINE_DID_KEY_ENCODING_POINTERS = {
     "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did/pattern",
 }
 
+# A namespace pattern is written in DID shape but is not a DID: at least one
+# segment is the wildcard, so the value never denotes a resolvable identifier and
+# no shared DID type can express it.  Each pointer is registered exactly, so a
+# real DID literal still cannot hide behind this category.
+_NAMESPACE_DID_PATTERN_POINTERS = {
+    "applet-package.schema.json#/$defs/actor_namespace_pattern/pattern",
+}
+
 
 def check_did_boundary_allowlist(lint: Lint) -> None:
     """Keep DID use at explicit registration, resolution, or method-evidence boundaries."""
@@ -256,6 +264,7 @@ def check_did_boundary_allowlist(lint: Lint) -> None:
 
     observed: set[str] = set()
     inline_did_key_encodings: set[str] = set()
+    namespace_did_patterns: set[str] = set()
 
     def escape(token: str) -> str:
         return token.replace("~", "~0").replace("/", "~1")
@@ -287,6 +296,8 @@ def check_did_boundary_allowlist(lint: Lint) -> None:
                 ):
                     if child.startswith("^did:key:z"):
                         inline_did_key_encodings.add(absolute)
+                    elif absolute in _NAMESPACE_DID_PATTERN_POINTERS:
+                        namespace_did_patterns.add(absolute)
                     else:
                         lint.fail(
                             owner,
@@ -310,6 +321,8 @@ def check_did_boundary_allowlist(lint: Lint) -> None:
         lint.fail(allowlist_path, f"unreviewed inline did:key public-key encoding: {pointer}")
     for pointer in sorted(_INLINE_DID_KEY_ENCODING_POINTERS - inline_did_key_encodings):
         lint.fail(allowlist_path, f"stale inline did:key encoding entry: {pointer}")
+    for pointer in sorted(_NAMESPACE_DID_PATTERN_POINTERS - namespace_did_patterns):
+        lint.fail(allowlist_path, f"stale namespace DID pattern entry: {pointer}")
 
     from tools.generate_did_representation_report import build_report
 

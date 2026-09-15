@@ -17,6 +17,10 @@ ENTRYPOINT = "ak.suite.applet.managed_actor_authority.v1"
 EXPECTED: dict[str, tuple[str, Any]] = {
     "bot_exact_pair_and_initial_resolution": ("expect", "accepted"),
     "ghost_namespace_matches_verified_did": ("expect", "accepted"),
+    "ghost_namespace_pattern_pins_service_scid": ("expect", "applet_namespace_pattern_invalid"),
+    "ghost_host_segment_differs_from_service_host": ("expect", "applet_managed_actor_provision_invalid"),
+    "ghost_reuses_service_scid": ("expect", "applet_managed_actor_provision_invalid"),
+    "ghost_did_without_path_segment": ("expect", "applet_managed_actor_provision_invalid"),
     "ghost_external_tuple_is_single_closed_carrier": ("expect", "accepted"),
     "ghost_external_tuple_rejects_extra_mirrors": ("expect", "schema_violation"),
     "ghost_provision_requires_registration_service_signature": ("expect", "http_signature_required_or_invalid"),
@@ -79,6 +83,75 @@ def run_named_suite(fixture: dict[str, Any]) -> list[str]:
         if case["name"] == "ghost_external_tuple_is_single_closed_carrier":
             if set(case.get("external_ref", {})) != {"protocol", "instance_id", "external_id"}:
                 errors.append(f"{case['name']}: external_ref must be the exact closed tuple")
+        errors.extend(namespace_shape_errors(case))
+    return errors
+
+
+SERVICE_DID = "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example"
+NAMESPACE_SHAPE_CASES = frozenset(
+    {
+        "ghost_namespace_matches_verified_did",
+        "ghost_namespace_pattern_pins_service_scid",
+        "ghost_host_segment_differs_from_service_host",
+        "ghost_reuses_service_scid",
+        "ghost_did_without_path_segment",
+    }
+)
+
+
+def namespace_shape_errors(case: dict[str, Any]) -> list[str]:
+    """Keep the actor-namespace rows concrete instead of abstract prose.
+
+    The rows only prove anything when the service DID, the registered pattern
+    and the ghost DID are spelled out, so an implementation can replay the exact
+    SCID / host / path comparison of applet-schema.md 2 and
+    applet-integration.md 3.4 rather than guess a shape.
+    """
+    name = case.get("name")
+    if name not in NAMESPACE_SHAPE_CASES:
+        return []
+    errors: list[str] = []
+    if case.get("service_resolved_did") != SERVICE_DID:
+        errors.append(f"{name}: service_resolved_did must equal {SERVICE_DID!r}")
+    pattern = case.get("namespace_pattern")
+    if not isinstance(pattern, str) or not pattern.startswith("did:webvh:"):
+        errors.append(f"{name}: namespace_pattern must be a concrete did:webvh pattern")
+        return errors
+    service_scid = SERVICE_DID.split(":")[2]
+    service_host = SERVICE_DID.split(":")[3]
+    segments = pattern.split(":")
+    if name == "ghost_namespace_pattern_pins_service_scid":
+        if segments[2] != service_scid:
+            errors.append(f"{name}: the pattern must pin the service SCID")
+        if case.get("rejected_at") != "install_preview_and_commit":
+            errors.append(f"{name}: the rejection must happen at install time")
+        return errors
+    if segments[2] != "*":
+        errors.append(f"{name}: the SCID segment must be the wildcard")
+    if segments[3] != service_host:
+        errors.append(f"{name}: the host segment must be the literal service host")
+    if len(segments) < 5:
+        errors.append(f"{name}: the pattern must carry at least one segment after the host")
+    ghost_did = case.get("ghost_did")
+    if not isinstance(ghost_did, str) or not ghost_did.startswith("did:webvh:"):
+        errors.append(f"{name}: ghost_did must be a concrete did:webvh DID")
+        return errors
+    ghost = ghost_did.split(":")
+    reuses_scid = ghost[2] == service_scid
+    wrong_host = len(ghost) < 4 or ghost[3] != service_host
+    missing_path = len(ghost) < 5
+    if name == "ghost_namespace_matches_verified_did":
+        if reuses_scid or wrong_host or missing_path:
+            errors.append(f"{name}: the accepted ghost DID must carry its own SCID, the service host and a path segment")
+    elif name == "ghost_host_segment_differs_from_service_host":
+        if not wrong_host or reuses_scid:
+            errors.append(f"{name}: only the host segment may differ")
+    elif name == "ghost_reuses_service_scid":
+        if not reuses_scid:
+            errors.append(f"{name}: the ghost DID must reuse the service SCID")
+    elif name == "ghost_did_without_path_segment":
+        if not missing_path or reuses_scid or wrong_host:
+            errors.append(f"{name}: only the path segment may be missing")
     return errors
 
 

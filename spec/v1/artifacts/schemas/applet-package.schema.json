@@ -170,6 +170,27 @@
       },
       "additionalProperties": false
     },
+    "actor_namespace_pattern": {
+      "type": "string",
+      "pattern": "^did:webvh:(?:\\*|[A-Za-z0-9]+):[A-Za-z0-9](?:[A-Za-z0-9.%-]*[A-Za-z0-9])?(?::[^:]+)+$",
+      "description": "Actor namespace DID pattern. Segments are separated by ':' and '*' matches exactly one segment. The did:webvh SCID lives in the third segment and every Ghost MUST carry its own validated SCID, so a pattern that covers Ghosts wildcards that position; pinning the registration's own service SCID there can never match a compliant Ghost and MUST be rejected with applet_namespace_pattern_invalid. The host segment right after the SCID MUST be a literal (never '*') and MUST equal the host segment of the bare did that the registration service_id currently resolves to, and at least one further segment MUST follow it so a Ghost DID is never the service DID with a different SCID. Matching a pattern is a routing and exclusivity verdict only; it is never proof of ownership or authorization. See zh/extensions/applet-schema.md 2 and 2.1 and zh/extensions/applet-integration.md 3.4 and 5."
+    },
+    "actor_namespace_entry": {
+      "type": "object",
+      "required": [
+        "exclusive",
+        "pattern"
+      ],
+      "properties": {
+        "exclusive": {
+          "type": "boolean"
+        },
+        "pattern": {
+          "$ref": "#/$defs/actor_namespace_pattern"
+        }
+      },
+      "additionalProperties": false
+    },
     "applet_namespaces": {
       "type": "object",
       "required": [
@@ -181,7 +202,7 @@
         "actors": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/namespace_entry"
+            "$ref": "#/$defs/actor_namespace_entry"
           }
         },
         "realms": {

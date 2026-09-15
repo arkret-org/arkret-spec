@@ -94,10 +94,19 @@ current resolution source ref；运行时 current resolution 只由 `JCS(bot_act
 外部网络用户在 Arkret 中的镜像 Actor。例如 Slack 用户 `U123` 映射为一个独立 Actor DID：
 
 ```text
-did:webvh:z6MkGhostU123:slack-bridge.example
+did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123
 ```
 
-`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6MkGhostU123:slack-bridge.example#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。稳定 `actor_id` 使用 `account` 分支，其中 `account_id.principal_id` 是 adapter projection `ak:did_core:webvh:z6MkGhostU123`，`account_id.station_id` 是承载它的 Station；每个 Ghost 必须有自己的 validated SCID，不能复用 Applet service SCID 后仅靠 host/path 区分。
+`#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。稳定 `actor_id` 使用 `account` 分支，其中 `account_id.principal_id` 是 adapter projection `ak:did_core:webvh:z6MkGhostU123`，`account_id.station_id` 是承载它的 Station；每个 Ghost 必须有自己的 validated SCID，不能复用 Applet service SCID 后仅靠 host/path 区分。
+
+**Ghost DID 形状约束（normative）**：Ghost 的 `did:webvh` DID MUST 同时满足下列四条；任一不成立，§9.1 的 provision MUST fail closed：
+
+1. **SCID 段独立**：第三个 `:` segment（SCID）MUST 是该 Ghost 自己的 validated SCID，MUST NOT 等于 Applet service DID 或 controller DID 的 SCID。违反本条 reason code 为 `applet_managed_actor_provision_invalid`。
+2. **host 段逐字绑定**：紧随 SCID 的 host segment MUST 逐字等于 registration `service_id` 当前已验证解析出的那个 bare `did` 的 host segment。多租户 bridge 不得把不同租户的 Ghost 放到另一个域名下；若将来确需多租户，MUST 由 registration 显式声明的 host 列表放开，MUST NOT 削弱本条。违反本条 reason code 为 `applet_managed_actor_provision_invalid`。
+3. **MUST 带 path 段**：host 之后 MUST 至少还有一个非空 segment（例如 `:ghost:u123`）。没有 path 段的 Ghost DID 与「Applet service DID 本身」只差一个 SCID 段，而 SCID 段在 actor namespace pattern 中是通配位，Applet service 会因此命中自己的 Ghost namespace。违反本条 reason code 为 `applet_managed_actor_provision_invalid`。
+4. **落在 namespace 覆盖内**：完整 DID（不是 `did_core_id`）MUST 命中该 registration `namespaces.actors` 的某条 pattern（[`applet-schema.md` §2](./applet-schema.md#2-namespace-pattern)）。不命中时 reason code 为 `applet_namespace_mismatch`。
+
+这四条合起来只证明「该 DID 的 webvh log 托管在 Applet 自己的 host 与 path 之下」，即 **web origin 控制权**；它们**不证明** provision 事实，因此 MUST NOT 被当作归属或授权（见 §5）。归属只由已接受的 `ak.applet.managed_actor.provision` 证据建立（见 §9.1）。
 
 Ghost 使用与 Bot 相同的 managed-actor provision + PCR genesis authority 模型，但 role 固定为 `ghost`，
 provision 还必须逐字绑定 external tuple。namespace 对经 method evidence 验证的 `initial_resolution.did`
@@ -174,7 +183,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "actors": [
       {
         "exclusive": true,
-        "pattern": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:*"
+        "pattern": "did:webvh:*:slack-bridge.example:ghost:*"
       }
     ],
     "realms": [
@@ -231,7 +240,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
   preview/package cache。
 - `namespaces` MUST 明确声明，不能默认为全网。
-- exclusive namespace 冲突时，registry 与执行安装准入的 Station MUST 拒绝后注册者。
+- exclusive namespace 冲突时，registry 与执行安装准入的 Station MUST 拒绝后注册者，code=`applet_namespace_conflict`；冲突判定算法（含通配符对通配符）以 [`applet-schema.md` §2.1](./applet-schema.md#21-exclusive-namespace-冲突判定normative) 为唯一规范源。`namespaces.actors[]` 的每条 pattern MUST 满足 [`applet-schema.md` §2](./applet-schema.md#2-namespace-pattern) 的形状约束，否则 code=`applet_namespace_pattern_invalid`。
 - `requested_scopes` 只是请求权限，不是实际授权。
 - 实际权限 MUST 通过 capability grant 授予。
 - `registration_epoch` MUST 进入 payload required 字段，并严格按 [`applet-schema.md` §1.0.1](./applet-schema.md#101-registration_epoch-transcript-与计算算法normative) 的 closed transcript、集合排序、JCS、域分离与 SHA-256 步骤覆盖 canonical derived registration、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开已接纳的 epoch evidence，校验其 DID Document digest / signing key 与 epoch 捕获值一致。初次接纳、续订、已知失效与明确 current 操作按 applet-schema 的刷新规则验证；同 accepted epoch 的普通发送不要求重新在线解析 DID。
@@ -294,7 +303,7 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
   `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 的 owner/profile/binding
   正负向矩阵。
 
-当 controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法、exclusive namespace 与 active install 冲突、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期时，Preview MUST fail closed。
+当 controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法（`applet_namespace_pattern_invalid`）、exclusive namespace 与 active install 冲突（`applet_namespace_conflict`）、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期时，Preview MUST fail closed。Commit 重算 plan 时 MUST 复验这两项并返回同一 code。
 
 Commit MUST 执行：
 
@@ -360,6 +369,12 @@ Namespace 用于决定：
 Namespace 不等于 capability。  
 Namespace 命中只表示“这个 Applet 是该名称空间的处理方”。
 
+**Namespace 命中不是归属证明（normative）**：namespace 命中只是**路由与排他判据**，**MUST NOT** 被解释为归属证明或授权。managed actor（Bot / Ghost）的归属由已接受的 `ak.applet.managed_actor.provision` 证据建立（§9.1）；凡该证据可达的判定点，实现 MUST 展开并校验该证据，MUST NOT 以 pattern 命中替代。
+
+namespace 在 provision 证据结构上不可达的判定点仍然是判据——§7.3.1 的逐次投递来源独立验证、§7.4 的未知 actor 发现与推送路由、以及 §4b 中发生在任何 Ghost 存在**之前**的 exclusive 冲突门（provision 的四条创建事实按 §9.1 只由接收 Station 保存并重放，不做 peer Event fan-out，因此这些站点拿不到 provision 证据）。但在这些判定点上，namespace 只回答“谁来处理 / 谁排他占用这个名称空间”，同样不产生任何授权。
+
+该总则与 [`../authz/constraint-schema.md` §7.3](../authz/constraint-schema.md#73-applet-授权绑定constraint_subkindapplet_authority)（grant 的 `executed_by` 不得仅凭 namespace wildcard 签发）以及 §11 规则 4（delegated 代表真人时不得仅凭 wildcard 命中通过）的既有收紧一致；那两条是本总则在具体路径上的实例，不是例外。
+
 ### 5.1 Actor Namespace
 
 Actor namespace 适用于 Ghost Actor 和 Bot Actor。
@@ -367,9 +382,11 @@ Actor namespace 适用于 Ghost Actor 和 Bot Actor。
 ```json
 {
   "exclusive": true,
-  "pattern": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:*"
+  "pattern": "did:webvh:*:slack-bridge.example:ghost:*"
 }
 ```
+
+SCID 位是 `*`：`did:webvh` 的 SCID 在第三个 segment，而每个 Ghost 按 §3.4 MUST 有自己独立的 validated SCID，因此把 Applet service 自己的 SCID 钉在该位置的 pattern 永不命中任何合规 Ghost。pattern 的 host 段 MUST 是字面量且等于 registration service host，path 段 MUST 存在——形状约束与 exclusive 冲突判定见 [`applet-schema.md` §2 / §2.1](./applet-schema.md#2-namespace-pattern)。通配到 SCID 位后，pattern 只证明该 DID 的 webvh log 托管在本 Applet 的 host 与 path 之下，**不证明归属**（见 §5 总则）。
 
 ### 5.2 Realm Namespace
 
@@ -847,7 +864,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   "proofs": [
     {
       "kind": "detached_jws",
-      "verification_method": "did:webvh:z6MkGhostU123:slack-bridge.example#key-1",
+      "verification_method": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123#key-1",
       "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "created_at": "2026-04-26T00:00:01Z",
       "jws": "a..b",
@@ -915,7 +932,7 @@ Idempotency-Key: <opaque-string>
 规则：
 
 - 调用方 MUST 使用 active Applet registration service DID 的 RFC 9421 `service_signature`；签名逐字覆盖 method、target URI、authority、Content-Digest、Source/Destination-Service-ID 与 Idempotency-Key，并使用 registration epoch 内的 current verification method。HTTP 来源签名不替代四条 Event 各自的 proof。服务端 MUST 校验 active exact install、caller、registration、grant、Realm 与 `external_ref={protocol,instance_id,external_id}` 唯一tuple。`actor_id` MUST 为 closed `account` ActorId，且其 `account_id.station_id` MUST 逐字等于本次接收/持久化操作的 Station；v1 不支持伪装 remote hosting 的单阶段写入。违反本条 `actor_id` 绑定（remote station 声明、actor 与 service / controller principal 相撞、或 provision 的 actor 不等于 registration 声明的 `bot_actor_id`）MUST 以 reason code `applet_managed_actor_provision_invalid` 拒绝。
-- provision payload role MUST 为 `ghost`，该完整 `ActorId` 尚未被使用，`initial_resolution.did` 的 adapter projection MUST 等于 `ghost_actor_id.account_id.principal_id`，且该 DID（不是 core id）命中 actor namespace。Applet-managed principal 是长期可轮换的高风险 authority；v1 的 `method_history_evidence` MUST 为完整 `webvh_log`，服务端 MUST 独立验证 inception/current hash chain、SCID、controller proof、适用 witness threshold、freshness 与本地 trust policy。did:web snapshot 和 did:key expansion 均不得用于该字段；service attestation 不能代替 WebVH evidence。`method_history_evidence` 验证失败（chain / SCID / controller proof / witness threshold / freshness 任一项）MUST 以 reason code `identity_method_evidence_invalid` 拒绝。
+- provision payload role MUST 为 `ghost`，该完整 `ActorId` 尚未被使用，`initial_resolution.did` 的 adapter projection MUST 等于 `ghost_actor_id.account_id.principal_id`，且该 DID（不是 core id）MUST 满足 §3.4 的四条 Ghost DID 形状约束——独立 SCID、host 段逐字等于 registration service host、至少一个 path 段、并命中 actor namespace。namespace 命中只是路由与排他判据，本条的归属结论由本 provision 本身建立（§5）。Applet-managed principal 是长期可轮换的高风险 authority；v1 的 `method_history_evidence` MUST 为完整 `webvh_log`，服务端 MUST 独立验证 inception/current hash chain、SCID、controller proof、适用 witness threshold、freshness 与本地 trust policy。did:web snapshot 和 did:key expansion 均不得用于该字段；service attestation 不能代替 WebVH evidence。`method_history_evidence` 验证失败（chain / SCID / controller proof / witness threshold / freshness 任一项）MUST 以 reason code `identity_method_evidence_invalid` 拒绝。
 - PCR genesis MUST 由 Ghost authority pair 建立 purpose=`applet_managed_control` 的新 Realm，critical ref 恰好指向同单元 provision Event，且 `initial_resolution`、Applet、grant、service 与 provision 逐字交叉绑定；任一交叉绑定不成立 MUST 以 reason code `applet_managed_pcr_genesis_invalid` 拒绝。durable Ghost record 保存 immutable provision/genesis anchors，不保存 current source ref。
 - **Caller-signed proof contract（normative）**：Station MUST NOT 构造、重建或以自身 notary key 代签任一 Event / payload proof。四条 Event 均由请求携带并按各自 authority 验证；accountability/profile 的 issuer、subject、registration-epoch key、`[service_id]`、external ref 与 critical accountability ref 约束保持不变。
 - 创建单元四条 Event 的 `authorization_ref` MUST 逐字相同：provision 以它授权 `ak.applet.ghost.provision`；PCR genesis、accountability 与 Profile 只在这个 exact atomic aggregate 内以同一 ref 交叉绑定创建 authority/accountability 投影。该 ref MUST 指向 active exact install 为 `service_id` 签发、覆盖目标 Realm 的 `ak.applet.ghost.provision` grant；accountability grant 只记录责任关系，**不是**后续 Ghost Event 的授权。后续 Ghost 署名 Event 必须另按其具体 kind/resource 校验 Event 自带的 active capability grant（见 §8、§11）。

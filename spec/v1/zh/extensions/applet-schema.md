@@ -255,7 +255,7 @@ authoring request 此时已过期；同 key 不同 body 必须 `duplicate_confli
 ```json
 {
   "exclusive": true,
-  "pattern": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:ghost:*"
+  "pattern": "did:webvh:*:applet.example:ghost:*"
 }
 ```
 
@@ -267,9 +267,24 @@ Pattern 语法：
 
 **Segment 分隔符（normative）**：segment 边界由 pattern 所属命名空间决定，匹配前 pattern 与目标字符串按相同分隔符集合切分：
 
-- **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:*` 匹配 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
+- **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:webvh:*:slack-bridge.example:ghost:*` 匹配 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:webvh:z6MkGhostU123:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
+- **Actor namespace pattern 的形状约束（normative）**：`did:webvh` 的 SCID 在第三个 segment，而每个 Ghost MUST 有自己独立的 validated SCID（[`applet-integration.md` §3.4](./applet-integration.md)），因此覆盖 Ghost 的 pattern 的 SCID 段只能是 `*`。`namespaces.actors[]` 的每条 `pattern` MUST 满足：(a) 以 `did:webvh:` 开头；(b) 第三个 segment 是 `*` 或一个非空的具体 SCID；(c) 紧随其后的 host segment 是**字面量**（MUST NOT 是 `*` 或 `**`）且逐字等于 registration `service_id` 当前已验证解析出的那个 bare `did` 的 host segment；(d) host 之后 MUST 至少还有一个 segment。任一条不成立 MUST 在 install preview 与 commit 上 fail closed，code=`applet_namespace_pattern_invalid`。此外，把 registration 自己 `service_id` 的 SCID 写死在第三段的 pattern **永不命中任何合规 Ghost**（合规 Ghost 的 SCID 必然不等于 service SCID），MUST 以同一 code 拒绝；写死**其它**具体 SCID 的 pattern 合法，它表示一个只覆盖该单一 actor 的 namespace。
 - **Realm / portal namespace pattern**：分隔符集合为 `:` 与 `/`。`*` 匹配由 `:` 或 `/` 分隔的单一 segment，不跨任一分隔符；`**` 只对 `/` 分隔的 path-like 尾段生效（匹配一个或多个 `/`-分隔 segment），MUST NOT 跨 `:`。例如 `slack:team:*:channel:*` 匹配 `slack:team:T123:channel:C456`；`slack.acme.example/*` 匹配单层 path，`slack.acme.example/**` 匹配多层 path。
-- 任一分隔符集合下，`*` / `**` MUST NOT 匹配空 segment；exclusive namespace 的冲突判定按 [`applet-integration.md` §4.1](./applet-integration.md) 在切分后的 segment 序列上进行。
+- 任一分隔符集合下，`*` / `**` MUST NOT 匹配空 segment；exclusive namespace 的冲突判定按下方 §2.1 在切分后的 segment 序列上进行，其拒绝后注册者的义务见 [`applet-integration.md` §4.1](./applet-integration.md)。
+
+### 2.1 Exclusive namespace 冲突判定（normative）
+
+同一 namespace bucket 内的两条 exclusive pattern **冲突**，当且仅当存在至少一个字符串同时被两者匹配（两者匹配语言的交非空）。判定只看 pattern 形状：实现 MUST NOT 以“当前没有实际 actor / Realm / handle 同时命中”为由放行，也 MUST NOT 只在两条 pattern 逐字节相同时才判冲突。
+
+对同一 bucket 内的两条 pattern P、Q：
+
+1. 按该 bucket 的分隔符集合把 P 与 Q 切成 token 序列，并记录每个 token 之前的分隔符种类。`:` 与 `/` 是不同种类，MUST NOT 互相匹配。
+2. 逐位比较 token：literal 与 literal MUST 逐字节相等（转义后的字面量 `*` 按 literal `*` 比较）；`*` 与任意**单个**非空 token（包括对方的 `*`）兼容。
+3. 两条都不含 `**` 时：token 数量不等即判**不冲突**；数量相等且逐位全部兼容即判**冲突**。
+4. 含 `**` 时（按上文只可能出现在 realm / handle bucket 的 `/`-分隔尾段）：`**` 之前的部分按第 2、3 条逐位比较；`**` 与对方剩余的 `/`-分隔尾段兼容，当且仅当对方剩余尾段至少含一个 segment（对方的 `**` 满足该条）。`**` MUST NOT 与仍由 `:` 分隔的剩余部分兼容。
+5. Actor bucket 的 SCID 段按第 2 条处理：`*` 与 `*`、`*` 与任意具体 SCID 都兼容。因此 SCID 段普遍为 `*` 之后，actor namespace 的排他性**只由 host 段承载**——§2 的 host 段字面量约束是 exclusive 判定仍然可用的唯一依据；没有它，两条 `did:webvh:*:*:ghost:*` 形状的 pattern 会与全网所有 actor namespace 冲突。
+
+冲突比较的对象是**其它** `applet_id` 当前 active 的 exclusive namespace claim。同一 `applet_id` 自身 registration 的重申、renew，或为新 `effective_scope` 复用同一 registration 的 install，MUST NOT 与自己判冲突。判定为冲突时，registry 与执行安装准入的 Station MUST 拒绝后注册者，code=`applet_namespace_conflict`。
 
 ## 3. Transaction Endpoint
 

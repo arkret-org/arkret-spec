@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.16",
+  "version": "2026-09-15.17",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T00:30:00+08:00",
+  "generated_at": "2026-09-16T00:45:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8316,7 +8316,10 @@
           "registration_ref resolves to the exact active registration whose service_id and applet_id match",
           "applet_authority_ref resolves to an active scope-matching grant; actor_role=ghost additionally requires action ak.applet.ghost.provision",
           "the separately submitted applet_managed_control genesis derives its Realm id from its own Event id and carries exactly one critical provision ref, avoiding a provision/genesis hash cycle",
-          "the exact account ActorId is unused and initial_resolution projects to the actor principal"
+          "the exact account ActorId is unused and initial_resolution projects to the actor principal",
+          "actor_role=ghost: the initial_resolution did is did:webvh, its SCID segment is the ghost's own validated SCID and differs from the service and controller SCIDs, and its host segment equals the host segment of the bare did the registration service_id currently resolves to; otherwise applet_managed_actor_provision_invalid",
+          "actor_role=ghost: the initial_resolution did carries at least one segment after the host segment, so a ghost DID is never the service DID with a different SCID; otherwise applet_managed_actor_provision_invalid",
+          "actor_role=ghost: the complete initial_resolution did, never the did_core_id, matches one registered namespaces.actors pattern; otherwise applet_namespace_mismatch. A namespace hit is a routing and exclusivity verdict only and never establishes ownership or authority"
         ]
       },
       {

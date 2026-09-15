@@ -41,7 +41,42 @@
     {
       "name": "ghost_namespace_matches_verified_did",
       "namespace_input": "initial_resolution.did",
+      "service_resolved_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+      "namespace_pattern": "did:webvh:*:slack-bridge.example:ghost:*",
+      "ghost_did": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123",
       "expect": "accepted"
+    },
+    {
+      "name": "ghost_namespace_pattern_pins_service_scid",
+      "mutation": "register namespaces.actors pattern did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:* which pins the registration's own service SCID in the SCID segment",
+      "service_resolved_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+      "namespace_pattern": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:*",
+      "rejected_at": "install_preview_and_commit",
+      "expect": "applet_namespace_pattern_invalid"
+    },
+    {
+      "name": "ghost_host_segment_differs_from_service_host",
+      "mutation": "initial_resolution.did host segment is tenant-2.example while the registration service_id resolves to slack-bridge.example",
+      "service_resolved_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+      "namespace_pattern": "did:webvh:*:slack-bridge.example:ghost:*",
+      "ghost_did": "did:webvh:z6MkGhostU123:tenant-2.example:ghost:u123",
+      "expect": "applet_managed_actor_provision_invalid"
+    },
+    {
+      "name": "ghost_reuses_service_scid",
+      "mutation": "initial_resolution.did reuses the Applet service SCID and differs from the service DID only by host/path",
+      "service_resolved_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+      "namespace_pattern": "did:webvh:*:slack-bridge.example:ghost:*",
+      "ghost_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
+      "expect": "applet_managed_actor_provision_invalid"
+    },
+    {
+      "name": "ghost_did_without_path_segment",
+      "mutation": "initial_resolution.did carries no segment after the host, so it is the service DID with a different SCID",
+      "service_resolved_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+      "namespace_pattern": "did:webvh:*:slack-bridge.example:ghost:*",
+      "ghost_did": "did:webvh:z6MkGhostU123:slack-bridge.example",
+      "expect": "applet_managed_actor_provision_invalid"
     },
     {
       "name": "ghost_external_tuple_is_single_closed_carrier",

@@ -1001,6 +1001,14 @@
       "terminal_categories": [
         "typed_object_id"
       ]
+    },
+    {
+      "file": "applet-package.schema.json",
+      "pointer": "/$defs/actor_namespace_entry/properties/pattern",
+      "reason": "Wildcard namespace pattern over actor did:webvh DIDs, not a DID identifier. The SCID segment is the wildcard because every Ghost carries its own validated SCID, so the value never denotes one resolvable DID and cannot take a _did role suffix.",
+      "terminal_categories": [
+        "did"
+      ]
     }
   ]
 }

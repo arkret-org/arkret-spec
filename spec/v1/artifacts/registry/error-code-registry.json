@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.2",
-  "generated_at": "2026-09-16T00:30:00+08:00",
+  "version": "2026-09-15.3",
+  "generated_at": "2026-09-16T00:45:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1757,6 +1757,14 @@
       "description": "The applet namespace conflicts with an existing registration.",
       "type_uri": "https://arkret.org/problems/applet_namespace_conflict",
       "title": "Applet namespace conflict"
+    },
+    {
+      "code": "applet_namespace_pattern_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "A namespaces.actors pattern in the submitted Applet package or derived registration violates the actor namespace pattern shape: it is not a did:webvh pattern, its SCID segment is neither '*' nor a non-empty SCID, it pins the registration's own service SCID in the SCID segment so it can never match a compliant Ghost, its host segment is not a literal equal to the host of the bare did the service_id currently resolves to, or no segment follows that host. Install preview and install commit both fail closed. See zh/extensions/applet-schema.md 2 and zh/extensions/applet-integration.md 4.1.",
+      "type_uri": "https://arkret.org/problems/applet_namespace_pattern_invalid",
+      "title": "Applet namespace pattern invalid"
     },
     {
       "code": "applet_package_expired",
