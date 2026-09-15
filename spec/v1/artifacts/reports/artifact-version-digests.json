@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-15.14",
-      "generated_at": "2026-09-15T23:55:00+08:00",
-      "content_digest": "sha256:853e982d484981e011e6fb7f2d1577910fb24f49c065c1307940a0c94853c6b3"
+      "version": "2026-09-15.15",
+      "generated_at": "2026-09-16T00:20:00+08:00",
+      "content_digest": "sha256:ddcc86c98f578d75e0770131e2291f7a07bb01a34367ce0e7d4fbe06f722ca8e"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -261,15 +261,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-15.5",
-      "generated_at": "2026-09-15T23:55:00+08:00",
-      "content_digest": "sha256:5393d75dc376b32fac00d41c7e99e8733e9285788961caed25046e8230e44dc5"
+      "version": "2026-09-15.6",
+      "generated_at": "2026-09-16T00:20:00+08:00",
+      "content_digest": "sha256:24f175c3045be04827c57b72af1bcd49d05da45595ad04ecefe9c13ac5f9cde4"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-15.9",
-      "generated_at": "2026-09-15T23:55:00+08:00",
-      "content_digest": "sha256:037f2845927aa1b9f1ea5f79dce5ebf7a36248b45bec90962e3a7034242f5f2a"
+      "version": "2026-09-15.10",
+      "generated_at": "2026-09-16T00:20:00+08:00",
+      "content_digest": "sha256:c3cce861c40db4d06f769b2252246f158516e556878a45d9a1357013327e4f1b"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -405,9 +405,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-15.4",
-      "generated_at": "2026-09-15T23:40:00+08:00",
-      "content_digest": "sha256:4d0ad9d4cc301e4bb7809c82384fccd65e588ac0175e2a4abc4d9d9ad0c1ad78"
+      "version": "2026-09-15.5",
+      "generated_at": "2026-09-16T00:20:00+08:00",
+      "content_digest": "sha256:a32014d1926fcb0c054f6c14683f7209bba0a5e47c3dc75c6c4831413eb9944b"
     }
   ]
 }

@@ -5924,7 +5924,7 @@ Steps:
 Expected:
 
 - 正例：`stage` 的响应与 durable 记录 MUST NOT 携带任何 principal 或 `AccountId`；记录 state 为 `staged`。
-- 正例：同一 Station 的 live pending 集合内 `pairing_code` MUST 互不相同；用户刷新 MUST 铸新 code 并使旧 code 立即失效。
+- 正例：同一 Station 的 live pending 集合内 `pairing_code` MUST 互不相同；再次 `stage` 铸出的新 request 与新 code MUST 与前一条不同，且新设备 MUST 停止展示旧入口。
 - 正例：`finalize` MUST 从服务端自己的 durable stage 重算 §2.1.2 transcript、用 staged `new_device_pubkey` 验签
   `target_proof.device_signature`，并要求 `target_proof.account_id` 与该 handoff 绑定的 `AccountId` 逐字节相等；
   只有全部通过才把记录从 `staged` **单向**推进到 `ready_for_claim`。
@@ -5934,7 +5934,7 @@ Expected:
 - 正例：认领响应 MUST NOT 携带任何私钥、session credential、recovery material 或该账号内其它设备的信息；
   认领本身 MUST NOT 产生任何长期授权，最终授权仍只来自已授权设备签署的 `ak.device.authorize`。
 - 负例：`ready_for_claim -> staged` 的回退，或未经 `ready_for_claim` 直接到达 `authorized`，MUST 不可能发生。
-- 负例：错码、过期码、刷新前的旧码、跨账号 code、仍为 `staged` 的未 finalize 请求与已消费 code，MUST 返回**同一个**
+- 负例：错码、过期码、被替代的旧码、跨账号 code、仍为 `staged` 的未 finalize 请求与已消费 code，MUST 返回**同一个**
   `not_found`；响应体、错误码、reason code 与可观测时延差异 MUST NOT 泄露 code 是否存在、属于哪个账号或对应什么设备。
 - 负例：`finalize` 对未知 id、`pairing_code` 不符、已过期、已不是 `staged` 的记录同样 MUST 返回统一 `not_found`。
 - 负例：`target_proof.account_id` 与 handoff 绑定账号不等、缺少 handoff、用普通 SessionGrant 或未签 body 成员声称账号归属，

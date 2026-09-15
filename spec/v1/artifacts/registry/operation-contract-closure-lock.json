@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.5",
-  "generated_at": "2026-09-15T23:55:00+08:00",
+  "version": "2026-09-15.6",
+  "generated_at": "2026-09-16T00:20:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -209,7 +209,7 @@
     },
     {
       "operation_id": "ak.open.device_pairing.command.stage.v1",
-      "sha256": "sha256:d2cf80b7999f9dd245738ad6aea34c293d0b6ab3c2cde95a77aadc1b17ed143e"
+      "sha256": "sha256:f8e6d9b676132421896d927daad33e822ce6a56d7a7e51c350b827f278a79699"
     },
     {
       "operation_id": "ak.open.device_pairing.read.resolve.v1",

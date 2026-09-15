@@ -765,7 +765,7 @@
       "variants": [
         "stage_finalize_claim_pair_round_trip",
         "pairing_code_unique_across_live_pending_window",
-        "refresh_mints_new_code_and_retires_the_old_one",
+        "restage_mints_a_distinct_request_and_code",
         "finalize_exact_retry_returns_same_outcome",
         "finalize_same_id_different_intent_conflicts",
         "claim_matches_qr_path_byte_for_byte",
@@ -791,7 +791,7 @@
       },
       "assertions": [
         "the stage response and the stored record carry no principal and no AccountId, and the record state is staged",
-        "a pairing code is unique across the whole live pending set of the service and a refresh retires the previous code immediately",
+        "a pairing code is unique across the whole live pending set of the service, and a second stage call mints a distinct request and a distinct code",
         "finalize recomputes the challenge transcript from the service's own durable stage, verifies the candidate signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId the presented account handoff is bound to",
         "finalize moves the record from staged to ready_for_claim one way; no run returns to staged and no run reaches authorized without passing through it",
         "an exact finalize retry returns the same outcome without re-attaching a proof, and the same request id with different canonical content conflicts",

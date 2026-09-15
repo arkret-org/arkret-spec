@@ -8818,7 +8818,9 @@ paths:
 
         stores a bounded-TTL account-less record in state staged, with a code that
 
-        is unique across the whole live pending set.
+        is unique across the whole live pending set, so a user-driven refresh is
+
+        just another call here and always mints a distinct request and code.
 
         The staged record deliberately carries no hpke_key, no algorithms, no
 
