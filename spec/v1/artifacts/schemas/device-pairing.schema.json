@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/device-pairing.schema.json",
   "title": "Arkret Device Pairing Short-Link DTOs",
-  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md §2.1.1). These endpoints are unauthenticated: staging mints an account-less pending record, and resolve/status exchange the short handle for pairing material without binding or granting anything until an authenticated device authorizes the pairing.",
+  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md sections 2.1.1 and 2.1.2). Staging is unauthenticated and account-less. Finalize is the one authenticated call that binds a staged record to an exact AccountId by attaching the signed target proof, and it is the only legal one-way step from staged to ready_for_claim. Resolve, the authenticated code claim and status then hand the same byte-equivalent proof and transcript to the approving device; none of them authorizes anything until an accepted device signs ak.device.authorize.",
   "oneOf": [
     {
       "$ref": "#/$defs/device_pairing_stage_request_body"
@@ -11,10 +11,22 @@
       "$ref": "#/$defs/device_pairing_stage_outcome"
     },
     {
+      "$ref": "#/$defs/device_pairing_finalize_request_body"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_finalize_outcome"
+    },
+    {
       "$ref": "#/$defs/device_pairing_resolve_request_body"
     },
     {
       "$ref": "#/$defs/device_pairing_bootstrap"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_code_claim_request_body"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_code_claim_outcome"
     },
     {
       "$ref": "#/$defs/device_pairing_state"
@@ -61,6 +73,10 @@
     "device_pairing_code": {
       "$ref": "./agent-operations.schema.json#/$defs/device_pairing_code"
     },
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id",
+      "description": "Complete AccountId of the account this pairing request was finalized against. It is a signed member of device_pairing_target_proof, never a server-side side channel and never an unsigned client claim."
+    },
     "device_id": {
       "$ref": "./account-operations.schema.json#/$defs/device_id"
     },
@@ -76,9 +92,10 @@
     },
     "device_pairing_state": {
       "type": "string",
-      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts pending_authorization, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed.",
+      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim.",
       "enum": [
-        "pending_authorization",
+        "staged",
+        "ready_for_claim",
         "authorized",
         "expired"
       ]
@@ -128,6 +145,49 @@
         },
         "server_nonce": {
           "$ref": "#/$defs/pairing_nonce"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_finalize_request_body": {
+      "type": "object",
+      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome; the same request id with different content conflicts.",
+      "required": [
+        "device_pairing_request_id",
+        "pairing_code",
+        "target_proof"
+      ],
+      "properties": {
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/device_pairing_code"
+        },
+        "target_proof": {
+          "$ref": "#/$defs/device_pairing_target_proof",
+          "description": "The single signed target possession proof. This authenticated call is its only server-facing carrier; it is public, signature-protected material and carries no private key."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_finalize_outcome": {
+      "type": "object",
+      "description": "Result of attaching the target proof to a pending record. state is always ready_for_claim: the transition is one-way and the operation never reports a state it did not reach.",
+      "required": [
+        "device_pairing_request_id",
+        "state",
+        "expires_at"
+      ],
+      "properties": {
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id"
+        },
+        "state": {
+          "const": "ready_for_claim"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -197,6 +257,41 @@
       },
       "additionalProperties": false
     },
+    "device_pairing_code_claim_request_body": {
+      "type": "object",
+      "description": "Authenticated claim of one pending pairing request by its normalized eight-character code. The caller is a current accepted, non-pending-revocation device of an exact AccountId and presents nothing else: the code is the whole input and MUST be sent in the JSON body, never in URL path or query string. Unknown, wrong, expired, cross-account, not yet finalized and already consumed codes MUST all return the same not_found.",
+      "required": [
+        "pairing_code"
+      ],
+      "properties": {
+        "pairing_code": {
+          "$ref": "#/$defs/device_pairing_code"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_code_claim_outcome": {
+      "type": "object",
+      "description": "Everything the approving device needs to verify the claimed request locally: the same bootstrap the short-link resolve returns and the byte-equivalent signed target proof. It carries no private key, no session credential, no recovery material and nothing about any other device of the account. Claiming retrieves a request and grants nothing; an accepted device still has to sign ak.device.authorize.",
+      "required": [
+        "device_pairing_request_id",
+        "bootstrap",
+        "target_proof"
+      ],
+      "properties": {
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id"
+        },
+        "bootstrap": {
+          "$ref": "#/$defs/device_pairing_bootstrap"
+        },
+        "target_proof": {
+          "$ref": "#/$defs/device_pairing_target_proof",
+          "description": "The exact proof attached at finalize. It MUST be byte-equivalent to the proof a QR or link carries for the same request; the code entry point MUST NOT produce a weaker code-only authorization branch."
+        }
+      },
+      "additionalProperties": false
+    },
     "device_pairing_status_request_body": {
       "type": "object",
       "description": "Body-only poll for the authorization status of a staged device-pairing record. The device_pairing_request_id + pairing_code pair is the query credential and MUST be sent in the JSON body; a record miss and a pairing_code mismatch MUST be indistinguishable (both not_found).",
@@ -216,7 +311,7 @@
     },
     "device_pairing_status_outcome": {
       "type": "object",
-      "description": "Authorization status for a staged device-pairing record. While the record is still open, state is pending_authorization. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired.",
+      "description": "Authorization status for a staged device-pairing record. While the record is still account-less the state is staged; after finalize it is ready_for_claim. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired.",
       "required": [
         "state"
       ],
@@ -272,8 +367,9 @@
     },
     "device_pairing_target_proof": {
       "type": "object",
-      "description": "The single target possession proof for staged accepted_device pairing. Sign UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\\n\") || JCS(all fields except device_signature). The unsigned challenge digest is independently recomputed from the server record; the signed descriptor covers target key, HPKE key, algorithms and binding kind. Only token plus this proof travel out of band; anonymous stage/resolve MUST NOT receive the proof. Approved Event retains the descriptor and challenge digest so its signature remains re-verifiable after stage cleanup.",
+      "description": "The single target possession proof for staged accepted_device pairing. Sign UTF8(\"ak.device_authorize_accepted_device_possession_proof.v1\n\") || JCS(all fields except device_signature). The unsigned challenge digest is independently recomputed from the server record; the signed descriptor covers the exact AccountId this pairing is being finalized against, the target key, the HPKE key, the algorithms and the binding kind. The candidate can only sign it after it has obtained that AccountId from its own sender-constrained pending account handoff, so this object exists from finalize on and never at stage time. It reaches the server exactly once, through the authenticated finalize call, and the anonymous stage and resolve request surfaces MUST NOT accept it. The approved Event retains the descriptor and the challenge digest so its signature stays re-verifiable after stage cleanup.",
       "required": [
+        "account_id",
         "device_id",
         "device_public_key_did",
         "hpke_key",
@@ -284,6 +380,10 @@
         "device_signature"
       ],
       "properties": {
+        "account_id": {
+          "$ref": "#/$defs/account_id",
+          "description": "Complete AccountId this pairing request is bound to. A verifier MUST compare it byte-for-byte against the AccountId the finalizing pending account handoff is bound to, and the target device MUST compare it against the accepted Event actor_id.account_id before local assembly. A server-side field, a route, a session audience or an unsigned request body member MUST NOT substitute for it."
+        },
         "device_id": {
           "$ref": "#/$defs/device_id",
           "description": "MUST equal new_device_pubkey.kid."

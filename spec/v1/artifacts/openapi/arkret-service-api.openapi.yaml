@@ -793,6 +793,14 @@ components:
       additionalProperties: false
     DevicePairingBootstrap:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap
+    DevicePairingCodeClaimOutcome:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome
+    DevicePairingCodeClaimRequestBody:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body
+    DevicePairingFinalizeOutcome:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome
+    DevicePairingFinalizeRequestBody:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body
     DevicePairingResolveRequestBody:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body
     DevicePairingStageOutcome:
@@ -8808,7 +8816,9 @@ paths:
 
         40-bit CSPRNG pairing_code and
 
-        stores a bounded-TTL account-less record in state pending_authorization.
+        stores a bounded-TTL account-less record in state staged, with a code that
+
+        is unique across the whole live pending set.
 
         The staged record deliberately carries no hpke_key, no algorithms, no
 
@@ -8866,9 +8876,11 @@ paths:
 
         and algorithms that attestation signs.
 
-        Unknown id, pairing_code mismatch, expiry, or a non-pending record all
+        Only a record already finalized to ready_for_claim can be resolved.
 
-        return an indistinguishable not_found.
+        Unknown id, pairing_code mismatch, expiry, or a record that is not
+
+        ready_for_claim all return an indistinguishable not_found.
 
         '
       requestBody:
@@ -11743,6 +11755,155 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountDevicePairRequestBody'
+  /_arkret/gate/account/device-pairing/finalizations:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.finalize_device_pairing
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.gate.account.command.finalize_device_pairing.v1
+      security:
+      - accountHandoffAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: target_proof
+        notes: The candidate device authenticates with `DPoP <account_handoff_grant>` plus matching DPoP for a bound
+          pending account handoff. That handoff is the only source of the exact AccountId the body proof signs; the
+          service MUST NOT read account membership from a request member or a server-side side channel.
+      summary: Bind a staged pairing record to an exact AccountId.
+      description: 'The one authenticated step between the account-less stage and any
+
+        approval. The candidate holds the exact request id and pairing code, holds
+
+        the staged candidate key, and supplies the exact AccountId from its own
+
+        sender-constrained pending account handoff. It signs a target proof over
+
+        the complete transcript including that AccountId, and this call attaches
+
+        that public, signature-protected proof to the pending request.
+
+
+        The service recomputes the challenge transcript from its own durable
+
+        stage, verifies the target signature with the staged new_device_pubkey,
+
+        and requires the signed account_id to equal the AccountId the handoff is
+
+        bound to. Only then does the record move from staged to ready_for_claim.
+
+        The transition is one-way, and authorized is unreachable without it.
+
+
+        Unknown id, pairing_code mismatch, an expired record and a record that is
+
+        no longer staged all return an indistinguishable not_found. Exact retry of
+
+        the same canonical intent returns the same outcome; the same request id
+
+        with different content conflicts.
+
+        '
+      responses:
+        '200':
+          description: Pending pairing record finalized and ready for claim.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingFinalizeOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingFinalizeRequestBody'
+  /_arkret/gate/account/device-pairing/code-claims:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.read.claim_device_pairing_code
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.gate.account.read.claim_device_pairing_code.v1
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: false
+        notes: The caller MUST be a current accepted, non-pending-revocation device of an exact AccountId. The
+          pairing code is the whole input and MUST stay in the JSON body, never in URL path or query string, so it
+          never reaches an access log or an analytics event.
+      summary: Claim one pending pairing request by its eight-character code.
+      description: 'Lets an already authorized device find the exact pending pairing
+
+        request behind the code shown on a new device, so a desktop browser with
+
+        no camera can complete a join by typing eight characters.
+
+
+        A result is returned only when the code hits a unique unexpired
+
+        ready_for_claim unconsumed request whose signed account_id and gate
+
+        audience equal the caller account, and when proof, staged key, request id,
+
+        code and transcript digest all agree. Unknown, wrong, expired,
+
+        cross-account, not yet finalized and already consumed codes all return the
+
+        same not_found, so no error shape says whether a code exists or which
+
+        account it belongs to.
+
+
+        The response carries the bootstrap and the byte-equivalent target proof
+
+        needed for local verification, and no private key, session credential,
+
+        recovery material, or information about any other device of the account.
+
+        Claiming retrieves a request and grants nothing: an accepted device still
+
+        reviews it and signs ak.device.authorize. Calls are rate limited per
+
+        caller device, per AccountId and per service, and a request locks out
+
+        after its cumulative failure budget.
+
+        '
+      responses:
+        '200':
+          description: Resolved pending pairing request for the caller account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingCodeClaimOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingCodeClaimRequestBody'
   /_arkret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}

@@ -314,7 +314,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "9f444327b8a94fbf688c7bdf95d2be4d361eb9c31c8ef40dba8054ae707e858b"
+      "sha256": "9c422a8cd123b05b250c9b1b4ed3c989da1869fed68cd4db8a5b92b0afe4651b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",

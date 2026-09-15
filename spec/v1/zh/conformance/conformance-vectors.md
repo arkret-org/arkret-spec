@@ -5909,8 +5909,38 @@ Expected:
 - 负例：坏 `gate_audience`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、target `device_id` 与 `new_device_pubkey.kid` 不等、metadata digest 被篡改，或 challenge 采用非规范域，一律 MUST 拒绝。
 - 负例：正文旧示例形态 `{kid, alg, public_key}` MUST 被 canonical `PublicKey` schema 拒绝（缺 `kty` / 缺 `key` / 多余 `public_key`）。
 - 负例：stage 请求携带 target proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
-- 负例：`ak.gate.account.command.pair_device.v1` 缺少 `device_pairing_request_id`，或首次接纳引用未知、过期、已消费、code/key 不匹配的 staged record，MUST fail closed；不得接受客户端提供的替代 challenge transcript。
+- 负例：`ak.gate.account.command.pair_device.v1` 缺少 `device_pairing_request_id`，或首次接纳引用未知、过期、已消费、code/key 不匹配、或仍为 `staged` 尚未 finalize 的 record，MUST fail closed；不得接受客户端提供的替代 challenge transcript。
 - 负例：stage/resolve/status 返回或绑定 principal、SessionGrant、sibling device 集合，或未授权新设备调用 `ak.self.device_messages.*`，一律视为不合规。无效与不匹配的 resolve/status credential 保持统一防枚举错误。
+
+`vector_id`: `ak.vector.device_pairing.code_claim.v1`
+
+Steps:
+
+1. 走完整 `stage -> finalize -> code claim -> pair_device` 两阶段流程：stage 保持 account-less，finalize 用
+   sender-constrained pending account handoff 提供 exact `AccountId`，已授权设备只输入 8 位 code 取回请求并批准。
+2. 对同一 Station 的 live pending 集合枚举已铸出的 `pairing_code`，并分别以错码、过期码、刷新前的旧码、
+   属于另一账号的 code、仍为 `staged` 的未 finalize 请求以及已消费 code 发起认领。
+
+Expected:
+
+- 正例：`stage` 的响应与 durable 记录 MUST NOT 携带任何 principal 或 `AccountId`；记录 state 为 `staged`。
+- 正例：同一 Station 的 live pending 集合内 `pairing_code` MUST 互不相同；用户刷新 MUST 铸新 code 并使旧 code 立即失效。
+- 正例：`finalize` MUST 从服务端自己的 durable stage 重算 §2.1.2 transcript、用 staged `new_device_pubkey` 验签
+  `target_proof.device_signature`，并要求 `target_proof.account_id` 与该 handoff 绑定的 `AccountId` 逐字节相等；
+  只有全部通过才把记录从 `staged` **单向**推进到 `ready_for_claim`。
+- 正例：同 intent 的 exact retry 返回同一 outcome 且不重新附加 proof；同 `device_pairing_request_id` 异内容 MUST 冲突。
+- 正例：短码认领返回的 bootstrap 与 target proof MUST 与同一请求的二维码 / 链接路径 byte-equivalent；两条入口
+  MUST NOT 产生不同的 transcript，也 MUST NOT 形成更弱的 code-only 授权分支。
+- 正例：认领响应 MUST NOT 携带任何私钥、session credential、recovery material 或该账号内其它设备的信息；
+  认领本身 MUST NOT 产生任何长期授权，最终授权仍只来自已授权设备签署的 `ak.device.authorize`。
+- 负例：`ready_for_claim -> staged` 的回退，或未经 `ready_for_claim` 直接到达 `authorized`，MUST 不可能发生。
+- 负例：错码、过期码、刷新前的旧码、跨账号 code、仍为 `staged` 的未 finalize 请求与已消费 code，MUST 返回**同一个**
+  `not_found`；响应体、错误码、reason code 与可观测时延差异 MUST NOT 泄露 code 是否存在、属于哪个账号或对应什么设备。
+- 负例：`finalize` 对未知 id、`pairing_code` 不符、已过期、已不是 `staged` 的记录同样 MUST 返回统一 `not_found`。
+- 负例：`target_proof.account_id` 与 handoff 绑定账号不等、缺少 handoff、用普通 SessionGrant 或未签 body 成员声称账号归属，
+  一律 MUST 拒绝且零状态推进。
+- 负例：code 出现在 URL path/query、访问日志或分析事件中视为不合规；超出 caller device / `AccountId` / 服务任一层限速
+  MUST `rate_limited`，累计失败达上限的请求 MUST 锁定。
 
 `vector_id`: `ak.vector.device_pairing.accepted_device_attestation.v1`
 
@@ -5925,14 +5955,15 @@ Steps:
 
 Expected:
 
-- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何请求方提供的 target proof 副本。
+- 正例：`accepted_device` 的 `device_signature` 使用 domain `ak.device_authorize_accepted_device_possession_proof.v1`，签名对象恰为 `{account_id, algorithms, authorization_binding_kind, device_id, device_key_algorithm, device_public_key_did, hpke_key, pairing_challenge_transcript_digest}`，批准设备与 gate 各自重建后验签通过；gate 不接受任何在 `pair_device` 请求体中提供的 target proof 副本。
 - 正例：`device_pairing_target_proof` 只绑定唯一的 staged short-link `pairing_challenge_transcript_digest`，不登记 to-device 配对 transcript 分支。
 - 正例：`hpke_key` 与 `algorithms` 只从验签通过的 target proof 取得；stage 请求与 `DevicePairingBootstrap` 都不承载这两个值。
 - 负例：target proof 的 `pairing_challenge_transcript_digest` 与本次 pairing 重算得到的 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。
 - 负例：target proof 的 `hpke_key` 与 `authorize_event.event.payload.hpke_key` 不一致 MUST 拒绝；`algorithms` / `device_public_key_did` / `device_id` 同理。
 - 负例：把 `root_anchored` 的 `ak.device_authorize_possession_proof.v1` transcript 用于 `accepted_device`，或把 `accepted_device` target proof 用于 genesis / re-anchor 的第二条 authorize，双向 MUST 拒绝。
 - 负例：target proof 的 `device_public_key_did` 与 `new_device_pubkey.key` 解码为不同 key，或 `device_id` 与 `new_device_pubkey.kid` 不等，MUST 拒绝。
-- 负例：把 target proof 经免认证 stage / resolve 面回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规。
+- 负例：把 target proof 经免认证 stage / resolve **请求面**回传，或在 `DevicePairingBootstrap` 中镜像 `hpke_key` / `algorithms`，视为不合规；认证的 `finalize` 是它唯一的 server-facing 载体。
+- 负例：`account_id` 与批准方自己的完整 `AccountId` 不等时 gate MUST 拒绝；与被接受 Event 的 `actor_id.account_id` 不等时目标设备 MUST 在装配前拒绝。用服务端旁路字段、路由、session audience 或未签 body 成员替代该签名成员声称账号归属，视为不合规。
 - 负例（§5.4.1）：被接受 Event 的完整 `actor_id.account_id`（含 Station）非用户预期，或 `payload.device_signature` 与目标设备产出的 target proof 签名不逐字节相同，目标设备 MUST fail closed——不使用该身份、不安装或请求该 principal 的密钥材料、不发布 KeyPackage，并向用户告警。
 - 负例：目标设备在完成 §5.4.1 校验之前就完成本地装配，视为不合规。
 

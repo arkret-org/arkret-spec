@@ -761,10 +761,11 @@
             "ak.gate.account.command.issue_did_binding_challenge.v1",
             "ak.gate.account.command.abandon_identity_creation.v1",
             "ak.gate.account.command.register.v1",
+            "ak.gate.account.command.finalize_device_pairing.v1",
             "ak.gate.account.command.issue_session_grant.v1",
             "ak.gate.account.command.issue_recovery_completion_grant.v1"
           ],
-          "description": "Closed set of operations this handoff may be presented at. The abandonment command is a member because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them; membership here does not widen the handoff into a session credential."
+          "description": "Closed set of operations this handoff may be presented at. The abandonment command is a member because a never-accepted PCR leaves the holder without a principal, so no principal-bound ak.session.grant can carry them. The device-pairing finalize command is a member for the mirror reason: a fresh device of an already bound account has no accepted-device signer yet, so this handoff is the only sender-constrained credential that can supply the exact AccountId its target proof must sign. Membership here does not widen the handoff into a session credential."
         },
         "binding": {
           "$ref": "#/$defs/account_handoff_binding"

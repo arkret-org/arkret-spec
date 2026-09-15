@@ -2794,6 +2794,16 @@
       ]
     },
     {
+      "schema_path": "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/device_public_key_did",
       "property_name": "device_public_key_did",
       "semantic_category": "responsibility_identity_material",

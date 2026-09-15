@@ -144,7 +144,7 @@
     "device_pairing_code": {
       "type": "string",
       "pattern": "^[A-HJ-NP-Z2-9]{8}$",
-      "description": "Eight-character human-readable Crockford-style code carrying 40 CSPRNG bits, bound to a short-lived SAS/QR transcript and protected by a ten-failure lockout."
+      "description": "Eight-character human-readable Crockford-style code carrying 40 CSPRNG bits. The minting service MUST keep it unique across its whole live pending window, because it is also the sole lookup key of the authenticated code claim; it is bound to a short-lived pairing challenge transcript and protected by a ten-failure lockout."
     },
     "device_pairing_request_id": {
       "type": "string",

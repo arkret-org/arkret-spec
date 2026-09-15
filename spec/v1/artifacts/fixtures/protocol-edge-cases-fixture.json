@@ -28,6 +28,7 @@
     "ak.vector.join_policy.gate_axis_orthogonality.v1",
     "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
     "ak.vector.invite.claim_expiry_canonical_time.v1",
+    "ak.vector.device_pairing.code_claim.v1",
     "ak.vector.device_pairing.challenge_transcript.v1",
     "ak.vector.device_pairing.accepted_device_attestation.v1"
   ],
@@ -686,6 +687,7 @@
       "vector_id": "ak.vector.device_pairing.challenge_transcript.v1",
       "variants": [
         "complete_stage_resolve_gate_round_trip",
+        "two_phase_stage_finalize_claim_round_trip",
         "gate_audience_mismatch",
         "stale_pairing_code",
         "cross_request_replay",
@@ -697,7 +699,8 @@
         "stage_request_carries_target_proof",
         "gate_request_omits_staged_request_id",
         "stage_response_leaks_principal_or_siblings",
-        "fresh_device_self_device_messages_call"
+        "fresh_device_self_device_messages_call",
+        "gate_request_references_unfinalized_staged_record"
       ],
       "expected": {
         "positive_decision": "accept",
@@ -711,7 +714,8 @@
         "stage accepts only the canonical PublicKey shape and rejects a target proof minted before server challenge material exists",
         "the gate request requires one still-pending staged request and rejects every client-supplied substitute transcript",
         "stage resolve and status remain account-less and expose neither principal binding nor sibling targets",
-        "an unauthorized fresh device receives no SessionGrant and cannot call any self device-messages operation"
+        "an unauthorized fresh device receives no SessionGrant and cannot call any self device-messages operation",
+        "the gate request requires a ready_for_claim record and refuses one that is still staged"
       ]
     },
     {
@@ -719,6 +723,7 @@
       "vector_id": "ak.vector.device_pairing.accepted_device_attestation.v1",
       "variants": [
         "closed_attestation_round_trip",
+        "account_id_is_a_signed_member",
         "shared_attestation_shape_across_paths",
         "key_material_authority_is_attestation_only",
         "attestation_challenge_digest_mismatch",
@@ -731,7 +736,9 @@
         "attestation_echoed_through_unauthenticated_surface",
         "target_assembly_principal_id_unexpected",
         "target_assembly_device_signature_not_byte_identical",
-        "target_assembly_before_accepted_event_check"
+        "target_assembly_before_accepted_event_check",
+        "attestation_account_id_disagrees_with_approver_account",
+        "attestation_account_id_disagrees_with_accepted_event_actor"
       ],
       "expected": {
         "positive_decision": "accept",
@@ -741,13 +748,58 @@
         "target_failure_mode": "fail_closed_and_warn_user"
       },
       "assertions": [
-        "the accepted_device possession object is closed over device_id, device_public_key_did, hpke_key, algorithms, device_key_algorithm, authorization_binding_kind and pairing_challenge_transcript_digest, and over nothing the approving device chooses",
+        "the accepted_device possession object is closed over account_id, device_id, device_public_key_did, hpke_key, algorithms, device_key_algorithm, authorization_binding_kind and pairing_challenge_transcript_digest, and over nothing the approving device chooses",
         "the approving device and the Account Authority each rebuild that object independently and never accept a requester-supplied attestation copy",
         "pairing_challenge_transcript_digest is compared against a locally recomputed challenge transcript before signature verification",
         "hpke_key and algorithms are read only from the verified attestation; neither the stage request nor the bootstrap carries them",
         "the target attestation travels only in the out-of-band QR or short-link fragment and is never returned by stage or resolve",
         "a transcript minted for one authorization_binding_kind never verifies for the other in either direction",
-        "the target device fetches the accepted authorize Event and verifies byte-identical device_signature, byte-identical key material and an expected principal_id before it assembles the identity locally"
+        "the target device fetches the accepted authorize Event and verifies byte-identical device_signature, byte-identical key material and an expected principal_id before it assembles the identity locally",
+        "account_id is a signed member obtained from the candidate's own pending account handoff; a server side channel, a route, a session audience or an unsigned body member never substitutes for it",
+        "the authenticated finalize call is the only server-facing carrier of the proof, and the anonymous stage and resolve request surfaces still refuse it"
+      ]
+    },
+    {
+      "name": "device_pairing_code_claim",
+      "vector_id": "ak.vector.device_pairing.code_claim.v1",
+      "variants": [
+        "stage_finalize_claim_pair_round_trip",
+        "pairing_code_unique_across_live_pending_window",
+        "refresh_mints_new_code_and_retires_the_old_one",
+        "finalize_exact_retry_returns_same_outcome",
+        "finalize_same_id_different_intent_conflicts",
+        "claim_matches_qr_path_byte_for_byte",
+        "ready_for_claim_never_returns_to_staged",
+        "authorized_never_skips_ready_for_claim",
+        "claim_unknown_code",
+        "claim_wrong_code",
+        "claim_expired_code",
+        "claim_superseded_code",
+        "claim_cross_account_code",
+        "claim_unfinalized_request",
+        "claim_consumed_code",
+        "finalize_account_id_disagrees_with_handoff",
+        "finalize_without_pending_account_handoff",
+        "claim_code_in_url_query",
+        "claim_rate_budget_exhausted"
+      ],
+      "expected": {
+        "positive_decision": "accept",
+        "negative_decision": "reject",
+        "uniform_claim_failure": "not_found",
+        "staged_transition": "one_way_to_ready_for_claim"
+      },
+      "assertions": [
+        "the stage response and the stored record carry no principal and no AccountId, and the record state is staged",
+        "a pairing code is unique across the whole live pending set of the service and a refresh retires the previous code immediately",
+        "finalize recomputes the challenge transcript from the service's own durable stage, verifies the candidate signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId the presented account handoff is bound to",
+        "finalize moves the record from staged to ready_for_claim one way; no run returns to staged and no run reaches authorized without passing through it",
+        "an exact finalize retry returns the same outcome without re-attaching a proof, and the same request id with different canonical content conflicts",
+        "the code claim returns the same bootstrap and a byte-equivalent target proof as the QR and link path for the same request",
+        "the claim response carries no private key, no session credential, no recovery material and nothing about any other device of the account, and it grants no long-lived authority",
+        "an unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed code all return one indistinguishable not_found with no observable difference in body, code, reason code or timing",
+        "the pairing code never appears in a URL path or query string, an access log or an analytics event",
+        "exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited and an exhausted failure budget locks the request"
       ]
     }
   ]

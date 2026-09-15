@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.12",
+  "version": "2026-09-15.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "generated_at": "2026-09-15T23:55:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10108,7 +10108,7 @@
         "schema_id": "ak.schema.device_pairing_operations.v1",
         "file": "schemas/device-pairing.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / resolve / status). See device-lifecycle.md §2.1.1."
+        "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / finalize / resolve / code claim / status). See device-lifecycle.md §2.1.1."
       },
       {
         "schema_id": "ak.schema.device_reanchor.v1",
@@ -11267,8 +11267,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-15.1",
-    "generated_at": "2026-09-15T18:20:00+08:00"
+    "version": "2026-09-15.2",
+    "generated_at": "2026-09-15T23:40:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -12748,7 +12748,9 @@
           "ak.gate.account.command.issue_did_binding_challenge.v1",
           "ak.gate.account.command.abandon_identity_creation.v1",
           "ak.gate.account.command.register.v1",
+          "ak.gate.account.command.finalize_device_pairing.v1",
           "ak.gate.account.command.pair_device.v1",
+          "ak.gate.account.read.claim_device_pairing_code.v1",
           "ak.gate.account.command.issue_session_grant.v1",
           "ak.gate.account.command.refresh_session_grant.v1",
           "ak.gate.account.command.issue_recovery_completion_grant.v1",
@@ -13415,6 +13417,24 @@
         }
       },
       {
+        "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
+        "http": "POST /_arkret/gate/account/device-pairing/finalizations",
+        "grpc": "GateAccount/FinalizeDevicePairing",
+        "mq": "gate.account.command.finalize_device_pairing",
+        "notes": "The one authenticated step that binds an account-less staged pairing record to an exact AccountId (device-lifecycle.md 2.1.1). The caller is the candidate device itself: it holds the exact device_pairing_request_id and pairing_code, holds the staged candidate key, and authenticates with Authorization: DPoP <account_handoff_grant> plus matching DPoP for a bound pending account handoff. That handoff is the sole source of the exact AccountId, which the candidate signs into device_pairing_target_proof; a server-side side channel or an unsigned request member MUST NOT assert account membership. The Account Authority recomputes the 2.1.2 challenge transcript from its own durable stage, verifies the target signature with the staged new_device_pubkey, requires target_proof.account_id to equal the AccountId this handoff is bound to, and only then moves the record from staged to ready_for_claim. The transition is one-way: ready_for_claim never returns to staged and authorized is never reachable without it. Unknown id, pairing_code mismatch, an expired record and a record that is no longer staged all return an indistinguishable not_found. Exact retry of the same canonical intent returns the same outcome without re-attaching a proof; the same request id with different content conflicts. No Arkret Event is authored and nothing is authorized here.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "canonical_hash",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body",
+        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        },
+        "canonical_hash_input": "/"
+      },
+      {
         "operation_id": "ak.gate.account.command.pair_device.v1",
         "http": "POST /_arkret/gate/account/device-pair",
         "grpc": "GateAccount/DevicePair",
@@ -13433,6 +13453,17 @@
           ]
         },
         "canonical_hash_input": "/"
+      },
+      {
+        "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
+        "http": "POST /_arkret/gate/account/device-pairing/code-claims",
+        "grpc": "GateAccount/ClaimDevicePairingCode",
+        "mq": "gate.account.query.claim_device_pairing_code",
+        "notes": "Authenticated retrieval of one pending pairing request by its normalized eight-character code, so a desktop browser with no camera can join a device by typing the code shown on the new device (device-lifecycle.md 2.1.1). The caller is a current accepted, non-pending-revocation device of an exact AccountId and the code is the whole input; it MUST be sent in the JSON body, never in URL path or query string. The service returns the resolved bootstrap and the byte-equivalent target proof only when the code hits a unique unexpired ready_for_claim unconsumed request whose signed account_id and gate audience equal the caller's own account, and when proof, staged key, request id, code and transcript digest all agree. Unknown, wrong, expired, cross-account, not yet finalized and already consumed codes MUST all return the same not_found, so an error shape never says whether a code exists or which account it belongs to. The response carries no private key, no session credential, no recovery material and nothing about any other device of the account. Claiming retrieves a request and grants nothing: the accepted device still has to review it and sign ak.device.authorize. Calls are rate limited per caller device, per AccountId and per service, and a request locks out after its cumulative failure budget.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body",
+        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome"
       },
       {
         "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
@@ -13612,7 +13643,7 @@
         "http": "POST /_arkret/open/device-pairing/requests",
         "grpc": "OpenDevicePairing/Stage",
         "mq": "open.device_pairing.command.stage",
-        "notes": "Unauthenticated stage of a device-pairing short-link handoff (device-lifecycle.md §2.1.1). The new device submits a canonical new_device_pubkey and a client_nonce (plus optional display_name / device_metadata) and MUST NOT submit a challenge proof, because the proof must commit to values this call mints; the service mints a fresh device_pairing_request_id, an 8-character Crockford-style 40-bit CSPRNG pairing_code, a gate_audience and a server_nonce, and stores a bounded-TTL account-less record in state pending_authorization. The staged record deliberately carries no hpke_key, no algorithms, no challenge proof and no target attestation: those reach the approving device only over the out-of-band channel, so this anonymous surface never accumulates long-term device key material or a device algorithm fingerprint, and a mirrored copy could never be authoritative anyway. The staged record binds no principal and grants nothing until an authenticated device authorizes it. Stage, resolve and status are rate limited. Each call mints a fresh request, so blind retries duplicate staged records: not retry-safe.",
+        "notes": "Unauthenticated stage of a device-pairing short-link handoff (device-lifecycle.md §2.1.1). The new device submits a canonical new_device_pubkey and a client_nonce (plus optional display_name / device_metadata) and MUST NOT submit a challenge proof, because the proof must commit to values this call mints; the service mints a fresh device_pairing_request_id, an 8-character Crockford-style 40-bit CSPRNG pairing_code, a gate_audience and a server_nonce, and stores a bounded-TTL account-less record in state staged. The pairing_code MUST be unique across the whole live pending set of the service, because it is also the sole lookup key of the authenticated code claim, and a refresh mints a new code and retires the old one immediately. The staged record deliberately carries no hpke_key, no algorithms, no challenge proof and no target attestation: those reach the approving device only over the out-of-band channel, so this anonymous surface never accumulates long-term device key material or a device algorithm fingerprint, and a mirrored copy could never be authoritative anyway. The staged record binds no principal and grants nothing: the account binding happens one step later, at the authenticated ak.gate.account.command.finalize_device_pairing.v1. Stage, resolve and status are rate limited. Each call mints a fresh request, so blind retries duplicate staged records: not retry-safe.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
@@ -13634,7 +13665,7 @@
         "http": "POST /_arkret/open/device-pairing/resolve",
         "grpc": "OpenDevicePairing/Resolve",
         "mq": "open.device_pairing.query.resolve",
-        "notes": "Resolves a device-pairing short-link token carried out-of-band, usually as a URL fragment in a QR/link. The pairing token MUST be sent in the JSON body, never in URL path or query string; the response is the DevicePairingBootstrap. The bootstrap carries only server-minted challenge material: it does not carry the challenge proof, the target attestation, or the hpke_key and algorithms that attestation signs, and those MUST NOT be mirrored here. resolve MUST return a uniform not_found for unknown id, pairing_code mismatch, expiry, or a non-pending record so the failing condition is not enumerable. Authorization is unchanged: the returned bootstrap is only consumed by an authenticated device that has independently verified the out-of-band challenge proof and target attestation before driving ak.gate.account.command.pair_device.v1.",
+        "notes": "Resolves a device-pairing short-link token carried out-of-band, usually as a URL fragment in a QR/link. The pairing token MUST be sent in the JSON body, never in URL path or query string; the response is the DevicePairingBootstrap. The bootstrap carries only server-minted challenge material: it does not carry the challenge proof, the target attestation, or the hpke_key and algorithms that attestation signs, and those MUST NOT be mirrored here. Only a record that has already been finalized to ready_for_claim can be resolved; resolve MUST return a uniform not_found for unknown id, pairing_code mismatch, expiry, or a record that is not ready_for_claim so the failing condition is not enumerable. Authorization is unchanged: the returned bootstrap is only consumed by an authenticated device that has independently verified the out-of-band challenge proof and target attestation before driving ak.gate.account.command.pair_device.v1.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
@@ -13645,7 +13676,7 @@
         "http": "POST /_arkret/open/device-pairing/requests/status",
         "grpc": "OpenDevicePairing/Status",
         "mq": "open.device_pairing.query.status",
-        "notes": "Unauthenticated poll for the authorization status of a staged device-pairing record. The device_pairing_request_id + pairing_code pair is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code mismatch MUST be indistinguishable (both not_found). While the record is open the outcome carries only state pending_authorization; once an authenticated device has authorized the pairing the outcome carries state authorized plus required device_id and authorized_event_ref; an expired record reports only state expired during a bounded cleanup retention period and becomes not_found after deletion. authorized_event_ref is the entry point for the mandatory pre-assembly check in device-lifecycle.md §5.4.1: the target device MUST fetch that accepted ak.device.authorize and confirm byte-identical device_signature, byte-identical device_public_key_did / hpke_key / algorithms and an expected principal_id before it assembles the identity locally, and MUST fail closed and warn the user otherwise.",
+        "notes": "Unauthenticated poll for the authorization status of a staged device-pairing record. The device_pairing_request_id + pairing_code pair is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code mismatch MUST be indistinguishable (both not_found). While the record is open the outcome carries only state staged before finalize and ready_for_claim after it; once an authenticated device has authorized the pairing the outcome carries state authorized plus required device_id and authorized_event_ref; an expired record reports only state expired during a bounded cleanup retention period and becomes not_found after deletion. authorized_event_ref is the entry point for the mandatory pre-assembly check in device-lifecycle.md §5.4.1: the target device MUST fetch that accepted ak.device.authorize and confirm byte-identical device_signature, byte-identical device_public_key_did / hpke_key / algorithms and an expected principal_id before it assembles the identity locally, and MUST fail closed and warn the user otherwise.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
@@ -16846,8 +16877,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-15.7",
-    "generated_at": "2026-09-15T18:20:00+08:00",
+    "version": "2026-09-15.9",
+    "generated_at": "2026-09-15T23:55:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17637,6 +17668,10 @@
         ],
         "members": [
           {
+            "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.gate.account.command.logout.v1",
             "binding_kind": "http_json"
           },
@@ -17646,6 +17681,10 @@
           },
           {
             "operation_id": "ak.gate.account.command.revoke_session.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
             "binding_kind": "http_json"
           },
           {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.12",
+  "version": "2026-09-15.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "generated_at": "2026-09-15T23:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,17 +18,17 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 254,
+    "total_operations": 256,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 252
+      "typed_schema": 254
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "typed_schema": 62
       },
       "deployment_local": {
-        "typed_schema": 16
+        "typed_schema": 18
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -424,6 +424,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/device-pairing/finalizations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DevicePairingFinalizeRequestBody",
+        "response": "#/components/schemas/DevicePairingFinalizeOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
       "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/introspect",
@@ -629,6 +643,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountHandoffRequestBody",
         "response": "#/components/schemas/AccountHandoffOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/device-pairing/code-claims",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DevicePairingCodeClaimRequestBody",
+        "response": "#/components/schemas/DevicePairingCodeClaimOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

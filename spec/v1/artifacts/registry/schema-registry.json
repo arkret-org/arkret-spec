@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.1",
+  "version": "2026-09-15.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "generated_at": "2026-09-15T23:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -517,7 +517,7 @@
       "schema_id": "ak.schema.device_pairing_operations.v1",
       "file": "schemas/device-pairing.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / resolve / status). See device-lifecycle.md §2.1.1."
+      "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / finalize / resolve / code claim / status). See device-lifecycle.md §2.1.1."
     },
     {
       "schema_id": "ak.schema.device_reanchor.v1",

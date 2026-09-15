@@ -1261,6 +1261,8 @@
           "ak.schema.current_principal_outcome.v1",
           "ak.schema.current_principal_request.v1",
           "ak.schema.device_message.v1",
+          "ak.schema.device_pairing_bootstrap.v1",
+          "ak.schema.device_pairing_operations.v1",
           "ak.schema.device_revocation_state.v1",
           "ak.schema.did_binding_contracts.v1",
           "ak.schema.did_webvh_witness_receipt.v1",
@@ -1673,6 +1675,8 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.gate.account.command.finalize_device_pairing.v1",
+          "ak.gate.account.read.claim_device_pairing_code.v1",
           "ak.open.device_pairing.command.stage.v1",
           "ak.open.device_pairing.read.resolve.v1",
           "ak.open.device_pairing.read.status.v1"

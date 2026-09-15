@@ -152,8 +152,16 @@
       "new": "ak.gate.account.command.pair_agent_key.v1"
     },
     {
+      "old": "ak.gate.account.command.finalize_device_pairing",
+      "new": "ak.gate.account.command.finalize_device_pairing.v1"
+    },
+    {
       "old": "ak.gate.account.command.pair_device",
       "new": "ak.gate.account.command.pair_device.v1"
+    },
+    {
+      "old": "ak.gate.account.read.claim_device_pairing_code",
+      "new": "ak.gate.account.read.claim_device_pairing_code.v1"
     },
     {
       "old": "ak.gate.account.command.refresh_session_grant",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.12",
+  "version": "2026-09-15.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T18:20:00+08:00",
+  "generated_at": "2026-09-15T23:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1570,6 +1570,40 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "pairing_code",
+          "target_proof"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "pairing_code",
+          "target_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "state",
+          "expires_at"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "state",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.pair_device.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1603,6 +1637,36 @@
           "authorized_event_ref",
           "device_grant",
           "key_backup_hint"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body",
+        "schema_kind": "object",
+        "required": [
+          "pairing_code"
+        ],
+        "properties": [
+          "pairing_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "bootstrap",
+          "target_proof"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "bootstrap",
+          "target_proof"
         ],
         "closed": true
       }
