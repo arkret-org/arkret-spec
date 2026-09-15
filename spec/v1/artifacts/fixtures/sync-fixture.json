@@ -3031,6 +3031,7 @@
   "timeline_window_completion": {
     "vector_id": "ak.vector.sync.timeline_window_completion.v1",
     "runner": "cotest::conformance::sync::run_timeline_window_completion_vector",
+    "projection_note": "Frames use the projected timeline form event_ids[] instead of full Event envelopes: this vector fixes window bookkeeping (cross-frame accumulation, generation replacement, idempotency by Event identity), not envelope validation. Wire shape is covered by the timeline_baseline_* cases in account_subscribe_schema_cases.",
     "operations": [
       "ak.self.account.stream.subscribe.v1"
     ],
@@ -3040,7 +3041,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
@@ -3057,7 +3058,7 @@
           },
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
                 "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
                 "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
@@ -3074,7 +3075,7 @@
           },
           {
             "timeline": {
-              "events": [],
+              "event_ids": [],
               "limited": false
             },
             "timeline_baseline": {
@@ -3096,7 +3097,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [],
+              "event_ids": [],
               "limited": false
             },
             "timeline_baseline": {
@@ -3118,7 +3119,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [],
+              "event_ids": [],
               "limited": false
             },
             "timeline_baseline": {
@@ -3140,7 +3141,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9"
@@ -3167,7 +3168,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
@@ -3183,7 +3184,7 @@
           },
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:AWAADgGKGVz-TArIja5SOC31r2AKsHNXJ2Efc_7aXcWx",
                 "ak:event:ATzhFwLB9-jc1LGc_a92Vfi_dpiUI1yZdZd0IwdJcNhy"
               ],
@@ -3204,7 +3205,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
@@ -3221,7 +3222,7 @@
           },
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
                 "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
                 "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
@@ -3247,7 +3248,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
@@ -3265,7 +3266,7 @@
           },
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
                 "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
                 "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
@@ -3291,7 +3292,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
@@ -3308,7 +3309,7 @@
           },
           {
             "timeline": {
-              "events": [],
+              "event_ids": [],
               "limited": false
             },
             "timeline_baseline": {
@@ -3319,7 +3320,7 @@
           },
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:AcsBgqkbfH9-QPNibVtUUlxhfRsM-8xdIqPJ3bkzcqfQ",
                 "ak:event:AZTcvAzzBQdLnt7KhvcNSOS3_gR7rUtc2EhXkz6d8MLo",
                 "ak:event:AaUX8JCZ6BDks4WRfBsYFNmoR2l0kUHLk4LUZFvqMpXc",
@@ -3348,7 +3349,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9"
@@ -3377,7 +3378,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [
+              "event_ids": [
                 "ak:event:ARoNVFTPC2MZwwVb9ic9nh5U7hzssLDzekdRvNaZQ-c7",
                 "ak:event:AcZxEm5-56mhA6aajw4titG7O7lFxS6OUwHLDhdXvaEI",
                 "ak:event:ARB3tEf_POPqhh_Y9euOj0sc3vQWNT4Zy1kA7V1f2gh9",
@@ -3438,7 +3439,7 @@
         "frames": [
           {
             "timeline": {
-              "events": [],
+              "event_ids": [],
               "limited": false
             },
             "timeline_baseline": {

@@ -2718,7 +2718,9 @@ MUST NOT 因本向量要求明文、明文镜像或服务端 validator。
 
 `vector_id`: `ak.vector.sync.timeline_window_completion.v1`
 
-机器 fixture：`sync-fixture.json#account_subscribe_schema_cases`（`timeline_baseline_*` 用例）；执行入口以 fixture `runner` 元数据为准。
+机器 fixture：静态半在 `sync-fixture.json#account_subscribe_schema_cases`（`timeline_baseline_*` 用例），
+运行时半在 `sync-fixture.json#timeline_window_completion`；执行入口以 fixture `runner` 元数据为准。
+后者的 frame 使用投影形态 `timeline.event_ids[]` 而非完整 Event 信封：本组固化的是窗口记账（跨帧累计、代次替换、按 Event 身份幂等），不是信封校验。
 唯一真源是 [`../sync/client-sync.md` §2.3](../sync/client-sync.md) 的 per-Realm timeline 窗口完成段、[§5.0](../sync/client-sync.md)
 的载体边界、[§5.2](../sync/client-sync.md) 的窗口级一致性与 [§13/§13.1](../sync/client-sync.md)。
 
