@@ -8938,7 +8938,13 @@ paths:
 
         for an expired record reports state expired during a bounded cleanup
 
-        retention period and becomes not_found after deletion.
+        retention period and becomes not_found after deletion. A record that a
+
+        later successful finalize for the same AccountId superseded reports the
+
+        same expired for that retention period and is indistinguishable from a
+
+        naturally elapsed TTL.
 
         '
       requestBody:
@@ -11815,6 +11821,29 @@ paths:
         the same canonical intent returns the same outcome; the same request id
 
         with different content conflicts.
+
+
+        A successful call also supersedes. In the same durable transaction it
+
+        moves every other unaccepted ready_for_claim record of that AccountId to
+
+        terminal expired, keeping the bounded tombstone that preserves exact
+
+        retry and blocks replay, so the account never holds two approvable
+
+        records at once. This is how v1 retires the code of an earlier pairing
+
+        attempt; there is no cancel operation. The key is the AccountId alone, so
+
+        a refreshed pairing page and a different new device retire the earlier
+
+        record identically and two devices cannot be added in parallel.
+
+        Supersession adds no request or response member, authors no Event, grants
+
+        nothing, never rewrites an outcome pair_device already accepted, and an
+
+        exact retry performs no second supersession.
 
         '
       responses:

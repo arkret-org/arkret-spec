@@ -92,7 +92,7 @@
     },
     "device_pairing_state": {
       "type": "string",
-      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim.",
+      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed or once a later successful finalize for the same AccountId supersedes it. Supersession is a server-side transition with no wire field of its own: it carries no request member and no response member, and the two causes of expired are deliberately indistinguishable. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim.",
       "enum": [
         "staged",
         "ready_for_claim",
@@ -154,7 +154,7 @@
     },
     "device_pairing_finalize_request_body": {
       "type": "object",
-      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome; the same request id with different content conflicts.",
+      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome, performs no second supersession, and the same request id with different content conflicts. A successful call also moves every other unaccepted ready_for_claim record of the same AccountId to terminal expired in the same durable transaction, so that account never holds two approvable records at once. The supersession key is the AccountId alone and no request member selects or suppresses it.",
       "required": [
         "device_pairing_request_id",
         "pairing_code",
@@ -176,7 +176,7 @@
     },
     "device_pairing_finalize_outcome": {
       "type": "object",
-      "description": "Result of attaching the target proof to a pending record. state is always ready_for_claim: the transition is one-way and the operation never reports a state it did not reach.",
+      "description": "Result of attaching the target proof to a pending record. state is always ready_for_claim: the transition is one-way and the operation never reports a state it did not reach. Records of the same AccountId that this call superseded are not enumerated here; supersession is a server-side invariant, not an outcome member.",
       "required": [
         "device_pairing_request_id",
         "state",
@@ -259,7 +259,7 @@
     },
     "device_pairing_code_claim_request_body": {
       "type": "object",
-      "description": "Authenticated claim of one pending pairing request by its normalized eight-character code. The caller is a current accepted, non-pending-revocation device of an exact AccountId and presents nothing else: the code is the whole input and MUST be sent in the JSON body, never in URL path or query string. Unknown, wrong, expired, cross-account, not yet finalized and already consumed codes MUST all return the same not_found.",
+      "description": "Authenticated claim of one pending pairing request by its normalized eight-character code. The caller is a current accepted, non-pending-revocation device of an exact AccountId and presents nothing else: the code is the whole input and MUST be sent in the JSON body, never in URL path or query string. Unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed codes MUST all return the same not_found.",
       "required": [
         "pairing_code"
       ],
@@ -311,7 +311,7 @@
     },
     "device_pairing_status_outcome": {
       "type": "object",
-      "description": "Authorization status for a staged device-pairing record. While the record is still account-less the state is staged; after finalize it is ready_for_claim. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired.",
+      "description": "Authorization status for a staged device-pairing record. While the record is still account-less the state is staged; after finalize it is ready_for_claim. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired, and so does a record a later finalize for the same AccountId superseded; the two are indistinguishable for the whole bounded tombstone retention period.",
       "required": [
         "state"
       ],

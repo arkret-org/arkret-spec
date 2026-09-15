@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.5",
+  "version": "2026-09-15.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T00:20:00+08:00",
+  "generated_at": "2026-09-16T01:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1916,7 +1916,7 @@
       "status": "active",
       "domain": "device_pairing",
       "scope": "universal",
-      "description": "Device pairing is a two-phase pending request: stage stays account-less, and finalize is the one authenticated step that binds the record to an exact AccountId by attaching a target proof signed over a transcript that includes it. The eight-character code is unique across the whole live pending window, so a second stage call always mints a distinct one and is the only input of the authenticated code claim, which returns the byte-equivalent bootstrap and proof of the QR path and never a weaker code-only branch. staged advances one way to ready_for_claim, and an unknown, wrong, expired, cross-account, not yet finalized or already consumed code is indistinguishable from every other in one uniform not_found.",
+      "description": "Device pairing is a two-phase pending request: stage stays account-less, and finalize is the one authenticated step that binds the record to an exact AccountId by attaching a target proof signed over a transcript that includes it. The eight-character code is unique across the whole live pending window, so a second stage call always mints a distinct one and is the only input of the authenticated code claim, which returns the byte-equivalent bootstrap and proof of the QR path and never a weaker code-only branch. staged advances one way to ready_for_claim, and a successful finalize supersedes every other unaccepted ready_for_claim record of the same AccountId into terminal expired in the same durable transaction, keyed by AccountId alone so a refreshed page and a different device behave identically, never rewriting an outcome pair_device already accepted and never superseding twice on an exact retry. An unknown, wrong, expired, superseded, cross-account, not yet finalized or already consumed code is indistinguishable from every other in one uniform not_found, while status still reports expired for a superseded record exactly as it does for an elapsed TTL.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/device-lifecycle.md",

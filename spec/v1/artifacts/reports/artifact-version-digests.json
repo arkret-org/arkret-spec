@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-15.17",
-      "generated_at": "2026-09-16T00:45:00+08:00",
-      "content_digest": "sha256:632f7947c4ba5e4305f29228ffff5dc909fffcf50c73572c4dceb83448c3908f"
+      "version": "2026-09-15.18",
+      "generated_at": "2026-09-16T01:00:00+08:00",
+      "content_digest": "sha256:91c093d1a320ce833d5bc62da80e68e2663fd8e2ac5ea2657bc32efc254b9065"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -261,15 +261,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-15.8",
-      "generated_at": "2026-09-16T00:45:00+08:00",
-      "content_digest": "sha256:7c21a6c976b8e41943c6551110afee8c0e9aefe6c0f442c61c761faeead5bada"
+      "version": "2026-09-15.9",
+      "generated_at": "2026-09-16T01:00:00+08:00",
+      "content_digest": "sha256:68c0386087ca079fb85ecc9a175825217813b5b486101c7c569a0f7d7afbe296"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-15.10",
-      "generated_at": "2026-09-16T00:20:00+08:00",
-      "content_digest": "sha256:c3cce861c40db4d06f769b2252246f158516e556878a45d9a1357013327e4f1b"
+      "version": "2026-09-15.11",
+      "generated_at": "2026-09-16T01:00:00+08:00",
+      "content_digest": "sha256:f5dc9d536017978c4eacfb13e72b162957b3351292057d25ab061607f72e8fa2"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -405,9 +405,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-15.5",
-      "generated_at": "2026-09-16T00:20:00+08:00",
-      "content_digest": "sha256:a32014d1926fcb0c054f6c14683f7209bba0a5e47c3dc75c6c4831413eb9944b"
+      "version": "2026-09-15.6",
+      "generated_at": "2026-09-16T01:00:00+08:00",
+      "content_digest": "sha256:fa4c3526c23270e7be4b5cd580069fe610f91ba0b38f8ae3f15fa172f1ff8f4f"
     }
   ]
 }

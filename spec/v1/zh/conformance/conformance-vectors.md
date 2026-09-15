@@ -5920,6 +5920,9 @@ Steps:
    sender-constrained pending account handoff 提供 exact `AccountId`，已授权设备只输入 8 位 code 取回请求并批准。
 2. 对同一 Station 的 live pending 集合枚举已铸出的 `pairing_code`，并分别以错码、过期码、刷新前的旧码、
    属于另一账号的 code、仍为 `staged` 的未 finalize 请求以及已消费 code 发起认领。
+3. 用同一账号连续走两遍 `stage -> finalize`（记为 A、B），分别以「B 复用 A 的 candidate key」（刷新配对页）
+   与「B 使用一把新的 candidate key」（换设备）两组输入各跑一次，然后对 A 发起 code claim、`resolve`、
+   `status` 与 `pair_device`，并对 A 已被 gate 接纳后再 finalize B 的顺序单独跑一次。
 
 Expected:
 
@@ -5936,6 +5939,16 @@ Expected:
 - 负例：`ready_for_claim -> staged` 的回退，或未经 `ready_for_claim` 直接到达 `authorized`，MUST 不可能发生。
 - 负例：错码、过期码、被替代的旧码、跨账号 code、仍为 `staged` 的未 finalize 请求与已消费 code，MUST 返回**同一个**
   `not_found`；响应体、错误码、reason code 与可观测时延差异 MUST NOT 泄露 code 是否存在、属于哪个账号或对应什么设备。
+- 正例：B 的 `finalize` 成功后，A MUST 已在同一 durable 事务内转入 terminal `expired`，且 B 进入
+  `ready_for_claim` 时 MUST NOT 与 A 同时可批准；B 自身仍可被正常认领与批准。
+- 正例：candidate key 相同（刷新配对页）与不同（换设备）两组输入 MUST 得到完全一致的取代结果——
+  取代键是 `AccountId`，不是 `(AccountId, device_id)`，也不是 candidate key。
+- 正例：A 已被 `pair_device` 接纳并写下 terminal outcome 之后再 finalize B，MUST NOT 回溯改写 A 的 terminal
+  outcome；A 的 exact replay 仍返回原 `authorized_event_ref` 与 byte-identical outcome。
+- 正例：同一 finalize intent 的 exact retry MUST 返回同一 outcome，且 MUST NOT 第二次执行取代。
+- 负例：A 被取代后，A 的 code claim、`resolve` 与 `pair_device` MUST 全部返回与从不存在的记录相同的
+  `not_found`；凭 A 的 `device_pairing_request_id` + `pairing_code` 查询 `status` MUST 在 tombstone
+  保留期内返回 `expired`，与 TTL 自然到期不可区分。
 - 负例：`finalize` 对未知 id、`pairing_code` 不符、已过期、已不是 `staged` 的记录同样 MUST 返回统一 `not_found`。
 - 负例：`target_proof.account_id` 与 handoff 绑定账号不等、缺少 handoff、用普通 SessionGrant 或未签 body 成员声称账号归属，
   一律 MUST 拒绝且零状态推进。
