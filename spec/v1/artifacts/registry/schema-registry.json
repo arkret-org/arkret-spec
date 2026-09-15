@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.2",
+  "version": "2026-09-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T10:50:00+08:00",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1302,6 +1302,13 @@
       "file": "schemas/recovery-receipt.schema.json",
       "status": "active",
       "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
+    },
+    {
+      "schema_id": "ak.schema.recovery_terminal_commit.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "fragment": "#/$defs/recovery_terminal_commit",
+      "status": "active",
+      "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation Seal together with its recovery receipt. It is the sole wire carrier that brings that Seal into the single atomic commit_recovery_unit commit."
     },
     {
       "schema_id": "ak.schema.recovery_session.v1",

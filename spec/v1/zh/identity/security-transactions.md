@@ -3,7 +3,7 @@ title: 安全事务资源
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-24
+updated: 2026-09-15
 ---
 
 # 安全事务资源
@@ -89,82 +89,193 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 | `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
 | `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
 
-两种 `create` 都只接受完整 typed plan；coordinator 必须在一个 durable transaction 中保存 canonical request
+SecurityRotation `create` 只接受完整 typed plan；Recovery `create` 只接受 closed typed `recovery_intent`，
+typed prepared plan 一律由 coordinator 在 §2.1 的专用 prepare transaction 中派生，客户端不得提交一份已经填完的
+`prepared_plan`。两种 `create` 都必须在一个 durable transaction 中保存 canonical request
 bytes/digest、typed prepared plan、自己重算的 plan digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
 Recovery create 还必须只接受属于同一 Station-local AccountId、已 verified 且尚未绑定其它 transaction 的
 recovery session，并在同一 durable commit 中 CAS 绑定该 session；SecurityRotation create
 不依赖 recovery session，必须验证当前 AccountId 的 high-risk action authority。`continue` 的 `request_digest`、
 `prepared_plan_digest` 必须与当前 resource 精确相等，`expected_accepted_step_count` 必须等于当前
 `accepted_steps.length`，否则
-`duplicate_conflict` / `failed_precondition`；它不是提交任意步骤列表的接口。coordinator-owned prefix——Recovery 的
-`submit_reanchor_unit`，以及 SecurityRotation 的 `revoke`、`upload_new_material`、
-`switch_authoritative_pointer`、`erase_old_material`——只能由 durable transaction worker 自动执行与恢复；restart、
-response loss 或 retry 都从同一 resource 继续，客户端只能用 `get` 观察，不能用 `continue` 驱动或重复执行这些步骤。
+`duplicate_conflict` / `failed_precondition`；它不是提交任意步骤列表的接口。coordinator-owned prefix 只属于
+SecurityRotation 的 `revoke`、`upload_new_material`、`switch_authoritative_pointer`、`erase_old_material`——只能由
+durable transaction worker 自动执行与恢复；restart、response loss 或 retry 都从同一 resource 继续，客户端只能用
+`get` 观察，不能用 `continue` 驱动或重复执行这些步骤。Recovery 没有 coordinator-owned prefix：它的唯一 accepted step
+就是 client-attested 的 `commit_recovery_unit`。
 
 `continue` 只提交 client-attested terminal step，因此 request 必须携带 `client_attestation`。服务端必须先从 resource 的
-`kind` 与 `accepted_steps.length` 派生下一步：Recovery 只在 terminal index 1、SecurityRotation 只在 terminal index 4
+`kind` 与 `accepted_steps.length` 派生下一步：Recovery 只在 terminal index 0、SecurityRotation 只在 terminal index 4
 ready 时继续验证 CAS、reserved output 与 attestation；任何 coordinator-owned prefix、尚未 ready 的 terminal、错误 kind/step
-或越界 prefix 都返回 `failed_precondition`，不得产生副作用。通用 request schema 不携 `kind`，所以不得把 `{1,4}` 或 kind-specific
+或越界 prefix 都返回 `failed_precondition`，不得产生副作用。通用 request schema 不携 `kind`，所以不得把 `{0,4}` 或 kind-specific
 maximum 写进 JSON Schema；无 attestation 的 POST 也不是 `get` 的 no-op 别名。
 
-只有 `issue_terminal_receipt` 与 `local_commit` 可以作为 `client_attestation.step`，且其 `output_ref`
+只有 `commit_recovery_unit` 与 `local_commit` 可以作为 `client_attestation.step`，且其 `output_ref`
 必须等于 prepared plan 中预留的 `terminal_receipt_id` / `local_commit_digest`。attestation 必须携带
-typed `artifact`：前者是完整 `ak.schema.recovery_receipt.v1`，后者是
-`ak.schema.security_rotation_local_commit.v1`。Recovery receipt 由 replacement device 按其已接受的 device key
-自行签发，服务端不得伪造或返回带占位签名的 draft；local commit 同样由客户端从权威 transaction resource
-复制 `transaction_id`、`request_digest`、`prepared_plan_digest` 与 prepared plan 的 `local_commit_digest`，再加入
-本地 `device_id` / `committed_at` 构造。两类 artifact 都是 caller-authored material，不需要也不存在第二个服务端
-supply operation。wire 上不携 `attestation_digest`；外层 Ed25519 签名输入固定为
+typed `artifact`：前者是闭合 `ak.schema.recovery_terminal_commit.v1`，后者是
+`ak.schema.security_rotation_local_commit.v1`。RecoveryTerminalCommit 内的 Seal 与 receipt 都由 replacement device
+以同一冻结 device key 自行签发，服务端不得伪造、代签或返回带占位签名的 draft；local commit 同样由客户端从权威
+transaction resource 复制 `transaction_id`、`request_digest`、`prepared_plan_digest` 与 prepared plan 的
+`local_commit_digest`，再加入本地 `device_id` / `committed_at` 构造。两类 artifact 都是 caller-authored material，
+不需要也不存在第二个服务端 supply operation。wire 上不携 `attestation_digest`；外层 Ed25519 签名输入固定为
 `RFC8785_JCS({step, output_ref, transaction_id, transaction_request_digest, prepared_plan_digest,
 attestation_digest})`，其中投影成员 `attestation_digest := SHA-256(JCS(artifact))` 由签名方与 verifier
 各自从同载体 `artifact` 重算填入，不从 wire 读取；wire 上也不携字段名清单。coordinator 必须重算 artifact
-digest，验证 outer attestation；recovery 还必须验证 receipt 自己的 device signature transcript。其它 step
-对应非 terminal-ready resource 的 attestation 必须拒绝。`get` 是 response loss、restart 与
-跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
+digest，验证 outer attestation；recovery 还必须分别验证 Seal 的 notary signature transcript 与 receipt 自己的
+device signature transcript。其它 step 对应非 terminal-ready resource 的 attestation 必须拒绝。`get` 是
+response loss、restart 与跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 仍不携带
 `terminal_result`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
 result 仍是成功终态的必要条件。
 
 旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
-完成投影只能由接受 terminal receipt 的 RecoveryTransaction coordinator 原子写入，不能存在绕过
+完成投影只能由接受 `commit_recovery_unit` 的 RecoveryTransaction coordinator 原子写入，不能存在绕过
 prepared plan binding 和 accepted-step ledger 的第二个公开完成入口。
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 的基础 `identity_model="pcr_policy"`。`prepared_plan.binding` 固定 account authority pair 与本地 PCR
-lineage、recovery session/policy、replacement device、re-anchor/authorize Event ids 与 terminal receipt；plan 其余字段
-固定 previous/result PCR generation 与 ordered re-anchor unit，不含 DID publication。`identity_model` 只在内嵌 binding
-出现一次。
+RecoveryTransaction 的基础 `identity_model="pcr_policy"`。它是一次有条件的最终成交：coordinator 先冻结“若本次恢复成功，
+唯一允许签署的材料是什么”，replacement device 在本地签好首个新 generation Seal 与 recovery receipt，再由唯一终态请求
+一次交齐；服务器要么把 Seal、两条 Event、generation、设备、session 与 transaction 全部提交，要么一个都不提交。
+`prepared_plan.binding` 固定 account authority pair 与本地 PCR lineage、recovery session/policy、replacement device、
+re-anchor/authorize Event ids、re-anchor batch receipt id、首枚 Seal id 与 terminal receipt id；plan 其余字段固定
+previous/result PCR generation、ordered re-anchor unit、首枚 Seal 的 closed intent 与 exact `UnsignedSeal` body，
+不含 DID publication。`identity_model` 只在内嵌 binding 出现一次。
 
 基础步骤严格为：
 
 ```text
-submit_reanchor_unit -> issue_terminal_receipt
+create/prepare -> commit_recovery_unit
 ```
 
-`submit_reanchor_unit` 原样提交 policy-authorized `ak.device.reanchor` 与 replacement-device-signed
-`ak.device.authorize`。Station 验证 accepted recovery policy/session、proof threshold、payload digest
-单向承诺、Event predecessor、candidate possession、monotonic generation CAS 与 old-device fence，再原子接受
-两条 Event。Account Authority/transport signature 不构成内容 authority；coordinator 不持有 recovery/device
-private key，不生成、更改或代签 Event。
+`commit_recovery_unit` 位于 accepted-step index 0，是唯一 client-attested step，也是本事务唯一的 accepted step。
+两条 Event 的提交不构成独立 accepted-step：它们只作为 transaction-private prepared material 保存，在最终原子提交前
+MUST NOT 进入 canonical accepted Event store、outbox 或任何 current projection。Recovery 因此没有 coordinator-owned
+prefix，也不存在第二个可独立接受的 Seal 提交步骤。
+
+Account Authority / transport signature 不构成内容 authority；coordinator 不持有 recovery/device private key，
+不生成、更改或代签 Event 与 Seal。
+
+### 2.1 create 同时完成专用 prepare，但不产生恢复效果
+
+Recovery create request 是 closed typed `recovery_intent`，固定本事务的 `transaction_id` / `account_id` /
+`expires_at`、verified recovery session、replacement device、previous/result generation、预留 `terminal_receipt_id`、
+两条完整已签 Event 的 `reanchor_unit`，以及首枚 Seal 的 closed intent：`realm_id`、exact non-null `predecessor_ref`、
+按 `[reanchor, authorize]` 顺序的 `unit_event_digests` 与冻结 `hlc`。create request MUST NOT 伪装成已由客户端填完的
+最终 `prepared_plan`。
+
+coordinator 必须在同一个 durable prepare transaction 中：
+
+1. 锁定并验证 exact AccountId、verified recovery session、policy/proof snapshot、PCR predecessor/frontier、
+   generation CAS、candidate key/PoP 与两条 Event；
+2. 用专用 recovery execution mode 重放完整历史与 recovery unit，生成 exact `UnsignedSeal`，其唯一 committed
+   `command_result.unit_event_digests` 必须恰为 `[reanchor_digest, authorize_digest]`；
+3. 固定 derived `first_generation_seal_id`、完整 unsigned body、`reanchor_batch_receipt_id`、`terminal_receipt_id`、
+   canonical create request bytes/digest、closed typed prepared plan/digest，以及
+   `(realm_id, replacement signer slot, predecessor_ref)` 的耐久 signing-slot fence；
+4. 原子持久化 transaction 与 session-to-transaction binding 之后才返回 resource。
+
+该提交只是冻结唯一可签材料。它 MUST NOT 插入 accepted Event、提交 Seal、推进 generation、激活设备、消费 session
+或写 terminal result。签名 body 一旦对客户端可见，fence MUST NOT 因超时、重启或失败而释放去准备同一 signer slot 的
+另一份正文；过期事务只能永久拒绝该旧 prepared body，重新恢复必须使用新的 session 与新的 replacement device/key slot，
+不得复用或改写旧 plan。该 fence 与普通 PCR `ak.self.seals.command.prepare.v1` 的 signing-slot fence 同规则，见
+[`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)；但 recovery 的 prepare 是
+transaction create 的内部合同，不经由普通 seal prepare operation。
+
+`prepared_plan_digest = SHA-256(RFC8785_JCS(prepared_plan))` 因而覆盖完整 unsigned Seal。`request_digest` 只覆盖
+caller 的 canonical create intent；二者职责分开，不形成哈希自引用。
 
 `ak.root.identity.recovery_session.command.submit_proof.v1` 与新 RecoveryTransaction 的 session 绑定都以
 session FSM 为准：目标 session 不在 `pending` 状态——无论已 `verified` 还是已 terminal
 （`completed` / `rejected` / `expired`）——MUST 以顶层 `recovery_session_not_pending`（409）拒绝并零副作用。
 terminal session 不可变；该判定是 session 状态门，不携带独立 reason code。
 
-coordinator 在 terminal receipt 接受与完成 ledger 同一原子提交中生成
+### 2.2 唯一终态载体
+
+`ClientStepAttestation.artifact` 的 Recovery 分支是闭合 `ak.schema.recovery_terminal_commit.v1`：
+
+```text
+RecoveryTerminalCommit {
+  first_generation_seal,
+  recovery_receipt
+}
+```
+
+其中 Seal 的 unsigned body MUST 与 prepared plan 中冻结的 `first_generation_seal_body` 逐字节相等，只允许补上由
+replacement device method/key 生成的 canonical `id` 与 `notary_signature`，且该 `id` MUST 等于
+`binding.first_generation_seal_id`。RecoveryReceipt 继续由同一 replacement device 签名，并 MUST 新增并签入
+`first_generation_seal_id`，同时保持对 `transaction_id`、`transaction_request_digest`、`prepared_plan_digest`、
+两条 Event、re-anchor batch receipt、generation 与 session/policy/proof 的既有绑定。
+
+外层 `ClientStepAttestation.step` 固定为 `commit_recovery_unit`，`output_ref` 仍为预留的 `terminal_receipt_id`，
+派生 `attestation_digest` 因此等于 `SHA-256(RFC8785_JCS(RecoveryTerminalCommit))`，同时覆盖 Seal 签名与 receipt。
+这里没有循环：plan 只含 unsigned Seal；Seal id 由 unsigned body 派生；receipt 在取得 request/plan digest 与 Seal id
+后签署；外层最后签完整 terminal artifact。
+
+RecoveryReceipt 的 `completed_at` 是 replacement device 签署“若全部校验通过则完成”的作者化时间，不是数据库已经提交
+的证明。它只有与同一原子提交生成的 `ak.schema.recovery_completion_attestation.v1` 配对后，才是可消费的 completed
+receipt。
+
+coordinator 在 `commit_recovery_unit` 接受与完成 ledger 同一原子提交中生成
 `ak.schema.recovery_completion_attestation.v1`。其 Ed25519 签名输入固定为
 `RFC8785_JCS({schema, transaction_id, transaction_request_digest, prepared_plan_digest, account_id,
-recovery_session_id, terminal_receipt_id, terminal_receipt_digest,
-replacement_device_id, device_authorization_event_id, result_model_generation_ref, completed_at})`，wire 上不携字段名清单。
+recovery_session_id, terminal_receipt_id, terminal_receipt_digest, terminal_commit_digest,
+replacement_device_id, device_authorization_event_id, first_generation_seal_id, result_model_generation_ref,
+completed_at})`，wire 上不携字段名清单。`terminal_commit_digest` 等于上述完整 `RecoveryTerminalCommit` 的 SHA-256
+digest；`completed_at` 是服务端线性化提交时间，MUST NOT 早于 receipt 的 `completed_at`。
 其中签发 attestation 的 coordinator 就是 `account_id.station_id`；transaction 资源与 attestation
 均携同一完整 `account_id`，两者都不携独立 coordinator 字段，coordinator 只能从该 `account_id` 取得，不得再由两个值拼装账号。
 Event digest 必须由 suite-bearing `device_authorization_event_id` 解码；修改该 ID 会同时修改派生 digest 并使签名失败。
 
+### 2.3 唯一原子提交与可观察性
+
+`commit_recovery_unit` MUST 在同一个本地数据库事务、同一组行锁与同一 generation/predecessor CAS 下完成全部动作：
+
+1. 重验 transaction/request/plan、session binding、live expiry/policy、historical PCR、Event signatures、
+   Seal predecessor/delta/body/id/signature 与 terminal receipt/outer attestation；
+2. 插入并确认两条 Event 及其唯一 committed command result；
+3. 接受并发布 exact first-generation Seal；
+4. 推进 generation、fence 旧 generation，并把 replacement device 投影为 `active + verified + current generation`；
+5. 消费 recovery session；
+6. 追加唯一 accepted terminal step，生成并保存 completion attestation，把 RecoveryTransaction 写成 completed；
+7. 写入同事务 outbox/audit/receipt 结果。
+
+数据库提交前，任何普通读面 MUST NOT 观察到上述任一权威结果；提交后 MUST 同时观察到全部结果。任一步失败或进程在
+commit 前崩溃都整体回滚。MUST NOT 先调用现有 Event/Seal store 提交、再用补偿事务更新 recovery rows；这些属于同一个
+本地 Station 权威边界，不适用 Saga 补偿。
+
+### 2.4 operation 与 grant 边界
+
+verified recovery session 的 post-proof closed operation set 不变；完成 RecoveryTransaction 本身继续只使用
+`ak.self.security_transaction.command.create.v1`、`ak.self.security_transaction.resource.get.v1` 与
+`ak.self.security_transaction.command.continue.v1`，其余既有 read/unlock operation 不变，见
+[`../sync/service-http-binding.md` §2.1.2a](../sync/service-http-binding.md)。普通
+`ak.self.seals.command.prepare.v1` / `ak.self.seals.command.submit.v1` 继续要求 current accepted device，
+MUST NOT 加入 recovery grant。Recovery 的专用 prepare 是 transaction create 的内部合同，完整 Seal 只允许通过 terminal
+`continue` 的 `RecoveryTerminalCommit` 进入原子提交；普通 Seal submit、私有 endpoint、第二个 transaction 或 closed DTO
+扩展字段均 MUST NOT 成为旁路。
+
 DID method operation 的发布继续使用 `POST /_arkret/root/identity/submit-did-operation`，但它不是
 RecoveryTransaction 的步骤，也不得进入 recovery binding、prepared plan 或 accepted-step ledger。
 恢复 authority 只来自已接受的 PCR policy/session 与 unit 内闭合 proof；DID current root 不得绕过该策略。
+
+### 2.5 幂等、竞争与失败终局
+
+- 同 transaction id + byte-identical intent 的 create MUST 返回相同 request digest、prepared plan、unsigned Seal
+  body/id 与 plan digest；异 bytes 为 `duplicate_conflict`。
+- terminal response 丢失或服务重启后，同一 canonical `continue` MUST 返回首次保存的 completed resource、receipt 与
+  completion attestation；检查 stored outcome MUST 先于“session 已消费”这类 live-state 拒绝。
+- 同 transaction 的 forged/changed Seal、receipt、outer signature 或 plan binding 零权威写入；未曾被接受的请求修正
+  后仍可提交，已经冻结为 step outcome 的异 bytes MUST `duplicate_conflict`。
+- 两个 recovery unit 竞争同一 previous generation 时，只有在同一原子 CAS 中提交 Seal 的 transaction 是 winner；
+  loser MUST NOT 留下 accepted Event、verified device、consumed session 或 completed transaction，也 MUST NOT
+  quarantine 或撤销 winner。
+- commit 后到达的 winner exact retry 只重放原结果；rival unit MUST 取得确定性的 generation/predecessor conflict 或
+  terminal aborted 结果，不得生成第二个 committed Seal。
+- raw signed recovery Seal 在没有 matching completed RecoveryTransaction 与 completion attestation 时，MUST NOT 经
+  普通 Seal submit、federation 或 history replay 取得 accepted finality。
+
+上述矩阵由 `ak.vector.security_transaction.recovery_terminal_commit.v1` 固定。
 
 ## 3. SecurityRotationTransaction
 
@@ -235,9 +346,11 @@ backup id canonical升序；`status=erased`当且仅当remaining为空，`reason
 同 id 同/不同 bytes 重试、staged secret 丢失与 terminal replay。任一故障点都只能观察到一个
 transaction 和一组 reserved ids。
 
-上述矩阵由`ak.vector.security_transaction.resilience.v1`与
+上述矩阵由`ak.vector.security_transaction.resilience.v1`、
+`ak.vector.security_transaction.recovery_terminal_commit.v1`与
 `ak.vector_group.security_transaction.v1`固定；runner必须覆盖Recovery A/B与Rotation双
-backup-kind，并输出canonical结果digest供第二个独立实现对拍。
+backup-kind，并输出canonical结果digest供第二个独立实现对拍。Recovery 分支还必须证明提交前无任何权威结果可观察、
+提交后全部结果同时可观察，且不存在 completed 但未 Seal 或 pending 但已 verified 的中间状态。
 
 正例：pointer switch 已成功但响应丢失；重试查询同一 transaction，继续 erase。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.6",
+  "version": "2026-09-15.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T00:04:00+08:00",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4448,7 +4448,7 @@
       "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
       "grpc": "SelfSecurityTransactions/Continue",
       "mq": "self.security_transaction.command.continue",
-      "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned steps are accepted but the device is offline, terminal_result remains absent; device-attestation readiness is a computed view of the canonical next step and no coordinator phase/state is serialized.",
+      "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for commit_recovery_unit or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. The commit_recovery_unit artifact is the closed RecoveryTerminalCommit carrying the first new-generation Seal and the recovery receipt, accepted in one atomic commit with both recovery Events, the generation advance, the replacement device projection, the consumed recovery session and the completed terminal result. When all coordinator-owned steps are accepted but the device is offline, terminal_result remains absent; device-attestation readiness is a computed view of the canonical next step and no coordinator phase/state is serialized.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",

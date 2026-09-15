@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 228,
+    "total_schemas": 229,
     "by_consumer": {
       "declared_wire": 58,
       "event_kind": 3,
       "inbound": 59,
       "outbound": 67,
-      "prose": 108,
+      "prose": 109,
       "prose_only": 2,
-      "schema_reference": 146,
-      "startup_compile": 228,
-      "vectors": 124
+      "schema_reference": 147,
+      "startup_compile": 229,
+      "vectors": 126
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 104,
+    "without_vector_coverage": 103,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -161,7 +161,6 @@
     "ak.schema.realm_organization_operations.v1",
     "ak.schema.realm_read_operations.v1",
     "ak.schema.realm_state_snapshot_chunk.v1",
-    "ak.schema.recovery_completion_attestation.v1",
     "ak.schema.registration_did_evidence.v1",
     "ak.schema.resource_discovery_state.v1",
     "ak.schema.sdk_conformance_claim.v1",
@@ -1356,6 +1355,7 @@
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
           "ak.schema.recovery_session.v1",
+          "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.resource_discovery_state.v1",
@@ -3633,16 +3633,13 @@
       "consumers": {
         "prose": "normative_text",
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.security_rotation_local_commit.v1",
-          "ak.schema.security_transaction.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "required_schema"
       },
       "fragment": "#/$defs/recovery_completion_attestation"
     },
@@ -3694,6 +3691,22 @@
         "disposition": "direct",
         "evidence": "required_schema"
       }
+    },
+    {
+      "schema_id": "ak.schema.recovery_terminal_commit.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      },
+      "fragment": "#/$defs/recovery_terminal_commit"
     },
     {
       "schema_id": "ak.schema.registration_did_evidence.v1",
@@ -4293,6 +4306,7 @@
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
           "ak.schema.recovery_session.v1",
+          "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.resource_discovery_state.v1",

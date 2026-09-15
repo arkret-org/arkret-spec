@@ -5468,9 +5468,28 @@ Expected：
 
 ### 22.3 Re-anchor、generation fence 与冲突
 
-`ak.vector.identity.device_reanchor.v1` 覆盖已有 accepted policy 与完整 accepted Seal frontier 的恢复入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。正例必须先冻结同一 canonical 毫秒 checkpoint `T`，并让 re-anchor、replacement authorize 及两个 producer proof 的 `created_at` 全部逐字等于 `T`。负向必须覆盖旧恢复模型混入、未授权的 root Event 签名、缺失 accepted policy、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、session key/PoP/双 Event key 不匹配、任一 Event/proof 时间改变、同瞬时非 canonical wire 表示、亚毫秒未先 floor、跨 policy/session 或 signer authorization window、过期或已被其它事务消费的 session、撤销 policy、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
+`ak.vector.identity.device_reanchor.v1` 覆盖已有 accepted policy 与完整 accepted Seal frontier 的恢复入口、`payload digest → re-anchor → authorize` 单向依赖链的无环双签构造（[`../identity/key-management.md` §5.0.3](../identity/key-management.md)）、byte-identical 幂等重试和 accepted-at receipt 历史复验。正例必须先冻结同一 canonical 毫秒 checkpoint `T`，并让 re-anchor、replacement authorize 及两个 producer proof 的 `created_at` 全部逐字等于 `T`。负向必须覆盖旧恢复模型混入、未授权的 root Event 签名、缺失 accepted policy、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement authorize payload digest 不符、authorize `prev_refs` 不恰为 `[reanchor event_id]`、拆批、session key/PoP/双 Event key 不匹配、任一 Event/proof 时间改变、同瞬时非 canonical wire 表示、亚毫秒未先 floor、跨 policy/session 或 signer authorization window、过期或已被其它事务消费的 session、撤销 policy、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。首个新 generation Seal 的唯一合法载体是 RecoveryTransaction 的 `commit_recovery_unit` terminal commit；向量 MUST 覆盖同一 Seal 经普通 `ak.self.seals.command.submit.v1`、federation 或 history replay 提交时零 accepted finality，以及两条 Event 在该原子提交前不进入 canonical accepted Event store、outbox 或任何 current projection。
 
 generation 只能由唯一合法 PCR Seal 序列中完整 unit 的 committed 结果推进。向量 MUST 覆盖 pending 与 rejected 的 rival unit 在 committed winner 之前或之后到达均不改变当前 generation、不隔离 winner 或后继合法 Seal；同旧 generation 的后执行 rival 以 generation revision/CAS 失败取得 rejected，完整 byte-identical 重试只复用原结果。还必须分别覆盖 incomplete unit 无效果、DID update 不推进 generation，以及同一 authority 在同一 Seal 签名位置签出不同 body 的真实 equivocation；后者按既有 CBS lineage 规则拒绝不唯一的确认材料，不能与未确认候选混同，也不能靠下一 DID entry 解除。
+
+#### 22.3.1 Recovery terminal commit 与原子边界
+
+`ak.vector.security_transaction.recovery_terminal_commit.v1` 固定 [`../identity/security-transactions.md` §2](../identity/security-transactions.md) 的唯一终态载体与唯一原子提交，由 [`security-transaction-resilience-fixture.json`](../../artifacts/fixtures/security-transaction-resilience-fixture.json) 承载。
+
+正向：closed `recovery_intent` 的 create 返回冻结的 prepared plan、exact `UnsignedSeal` body 与派生 `first_generation_seal_id`，且该提交不产生任何 accepted Event、committed Seal、generation 推进、设备激活、session 消费或 terminal result；随后的唯一 `commit_recovery_unit` 在同一原子提交中让两条 Event、first-generation Seal、新 generation、`active + verified` replacement device、consumed session、accepted terminal step、completion attestation 与 completed terminal result 同时可观察。runner MUST 在提交前后各取一次普通读面快照证明“全无”与“全有”，不得观察到 completed 但未 Seal、或 Seal 已提交但 transaction 未 completed 的中间状态。
+
+负向 MUST 全部零权威写入：
+
+- 同 `transaction_id` 的异 bytes create → `duplicate_conflict`；byte-identical create 返回相同 request digest、prepared plan、unsigned Seal body/id 与 plan digest；
+- `commit_recovery_unit` 携带与冻结 body 不逐字节相等的 Seal、被替换的 `id`、伪造 `notary_signature`、缺 `first_generation_seal_id` 或改绑其它 Seal 的 receipt、错误的 `attestation_digest`、错误的 `output_ref`，以及非 `commit_recovery_unit` 的 step；
+- `expected_accepted_step_count != 0` 或无 attestation 的 `continue`；
+- 用 recovery SessionGrant 调用 `ak.self.seals.command.prepare.v1` / `ak.self.seals.command.submit.v1` → `capability_denied`；
+- 同一 signer slot 在签名 body 已可见后因超时、重启或事务失败而取得第二份可签 body；
+- raw signed recovery Seal 无 completed transaction 与 completion attestation 时经普通 submit、federation 或 history replay 取得 accepted finality。
+
+幂等与竞争 MUST 覆盖：terminal response 丢失、进程重启与 byte-identical `continue` 重放都返回首次保存的 completed resource、receipt 与 completion attestation，且 stored-outcome 检查先于“session 已消费”的 live-state 拒绝；两个 recovery unit 竞争同一 previous generation 时只有在同一原子 CAS 中提交 Seal 的一方是 winner，loser 不留下 accepted Event、verified device、consumed session 或 completed transaction，也不 quarantine winner；commit 后到达的 rival 取得确定性的 generation/predecessor conflict 或 terminal aborted 结果，不生成第二个 committed Seal。
+
+completion attestation MUST 签入 `terminal_commit_digest` 与 `first_generation_seal_id`，其 `completed_at` 是服务端线性化提交时间且不早于 receipt 的 `completed_at`；runner MUST 用只持有 receipt、缺 completion attestation 的输入证明 Account Authority 的 recovery completion grant 拒绝签发。
 
 ### 22.4 Recovery-secret 泄露 handoff
 

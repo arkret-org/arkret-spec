@@ -136,7 +136,7 @@ see_also:
 | IngressReceipt | 入口签收回执 | 接收方对某个 exact Event 的签收记录；不证明 reducer acceptance、投影可见性或 Seal finality。 |
 | Control Proposal Ack | 控制提案签收 | 当前 authority set 对某个 exact Control Move proposal digest 的带签名签收（schema [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json) `$defs/control_proposal_ack`，wire `kind="signed_ack"`）。它固定首轮决议期限 `decision_due_at`、绝对期限 `absolute_due_at` 与 `authority_set_ref`，由配置中的唯一 signer 对完整 Ack 签名。**Ack 存在不等于 proposal 已被接受**：proposal 仍为 pending，只有 exact unit 在已确认 Seal 的 command_results 中取得 committed 或 rejected 结果才获得终局；尚未终局时可以 signed_defer 延期。任何实现不得把它呈现为 accepted / approved / committed / sealed / finalized。它不是 IngressReceipt（网络到达）、不是 Event Batch Receipt（投递 / commit ack）、不是 Read Receipt（用户读位置信号），也不是任何 finality proof。详见 [`../authz/event-auth-state-resolution.md` §14](../authz/event-auth-state-resolution.md)。 |
 | SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |
-| RecoveryTransaction | 恢复事务 | 固定绑定 recovery session、DID entry、replacement device、authorize/reanchor Event 与 terminal receipt 的 SecurityTransaction。 |
+| RecoveryTransaction | 恢复事务 | 固定绑定 recovery session、replacement device、authorize/reanchor Event、首个新 generation Seal 与 terminal receipt 的 SecurityTransaction；唯一 client-attested step 是 `commit_recovery_unit`。 |
 | SecurityRotationTransaction | 安全轮换事务 | 固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、erase confirmation 与 local commit 的 SecurityTransaction。 |
 | Pending Control Move | 待确认控制动作 | Control Move 已通过格式、签名、basis、授权与 precondition 初检，但尚未被有效 Seal 覆盖。 |
 | Rejected | 已拒绝 | Event / Seal 在格式、签名、schema、basis、precondition、授权、Lattice 或 `state_root` 校验上确定失败。 |

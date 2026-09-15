@@ -554,7 +554,7 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
     expected_orders = {
         "pcr_policy_recovery": (
             "pcr_policy",
-            ["submit_reanchor_unit", "issue_terminal_receipt"],
+            ["commit_recovery_unit"],
         ),
         "security_rotation": (
             "security_rotation",

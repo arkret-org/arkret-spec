@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 8,
+  "version": 9,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
   "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
@@ -278,7 +278,7 @@
       "context": "retired_identity_model",
       "since_revision": "2026-08-09",
       "rejection_level": "hard_reject",
-      "replacement": "submit_reanchor_unit",
+      "replacement": "commit_recovery_unit",
       "allowed_contexts": [
         "changelog",
         "negative_test"

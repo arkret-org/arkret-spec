@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.1",
-  "generated_at": "2026-09-15T14:06:00+08:00",
+  "version": "2026-09-15.2",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -141,7 +141,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
-      "sha256": "sha256:a2b08e94e6cc95ef8d8387e3afb2edd1c21fb9671a6762c0d658d03bcd693815"
+      "sha256": "sha256:50bf07069c3e666bb396f53121bfcd26c950bab818b58cb04395c647f967d03c"
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant.v1",
@@ -989,15 +989,15 @@
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
-      "sha256": "sha256:cdd1b5992cd9c44c4545670f7c4d24b2a0758f7d4242c5dd543fb57987624f19"
+      "sha256": "sha256:88ebc6518b1e12dcf147c9f0fd45dc1b9ff969956fb2823564690d16f1d94361"
     },
     {
       "operation_id": "ak.self.security_transaction.command.create.v1",
-      "sha256": "sha256:0e5a6c553fa78243576a311687b7907888a9f95b2c4a30bcf0522562f7796cd2"
+      "sha256": "sha256:d5dedf933e21d352ecac448fee8796122b525f4f55d20f2d3e78a790cbc6a5b2"
     },
     {
       "operation_id": "ak.self.security_transaction.resource.get.v1",
-      "sha256": "sha256:9330919a281c2ef94dda99d7fd6ccd95fc12bc0e9f997ba38408b4a8eae299f5"
+      "sha256": "sha256:e133a9e9b9c4f4762c62a95d4c0e9abfd1c4436322f8f8c6950de3266e26ffa5"
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",

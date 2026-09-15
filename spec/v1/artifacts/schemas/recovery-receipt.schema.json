@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-receipt.schema.json",
   "title": "Arkret Recovery Receipt",
-  "description": "Signed completion receipt for a principal recovery strand. Bound to the recovery_session_id, identity model, model generation, accepted device authorization path, every proof, backup unlock, and MLS Welcome replay action. Formal recovery receipts are signed only after the recovering device has been accepted via ak.device.authorize; pre-authorization failures use server outcome/audit evidence instead. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
+  "description": "Replacement-device-signed terminal artifact of one RecoveryTransaction. Bound to the recovery_session_id, identity model, model generation, accepted device authorization path, every proof, backup unlock, and MLS Welcome replay action. It is authored before the atomic commit, as one half of the closed RecoveryTerminalCommit carried by the commit_recovery_unit step, and it is a consumable completed receipt only when paired with the ak.schema.recovery_completion_attestation.v1 produced in that same commit. A pre-authorization failure uses server outcome/audit evidence instead. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14.",
   "type": "object",
   "required": [
     "schema",
@@ -23,6 +23,7 @@
     "authorization_event_id",
     "reanchor_event_id",
     "reanchor_batch_receipt_id",
+    "first_generation_seal_id",
     "proof_summary",
     "unlocked_backups",
     "welcome_count",
@@ -107,7 +108,13 @@
     },
     "reanchor_batch_receipt_id": {
       "type": "string",
-      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "EventBatchReceipt id of the device_reanchor_unit scope, reserved by the RecoveryTransaction prepare transaction. It MUST equal prepared_plan.binding.reanchor_batch_receipt_id; the receipt is signed before the Events are accepted, so this id cannot be observed from an already accepted batch."
+    },
+    "first_generation_seal_id": {
+      "type": "string",
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
+      "description": "Identity of the first new-generation Seal committed by this recovery. It MUST equal prepared_plan.binding.first_generation_seal_id and the id of the Seal carried beside this receipt in the same RecoveryTerminalCommit. Signing it here is what stops the terminal receipt from being rebound to a different Seal body or to a recovery whose Seal was never committed."
     },
     "proof_summary": {
       "type": "object",
@@ -222,7 +229,8 @@
       "$ref": "#/$defs/timestamp"
     },
     "completed_at": {
-      "$ref": "#/$defs/timestamp"
+      "$ref": "#/$defs/timestamp",
+      "description": "Authoring time at which the replacement device signed 'complete this recovery if every check passes'. It is not proof that anything was committed. The durable, linearized commit time is the completed_at of the paired ak.schema.recovery_completion_attestation.v1, which MUST NOT be earlier than this value."
     },
     "auth_data": {
       "type": "object",
@@ -234,7 +242,7 @@
       "properties": {
         "verification_method": {
           "$ref": "./common-ids.schema.json#/$defs/did_url",
-          "description": "DID URL of the new_device_id's accepted device key. Receivers MUST resolve it through the principal control stream and verify that ak.device.authorize for new_device_id was accepted before this receipt was signed; service keys and unauthorised fresh-device keys MUST NOT sign a formal recovery_receipt."
+          "description": "DID URL of the new_device_id device key frozen by the recovery session and authorized by the recovery unit of this same transaction. Receivers MUST resolve it through the principal control stream and verify that the paired completion attestation reports the accepted ak.device.authorize; service keys and unrelated fresh-device keys MUST NOT sign a recovery_receipt."
         },
         "signature_algorithm": {
           "type": "string",

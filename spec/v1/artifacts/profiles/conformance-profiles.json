@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-15.11",
-  "generated_at": "2026-09-15T08:51:47+08:00",
+  "version": "2026-09-15.12",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1241,7 +1241,9 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.security_transaction.v1",
+        "ak.schema.recovery_terminal_commit.v1",
         "ak.schema.recovery_receipt.v1",
+        "ak.schema.recovery_completion_attestation.v1",
         "ak.schema.key_backup.v1",
         "ak.schema.backup_series_erase_confirmation.v1"
       ],

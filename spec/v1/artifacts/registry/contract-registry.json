@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.10",
+  "version": "2026-09-15.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T00:04:00+08:00",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10895,6 +10895,13 @@
         "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See identity/security-transactions.md §2 and crypto-media/device-lifecycle.md §14."
       },
       {
+        "schema_id": "ak.schema.recovery_terminal_commit.v1",
+        "file": "schemas/security-transaction.schema.json",
+        "fragment": "#/$defs/recovery_terminal_commit",
+        "status": "active",
+        "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation Seal together with its recovery receipt. It is the sole wire carrier that brings that Seal into the single atomic commit_recovery_unit commit."
+      },
+      {
         "schema_id": "ak.schema.recovery_session.v1",
         "file": "schemas/recovery-session.schema.json",
         "status": "active",
@@ -11260,8 +11267,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-14.2",
-    "generated_at": "2026-09-14T10:50:00+08:00"
+    "version": "2026-09-15.1",
+    "generated_at": "2026-09-15T18:20:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -16704,7 +16711,7 @@
         "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
         "grpc": "SelfSecurityTransactions/Continue",
         "mq": "self.security_transaction.command.continue",
-        "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned steps are accepted but the device is offline, terminal_result remains absent; device-attestation readiness is a computed view of the canonical next step and no coordinator phase/state is serialized.",
+        "notes": "Continues only the next step derived from the transaction kind and accepted-step prefix length. request_digest and prepared_plan_digest MUST equal the resource, while expected_accepted_step_count MUST equal the current prefix length; the endpoint is not a generic step or Saga executor. Client attestation is required only for commit_recovery_unit or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. The commit_recovery_unit artifact is the closed RecoveryTerminalCommit carrying the first new-generation Seal and the recovery receipt, accepted in one atomic commit with both recovery Events, the generation advance, the replacement device projection, the consumed recovery session and the completed terminal result. When all coordinator-owned steps are accepted but the device is offline, terminal_result remains absent; device-attestation readiness is a computed view of the canonical next step and no coordinator phase/state is serialized.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -16839,8 +16846,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-15.6",
-    "generated_at": "2026-09-15T00:04:00+08:00",
+    "version": "2026-09-15.7",
+    "generated_at": "2026-09-15T18:20:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

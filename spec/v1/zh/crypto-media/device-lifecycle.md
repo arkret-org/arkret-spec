@@ -1311,7 +1311,9 @@ Ack 必须携 `high_water_cursor` 与按顺序 record digest 的
 ## 14. PCR-Policy Device Recovery
 
 全设备丢失时，账号重新登录不能替代 PCR recovery proof。基础路径由丢失前已进入 accepted Seal 的
-recovery policy 授权，并提交两条 Event：
+recovery policy 授权，并由唯一的 RecoveryTransaction terminal commit
+（[`../identity/security-transactions.md` §2](../identity/security-transactions.md)）一次提交两条 Event 与首个新
+generation Seal：
 
 1. replacement device 签署的、policy-authorized `ak.device.reanchor` 绑定 policy/version/session、exact `account_id`、replacement
    authorize payload digest 与 monotonic PCR generation CAS；
@@ -1320,7 +1322,8 @@ recovery policy 授权，并提交两条 Event：
 
 构造方必须先冻结该 recovery unit 唯一的 canonical 毫秒 authoring checkpoint `T`，再构造、求摘要并签署两条 Event；re-anchor、replacement authorize 及各自唯一 producer proof 的 `created_at` 必须全部逐字等于 `T`。`T` 是该 unit 在已签历史窗口比较中的唯一 Event-time / signer-window / policy-session 时间坐标，proof 不另建签名时间轴；接收方按 [`event-and-patch.md` §3.2](../models/event-and-patch.md) 在验签与任何 recovery 状态写入前 fail closed 比较，并继续以可信 `now` 独立执行现有 current session/lease expiry 等 live admission 检查。
 
-两条 Event 必须原子接受，receipt `scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
+两条 Event 与覆盖该完整 unit 的首个新 generation Seal 必须在同一原子提交中接受，receipt
+`scope.kind="device_reanchor_unit"`。该 scope 的封闭字段集恰为
 `{kind, account_id, realm_id, previous_device_generation, new_device_generation}`：它与 `ak.device.reanchor` payload 选择同一个 exact AccountId，每个同名字段 MUST 与被覆盖 payload 逐字节相等，任一不等以 `device_reanchor_authority_mismatch` fail closed。re-anchor 与 replacement-authorize digest 分别从 `events[]` 中唯一对应 kind 的 typed `event_id` 解码，scope 不重复携带。scope MUST NOT 携带 `did_version_id`、
 `registry_head` 或任何 DID publication 字段，接收方也 MUST NOT 由 generation ref 反向合成它们。接受后
 generation fence 使旧 generation 全部失效。`current_device_generation_ref` 是 PCR-local monotonic ref，
@@ -1362,10 +1365,19 @@ Event actor 或把它冒充 account DID。unit-local overlay 的 key、session �
 policy/version、已 verified 且未过期的 session、原 grant/JKT、challenge、generation 与完整 frontier CAS、
 re-anchor 的 authorize payload digest 承诺，以及 authorize 唯一 `prev_refs`。
 
-generation CAS、旧 generation fence、两条 Event 接受、设备目录变更、session 消费及 RecoveryTransaction
-终态必须在同一原子提交中完成。失败不得新增 Event、目录、fence 或终态，不得部分消费既有 session。
-并发只允许一个 generation CAS winner；成功后的 byte-identical retry 返回原 receipt/终态，不因 session
-已被同一成功事务消费而失败，不得再做一次恢复。
+首个新 generation Seal 的接受与发布、generation CAS、旧 generation fence、两条 Event 接受、设备目录变更、
+session 消费及 RecoveryTransaction 终态必须在同一原子提交中完成。失败不得新增 Event、Seal、目录、fence 或终态，
+不得部分消费既有 session。并发只允许一个 generation CAS winner；成功后的 byte-identical retry 返回原
+receipt/终态，不因 session 已被同一成功事务消费而失败，不得再做一次恢复。
+
+该 Seal 的 unsigned body 由 Station 在 RecoveryTransaction create 的专用 prepare transaction 中冻结，由 replacement
+device 用同一冻结 identity key 签署，并只能经 `commit_recovery_unit` 的 `RecoveryTerminalCommit` 进入上述提交。
+Station 不得代签该 Seal；数据库提交前任何普通读面不得观察到 accepted Event、committed Seal、推进后的 generation、
+active+verified 的 replacement device、已消费 session 或 completed transaction 中的任一项，提交后必须同时观察到
+全部。没有 matching completed RecoveryTransaction 与 `ak.schema.recovery_completion_attestation.v1` 的 raw signed
+recovery Seal，不得经普通 `ak.self.seals.command.submit.v1`、federation 或 history replay 取得 accepted finality；
+`ak.self.seals.command.prepare.v1` / `ak.self.seals.command.submit.v1` 也不得进入 recovery SessionGrant 的
+closed operation set。
 
 基础 `pcr_policy` 恢复 MUST NOT 要求 `registry_head`、current DID updateKeys、`did_recovery_anchor` ref、
 旧 `payload.did_version_id` 或 DID publication；session schema 不含 `registry_head`。DID 服务不可达不得
@@ -1374,7 +1386,7 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ### 14.1 Device lifecycle 与 trust 正交状态
 
-设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced | conflicted`；其中 `conflicted` 只报告设备本身的已验证冲突，不得从 pending/rejected re-anchor 候选数目派生，generation 的推进唯一遵循完整 unit 的 Seal committed 结果。验证状态为 `verified | unresolved | stale`。两维 MUST 分开投影，account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于接收方已验证 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 消费自己已签 `auth_context`、已验证的授权依赖与已知关闭集合，不要求目标 Event 自身被 Seal 覆盖，不要求新 Seal basis、Seal 推进或 origin 在线。安全目标则按其 Control Move/unit 的独立确认规则生效。历史资格及撤销传播窗口按 event-auth-state-resolution 的精确授权实例/关闭集合判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
+设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced | conflicted`；其中 `conflicted` 只报告设备本身的已验证冲突，不得从 pending/rejected re-anchor 候选数目派生，generation 的推进唯一遵循完整 unit 的 Seal committed 结果；承载该结果的首个新 generation Seal 只能由 RecoveryTransaction 的 `commit_recovery_unit` 原子提交产生，terminal completed 而未 Seal、或 Seal 已提交而 transaction 未 completed 都不是可观察状态。验证状态为 `verified | unresolved | stale`。两维 MUST 分开投影，account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于接收方已验证 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 消费自己已签 `auth_context`、已验证的授权依赖与已知关闭集合，不要求目标 Event 自身被 Seal 覆盖，不要求新 Seal basis、Seal 推进或 origin 在线。安全目标则按其 Control Move/unit 的独立确认规则生效。历史资格及撤销传播窗口按 event-auth-state-resolution 的精确授权实例/关闭集合判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
 
 ### 14.2 Recovery UI requirements
 

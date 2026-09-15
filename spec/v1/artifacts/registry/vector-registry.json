@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15",
+  "version": "2026-09-15.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-15T06:23:00+08:00",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -6789,6 +6789,20 @@
         "spec/v1/zh/sync/privacy-preserving-search.md",
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.security_transaction.recovery_terminal_commit.v1",
+      "status": "active",
+      "domain": "security_transaction",
+      "applies_to_fixtures": [
+        "security-transaction-resilience-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/security-transactions.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
+      ],
+      "description": "RecoveryTransaction create freezes the exact unsigned first-generation Seal without any recovery effect, and the single client-attested commit_recovery_unit step accepts the closed RecoveryTerminalCommit so that both Events, the Seal, the generation advance, the replacement device projection, the consumed session and the completed terminal result become observable in one atomic commit. Covers byte-identical create replay, duplicate_conflict, signing-slot fence non-release, forged Seal or receipt, capability_denied for ordinary seal prepare/submit under a recovery grant, generation CAS winner/loser semantics, stored-outcome precedence over live-state refusal, and zero accepted finality for a raw recovery Seal without a completed transaction."
     },
     {
       "vector_id": "ak.vector.security_transaction.resilience.v1",

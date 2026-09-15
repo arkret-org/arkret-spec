@@ -8,7 +8,7 @@
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
     "complete_event_id": 213,
-    "digest_copy_or_commitment": 23,
+    "digest_copy_or_commitment": 24,
     "external_event_namespace": 1
   },
   "fields": [
@@ -1241,6 +1241,12 @@
       "json_pointer": "/$defs/pcr_policy_recovery_binding/properties/reanchor_event_id",
       "field": "reanchor_event_id",
       "classification": "complete_event_id"
+    },
+    {
+      "schema": "security-transaction.schema.json",
+      "json_pointer": "/$defs/recovery_seal_intent/properties/unit_event_digests",
+      "field": "unit_event_digests",
+      "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "service-operation-dtos.schema.json",

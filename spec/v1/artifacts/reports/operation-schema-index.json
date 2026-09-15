@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-15.10",
+  "version": "2026-09-15.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-15T00:04:00+08:00",
+  "generated_at": "2026-09-15T18:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -10118,14 +10118,14 @@
           "transaction_id",
           "kind",
           "account_id",
-          "expires_at",
-          "prepared_plan"
+          "expires_at"
         ],
         "properties": [
           "transaction_id",
           "kind",
           "account_id",
           "expires_at",
+          "recovery_intent",
           "prepared_plan"
         ],
         "closed": true,
@@ -10138,14 +10138,14 @@
               "kind",
               "account_id",
               "expires_at",
-              "prepared_plan"
+              "recovery_intent"
             ],
             "properties": [
               "transaction_id",
               "kind",
               "account_id",
               "expires_at",
-              "prepared_plan"
+              "recovery_intent"
             ],
             "closed": true
           },

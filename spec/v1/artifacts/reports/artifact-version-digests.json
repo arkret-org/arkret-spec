@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-15.11",
-      "generated_at": "2026-09-15T08:51:47+08:00",
-      "content_digest": "sha256:89daa40012342fc60ee11f26fc65ed0c0216040d1b08f21f6a6fafbf4bb559eb"
+      "version": "2026-09-15.12",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:25c2a839cf5bf8c6e9c06842cb73438808ab4aab6767fc1d10410b9a1c993cc5"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -75,15 +75,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/content-addressed-ref-digest-exemption-registry.json",
-      "version": "2026-09-13.1",
-      "generated_at": "2026-09-13T11:30:00+08:00",
-      "content_digest": "sha256:8a5c7846b9bebc80c54ead6940874fac033f1dfcb7e32206d664f293c2c17665"
+      "version": "2026-09-15.1",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:fe554043807a215138066b681d95eeea415fc278dc282895f4f5a21d9c40ee2c"
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-15.10",
-      "generated_at": "2026-09-15T00:04:00+08:00",
-      "content_digest": "sha256:fb9209ef4025b311d94130d33caf4725a93dca07645422038e734fb91e86e900"
+      "version": "2026-09-15.12",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:63a5ab229b42afa571707355a234f6c2135996cee83e99c8846e720002966ae6"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-model-terms.json",
-      "version": 8,
+      "version": 9,
       "generated_at": null,
-      "content_digest": "sha256:3e306b0add033f78a92f14afbdf2f207a186d1c5f7a48625c9de8699008db17e"
+      "content_digest": "sha256:ff9fcfd66e00b56b33654b1ec3adb2e344b34eb81b8de88365280bb665e05b6b"
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
@@ -255,15 +255,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-15.1",
-      "generated_at": "2026-09-15T14:06:00+08:00",
-      "content_digest": "sha256:8005d456e8479e0bfd89fdb1f0ec5679b22d6147a6d95266a739e8ff62c5c1bc"
+      "version": "2026-09-15.2",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:e9bc0509a1c34a1be9acc1f417384aa87f1d03339780c183e7377ceff6bb9fc1"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-15.6",
-      "generated_at": "2026-09-15T00:04:00+08:00",
-      "content_digest": "sha256:6ace627ee69c3909da5c2b8a77bac0b1567fdf1f44445028ee48b76e5c963e51"
+      "version": "2026-09-15.7",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:e286ea25d4b45409a3ad2f853218144f2d65f479f88e30f917b5232095fb1f2d"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-09-14.2",
-      "generated_at": "2026-09-14T10:50:00+08:00",
-      "content_digest": "sha256:76f3ba417eb69e25e0941f85c7fbd9e2859f006e8072fbbb3023b5ceb38d770b"
+      "version": "2026-09-15.1",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:b0bac5acff2d6faef9717b9c12c2c871c2e994e5e2a76ea38fda29c13f3f67e3"
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
@@ -399,9 +399,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-15",
-      "generated_at": "2026-09-15T06:23:00+08:00",
-      "content_digest": "sha256:8f14aab5ef8b1966db73e3f1e83502aac0048fe3ae6eeed760a7484fd4cdcdb6"
+      "version": "2026-09-15.1",
+      "generated_at": "2026-09-15T18:20:00+08:00",
+      "content_digest": "sha256:26de6cee18f694fe61727bddd65b04e2889689fda08bc046c9dee8b32044ffd3"
     }
   ]
 }

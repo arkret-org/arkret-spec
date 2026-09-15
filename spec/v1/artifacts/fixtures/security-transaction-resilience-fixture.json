@@ -1,13 +1,14 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-09-02.1",
+  "version": "2026-09-15.1",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.security_transaction.resilience.v1"
   },
   "covers_vectors": [
-    "ak.vector.security_transaction.resilience.v1"
+    "ak.vector.security_transaction.resilience.v1",
+    "ak.vector.security_transaction.recovery_terminal_commit.v1"
   ],
   "schema_validation_cases": [
     {
@@ -75,6 +76,7 @@
   ],
   "fault_matrix": {
     "transaction_kinds": [
+      "recovery",
       "security_rotation"
     ],
     "fault_positions": [
@@ -101,6 +103,11 @@
     "coordinator_owned_prefix_is_advanced_only_by_the_durable_worker",
     "continue_accepts_only_a_terminal_ready_client_attestation",
     "device_attestation_readiness_is_derived_from_canonical_next_step",
+    "recovery_create_freezes_one_unsigned_seal_body_with_no_recovery_effect",
+    "recovery_authoritative_results_are_all_invisible_before_the_commit_and_all_visible_after",
+    "recovery_first_generation_seal_enters_only_through_commit_recovery_unit",
+    "recovery_stored_outcome_is_checked_before_consumed_session_refusal",
+    "only_the_atomic_generation_cas_winner_commits_a_first_generation_seal",
     "pointer_switch_precedes_every_old_series_erase",
     "erased_series_never_becomes_active_again",
     "public_store_log_telemetry_and_crash_artifact_contain_no_secret_material"
@@ -167,21 +174,155 @@
     {
       "name": "continue_without_attestation_is_not_get_alias",
       "transaction_kind": "recovery",
-      "accepted_step_count": 1,
-      "derived_next_step": "issue_terminal_receipt",
+      "accepted_step_count": 0,
+      "derived_next_step": "commit_recovery_unit",
       "client_attestation_present": false,
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
     },
     {
-      "name": "recovery_prefix_one_attested_terminal_continue",
+      "name": "recovery_prefix_zero_attested_terminal_continue",
       "transaction_kind": "recovery",
-      "accepted_step_count": 1,
-      "derived_next_step": "issue_terminal_receipt",
-      "client_attestation_step": "issue_terminal_receipt",
+      "accepted_step_count": 0,
+      "derived_next_step": "commit_recovery_unit",
+      "client_attestation_step": "commit_recovery_unit",
       "cas_matches": true,
       "reserved_output_matches": true,
       "expected": "accept_terminal_step"
+    },
+    {
+      "name": "recovery_has_no_coordinator_owned_prefix",
+      "transaction_kind": "recovery",
+      "accepted_step_count": 1,
+      "derived_next_step": null,
+      "client_attestation_step": "commit_recovery_unit",
+      "expected": "reject_without_side_effect",
+      "reason_code": "failed_precondition"
+    }
+  ],
+  "recovery_terminal_commit_cases": [
+    {
+      "name": "create_freezes_the_only_signable_seal_body",
+      "phase": "create",
+      "expected": "freeze_prepared_plan",
+      "frozen_plan_members": [
+        "binding.reanchor_batch_receipt_id",
+        "binding.first_generation_seal_id",
+        "binding.terminal_receipt_id",
+        "first_generation_seal_intent",
+        "first_generation_seal_body"
+      ],
+      "committed_command_result_unit_event_digests": [
+        "reanchor_digest",
+        "authorize_digest"
+      ],
+      "observable_recovery_effects": []
+    },
+    {
+      "name": "byte_identical_create_replays_the_same_frozen_material",
+      "phase": "create",
+      "expected": "replay_stored_outcome",
+      "replayed_members": [
+        "request_digest",
+        "prepared_plan",
+        "prepared_plan_digest",
+        "binding.first_generation_seal_id",
+        "first_generation_seal_body"
+      ]
+    },
+    {
+      "name": "same_transaction_id_with_different_intent_bytes",
+      "phase": "create",
+      "expected": "reject_without_side_effect",
+      "reason_code": "duplicate_conflict"
+    },
+    {
+      "name": "signing_slot_fence_is_not_released_by_expiry_or_restart",
+      "phase": "create",
+      "fence_key": [
+        "realm_id",
+        "replacement_signer_slot",
+        "predecessor_ref"
+      ],
+      "expected": "reject_without_side_effect",
+      "expected_reason_code": "seal_signer_slot_fenced"
+    },
+    {
+      "name": "terminal_commit_is_one_atomic_commit",
+      "phase": "commit_recovery_unit",
+      "expected": "accept_terminal_step",
+      "invisible_before_commit": [
+        "accepted_reanchor_event",
+        "accepted_authorize_event",
+        "committed_first_generation_seal",
+        "advanced_device_generation",
+        "active_verified_replacement_device",
+        "consumed_recovery_session",
+        "completed_terminal_result"
+      ],
+      "visible_after_commit": [
+        "accepted_reanchor_event",
+        "accepted_authorize_event",
+        "committed_first_generation_seal",
+        "advanced_device_generation",
+        "active_verified_replacement_device",
+        "consumed_recovery_session",
+        "accepted_terminal_step",
+        "recovery_completion_attestation",
+        "completed_terminal_result"
+      ]
+    },
+    {
+      "name": "seal_body_differs_from_the_frozen_body",
+      "phase": "commit_recovery_unit",
+      "expected": "reject_without_side_effect",
+      "reason_code": "failed_precondition"
+    },
+    {
+      "name": "receipt_omits_or_rebinds_first_generation_seal_id",
+      "phase": "commit_recovery_unit",
+      "expected": "reject_without_side_effect",
+      "reason_code": "failed_precondition"
+    },
+    {
+      "name": "ordinary_seal_prepare_or_submit_under_a_recovery_grant",
+      "phase": "commit_recovery_unit",
+      "attempted_operations": [
+        "ak.self.seals.command.prepare.v1",
+        "ak.self.seals.command.submit.v1"
+      ],
+      "expected": "reject_without_side_effect",
+      "reason_code": "capability_denied"
+    },
+    {
+      "name": "raw_recovery_seal_without_a_completed_transaction",
+      "phase": "post_commit",
+      "attempted_paths": [
+        "ordinary_seal_submit",
+        "federation",
+        "history_replay"
+      ],
+      "expected": "reject_without_side_effect",
+      "expected_finality": "none"
+    },
+    {
+      "name": "terminal_response_lost_then_byte_identical_continue",
+      "phase": "post_commit",
+      "expected": "replay_stored_outcome",
+      "stored_outcome_checked_before_live_state_refusal": true,
+      "replayed_members": [
+        "terminal_result",
+        "terminal_result.receipt_id",
+        "terminal_result.completion_attestation"
+      ]
+    },
+    {
+      "name": "two_units_race_the_same_previous_generation",
+      "phase": "post_commit",
+      "expected": "single_atomic_cas_winner",
+      "loser_residue": [],
+      "winner_quarantined": false,
+      "rival_outcome": "generation_predecessor_conflict_or_terminal_aborted"
     }
   ],
   "equivalence_output": {
