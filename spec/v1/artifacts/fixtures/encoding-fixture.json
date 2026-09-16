@@ -19,6 +19,50 @@
       "expected_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
     },
     {
+      "vector_id": "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
+      "kind": "open_registry_unknown_roundtrip",
+      "input": {
+        "registry_value": "ak.future.event_kind.v1",
+        "container": {
+          "known": "value"
+        }
+      },
+      "expected_canonical_bytes_utf8": "{\"container\":{\"known\":\"value\"},\"registry_value\":\"ak.future.event_kind.v1\"}",
+      "expected": {
+        "deserialization": "success",
+        "unknown_value": "ak.future.event_kind.v1",
+        "roundtrip_value_preserved": true,
+        "semantic_disposition_occurs_after_parse": true
+      },
+      "rules": [
+        "an unknown value from an open registry MUST NOT fail deserialization of the containing object",
+        "the exact unknown string MUST survive decode and encode",
+        "admission may still return unsupported_event_kind or another profile-defined result after parsing"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.canonical_json.nested.v1",
+      "kind": "canonical_json",
+      "input": {
+        "z": {
+          "b": "beta",
+          "a": "alpha"
+        },
+        "name": "Alice",
+        "arr": [
+          true,
+          false,
+          null
+        ]
+      },
+      "expected_canonical_bytes_utf8": "{\"arr\":[true,false,null],\"name\":\"Alice\",\"z\":{\"a\":\"alpha\",\"b\":\"beta\"}}",
+      "rules": [
+        "object key MUST be sorted by UTF-16 code unit at every level",
+        "array order MUST be preserved as input",
+        "string values MUST NOT be rewritten by key sort"
+      ]
+    },
+    {
       "vector_id": "ak.vector.encoding.digest.blake3.v1",
       "kind": "blake3_digest",
       "input_utf8": "Arkret v1 BLAKE3 conformance",
@@ -58,6 +102,255 @@
       ]
     },
     {
+      "vector_id": "ak.vector.encoding.reject_noncanonical_numbers.v1",
+      "kind": "canonical_json_reject",
+      "rejected_inputs": [
+        {
+          "n": "NaN"
+        },
+        {
+          "n": "Infinity"
+        },
+        {
+          "n": "-Infinity"
+        },
+        {
+          "n_literal": 1,
+          "comment": "JSON number 1.0"
+        },
+        {
+          "n_literal_alt": "1e0",
+          "comment": "JSON number 1e0"
+        }
+      ],
+      "rules": [
+        "NaN / Infinity / -Infinity MUST reject",
+        "-0 MUST reject",
+        "v1 signed JSON numbers MUST be integers; 1.0 / 1e0 / fractional or exponent decimal spellings MUST reject instead of being canonicalised",
+        "signature verification MUST run only after canonicalisation succeeds"
+      ],
+      "rejection_reason_codes": [
+        "schema_violation",
+        "invalid_canonical_json",
+        "invalid_encoding"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_malformed_json.v1",
+      "kind": "canonical_json_reject_raw",
+      "cases": [
+        {
+          "name": "reject_overlong_utf8",
+          "input_hex": "7b2278223a22c0af227d",
+          "expected_error": "invalid_encoding"
+        },
+        {
+          "name": "reject_truncated_utf8_sequence",
+          "input_hex": "7b2278223a22e282227d",
+          "expected_error": "invalid_encoding"
+        },
+        {
+          "name": "reject_lone_low_surrogate_escape",
+          "input_hex": "7b2278223a225c7564633030227d",
+          "expected_error": "invalid_canonical_json"
+        },
+        {
+          "name": "reject_reversed_surrogate_pair",
+          "input_hex": "7b2278223a225c75646330305c7564383030227d",
+          "expected_error": "invalid_canonical_json"
+        },
+        {
+          "name": "reject_bom_codepoint_in_string",
+          "input_hex": "7b2278223a22efbbbf227d",
+          "expected_error": "invalid_encoding"
+        }
+      ],
+      "rejected_input_categories": [
+        "malformed UTF-8",
+        "duplicate JSON object keys at the same level",
+        "lone surrogate or ambiguous escape sequence",
+        "non-standard literals (NaN, Infinity)",
+        "non-integer JSON numbers or parser-accepted numbers that cannot be proven to be integers"
+      ],
+      "rules": [
+        "duplicate keys MUST NOT be silently overwritten by parser default",
+        "malformed strings MUST NOT be replaced with U+FFFD before signing",
+        "rejection MUST be auditable; reason_code SHOULD be schema_violation, invalid_canonical_json, or invalid_encoding"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.event_batch_receipt_digest.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "schema": "ak.schema.event_batch_receipt.v1",
+        "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
+        "issuer": "ak:did_core:webvh:z6mkfixture",
+        "scope": {
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixture"
+          }
+        },
+        "events": [
+          {
+            "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+            "kind": "ak.message.create"
+          },
+          {
+            "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+            "kind": "ak.realm.create"
+          }
+        ],
+        "created_at": "2026-04-26T00:00:00.000Z"
+      },
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00.000Z\",\"events\":[{\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"kind\":\"ak.message.create\"},{\"event_id\":\"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY\",\"kind\":\"ak.realm.create\"}],\"issuer\":\"ak:did_core:webvh:z6mkfixture\",\"receipt_id\":\"ak:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ak.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"}}}",
+      "expected_digest": "sha256:c57b1ff31cba87a1b9d1aa79640b74243e7e0cb2059cbf7a63d47838f0c3d8d8",
+      "normalization_cases": [
+        {
+          "name": "reverse_and_duplicate_normalizes_to_same_set",
+          "input_events": [
+            {
+              "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+              "kind": "ak.realm.create"
+            },
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "kind": "ak.message.create"
+            },
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "kind": "ak.message.create"
+            }
+          ],
+          "expected_events": [
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "kind": "ak.message.create"
+            },
+            {
+              "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+              "kind": "ak.realm.create"
+            }
+          ],
+          "expected_digest": "sha256:c57b1ff31cba87a1b9d1aa79640b74243e7e0cb2059cbf7a63d47838f0c3d8d8"
+        },
+        {
+          "name": "unsorted_signed_wire_rejected",
+          "wire_events": [
+            {
+              "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
+              "kind": "ak.realm.create"
+            },
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "kind": "ak.message.create"
+            }
+          ],
+          "expected": "schema_violation_before_digest_verification"
+        },
+        {
+          "name": "duplicate_signed_wire_rejected",
+          "wire_events": [
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "kind": "ak.message.create"
+            },
+            {
+              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
+              "kind": "ak.message.create"
+            }
+          ],
+          "expected": "schema_violation_before_digest_verification"
+        }
+      ],
+      "fail_conditions": [
+        "producer hashes events before canonical set normalization",
+        "receiver accepts an unsorted or duplicate signed wire events array",
+        "proof field included in receipt digest",
+        "issuer/scope/events/created_at/schema excluded from digest",
+        "receipt_id case-folded by implementation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.signature_binding_payload.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "context": "ak.event_proof.v1"
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:b377423de69951157889b4013543a14329f182040b29c5a20b6720201e68ae00",
+      "rules": [
+        "proof MUST bind event_digest, actor DID, verification_method, and created_at",
+        "cross-service / cross-domain verification SHOULD additionally bind domain or audience",
+        "actual ed25519 detached JWS for this binding lives in crypto-signature-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.hlc_order.v1",
+      "kind": "ordering",
+      "input": [
+        "01970e589d21-0004-bbbbbbbb",
+        "01970e589d20-0009-ffffffff",
+        "01970e589d21-0003-ffffffff",
+        "01970e589d21-0004-a13f9c2e"
+      ],
+      "expected_ascending": [
+        "01970e589d20-0009-ffffffff",
+        "01970e589d21-0003-ffffffff",
+        "01970e589d21-0004-a13f9c2e",
+        "01970e589d21-0004-bbbbbbbb"
+      ],
+      "rules": [
+        "HLC MUST sort by (unix_ms, logical, node_id_hash)",
+        "implementations MUST NOT compare HLC as raw wall-clock string unless the profile guarantees fixed-width lowercase hex such that string compare equals tuple compare"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.hlc_logical_overflow.v1",
+      "kind": "producer_constraint",
+      "input": {
+        "last_emitted_hlc": "01970e589d21-ffff-a13f9c2e",
+        "observed_unix_ms_hex": "01970e589d21",
+        "next_event_requires_same_actor_write": true
+      },
+      "expected_acceptable_outcomes": [
+        "wait until unix_ms_hex advances, then emit 01970e589d22-0000-a13f9c2e",
+        "return local error hlc_logical_overflow before canonical bytes are produced; caller retries"
+      ],
+      "fail_conditions": [
+        "logical counter wraps to a smaller value while still emitting events",
+        "wall-clock skew is forged to escape overflow at the cost of HLC monotonicity or causality",
+        "consumer accepts wrap-around values into accepted history"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.cursor_opaque.core.v1",
+      "kind": "cursor_opaqueness",
+      "input_cursor": "ak:cursor:eyJleHBpcmVzX2F0IjoiMjA5OS0xMi0zMVQyMzo1OTo1OS4wMDBaIiwiaCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dXYiLCJpc3N1ZWRfYXQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ",
+      "decoded_payload_canonical_bytes_utf8": "{\"expires_at\":\"2099-12-31T23:59:59.000Z\",\"h\":\"abcdefghijklmnopqrstuv\",\"issued_at\":\"2099-12-30T23:59:59.000Z\",\"purpose\":\"stream\",\"v\":\"1\"}",
+      "fixture_freshness_note": "Timestamps are fixed at year 2099 deliberately so the static vector cannot expire during normal spec lifetime. Implementations generating their own conformance cursors MUST use fresh `issued_at`/`expires_at` matching their authority's clock; do NOT reuse this fixture's timestamps on the wire.",
+      "client_rules": [
+        "MUST treat cursor as an opaque string and round-trip it verbatim",
+        "MUST NOT parse v / purpose / issued_at / expires_at / h to construct the next page request",
+        "MUST handle cursor decode failure by treating cursor as opaque, not by aborting the protocol"
+      ],
+      "server_rules": [
+        "MUST validate v, purpose, issued_at, expires_at, the full core cursor schema, and h handle binding before honouring cursor",
+        "syntax validation failure MUST return param_invalid with reason_code invalid_cursor; TTL failure MUST return cursor_expired; handle lookup or binding failure MUST return cursor_integrity_invalid"
+      ],
+      "fail_conditions": [
+        "client parses h/expiry and rebuilds a request",
+        "core server accepts a cursor body without h"
+      ]
+    },
+    {
       "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
       "kind": "canonical_minimal_encrypted_envelope_digest",
       "payload_metadata": {
@@ -77,6 +370,414 @@
         "payload_metadata is exactly {version,content_type,encryption_context}; scope, kind, group id, scheme and sender domain are reconstructed and never duplicated on wire",
         "standard MLS encryption_context omits counter; exporter encryption_context requires the full-width counter and is cross-checked against the exact group-state scheme",
         "implementations MUST NOT hash plaintext payload"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.canonical_json.utf16_supplementary_order.v1",
+      "kind": "canonical_json",
+      "input": {
+        "😀": 1,
+        "￿": 2
+      },
+      "expected_canonical_bytes_utf8": "{\"😀\":1,\"￿\":2}",
+      "rules": [
+        "UTF-16 code-unit ordering places the supplementary-plane key before U+FFFF because its high surrogate 0xD83D sorts before 0xFFFF."
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_duplicate_key.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "7b2261223a312c2261223a327d",
+      "expected": "reject",
+      "rules": [
+        "duplicate JSON object keys at the same level MUST reject before canonicalisation"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_non_nfc_string.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "7b2273223a2265cc81227d",
+      "expected": "reject",
+      "rules": [
+        "non-NFC string input MUST reject before signature verification"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_feff_injection.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "efbbbf7b2261223a317d",
+      "expected": "reject",
+      "rules": [
+        "U+FEFF / UTF-8 BOM injection MUST reject"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_malformed_hlc.v1",
+      "kind": "canonical_json_reject_raw",
+      "input_hex": "7b22686c63223a223030303030303030303030302d30303030227d",
+      "expected": "reject",
+      "rules": [
+        "malformed HLC strings MUST reject"
+      ],
+      "rejection_reason_codes": [
+        "invalid_encoding",
+        "invalid_canonical_json",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_structure_depth_exceeded.v1",
+      "kind": "canonical_json_reject_generated",
+      "generator": {
+        "kind": "deep_nesting",
+        "nesting_depth": 65,
+        "rule": "runner builds a JSON object nested 65 levels deep, e.g. {\"a\":{\"a\":{...{\"a\":1}...}}} where the top-level container counts as depth 1; a mixed object/array variant of the same depth MUST also reject"
+      },
+      "expected": "reject",
+      "rules": [
+        "canonical JSON / deterministic CBOR structure nesting depth MUST NOT exceed 64 (objects and arrays combined, top-level container = depth 1); see zh/conformance/scalability-constraints.md section 2",
+        "receiver MUST fail bounded before recursive descent can exhaust the stack (depth-bounded recursion or explicit worklist)",
+        "a control input of depth exactly 64 MUST be accepted (the limit is inclusive)"
+      ],
+      "rejection_reason_codes": [
+        "structure_depth_exceeded",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_cbor_length_bomb.v1",
+      "kind": "cbor_reject_raw",
+      "input_hex": "5affffffffdeadbeef",
+      "expected": "reject",
+      "rules": [
+        "byte string header (0x5a, 4-byte length) declares 4294967295 bytes but only 4 bytes of input remain; declared length MUST be <= remaining input",
+        "decoder MUST reject before allocating any buffer sized from the declared length (capacity-bomb resistance)",
+        "applies to every hand-written deterministic CBOR structure, including the mls_governance_binding GroupContext extension"
+      ],
+      "rejection_reason_codes": [
+        "cbor_bounds_invalid",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_cbor_indefinite_length.v1",
+      "kind": "cbor_reject_raw",
+      "input_hex": "bf616101ff",
+      "expected": "reject",
+      "rules": [
+        "input is the indefinite-length map {_ \"a\": 1} (0xbf ... 0xff); indefinite-length items (map 0xbf, array 0x9f, string 0x5f/0x7f) violate RFC 8949 section 4.2 deterministic encoding and MUST reject",
+        "receiver MUST NOT normalise indefinite-length items into definite-length form and continue",
+        "applies to every hand-written deterministic CBOR structure, including the mls_governance_binding GroupContext extension"
+      ],
+      "rejection_reason_codes": [
+        "cbor_not_deterministic",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.reject_cbor_array_bounds.v1",
+      "kind": "cbor_reject_generated",
+      "generator": {
+        "kind": "cbor_array_items",
+        "array_item_count": 65537,
+        "rule": "runner emits a definite-length CBOR array header declaring 65537 items followed by 65537 encodings of unsigned integer 0"
+      },
+      "expected": "reject",
+      "rules": [
+        "a single array or map in a hand-written deterministic CBOR structure MUST NOT declare or contain more than 65536 items; see zh/conformance/scalability-constraints.md section 2",
+        "decoder MUST NOT preallocate item storage from the declared count before the bound check"
+      ],
+      "rejection_reason_codes": [
+        "cbor_bounds_invalid",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.multibase_did_key.core.v1",
+      "kind": "multibase_did_key",
+      "description": "Golden vectors for the base58btc multibase encoding of Ed25519 public keys with the 0xed01 multicodec prefix and the resulting did:key identifier. Generated and round-trip verified (encode -> decode) by the reference implementation.",
+      "cases": [
+        {
+          "label": "all_0x2a",
+          "public_key_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+          "public_key_b64u": "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
+          "multicodec_prefix_hex": "ed01",
+          "expected_multibase": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5",
+          "expected_did_key": "did:key:z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5"
+        },
+        {
+          "label": "all_0x00",
+          "public_key_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "multicodec_prefix_hex": "ed01",
+          "expected_multibase": "z6MkeTG3bFFSLYVU7VqhgZxqr6YzpaGrQtFMh1uvqGy1vDnP",
+          "expected_did_key": "did:key:z6MkeTG3bFFSLYVU7VqhgZxqr6YzpaGrQtFMh1uvqGy1vDnP"
+        },
+        {
+          "label": "fixed_sequential",
+          "public_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "public_key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+          "multicodec_prefix_hex": "ed01",
+          "expected_multibase": "z6MkeTGwHmLmuCmgg4ABYhzWVh6ZX7hTwWt8gguAretUfc9c",
+          "expected_did_key": "did:key:z6MkeTGwHmLmuCmgg4ABYhzWVh6ZX7hTwWt8gguAretUfc9c"
+        }
+      ],
+      "rules": [
+        "multibase encoding MUST be base58btc with the leading 'z' prefix (multibase table)",
+        "the multicodec prefix for Ed25519 public keys MUST be the varint 0xed01, prepended to the 32 raw public key bytes before base58btc encoding",
+        "decode MUST round-trip to the original 32 public key bytes; a multibase string whose decoded payload is not exactly 34 bytes (2-byte multicodec prefix + 32 key bytes) or whose prefix is not 0xed01 MUST be rejected",
+        "did:key identifiers embed the multibase string verbatim: did:key:<multibase>"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.signature_binding_payload_domain.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "domain": "sync.service.example",
+        "context": "ak.event_proof.v1"
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:9dfa9cf47459ec2affea0b86a189465e489ddb05e5636ed01ad74e06e32baa4f",
+      "rules": [
+        "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "cross-domain verification binds the target service domain via the optional domain field; the canonical bytes sort it between created_at and event_digest",
+        "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.signature_binding_payload_audience.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "audience": "did:webvh:z6mkfixturesyncexample:sync.example",
+        "context": "ak.event_proof.v1"
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"audience\":\"did:webvh:z6mkfixturesyncexample:sync.example\",\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:d149807a47094024c216f4bebfad6e067c440d06d29d95c489c1a9edc299d6f2",
+      "rules": [
+        "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "audience-constrained verification binds a single audience DID via the optional audience field",
+        "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixture"
+        },
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "domain": "sync.service.example",
+        "audience": [
+          "did:webvh:z6mkfixturesyncexample:sync.example",
+          "did:webvh:z6mkfixturemediaexample:media.example"
+        ],
+        "context": "ak.event_proof.v1"
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"},\"audience\":[\"did:webvh:z6mkfixturesyncexample:sync.example\",\"did:webvh:z6mkfixturemediaexample:media.example\"],\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:15fa482ff16836d2f9c4ab90510392b8774657b272afa64ba77f40d04fc77bb8",
+      "rules": [
+        "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "domain and audience MAY be combined; audience MAY be an array of DIDs whose order is preserved verbatim in the canonical bytes",
+        "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.pair_key.v1",
+      "kind": "domain_separated_canonical_json_digest",
+      "domain_separator_utf8": "ak.direct-conversation.pair-key.v1\n",
+      "input": {
+        "participants": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+            }
+          }
+        ],
+        "trust_domain_id": "ak:trust_domain:example.test"
+      },
+      "expected_canonical_bytes_utf8": "{\"participants\":[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixturebobstationexample\"},\"kind\":\"account\"}],\"trust_domain_id\":\"ak:trust_domain:example.test\"}",
+      "digest_input_hex": "616b2e6469726563742d636f6e766572736174696f6e2e706169722d6b65792e76310a7b227061727469636970616e7473223a5b7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f626578616d706c65222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f6273746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d5d2c2274727573745f646f6d61696e5f6964223a22616b3a74727573745f646f6d61696e3a6578616d706c652e74657374227d",
+      "expected_digest": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+      "rules": [
+        "resolve every participant to its exact ActorId before constructing the input; a bare principal ID or unresolved pairwise DID fails closed",
+        "sort the two exact ActorIds by unsigned RFC 8785 JCS byte order before constructing participants",
+        "canonicalize exactly {participants:[p0,p1],trust_domain_id:realm_trust_domain_id} with JCS and compute SHA-256 over UTF8(ak.direct-conversation.pair-key.v1 followed by LF) concatenated with those canonical bytes; the resulting sha256:<lowercase-hex> value is pair_key",
+        "reversing the caller-supplied participant order MUST yield the same pair_key after the required sort"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.binding_digest.v1",
+      "kind": "domain_separated_canonical_json_digest",
+      "domain_separator_utf8": "ak.direct-conversation.binding-digest.v1\n",
+      "input": {
+        "authorization_basis": {
+          "event_refs": [
+            "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC",
+            "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r"
+          ],
+          "kind": "accepted_contact"
+        },
+        "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+        "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+        "pair_key": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+        "unordered_participant_ids": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+              "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+            }
+          }
+        ],
+        "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+      },
+      "expected_canonical_bytes_utf8": "{\"authorization_basis\":{\"event_refs\":[\"ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC\",\"ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r\"],\"kind\":\"accepted_contact\"},\"founding_unit_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"initial_exact_pair_group_state_ref\":\"ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y\",\"main_strand_id\":\"ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS\",\"pair_key\":\"sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711\",\"realm_id\":\"ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"unordered_participant_ids\":[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixturebobstationexample\"},\"kind\":\"account\"}]}",
+      "digest_input_hex": "616b2e6469726563742d636f6e766572736174696f6e2e62696e64696e672d6469676573742e76310a7b22617574686f72697a6174696f6e5f6261736973223a7b226576656e745f72656673223a5b22616b3a6576656e743a41534231665a7948644742686e54677a61484735596a473447756d336f64433141753941752d36517a444543222c22616b3a6576656e743a4158686b374e79385a6773632d6434356959325772764a6d396e43304b55526f465f6b4f3778496370353972225d2c226b696e64223a2261636365707465645f636f6e74616374227d2c22666f756e64696e675f756e69745f646967657374223a227368613235363a62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262222c22696e697469616c5f65786163745f706169725f67726f75705f73746174655f726566223a22616b3a6576656e743a41624e6172465643686b426a7245315a6d784a6878426c4b4464754a6758377776423471524e4243746b3459222c226d61696e5f737472616e645f6964223a22616b3a737472616e643a4154307170334e54545774565a4e564f67737673416e6373397852562d63354858437a37757a5864374e5153222c22706169725f6b6579223a227368613235363a65626136643339313239366132396636306365353561353030346630313661366534393765376636643936333833373937643535326433666664646663373131222c227265616c6d5f6964223a22616b3a7265616c6d3a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c22756e6f7264657265645f7061727469636970616e745f696473223a5b7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f626578616d706c65222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f6273746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d5d7d",
+      "expected_digest": "sha256:37d873662afbe70e85d31e2fb78d4b56237018511b01966c61b8f7e7217702e8",
+      "normalization_cases": [
+        {
+          "name": "unordered_inputs_created_at_and_event_context_do_not_change_digest",
+          "payload": {
+            "pair_key": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+            "unordered_participant_ids": [
+              {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                  "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+                }
+              },
+              {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                }
+              }
+            ],
+            "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "main_strand_id": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
+            "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "authorization_basis": {
+              "kind": "accepted_contact",
+              "event_refs": [
+                "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC",
+                "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r"
+              ]
+            },
+            "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+            "created_at": "2026-08-07T12:34:56.000Z"
+          },
+          "event_context": {
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturebobexample"
+            },
+            "proof": "not-part-of-binding-object"
+          },
+          "expected_digest": "sha256:37d873662afbe70e85d31e2fb78d4b56237018511b01966c61b8f7e7217702e8"
+        }
+      ],
+      "mutation_cases": [
+        {
+          "name": "omit_domain_separator",
+          "digest_input_hex": "7b22617574686f72697a6174696f6e5f6261736973223a7b226576656e745f72656673223a5b22616b3a6576656e743a41534231665a7948644742686e54677a61484735596a473447756d336f64433141753941752d36517a444543222c22616b3a6576656e743a4158686b374e79385a6773632d6434356959325772764a6d396e43304b55526f465f6b4f3778496370353972225d2c226b696e64223a2261636365707465645f636f6e74616374227d2c22666f756e64696e675f756e69745f646967657374223a227368613235363a62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262222c22696e697469616c5f65786163745f706169725f67726f75705f73746174655f726566223a22616b3a6576656e743a41624e6172465643686b426a7245315a6d784a6878426c4b4464754a6758377776423471524e4243746b3459222c226d61696e5f737472616e645f6964223a22616b3a737472616e643a4154307170334e54545774565a4e564f67737673416e6373397852562d63354858437a37757a5864374e5153222c22706169725f6b6579223a227368613235363a65626136643339313239366132396636306365353561353030346630313661366534393765376636643936333833373937643535326433666664646663373131222c227265616c6d5f6964223a22616b3a7265616c6d3a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c22756e6f7264657265645f7061727469636970616e745f696473223a5b7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f626578616d706c65222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f6273746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d5d7d",
+          "expected_digest": "sha256:fd3b43da433311e695ce59f815ee217e99e1e1d04a9d8e5734a1593711f0b720",
+          "must_not_equal_valid": true
+        },
+        {
+          "name": "semantic_main_strand_change",
+          "domain_separator_utf8": "ak.direct-conversation.binding-digest.v1\n",
+          "input": {
+            "authorization_basis": {
+              "event_refs": [
+                "ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r",
+                "ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC"
+              ],
+              "kind": "accepted_contact"
+            },
+            "founding_unit_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "initial_exact_pair_group_state_ref": "ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y",
+            "main_strand_id": "ak:strand:AQPrZBWmFDx7RZDpLhI1fyQjTU7lZQnvqlNj20kN9341",
+            "pair_key": "sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711",
+            "unordered_participant_ids": [
+              {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                }
+              },
+              {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+                  "station_id": "ak:did_core:webvh:z6mkfixturebobstationexample"
+                }
+              }
+            ],
+            "realm_id": "ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+          },
+          "expected_canonical_bytes_utf8": "{\"authorization_basis\":{\"event_refs\":[\"ak:event:AXhk7Ny8Zgsc-d45iY2WrvJm9nC0KURoF_kO7xIcp59r\",\"ak:event:ASB1fZyHdGBhnTgzaHG5YjG4Gum3odC1Au9Au-6QzDEC\"],\"kind\":\"accepted_contact\"},\"founding_unit_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"initial_exact_pair_group_state_ref\":\"ak:event:AbNarFVChkBjrE1ZmxJhxBlKDduJgX7wvB4qRNBCtk4Y\",\"main_strand_id\":\"ak:strand:AQPrZBWmFDx7RZDpLhI1fyQjTU7lZQnvqlNj20kN9341\",\"pair_key\":\"sha256:eba6d391296a29f60ce55a5004f016a6e497e7f6d96383797d552d3ffddfc711\",\"realm_id\":\"ak:realm:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"unordered_participant_ids\":[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebobexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixturebobstationexample\"},\"kind\":\"account\"}]}",
+          "expected_digest": "sha256:8da3aad2b64604bcf296cb568c6177f2a7bc2d5b039c1f868e15f7f1c43d283c",
+          "must_not_equal_valid": true
+        }
+      ],
+      "rules": [
+        "binding_digest is receiver-derived and MUST NOT appear in direct_conversation_bound_payload",
+        "sort unordered_participant_ids by unsigned RFC 8785 JCS bytes and authorization_basis.event_refs by unsigned UTF-8 bytes before constructing the closed binding object",
+        "created_at and Event author/proof are absent from the binding object and therefore cannot affect the digest",
+        "the core OR-Set tag remains the canonical Event dot; (binding_digest, actor_id) is the domain-view endorsement identity only"
       ]
     }
   ],

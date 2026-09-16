@@ -708,6 +708,10 @@
       "new": "ak.self.invite_receive_policy.resource.replace.v1"
     },
     {
+      "old": "ak.self.invites.command.dispatch",
+      "new": "ak.self.invites.command.dispatch.v1"
+    },
+    {
       "old": "ak.self.keys.backup_series.command.erase",
       "new": "ak.self.keys.backup_series.command.erase.v1"
     },

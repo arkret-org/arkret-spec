@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 316,
+  "audited_occurrence_count": 317,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -102,7 +102,7 @@
     {
       "file": "applet-edge-operations.schema.json",
       "key": "applet_service_signer_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -142,6 +142,17 @@
         "attestation"
       ],
       "reason": "Defines the complete managed Principal signer root and exact Station attester closure."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "managed_actor_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the exact managed Actor Principal root together with its single Station Service attester leaf, so the authoring result binds both roots as one adjudicated evidence container."
     },
     {
       "file": "applet-edge-operations.schema.json",
@@ -733,17 +744,6 @@
         "receipt"
       ],
       "reason": "The closed encrypted package may contain content proofs, witness attestations, and handling receipts while binding the exact target, moderator key, ciphertext digest and reporter signature."
-    },
-    {
-      "file": "moderation-evidence.schema.json",
-      "key": "service_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Returns the historical registered service signer evidence needed to verify the receiving-service franking signature at received_at."
     },
     {
       "file": "moderation-queue-item.schema.json",

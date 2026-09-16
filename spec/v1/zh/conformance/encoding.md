@@ -27,6 +27,25 @@ integer 范围。绝对时刻固定为 UTC 毫秒形式 `YYYY-MM-DDTHH:MM:SS.sss
 Schema 中的 `additionalProperties: false`、closed union discriminator 和 required 字段均在 canonicalize
 之前验证。未知 critical 字段必须拒绝；`x_` extension 只在所属 schema 明确允许时存在。
 
+### 2.1.1 Optional nullable 字段的 presence 语义
+
+JSON Schema 同时允许 property 省略和显式 `null`，只表示两种 wire spelling 都合法，并不自动创造
+两套业务状态。为避免每个 SDK 为普通 projection、期限或可选附件复制三态状态机，v1 使用以下闭合
+规则：
+
+- optional + nullable 且没有 `default` 的 property，默认把 absent 与显式 `null` 归一为同一个空值；
+  canonical producer MUST 省略该 property，receiver MUST 接受并按同一语义处理两种输入。
+- 若该 property 在适用的 `if/then`、`oneOf` 或其它分支中被 `required`，则分支要求优先：missing
+  是 schema violation，显式 `null` 才是该分支的空值。SDK 可以用判别 enum 表达分支，但不得让普通
+  `Option<T>` 绕过入站 Draft 2020-12 校验。
+- 只有 property 明确声明 `"x-arkret-presence-semantics": "distinct"`，且正文逐项定义 absent、null、
+  value 三者效果时，三种 wire 状态才具有不同业务语义。producer/receiver 的类型系统此时 MUST 使用
+  `Missing | Null | Value(T)` 等价表示，禁止用二态 optional 折叠。
+- 不得仅因字段名称包含 `expected`、`state`、`proof` 或 `ref` 就推断三态；安全关键 CAS 若确需
+  omission 表示"无断言"，必须显式使用上述扩展并提供三种正向与交叉负向 vector。
+
+当前唯一 `distinct` 目标是 Circle membership CAS 的 `expected_membership`。
+
 ## 3. Digest suite
 
 Realm genesis 固定 Realm 的 active digest suite。内容摘要写作 registry 定义的 suite-tagged digest；不同
@@ -91,6 +110,11 @@ Typed current 的业务主键由对应 reducer schema 明确定义。v1 不再�
 ### 9.5.1 通用规则
 
 Typed reducer 直接读取 kind 对应的封闭 Event payload 和 envelope；subject 来源由该 kind 的 payload schema 明确定义。
+
+subject 的 registry 字段来源必须显式命名：payload 来源写成 `payload.<具名路径>`，Event Envelope 来源写成
+`envelope.<字段>`；裸字段名与"先查 payload、再查 envelope"的 fallback 求值一律未定义并 MUST
+`schema_violation`。
+v1 的 envelope 来源白名单只包含 `envelope.actor_id` 一项；`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。
 
 需要多字段业务键时，schema 必须列出固定字段、顺序与正规化方法；实现按 typed reducer 构造数据库唯一
 键。该数据库键不是 wire ID，也不得作为跨实现授权材料。

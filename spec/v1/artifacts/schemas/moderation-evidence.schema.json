@@ -98,57 +98,6 @@
       },
       "additionalProperties": false
     },
-    "franking_commit_observation_request": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "proof_event_id",
-        "target_event_id"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "proof_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "target_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "franking_commit_observation_outcome": {
-      "type": "object",
-      "required": [
-        "proof_event",
-        "target_event",
-        "service_signer_evidence",
-        "ancestry_events"
-      ],
-      "properties": {
-        "proof_event": {
-          "$ref": "./event-envelope.schema.json"
-        },
-        "target_event": {
-          "$ref": "./event-envelope.schema.json"
-        },
-        "service_signer_evidence": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
-        },
-        "ancestry_events": {
-          "type": "array",
-          "maxItems": 4096,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./event-envelope.schema.json"
-          },
-          "description": "Complete canonical EventId-sorted ancestry needed to reach proof_event from the anchor checkpoint. Exact-ID dependency resolution supplies a missing remainder; incomplete evidence is pending, never verified."
-        }
-      },
-      "additionalProperties": false,
-      "description": "Optional security evidence that a franking-proof Event existed within a bounded interval. Independently verify the anchor RealmCommit quorum, the exact existence_anchor checkpoint, original Event producer proof and authority refs, service signer key validity over the full interval, and the exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is never required to send, accept or replicate ordinary messages. The Event does not enter RealmCommit.delta and no data observation root exists."
-    },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },

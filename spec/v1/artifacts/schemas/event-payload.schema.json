@@ -5629,24 +5629,6 @@
       },
       "additionalProperties": false
     },
-    "mls_epoch_range": {
-      "type": "object",
-      "required": [
-        "first_epoch",
-        "last_epoch"
-      ],
-      "properties": {
-        "first_epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "last_epoch": {
-          "type": "integer",
-          "minimum": 0
-        }
-      },
-      "additionalProperties": false
-    },
     "mls_genesis_payload": {
       "type": "object",
       "required": [

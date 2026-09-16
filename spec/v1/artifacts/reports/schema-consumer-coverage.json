@@ -892,8 +892,7 @@
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.applet_edge_operations.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
-          "ak.schema.keys_operations.v1",
-          "ak.schema.moderation_evidence.v1"
+          "ak.schema.keys_operations.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -2137,7 +2136,8 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.peer.invites.command.submit.v1"
+          "ak.peer.invites.command.submit.v1",
+          "ak.self.invites.command.dispatch.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }

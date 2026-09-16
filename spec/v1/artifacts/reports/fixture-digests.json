@@ -122,7 +122,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "1d24e2a80d80f27fd4b62f75c82e6e134d86c5c16863f2be39d314c16893783c"
+      "sha256": "3baae76e6357d6a9062b73064385daebef82d6e9879180e3138935d596c87efd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -311,6 +311,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
       "sha256": "e2063d4b96f5414e9bc2cd7566a757241bb1a286c2cfb15ba35e680a3f73fc9e"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
+      "sha256": "236293f5bf4b90b66f5fb09dcc62045bd7f38edcdb81c8f4bb8a53904039f4eb"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

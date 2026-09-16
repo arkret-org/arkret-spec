@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-16.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-17T01:40:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 218,
+    "total_operations": 219,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 216
+      "typed_schema": 217
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 134
+        "typed_schema": 135
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -2445,6 +2445,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteReceivePolicy",
         "response": "#/components/schemas/InviteReceivePolicy"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.invites.command.dispatch.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/invites/dispatch",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
+      "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/SelfInviteDispatchRequestBody",
+        "response": "#/components/schemas/InviteDeliveryOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

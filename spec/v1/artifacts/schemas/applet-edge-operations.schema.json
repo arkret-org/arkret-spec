@@ -526,6 +526,12 @@
         },
         "realm_stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "applet_service_signer_evidence": {
+          "$ref": "#/$defs/applet_service_signer_evidence"
+        },
+        "managed_actor_signer_evidence": {
+          "$ref": "#/$defs/managed_actor_principal_signer_evidence"
         }
       },
       "additionalProperties": false,

@@ -472,10 +472,11 @@ NOTARY_CELL_FAMILY = "ak.component.notary.v1"
 #
 # One constant, three consumers: this per-occurrence lint, the prose sentence in
 # §9.5.1, and the set the registry actually uses. `check_envelope_subject_source_whitelist`
-# reconciles all three — §9.5.1 once forbade `envelope.event_id` outright while
-# six registered create kinds were already using it, and both sides passed the
-# release gate.
-ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.event_id")
+# reconciles all three. `envelope.event_id` is not a member: the only subject
+# declarations that ever read it were cell subjects, and the typed reducer
+# subjects that replaced them derive object identity from the Event itself
+# rather than by naming an envelope field.
+ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id",)
 
 
 # Envelope fields §9.5.1 names as explicitly forbidden. Called out separately

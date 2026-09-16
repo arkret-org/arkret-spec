@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-16.8",
+  "version": "2026-09-16.17",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -102,11 +102,6 @@
       "rationale": "Realm inheritance policy lacks a directly searchable vector."
     },
     {
-      "event_kind": "ak.realm.link",
-      "priority": "high",
-      "rationale": "Realm linking lacks a directly searchable vector."
-    },
-    {
       "event_kind": "ak.realm.plaintext_visible_services",
       "priority": "critical",
       "rationale": "Plaintext service visibility and bootstrap gating lack a directly searchable vector."
@@ -142,11 +137,6 @@
       "rationale": "Realm unfreeze lacks a directly searchable vector."
     },
     {
-      "event_kind": "ak.relation.resolve",
-      "priority": "normal",
-      "rationale": "Relation resolution lacks a directly searchable vector."
-    },
-    {
       "event_kind": "ak.schema.define",
       "priority": "high",
       "rationale": "Open schema-definition value selection lacks a directly searchable vector."
@@ -162,11 +152,6 @@
       "rationale": "Strand stage transition lacks a directly searchable vector."
     },
     {
-      "event_kind": "ak.strand.tracks.update",
-      "priority": "normal",
-      "rationale": "Strand track update lacks a directly searchable vector."
-    },
-    {
       "event_kind": "ak.strand.watch.set",
       "priority": "normal",
       "rationale": "Strand watch-state update lacks a directly searchable vector."
@@ -177,5 +162,5 @@
       "rationale": "View reconciliation lacks a directly searchable vector."
     }
   ],
-  "generated_at": "2026-09-16T18:30:00+08:00"
+  "generated_at": "2026-09-17T01:10:00+08:00"
 }

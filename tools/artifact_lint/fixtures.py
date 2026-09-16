@@ -2680,24 +2680,6 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
     if "binding_digest" in properties or bound_payload.get("additionalProperties") is not False:
         lint.fail(schema_path, "binding_digest must remain derived and off-wire in the closed payload")
 
-    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
-    registry = load_json(lint, registry_path)
-    try:
-        projection = registry["event_kind_registry"]["cell_contracts"][
-            "ak.direct_conversation.bound"
-        ]["cell_writes"][0]["effect_projection"]
-    except (KeyError, IndexError, TypeError):
-        projection = None
-    expected_projection = {
-        "kind": "or_set_add",
-        "tag": {"dot": True},
-        "value": {"field": "payload"},
-    }
-    if projection != expected_projection:
-        lint.fail(
-            registry_path,
-            "direct-conversation binding core OR-Set projection must remain dot + full payload",
-        )
 
 
 def _stated_preimage_bytes(source: str, decoding: str) -> bytes | None:

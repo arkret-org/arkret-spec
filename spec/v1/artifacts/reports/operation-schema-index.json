@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-16.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-17T01:40:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7376,6 +7376,43 @@
           "denied_source_ids",
           "denied_actor_ids",
           "disclosure"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.invites.command.dispatch.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "invite_event_id",
+          "invite_address",
+          "introduction_evidence",
+          "idempotency_key"
+        ],
+        "properties": [
+          "schema",
+          "invite_event_id",
+          "invite_address",
+          "introduction_evidence",
+          "idempotency_key"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status"
+        ],
+        "properties": [
+          "status",
+          "disclosed_outcome",
+          "received_at",
+          "retry_after_ms"
         ],
         "closed": true
       }

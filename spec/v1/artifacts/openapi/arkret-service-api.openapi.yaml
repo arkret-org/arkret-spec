@@ -375,6 +375,8 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_view
     AgentDeactivateRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body
+    AgentHumanApprovalProblem:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_human_approval_error_details
     AgentKeyPairOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
     AgentKeyPairRequestBody:
@@ -471,6 +473,8 @@ components:
       $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_outcome
     BlobUploadRequestBody:
       $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_request_body
+    BooleanFilter:
+      $ref: ../schemas/query.schema.json#/$defs/boolean_filter
     CircleCreateRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
     CircleList:
@@ -644,6 +648,8 @@ components:
       $ref: ../schemas/events-subscribe-frame.schema.json
     EventView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventView
+    FieldFilter:
+      $ref: ../schemas/query.schema.json#/$defs/field_filter
     GhostActorProvisionOutcome:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
     GhostActorProvisionRequestBody:
@@ -838,6 +844,10 @@ components:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_registration_handoff_request_body
     PushUnregisterDeviceRequestBody:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
+    QueryFilter:
+      $ref: ../schemas/query.schema.json#/$defs/query_filter
+    QueryRequestBody:
+      $ref: ../schemas/query.schema.json#/$defs/query_request_body
     ReadCursorAdvanceRequestBody:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body
     ReadCursorList:
@@ -889,6 +899,12 @@ components:
       $ref: ../schemas/relation.schema.json#/$defs/relation_conflict_candidates_outcome
     RelationConflictCandidatesRequestBody:
       $ref: ../schemas/relation.schema.json#/$defs/relation_conflict_candidates_request_body
+    RelationQuery:
+      $ref: ../schemas/query.schema.json#/$defs/relation_query
+    SearchRequestBody:
+      $ref: ../schemas/query.schema.json#/$defs/search_request_body
+    SelfInviteDispatchRequestBody:
+      $ref: ../schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body
     ServiceDescribe:
       $ref: ../schemas/service-describe.schema.json
     ServiceRegistrationEnsureRequestBody:
@@ -919,6 +935,8 @@ components:
       $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_outcome
     SignerKeyQueryRequestBody:
       $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_request_body
+    SortSpec:
+      $ref: ../schemas/query.schema.json#/$defs/sort_spec
     ThirdPartyInviteAcceptanceAttestationOutcome:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome
     ThirdPartyInviteAcceptanceAttestationRequestBody:
@@ -3786,6 +3804,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
+  /_arkret/self/invites/dispatch:
+    post:
+      operationId: ak.self.invites.command.dispatch
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.invites.command.dispatch.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Dispatch an already accepted invite through the inviter Station.
+      description: 'Accepts an accepted invite Event id plus private delivery evidence from
+
+        the authenticated inviter. The Station resolves its own stored
+
+        canonical Event bytes and requires their author to be the session actor.
+
+        Remote delivery constructs the peer body from those exact stored bytes;
+
+        local delivery uses the same receive-policy path without re-authoring.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelfInviteDispatchRequestBody'
+      responses:
+        '200':
+          description: Generic invite delivery outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_arkret/self/invite-locators:
     post:
       operationId: ak.self.invite_locator.command.issue

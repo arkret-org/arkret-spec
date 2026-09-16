@@ -1,0 +1,657 @@
+{
+  "profile": "ak.profile.binding.websocket.v1",
+  "version": "2026-09-13.1",
+  "suite": "websocket_binding",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.binding.websocket.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.binding.websocket.v1"
+  ],
+  "limits": {
+    "hard_max_frame_bytes": 1048576,
+    "fixture_advertised_max_frame_bytes": 4096,
+    "max_channels": 16,
+    "authentication_deadline_ms": 5000,
+    "replay_ledger_retention_seconds": 300
+  },
+  "discovery_cases": [
+    {
+      "name": "closed_descriptor",
+      "schema_ref": "schemas/transport-binding.schema.json#/$defs/websocket",
+      "instance": {
+        "kind": "websocket",
+        "base_url": "wss://server.example/_arkret/ws",
+        "max_frame_bytes": 4096,
+        "max_channels": 16
+      },
+      "expect_valid": true,
+      "expected_transport": "websocket"
+    },
+    {
+      "name": "noncanonical_or_credentialed_url_rejected",
+      "base_urls": [
+        "ws://server.example/_arkret/ws",
+        "wss://server.example:443/_arkret/ws",
+        "wss://SERVER.example/_arkret/ws",
+        "wss://server.example/_arkret/../ws",
+        "wss://server.example/_arkret/ws?grant=secret"
+      ],
+      "expect_valid": false,
+      "expected_transport": "http_json"
+    },
+    {
+      "name": "missing_limit_rejected",
+      "remove_each": [
+        "max_frame_bytes",
+        "max_channels"
+      ],
+      "expect_valid": false,
+      "expected_transport": "http_json"
+    }
+  ],
+  "bundle_closure_cases": [
+    {
+      "name": "advertised_bundle_closure_selects_websocket",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "instance": {
+        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_resolution": {
+          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
+          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version_id": "1"
+        },
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+        "service_kind": "station",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ak.profile.station.v1",
+          "ak.profile.binding.websocket.v1"
+        ],
+        "supported_features": [],
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base_url": "https://alice.example.net/_arkret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer_uri": "https://auth.example.net",
+              "openid_configuration_url": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "example_client",
+              "grant_exchange": {
+                "kind": "account_handoff"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_dpop"
+          ]
+        },
+        "limits": {
+          "mls_governance_proof": {
+            "max_exact_response_bytes": 1048576
+          }
+        },
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "verified_profiles": [],
+        "interop_surfaces": [],
+        "development_mode": false,
+        "supported_operation_bundles": [
+          "ak.operation_bundle.station.describe.v1",
+          "ak.operation_bundle.station.http_core.v1",
+          "ak.operation_bundle.station.websocket.v1"
+        ],
+        "transport_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "extension_profile_required": null
+          },
+          {
+            "kind": "websocket",
+            "base_url": "wss://server.example/_arkret/ws",
+            "max_frame_bytes": 4096,
+            "max_channels": 16
+          }
+        ]
+      },
+      "required_bundle": "ak.operation_bundle.station.websocket.v1",
+      "required_operations": [
+        "ak.self.account.stream.subscribe.v1",
+        "ak.self.events.stream.subscribe.v1",
+        "ak.self.signal.stream.subscribe.v1"
+      ],
+      "expect_valid": true,
+      "expected_transport": "websocket"
+    },
+    {
+      "name": "missing_websocket_bundle_falls_back",
+      "remove_bundle": "ak.operation_bundle.station.websocket.v1",
+      "expect_valid": true,
+      "expected_transport": "http_json"
+    },
+    {
+      "name": "bundle_without_websocket_transport_falls_back",
+      "remove_transport_kind": "websocket",
+      "expect_valid": true,
+      "expected_transport": "http_json"
+    }
+  ],
+  "dpop_kat": {
+    "proof_schema_ref": "schemas/websocket-dpop-proof.schema.json",
+    "replay_cache_namespace": "ak.websocket_auth.v1",
+    "base_url": "wss://server.example/_arkret/ws",
+    "origin": "https://app.example",
+    "connection_id": "Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm",
+    "nonce": "bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg",
+    "issued_at": "2026-07-29T00:00:00.000Z",
+    "expires_at": "2026-07-29T00:00:05.000Z",
+    "session_grant": "ak.session.grant.fixture.websocket.v1",
+    "private_seed_hex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+    "public_jwk": {
+      "crv": "Ed25519",
+      "kty": "OKP",
+      "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+    },
+    "cnf_jkt": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+    "protected_json_utf8": "{\"alg\":\"Ed25519\",\"jwk\":{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\"},\"typ\":\"dpop+jwt\"}",
+    "claims_json_utf8": "{\"ath\":\"NpjrjDLhCd_LVv4d5a1yymWF3QIZ554z2ypir3JfzCo\",\"htm\":\"ARKRET-WEBSOCKET-AUTH\",\"htu\":\"wss://server.example/_arkret/ws\",\"iat\":1785283200,\"jti\":\"d3MtYXV0aC1qdGktMDAwMQ\",\"nonce\":\"bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg\"}",
+    "decoded": {
+      "protected": {
+        "alg": "Ed25519",
+        "jwk": {
+          "crv": "Ed25519",
+          "kty": "OKP",
+          "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+        },
+        "typ": "dpop+jwt"
+      },
+      "claims": {
+        "ath": "NpjrjDLhCd_LVv4d5a1yymWF3QIZ554z2ypir3JfzCo",
+        "htm": "ARKRET-WEBSOCKET-AUTH",
+        "htu": "wss://server.example/_arkret/ws",
+        "iat": 1785283200,
+        "jti": "d3MtYXV0aC1qdGktMDAwMQ",
+        "nonce": "bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg"
+      }
+    },
+    "protected_base64url": "eyJhbGciOiJFZDI1NTE5IiwiandrIjp7ImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiMTFxWUFZS3hDcmZWU183VHlXUUhPZzdoY3ZQYXBpTWxyd0lhYVBjSFVSbyJ9LCJ0eXAiOiJkcG9wK2p3dCJ9",
+    "claims_base64url": "eyJhdGgiOiJOcGpyakRMaENkX0xWdjRkNWExeXltV0YzUUlaNTU0ejJ5cGlyM0pmekNvIiwiaHRtIjoiQVJLUkVULVdFQlNPQ0tFVC1BVVRIIiwiaHR1Ijoid3NzOi8vc2VydmVyLmV4YW1wbGUvX2Fya3JldC93cyIsImlhdCI6MTc4NTI4MzIwMCwianRpIjoiZDNNdFlYVjBhQzFxZEdrdE1EQXdNUSIsIm5vbmNlIjoiYm05dVkyVXRNREV5TXpRMU5qYzRPV0ZpWTJSbFpnIn0",
+    "signing_input_ascii": "eyJhbGciOiJFZDI1NTE5IiwiandrIjp7ImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiMTFxWUFZS3hDcmZWU183VHlXUUhPZzdoY3ZQYXBpTWxyd0lhYVBjSFVSbyJ9LCJ0eXAiOiJkcG9wK2p3dCJ9.eyJhdGgiOiJOcGpyakRMaENkX0xWdjRkNWExeXltV0YzUUlaNTU0ejJ5cGlyM0pmekNvIiwiaHRtIjoiQVJLUkVULVdFQlNPQ0tFVC1BVVRIIiwiaHR1Ijoid3NzOi8vc2VydmVyLmV4YW1wbGUvX2Fya3JldC93cyIsImlhdCI6MTc4NTI4MzIwMCwianRpIjoiZDNNdFlYVjBhQzFxZEdrdE1EQXdNUSIsIm5vbmNlIjoiYm05dVkyVXRNREV5TXpRMU5qYzRPV0ZpWTJSbFpnIn0",
+    "signature_base64url": "06JR_Dq7w8g1hs8GYFavd2woUkq1c0ICwetNcBNL0dToJgrTPY_-aBvURkgiiObCk-o7WFgD3xKkmzMfHDedCw",
+    "compact_jws": "eyJhbGciOiJFZDI1NTE5IiwiandrIjp7ImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiMTFxWUFZS3hDcmZWU183VHlXUUhPZzdoY3ZQYXBpTWxyd0lhYVBjSFVSbyJ9LCJ0eXAiOiJkcG9wK2p3dCJ9.eyJhdGgiOiJOcGpyakRMaENkX0xWdjRkNWExeXltV0YzUUlaNTU0ejJ5cGlyM0pmekNvIiwiaHRtIjoiQVJLUkVULVdFQlNPQ0tFVC1BVVRIIiwiaHR1Ijoid3NzOi8vc2VydmVyLmV4YW1wbGUvX2Fya3JldC93cyIsImlhdCI6MTc4NTI4MzIwMCwianRpIjoiZDNNdFlYVjBhQzFxZEdrdE1EQXdNUSIsIm5vbmNlIjoiYm05dVkyVXRNREV5TXpRMU5qYzRPV0ZpWTJSbFpnIn0.06JR_Dq7w8g1hs8GYFavd2woUkq1c0ICwetNcBNL0dToJgrTPY_-aBvURkgiiObCk-o7WFgD3xKkmzMfHDedCw",
+    "challenge_state": {
+      "key": [
+        "Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm",
+        "bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg"
+      ],
+      "canonical_origin": "https://app.example",
+      "canonical_base_url": "wss://server.example/_arkret/ws",
+      "issued_at": "2026-07-29T00:00:00.000Z",
+      "expires_at": "2026-07-29T00:00:05.000Z",
+      "consumed": false
+    },
+    "expected_replay_ledger_key": [
+      "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+      "d3MtYXV0aC1qdGktMDAwMQ",
+      "ak.websocket_auth.v1"
+    ],
+    "expected": "accepted"
+  },
+  "dpop_negative_cases": [
+    {
+      "name": "http_validator_must_not_accept_application_context",
+      "validator_context": "http_request_dpop",
+      "expected": "rejected"
+    },
+    {
+      "name": "wrong_htu_scheme",
+      "replace_claim": {
+        "htu": "https://server.example/_arkret/ws"
+      },
+      "resign": true,
+      "expected": "rejected"
+    },
+    {
+      "name": "wrong_method_token",
+      "replace_claim": {
+        "htm": "GET"
+      },
+      "resign": true,
+      "expected": "rejected"
+    },
+    {
+      "name": "wrong_ath",
+      "replace_claim": {
+        "ath": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "resign": true,
+      "expected": "rejected"
+    },
+    {
+      "name": "wrong_nonce",
+      "replace_claim": {
+        "nonce": "d3Jvbmctbm9uY2UtMDEyMzQ1Njc4OQ"
+      },
+      "resign": true,
+      "expected": "rejected"
+    },
+    {
+      "name": "connection_id_mismatch",
+      "authenticate_connection_id": "b3RoZXItY29ubmVjdGlvbi0wMTIzNDU2Nw",
+      "expected": "rejected"
+    },
+    {
+      "name": "origin_mismatch",
+      "socket_origin": "https://evil.example",
+      "expected": "rejected"
+    },
+    {
+      "name": "expired_challenge",
+      "verification_time": "2026-07-29T00:00:05.001Z",
+      "expected": "rejected"
+    },
+    {
+      "name": "replayed_nonce_and_jti",
+      "challenge_consumed": true,
+      "replay_ledger_key_present": true,
+      "expected": "rejected"
+    },
+    {
+      "name": "unknown_claim",
+      "add_claim": {
+        "connection_id": "Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm"
+      },
+      "resign": true,
+      "expected": "rejected"
+    },
+    {
+      "name": "holder_thumbprint_mismatch",
+      "grant_cnf_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "expected": "rejected"
+    }
+  ],
+  "frame_schema_cases": [
+    {
+      "name": "challenge",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"expires_at\":\"2026-07-29T00:00:05.000Z\",\"kind\":\"challenge\",\"nonce\":\"bm9uY2UtMDEyMzQ1Njc4OWFiY2RlZg\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "authenticate",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"dpop_proof\":\"eyJhbGciOiJFZDI1NTE5IiwiandrIjp7ImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiMTFxWUFZS3hDcmZWU183VHlXUUhPZzdoY3ZQYXBpTWxyd0lhYVBjSFVSbyJ9LCJ0eXAiOiJkcG9wK2p3dCJ9.eyJhdGgiOiJOcGpyakRMaENkX0xWdjRkNWExeXltV0YzUUlaNTU0ejJ5cGlyM0pmekNvIiwiaHRtIjoiQVJLUkVULVdFQlNPQ0tFVC1BVVRIIiwiaHR1Ijoid3NzOi8vc2VydmVyLmV4YW1wbGUvX2Fya3JldC93cyIsImlhdCI6MTc4NTI4MzIwMCwianRpIjoiZDNNdFlYVjBhQzFxZEdrdE1EQXdNUSIsIm5vbmNlIjoiYm05dVkyVXRNREV5TXpRMU5qYzRPV0ZpWTJSbFpnIn0.06JR_Dq7w8g1hs8GYFavd2woUkq1c0ICwetNcBNL0dToJgrTPY_-aBvURkgiiObCk-o7WFgD3xKkmzMfHDedCw\",\"kind\":\"authenticate\",\"session_grant\":\"ak.session.grant.fixture.websocket.v1\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "welcome",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"auth_expires_at\":\"2026-07-29T00:15:00.000Z\",\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"heartbeat_interval_ms\":30000,\"kind\":\"welcome\",\"max_channel_pending_bytes\":16384,\"max_channel_pending_frames\":32,\"max_channels\":16,\"max_connection_pending_bytes\":65536,\"max_connection_pending_frames\":128,\"max_frame_bytes\":4096}",
+      "expect_valid": true
+    },
+    {
+      "name": "open_account",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.account.stream.subscribe.v1\",\"parameters\":{\"catchup\":true}}",
+      "expect_valid": true
+    },
+    {
+      "name": "open_events",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\",\"parameters\":{\"catchup\":false,\"realm_ids\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
+      "expect_valid": true
+    },
+    {
+      "name": "open_signal",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.signal.stream.subscribe.v1\",\"parameters\":{}}",
+      "expect_valid": true
+    },
+    {
+      "name": "opened",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.account.stream.subscribe.v1\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "opened_events",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "opened_signal",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.signal.stream.subscribe.v1\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "account_data",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"account-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:YWNjountY3Vyc29yLTAwMDE\",\"kind\":\"delta\"}}",
+      "expect_valid": true
+    },
+    {
+      "name": "events_data",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"event\",\"payload\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-05-02T00:00:00.000Z\",\"event_id\":\"ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG\",\"track_name\":\"discussion\"},\"proofs\":[{\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:41244b66a2bf197edf0faf20e58a5d72ad1fe950540a313c006478f65c52baaf\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0.._LDaUvdWTts7-Gjg9uRyhmh5-evFIXGzQaQI2th3khFXq__KV0K1KhKR3vd2amR0ksXl_K9p_lQ5sLMSqhvpDA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}],\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"}},\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"}}",
+      "expect_valid": true
+    },
+    {
+      "name": "signal_data",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"delivery_authority\":{\"key\":{\"actor\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh\",\"public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-key\"},\"recipient_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"envelope\":{\"authority_commit_id\":\"ak:realm_commit:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"encrypted_payload\":{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":7,\"key_ref\":{\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"envelope_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-key\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"sender_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
+      "expect_valid": true
+    },
+    {
+      "name": "channel_control",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"frame_scope\":\"channel\",\"kind\":\"control\",\"payload\":{\"kind\":\"heartbeat\"}}",
+      "expect_valid": true
+    },
+    {
+      "name": "signal_control",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"frame_scope\":\"channel\",\"kind\":\"control\",\"payload\":{\"kind\":\"heartbeat\"}}",
+      "expect_valid": true
+    },
+    {
+      "name": "channel_error",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"error\":{\"code\":\"rate_limited\",\"message\":\"channel limit reached\",\"retry_after_ms\":1000},\"frame_scope\":\"channel\",\"kind\":\"error\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "connection_error",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"error\":{\"code\":\"internal_error\",\"message\":\"connection state unavailable\"},\"frame_scope\":\"connection\",\"kind\":\"error\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "client_close",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"close\",\"reason\":\"client_request\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "server_closed",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"closed\",\"reason\":\"client_request\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "ping",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"kind\":\"ping\",\"ping_id\":\"cGluZy0wMTIzNDU2Nzg5YWJjZGVm\",\"sent_at\":\"2026-07-29T00:01:00.000Z\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "pong",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"kind\":\"pong\",\"ping_id\":\"cGluZy0wMTIzNDU2Nzg5YWJjZGVm\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "reauth_required",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"expires_at\":\"2026-07-29T00:14:05.000Z\",\"kind\":\"reauth_required\",\"nonce\":\"cmVhdXRoLW5vbmNlLTAxMjM0NTY3ODlhYg\",\"reason\":\"grant_expiring\"}",
+      "expect_valid": true
+    },
+    {
+      "name": "connection_drain",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "wire_utf8": "{\"frame_scope\":\"connection\",\"kind\":\"control\",\"payload\":{\"deadline\":\"2026-07-29T00:14:30.000Z\",\"kind\":\"drain\",\"reason\":\"service_restart\",\"reconnect_after_ms\":5000}}",
+      "expect_valid": true
+    }
+  ],
+  "wire_negative_cases": [
+    {
+      "name": "duplicate_member",
+      "wire_utf8": "{\"kind\":\"pong\",\"kind\":\"pong\",\"ping_id\":\"cGluZy0wMTIzNDU2Nzg5YWJjZGVm\"}",
+      "rejection_stage": "json_duplicate_scan",
+      "expected_close_code": 1002
+    },
+    {
+      "name": "unknown_field",
+      "wire_utf8": "{\"extra\":true,\"kind\":\"pong\",\"ping_id\":\"cGluZy0wMTIzNDU2Nzg5YWJjZGVm\"}",
+      "rejection_stage": "schema",
+      "expected_close_code": 1002
+    },
+    {
+      "name": "non_ascii_session_grant",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"dpop_proof\":\"AAAAAAAAAAA.AAAAAAAAAAA.AAAAAAAAAAA\",\"kind\":\"authenticate\",\"session_grant\":\"令牌\"}",
+      "rejection_stage": "schema",
+      "expected_close_code": 1002
+    },
+    {
+      "name": "wrong_direction",
+      "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
+      "wire_utf8": "{\"kind\":\"ping\",\"ping_id\":\"cGluZy0wMTIzNDU2Nzg5YWJjZGVm\",\"sent_at\":\"2026-07-29T00:01:00.000Z\"}",
+      "rejection_stage": "direction_schema",
+      "expected_close_code": 1002
+    },
+    {
+      "name": "binary_message",
+      "wire_hex": "7b226b696e64223a22706f6e67227d",
+      "opcode": "binary",
+      "rejection_stage": "opcode",
+      "expected_close_code": 1002
+    },
+    {
+      "name": "oversize_before_json_parse",
+      "generator": {
+        "prefix_utf8": "{\"kind\":\"authenticate\",\"connection_id\":\"Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm\",\"session_grant\":\"",
+        "repeat_utf8": "A",
+        "total_message_bytes": 4097,
+        "suffix_utf8": "\",\"dpop_proof\":\"a.b.c\"}"
+      },
+      "advertised_max_frame_bytes": 4096,
+      "rejection_stage": "byte_gate",
+      "json_parser_called": false,
+      "expected_close_code": 1009
+    },
+    {
+      "name": "data_on_unopened_channel",
+      "wire_utf8": "{\"channel_id\":\"never-opened\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:YWNjountY3Vyc29yLTAwMDE\",\"kind\":\"delta\"}}",
+      "rejection_stage": "connection_state",
+      "expected_close_code": 1002
+    },
+    {
+      "name": "payload_does_not_match_channel_operation",
+      "channel_operation": "ak.self.signal.stream.subscribe.v1",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"frame_scope\":\"channel\",\"kind\":\"control\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"frontier\"}}",
+      "rejection_stage": "channel_operation_schema",
+      "expected_channel_result": "error_then_closed",
+      "connection_remains_open": true
+    }
+  ],
+  "multiplex_trace": {
+    "connection_id": "Y29ubmVjdGlvbi0wMTIzNDU2Nzg5YWJjZGVm",
+    "steps": [
+      "authenticate accepted",
+      "welcome",
+      "open account-1",
+      "opened account-1",
+      "open events-1",
+      "opened events-1",
+      "open signal-1",
+      "opened signal-1",
+      "account-1 data delta advances only account durable cursor",
+      "events-1 data event advances only events durable cursor",
+      "events-1 control heartbeat advances no cursor",
+      "signal-1 control heartbeat creates no cursor or catch-up state",
+      "events-1 channel error and closed leave account-1 and signal-1 open",
+      "reusing events-1 returns conflict and never reopens it"
+    ],
+    "frame_case_sequence": [
+      "challenge",
+      "authenticate",
+      "welcome",
+      "open_account",
+      "opened",
+      "open_events",
+      "opened_events",
+      "open_signal",
+      "opened_signal",
+      "account_data",
+      "events_data",
+      "channel_control",
+      "signal_control",
+      "channel_error",
+      "server_closed"
+    ],
+    "expected": {
+      "open_channels_after_events_close": [
+        "account-1",
+        "signal-1"
+      ],
+      "account_cursor": "ak:cursor:YWNjountY3Vyc29yLTAwMDE",
+      "events_cursor": "ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx",
+      "signal_cursor": null,
+      "signal_catchup": false,
+      "channel_id_reuse": "conflict",
+      "physical_connection_open": true
+    }
+  },
+  "reauth_trace": [
+    {
+      "name": "fresh_reauth_succeeds",
+      "server_frame": "reauth_required",
+      "new_nonce": true,
+      "new_jti": true,
+      "new_session_grant": true,
+      "new_ath": true,
+      "authenticate_within_ms": 3000,
+      "expected": "channels_continue"
+    },
+    {
+      "name": "old_proof_reuse_fails",
+      "server_frame": "reauth_required",
+      "reuse_old_nonce": true,
+      "reuse_old_jti": true,
+      "expected_close_code": 1008,
+      "old_authorization_continues": false
+    }
+  ],
+  "drain_and_close_traces": [
+    {
+      "name": "channel_error_isolated",
+      "input": "channel-scoped error then closed",
+      "websocket_close": null,
+      "other_channels_continue": true
+    },
+    {
+      "name": "graceful_service_drain",
+      "input": "connection drain with reconnect_after_ms=5000 and deadline",
+      "new_channel_admission": "rejected",
+      "durable_checkpoint_until_deadline": true,
+      "expected_close_code": 1001,
+      "minimum_reconnect_delay_ms": 5000
+    },
+    {
+      "name": "protocol_error",
+      "input": "duplicate member",
+      "expected_close_code": 1002,
+      "expected_transport": "http_json"
+    },
+    {
+      "name": "policy_error_retry_once",
+      "input": "proof invalid",
+      "first_close_code": 1008,
+      "fresh_socket_and_grant_attempts": 1,
+      "second_close_code": 1008,
+      "expected_transport": "http_json"
+    },
+    {
+      "name": "message_too_big",
+      "input": "4097 bytes with effective limit 4096",
+      "expected_close_code": 1009,
+      "expected_transport": "http_json"
+    },
+    {
+      "name": "restart_retry_budget",
+      "input": "three consecutive 1012 closures before welcome",
+      "attempts": 3,
+      "expected_transport": "http_json"
+    }
+  ],
+  "fallback_cases": [
+    {
+      "name": "upgrade_or_proxy_failure",
+      "failures": [
+        "upgrade_status_not_101",
+        "subprotocol_not_selected",
+        "proxy_blocked"
+      ],
+      "websocket_retry_before_fallback": false,
+      "expected_transport": "http_json"
+    },
+    {
+      "name": "single_owner_transport_switch",
+      "old_websocket_owner_closed": true,
+      "old_channels_closed": true,
+      "durable_cursors_persisted_before_switch": true,
+      "http_owner_started_after_old_owner_stopped": true,
+      "duplicate_consumers": false,
+      "signal_catchup_attempted": false,
+      "expected_transport": "http_json"
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "events_data_portable_producer_accepted",
+      "schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
+      "instance": {
+        "channel_id": "events-1",
+        "kind": "data",
+        "payload": {
+          "cursor": "ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx",
+          "kind": "event",
+          "payload": {
+            "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
+            "kind": "ak.message.create",
+            "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+            },
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              }
+            },
+            "created_at": "2026-05-02T00:00:00.000Z",
+            "payload": {
+              "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
+              "track_name": "discussion",
+              "content": {
+                "kind": "ak.content.text",
+                "body": "hello"
+              }
+            },
+            "proofs": [
+              {
+                "kind": "detached_jws",
+                "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+                "created_at": "2026-05-02T00:00:00.000Z",
+                "domain": "arkret-event-v1",
+                "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
+                "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193"
+              }
+            ]
+          },
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        }
+      },
+      "expect_valid": true
+    }
+  ]
+}

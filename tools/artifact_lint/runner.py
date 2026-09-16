@@ -308,6 +308,31 @@ def main(argv: list[str] | None = None) -> int:
         "Schema、profile 与授权闭包",
         [
             ("schema_refs", lambda: check_schema_refs(lint, known)),
+            ("schema_root_reachability", lambda: check_schema_root_reachability(lint)),
+            (
+                "canonical_wire_source_closure",
+                lambda: check_canonical_wire_source_closure(lint),
+            ),
+            (
+                "preimage_event_identity_commitments",
+                lambda: check_preimage_event_identity_commitments(lint),
+            ),
+            (
+                "content_addressed_ref_mirror_removals",
+                lambda: check_content_addressed_ref_mirror_removals(lint),
+            ),
+            (
+                "content_addressed_ref_sibling_digests",
+                lambda: check_content_addressed_ref_sibling_digests(lint),
+            ),
+            (
+                "circle_lifecycle_basis_vector",
+                lambda: check_circle_lifecycle_basis_vector(lint),
+            ),
+            (
+                "vector_group_requirements",
+                lambda: check_vector_group_requirements(lint, known),
+            ),
             (
                 "foundational_schema_dependencies",
                 lambda: check_foundational_schema_dependency_direction(lint),
@@ -389,6 +414,14 @@ def main(argv: list[str] | None = None) -> int:
             ("service_describe", lambda: check_service_describe_alignment(lint)),
             ("dedicated_schemas", lambda: check_openapi_dedicated_operation_schemas(lint)),
             ("openapi_auth", lambda: check_openapi_auth_semantics(lint)),
+            (
+                "openapi_core_selector_constraints",
+                lambda: check_openapi_core_selector_constraints(lint),
+            ),
+            (
+                "delegated_write_admission_envelope_lock",
+                lambda: check_delegated_write_admission_envelope_lock(lint),
+            ),
             ("openapi_errors", lambda: check_openapi_error_enum_alignment(lint)),
             ("binding_metadata", lambda: check_operation_binding_metadata(lint)),
             ("binding_index", lambda: check_binding_completeness_index(lint)),
@@ -414,6 +447,53 @@ def main(argv: list[str] | None = None) -> int:
             ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
             ("crypto_suite_kats", lambda: check_cryptographic_suite_kat_bindings(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
+            ("vector_registry", lambda: check_vector_registry(lint)),
+            (
+                "vector_reference_closure",
+                lambda: check_vector_reference_closure(lint),
+            ),
+            (
+                "normative_clause_registry",
+                lambda: check_normative_clause_registry(lint),
+            ),
+            (
+                "canonical_digest_fixtures",
+                lambda: check_canonical_digest_fixtures(lint),
+            ),
+            (
+                "content_bound_event_id_fixture",
+                lambda: check_content_bound_event_id_fixture(lint),
+            ),
+            ("crypto_signature_fixture", lambda: check_crypto_signature_fixture(lint)),
+            (
+                "declared_canonical_json_strings",
+                lambda: check_declared_canonical_json_strings(lint),
+            ),
+            (
+                "direct_conversation_digest_vectors",
+                lambda: check_direct_conversation_digest_vectors(lint),
+            ),
+            (
+                "event_batch_receipt_normalization_vector",
+                lambda: check_event_batch_receipt_normalization_vector(lint),
+            ),
+            (
+                "mls_creator_bootstrap_transaction",
+                lambda: check_mls_creator_bootstrap_transaction(lint),
+            ),
+            (
+                "stated_preimage_matches_stated_digest",
+                lambda: check_stated_preimage_matches_stated_digest(lint),
+            ),
+            (
+                "string_profile_format_vectors",
+                lambda: check_string_profile_format_vectors(lint),
+            ),
+            ("websocket_binding_fixture", lambda: check_websocket_binding_fixture(lint)),
+            (
+                "recovery_transcript_closure",
+                lambda: check_recovery_transcript_closure(lint),
+            ),
             (
                 "keypackage_write_transcripts",
                 lambda: check_keypackage_write_transcript_fixture(lint),
@@ -481,6 +561,10 @@ def main(argv: list[str] | None = None) -> int:
             ("digest_alias", lambda: check_canonical_digest_alias(lint)),
             ("announce_ids", lambda: check_legacy_announce_id_form(lint)),
             ("directory_fields", lambda: check_directory_field_drift(lint)),
+            (
+                "envelope_subject_source_whitelist",
+                lambda: check_envelope_subject_source_whitelist(lint),
+            ),
             ("typed_id_prose", lambda: check_typed_id_prose_consistency(lint)),
             (
                 "event_log_signed_request",
@@ -509,6 +593,10 @@ def main(argv: list[str] | None = None) -> int:
             ("psi_class_b", lambda: check_psi_class_b_artifact_closure(lint)),
             ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
             ("error_closure", lambda: check_error_code_closure(lint)),
+            (
+                "reason_code_producer_paths",
+                lambda: check_reason_code_producer_paths(lint),
+            ),
             ("redactable_fields", lambda: check_redactable_field_registry(lint)),
             (
                 "account_status_replica_decisions",

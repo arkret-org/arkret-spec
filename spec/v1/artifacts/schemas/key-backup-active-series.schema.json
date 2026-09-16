@@ -92,9 +92,6 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "digest": {
-      "$ref": "./account-operations.schema.json#/$defs/digest"
-    },
     "backup_kind": {
       "type": "string",
       "enum": [
