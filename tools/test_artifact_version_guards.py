@@ -7,6 +7,10 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 from pathlib import Path
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from artifact_pipeline import preserve_artifact_metadata_when_semantics_match
 from check_artifact_versions import ARTIFACTS, main, repairs_future_generated_at, semantic_content_digest, transition_errors
 

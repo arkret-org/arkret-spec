@@ -35,7 +35,7 @@ Realm membership、policy 和 authority 变更只提交到 Realm stream。治理
 
 `event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, refs?, payload, proofs`。
 
-`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、`preconditions`、`auth_context`、`data_basis`、`authority_revision`、`requirements` 或 `unsigned`。
+`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。
 
 Event 不指向“上一个 Event”。producer 可能离线签名，且多个 producer 会并发；让 Event 绑定 head 会导致合法排队请求因其它写先提交而重签，MLS 请求甚至需要重建密码材料。最终顺序只能由接纳方分配。
 
@@ -70,7 +70,7 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 ## 5. Typed reducer 与并发
 
-共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 typed current result key、通用 CRDT、Lattice、rank、dot、通用 predicate 或 state-root DSL。
+共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 typed current result key、通用 CRDT、deterministic projection、rank、dot、通用 predicate 或 state-root DSL。
 
 默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义 `expected_revision`，其值为该领域 current row 最后一个 Commit ID。比较失败时整个请求 rejected，不产生 Commit。
 
@@ -104,7 +104,7 @@ Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测
 
 ## 7. Snapshot 与 join bootstrap
 
-Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `authority_generation` 和调用方获准的全部 stream heads。它不含 typed current result chunks、state root、RealmCommit、reducer profile 或稀疏 Merkle proof。
+Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `authority_generation` 和调用方获准的全部 stream heads。它不含 typed current result chunks、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。
 
 加入流程必须为：
 

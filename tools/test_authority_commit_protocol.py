@@ -14,6 +14,63 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_current_v1_has_no_removed_state_machine_vocabulary(self):
+        roots = [ROOT / "spec/v1/zh", ARTIFACTS]
+        forbidden = {
+            "EventInitialSubmission",
+            "Control Move",
+            "Move",
+            "ordinary Event",
+            "Lattice",
+            "lattice",
+            "sequenced_state",
+            "causal_register",
+            "or_set",
+            "ordered_log",
+            "state_model",
+            "observed-remove",
+            "observed_dot",
+            "dot_ids",
+            "authority_revision",
+            "auth_context",
+            "data_basis",
+            "reducer_profile",
+            "reducer profile",
+            "supported_reducer_profiles",
+            "state-slot:",
+            "ak.component.",
+            "head_eq",
+            "effect_projection",
+            "notary",
+            "Notary",
+            "ControlProposal",
+            "control_proposal",
+            "peer reconciliation",
+            "frontier_digest",
+            "frontier_ref",
+            "control_frontier",
+            "Retired",
+            "retired",
+            "deprecated",
+            "legacy",
+            "退役",
+        }
+        findings = []
+        for root in roots:
+            for path in root.rglob("*"):
+                if not path.is_file() or path.suffix not in {".md", ".json", ".yaml", ".yml"}:
+                    continue
+                text = path.read_text(encoding="utf-8")
+                for term in forbidden:
+                    if term in text:
+                        findings.append(f"{path.relative_to(ROOT)}: {term}")
+        self.assertEqual(findings, [])
+
+    def test_reducer_profile_registry_is_not_part_of_current_v1(self):
+        self.assertFalse((ARTIFACTS / "registry/reducer-profile-registry.json").exists())
+        manifest = read("registry/registry-manifest.json")
+        self.assertNotIn("reducer_profiles", json.dumps(manifest, sort_keys=True))
+
     def test_fixture_has_independent_predecessor_chains(self):
         fixture = read("fixtures/authority-commit-fixture.json")
         streams = fixture["independent_streams"]

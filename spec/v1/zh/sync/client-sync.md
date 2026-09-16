@@ -85,7 +85,7 @@ Timeline 是 committed Event 的展示序列；current 是 own Station返回的 
 
 ### 5.1 服务器当前结果
 
-Typed current result至少绑定 selector、value/status、领域 revision，以及来源 `{commit_id, stream_ref, stream_position}`。客户端核对 request/account/Realm/selector 后安装结果，不执行 authority-commit/Lattice/typed current result reducer。
+Typed current result至少绑定 selector、value/status、领域 revision，以及来源 `{commit_id, stream_ref, stream_position}`。客户端核对 request/account/Realm/selector 后安装结果，不执行 authority-commit projection/typed current result reducer。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
@@ -175,9 +175,9 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 丢弃旧 cursor并重做对应 surface baseline；不删除本地已验证 Commit或MLS private state。
 
-#### 12.3.2 `frontier_stale`（旧 cursor 仍有效，可继续 backfill）
+#### 12.3.2 `revision_stale`（旧 cursor 仍有效，可继续 backfill）
 
-该历史错误名只表示服务仍能从已有 cursor补拉更早的获准内容；它不是 actor/RealmCommit frontier。客户端按响应 continuation继续。
+该历史错误名只表示服务仍能从已有 cursor补拉更早的获准内容；它不是 actor/RealmCommit checkpoint。客户端按响应 continuation继续。
 
 #### 12.3.3 历史完整性边界（两分支共用）
 

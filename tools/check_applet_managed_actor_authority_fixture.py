@@ -34,16 +34,16 @@ EXPECTED: dict[str, tuple[str, Any]] = {
     "ordinary_submit_cannot_create_applet_managed_pcr": ("expect", "applet_managed_pcr_genesis_requires_closed_aggregate"),
     "peer_federation_cannot_split_managed_authority": ("expect", "applet_managed_pcr_genesis_requires_closed_aggregate"),
     "pcr_genesis_materializes_resolution_and_history_only": (
-        "expect_cells",
+        "expect_results",
         [
-            "ak.component.identity.resolution.v1",
-            "ak.component.realm.history_access.v1=since_join",
+            "identity_resolution",
+            "realm_history_access=since_join",
         ],
     ),
     "unit_failure_is_zero_visible": ("expect", "no_event_no_projection_no_record_no_idempotency_result"),
     "concurrent_ghost_append_uses_exact_applet_record_cas": ("expect", "one_commit_one_cas_conflict_no_event_or_record_loss"),
     "revoke_cannot_overwrite_concurrent_ghost_append": ("expect", "stale_revoke_cas_retries_and_preserves_ghost_anchor"),
-    "rotation_keeps_creation_anchor": ("expect", "current_cell_changes_business_anchor_unchanged"),
+    "rotation_keeps_creation_anchor": ("expect", "current_result_changes_business_anchor_unchanged"),
     "rotation_cannot_reuse_creation_only_grant": ("expect", "capability_denied"),
     "rotation_wrong_authority_pair": ("expect", "applet_managed_actor_authority_mismatch"),
     "genesis_resolution_index_rebuild": ("expect", "exact_authority_pair_current_resolution_restored"),
@@ -84,7 +84,7 @@ def run_named_suite(fixture: dict[str, Any]) -> list[str]:
         if case.get(field) != expected:
             errors.append(f"{case['name']}: {field} must equal {expected!r}")
         if case["name"] == "pcr_genesis_materializes_resolution_and_history_only":
-            if case.get("forbid_cells") != ["ak.component.agent.status.v1"]:
+            if case.get("forbid_results") != ["agent_status"]:
                 errors.append(f"{case['name']}: agent status must remain forbidden")
         if case["name"] == "ghost_external_tuple_is_single_closed_carrier":
             if set(case.get("external_ref", {})) != {"protocol", "instance_id", "external_id"}:

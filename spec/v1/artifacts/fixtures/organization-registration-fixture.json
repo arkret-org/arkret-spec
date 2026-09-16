@@ -128,7 +128,7 @@
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt",
       "expect_valid": true,
       "semantic_outcome": "accept",
-      "notes": "The receipt proves this deployment accepted a local binding and nothing more: it is not a Realm capability, not membership, not a notary designation and not a service delegation. control_proof_kind travels alongside control_key_digest so a later auditor can tell which commitment the digest is over without refetching the request.",
+      "notes": "The receipt proves this deployment accepted a local binding and nothing more: it is not a Realm capability, not membership, not a governance-Station designation and not a service delegation. control_proof_kind travels alongside control_key_digest so a later auditor can tell which commitment the digest is over without refetching the request.",
       "instance": {
         "registration_receipt_id": "ak:organization_registration_receipt:7803fcc35ae0683ce13cbdbfed9b30864e5671f96bf7f7a16f6387d7df321d19",
         "organization_id": "ak:did_core:webvh:z6mkfixtureacmeexample",

@@ -147,11 +147,11 @@
       "name": "pcr_genesis_materializes_resolution_and_history_only",
       "mutation": "none",
       "expect_results": [
-        "ak.component.identity.resolution.v1",
-        "ak.component.realm.history_access.v1=since_join"
+        "identity_resolution",
+        "realm_history_access=since_join"
       ],
       "forbid_results": [
-        "ak.component.agent.status.v1"
+        "agent_status"
       ]
     },
     {
@@ -171,7 +171,7 @@
     },
     {
       "name": "rotation_keeps_creation_anchor",
-      "mutation": "accept ordinary resolution.update with exact PCR realm, head_eq successor and a separate active grant whose action/resource/registration epoch cover ak.identity.resolution.update",
+      "mutation": "accept ordinary resolution.update with exact PCR realm, expected_revision successor and a separate active grant whose action/resource/registration epoch cover ak.identity.resolution.update",
       "expect": "current_result_changes_business_anchor_unchanged"
     },
     {
@@ -196,7 +196,7 @@
     },
     {
       "name": "revoked_applet_direct_self_signed_write",
-      "mutation": "ordinary Event submit after registration revoke",
+      "mutation": "Event submit after registration revoke",
       "expect": "applet_revoked"
     },
     {

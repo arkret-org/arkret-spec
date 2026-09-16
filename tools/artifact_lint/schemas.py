@@ -912,17 +912,17 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
             )
 
     generation_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
-    backup_frontier = key_backup.get("properties", {}).get("frontier_ref", {})
-    series_frontier = active_series.get("$defs", {}).get("frontier_ref", {})
-    for path, frontier in (
-        (key_backup_path, backup_frontier),
-        (active_series_path, series_frontier),
+    backup_commit_ref = key_backup.get("properties", {}).get("source_commit_ref", {})
+    series_commit_ref = active_series.get("$defs", {}).get("source_commit_ref", {})
+    for path, commit_ref in (
+        (key_backup_path, backup_commit_ref),
+        (active_series_path, series_commit_ref),
     ):
-        field = frontier.get("properties", {}).get("device_generation_ref", {})
+        field = commit_ref.get("properties", {}).get("device_generation_ref", {})
         if field.get("$ref") != generation_ref:
             lint.fail(
                 path,
-                "frontier_ref.device_generation_ref must reuse the canonical PCR generation integer",
+                "source_commit_ref.device_generation_ref must reuse the canonical PCR generation integer",
             )
 
     governance_defs = governance.get("$defs", {})
@@ -2781,7 +2781,7 @@ def check_signed_object_closure(lint: Lint) -> None:
         if envelope.get("additionalProperties") is not False:
             lint.fail(envelope_path, "encrypted envelope root additionalProperties must be false")
         definitions = envelope.get("$defs") or {}
-        for name in ("routing_context", "standard_mls_encryption_context", "exporter_mls_encryption_context"):
+        for name in ("routing_context", "standard_mls_encryption_context"):
             context = definitions.get(name)
             if not isinstance(context, dict) or context.get("additionalProperties") is not False:
                 lint.fail(
@@ -2855,10 +2855,10 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
 
     canonical_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
     generation_paths = {
-        "key-backup.schema.json": ("properties", "frontier_ref", "properties", "device_generation_ref"),
+        "key-backup.schema.json": ("properties", "source_commit_ref", "properties", "device_generation_ref"),
         "key-backup-active-series.schema.json": (
             "$defs",
-            "frontier_ref",
+            "source_commit_ref",
             "properties",
             "device_generation_ref",
         ),
@@ -2869,12 +2869,12 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
             for key in keys:
                 node = node[key]
         except (KeyError, TypeError):
-            lint.fail(ARTIFACTS / "schemas" / name, "missing frontier_ref.device_generation_ref")
+            lint.fail(ARTIFACTS / "schemas" / name, "missing source_commit_ref.device_generation_ref")
             continue
         if not isinstance(node, dict) or node.get("$ref") != canonical_ref:
             lint.fail(
                 ARTIFACTS / "schemas" / name,
-                "frontier_ref.device_generation_ref must reuse recovery-session pcr_generation_ref",
+                "source_commit_ref.device_generation_ref must reuse recovery-session pcr_generation_ref",
             )
 
     authority_path = ARTIFACTS / "schemas" / "recovery-authority.schema.json"

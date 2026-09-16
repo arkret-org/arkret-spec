@@ -222,8 +222,8 @@
       }
     },
     {
-      "name": "key_backup_frontier_integer_generation_valid",
-      "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/frontier_ref",
+      "name": "key_backup_checkpoint_integer_generation_valid",
+      "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/source_commit_ref",
       "expect_valid": true,
       "instance": {
         "device_generation_ref": 7,
@@ -231,8 +231,8 @@
       }
     },
     {
-      "name": "key_backup_frontier_compound_string_generation_rejected",
-      "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/frontier_ref",
+      "name": "key_backup_checkpoint_compound_string_generation_rejected",
+      "schema_ref": "schemas/key-backup-active-series.schema.json#/$defs/source_commit_ref",
       "expect_valid": false,
       "first_expected_error": "$.device_generation_ref: '7-did-version' is not of type 'integer'",
       "instance": {

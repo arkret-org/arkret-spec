@@ -1644,8 +1644,8 @@
           "minimum": 0
         },
         "welcome_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Exact accepted ak.delivery.mls_welcome Event referenced by this durable receipt; this is not a Welcome byte carrier."
+          "$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id",
+          "description": "Exact MlsWelcomeDelivery referenced by this durable receipt. The delivery is not an Event and has no independent RealmCommit."
         },
         "welcome_digest": {
           "$ref": "#/$defs/digest"

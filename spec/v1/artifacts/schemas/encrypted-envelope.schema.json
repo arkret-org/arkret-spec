@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/encrypted-envelope.schema.json",
   "title": "Arkret Encrypted Payload Envelope",
-  "description": "Minimal ciphertext wire. purpose, effective scope and Event kind come from the frozen signed outer Event; mls_group_id is derived from that scope; content_scheme comes from the exact referenced winning group state. The canonical pre-encryption header is reconstructed and is not duplicated on wire.",
+  "description": "Minimal ciphertext wire. purpose, effective scope and Event kind come from the frozen signed outer Event; mls_group_id is derived from that scope. The canonical pre-encryption header is reconstructed and is not duplicated on wire.",
   "type": "object",
   "required": [
     "version",
@@ -66,46 +66,11 @@
         }
       },
       "additionalProperties": false,
-      "description": "The absence of counter is the structural standard-MLS branch. The referenced winning group state MUST have content_scheme=mls_rfc9420."
-    },
-    "exporter_mls_encryption_context": {
-      "type": "object",
-      "required": [
-        "epoch",
-        "group_state_ref",
-        "counter"
-      ],
-      "properties": {
-        "epoch": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "group_state_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "counter": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "routing_context": {
-          "$ref": "#/$defs/routing_context"
-        }
-      },
-      "additionalProperties": false,
-      "description": "The required canonical-JSON-safe counter is the structural exporter branch. The referenced winning group state MUST have content_scheme=mls_exporter_aead_v1."
+      "description": "RFC 9420 application-message context bound to the accepted group state."
     },
     "encryption_context": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/standard_mls_encryption_context"
-        },
-        {
-          "$ref": "#/$defs/exporter_mls_encryption_context"
-        }
-      ],
-      "description": "Closed branch selected by counter presence and cross-checked against the content_scheme frozen by the exact group_state_ref. No caller-supplied scheme selector exists."
+      "$ref": "#/$defs/standard_mls_encryption_context",
+      "description": "RFC 9420 application-message context for the accepted MLS group state."
     }
   }
 }

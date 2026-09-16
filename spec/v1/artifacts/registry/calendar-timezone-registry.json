@@ -1,12 +1,12 @@
 {
-  "version": "2026-08-26.3",
+  "version": "2026-09-16.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-26T20:20:00+08:00",
+  "generated_at": "2026-09-16T10:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A calendar schedule MUST carry a signed tzdb_version naming one release row below. Receivers resolve timezone and every derived instant with that release, never with their locally installed release.",
-    "Release rows are append-only and each row is frozen once published, including its own required_normalizations table, because historical schedules signed that row. Withdrawing a release is expressed by setting status=deprecated, never by deleting or rewriting the row.",
+    "Release rows are append-only and each row is frozen once published, including its own required_normalizations table, because historical schedules signed that row. Withdrawing a release is expressed by setting status=inactive, never by deleting or rewriting the row.",
     "required_normalizations is per release, not global. A later IANA release that changes a Link target expresses that by carrying a different mapping in its own row; the earlier row keeps the mapping that was in force when those schedules were signed. A global table could not represent both at once and would silently break the append-only promise.",
     "Determinism comes from the release tag: IANA tzdata release tags are immutable once published. This registry deliberately does not mirror the full Zone/Link table and does not pin a distribution digest, because a hand-copied mirror would drift from IANA and become a second truth source, and this repository cannot verify third-party distribution bytes. Deployments that additionally need supply-chain pinning verify the distribution in their own build; that pinning is out of scope for v1 interop.",
     "Canonicalization is defined by the Link declarations of the pinned IANA release as published by IANA, in particular its backward and etcetera files: the canonical Zone is the Link target. It is NOT defined by whatever a given platform time zone library happens to expose, since distributions may build the same release with different link handling.",

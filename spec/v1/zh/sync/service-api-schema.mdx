@@ -57,7 +57,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
   - `verified_profiles`
   - `supported_features`
   - `interop_surfaces`
-  `supported_reducer_profiles` 是 canonical 可选字段：任何实际执行 Realm Event admission、Snapshot 生成或 MLS governance materialization 的服务都必须发布其实际实现的 `ak.reducer.*` 集合。`supported_schema_profiles` 仍通过已登记扩展或具体 operation 合同表达。
+  Arkret v1 领域 reducer 是固定合同，不通过 ServiceDescribe 协商。`supported_features` 只声明可选运行时功能，`supported_schema_profiles` 通过已登记扩展或具体 operation 合同表达。
 
 ### 2.1 操作分组
 
@@ -361,7 +361,7 @@ paths:
 | `ak.peer.events.read.resolve_committed.v1` / `ak.peer.events.read.scan.v1` | `QUERY` bindings | gRPC `PeerEvents/ResolveCommitted` / `PeerEvents/Scan` |
 | `ak.self.account.read.viewer.v1` | `GET /_arkret/self/account/viewer` | gRPC `SelfAccount/Viewer` / MQ `self.account.query.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
 | `ak.self.account.command.update_profile.v1` | `POST /_arkret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.command.update_profile`；closed `{profile_event}` 只承载 holder-signed `ak.profile.create\|ak.profile.update`，create ID 从 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仅限 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
-| `ak.self.account.stream.subscribe.v1` | `GET /_arkret/self/account/subscribe` | HTTP `Accept: application/x-ndjson` carries account-aggregate frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
+| `ak.self.account.stream.subscribe.v1` | `GET /_arkret/self/account/subscribe` | HTTP `Accept: application/x-ndjson` carries account-aggregate frames(`delta` / `catchup_complete` / `checkpoint` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
 | `ak.self.account.command.revoke_cursor.v1` | `POST /_arkret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.command.revoke_cursor` |
 | `ak.gate.account.command.register.v1` | `POST /_arkret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.command.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
 | `ak.gate.account.command.request_erasure.v1` | `POST /_arkret/gate/account/erasure-requests` | gRPC `GateAccount/RequestErasure` / MQ `gate.account.command.request_erasure`；由 Account Authority 在 gate 面直接受理，closed `{request_id}` 只记录擦除意图，Authority 在同一服务内继续其既有 `erasure_pending` 签发流程；响应是受理确认（`status=accepted` + `recorded_at`，可选 `withdrawal_window_ends_at`），不是完成回执；record 签发后不可逆，完成状态经既有 account-status 查询面获得。 |
@@ -383,7 +383,7 @@ paths:
 | `ak.self.authz.read.check.v1` / `ak.self.authz.grants.read.effective.v1` / `ak.self.authz.invites.read.list.v1` | `POST /_arkret/self/authz/check`, `GET /_arkret/self/authz/effective-grants`, `GET /_arkret/self/authz/invites` | gRPC / policy 插件回调 |
 | `ak.self.media.read.ice_config.v1` | `POST /_arkret/self/rtc/ice-config` | Realtime Media Services / TURN credential adapter |
 | `ak.self.call.media.exchange.issue_token.v1` | `POST /_arkret/self/rtc/token` | Realtime Media Services token 兑换 / gRPC `Call/MediaTokenExchange` |
-| `ak.self.moderation.command.report.v1` | `POST /_arkret/self/moderation/report` | Closed `{report_event}`；direct-holder signed ordinary Event，Event-derived report ID，exact-replay moderation queue workflow |
+| `ak.self.moderation.command.report.v1` | `POST /_arkret/self/moderation/report` | Closed `{report_event}`；direct-holder signed Event，Event-derived report ID，exact-replay moderation queue workflow |
 | `ak.self.applet.install.command.preview.v1` / `ak.self.applet.command.install.v1` / `ak.self.applet.revoke.command.preview.v1` / `ak.self.applet.command.revoke.v1` | `POST /_arkret/self/applets/install/preview`, `POST /_arkret/self/applets/install`, `POST /_arkret/self/applets/{applet_id}/revoke/preview`, `POST /_arkret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；install fan-out registration/grant facts；revoke 以 caller-signed Event saga 撤销 grant/membership，并持久化 external/local step ledger |
 | `ak.edge.applet.command.transaction.v1` / `ak.edge.applet.actor.read.resolve.v1` / `ak.edge.applet.realm.read.resolve.v1` | `POST /_arkret/edge/applet/transactions`, `GET /_arkret/edge/applet/actors/{actor_id}`, `GET /_arkret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 

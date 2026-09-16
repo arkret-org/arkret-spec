@@ -11,7 +11,7 @@
     "ak.vector.circle.lifecycle_admission_barrier.v1",
     "ak.vector.relation.effective_scope_reducer_managed.v1"
   ],
-  "description": "Machine-contract fixture for signed Event scope_ref, projected object effective_scope, and Circle lifecycle admission. Producer supplies scope_circle_id where the payload owns it and signs the matching scope_ref; the reducer verifies that scope and may materialize effective_scope only in object read projections. Covers source-Station serializable admission ordering, archive and tombstone barriers, restore re-signing, Control Move authority_revision checks, rebind transitions, and negative cases. See spec/v1/zh/models/circle.md Â§6.1 / Â§6.2 / Â§7 / Â§9.2 / Â§10.2.",
+  "description": "Machine-contract fixture for signed Event scope_ref, projected object effective_scope, and Circle lifecycle admission. Producer supplies scope_circle_id where the payload owns it and signs the matching scope_ref; the reducer verifies that scope and may materialize effective_scope only in object read projections. Covers source-Station serializable admission ordering, archive and tombstone barriers, restore re-signing, Event expected_revision checks, rebind transitions, and negative cases. See spec/v1/zh/models/circle.md Â§6.1 / Â§6.2 / Â§7 / Â§9.2 / Â§10.2.",
   "submit_payload_shape": {
     "description": "Generic actor-supplied scope fragment for object payload schemas that own scope_circle_id (for example Strand, Morph, Relation, and scoped Space creation/update). It MUST NOT carry effective_scope. Message and structural-operation payloads that derive scope from accepted target references do not embed this fragment; they still sign Event.scope_ref.",
     "schema": {
@@ -416,13 +416,12 @@
       "reason": "digest_mismatch"
     },
     {
-      "name": "content_plaintext_under_e2ee_required",
-      "description": "Realm.content_encryption_floor=e2ee_required requires the verified Event scope_ref for every Strand/Message/Morph/Blob content write to resolve to an MLS-backed scope (Realm-default MLS or Circle MLS). An ak.message.create carrying plaintext content, or whose verified scope_ref resolves to a Circle with encryption_profile=none, MUST be rejected with failed_precondition reason=content_encryption_floor_violation.",
-      "realm_content_encryption_floor": "e2ee_required",
+      "name": "content_plaintext_after_mls_activation",
+      "description": "A scope whose ak.mls.genesis is accepted requires the verified Event scope_ref for every Strand/Message/Morph/Blob content write to carry RFC 9420 application ciphertext. An ak.message.create carrying plaintext content into that activated scope MUST be rejected with failed_precondition reason=mls_activation_required.",
       "event_kind": "ak.message.create",
       "content_form": "plaintext",
       "expect_reducer_result": "failed_precondition",
-      "reason": "content_encryption_floor_violation"
+      "reason": "mls_activation_required"
     }
   ]
 }

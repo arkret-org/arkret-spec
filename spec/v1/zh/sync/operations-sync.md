@@ -64,7 +64,7 @@ RealmCommit是唯一accepted receipt；transport/queue receipt只能说明已收
 
 不构成Realm finality或censorship proof。
 
-### 6.2 Audit RYW Receipt
+### 6.2 读己之所写屏障
 
 客户端read-your-writes以返回Commit和own Station barrier/cursor实现；cursor不是authority proof。
 
@@ -82,7 +82,7 @@ Own Station返回typed current result和source committed ref。Directory exact r
 
 ## 9. 冲突与收敛
 
-单authority顺序消除通用CRDT/Lattice合流。并发请求由stream-head CAS和typed expected revision裁决；loser收到conflict并基于新current重试。
+单authority顺序消除通用CRDT/deterministic projection合流。并发请求由stream-head CAS和typed expected revision裁决；loser收到conflict并基于新current重试。
 
 ## 10. Snapshot
 

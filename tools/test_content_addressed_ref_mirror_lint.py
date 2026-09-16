@@ -26,10 +26,8 @@ SCHEMA_NAMES = (
     "contact-operations.schema.json",
     "event-payload.schema.json",
     "direct-conversation-operations.schema.json",
-    "mls-governance-proof-bundle.schema.json",
     "service-operation-dtos.schema.json",
-    "seal.schema.json",
-    "availability-receipt.schema.json",
+    "blob.schema.json",
     "event-envelope.schema.json",
 )
 DIGEST = {"type": "string", "pattern": "^(sha256|blake3):[0-9a-f]{64}$"}
@@ -90,14 +88,6 @@ class MirrorRemovalLockTest(_MutatingLint):
         errors = self._lock("contact-operations.schema.json", mutate)
         self.assertTrue(any("request_digest must be derived" in error for error in errors), errors)
 
-    def test_seal_digest_mirror_reintroduction_fails(self) -> None:
-        def mutate(schema) -> None:
-            item = schema["$defs"]["typed_proof_material"]["properties"]["seal_descriptors"]["items"]
-            item["properties"]["seal_digest"] = {"$ref": "#/$defs/digest"}
-
-        errors = self._lock("mls-governance-proof-bundle.schema.json", mutate)
-        self.assertTrue(any("seal_digest must be derived" in error for error in errors), errors)
-
     def test_group_info_digest_reintroduction_fails(self) -> None:
         def mutate(schema) -> None:
             schema["$defs"]["mls_genesis_payload"]["properties"]["group_info_digest"] = dict(DIGEST)
@@ -118,13 +108,6 @@ class MirrorRemovalLockTest(_MutatingLint):
 
         errors = self._lock("service-operation-dtos.schema.json", mutate)
         self.assertTrue(any("delegation_digest must be derived from delegation_id" in error for error in errors), errors)
-
-    def test_holder_evidence_digest_reintroduction_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["properties"]["holder_signer_evidence_digest"] = dict(DIGEST)
-
-        errors = self._lock("availability-receipt.schema.json", mutate)
-        self.assertTrue(any("holder_signer_evidence_digest must be derived" in error for error in errors), errors)
 
 
 class SiblingDigestPatternGateTest(_MutatingLint):
@@ -178,20 +161,20 @@ class SiblingDigestPatternGateTest(_MutatingLint):
 
     def test_stale_exemption_row_fails(self) -> None:
         def mutate(schema) -> None:
-            del schema["properties"]["state_root"]
+            del schema["properties"]["content_digest"]
 
-        errors = self._sibling("seal.schema.json", mutate)
+        errors = self._sibling("blob.schema.json", mutate)
         self.assertTrue(
-            any("exempts seal.schema.json $.properties.state_root, which no longer exists" in error for error in errors),
+            any("exempts blob.schema.json $.properties.content_digest, which no longer exists" in error for error in errors),
             errors,
         )
 
     def test_changed_ref_set_needs_a_fresh_ruling(self) -> None:
         def mutate(schema) -> None:
-            schema["properties"]["successor_seal_ref"] = {"$ref": "./event-envelope.schema.json#/$defs/seal_ref"}
+            schema["properties"]["preview_blob_ref"] = dict(BLOB_REF)
 
-        errors = self._sibling("seal.schema.json", mutate)
-        self.assertTrue(any("state_root is exempted as" in error and "fresh ruling" in error for error in errors), errors)
+        errors = self._sibling("blob.schema.json", mutate)
+        self.assertTrue(any("content_digest is exempted as" in error and "fresh ruling" in error for error in errors), errors)
 
     def test_union_ref_pattern_is_outside_the_gate(self) -> None:
         """A ref that may also hold a UUID, Event or DID form is not judged from the schema."""
@@ -230,12 +213,12 @@ class SiblingDigestPatternGateTest(_MutatingLint):
 
     def test_unknown_kind_row_is_dropped_and_its_field_is_then_caught(self) -> None:
         def mutate_registry(registry) -> None:
-            row = next(r for r in registry["exemptions"] if r["subject"]["digest_field"] == "state_root" and r["subject"]["schema_file"] == "schemas/seal.schema.json")
+            row = next(r for r in registry["exemptions"] if r["subject"]["digest_field"] == "content_digest" and r["subject"]["schema_file"] == "schemas/blob.schema.json")
             row["kind"] = "just_trust_me"
 
         errors = self._sibling(registry_mutation=mutate_registry)
         self.assertTrue(any("kind must be distinct_preimage; an open question is not a ruling" in error for error in errors), errors)
-        self.assertTrue(any("seal.schema.json" in error and "$.properties.state_root is a bare digest" in error for error in errors), errors)
+        self.assertTrue(any("blob.schema.json" in error and "$.properties.content_digest is a bare digest" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

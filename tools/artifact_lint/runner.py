@@ -27,9 +27,6 @@ from .foundation import (
     check_protocol_layer_registry,
     check_registries,
     check_registry_manifest,
-    check_registered_effect_capability_inventory,
-    check_retired_event_id_contract,
-    check_state_contract_closure,
     check_text_files_utf8_no_nul,
     check_timestamp_profile_single_source,
     check_typed_id_carrier_sweep_closure,
@@ -59,7 +56,6 @@ from .schemas import (
     check_fsm_state_reachability,
     check_foundational_schema_dependency_direction,
     check_keypackage_claim_unsigned_projection,
-    check_null_cell_subject_wire_form,
     check_operation_clause_registry,
     check_preimage_event_identity_commitments,
     check_profile_requirements,
@@ -101,8 +97,6 @@ from .fixtures import (
     check_agent_requested_scope_commitment_digest,
     check_applet_revoke_saga_contract,
     check_canonical_digest_fixtures,
-    check_cbs_seal_canonical_fixture,
-    check_cbs_fork_resolution_event_ids,
     check_content_bound_event_id_fixture,
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
@@ -116,18 +110,13 @@ from .fixtures import (
     check_event_batch_receipt_normalization_vector,
     check_fixture_runner_contract,
     check_fixtures,
-    check_history_scale_fixture,
     check_keypackage_write_transcript_fixture,
-    check_mls_governance_proof_fixture,
     check_mls_creator_bootstrap_transaction,
     check_normative_clause_registry,
     check_one_of_branch_discriminability,
     check_operation_selector_fixture,
     check_producer_allocated_identity_vectors,
-    check_reducer_profile_registry,
     check_schema_fixture_canonical_public_material,
-    check_security_closure_fixture,
-    check_snapshot_merkle_fixture,
     check_stated_preimage_matches_stated_digest,
     check_string_profile_format_vectors,
     check_vector_reference_closure,
@@ -180,7 +169,6 @@ from .safety import (
     check_exporter_label_registry,
     check_field_order,
     check_fixture_reject_reason_closure,
-    check_mls_governance_proof_bounds,
     check_mls_pq_suite_registration,
     check_model_required_field_table_coverage,
     check_openapi_no_floating_number,
@@ -197,12 +185,7 @@ from .account_status_replica import (
     check_account_status_replica_decision_table,
 )
 
-from .proof_context_transcripts import (
-    check_proof_context_transcript_vectors,
-)
-
 from .franking_transcript import check_franking_proof_transcript
-from .frontier_transcript import check_frontier_transcript
 
 from .recovery_transcripts import (
     check_recovery_transcript_closure,
@@ -290,7 +273,6 @@ def main(argv: list[str] | None = None) -> int:
             ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),
             ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),
             ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
-            ("retired_event_id_contract", lambda: check_retired_event_id_contract(lint)),
             ("registries", lambda: check_registries(lint)),
             ("id_form_wire_schema", lambda: check_id_form_wire_schema_alignment(lint)),
             (

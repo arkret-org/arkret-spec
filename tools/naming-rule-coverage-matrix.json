@@ -814,11 +814,10 @@
         "naming_predicates"
       ],
       "tests": [
-        "tools/test_naming_gate_lint.py",
-        "tools/test_fsm_reachability_lint.py"
+        "tools/test_naming_gate_lint.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "Lifecycle naming remains a semantic review rule; the old Cell state contract closure was retired by the authority-commit clean break."
+      "residual_gap": "Lifecycle naming remains a semantic review rule."
     },
     {
       "rule_id": "NC-ACTION-001",

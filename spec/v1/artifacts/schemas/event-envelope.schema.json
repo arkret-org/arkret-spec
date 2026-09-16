@@ -676,44 +676,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.audit.applet_binding.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_create_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.applet_binding.state"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_applet_binding_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.audit.erasure_receipt"
           }
         },
@@ -725,120 +687,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/erasure_receipt_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.release"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_release_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.ryw_receipt"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.session.authorize"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_session_authorize_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.session.close"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_session_close_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.session.notice"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_session_notice_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.audit.session.request"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_session_request_payload"
           }
         }
       }
@@ -6595,15 +6443,7 @@
                 "ak.applet.managed_actor.provision",
                 "ak.applet.registration",
                 "ak.audit.accessed",
-                "ak.audit.applet_binding.create",
-                "ak.audit.applet_binding.state",
                 "ak.audit.erasure_receipt",
-                "ak.audit.release",
-                "ak.audit.ryw_receipt",
-                "ak.audit.session.authorize",
-                "ak.audit.session.close",
-                "ak.audit.session.notice",
-                "ak.audit.session.request",
                 "ak.call.create",
                 "ak.call.recording.start",
                 "ak.call.state",
@@ -6762,15 +6602,7 @@
             "ak.applet.managed_actor.provision",
             "ak.applet.registration",
             "ak.audit.accessed",
-            "ak.audit.applet_binding.create",
-            "ak.audit.applet_binding.state",
             "ak.audit.erasure_receipt",
-            "ak.audit.release",
-            "ak.audit.ryw_receipt",
-            "ak.audit.session.authorize",
-            "ak.audit.session.close",
-            "ak.audit.session.notice",
-            "ak.audit.session.request",
             "ak.call.create",
             "ak.call.recording.start",
             "ak.call.state",

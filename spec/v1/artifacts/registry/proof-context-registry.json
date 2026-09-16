@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-16.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T16:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -205,36 +205,6 @@
       ],
       "defined_in": "zh/extensions/applet-schema.md",
       "schema_ref": "schemas/applet-package.schema.json"
-    },
-    {
-      "context": "ak.audit_release_attestation_proof.v1",
-      "object_family": "attestation_evidence",
-      "binding_fields": [
-        "payload_digest",
-        "operator_id",
-        "audit_actor_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/crypto-media/audited-e2ee.md",
-      "schema_ref": "schemas/audit-release-attestation.schema.json"
-    },
-    {
-      "context": "ak.audit_ryw_receipt_proof.v1",
-      "object_family": "audit_ryw_receipt",
-      "binding_fields": [
-        "payload_digest",
-        "issuer_id",
-        "realm_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/crypto-media/audited-e2ee.md",
-      "schema_ref": "schemas/audit-ryw-receipt.schema.json"
     },
     {
       "context": "ak.did_webvh_witness_receipt_proof.v1",
@@ -1064,7 +1034,7 @@
         "contact_round_id",
         "slot_predecessor",
         "cas_sequence",
-        "cas_frontier",
+        "cas_revision",
         "observed_at",
         "outgoing_request_state"
       ]
@@ -1265,8 +1235,8 @@
       ]
     },
     {
-      "domain": "ak.events.frontier.leaf.v1",
-      "object_family": "events_frontier_leaf",
+      "domain": "ak.events.checkpoint.leaf.v1",
+      "object_family": "events_checkpoint_leaf",
       "primitive": "merkle_leaf_sha256",
       "binding_fields": [
         "kind",
@@ -1276,8 +1246,8 @@
       ]
     },
     {
-      "domain": "ak.events.frontier.node.v1",
-      "object_family": "events_frontier_node",
+      "domain": "ak.events.checkpoint.node.v1",
+      "object_family": "events_checkpoint_node",
       "primitive": "merkle_node_sha256",
       "binding_fields": [
         "left",
@@ -1285,8 +1255,8 @@
       ]
     },
     {
-      "domain": "ak.events.frontier.root.v1",
-      "object_family": "events_frontier_root",
+      "domain": "ak.events.checkpoint.root.v1",
+      "object_family": "events_commit_prefix_root",
       "primitive": "merkle_root_sha256",
       "binding_fields": [
         "empty",
@@ -1557,7 +1527,7 @@
       "binding_fields": [
         "issuer",
         "realm_id",
-        "frontier_event_ids",
+        "commit_prefix_event_ids",
         "checked_at"
       ]
     },

@@ -22,7 +22,7 @@ sidebar:
 - capability 与授权派生规则
 - Station Events API / Station sync surface / E2EE / applet 关键接口
 
-Schema 依赖由 Event Envelope 的 `requirements.schema[]` 声明；Realm reducer 版本由 reducer-profile singleton control typed current result 决定，并且只通过 `ak.realm.create` / `ak.realm.upgrade` 写入。v1 不使用顶层 `space_version` wire 字段。
+Schema 依赖由注册 Event kind 与 closed payload schema 决定；Realm、Circle 与 Sidecar 使用固定 v1 领域 reducer。v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 
@@ -66,9 +66,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 **hardening profile**（overlay,`role=admin`,非独立实现角色；权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
 
-- `ak.profile.mls_governance_binding.full.v1`
-- `ak.profile.attested_audit.e2ee.v1`
-- `ak.profile.disclosed_audit.e2ee.v1`
 - `ak.profile.mls.minimal_metadata_realm.v1`
 - `ak.profile.traffic_metadata_hardened.v1`
 - `ak.profile.key_backup.memory_hard.v1`
@@ -96,7 +93,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 - `authority-commit-fixture.json`、`cursor-negative-fixture.json` 与 `privacy-security-fixture.json`：独立 stream 顺序、分页缺口、snapshot、MLS 当前 epoch 与 decryption_pending。
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `conformance-vectors.md` 与 `authority-commit-fixture.json`：独立 Realm/Circle/Sidecar authority stream、ordinary Event acceptance、Control Move RealmCommit finality、安全状态的唯一确认顺序与治理 Station handoff 向量。
+- `conformance-vectors.md` 与 `authority-commit-fixture.json`：独立 Realm/Circle/Sidecar authority stream、Event acceptance、state-changing Event RealmCommit finality、安全状态的唯一确认顺序与治理 Station handoff 向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Strand discussion track 不继承 Strand synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
@@ -106,14 +103,14 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
-- `ak.vector.authority_commit_lattice.ordinary_event_accepts_without_commit_finality.v1`
-  - 输入带有效 `auth_context.authority_refs` 的 ordinary Event。
+- `ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1`
+  - 输入带有效 `commit_authorization_state.authority_refs` 的 Event。
   - 期望 reducer 输出：本地接受、可投影、无需被 RealmCommit 覆盖。
-- `ak.vector.authority_commit_lattice.control_move_requires_authority_revision_and_commit.v1`
-  - 输入带有效 `authority_revision` 的 Control Move 及缺失/错误 basis 的负向样例。
-  - 期望输出：Control Move 先 pending，只有被有效 RealmCommit 覆盖并重算 `state_root` 后进入 `committed`。
-- `ak.vector.authority_commit_lattice.same_batch_does_not_advance_authorization_basis.v1`
-  - 输入同一 ordered submit batch 内相互依赖的 Control Move。
+- `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1`
+  - 输入带有效 `expected_revision` 的 state-changing Event 及缺失/错误 basis 的负向样例。
+  - 期望输出：state-changing Event 先 pending，只有被有效 RealmCommit 覆盖并重算 `state_root` 后进入 `committed`。
+- `ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1`
+  - 输入同一 ordered submit batch 内相互依赖的 state-changing Event。
   - 期望输出：同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 RealmCommit。
 
 ### 4.3 Redaction 向量
@@ -143,7 +140,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 9 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
-- 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。runner MUST 覆盖 owner authority 的两个合法来源：(a) authority-root typed current result（`ak.component.realm.authority_root.v1`）的 current controller 凭同一 RealmCommit basis 下的 registered inclusion proof 取得 effective `ak.realm.owner`，其上界来自该 typed current result 的 `grant_authority_actions`；(b) 由此派生的可撤销 co-owner `ak.realm.owner` grant。负例 MUST 包含：以 `created_by`、membership 或 `realm_state.owner` 一类 projection mirror 回退充当上界来源，以及 controller 不匹配 / root typed current result 缺失（`realm_authority_controller_mismatch` / `realm_authority_root_missing`）。
+- 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。runner MUST 覆盖 owner authority 的两个合法来源：(a) authority-root typed current result（`realm_authority_root`）的 current controller 凭同一 RealmCommit basis 下的 registered inclusion proof 取得 effective `ak.realm.owner`，其上界来自该 typed current result 的 `grant_authority_actions`；(b) 由此派生的可撤销 co-owner `ak.realm.owner` grant。负例 MUST 包含：以 `created_by`、membership 或 `realm_state.owner` 一类 projection mirror 回退充当上界来源，以及 controller 不匹配 / root typed current result 缺失（`realm_authority_controller_mismatch` / `realm_authority_root_missing`）。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
 - `authority_expiry_commit` 防滚动续期：re-delegate MUST NOT 刷新整条链的 expiry authority commit，任何 widened expiry MUST 拒绝。
 - delegation cycle detection：含 revoke-then-re-delegate 与 batch 场景的环 MUST 拒绝（`authority_cycle`）。
@@ -163,7 +160,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 | 组件 | MUST 覆盖 | SHOULD 覆盖 |
 | --- | --- | --- |
-| Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot frontier、causal wait |
+| Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot checkpoint、causal wait |
 | Events API | submitEvent、eventIdempotency、eventDigest 验证、signature 校验 | snapshot generation、event batch receipt |
 | Station | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
 | Auth Server | issuer-record ID/JTI 重算、canonical JWK、DPoP binding、durable exact replay/conflict/terminal outcome、原子 refresh/revoke/introspection | issuer key rotation、commit 后响应丢失与并发重试 |
@@ -193,7 +190,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 | --- | --- | --- |
 | `v1.0.0` | 对外发布稳定规范基线。 | MUST 满足 [`release-readiness.md` §5](../overview/release-readiness.md) 的全部 stable promotion gate；该节是唯一权威清单。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
-| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、authority-commit/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；并且 profile operation closure 中每个 endpoint 的全部 active `AK-OP-NNN` clause 均有不可变证据。英文或其他翻译不得作为 stale source of truth 发布。 |
+| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、authority-commit projection、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；并且 profile operation closure 中每个 endpoint 的全部 active `AK-OP-NNN` clause 均有不可变证据。英文或其他翻译不得作为 stale source of truth 发布。 |
 
 当前仓库仍是 candidate，尚未发布 `v1.0.0` 稳定基线。只有 §6.1 的 stable gate 全部通过并完成显式发布后，仓库才可切换为 `v1.0.0`；在此之前实现只能声明“试验性支持某些 v1 profile”，不得声明稳定规范兼容或 `v1-conformance-certified`。
 

@@ -377,8 +377,8 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "room_binding_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Complete caller-authored and caller-signed ak.mimi.room_binding initial submission. It is required exactly when /update/kind is ak.mimi.room_binding. The facade MUST first verify that the decoded opaque payload carries the same semantic kind, then bind the Event's exact payload to the path room, target Realm and Strand, MLS group, and authenticated MIMI operation and submit these exact bytes through ordinary Event admission. It MUST NOT synthesize, rebuild or co-sign the Event. Every other receipt-only branch MUST omit this field."
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "description": "Complete caller-authored and caller-signed ak.mimi.room_binding initial submission. It is required exactly when /update/kind is ak.mimi.room_binding. The facade MUST first verify that the decoded opaque payload carries the same semantic kind, then bind the Event's exact payload to the path room, target Realm and Strand, MLS group, and authenticated MIMI operation and submit these exact bytes through authority Event submission. It MUST NOT synthesize, rebuild or co-sign the Event. Every other receipt-only branch MUST omit this field."
         }
       },
       "additionalProperties": false
@@ -629,7 +629,7 @@
     },
     "mimi_update_consent_request_body": {
       "type": "object",
-      "description": "Carries the caller-authored, caller-signed Arkret consent Control Move. The facade verifies the detached MIMI operation signature over the complete unsigned body using the exact holder Account's current accepted PCR device generation and revocation state, not DID Document controller keys, then submits consent_event unchanged through ordinary Event admission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The authority-root controller restriction remains mandatory. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
+      "description": "Carries the caller-authored, caller-signed Arkret consent Event. The facade verifies the detached MIMI operation signature over the complete unsigned body using the exact holder Account's current accepted PCR device generation and revocation state, not DID Document controller keys, then submits consent_event unchanged through authority Event submission. decision=accept requires ak.consent.grant; decision=deny or revoke requires ak.consent.revoke. The authority-root controller restriction remains mandatory. The facade MUST NOT synthesize, rebuild or co-sign the Event.",
       "x-arkret-proof-context": "ak.mimi_update_consent_request_proof.v1",
       "required": [
         "consent_id",
@@ -654,8 +654,8 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "consent_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Exact EventInitialSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active typed current result and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "description": "Exact EventCommitSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active typed current result and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
         },
         "signature": {
           "$ref": "#/$defs/signature"
@@ -867,7 +867,7 @@
           "$ref": "#/$defs/mimi_reporter_authority"
         },
         "report_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
           "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Realm, Strand/scope, target, reason, description, evidence, franking and MIMI provenance are read only from this signed Event; its actor MUST equal reporter_authority.actor_id and its payload source_provider_id MUST equal the authenticated transport Provider-ID."
         }
       },

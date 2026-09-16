@@ -1,5 +1,5 @@
 {
-  "profile": "ak.profile.mls_governance_binding.full.v1",
+  "profile": "ak.profile.e2ee_client.v1",
   "version": "2026-08-25",
   "suite": "keypackage_lifecycle",
   "runner": {
@@ -229,7 +229,7 @@
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "mls_group_id": "fixture-group",
           "mls_epoch": 1,
-          "welcome_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "welcome_ref": "ak:mls_welcome_delivery:01964137-0000-7000-8000-00000000001a",
           "welcome_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "durable_at": "2026-08-24T00:01:00.000Z",
           "signature": {
@@ -262,7 +262,7 @@
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
           "mls_group_id": "fixture-group",
           "mls_epoch": 1,
-          "welcome_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+          "welcome_ref": "ak:mls_welcome_delivery:01964137-0000-7000-8000-00000000001a",
           "welcome_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "durable_at": "2026-08-24T00:01:00.000Z",
           "signature": {
@@ -513,13 +513,13 @@
         "claim attempts above 5 per requester/target tuple in 60 seconds fail without target enumeration",
         "the audit reason for rate limiting is keypackage_claim_rate_limited",
         "expired claimed KeyPackages become revoked or unusable and late consume is rejected",
-        "published to retired is constructible for account deactivation",
+        "published to revoked with principal_deactivated reason is constructible for account deactivation",
         "expired is not a KeyPackage lifecycle wire state and must fail schema validation"
       ],
       "wire_state_cases": [
         {
           "from": "published",
-          "to": "retired",
+          "to": "revoked",
           "expected": "accepted"
         },
         {

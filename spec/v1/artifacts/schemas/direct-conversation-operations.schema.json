@@ -331,7 +331,7 @@
         "peer_not_joined_mls",
         "pair_materialization_conflict",
         "realm_terminal_fault",
-        "notary_unavailable",
+        "governance_station_unavailable",
         "unsupported_profile"
       ]
     }

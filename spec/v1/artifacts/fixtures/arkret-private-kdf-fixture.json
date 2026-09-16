@@ -6,8 +6,6 @@
   "suite": "arkret_private_kdf_and_durability",
   "version": "2026-08-23",
   "covers_vectors": [
-    "ak.vector.mls_exporter_aead.content_key_derivation.v1",
-    "ak.vector.mls_exporter_aead.commit_open_transcript.v1",
     "ak.vector.signal.exporter_key_kat.v1",
     "ak.vector.aead.full_width_counter_nonce.v1",
     "ak.vector.reaction.routing_hmac_kat.v1"
@@ -21,120 +19,6 @@
     "mls_exporter": "ExpandWithLabel(DeriveSecret(exporter_secret, Label), \"exported\", SHA256(Context), Length)"
   },
   "cases": [
-    {
-      "name": "content_key_derivation_ordinary_sender_sha256_aes128gcm",
-      "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
-      "input": {
-        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "epoch_content_root_label": "ak.epoch-content-root-v1",
-        "content_label": "ak.content-v1",
-        "sender_domain_kind": "ordinary_device",
-        "verified_sender_domain_utf8": "ak:device:019a7360-0000-7000-8000-000000000001",
-        "verified_sender_domain_hex": "616b3a6465766963653a30313961373336302d303030302d373030302d383030302d303030303030303030303031",
-        "kdf_nh": 32,
-        "aead_nk": 16,
-        "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-      },
-      "expected": {
-        "epoch_content_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
-        "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76312e616b3a6465766963653a30313961373336302d303030302d373030302d383030302d303030303030303030303031",
-        "content_key_hex": "3c684ab05dc2b96f519b6e6873d73a1e"
-      },
-      "note": "The ExpandWithLabel context is the raw UTF-8 bytes of the already verified canonical device id; it is not empty or JSON. aead_nk is AEAD.Nk of the negotiated active ciphersuite."
-    },
-    {
-      "name": "content_key_derivation_minimal_metadata_sender_sha256_aes128gcm",
-      "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
-      "input": {
-        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "epoch_content_root_label": "ak.epoch-content-root-v1",
-        "content_label": "ak.content-v1",
-        "sender_domain_kind": "minimal_metadata_leaf_credential",
-        "verified_sender_domain_utf8": "ak:did_core:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
-        "verified_sender_domain_hex": "616b3a6469645f636f72653a6b65793a7a364d6b764d5733746a75765736507159695838644c524e775a57794768786533626952446a41345a5069426146614a",
-        "kdf_nh": 32,
-        "aead_nk": 16,
-        "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-      },
-      "expected": {
-        "epoch_content_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
-        "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76314040616b3a6469645f636f72653a6b65793a7a364d6b764d5733746a75765736507159695838644c524e775a57794768786533626952446a41345a5069426146614a",
-        "content_key_hex": "1b413db62c31ab8efa2436750ea8cf8c"
-      },
-      "note": "The context is the UTF-8 bytes of canonical Event.actor_id = ak:did_core:key:<canonical-multibase-id>. The exact active LeafNode BasicCredential identity MUST be byte-identical. The producer proof verification_method is a did:key DID URL whose adapter projection equals this actor id; DID URL bytes never enter this KDF context."
-    },
-    {
-      "name": "mls_exporter_aead_encrypt_decrypt_transcript",
-      "vector_id": "ak.vector.mls_exporter_aead.commit_open_transcript.v1",
-      "input": {
-        "epoch_content_root_hex": "4242424242424242424242424242424242424242424242424242424242424242",
-        "content_key_hex": "b74b39b53e608d91a401df23d4bda0d3",
-        "plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
-        "outer_signed_event": {
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj"
-          },
-          "kind": "ak.message.create",
-          "created_at": "2026-08-20T00:00:00.000Z",
-          "producer_verification_method": "did:webvh:z6mkfixture:alice.example#019a7360-0000-7000-8000-000000000001"
-        },
-        "exact_group_state": {
-          "content_scheme": "mls_exporter_aead_v1",
-          "mls_group_id": "YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo",
-          "ciphersuite_id": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-        },
-        "wire_envelope_without_ciphertext": {
-          "version": "1.0",
-          "content_type": "application/arkret-event+json",
-          "encryption_context": {
-            "epoch": 42,
-            "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
-            "counter": 7
-          }
-        },
-        "verified_sender_domain": "ak:device:019a7360-0000-7000-8000-000000000001"
-      },
-      "expected": {
-        "reconstructed_pre_encryption_header": {
-          "purpose": "arkret_event_content",
-          "envelope_version": "1.0",
-          "content_type": "application/arkret-event+json",
-          "scheme": "mls_exporter_aead_v1",
-          "effective_scope": {
-            "kind": "realm",
-            "realm_id": "ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj"
-          },
-          "event_kind": "ak.message.create",
-          "mls_group_id": "YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo",
-          "epoch": 42,
-          "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix",
-          "sender_domain": "ak:device:019a7360-0000-7000-8000-000000000001",
-          "counter": 7,
-          "routing_context": {
-            "kind": "none"
-          }
-        },
-        "aead_aad_canonical_json": "{\"content_type\":\"application/arkret-event+json\",\"counter\":7,\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AaWnYbjtomNOLOpuefTZzVyoFKF4V-Vbj2yAPDP0aZTj\"},\"envelope_version\":\"1.0\",\"epoch\":42,\"event_kind\":\"ak.message.create\",\"group_state_ref\":\"ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix\",\"mls_group_id\":\"YWs6cmVhbG06QWFXbllianRvbU5PTE9wdWVmVFp6VnlvRktGNFYtVmJqMnlBUERQMGFaVGo\",\"purpose\":\"arkret_event_content\",\"routing_context\":{\"kind\":\"none\"},\"scheme\":\"mls_exporter_aead_v1\",\"sender_domain\":\"ak:device:019a7360-0000-7000-8000-000000000001\"}",
-        "derived_nonce_hex": "000000000000000000000007",
-        "ciphertext_with_tag_hex": "22507893a090afa7ded7955941c5f5854bce03056aac1888a8c236c78c4fc0fa7bb5510242585a5cd8a6fc35ad1940",
-        "opened_plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
-        "negative_mutations": [
-          "envelope_version",
-          "content_type",
-          "outer_event.kind",
-          "outer_event.effective_scope",
-          "producer_verification_method",
-          "group_state_ref",
-          "content_scheme",
-          "counter",
-          "ciphertext_tag"
-        ],
-        "negative_decision": "reject"
-      }
-    },
     {
       "name": "full_width_counter_nonce_aes128gcm",
       "vector_id": "ak.vector.aead.full_width_counter_nonce.v1",
@@ -186,30 +70,6 @@
         "negative_decision": "reject"
       },
       "note": "The ExpandWithLabel context is the raw UTF-8 bytes of the already verified sender domain; it is not a JSON object or a duplicated sender_device_id carrier."
-    },
-    {
-      "name": "content_key_derivation_fail_closed_negatives",
-      "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
-      "input": {
-        "base_case": "content_key_derivation_ordinary_sender_sha256_aes128gcm",
-        "mutations": [
-          "epoch_content_root_label=ak.content-v1",
-          "content_label=ak.epoch-content-root-v1",
-          "epoch_content_root_context=empty",
-          "empty_verified_sender_domain",
-          "unverified_sender_domain",
-          "sender_domain_kind_or_bytes_mismatch",
-          "reuse_key_for_collision_peer_sender",
-          "reuse_content_key_across_epoch"
-        ]
-      },
-      "expected": {
-        "decision": "reject",
-        "invariants": [
-          "every mutation MUST produce bytes different from the registered golden value or be rejected before encryption",
-          "a content key is scoped to exactly one MLS group epoch and MUST NOT be reused after a Commit"
-        ]
-      }
     },
     {
       "name": "reaction_routing_hmac_nfc",

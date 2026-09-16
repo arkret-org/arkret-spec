@@ -40,7 +40,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 - 必须固化并执行的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
   1. `catchup=true` 时，`catchup_complete` 之前 MUST 至少出现一个 `delta` frame（baseline / catch-up delta）；`catchup=false` 时 MUST NOT 出现 `catchup_complete`。
   2. `dropped` frame MUST 携带 `cursor`；服务端无可用补齐 cursor 时 MUST 改发 `resync_required`（不带 cursor），MUST NOT 发送无 cursor 的 `dropped`。
-  3. `delta` / `frontier` / `catchup_complete` frame MUST 携带 `cursor`；`heartbeat` / `resync_required` / `unauthorized` MUST NOT 依赖 cursor 推进位置。
+  3. `delta` / `checkpoint` / `catchup_complete` frame MUST 携带 `cursor`；`heartbeat` / `resync_required` / `unauthorized` MUST NOT 依赖 cursor 推进位置。
   4. 客户端用作下一次 `after=` 的位置只来自 cursor-bearing frame 的 `cursor`；不带 cursor 的控制帧不推进重连位置。
 - Stream 帧的事件驱动 schema MAY 另由 AsyncAPI 文档作 informative 补充；AsyncAPI 不改变本节 vector 的 normative 判定，也不改变 §1 的 core transport 锁定。
 
@@ -105,14 +105,14 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.edge.push.command.register_device.v1` | 注册推送设备和推送网关。 |
 | `ak.edge.push.command.notify.v1` | 投递脱敏唤醒。 |
 | `ak.self.authz.read.check.v1` | 检查 capability / policy 是否允许动作。 |
-| `ak.self.moderation.command.report.v1` | 提交 direct-holder signed `ak.self.moderation.report` ordinary Event；服务端只做 exact validate-and-forward，不代签或重建举报。 |
+| `ak.self.moderation.command.report.v1` | 提交 direct-holder signed `ak.self.moderation.report` Event；服务端只做 exact validate-and-forward，不代签或重建举报。 |
 | `ak.edge.applet.command.transaction.v1` | 向 Applet 推送事件批次。 |
 | `ak.edge.applet.read.describe.v1` | 查询 Applet profile、namespace 与限制。 |
 | `ak.self.device_messages.command.send.v1` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
 | `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | E2EE 设备密钥发布、查询与领取。 |
 | `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
-> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，ordinary Event / Control Move（含 Move / Anchor）统一走该 committed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，Event / state-changing Event（含 Event / Anchor）统一走该 committed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 54,
+  "version": 56,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-16T09:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -24,7 +24,7 @@
       "http_response",
       "executable_artifact",
       "duration_value",
-      "lattice_kind_value",
+      "authority-ordered projection_kind_value",
       "event_kind_value",
       "capability_action_value",
       "schema_id_value",
@@ -34,7 +34,7 @@
       "federation_verification",
       "typed_id_value"
     ],
-    "selection": "Selectors are alternatives. wire matches all wire documents, including schema_instance. schema_instance matches an exact owning schema_ref (filename plus optional JSON Pointer fragment, normalized without ./). Event payload schema_ref is resolved from event-kind-registry.json, never guessed from field names. Nested typed instances retain their own schema_ref. A consumer MUST supply the semantic document kind from its validated owning contract, never from untrusted payload claims. A definition with status=retired has no selectors and MUST NOT be selected by any active wire caller; it is an explicit empty domain, not an unspecified catch-all.",
+    "selection": "Selectors are alternatives. wire matches all wire documents, including schema_instance. schema_instance matches an exact owning schema_ref (filename plus optional JSON Pointer fragment, normalized without ./). Event payload schema_ref is resolved from event-kind-registry.json, never guessed from field names. Nested typed instances retain their own schema_ref. A consumer MUST supply the semantic document kind from its validated owning contract, never from untrusted payload claims. A definition with status=closed has no selectors and MUST NOT be selected by any active wire caller; it is an explicit empty domain, not an unspecified catch-all.",
     "instance_pointer": "RFC 6901 tokens relative to the typed instance root; * selects each immediate object member or array element. Empty string selects the instance itself. Missing pointer selects nothing. root compares fields/paths relative to the selected root only; descendants repeats that comparison at every descendant object. Neither mode searches inside encoded ciphertext or free-text string content. patch applies the selected create-context field/path matcher to the canonical patch object at that root: exact/descendant paths and ancestor replacement values are checked. This explicit transform preserves the create domain without inventing a context mapping in consumers.",
     "entry_matching": "id remains an audit identifier. match.kind selects field (literal member name), path (dot-separated member path relative to root), patch_path (property names of the canonical patch object defined by patch.schema.json), value (exact scalar value), prefix (scalar prefix), or pattern (scalar regular expression). match.values are alternatives. No heuristic interpretation of id is permitted. patch_path rejects its exact path and descendants for every operation. For an ancestor set/add or direct-value replacement, inspect the replacement value at the remaining registered path. A patch is never an array of path/op records. Patch value objects MUST also be checked against their owning create payload contexts; replacing an ancestor does not bypass a nested forbidden path."
   },
@@ -183,36 +183,6 @@
         }
       ]
     },
-    "attestation_evidence": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "audit-release-attestation.schema.json",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "audit_release_attestation": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "audit-release-attestation.schema.json",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "audit_session_contract": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "event-payload.schema.json#/$defs/audit_session_contract",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "blob_metadata": {
       "selectors": [
         {
@@ -273,10 +243,10 @@
         }
       ]
     },
-    "crdt_lattice_enum": {
+    "crdt_authority-ordered projection_enum": {
       "selectors": [
         {
-          "document_kind": "lattice_kind_value",
+          "document_kind": "authority-ordered projection_kind_value",
           "schema_ref": "*",
           "instance_pointer": "",
           "match_scope": "descendants"
@@ -439,7 +409,7 @@
         }
       ]
     },
-    "frontier_object_property": {
+    "checkpoint_object_property": {
       "selectors": [
         {
           "document_kind": "wire",
@@ -1030,16 +1000,6 @@
           "schema_ref": "*",
           "instance_pointer": "",
           "match_scope": "descendants"
-        }
-      ]
-    },
-    "notary_configuration": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "realm.schema.json#/$defs/notary_configuration",
-          "instance_pointer": "",
-          "match_scope": "root"
         }
       ]
     }
@@ -1931,24 +1891,6 @@
       }
     },
     {
-      "id": "audit_agent_did",
-      "context": "attestation_evidence",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "audit_actor_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Audit release evidence names the attested release actor with _id; service_id remains the hosting service DID.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "audit_agent_did"
-        ]
-      }
-    },
-    {
       "id": "available_count",
       "context": "keypackages_upload_outcome",
       "since_revision": "2026-08-26",
@@ -2120,7 +2062,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Anonymous health frontier cache bound uses cache_expires_at.",
+      "notes": "Anonymous health checkpoint cache bound uses cache_expires_at.",
       "match": {
         "kind": "field",
         "values": [
@@ -2552,7 +2494,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The ordinary Event classification has no DataEvent wire/type alias.",
+      "notes": "The Event classification has no DataEvent wire/type alias.",
       "match": {
         "kind": "value",
         "values": [
@@ -2575,24 +2517,6 @@
         "kind": "field",
         "values": [
           "events"
-        ]
-      }
-    },
-    {
-      "id": "evidence_id",
-      "context": "audit_release_attestation",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "attestation_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "The object carries one audit-release attestation, so the identifier uses the concrete material noun.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "evidence_id"
         ]
       }
     },
@@ -3170,11 +3094,11 @@
       }
     },
     {
-      "id": "lattice_types",
+      "id": "authority-ordered projection_types",
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
-      "replacement": "supported_state_models",
+      "replacement": "supported_domain reducers",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -3183,7 +3107,7 @@
       "match": {
         "kind": "field",
         "values": [
-          "lattice_types"
+          "authority-ordered projection_types"
         ]
       }
     },
@@ -3494,59 +3418,6 @@
       }
     },
     {
-      "id": "notary.type",
-      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "notary.kind",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
-      "match": {
-        "kind": "path",
-        "values": [
-          "notary.type"
-        ]
-      }
-    },
-    {
-      "id": "notary_configuration.recovery_members",
-      "context": "notary_configuration",
-      "since_revision": "2026-09-12",
-      "rejection_level": "hard_reject",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current v1 has one fixed quorum configuration; fork resolution uses that quorum and does not install a parallel recovery signer set.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "recovery_members"
-        ]
-      }
-    },
-    {
-      "id": "notary_type",
-      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "notary.kind",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "notary_type"
-        ]
-      }
-    },
-    {
       "id": "notification.space_name",
       "context": "notification_payload",
       "since_revision": "2026-05-24",
@@ -3710,15 +3581,15 @@
     },
     {
       "id": "or-set",
-      "context": "crdt_lattice_enum",
+      "context": "crdt_authority-ordered projection_enum",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "or_set",
+      "replacement": "keyed-set projection",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "CRDT lattice enum values use snake_case.",
+      "notes": "CRDT authority-ordered projection enum values use snake_case.",
       "match": {
         "kind": "value",
         "values": [
@@ -3728,15 +3599,15 @@
     },
     {
       "id": "ordered-log",
-      "context": "crdt_lattice_enum",
+      "context": "crdt_authority-ordered projection_enum",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ordered_log",
+      "replacement": "append-only projection",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "CRDT lattice enum values use snake_case.",
+      "notes": "CRDT authority-ordered projection enum values use snake_case.",
       "match": {
         "kind": "value",
         "values": [
@@ -5082,20 +4953,20 @@
       }
     },
     {
-      "id": "space_frontier",
-      "context": "frontier_object_property",
+      "id": "space_stream_head",
+      "context": "checkpoint_object_property",
       "since_revision": "T20",
       "rejection_level": "hard_reject",
-      "replacement": "realm_frontier",
+      "replacement": "realm_stream_head",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Audit RYW receipt and POST /events response MUST use 'realm_frontier'. The replication and security boundary covered by this frontier is the Realm, not an in-Realm Space container. 'space_frontier' MUST NOT appear on the current wire as a frontier object property.",
+      "notes": "Checkpoint objects and the POST /events response MUST use 'realm_stream_head'. The replication and security boundary covered by this checkpoint is the Realm, not an in-Realm Space container. 'space_stream_head' MUST NOT appear on the current wire as a checkpoint object property.",
       "match": {
         "kind": "field",
         "values": [
-          "space_frontier"
+          "space_stream_head"
         ]
       }
     },
@@ -5105,24 +4976,6 @@
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
       "replacement": "provisioning_phase",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "stage"
-        ]
-      }
-    },
-    {
-      "id": "stage",
-      "context": "audit_session_contract",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "session_state",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -5467,7 +5320,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which typed current result families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry result_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete notary admission and reducer rules and cannot appear as a bare optional field.",
+      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which typed current result families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry result_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete governance-Station admission and domain-transition rules and cannot appear as a bare optional field.",
       "match": {
         "kind": "field",
         "values": [

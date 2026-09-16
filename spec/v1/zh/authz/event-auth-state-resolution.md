@@ -55,9 +55,9 @@ MLS只保留shared `ak.mls.genesis`和`ak.mls.commit` Event。治理 Station跟�
 
 Snapshot 完整性由 manifest signature、typed sections、stream heads、history floors 和 chunk digests 提供；它不授权新写入。
 
-## 12. Notary 与 reducer 配置
+## 12. Governance Station 与领域规则
 
-Realm不再选择notary/reducer profile/digest transition。v1 reducer和digest语义由协议版本固定；service key rotation通过service DID method history处理。
+每个 Realm 以 `governance_station_id` 建立 generation-0 authority，并只通过连续 `RealmAuthorityHandoff` 更换治理 Station。v1 领域规则和 digest 语义由协议版本固定；service key rotation 通过 service DID method history 处理。
 
 ## 13. Hash suite transition
 

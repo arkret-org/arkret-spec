@@ -36,8 +36,8 @@ Event Envelope 的顶层字段为：
 | `payload` | 是 | 由 kind 选择的 closed typed payload |
 | `proofs` | 是 | 唯一 producer proof |
 
-Event 不携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、通用 `preconditions`、`auth_context`、
-`data_basis`、`authority_revision`、`requirements` 或 `unsigned`。Event 也不携带前一个 Event/Commit；
+Event 不携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、通用 `preconditions`、`commit_authorization_state`、
+`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。Event 也不携带前一个 Event/Commit；
 `previous_commit_ref` 只存在于治理 Station 在接纳时创建的 `RealmCommit`。
 
 ## 2. 业务引用
@@ -55,7 +55,7 @@ Event；不得恢复通用 `domain_refs`。
 `RealmCommit.stream_position` 执行；Realm、不同 Circle、不同 Sidecar 之间没有总序。
 
 需要 compare-and-set 的领域在自身 payload 中定义 `expected_revision`，该值引用该 typed current row 最后
-一次接受它的 Commit。协议不提供 typed current result key、通用 patch DSL、CRDT/Lattice rank 或 caller 指定的 state root。
+一次接受它的 Commit。协议不提供 typed current result key、通用 patch DSL、CRDT/deterministic projection rank 或 caller 指定的 state root。
 
 跨 stream 工作流必须使用已提交引用、幂等 saga 和明确补偿 Event，不得因为同一部署共用数据库就暴露
 跨 stream 原子性。

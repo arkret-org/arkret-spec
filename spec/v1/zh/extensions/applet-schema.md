@@ -70,7 +70,7 @@ updated: 2026-07-02
 > capability；但 profile-bound grant authority rule 只能读取已 accepted registration Event
 > 中的该字段，不能读取带外 package cache、preview DTO 或 registry 响应。
 
-> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更或 binding invalidation 时，verifier MUST 展开 transcript evidence，按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致。Applet service 必须能为所有 creation / ordinary Event 提供可历史复验的 `AuthenticatedSignerResolutionEvidence::Service`，因此 v1 registration epoch 只接受 `did:webvh` 与 `did:key`；无历史版本证明的 `did:web` 必须 fail closed，不能以 current snapshot、HTTP 来源签名或 registration epoch hash替代。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
+> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更或 binding invalidation 时，verifier MUST 展开 transcript evidence，按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致。Applet service 必须能为所有 creation / Event 提供可历史复验的 `AuthenticatedSignerResolutionEvidence::Service`，因此 v1 registration epoch 只接受 `did:webvh` 与 `did:key`；无历史版本证明的 `did:web` 必须 fail closed，不能以 current snapshot、HTTP 来源签名或 registration epoch hash替代。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
 
 ### 1.0.1 `registration_epoch` transcript 与计算算法（normative）
 
@@ -183,7 +183,7 @@ Install preview request 只含 `applet_package` 与 closed `authoring_request_ba
 Station 重新验证 package、Event/evidence、当前策略和 namespace，生成 canonical `InstallPlan`，再返回
 `{plan, authoring_request}`。Station 自行取得 `issued_at`，要求
 `0 < expires_at-issued_at <= 5 minutes` 且 `proof.created_at == issued_at`。closed request 固定
-`purpose=install_bot`，携 exact basis、`plan_digest`、current `hosting_notary`、时间窗与 proof。
+`purpose=install_bot`，携 exact basis、`plan_digest`、current `governance_station_id`、时间窗与 proof。
 `request_payload_digest` 是不含 proof 的 closed request 的 RFC 8785 SHA-256，逐字等于
 `proof.payload_digest`；`authoring_request_digest` 是完整 signed request 的 RFC 8785 SHA-256。协议不
 mint request ID。相同 subject/payload 的 preview 返回 ledger 中已保存的 exact signed bytes；异 payload 的

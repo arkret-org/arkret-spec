@@ -17,7 +17,7 @@ see_also:
 
 ## 1. 范围
 
-搜索不是 Arkret 真相源。客户端本地搜索、受托 search / projection 服务和 directory search 都必须回到 signed Event、reducer profile、Realm policy 与对应 stream 的 RealmCommit position 校验结果。
+搜索不是 Arkret 真相源。客户端本地搜索、受托 search / projection 服务和 directory search 都必须回到 signed Event、fixed reducer semantics、Realm policy 与对应 stream 的 RealmCommit position 校验结果。
 
 本文定义三类隐私保护 search profile：
 
@@ -41,7 +41,7 @@ Blind index 使用 keyed HMAC token。Posting 必须绑定 `realm_id`、`effecti
 
 服务端 MUST NOT 返回或暗示过滤前 posting list 的基数。`total`、`has_more`、分页 cursor、bucket / padding 后的 result count、timing bucket 和任何诊断字段都只能基于 current-auth / history filter 之后的候选集合计算；若实现需要暴露结果数量，必须对过滤后集合执行固定上限、padding 或 bucket 化，且不得让"过滤前 N 条、过滤后 0 条"与"过滤前 0 条"在 wire shape 或 timing 上可区分。否则 blind token 会退化为存在性 oracle，泄露 caller 无权看到的对象是否含有该 term。
 
-Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 SHOULD 定期轮换 index key，并把轮换与 policy frontier digest 绑定。
+Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 SHOULD 定期轮换 index key，并把轮换与 realm_policy revision 绑定。
 
 Blind-index token 是 deterministic keyed token：它不向服务端暴露明文 term，但会暴露同一 `index_generation` 内的查询频次、候选集合大小、access pattern 以及 term 共现结构。实现 MUST 把这些泄漏写入 Realm search policy 的风险评估；高隐私 Realm SHOULD 缩短 `index_generation` / epoch 轮换窗口，并限制服务端跨 generation 关联。Forward-private SSE、PIR-backed candidate retrieval 或 ORAM-style access hiding 只能作为显式 search extension profile 引入；base v1 blind index 不声称隐藏 access pattern。
 
@@ -54,7 +54,7 @@ Blind-index token 是 deterministic keyed token：它不向服务端暴露明文
 Forward-private profile 的最小 wire 语义：
 
 1. Search token derivation 使用 server-assisted OPRF / VOPRF 交互，token 绑定 `(realm_id, effective_scope, epoch, index_generation, term_digest)`；服务端不得获得 plaintext term，客户端不得把 raw term 或可逆摘要作为 query 参数发送。**OPRF suite 钉定（normative）**：forward-private search 的 OPRF **MUST** 使用 RFC 9497 `modeVOPRF`（0x01）与 ciphersuite identifier `ristretto255-SHA512`，两者必须按 RFC `CreateContextString` 独立组合；不得使用旧的非标准 token `OPRF-ristretto255-SHA512`。该口径与 [`../discovery/discovery-directory.md` §6.2](../discovery/discovery-directory.md) 一致；§3.1 中服务端 `ak.self.account.read.describe.v1` / `ak.find.directory.read.describe.v1` / `ak.server.read.describe.v1` 声明的 mode / suite MUST 为已登记组合，客户端遇到缺失、未知或不支持值时 MUST fail closed 并返回 `unsupported_feature`，不得回退到 deterministic blind-index。
-2. `index_generation` 与 Realm policy frontier / MLS epoch frontier 绑定。撤权、history visibility 收紧、redaction、message expiry 或 epoch rotate 之后的 stale posting MUST fail closed；可漏召回，不得越权召回。
+2. `index_generation` 与 Realm realm_policy revision / MLS group revision 绑定。撤权、history visibility 收紧、redaction、message expiry 或 epoch rotate 之后的 stale posting MUST fail closed；可漏召回，不得越权召回。
 3. 新 generation 的 posting MUST NOT 被旧 generation token 检索。服务端不得跨 generation 返回合并候选，除非客户端显式提交多个 generation token 且每个 generation 都通过当前授权过滤。
 4. `leakage_class="forward_private"` 只承诺阻断旧 token 对新写入的检索和降低长期增量关联；它不承诺隐藏 access pattern、候选集合大小或查询频次。隐藏这些信息必须使用未来显式 `access_hiding` profile。
 
@@ -71,7 +71,7 @@ Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数
 1. **后端协议规范**：pin 一个具体的 access-pattern-hiding 后端及其 wire 协议——候选技术族为单 / 多服务器 PIR（如 SimplePIR / DoublePIR）、enclave-backed PIR（Signal SealedSession 风格）、或 Path-ORAM；MUST 指向具体方案而非泛称"PIR/ORAM 类"，避免各实现发明不兼容后端。
 2. **leakage 分析**：明确声明该 profile 隐藏与不隐藏的内容（access pattern、候选集合大小、查询频次各自的保证级别）。
 3. **conformance 向量**：交付 per-profile 的 access-hiding 行为向量。
-4. 若采用 enclave 路线，其 attestation SHOULD 复用 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 的 attested_hardware 基础设施，不另起一套。
+4. 若采用 enclave 路线，其 attestation 方案 MUST 在本文档内独立 pin 一个可验证的 remote-attestation 合同，不得引用不存在的外部 profile。
 
 `access_hiding` 不属于 current-v1 wire。实现不得发布该 profile、在 describe 中声明支持，或自行选择 PIR / ORAM 后端并把私有形态放入 Arkret namespace；只有当前 canonical registry/schema 明确定义的搜索模式可以互操作。
 

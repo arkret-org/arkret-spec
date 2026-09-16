@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/media-service-binding-result.schema.json",
   "title": "Arkret Media Service Binding Result",
-  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 typed current result. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
+  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted realm_media_service typed current result. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
   "$defs": {
     "service_signing_key": {
       "type": "object",

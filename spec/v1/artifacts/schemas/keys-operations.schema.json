@@ -678,7 +678,7 @@
         "supersedes_digest": {
           "$ref": "#/$defs/digest"
         },
-        "frontier_ref": {
+        "source_commit_ref": {
           "type": "object",
           "additionalProperties": true
         },

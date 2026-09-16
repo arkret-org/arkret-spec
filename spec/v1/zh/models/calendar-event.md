@@ -99,7 +99,7 @@ v1 recurrence 是 RFC 8984 JSCalendar `RecurrenceRule` 的 snake_case 子集：`
 
 创建携带 Calendar 子树的 Strand，或显式写入该子树（含其祖先路径 `metadata`、`metadata.fields` 的替换／删除）的 Event，构成该 Strand 的 **schedule revision DAG**。写入与原值相同仍是一次显式 revision；是否需要 RSVP 重新确认则按下文 significant-change 表比较日程值，不能把“新 revision”直接等同于“日程已改变”。仅写入 `metadata.title` 等不包含 Calendar 子树的路径不产生新的 schedule revision。此定义按签名写入意图与因果关系求值，不依赖 receiver 的到达顺序。
 
-schedule revision winner 是对象 source DAG 中全部 eligible schedule revision 按普通 `causal_register` 固定 `(depth,EventId)` 顺序选出的唯一最大项。Event A 是 Calendar Event C 的业务因果前驱，当且仅当 A 是 C 的同 typed current result `domain_refs[]` 传递祖先；中间可以有任意非 Calendar 更新，但它们不抬高 schedule typed current result 的 depth。MUST 从 accepted source 因果关系计算，禁止用 HLC、墙钟或接收顺序选值。相同 accepted Event 集合的所有拓扑到达顺序必须给出相同 winner。
+schedule revision winner 是对象 source DAG 中全部 eligible schedule revision 按普通 `current-value projection` 固定 `(depth,EventId)` 顺序选出的唯一最大项。Event A 是 Calendar Event C 的业务因果前驱，当且仅当 A 是 C 的同 typed current result `domain_refs[]` 传递祖先；中间可以有任意非 Calendar 更新，但它们不抬高 schedule typed current result 的 depth。MUST 从 accepted source 因果关系计算，禁止用 HLC、墙钟或接收顺序选值。相同 accepted Event 集合的所有拓扑到达顺序必须给出相同 winner。
 Calendar patch 与标题／正文 patch 使用同一对象基线规则，不添加额外 schedule base。
 
 Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` 与 `schedule_resolution_state`：
@@ -183,9 +183,9 @@ Envelope 在 E2EE 下同样是明文，因此 target admission 不构成解密�
 
 ### 8.3 收敛
 
-RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `causal_register` 收敛；typed current result subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 typed current result value。
+RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `current-value projection` 收敛；typed current result subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 typed current result value。
 
-registry 为该 typed current result write 登记 `effect_projection = set(payload.entry)`：**整个 entry** 是 lattice set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
+registry 为该 typed current result write 登记 `result_projection = set(payload.entry)`：**整个 entry** 是 projection set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
 
 同一 responder 的因果后继 RSVP 以更高 depth 支配旧值；真正并发且 entry 不同的 RSVP 按固定 `(depth,EventId)` 选择唯一 winner。MUST NOT 由 HLC、`created_at` 或到达顺序选边，也不得因为解密后的 plaintext 相同而折叠不同 Event 身份。用户下一次基于当前 winner 回应会自然产生更高 depth，不存在 RSVP 专用冲突修复流程。
 

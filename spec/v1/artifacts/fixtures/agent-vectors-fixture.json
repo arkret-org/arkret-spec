@@ -337,7 +337,7 @@
         "controller publishes PCR-independent DID entry 0; prepare validates an exact accepted controller_station_id, verifies did and returns exact initial_resolution plus allocation without generating DID/private keys or durable Agent/PCR/accountability/selector/pairing/grant side effects, and MUST NOT allocate principal_control_realm_id",
         "the controller recomputes requested_scope_digest and uses the Arkret SDK canonical authoring API for one ak.agent.provision Event",
         "the provision payload carries no nested proof; the Event envelope proof is the only signature",
-        "the provision Event passes the ordinary Event proof verifier and admission pipeline; a service-authored or dev-proof substitute is rejected in every mode",
+        "the provision Event passes the Event proof verifier and admission pipeline; a service-authored or dev-proof substitute is rejected in every mode",
         "one reducer transaction atomically projects provision, accountability and selector typed results; partial projection is impossible",
         "an exact commit retry identified by the allocation and one Event id returns the original outcome, while an Event-id byte mismatch conflicts",
         "a crash is recovered by replaying the same Event and never by minting replacement Event ids or proofs",
@@ -347,7 +347,7 @@
         "pairing and grant admission require a controller-signed verifier-bound private requested_scope disclosure whose digest matches the accepted-at DID commitment",
         "provisioning writes one durable fact whose projections include accountability and selector and never materializes Realm grants",
         "a narrower per-key scope is accepted while a wider action/resource scope or omitted mandatory provision constraint is rejected",
-        "grant attach accepts a complete controller-authored ak.capability.grant EventInitialSubmission and submits its exact bytes through ordinary Event admission",
+        "grant attach accepts a complete controller-authored ak.capability.grant EventCommitSubmission and submits its exact bytes through authority Event submission",
         "the ordinary CapabilityGrantBody has no inner proof or signature; the Event envelope proof is the sole durable issuer signature and service signing or proof fallback is rejected",
         "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"
@@ -376,7 +376,7 @@
         "genesis admission reverse-looks-up an accepted ak.agent.provision whose payload.principal_control_realm_id equals retype of this create event_id",
         "retype of the accepted genesis event_id equals the declared principal_control_realm_id byte for byte",
         "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md 6.0.1 class C exemption",
-        "accepting the genesis returns awaiting_did_binding and keeps the Agent invisible; only accepting controller-signed continuous DID entry 1 moves ak.component.agent.status.v1 from uninitialized to active, publishes the pairing handle and returns status=complete",
+        "accepting the genesis returns awaiting_did_binding and keeps the Agent invisible; only accepting controller-signed continuous DID entry 1 moves agent_status from uninitialized to active, publishes the pairing handle and returns status=complete",
         "an ak.realm.create whose purpose is not agent_control triggers neither the agent-status write nor the reverse look-up"
       ]
     },
@@ -407,8 +407,7 @@
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
       "submission": "second ak.agent.provision declaring an already claimed principal_control_realm_id",
       "claim_result": {
-        "result_family": "ak.component.agent.principal_control_realm_claim.v1",
-        "state_model": "sequenced_state"
+        "result_family": "agent_principal_control_realm_claim"
       },
       "expected": {
         "outcome": "rejected",
@@ -550,7 +549,7 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_pcr_separation_vector",
       "assertions": [
         "agent DID document has one ArkretPrincipalControlRealm service entry binding a non-controller PCR id",
-        "agent PCR genesis created_by and notary equal the agent DID and both encryption floors are e2ee_required",
+        "agent PCR genesis created_by equals the agent DID, governance_station_id names the generation-0 governance Station, and both encryption floors are e2ee_required",
         "controller-authored agent PCR events use actor_id equal to agent DID, executed_by equal to controller DID, and a verified authorization_ref",
         "delegated admission fails when the accepted-at delegation purpose or resource scope does not cover the target Event kind and Agent PCR",
         "agent profile, key authorization and lifecycle events land in the agent PCR",

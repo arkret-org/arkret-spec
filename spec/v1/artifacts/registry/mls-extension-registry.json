@@ -1,8 +1,8 @@
 {
-  "version": "2026-09-10",
-  "generated_at": "2026-09-10T10:52:00+08:00",
+  "version": "2026-09-16.10",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "source_of_truth": true,
-  "description": "Canonical registry of MLS (RFC 9420) extensions decided by Arkret profiles: the standard required_capabilities extension, the Arkret private-use extensions, and the standard extensions v1 explicitly refuses to install. Maintained so SDKs and conformance tooling have a single machine-readable entry for every decided codepoint, its context and its rejection error.",
+  "description": "Canonical fixed MLS extension contract for Arkret v1 groups.",
   "private_use_range": {
     "low": "0xF000",
     "high": "0xFFFF",
@@ -13,11 +13,10 @@
       "name": "required_capabilities",
       "codepoint": "0x0003",
       "status": "active",
-      "profile_id": "ak.profile.mls_governance_binding.full.v1",
       "messages": [
         "GC"
       ],
-      "carries": "RFC 9420 extension, proposal, and credential codepoints that every group member must support; Arkret lists 0xF1C0, 0xF1C1, and 0xF1C2",
+      "carries": "The mls_governance_binding extension type 0xF1C0 is required for every Arkret group member.",
       "iana_codepoint": "0x0003",
       "source_refs": [
         "RFC 9420 §11.1",
@@ -25,63 +24,16 @@
       ]
     },
     {
-      "name": "external_senders",
-      "codepoint": "0x0004",
-      "status": "unsupported",
-      "messages": [
-        "GC"
-      ],
-      "carries": "RFC 9420 external sender keys and credentials authorized to sign ExternalSender Proposals",
-      "rejection_error": "unsupported_feature",
-      "iana_codepoint": "0x0004",
-      "source_refs": [
-        "spec/v1/artifacts/registry/mls-proposal-admission-registry.json",
-        "spec/v1/zh/crypto-media/encryption-and-audit.md"
-      ]
-    },
-    {
       "name": "mls_governance_binding",
       "codepoint": "0xF1C0",
       "status": "active",
-      "profile_id": "ak.profile.mls_governance_binding.full.v1",
       "messages": [
         "GC"
       ],
-      "carries": "Arkret Realm/Circle governance binding inside the MLS GroupContext",
+      "carries": "Closed deterministic-CBOR map {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}.",
+      "wire_encoding": "RFC 8949 deterministic CBOR with definite lengths and the five closed fields listed in carries",
       "iana_codepoint": null,
       "source_refs": [
-        "spec/v1/zh/crypto-media/encryption-and-audit.md"
-      ]
-    },
-    {
-      "name": "keypackage_capabilities",
-      "codepoint": "0xF1C1",
-      "status": "active",
-      "profile_id": "ak.profile.mls_governance_binding.full.v1",
-      "messages": [
-        "LN"
-      ],
-      "carries": "Canonical supported KeyPackage capability identifiers in the signed LeafNode",
-      "wire_encoding": "deterministic CBOR definite-length array of UTF-8 text strings, byte-lexicographically sorted and unique",
-      "iana_codepoint": null,
-      "source_refs": [
-        "spec/v1/artifacts/registry/keypackage-capability-registry.json",
-        "spec/v1/zh/crypto-media/encryption-and-audit.md"
-      ]
-    },
-    {
-      "name": "required_keypackage_capabilities",
-      "codepoint": "0xF1C2",
-      "status": "active",
-      "profile_id": "ak.profile.mls_governance_binding.full.v1",
-      "messages": [
-        "GC"
-      ],
-      "carries": "Canonical active KeyPackage capability identifiers required of every member and authorized for use in the current group epoch",
-      "wire_encoding": "deterministic CBOR definite-length array of UTF-8 text strings, byte-lexicographically sorted and unique",
-      "iana_codepoint": null,
-      "source_refs": [
-        "spec/v1/artifacts/registry/keypackage-capability-registry.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md"
       ]
     }

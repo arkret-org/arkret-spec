@@ -87,7 +87,7 @@
     },
     "webvh_method_history_evidence": {
       "type": "object",
-      "description": "Complete did:webvh log, proof and witness material routed by evidence_kind webvh_log to the active did:webvh adapter. log_entries is the gap-free native history from inception through boundary.to_version_id, not a resolver summary or a partial segment. witness_records is the complete did-witness.json record set required by every witness policy active in that interval and is empty only when no entry activates a witness policy. The receiver independently verifies SCID derivation, every versionId/hash-chain link, every controller proof, rotation authorization, all applicable witness thresholds, the exact boundary endpoints and canonical equality of the terminal state with normalized_did_document. Canonical encoded evidence MUST NOT exceed 1 MiB; an over-limit service history is ineligible for this retained historical-signer/notary bootstrap and fails closed rather than returning partial evidence.",
+      "description": "Complete did:webvh log, proof and witness material routed by evidence_kind webvh_log to the active did:webvh adapter. log_entries is the gap-free native history from inception through boundary.to_version_id, not a resolver summary or a partial segment. witness_records is the complete did-witness.json record set required by every witness policy active in that interval and is empty only when no entry activates a witness policy. The receiver independently verifies SCID derivation, every versionId/hash-chain link, every controller proof, rotation authorization, all applicable witness thresholds, the exact boundary endpoints and canonical equality of the terminal state with normalized_did_document. Canonical encoded evidence MUST NOT exceed 1 MiB; an over-limit service history is ineligible for retained historical-signer and governance-Station bootstrap and fails closed rather than returning partial evidence.",
       "required": [
         "evidence_kind",
         "boundary",
@@ -245,7 +245,7 @@
     },
     "principal_resolution_update_payload": {
       "type": "object",
-      "description": "Payload for ak.identity.resolution.update in the actor's Principal Control Realm. Admission projects did to the envelope actor_id and performs a strict CAS against the signed resolution_projection head_eq precondition before accepting a method-valid successor.",
+      "description": "Payload for ak.identity.resolution.update in the actor's Principal Control Realm. Admission projects did to the envelope actor_id and performs a strict CAS against the signed resolution_projection expected_revision precondition before accepting a method-valid successor.",
       "required": [
         "next"
       ],
@@ -333,7 +333,7 @@
           }
         }
       ],
-      "description": "One accepted post-genesis resolution successor Event. Its exact resolution-typed current result head_eq precondition and predecessor fields are mandatory under Event dispatch."
+      "description": "One accepted post-genesis resolution successor Event. Its exact resolution-typed current result expected_revision precondition and predecessor fields are mandatory under Event dispatch."
     },
     "current_resolution_event": {
       "oneOf": [
@@ -502,7 +502,7 @@
         },
         "next_audit_cursor": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",
-          "description": "Present exactly when history_complete is false. It equals the value.resolution_event_ref inside the exact head_eq precondition of the oldest supplied Event, which is that Event's guarded immediate predecessor and the next Event the caller has not seen. The caller continues the audit walk by requesting again with this ref already held; it never skips the omitted segment or reads a payload echo."
+          "description": "Present exactly when history_complete is false. It equals the value.resolution_event_ref inside the exact expected_revision precondition of the oldest supplied Event, which is that Event's guarded immediate predecessor and the next Event the caller has not seen. The caller continues the audit walk by requesting again with this ref already held; it never skips the omitted segment or reads a payload echo."
         },
         "method_history_evidence": {
           "$ref": "#/$defs/method_history_evidence"

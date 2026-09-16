@@ -132,7 +132,7 @@ Arkret v1 的统一读法是：
 
 成员资格显示必须来自已验证的确认状态；“可发送”还要求接收站当前已知授权、archive/freeze/terminal 等写入门禁和适用 MLS 状态就绪。缺少最近消息、完整成员列表、头像或旧历史不阻塞第一条消息。
 
-SDK 已持有可携带授权、历史 signer evidence 与 authoring frontier 时，直接从 typed Message intent 构造并签名普通 Event，以 ProofAuthenticatedPublication 向任意合资格接收站单次提交。原账号 Station 与治理签署者可以离线，聊天不推进 RealmCommit。接收站尚未收到撤销时允许按最后已验证授权继续聊天；收到相关撤销后立即关闭该 scope 的新 live admission，历史资格按已确认关闭边界确定。
+SDK 已持有可携带授权、历史 signer evidence 与 authoring checkpoint 时，直接从 typed Message intent 构造并签名普通 Event，以 ProofAuthenticatedPublication 向任意合资格接收站单次提交。原账号 Station 与治理签署者可以离线，聊天不推进 RealmCommit。接收站尚未收到撤销时允许按最后已验证授权继续聊天；收到相关撤销后立即关闭该 scope 的新 live admission，历史资格按已确认关闭边界确定。
 
 可选的 `ak.self.messages.command.prepare.v1` 帮助缺少 authoring 上下文的客户端准备 unsigned Event：本地加密 → prepare → SDK 核对/签名 → submit。它增加一次准备请求，不构成所有普通消息必经的网络路径。首次治理同步、MLS 入组及附件上传另计；回复与 mention 沿 Message payload 表达，不暗中产生其它 Relation Event。
 

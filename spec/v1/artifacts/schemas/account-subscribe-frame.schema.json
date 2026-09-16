@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-subscribe-frame.schema.json",
   "title": "Arkret Account Subscribe Frame",
-  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe.v1 streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, notifications, unread counts); the other kinds are control frames that mirror ak.self.events.stream.subscribe.v1 (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). Encrypted broadcast signals use the optional Signal Extension rail and never appear in this durable/account aggregate stream. `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
+  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe.v1 streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (per-Realm stream heads, to_device, account_data, device_lists, notifications, unread counts); the other kinds are control frames that mirror ak.self.events.stream.subscribe.v1 (`catchup_complete`, `checkpoint`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). Encrypted broadcast signals use the optional Signal Extension rail and never appear in this durable/account aggregate stream. `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [
     "kind"
@@ -13,7 +13,7 @@
       "enum": [
         "delta",
         "catchup_complete",
-        "frontier",
+        "checkpoint",
         "heartbeat",
         "dropped",
         "resync_required",
@@ -22,7 +22,7 @@
     },
     "cursor": {
       "$ref": "#/$defs/cursor_value",
-      "description": "Stream cursor (purpose='stream'). On `delta` / `catchup_complete` / `frontier` frames it points to the position covered by this frame; pass back as `after=` on the next subscribe call to resume. REQUIRED on `dropped` frames as the account-aggregate catch-up start for `GET /account/subscribe?after=<cursor>&catchup=true`. MUST be present on `delta` / `catchup_complete` / `frontier` / `dropped`; absent on `heartbeat` / `resync_required` / `unauthorized`."
+      "description": "Stream cursor (purpose='stream'). On `delta` / `catchup_complete` / `checkpoint` frames it points to the position covered by this frame; pass back as `after=` on the next subscribe call to resume. REQUIRED on `dropped` frames as the account-aggregate catch-up start for `GET /account/subscribe?after=<cursor>&catchup=true`. MUST be present on `delta` / `catchup_complete` / `checkpoint` / `dropped`; absent on `heartbeat` / `resync_required` / `unauthorized`."
     },
     "realms": {
       "type": "object",
@@ -580,7 +580,7 @@
         },
         "event_states": {
           "type": "array",
-          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary causal_register concurrency is resolved by the fixed (depth, EventId) order. See zh/sync/service-surface.md §5.3.",
+          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary current-value projection concurrency is resolved by the fixed (depth, EventId) order. See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [
@@ -622,7 +622,7 @@
             "error_code": {
               "type": "string",
               "enum": [
-                "frontier_unavailable",
+                "revision_unavailable",
                 "limit_exceeded",
                 "temporarily_unavailable",
                 "not_found"
@@ -716,7 +716,7 @@
     },
     "state_at_window_start": {
       "type": "object",
-      "description": "Derived projection-only state at the timeline window start. NOT part of state hash, frontier, or causal graph.",
+      "description": "Derived projection-only state at the timeline window start. NOT part of state hash, checkpoint, or causal graph.",
       "required": [
         "actor_profiles",
         "realm_metadata",
@@ -1410,10 +1410,10 @@
       }
     },
     {
-      "description": "Cursor-only frontier advancement; no data fields are allowed.",
+      "description": "Cursor-only checkpoint advancement; no data fields are allowed.",
       "properties": {
         "kind": {
-          "const": "frontier"
+          "const": "checkpoint"
         }
       },
       "required": [

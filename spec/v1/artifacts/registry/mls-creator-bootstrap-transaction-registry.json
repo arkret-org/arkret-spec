@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.9",
+  "version": "2026-09-16.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T09:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit MLS content-scheme selection to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -46,7 +46,6 @@
     "transition_id": "genesis_intent_persisted_to_genesis_intent_persisted",
     "granularity": "whole_closed_intent_atomic_durable_replacement",
     "amendable_fields": [
-      "content_scheme",
       "proposed_group_genesis_binding"
     ],
     "immutable_fields": [
@@ -58,7 +57,7 @@
       "mls_group_id",
       "the associated exact signed Realm-create unit and the create Event id derived from it"
     ],
-    "rationale": "content_scheme are forbidden in the ak.realm.create payload by construction, so replacing them invalidates neither an already signed nor an in-flight create unit; every consumer of the two selectors, the selector-dependent random material and the pinned governance binding, first runs after realm_accepted. While the record is still at genesis_intent_persisted the creator has therefore chosen nothing that anyone else can already have observed.",
+    "rationale": "The proposed group genesis binding is forbidden in the ak.realm.create payload by construction, so replacing it invalidates neither an already signed nor an in-flight create unit; every consumer of the selector, the selector-dependent random material and the pinned governance binding first runs after realm_accepted. While the record is still at genesis_intent_persisted the creator has therefore chosen nothing that anyone else can already have observed.",
     "exit_rule": "Amendment is legal only inside genesis_intent_persisted. From realm_accepted on, and in every terminal state, the closed intent is immutable: the only ways forward are to finish this attempt or to reach a terminal state and open a new attempt generation, which inherits the selector from the original durable intent."
   },
   "disclosure_boundary": {
@@ -79,13 +78,12 @@
       "ordinal": 1,
       "kind": "progress",
       "authority_source": "local_creator_selection",
-      "entry_predicate": "The user or calling application has explicitly chosen this scope's MLS content scheme, and the record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 governance query, and before any selector-dependent random material is generated. An already accepted MLS Realm that has no accepted Genesis enters here with this state's postconditions already satisfied and immediately continues to realm_accepted; no entry path may generate random material or query governance before the selector is durable.",
+      "entry_predicate": "The record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 governance query, and before any selector-dependent random material is generated. An already accepted MLS Realm that has no accepted Genesis enters here with this state's postconditions already satisfied and immediately continues to realm_accepted; no entry path may generate random material or query governance before the selector is durable.",
       "required_durable_fields": [
         "logical key: owner_actor_id, effective_scope, operation",
         "complete owner_actor_id including its station_id",
         "creator signer slot bound to this authoring device",
         "canonical effective scope and the mls_group_id derived from it",
-        "content_scheme",
         "the complete closed proposed_group_genesis_binding",
         "the associated exact signed Realm-create unit and the create Event id derived from it"
       ],
@@ -95,7 +93,7 @@
         "realm_accepted",
         "quarantined"
       ],
-      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the selector from UI state, a default, a Realm profile, an accepted history facet or any projection. A creator who changes the selection while the record is still in this state does not open a second attempt: the whole closed intent is replaced atomically through genesis_intent_persisted_to_genesis_intent_persisted.",
+      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the proposed binding from UI state, a default, a Realm profile, an accepted history facet or any projection. A creator who changes the selection while the record is still in this state does not open a second attempt: the whole closed intent is replaced atomically through genesis_intent_persisted_to_genesis_intent_persisted.",
       "gc_rule": "retain_until_ready",
       "failure_disposition": "quarantined"
     },
@@ -107,7 +105,6 @@
       "entry_predicate": "The client obtained an accepted ak.realm.create from its own Station, either as the submit result or by exact resolve, and an exact accepted-Genesis query for this scope returned a definite absent. An unknown result, a timeout or a missing projection MUST NOT enter this state.",
       "required_durable_fields": [
         "accepted Realm-create Event id and the digest of its exact accepted bytes",
-        "encryption_profile",
         "the Realm digest suite",
         "the accepted authority-root resolution result",
         "every field of the previous state, which stays immutable"
@@ -323,7 +320,7 @@
       "transition_id": "genesis_intent_persisted_to_genesis_intent_persisted",
       "from_state": "genesis_intent_persisted",
       "to_state": "genesis_intent_persisted",
-      "commit_boundary": "The complete closed creation intent, including the regenerated proposed_group_genesis_binding, is replaced in one atomic durable commit under the unchanged logical key. A partial patch of content_scheme alone is not a legal write, and the commit MUST still precede the first network side effect of the 0->0 governance query and any selector-dependent random material.",
+      "commit_boundary": "The complete closed creation intent, including the regenerated proposed_group_genesis_binding, is replaced in one atomic durable commit under the unchanged logical key. A partial patch of the binding alone is not a legal write, and the commit MUST still precede the first network side effect of the 0->0 governance query and any selector-dependent random material.",
       "crash_before_commit": "The previous closed intent is still the only durable one, and the recoverer continues from it. A selector shown in the UI but never committed authorizes nothing.",
       "crash_after_commit": "The replacement is the only durable intent, the superseded selector is unreadable, and the frozen Realm-create unit, its derived create Event id and the immutable record fields are unchanged."
     },

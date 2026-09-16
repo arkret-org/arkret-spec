@@ -30,7 +30,7 @@ Sidecar 与 Circle 功能正交：
 | 维度 | Circle | Sidecar |
 | --- | --- | --- |
 | 目的 | Realm 内显式沟通圈与安全边界 | controller 与其当前 Realm 内 active owned Agents 的个人协作上下文 |
-| 参与者 | 显式可治理成员子集 | 由 ownership/lifecycle 与 exact Realm membership frontier 派生，不可编辑 |
+| 参与者 | 显式可治理成员子集 | 由 ownership/lifecycle 与 exact Realm member_state revisions 派生，不可编辑 |
 | scope | `scope_ref.kind="circle"` | `scope_ref.kind="sidecar"` |
 | 跨边界映射 | 不允许自动映射到圈外 Strand | 可在普通 Strand shell 中显示 private view；durable publish 必须创建新 Event |
 | MLS | Circle membership 驱动 | ownership、lifecycle、runtime-key authorization 与 exact Realm membership 派生目标 roster；MLS/key readiness 只决定 effective 收敛状态 |
@@ -58,9 +58,9 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 `backing_circle_id`、成员列表、管理员、title、summary、directory visibility、join rule 与 history visibility
 均不是 Sidecar 字段。
 
-`ak.schema.agent_sidecar.v1` 的 schema identity 固定独立 MLS/RFC 9420 保护，物化 Sidecar 对象不再
-回显 `encryption_profile`；`ak.sidecar.create` Event payload 中进入签名原像的
-`encryption_profile="mls_rfc9420"` 仍保留，并由 reducer 校验。
+`ak.schema.agent_sidecar.v1` 的 schema identity 固定独立 MLS/RFC 9420 保护。Sidecar 的加密激活点是它
+自己的 accepted `ak.mls.genesis`，因此 `ak.sidecar.create` payload 与物化 Sidecar 对象都不携带加密
+profile 字段。
 
 ## 3. 创建与原生 scope
 
@@ -80,14 +80,14 @@ create Event 使用 parent Realm scope，因为 Sidecar 尚未存在：
 ```json
 {
   "scope_ref": {"kind":"realm", "realm_id":"ak:realm:..."},
-  "payload": {"encryption_profile":"mls_rfc9420"}
+  "payload": {}
 }
 ```
 
 payload MUST NOT 携带 `sidecar_id`、完整 Sidecar object、`controller_account_id`、成员、Circle ID、Strand ID、
 Relation ID、state 或 timestamp。Receiver MUST 重算 Sidecar ID；payload 携带这些字段必须在 schema 层拒绝。
 
-`ak.component.sidecar.create.v1` 以派生 `sidecar_id` 为 subject，保存已接受 genesis intent。
+`sidecar_create` 以派生 `sidecar_id` 为 subject，保存已接受 genesis intent。
 Reducer 另以 `(realm_id, controller_account_id)` 执行原子 singleton reservation；相同 key 的 exact replay 幂等，
 不同 create Event 必须 fail closed，不得 LWW、merge 或创建第二个 Sidecar。
 
@@ -110,7 +110,7 @@ membership proof 不能授权 Sidecar Event。
 ## 4. Context attach：映射，不创建对象
 
 `ak.sidecar.context.attach` 把一个已经存在的普通 Strand 或 Relation 记录为 Sidecar 的 source/UI context。
-它只写 `ak.component.sidecar.context.v1`，不创建 private Strand、Relation 或任何其它协议对象。
+它只写 `sidecar_context`，不创建 private Strand、Relation 或任何其它协议对象。
 
 payload 是：
 
@@ -143,7 +143,7 @@ desired_agent_ids(S, F) =
   ∩ active_realm_member_ids(S.realm_id, F)
 ```
 
-其中 `F` 是读取或 admission 使用的 accepted control frontier。`active_authorized_owned_agents` 来自 canonical
+其中 `F` 是读取或 admission 使用的 accepted authority-committed current results。`active_authorized_owned_agents` 来自 canonical
 Agent ownership/provisioning、lifecycle 与 Agent runtime-key authorization truth；它不包含 target action grant、
 participation selection 或 MLS readiness。`active_realm_member_ids` 来自 `S.realm_id` 自己的 Realm membership
 truth。完整 MLS 目标 roster 是 `S.controller_account_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
@@ -202,7 +202,7 @@ epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidec
 ```
 
 `desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 恰为上方五个成员，不包含 `effective_agent_ids`：
-effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`control_frontier` 同样**不是** transcript
+effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`authority_stream_head` 同样**不是** transcript
 成员，它是 `mls_context` 中与 `participant_authority_digest` 并列的独立字段（见
 [`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 的 `AgentSidecarView`），承载派生 `desired_agent_ids`
 所依据的 accepted refs。它只能包含 Sidecar genesis、
@@ -215,7 +215,7 @@ key、旧 session 或本地缓存不能继续授权新写。
 
 ## 7. 生命周期
 
-Sidecar state 是 accepted controller/Realm/ownership/policy frontier 的纯函数，不存在 actor-authored
+Sidecar state 是 accepted controller/Realm/ownership/realm_policy revision 的纯函数，不存在 actor-authored
 Sidecar archive/restore/member Event：
 
 | 源 | 目标 | 条件 |
@@ -300,7 +300,7 @@ context mappings。
 - `ak.vector.sidecar.exchange_binding_containment.v1`
 - `ak.vector.sidecar.context_locator_recovery.v1`
 - `ak.vector.sidecar.canonical_sibling_digest.v1`
-- `ak.vector.sidecar.union_history_frontier.v1`
+- `ak.vector.sidecar.union_history_checkpoint.v1`
 - `ak.vector.sidecar.non_disclosure_surface_matrix.v1`
 - `ak.vector.sidecar.revoke_fail_closed.v1`
 - `ak.vector.sidecar.explicit_publish.v1`

@@ -146,7 +146,6 @@
       "external_field_mentions": [
         "effective_scope",
         "event_id",
-        "metadata_encryption_floor",
         "morph_kind_profiles"
       ]
     },
@@ -217,10 +216,8 @@
       "schema_ref": "strand.schema.json#",
       "external_field_mentions": [
         "effective_scope",
-        "encryption_profile",
         "event_id",
-        "is_primary",
-        "metadata_encryption_floor"
+        "is_primary"
       ]
     },
     {

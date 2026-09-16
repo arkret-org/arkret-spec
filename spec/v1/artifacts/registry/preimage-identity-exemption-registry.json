@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.7",
+  "version": "2026-09-16.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T18:00:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "description": "Closed named-exemption registry for zh/conformance/encoding.md 6.0.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 6.0.1 closed list table; the prose table and this registry are bound in both directions.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -65,7 +65,7 @@
       "admission_compensating_checks": [
         "the genesis ak.realm.create MUST be submitted separately from the provision Event; the same atomic unit or ordered submit batch is the forbidden class B shape and MUST be rejected",
         "genesis admission MUST reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id); no match means zero writes",
-        "the controller PCR carries a sequenced_state typed current result keyed by payload.principal_control_realm_id, so two provision Events MUST NOT declare the same realm id",
+        "the controller PCR carries a commit-ordered projection typed current result keyed by payload.principal_control_realm_id, so two provision Events MUST NOT declare the same realm id",
         "the Agent PCR and its controller PCR MUST be hosted by the same Station, because the reverse look-up is a local projection query"
       ],
       "absent_target_semantics": "The declared Realm simply never comes into existence. The provision fact stays accepted and the operation stays at awaiting_pcr_genesis: no DID service entry, pairing handle or list/get visibility is published, and the Agent never reaches lifecycle active. The controller releases the slug and this realm id claim through the explicit agent provisioning abandonment operation pair; nothing expires the claim implicitly.",

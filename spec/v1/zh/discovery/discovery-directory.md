@@ -134,7 +134,7 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 
 **`member_count_bucket` 属 §9.1 一致性字段，MUST 携带 effective mode（normative）**：`member_count_bucket` 是 union 字段（`bucketed` 下为枚举字符串、`exact` 下为整数），其语义依赖 effective `member_count_mode`。若仅凭值类型推断 mode，则跨 Directory 对账（§7.3 不变量 2 Pluralizable、§9.1 一致性字段）会因 mode 解析歧义而无法判定"两家 Directory 是否一致"。因此：
 
-- `member_count_bucket` 一旦在 preview / 结果中出现，即**属于 §9.1 normative 一致性字段**，纳入同一资源跨 Directory 的一致性比对（针对同一 `(resource_id, source_refs frontier, policy_revision)`）。
+- `member_count_bucket` 一旦在 preview / 结果中出现，即**属于 §9.1 normative 一致性字段**，纳入同一资源跨 Directory 的一致性比对（针对同一 `(resource_id, source_refs checkpoint, policy_revision)`）。
 - 携带 `member_count_bucket` 的 search / resolve 结果与 preview **MUST 同时携带 effective `member_count_mode`**（取值 `exact` / `bucketed` / `omit` 之一，`omit` 时不出现该字段），使请求方与对账方据带内 mode（而非带外推断或值类型猜测）确定解析路径并比对；缺失 effective mode 的结果 MUST 视作 `response_invalid` 并丢弃。
 - 跨 Directory 对账时，`member_count_bucket` 值与其 effective mode 必须一并比对；两家 Directory 对同一资源给出不同 mode 或不同 bucket 时 MUST 标记 `divergent=true`（§7.3 不变量 2）。
 
@@ -621,7 +621,7 @@ Directory 接受 announce ingest前 MUST 顺序完成：
 - TTL + grace 过期后未续约的 entry MUST 在查询结果中标记 `stale=true`；Directory MAY 在再延迟 24h 后从索引中移除。
 - 资源 governance key 在 ingest 期间发生 rotation：MUST 在下一次 announce 中携带新 key 的签名；Directory MUST 在验证 DID document key history 后接受。
 - Discovery state 内容未变但需要续约时，资源 MAY 重新提交相同 `discovery_event` + 新 `as_of`，Directory MUST 视为有效续约（按 `(resource_id, as_of)` 幂等）。
-- Directory MUST 拒绝 `as_of` 早于已存 entry `as_of`，或从已验证 `source_refs` frontier 派生出的 `policy_revision` 已出现在当前 revision 之前的 announce（`policy_revision_rollback`）；digest 本身不作字典序大小比较。
+- Directory MUST 拒绝 `as_of` 早于已存 entry `as_of`，或从已验证 `source_refs` checkpoint 派生出的 `policy_revision` 已出现在当前 revision 之前的 announce（`policy_revision_rollback`）；digest 本身不作字典序大小比较。
 
 ### 8.7 撤销
 

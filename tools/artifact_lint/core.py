@@ -514,10 +514,10 @@ EFFECT_PROJECTION_ENVELOPE_FIELDS = {
 # all — and five of them went on to mint the object id the missing Event would have
 # derived.
 #
-# Two shapes count, both already in use: the `EventInitialSubmission` wrapper
+# Two shapes count, both already in use: the `EventCommitSubmission` wrapper
 # (agent lifecycle, `events.command.submit`) and a bare `event-envelope.schema.json`
 # reference (`applet.command.install`'s `registration_event`).
-SIGNED_EVENT_REQUEST_MARKERS = ("EventInitialSubmission", "event-envelope.schema.json")
+SIGNED_EVENT_REQUEST_MARKERS = ("EventCommitSubmission", "event-envelope.schema.json")
 
 
 # `actor_private_event` is in scope for the same reason `event_log` is.
@@ -575,7 +575,6 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.restore", "realm_archive_payload"),
     ("ak.realm.unfreeze", "realm_freeze_payload"),
-    ("ak.audit.ryw_receipt", "audit_payload"),
     ("ak.circle.archive", "object_lifecycle_payload"),
     ("ak.circle.restore", "object_lifecycle_payload"),
     ("ak.circle.tombstone", "object_lifecycle_payload"),

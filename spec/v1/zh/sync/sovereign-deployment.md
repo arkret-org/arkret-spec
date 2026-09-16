@@ -212,11 +212,11 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 | --- | --- | --- |
 | deployment profile | 服务通过 `ak.server.read.describe.v1` 的 `supported_profiles[]` 发布，并由对应 conformance evidence 支撑 | 不得写入 Realm genesis、`schema_refs` 或任何 Realm facet；不产生 `primary_server`、`hosted_on` 或完整历史权威 |
 | Realm structural role | closed `ak.schema.realm_genesis.v1` 的 `purpose`，以及 `schema_refs` 中封闭的 structural profile | 不表示物理部署位置、组织所有权或 federation peer |
-| organization relationship | active `ak.realm.organization`，且同时通过 Realm-side admin authority 与 organization-side authorization | `relationship=owner` 仍不自动授予 `ak.realm.owner` / `ak.realm.admin` capability、notary、recovery key、Station hosting 或历史完整性 |
-| notary | genesis `notary` 与后继 committed `ak.realm.notary` typed current result | 只决定 control-plane RealmCommit finality；不证明 signer 保存、看见或可提供全部 Event |
+| organization relationship | active `ak.realm.organization`，且同时通过 Realm-side admin authority 与 organization-side authorization | `relationship=owner` 仍不自动授予 `ak.realm.owner` / `ak.realm.admin` capability、governance-Station handoff、recovery key、Station hosting 或历史完整性 |
+| governance Station | genesis `governance_station_id` 与连续 verified `RealmAuthorityHandoff` chain | 只决定各独立 stream 的 RealmCommit authority；不证明该 Station 永久保存或可向任意 caller 提供全部 Event |
 | Station routing | 当前 `join` member 的完整 `ActorId` 所携 `station_id`，再结合 deployment peer allowlist | 只是实际路由候选；不产生 Realm owner、home server、canonical mirror 或唯一数据源 |
 
-`owning_organization_ids` 是由已接受 relationship facts 派生的展示投影，不是可单独提交或信任的 authority。Realm 的治理只来自 authority-root、capability 与相应 control Event；deployment profile、organization metadata、notary signer 与 Station 路由均不得替代这些事实。
+`owning_organization_ids` 是由已接受 relationship facts 派生的展示投影，不是可单独提交或信任的 authority。Realm 的治理只来自 authority-root、capability 与相应 control Event；deployment profile、organization metadata、governance-Station identity 与成员 Station 路由均不得替代这些事实。
 
 ## 4. External Collaboration Realm 在 sovereign deployment 下的强制 policy
 
@@ -237,23 +237,12 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
         "schema_refs": [
           "ak.schema.realm.v1"
         ],
-        "reducer_profile": "ak.reducer.core.v1",
         "digest_algorithm": "sha256",
         "security_class": "high_assurance",
-        "encryption_profile": "mls_rfc9420",
-        "notary": {
-          "signer": {
-            "actor_id": {
-              "kind": "service",
-              "service_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL"
-            },
-            "verification_method": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example#notary-1",
-            "key_kind": "ed25519_raw32",
-            "jose_algorithm": "Ed25519",
-            "frozen_public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-          },
-          "max_clock_error_ms": 1000
-        }
+        "governance_station_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL",
+        "initial_join_rule": "invite",
+        "initial_history_access": "since_join",
+        "initial_discoverability": "invite_only"
       }
     }
   },
@@ -268,8 +257,6 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
     "kind": "ak.realm.policy_bundle",
     "payload": {
       "policy_revision": 1,
-      "content_encryption_floor": "e2ee_required",
-      "metadata_encryption_floor": "e2ee_required",
       "federation_policy": "restricted"
     }
   },
@@ -321,7 +308,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 - `discoverability=unlisted` 或 `invite_only`
 - `join_rule=restricted` 或 `knock_restricted`
 - `history_access=since_join`
-- `encryption_profile=mls_rfc9420`，并按 Realm policy 设置 `content_encryption_floor`
+- 在 Realm 建立后立即提交该 scope 的 `ak.mls.genesis`，把 scope 不可逆激活为 standard RFC 9420
 - `federation_policy=restricted`；允许的外部 peer 由 [`federation.md`](./federation.md) §3.4 的部署本地 peer policy / allowlist 控制
 - `ak.realm.discovery.directory_visibility.public_directory=false`
 - 默认禁用 reshare / export
@@ -399,7 +386,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 | Station 间 Event 复制 | durable outbox 经 `ak.peer.events.command.submit.v1` 投递原始 signed Event；连续回填使用 `ak.peer.events.read.scan.v1`，精确取证使用 `ak.peer.events.read.resolve_committed.v1` | receiver 必须执行完整 schema、proof、capability、policy、admission 与 reducer 验证；scan / resolve 只处理已获准的独立 Realm、Circle 或 Sidecar stream，不证明对端没有 withholding |
 | 客户端提交与读取 | `ak.self.events.command.submit.v1`、`ak.self.events.read.scan.v1`、`ak.self.events.resource.get.v1`、`ak.self.events.stream.subscribe.v1` | 这些 operation 访问 canonical Event store，不得切换到 `/_soland/*` shadow state |
 | Blob 进入目标域 | `ak.self.blob.upload.create.v1` 创建目标域 Blob，再由目标 Realm 的新 canonical Event 引用；读取使用 `ak.self.blob.resource.get.v1` | v1 没有“保留源 Event identity 的跨 Realm/跨区 Blob copy”operation；密钥不得随 export 泄露给非目标受众 |
-| Realm policy、组织关系与成员路由 | `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.organization`、`ak.member.state` | deployment profile、organization relationship、notary 与 Station routing 各自保持 §3.2 的边界 |
+| Realm policy、组织关系与成员路由 | `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.organization`、`ak.member.state` | deployment profile、organization relationship、governance Station 与成员 Station routing 各自保持 §3.2 的边界 |
 | 源 Realm 内撤回/隔离 | `ak.message.redact`、`ak.redaction`、committed `ak.moderation.decision` / `ak.moderation.decision.lift` | 这些 Event 只改变其所在 scope 的状态；不构成“已净化导出包”或跨区传输许可 |
 
 current-v1 **没有** export/import review record、declassification approval、malware-scan receipt、watermark receipt、跨区 transfer job、任意内容 queue 或 sovereign boundary audit Event/operation。部署 MAY 在本地执行并审计这些流程，但 MUST NOT 把本地记录宣告为 Arkret interoperable state、profile feature 或 Realm history。实现不得用 `/_soland/*` 或其它私有接口补出协议状态；若未来要把其中任一行为升级为可互操作能力，必须先完整登记 closed schema、operation、authorization、Event/admission、durable store、replay/failure 语义与 conformance evidence。
@@ -458,7 +445,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 - 隔离跨域事件
 - 轮换 service key
 - 要求所有外部成员重新认证
-- 通过标准 frontier / scan / resolve surface 对已知 scope 做 best-effort reconciliation 与 known-gap recovery；该过程只能验证取得的 Event、已知 actor/range 与已知持有者，MUST NOT 宣称证明源没有 withholding 或历史没有遗漏（边界见 [`federation.md` §4.5](./federation.md)）
+- 通过标准 checkpoint / scan / resolve surface 对已知 scope 做 best-effort reconciliation 与 known-gap recovery；该过程只能验证取得的 Event、已知 actor/range 与已知持有者，MUST NOT 宣称证明源没有 withholding 或历史没有遗漏（边界见 [`federation.md` §4.5](./federation.md)）
 
 ## 11. 一致性 Profile
 
@@ -476,10 +463,10 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 - 部署本地 import / export / malware review 确实在跨区写入前 fail closed；测试不得把这些本地记录当作 Arkret Event 或 interoperable metadata
 - **PQ-hybrid TLS 握手探针（sovereign / 高安全）**：对 service-to-service（federation peer）与 client-service TLS 1.3 连接，握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供该 group 时 fail closed（不降级到纯经典 key exchange）。这是 sovereign / 高安全 deployment-profile 握手探针，不是 object-model conformance vector；canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)，威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。
 
-ServiceDescribe 只有在同一实现已用上述标准 operation/Event 完成 live 双 Station、双独立数据库、两侧 restart、断网后 durable outbox/known-gap 恢复、external-member join/leave/ban 边界以及 `federation_policy=closed|restricted|quarantine` 的实际 ingress、destination selection 与 fanout enforcement 后，才可声明 `ak.profile.sovereign_deployment.v1` / `ak.profile.sovereign_enclave.v1`。静态 fixture ID、进程内 map、重复 seed 的 Realm ID、私有 endpoint 或未持久化 frontier 均不是该声明的 conformance evidence；证据不足时 MUST 省略 profile claim 并 fail closed。
+ServiceDescribe 只有在同一实现已用上述标准 operation/Event 完成 live 双 Station、双独立数据库、两侧 restart、断网后 durable outbox/known-gap 恢复、external-member join/leave/ban 边界以及 `federation_policy=closed|restricted|quarantine` 的实际 ingress、destination selection 与 fanout enforcement 后，才可声明 `ak.profile.sovereign_deployment.v1` / `ak.profile.sovereign_enclave.v1`。静态 fixture ID、进程内 map、重复 seed 的 Realm ID、私有 endpoint 或未持久化 checkpoint 均不是该声明的 conformance evidence；证据不足时 MUST 省略 profile claim 并 fail closed。
 
 ### 11.1 联邦诊断与 high-assurance 边界
 
-sovereign / regulated 部署 MUST 对 authority bundle、RealmCommit 签名、authority generation continuity 与同 stream `previous_commit_ref` 连续性执行完整验证。缺失 commit 前缀或当前 authority 资料时 fail closed，并通过 exact committed-ref 拉取补齐；协议不定义基于多头集合比较的 peer reconciliation。
+sovereign / regulated 部署 MUST 对 authority bundle、RealmCommit 签名、authority generation continuity 与同 stream `previous_commit_ref` 连续性执行完整验证。缺失 commit 前缀或当前 authority 资料时 fail closed，并通过 exact committed-ref 拉取补齐；协议不定义基于多头集合比较的 governance Station reconciliation。
 
-`federation_policy=closed` 只限制网络可达性与 peer allowlist，不把任何 service、receipt 或 witness 升级成历史完整性权威。frontier/root、duplicate outcome、RealmCommit、Snapshot 与 witness receipt 都只能验证各自已观察、已列出的视图。实现 MUST NOT 宣称它们能证明“对方没藏分支”；已知缺口恢复依赖 durable outbox、known-ID/dependency resolve 与 admission，未知 withholding 在 v1 中没有 completeness 证明。
+`federation_policy=closed` 只限制网络可达性与 peer allowlist，不把任何 service、receipt 或 witness 升级成历史完整性权威。checkpoint/root、duplicate outcome、RealmCommit、Snapshot 与 witness receipt 都只能验证各自已观察、已列出的视图。实现 MUST NOT 宣称它们能证明“对方没藏分支”；已知缺口恢复依赖 durable outbox、known-ID/dependency resolve 与 admission，未知 withholding 在 v1 中没有 completeness 证明。

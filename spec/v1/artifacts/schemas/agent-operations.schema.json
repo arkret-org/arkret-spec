@@ -580,8 +580,8 @@
           "$ref": "#/$defs/public_key"
         },
         "authorize_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the ordinary Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. Its typed payload is the sole source of hpke_key and the target-device possession device_signature, MUST match new_device_pubkey by device id and Ed25519 key bytes, MUST set authorization_binding_kind=accepted_device, and MUST name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to Event.actor_id.account_id.principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds the exact account actor, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. Its typed payload is the sole source of hpke_key and the target-device possession device_signature, MUST match new_device_pubkey by device id and Ed25519 key bytes, MUST set authorization_binding_kind=accepted_device, and MUST name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to Event.actor_id.account_id.principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds the exact account actor, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
@@ -640,7 +640,7 @@
           "description": "Controller-signed private disclosure addressed to the authoritative pairing verifier. The endpoint MUST consume its presentation challenge once, match agent/controller/audience, recompute the public DID commitment digest, and use the disclosed scope for the subset check. It MUST NOT copy the disclosure into authorize_event or any durable/public history."
         },
         "authorize_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
           "description": "Fully-signed ak.agent.key.authorize initial submission approved by the controller or policy engine. Its Event MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. The submission MUST carry ordinary publication authority evidence without rewriting the Event. Its payload.agent_key_scope MAY be narrower than, but MUST be an actions/resources/constraints subset of, the immutable provision requested_scope; every provision constraint remains mandatory. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event.event_id is the pair operation idempotency identity."
         }
       },
@@ -657,11 +657,11 @@
         "activation_state": {
           "type": "string",
           "enum": [
-            "awaiting_accepted_frontier",
+            "awaiting_source_commit",
             "active",
             "cancelled"
           ],
-          "description": "Durable command state. awaiting_accepted_frontier waits for the exact authorization Event covering RealmCommit; accepted RealmCommit processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command."
+          "description": "Durable command state. awaiting_source_commit waits for the exact authorization Event covering RealmCommit; accepted RealmCommit processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command."
         },
         "authorize_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -799,7 +799,7 @@
     },
     "agent_runtime_approval_status_outcome": {
       "type": "object",
-      "description": "Operation-local status for the exact handle/candidate. Authorization and signer-evidence fields are present only after durable RealmCommit activation. The runtime checks its own method/raw-key digest, validates the complete current_signer_evidence closure, independently rebuilds its authenticated root and signer_resolution_evidence_ref with the SDK canonical helper, then persists both for offline ordinary Event authoring; authorized_event_ref is provenance and MUST NOT be used as the signer evidence ref. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
+      "description": "Operation-local status for the exact handle/candidate. Authorization and signer-evidence fields are present only after durable RealmCommit activation. The runtime checks its own method/raw-key digest, validates the complete current_signer_evidence closure, independently rebuilds its authenticated root and signer_resolution_evidence_ref with the SDK canonical helper, then persists both for offline Event authoring; authorized_event_ref is provenance and MUST NOT be used as the signer evidence ref. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
       "required": [
         "lifecycle",
         "runtime_state",
@@ -917,7 +917,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
         },
         "provision_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
         },
         "pairing_ttl_ms": {
           "type": "integer",
@@ -1354,7 +1354,7 @@
         "lifecycle_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
             },
             {
               "properties": {
@@ -1374,7 +1374,7 @@
               ]
             }
           ],
-          "description": "Closed ak.self.agent.pause Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service submits these exact bytes through ordinary Event admission and never synthesizes an Agent-authored Event. Its optional payload.reason MUST equal the request reason exactly (both absent or the same string)."
+          "description": "Closed ak.self.agent.pause Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service submits these exact bytes through authority Event submission and never synthesizes an Agent-authored Event. Its optional payload.reason MUST equal the request reason exactly (both absent or the same string)."
         }
       },
       "additionalProperties": false
@@ -1388,7 +1388,7 @@
         "lifecycle_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
             },
             {
               "properties": {
@@ -1425,7 +1425,7 @@
         "lifecycle_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
             },
             {
               "properties": {
@@ -1496,14 +1496,14 @@
       "type": "object",
       "required": [
         "participant_authority_digest",
-        "control_frontier",
+        "authority_stream_head",
         "current_controller_device_ready"
       ],
       "properties": {
         "participant_authority_digest": {
           "$ref": "#/$defs/digest"
         },
-        "control_frontier": {
+        "authority_stream_head": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/non_empty_string"

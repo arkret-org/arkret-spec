@@ -88,7 +88,7 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>.v1
 
 | kind | 语义边界 | HTTP/JSON binding 关系 |
 | --- | --- | --- |
-| `read` | 安全、幂等的只读计算：扫描、批量解析、frontier/head 投影、proof materialization。不得产生 server-side mutation。 | 简单 selector 可使用 `GET`，typed request content 优先使用 RFC 10008 `QUERY`，需要隐藏 selector 或承载复杂 body 时可使用 `POST`；唯一 binding 由 operation registry 固定。 |
+| `read` | 安全、幂等的只读计算：扫描、批量解析、checkpoint/head 投影、proof materialization。不得产生 server-side mutation。 | 简单 selector 可使用 `GET`，typed request content 优先使用 RFC 10008 `QUERY`，需要隐藏 selector 或承载复杂 body 时可使用 `POST`；唯一 binding 由 operation registry 固定。 |
 | `stream` | 长连接、live tail、增量同步或 bounded catch-up stream。 | 通常 `GET`；响应可以是 NDJSON、SSE、WebSocket frame 或等价 stream。 |
 | `resource` | URI 明确标识一个资源、binding 或 slot；请求语义围绕该 URI 的当前表示。 | `resource.get` 使用 `GET`/`HEAD`；`resource.replace` 使用 `PUT`；`resource.delete` 使用 `DELETE`。 |
 | `command` | 触发协议动作、状态推进、发布、入队、fanout、ack、领取、消费、授权、撤销、注册或流程推进。 | 通常 `POST`。命令可通过 idempotency key、对象 id、序列号或签名 transcript 实现幂等，但不因此变成 `PUT`。 |
@@ -262,7 +262,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 客户端用 grant-binding key 签 DPoP / request proof；Account Authority 用 issuer key 签 JWT 与
 introspection/status。这两个签名域 MUST 分离：DPoP 证明当前 holder 持有会话 key，不签发 grant；issuer
-签名证明自己的授权决定，不证明 principal/device/notary 已签某个 Event。S2S HTTP Message Signature
+签名证明自己的授权决定，不证明 principal/device 已签某个 Event，也不替代 governance Station 的 RealmCommit。S2S HTTP Message Signature
 只认证 transport source/destination/body，MUST NOT 替代任一内层 proof。
 
 **生产 current-v1 PoP 要求（normative）**：
@@ -417,10 +417,10 @@ Problem `type` URI 的 `{code}` 尾段与批处理/联邦响应中的逐项 `rea
 实现使用要点（registry 之外的语义协议）：
 
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
-- `frontier_stale` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
+- `revision_stale` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 checkpoint 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
 - 格式错误的 cursor 使用 `param_invalid` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
 - `unsupported_feature` 用于两类情形：`Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；以及 active 标准 kind 的 Event 结构合法、但其 wire 特性或 producer 类在 v1 支持矩阵中登记为 unsupported（例如 `rfc9420.proposal` 解码出的 RFC 9420 sender class 或 Proposal 类型，见 [`artifacts/registry/mls-proposal-admission-registry.json`](../sync/authority-commit-log.md)）。后一类 MUST NOT 报成 `schema_violation`。`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ak.*` Event kind。三种情形不得互相替代。
-- `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`frontier_stale`、`state_mismatch`。
+- `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`revision_stale`、`state_mismatch`。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
 CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `rules.universal_codes` 与每个 `operations[].operation_specific[]` 不引用 registry 外的 code。
@@ -454,7 +454,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - Contact self commit 的暂时未确认响应遵守 [Contact 写链 §2](../identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round)：`503 temporarily_unavailable` 不表示未写入，也不是首次耐久终局 outcome。相同完整请求继续查询原 Event 的终局；不得永久缓存该临时错误、重建 Event 或在 RealmCommit 确认前返回可授权 receipt。prepare 的首次 draft 与 commit 的首次耐久终局分别固定；终局包括 typed accepted/领域 failed 与按真实拒绝原因登记映射的 Problem Details，后者固定原 HTTP status/body。
 - 服务端 SHOULD 记录 request identity 与完整 canonical request hash；联邦与服务间写入 MUST 将完整 hash 纳入签名 transcript 或 transaction replay cache。
-- `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、frontier、版本或状态机规则约束。**Event identity 例外**：`ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1` 虽登记为 `protocol_sequence`，但 `event_id` 是 immutable content identity。接收方必须先从当前 canonical Event bytes 重算 EventId：carried ID 不匹配是 `event_id_digest_mismatch` 且零副作用；只有不同 digest-preimage canonical bytes 各自重算为同一个完整 EventId 时，才 MUST 按 operations-sync §12 / federation §4.3 整组 quarantine，并返回登记的 `witness_disagreement` reason。仅 excluded envelope 字段不同不属于该分支。
+- `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、checkpoint、版本或状态机规则约束。**Event identity 例外**：`ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1` 虽登记为 `protocol_sequence`，但 `event_id` 是 immutable content identity。接收方必须先从当前 canonical Event bytes 重算 EventId：carried ID 不匹配是 `event_id_digest_mismatch` 且零副作用；只有不同 digest-preimage canonical bytes 各自重算为同一个完整 EventId 时，才 MUST 按 operations-sync §12 / federation §4.3 整组 quarantine，并返回登记的 `witness_disagreement` reason。仅 excluded envelope 字段不同不属于该分支。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 
 上述恢复路径的机读真相源是 operation registry 同行 `uncertain_outcome`：`query_operation` 必须引用 outcome/read operation；`reissue_material` 必须引用重新签发入口并要求 fresh request identity；`revoke_then_reissue` 必须分别引用幂等 revoke 与 fresh-material issue operation，并要求 fresh request identity，客户端只有在 revoke 已达可确认终态后才可 issue；`manual_confirmation` 明确进入 uncertain 人工确认；`drop_unconfirmed` 仅允许不持久化、可安全丢弃的 ephemeral/fanout signal。`none/false` 缺该字段、引用未知 operation、或任何重新签发策略未要求 fresh identity 时，artifact lint MUST 失败。
@@ -487,7 +487,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
 | `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.read.scan.v1` 与 federation peer `ak.peer.events.read.scan.v1`（canonical `QUERY` JSON content 中的 `before` / `after`）的请求 cursor 与响应 `prev_cursor` / `next_cursor`——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
-| `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
+| `barrier` | 读己之所写（RYW）：要求 reader 在 checkpoint 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
@@ -673,7 +673,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ### 11.2 出站网络目标策略与 SSRF 防护
 
-任何服务在访问由用户、远端 peer、DID Document、Directory、Blob/Media metadata、Snapshot manifest、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/frontier probe、媒体抓取、thumbnail 生成、snapshot/chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
+任何服务在访问由用户、远端 peer、DID Document、Directory、Blob/Media metadata、Snapshot manifest、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/checkpoint probe、媒体抓取、thumbnail 生成、snapshot/chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
 
 **Scheme allowlist（normative）**：出站网络目标策略 MUST 先按 **scheme 白名单** fail-closed。默认允许集**只含** `https`（`http` 仅在 §2.1 允许明文的本地开发 / 测试 / 受控内网场景下 MAY 加入），任何其它 scheme（`file`、`gopher`、`ftp`、`data`、`blob`、`dict`、`ldap`、`ws`、`wss` 以及任意未登记 scheme）MUST 直接拒绝（`policy_denied`），不得进入后续 host / IP 分类。理由：IP 分类只对基于网络 host 的 scheme 有意义；非网络 scheme 会整体旁路下面的 host/IP 判定，把 URL 解析变成本地文件读取或协议走私向量。scheme 判定 MUST 在 host 解析之前执行，并在每次 redirect / Alt-Svc / 协议升级改变 scheme 时重新判定。
 
@@ -693,7 +693,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 明文 HTTP 到公网目标默认 SHOULD 拒绝；仅本地开发、测试网络或 Realm / deployment policy 明确授权的受控内网例外可放行。
 - 允许访问私网或 link-local 的例外 MUST 是显式 policy：绑定用途、service DID、trust domain、CIDR、端口、过期时间和审计要求。`development_mode=true` 的 loopback 例外不得出现在生产 ServiceDescribe 或 verified profile claim 中。
 - 拒绝时 SHOULD 返回 `policy_denied`，并在仅对 operator 可见的审计细节中记录被拦截的地址类别、规范化 URL digest、解析 IP、调用用途和 policy version。已登记 operation（例如 `ak.open.mimi.command.proxy_download.v1`）在 wire 上承载该拒绝时 reason code 为 `egress_policy_denied`。公开错误不得泄露内网拓扑。
-- **出站联邦 / 媒体 / snapshot fetch 的两层校验为合取（normative）**：出站联邦 push / pull / frontier probe、媒体抓取、以及 snapshot manifest / chunk fetch，MUST **同时**满足 (a) 本节 §11.2 的地址分类 fail-closed 检查，与 (b) [`federation.md` §3.4`](./federation.md) 的 federation peer policy（`deny` 先于 `allow` 评估，且 peer policy 只能收紧不能放宽地址分类）。两层是**合取**：任一层拒绝即 fail closed，不存在"地址分类通过即放行而跳过 peer policy"或"peer policy allow 即跳过地址分类"的旁路。snapshot manifest / chunk fetch 的目标 host（含 `chunks[].chunk_ref` 指向的 blob host、`realm_state_snapshot_bootstrap` 内的 endpoint）MUST 同样纳入这两层校验——既按 §11.2 做地址分类，也按 §3.4 peer policy 判定该 host / service DID 是否在出站允许集中；任一层拒绝即拒绝该 chunk fetch，不得静默退回未校验地址。
+- **出站联邦 / 媒体 / snapshot fetch 的两层校验为合取（normative）**：出站联邦 push / pull / checkpoint probe、媒体抓取、以及 snapshot manifest / chunk fetch，MUST **同时**满足 (a) 本节 §11.2 的地址分类 fail-closed 检查，与 (b) [`federation.md` §3.4`](./federation.md) 的 federation peer policy（`deny` 先于 `allow` 评估，且 peer policy 只能收紧不能放宽地址分类）。两层是**合取**：任一层拒绝即 fail closed，不存在"地址分类通过即放行而跳过 peer policy"或"peer policy allow 即跳过地址分类"的旁路。snapshot manifest / chunk fetch 的目标 host（含 `chunks[].chunk_ref` 指向的 blob host、`realm_state_snapshot_bootstrap` 内的 endpoint）MUST 同样纳入这两层校验——既按 §11.2 做地址分类，也按 §3.4 peer policy 判定该 host / service DID 是否在出站允许集中；任一层拒绝即拒绝该 chunk fetch，不得静默退回未校验地址。
 
 服务 MAY 在 `ServiceDescribe.egress_network_policy` 暴露粗粒度出站策略，供 peer 和客户端理解是否支持安全的外部 URL 解析。公开 describe 不应暴露敏感私网 allowlist；认证后的 operator describe MAY 返回完整策略。
 

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-12.8",
-  "generated_at": "2026-09-15T20:27:24+08:00",
+  "version": "2026-09-16.1",
+  "generated_at": "2026-09-16T11:10:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -60,10 +60,6 @@
     {
       "operation_bundle_id": "ak.operation_bundle.moderation_service.describe.v1",
       "sha256": "sha256:b2c21b8f721d2a1a4d7ff72a7edf562ea7c4231dd28cd8f486b9ce50f785ee48"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.notary.describe.v1",
-      "sha256": "sha256:f35df3634238df7e5c60ee2e90f029fb974accc2d5447865ad5bdeebdd75cdaa"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.push_gateway.describe.v1",

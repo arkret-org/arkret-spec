@@ -368,7 +368,7 @@
         "schema",
         "purpose",
         "basis",
-        "hosting_notary",
+        "governance_station_id",
         "issued_at",
         "expires_at",
         "proof"
@@ -396,8 +396,9 @@
         "plan_digest": {
           "$ref": "#/$defs/digest"
         },
-        "hosting_notary": {
-          "$ref": "./realm.schema.json#/$defs/notary_signer_descriptor"
+        "governance_station_id": {
+          "$ref": "#/$defs/did_core_id",
+          "description": "Current governance Station service identity for the target Realm. The Station signs the resulting RealmCommit after revalidating the authoring request at the stream head."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"

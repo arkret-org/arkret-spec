@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.8",
+  "version": "2026-09-16.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T09:30:00+08:00",
+  "generated_at": "2026-09-16T11:10:00+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -109,48 +109,33 @@
       "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.event_payload_audit_release_payload_policy_version_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/event-payload.schema.json",
-        "json_path": "$.$defs.audit_release_payload.properties",
-        "digest_field": "policy_version_digest",
-        "content_addressed_refs": [
-          "commit_ref"
-        ]
-      },
-      "preimage": "Digest of the audit policy version in force; not the RealmCommit",
-      "spec_anchor": "spec/v1/zh/crypto-media/audited-e2ee.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.key_backup_active_series_frontier_ref_frontier_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.key_backup_active_series_source_commit_ref_source_commit_ref.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/key-backup-active-series.schema.json",
-        "json_path": "$.$defs.frontier_ref.properties",
-        "digest_field": "frontier_digest",
+        "json_path": "$.$defs.source_commit_ref.properties",
+        "digest_field": "source_commit_ref",
         "content_addressed_refs": [
           "commit_ref"
         ]
       },
-      "preimage": "Digest of the exact PCR RealmCommit and device generation selected by frontier_ref",
+      "preimage": "Digest of the exact PCR RealmCommit and device generation selected by source_commit_ref",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.key_backup_root_frontier_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.key_backup_root_commit_ref.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
         "schema_file": "schemas/key-backup.schema.json",
-        "json_path": "$.properties.frontier_ref.properties",
-        "digest_field": "frontier_digest",
+        "json_path": "$.properties.source_commit_ref.properties",
+        "digest_field": "source_commit_ref",
         "content_addressed_refs": [
           "commit_ref"
         ]
       },
-      "preimage": "Digest of the exact PCR RealmCommit and device generation selected by frontier_ref",
+      "preimage": "Digest of the exact PCR RealmCommit and device generation selected by source_commit_ref",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {

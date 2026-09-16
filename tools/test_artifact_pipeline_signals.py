@@ -27,6 +27,10 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import artifact_pipeline
 import check_operation_closure_locks
 from check_operation_closure_locks import next_generated_at, refresh_candidate_lock

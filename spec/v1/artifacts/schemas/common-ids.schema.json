@@ -82,7 +82,7 @@
     },
     "actor_id": {
       "x-arkret-composite-identifier": true,
-      "description": "Complete protocol identity for an Event author or Realm member: account carries the exact AccountId for every Station-hosted principal; service identifies a service acting as itself. The discriminator is validated against accepted registration and admission evidence; it never authorizes itself. Account and service are distinct, and no comparison may fall back to a bare principal_id. Agent and integration classification, provisioning, controller binding and credential authorization are independently verified facts, not identity variants. Account actors at different Stations MUST NOT share or inherit authority merely because their principal_id, DID controller or signing key matches, including membership, capability, notary signing and recovery authority.",
+      "description": "Complete protocol identity for an Event author or Realm member: account carries the exact AccountId for every Station-hosted principal; service identifies a service acting as itself. The discriminator is validated against accepted registration and admission evidence; it never authorizes itself. Account and service are distinct, and no comparison may fall back to a bare principal_id. Agent and integration classification, provisioning, controller binding and credential authorization are independently verified facts, not identity variants. Account actors at different Stations MUST NOT share or inherit authority merely because their principal_id, DID controller or signing key matches, including membership, capability, RealmCommit-signing and recovery authority.",
       "oneOf": [
         {
           "type": "object",

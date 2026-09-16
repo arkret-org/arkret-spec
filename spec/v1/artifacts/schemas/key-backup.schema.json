@@ -70,9 +70,9 @@
       "$ref": "#/$defs/digest",
       "description": "Required when supersedes_id is non-null. Hash of the canonical_json of the predecessor envelope (excluding auth_data.signature). Receivers MUST recompute and reject mismatches as `series_chain_broken`."
     },
-    "frontier_ref": {
+    "source_commit_ref": {
       "type": "object",
-      "description": "Optional reference to the Principal Control Realm frontier and identity-root device generation at envelope creation time.",
+      "description": "Optional reference to the Principal Control Realm source RealmCommit and identity-root device generation at envelope creation time.",
       "required": [
         "realm_commit_id",
         "device_generation_ref"
@@ -83,14 +83,14 @@
         },
         "device_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced frontier."
+          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced checkpoint."
         }
       },
       "additionalProperties": false
     },
     "recovery_policy_ref": {
       "type": "object",
-      "description": "Required whenever encryption.recipient_method is recovery_public_key, and optional as a signed recovery-strand hint otherwise. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using such an envelope; mismatch fails as recovery_policy_mismatch, but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
+      "description": "Required whenever encryption.recipient_method is recovery_public_key, and optional as a signed recovery-strand hint otherwise. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using such an envelope; mismatch fails as recovery_policy_mismatch, but the field does not replace active-series, checkpoint, Realm/MLS authorization, or device-state checks. This is intentionally separate from source_commit_ref: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
       "required": [
         "policy_id",
         "policy_version"

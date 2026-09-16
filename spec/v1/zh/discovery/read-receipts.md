@@ -25,7 +25,7 @@ updated: 2026-07-30
 | --- | --- | --- | --- | --- |
 | Signal 密文内的 `ak.receipt.read` / `ak.schema.read_receipt.v1` | Signal Extension | 短 TTL，不进入 durable Event history | 仅能解密目标 scope 的成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
 | `ak.read_cursor.advance` / `ak.schema.read_cursor.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
-| `ak.notification` / `ak.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read cursor frontier、notification rule frontier 与 source event frontier |
+| `ak.notification` / `ak.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read cursor checkpoint、notification rule checkpoint 与 source event checkpoint |
 | `ak.audit.accessed`（schema 见 audit profile，本表不另列 `ak.schema.*`） | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
 
 ## 2. Read Receipt (已读回执)
@@ -75,7 +75,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.5 Realm 披露策略 (Disclosure Policy)
 
-Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy 由它自己的 Event kind 写入 `ak.component.realm.read_receipt_policy.v1` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。它由普通 Event/authority-commit/RealmCommit admission 保护，但不改变 MLS key access，因此按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 明确排除在 `key_access_revision` 外。
+Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy 由它自己的 Event kind 写入 `realm_read_receipt_policy` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。它由普通 Event/authority-commit/RealmCommit admission 保护，但不改变 MLS key access，因此按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 明确排除在 `key_access_revision` 外。
 
 > **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
 
@@ -101,7 +101,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声�
 
 规则：
 
-- 该策略是**软声明 / 合规承诺**，不是密码学强制。`ak.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。软声明只允许合规客户端按用户偏好不发送自己的 receipt；任何 actor、service、relay 或 federation peer 都不得伪造他人的 `ak.receipt.read`，也不得转发来源 proof 无法验证的 receipt。Realm policy MUST NOT 把 `ak.receipt.read` 当作密码学审计回执使用。
+- 该策略是**软声明 / 合规承诺**，不是密码学强制。`ak.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"。软声明只允许合规客户端按用户偏好不发送自己的 receipt；任何 actor、service、relay 或 federation peer 都不得伪造他人的 `ak.receipt.read`，也不得转发来源 proof 无法验证的 receipt。Realm policy MUST NOT 把 `ak.receipt.read` 当作密码学审计回执使用。
 - 客户端 MUST 在 join Realm / 进入 Strand 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
 - `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ak.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.1 的加密边界发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ak.receipt.read`。**执行点在客户端**：Station sync surface 看不到 Signal 的 payload 类型（[`../sync/signal.md`](../sync/signal.md) §1 下外层 header 无任何产品选择器，receipt 与 typing 同为 `session` class 且 payload 不透明），因此**不得**要求服务端识别并丢弃它。接收方客户端解密后 MUST 丢弃并不呈现该 scope 的 receipt。Read Cursor 不受影响。
@@ -183,7 +183,7 @@ Read Cursor 是 actor-private 持久状态，但仍然是高频更新。客户�
 2. 客户端计算 `ak.read_cursor.advance` 指向的 `event_id` 之后，该 Strand discussion track 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 若部署使用受托 notification service，该服务必须按调用者权限和 `plaintext_visible_services` 规则生成最小化结果。
 
-Notification / unread count 是派生状态。服务 MAY 在一个 sync response 中合并多次 read cursor、receipt 和 notification rule 变化，只返回最终 count 与必要 frontier；客户端不得把中间 badge 抖动当作协议事件缺失。
+Notification / unread count 是派生状态。服务 MAY 在一个 sync response 中合并多次 read cursor、receipt 和 notification rule 变化，只返回最终 count 与必要 checkpoint；客户端不得把中间 badge 抖动当作协议事件缺失。
 
 ## 5. Thread (子线程) 的已读隔离
 
@@ -326,18 +326,18 @@ state=unread, cursor=<cursor>, limit=<int>
 
 通知状态 SHOULD 由 read cursor 与 notification rule 共同推导而来。
 
-同一 actor / scope 的 read cursor 更新 MAY 在传输层批处理；接收端只需要观察最终单调位置。服务端 SHOULD 合并短窗口内的 read cursor、receipt 和 notification projection 更新，并在 sync response 中携带覆盖这些输入的 frontier 或 sync token。Push / notification 服务不得为每个 read cursor 变化生成独立通知；它只能重新计算 unread count、badge 和 push suppression。
+同一 actor / scope 的 read cursor 更新 MAY 在传输层批处理；接收端只需要观察最终单调位置。服务端 SHOULD 合并短窗口内的 read cursor、receipt 和 notification projection 更新，并在 sync response 中携带覆盖这些输入的 checkpoint 或 sync token。Push / notification 服务不得为每个 read cursor 变化生成独立通知；它只能重新计算 unread count、badge 和 push suppression。
 
 ### 6.6 跨设备同步语义
 
-`ak.read_cursor.advance` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。其 payload MUST 使用 `ak.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id；该对象不含 `updated_at`（§6.1）。
+`ak.read_cursor.advance` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer checkpoint。其 payload MUST 使用 `ak.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id；该对象不含 `updated_at`（§6.1）。
 
 跨设备已读同步流程：
 
-1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventInitialSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。设备读到该位置的时间由信封 `created_at` 承载（§6.1），payload 内不存在第二份时间字段。
+1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventCommitSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。设备读到该位置的时间由信封 `created_at` 承载（§6.1），payload 内不存在第二份时间字段。
 2. Station / Station sync surface 只向同一 principal 的授权设备返回该 read cursor，可通过 `account_data` 或 `receipts` stream 增量同步。下发形态是 `ak.read_cursor.update` device message，其 content MUST 是 `ak.schema.read_cursor_update.v1`（`device-message.schema.json#/$defs/read_cursor_update_content`）：按 §6.5 胜出的 advance 的派生投影，`updated_at` 取该 advance 的信封 `created_at`；它不是 `ak.schema.read_cursor.v1` 对象，MUST NOT 以该 schema id 自述。
 3. 每个设备按 §6.5 规则合并同一 read_scope 的 marker，重新派生本地 notification state、unread count 和 push suppression state。
 4. 派生 notification 的 `state=read/unread` 不得作为共享 Realm 事实写回；需要公开已读回执时，必须使用 Realm policy 允许的 `ak.receipt.read` ephemeral / receipt stream，并与 private read cursor 分开授权。
 5. 当 read cursor 指向的 target event 对某设备不可见、缺失或被 redacted，客户端 MUST 保留 read cursor 但把对应 projection 标记为 `target_missing` / `redacted`，不得回退到更早 read cursor 造成未读计数反弹。
 
-Notification projection MUST 绑定 read cursor frontier、notification rule frontier 和 source event frontier。服务端返回 unread count 时 SHOULD 附带这些 frontier 或 sync token；客户端发现 frontier 落后时必须重新派生或请求增量，而不是把 push provider 的角标当作协议真相。
+Notification projection MUST 绑定 read cursor checkpoint、notification rule checkpoint 和 source event checkpoint。服务端返回 unread count 时 SHOULD 附带这些 checkpoint 或 sync token；客户端发现 checkpoint 落后时必须重新派生或请求增量，而不是把 push provider 的角标当作协议真相。

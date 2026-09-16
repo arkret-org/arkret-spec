@@ -52,7 +52,7 @@ extension_id, publisher_id, verification_method, created_at, domain?, audience?}
 
 ## 2. 封闭词表
 
-manifest 只允许以下 reducer/lattice 引用：Kernel 已登记的闭集 lattice，或 manifest 明确引用的
+manifest 只允许以下 reducer/projection 引用：Kernel 已登记的闭集 projection，或 manifest 明确引用的
 独立代数 profile 和跨实现 vectors。confidentiality_class 只能是
 `plaintext_allowed | recipient_encrypted | e2ee_required`。transport profile 只能引用 active
 operation/rail id。resource limits 只能使用 Kernel schema 定义的 byte/item/depth/rate 维度。

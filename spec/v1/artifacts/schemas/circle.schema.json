@@ -12,7 +12,6 @@
     "directory_visibility",
     "join_rule",
     "history_access",
-    "encryption_profile",
     "state",
     "created_by",
     "created_at"
@@ -69,22 +68,6 @@
       ],
       "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS requires since_join."
     },
-    "content_encryption_floor": {
-      "type": "string",
-      "enum": [
-        "allow_plaintext",
-        "e2ee_required"
-      ],
-      "description": "Optional Circle-local content encryption floor. When omitted, the Circle inherits the parent Realm's content_encryption_floor. Effective floor = max(parent Realm content_encryption_floor, this field). May only tighten, never widen, the parent Realm floor, and the effective floor is a one-way ratchet: once e2ee_required has been accepted it MUST NOT be lowered back to allow_plaintext (reducer rejects with content_encryption_floor_downgrade). e2ee_required is only meaningful when encryption_profile='mls_rfc9420'; a Circle with encryption_profile='none' MUST keep allow_plaintext. See zh/models/circle.md §7."
-    },
-    "metadata_encryption_floor": {
-      "type": "string",
-      "enum": [
-        "allow_plaintext",
-        "e2ee_required"
-      ],
-      "description": "Optional Circle-local metadata encryption floor (binary, symmetric with content_encryption_floor: allow_plaintext | e2ee_required). When omitted, the Circle inherits parent Realm's metadata_encryption_floor. May only tighten, never widen, parent Realm floor; the effective floor is a one-way ratchet (reducer rejects a lowering write with metadata_encryption_floor_downgrade)."
-    },
     "agent_participation": {
       "type": "object",
       "description": "Optional wrapped five-bit Agent ceiling. When present every bit is explicit and may only tighten the parent Realm ceiling.",
@@ -97,22 +80,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "encryption_profile": {
-      "type": "string",
-      "enum": [
-        "none",
-        "mls_rfc9420"
-      ],
-      "description": "Circle content encryption profile. create-locked. 'none' means plaintext delivery/query/projection isolation only and is allowed only when the parent Realm policy floor allows plaintext. 'mls_rfc9420' means the Circle owns an independent MLS group and MUST NOT derive its keys from the Realm-default MLS group."
-    },
-    "content_scheme": {
-      "type": "string",
-      "enum": [
-        "mls_rfc9420",
-        "mls_exporter_aead_v1"
-      ],
-      "description": "Create/Genesis-locked MLS content scheme. Required exactly for an MLS-backed Circle and immutable for the derived group lifetime."
     },
     "mls_group_id": {
       "type": "string",
@@ -164,63 +131,6 @@
           "state_changed_at"
         ]
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "encryption_profile": {
-            "const": "mls_rfc9420"
-          }
-        },
-        "required": [
-          "encryption_profile"
-        ]
-      },
-      "then": {
-        "required": [
-          "content_scheme"
-        ]
-      }
-    },
-    {
-      "oneOf": [
-        {
-          "required": [
-            "id"
-          ],
-          "if": {
-            "properties": {
-              "encryption_profile": {
-                "const": "mls_rfc9420"
-              }
-            },
-            "required": [
-              "encryption_profile"
-            ]
-          },
-          "then": {
-            "required": [
-              "mls_group_id"
-            ]
-          }
-        },
-        {
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "id"
-                ]
-              },
-              {
-                "required": [
-                  "mls_group_id"
-                ]
-              }
-            ]
-          }
-        }
-      ]
     }
   ],
   "$defs": {

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-current-result.schema.json",
   "title": "Arkret Account Current Result",
-  "description": "Account Station view of authority-committed typed current results. The legacy typed current result selector surface does not exist.",
+  "description": "Account Station view of authority-committed typed current results selected by closed domain selectors.",
   "oneOf": [
     {
       "$ref": "#/$defs/current"

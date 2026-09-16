@@ -131,7 +131,7 @@
     "recovery_policy_publish_request": {
       "allOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
         },
         {
           "properties": {
@@ -371,9 +371,9 @@
       },
       "additionalProperties": false
     },
-    "control_frontier": {
+    "authority_stream_head": {
       "type": "object",
-      "description": "Optional account control-stream frontier under which the active policy was observed.",
+      "description": "Optional account control-stream checkpoint under which the active policy was observed.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -382,7 +382,7 @@
           },
           "uniqueItems": true
         },
-        "frontier_digest": {
+        "source_commit_ref": {
           "$ref": "#/$defs/digest"
         },
         "observed_at": {
@@ -419,8 +419,8 @@
         "as_of": {
           "$ref": "#/$defs/timestamp"
         },
-        "control_frontier": {
-          "$ref": "#/$defs/control_frontier"
+        "authority_stream_head": {
+          "$ref": "#/$defs/authority_stream_head"
         }
       },
       "additionalProperties": false

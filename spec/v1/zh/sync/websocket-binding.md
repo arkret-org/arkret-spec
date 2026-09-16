@@ -275,7 +275,7 @@ limit 内一致执行。
 
 `data.payload` 只接受 account `delta`、events `event` 或 Signal `signal`；`control` 的
 `frame_scope="channel"` 只承载对应 operation 已定义的 heartbeat/drain/dropped/resync/unauthorized/
-frontier/catchup/epoch 等 control payload。接收方先由 channel state 取得 operation，再用该
+checkpoint/catchup/epoch 等 control payload。接收方先由 channel state 取得 operation，再用该
 operation 的 canonical payload schema 验证；仅仅匹配其它 operation 的 union branch仍必须
 拒绝并关闭该 channel。connection-scoped `control` 只接受 closed drain payload
 `{kind:"drain",reconnect_after_ms,deadline,reason?}`。连接层 `ping`/`pong` 只判断物理连接

@@ -12,7 +12,7 @@
       "type": "string",
       "enum": [
         "event",
-        "frontier",
+        "checkpoint",
         "heartbeat",
         "catchup_complete",
         "epoch_rotation",
@@ -93,7 +93,7 @@
       "properties": {
         "kind": {
           "enum": [
-            "frontier",
+            "checkpoint",
             "catchup_complete"
           ]
         }

@@ -397,9 +397,9 @@ def main() -> int:
         raise SystemExit("outgoing-slot-absence round id is not the normal-round KAT result")
     if members != round_members.get("normal"):
         raise SystemExit("outgoing-slot-absence pair is not the normal-round KAT pair")
-    frontier = transcript["cas_frontier"]
-    if not frontier or frontier != sorted(set(frontier)):
-        raise SystemExit("outgoing-slot-absence frontier is not canonical and distinct")
+    revision = transcript["cas_revision"]
+    if not revision or revision != sorted(set(revision)):
+        raise SystemExit("outgoing-slot-absence cas revision is not canonical and distinct")
     if transcript["cas_sequence"] < 1 or transcript["outgoing_request_state"] != "absent":
         raise SystemExit("outgoing-slot-absence state is invalid")
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z", transcript["observed_at"]):
@@ -419,7 +419,7 @@ def main() -> int:
         "null_outgoing_request_state",
         "swapped_pair",
         "wrong_contact_round_id",
-        "stale_cas_frontier",
+        "stale_cas_revision",
         "non_canonical_json",
     }
     if set(absence.get("negative_cases", [])) != expected_negatives:
@@ -437,8 +437,8 @@ def main() -> int:
             value["sorted_pair_member_ids"].reverse()
         elif name == "wrong_contact_round_id":
             value["contact_round_id"] = "sha256:" + "0" * 64
-        elif name == "stale_cas_frontier":
-            value["cas_frontier"] = value["cas_frontier"][:1]
+        elif name == "stale_cas_revision":
+            value["cas_revision"] = value["cas_revision"][:1]
         mutations[name] = value
     for name, value in mutations.items():
         if isinstance(value, dict) and set(value) == set(required):

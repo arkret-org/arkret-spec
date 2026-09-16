@@ -50,7 +50,6 @@
         "key_recovery_service",
         "media_service",
         "moderation_service",
-        "notary",
         "station",
         "push_gateway",
         "recovery_service",
@@ -72,15 +71,6 @@
       },
       "uniqueItems": true,
       "description": "The sole complete-profile self-declaration for this exact build and role endpoint. Every declared profile MUST satisfy its full applicable contract. Feature-only support belongs in supported_features. verified_profiles supplies independent evidence, never an alternate activation set; each verified profile MUST also occur here."
-    },
-    "supported_reducer_profiles": {
-      "type": "array",
-      "description": "Registered Realm reducer profiles this service can execute. This is a runtime capability set, not a conformance claim and not a selected Realm profile.",
-      "items": {
-        "type": "string",
-        "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$"
-      },
-      "uniqueItems": true
     },
     "profile_bindings": {
       "type": "object",

@@ -3,200 +3,89 @@ title: 服务器当前结果与有界基线
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-15
+updated: 2026-09-16
 sidebar:
   label: 当前结果与基线
 ---
 
 本文规范用语遵循 [规范性语言](../conformance/normative-language.md)。
 
-## 1. 唯一当前状态来源
+## 1. 权威来源
 
-普通客户端信任自己的 Account Station 对治理、可见性、ordinary Event 资格、固定因果顺序和 reducer 的判定。
-`account-subscribe-frame` 的每 Realm `current {entries}` 是当前状态安装来源，替代并删除 `state`、
-`state_after` Event 容器。原始 timeline Event、`state_at_window_start` 展示上下文、MLS 私有 tree 和
-当前结果分别保存；不能从 Event kind、HLC、`effects` 或最后到达的 Event 推导当前值。
+治理 Station 按目标 stream 的 RealmCommit 顺序接纳 Event，并在同一事务内更新该领域的当前结果。客户端 MUST
+把 Station 返回的 typed current result 作为共享状态的当前权威视图；Event timeline 用于审计与内容读取，不要求客户端
+重放 Event 来恢复共享状态。
 
-机器真相源为 [current-result-registry](../../artifacts/registry/current-result-registry.json) 与
-[account-current-result schema](../../artifacts/schemas/account-current-result.schema.json)。每个标准非日志
-typed current result family 必须登记明确交付策略；普通 current family 有精确 value schema、lattice 和 target 推导规则；value 是完整结果，不是 patch、reducer op
-或任意 JSON。生成器校验与所有已注册非日志 writer 的覆盖，不允许静默漏掉新增 writer。
-device.list_update 是历史通知断言，只通过既有 device_lists 通道与设备当前查询交付，不进入普通 current
-coverage，也不得把全历史 changed/left payload 数组伪装成设备当前值。
-ordered_log 不进入完整当前 typed current result 集，继续使用 timeline 或专门的服务器当前投影，例如成员 identity roster。
-扩展 family 在注册完整当前值类型前不得伪装成标准 value；只能明确 unavailable，不得用空值代替。
+Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前结果响应携带本次视图所覆盖 stream 的
+`stream_heads[]`；不同 stream 之间不存在隐含总顺序。producer Event 不携 predecessor，只有 RealmCommit 的
+`previous_commit_ref` 串联同一 stream。
 
-## 2. 选择器、类型与唯一字段归属
+机器合同为
+[current-result-registry](../../artifacts/registry/current-result-registry.json)、
+[typed-current-result schema](../../artifacts/schemas/typed-current-result.schema.json) 与
+[account-current-result schema](../../artifacts/schemas/account-current-result.schema.json)。实现 MUST NOT 发明协议级通用状态键、
+通用合并算法或客户端求值规则。
 
-每条 `CurrentResultEntry` 为 closed `{selector, target, revision, result}`。
-`selector {scope_ref, result_id}` 是唯一安装键；scope 只能是该外层 Realm 自身或它拥有的合法 Circle，
-result_id 是原有完整 TypedResultSelector。不同 scope 的同 TypedResultSelector 不相等。
+## 2. 领域 selector 与 revision
 
-`target` 是 closed `realm | strand {strand_id} | member {actor_id} | event {event_id}` 的兴趣归属：
+每条结果是一个 closed typed object，包含领域 `selector`、`revision` 与完整领域值。v1 登记的 selector kind 为：
 
-- realm：本 Realm 当前治理、create-locked 属性和没有更细目标的当前对象。
-- strand：由 accepted writer 的注册 subject 输入精确绑定的 Strand，包含它的当前对象、位置、生命周期和配置。
-- member：由完整注册 membership subject 输入绑定的 ActorId；Circle membership 仍保留 Circle scope。
-- event：消息 create Event 的精确 ref，由注册 Message subject 的 event-derived ID 规则反解；只用于
-  请求 timeline 窗口中的 revision/reaction 当前结果。object redaction 按 accepted object subject 归属：
-  Message 使用 event、Strand 使用 strand、其余对象使用 realm，不从 redaction Event 自身的 ID 推导。
+- `realm_profile`：当前 Realm profile；
+- `realm_policy`：当前 Realm policy；
+- `member_state`：以完整 `actor_id` 选择成员状态；
+- `strand`：以 `strand_id` 选择 Strand；
+- `message_reactions`：以目标 `event_id` 选择 reaction 集合；
+- `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group。
 
-pin 按 accepted pin_scope 推导：strand 使用 strand target，其余使用 realm target，仍保留真实 effective scope。
+selector 的身份字段来自已接纳 Event 的 typed payload，不得由调用方另行声明或由服务端按显示名称猜测。新增领域结果
+必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。
 
-target 不另建状态键，不是 caller 提供的权限声明。服务器必须在事务索引中保存并验证它与 selector、
-accepted source 对象的关联；客户端按 registry 检查可检查的 scope/ID/target 绑定，不重放 source history。
-tuple/hash subject 不可逆，服务器必须在接纳 writer 时同事务保存其真实目标关联，不能从 hash 猜测目标。
-客户端不为补关联下载 source history；只核对可检查的单 ID、结果内对象 ID 与 scope，信任自己 Station 的已裁决关联。
-同 selector 的 target 不能随更新或分页任意改变。Realm target 不扩大 Circle 可见性；即使 typed current result 属于 realm
-目标，Circle 内的内容仍须同时满足冻结窗口与当前 Circle 读取资格。
+`revision` 是 closed `{commit_id, stream_position}`。`commit_id` MUST 指向最后改变该结果的 RealmCommit，
+`stream_position` MUST 等于该 commit 在所属 stream 的位置。二者共同提供可验证的当前版本；时间戳、到达顺序与
+EventId 均不得替代 revision。
 
-`result` 的唯一分支：
+领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
+逐字段相等时接纳；不相等返回 `failed_precondition` 并提供调用者有权读取的 current result。首次创建可使用该领域
+schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达式。
 
-- `status=value, value, source?`：sequenced_state 的已确认值、OR-set 完整已 join 的元素值集合，或
-  causal_register 的确定性唯一当前值。causal_register 的已写入值 MUST 同时携带
-  `source={event_id,depth}`；`depth` 为同 typed current result 已验证因果深度，`event_id` 为该完整值的写入身份。
-  其它 state model MUST 省略 source。空集合与显式
-  null 依 family 类型表示真实结果，不表示缺响应；不携 dots，不要求客户端 join。
-  从未写入的 sequenced_state typed current result 可由服务器确认 null，OR-set 可确认空数组，不得为补基线伪造 Genesis Event。
-  register 形态的 causal_register 单例 typed current result 同样可由服务器确认 null。该已确认空值没有写入身份，
-  MUST 省略 `source`；写过 null 的值仍 MUST 携带 `source`，两者因此在 wire 上可区分，满足
-  [事件授权与状态判定 §6](../authz/event-auth-state-resolution.md) 对“写过的 null 与未写入 MUST 可区分”的要求。
-  `source` 只存在于 `status=value`；`removed` 与 `unavailable` 不含该字段，也不得被用来表示已确认空值。
-- `status=removed`：该 selector 在本次读取视图中已不存在或不再可见的版本化移除。它只删除当前结果，
-  不删除 timeline 历史，不自动解释为成员 leave、对象业务 tombstone 或 MLS Remove。
-- `status=unavailable, reason`：reason 闭合为 dependency_missing/limit_exceeded。
-  不可用不是空值或删除。causal_register rank 依赖缺失时不得安装猜测值；安全状态缺确认材料时同样 fail closed。
+## 3. 当前结果响应
 
-Strand/Space/Morph/Relation/Profile/Circle 的当前对象值使用注册的具体对象 schema 派生完整当前值类型，
-保留 create-derived id 和本 typed current result 全部已物化字段；registry 明确排除由独立 lifecycle、stage、parent、
-resolution 或 history-access typed current result 拥有的字段。客户端只在展示层组合不同已安装结果，不能把组合对象
-反写为单个 head 或使一个 typed current result 的替代删除其它 typed current result。View.state 由 View 自身持有时保留。
+`AccountCurrentResult.current` 是 closed：
 
-Realm genesis 当前值保留原有具体 genesis schema，为 purpose、security_class、encryption_profile 等
-create-locked 属性提供完整来源。genesis 中的初始 notary/reducer/digest 坐标只表示创建时配置，当前值
-分别由 notary、realm.reducer_profile、realm.digest_suite typed current result 决定，禁止用旧初始值覆盖它们。
-MLS epoch typed current result 复用唯一 MlsEpochHead；Genesis 仅允许 `(0,0)`，普通推进必须 `n→n+1`，无 nullable 第二类型。
+- `realm_id`：结果所属 Realm；
+- `authority_generation`：当前治理 Station 任期代次；
+- `stream_heads[]`：调用者获准读取的 Realm/Circle/Sidecar stream heads；
+- `entries[]`：closed typed results。
 
-### 2.1 集合领域当前投影
+同一 selector 在同一 revision 下必须具有完全相同的 canonical bytes。发现相同 revision、不同值时，客户端 MUST
+拒绝整批响应并重新获取当前 authority bundle；不得任择覆盖。较新 revision 原子替换旧值；来自旧
+`authority_generation` 的响应不得覆盖新任期结果。
 
-remove_observed/remove_dots 是服务器操作，绝不进入 current 值。某些领域把 remove 作为 add 断言保留在
-审计 typed current result；它们不能作为活跃条目发送给客户端再求领域默认视图。registry 的 domain_current 分支明确为：
+响应只包含调用者当前有权读取的 selector。省略不表示空值、删除或权限；领域若允许显式空值，必须由其 typed value
+表达。成员退出、Circle 撤权或 Station 更换后，客户端必须按新授权范围清除不可再见的缓存，但不得由响应差异推断隐藏对象。
 
-- agent.key：服务器执行 key-management 的完整有效授权 fold，active 结果返回精确 method、public-key
-  digest、accountability、scope/audience 交集、最早有限 expiry 和全部活跃 authorization Event refs。
-  method/accountability 等安全事实缺少可验证确认状态时 unavailable；无授权、已撤销、到期或父 lifecycle
-  不活跃或 scope/actions/resources/audience 交集为空使用 closed inactive reason（empty_scope）。revoke transition marker 不是 active authorization，不交客户端 fold。
-- pin：pins 为服务器按 pins.md 已完成因果寄存器当前值、remove 和 reorder-note 继承判定的完整 active Pin
-  payload；source_event_ids 列出组成此结果的真实 add/reorder 来源，供 encrypted note 的 exact读取与
-  E2E。conflicts 仅表达 pins.md 登记的目标级领域冲突，不是通用 `causal_register` 多头，也不发送 remove/reorder patch 要求客户端求值。
-- message.reactions：服务器按 strand-and-message §9.8 remove-wins 判定后，按 `(actor_id,key)` 返回当前
-  reactions；每组 assertions 只含使其存活的真实 add 的 exact Event ref 与原 typed payload，去重成员
-  已由服务器完成。所有 payload key/target 必须匹配分组与 selector。客户端只解密/验证真实 E2E内容，
-  不从 remove 断言、dot 或因果边计算成员。未存活的组省略，空 reactions 是完整空结果。
+## 4. 有界基线与续传
 
-capability/grant/derived、consent 和 invite proposal 的 joined 值只表示已保存事实，不能被解释为有效权限、
-当前可行动邀请或成员资格。有效授权复用 self.authz 的 effective/check 当前结果，邀请复用当前邀请 list；
-consent revoke 的精确 active dots 继续由 consent authoring 查询提供，本载体不替代这些专门输入。
+`AccountCurrentResult.coverage` 携带 `realm_id`、`stream_heads[]` 与 `complete_for_authorized_streams`。只有在：
 
-这些是服务器当前读投影，不改动原核心 lattice、审计 typed current result 或 signed Event。时间到期、父 lifecycle 和
-范围可见性变化同样触发持久 current revision/失效，不能仅等下一条用户 Event 才撤销旧 active 结果。
+1. 所有获准 stream 都已扫描到所声明 head；
+2. 对应 entries 已耐久安装；
+3. 本次读取期间 authority generation 未改变；
 
-## 3. 版本与失效
+三项同时成立时，服务端才可返回 `complete_for_authorized_streams=true`。
 
-revision 使用与账号 Realm 摘要、`realm_invalidations.revision` 相同的持久账号投影顺序域，范围
-0–9007199254740991。同一发布事务的多项结果可以共享 revision；后继事务严格增加。数值不能取自 HLC
-或客户端时钟。恢复数据库、重建版本域、切换 Station/账号时必须废止旧 cursor/snapshot，不能重置数字
-后继续消费旧窗口。
+分页 cursor 必须绑定 `realm_id`、authority generation、每个已覆盖 stream head 与最后一个稳定排序键。缺页、重复页、
+generation 改变或任一 head 改变时，客户端 MUST 废止该基线并从当前 authority bundle 重新开始。Circle 与 Sidecar 的
+分页进度分别绑定各自 stream；不得借 Realm stream head 声明它们已完整。
 
-增量按 `(revision, JCS(selector) 的无符号 UTF-8 字节)` 稳定排序；一个发布事务的同 revision 多 selector
-允许跨页，私有继续位置必须同时保存 revision 与最后 selector 排序键。不得只保存最后 revision 再查询
-`revision > last`，否则会漏掉同版本尾项；也不得为避免该问题要求整 revision 批一次装入单帧。
-
-客户端按 selector 原子安装完整 result 与 target：较大 revision 替代，较小 revision 忽略；相同 revision
-必须是 canonical-byte 相同的 result 和 target。相同版本不同内容或归属属于协议冲突，必须拒绝该帧、
-停止推进 cursor 并重新查询 Station，不能任择覆盖。一个 Event 影响多个 typed current result 时，每个 selector 独立安装。
-
-失效到达时暂停受影响操作，废止该 Realm 旧 baseline generation；旧段和旧 complete 不能清除 pending。
-即使 filter 未变化，也必须重新建立目标当前结果基线。新基线 cut_revision 必须不早于已知失效 revision。
-成员/范围撤权使用当前可见性规则清理可见缓存和移除记录，不借撤权响应暴露此前未披露的 selector。
-当前结果不授予操作权限；每次服务写入仍由 Station gate，实际 MLS 接收/签名/解密/tree 校验仍在客户端。
-
-## 4. 精确覆盖的分段基线
-
-详情 `baseline` 替换为 closed `{snapshot_cursor, cut_revision, coverage, complete}`。
-coverage 为 closed `{realm, strand_ids, members, event_ids}`：realm 为布尔值，strand_ids 最多32个，
-event_ids 最多100个；members 为 `{mode:all}` 或 `{mode:selected,actor_ids}`，后者最多100个完整 ActorId。
-集合无重复；strand_ids 与 event_ids 按解码后的 token 字节排序，ActorId 按 JCS 无符号 UTF-8 排序。
-此处不是 SyncFilter 绑定摘要的字符串 lexicographic 排序；producer 从 filter 构造 coverage 时 MUST 按 coverage 规则重新规范化，不能直接复用 filter 数组顺序。
-
-覆盖集只包含本次 filter 实际请求且获准的目标。realm=true 覆盖已选择 Realm 的必要治理与当前 Realm
-目标；Strand 集按 filter 的精确选择或其服务器当前 default pointer 确定；event_ids 仅取实际 timeline
-窗口；lazy members=true 时 selected 为窗口所需成员，false 才能声明 all。all 仍须有界分页，不得成为
-首屏、发送或整个账号加载的前置条件。移除兴趣只停止投递，不产生业务删除。
-
-服务器在一个事务中冻结 cut、精确 coverage、当前权限上下文及保留 reservation，再签发 snapshot_cursor。
-不能先读 cut、稍后登记 cursor，中间按旧 cursor 最小 cut GC。窗口存续期间保留需要的历史投影版本；
-无法保留时显式 resync，不能漏项。扫描使用 current/version 索引，不扫描全部历史再求最新值。
-
-同一冻结操作生成的 timeline 冻结窗口与 current 详情关联同一代次：`coverage.event_ids` 与按窗口选取的成员、展示依赖
-MUST 来自 [`client-sync.md` §2.3](./client-sync.md) 的同一冻结窗口，不得每发一段就改变 coverage，也不得在 `timeline_baseline`
-建立新代次后继续沿用旧 coverage。两个载体的完成标记仍各自独立：`baseline.complete` 只声明当前结果交付完成，
-`timeline_baseline.complete` 只声明该窗口条目交付完成，任一不得推断另一。`cut_revision` 属账号 current 投影顺序域，
-不得充当 timeline 的 Event 读取位置；`snapshot_cursor` 标识代次绑定，不作为 account `after` 使用。
-
-同 snapshot 的每段重复相同 cut_revision 和 coverage。含 baseline 的 Realm entry 内全部 current 结果
-属于这个冻结快照，revision 不大于 cut；该段不夹带同目标新 live 结果。live frame 可穿插在快照段之间，
-使用自身较大 revision。每页交付前重查权限，资格变化必须废止受影响窗口并重建，不把新视图重标成旧快照。
-
-客户端以磁盘/事务存储持续记录本快照 seen selectors，不要求把整个集合装入内存。complete=true 只有在
-全部此前分段持久安装后才生效；完成时只清理本 coverage 内、未 seen 且本地 revision≤cut 的旧结果。
-窗口后新增、更新或移除不能被旧快照清理覆盖。部分页、空中间页、其它目标完成、catchup_complete 均不得
-清空集合。snapshot 标识、seen 标记、结果和恢复 cursor 同一耐久边界保存；崩溃重放幂等。
-
-Realm 首个可用基线必须提供当前 genesis/create-locked 安全属性、当前 policy/policy_bundle 的完整结果或
-已确认空值、default Strand pointer 及请求默认目标时对应 Strand 当前结果。当前权限通过现有逐操作
-authz/current-result 接口取得；不可要求客户端从 grant Events 求权限。必要字段未交付保持该操作 pending，
-不能解释为默认值。服务器优先交付这些有界必要目标；不能要求等待 Realm 全对象、all members、所有 Realm
-或旧消息才能呈现首屏。MLS authoring/accepted-artifact 查询仍使用各自正式 exact result，不借本基线替代 E2E。
-
-`result_contracts` 中 `result_selector: null` 表示单例，不能误读为动态 subject。对于上述尚未写入的单例，
-publisher 必须在验证完整 accepted 状态后发布已确认空值；数据库中缺少结果行本身不是空值证明。
-派生 publication 标为 ready 但缺少必要基线条目时，读取方必须使其失效并通过对应 stream 的 committed head
-重建路径修复，不能永久重试同一不完整 publication，也不能由客户端补默认值或发出新的治理 Event。
-default Strand pointer 是 causal_register 单例，同样适用本条：从未提交 `ak.realm.set_default_strand`
-的 Realm 必须以省略 `source` 的已确认空值发布该 pointer，不得因此使详情基线无法完成；
-把 `ak.realm.set_default_strand` 变成 Realm 创建的强制前置与本条直接冲突，MUST NOT 采用。
-四个必需单例的已确认空值与“缺结果行冒充空值”的失败路径由
-`ak.vector.sync.realm_detail_baseline_singletons.v1` 固定。
+Realm join bootstrap 默认从当前治理 Station 获取 authority bundle、获准 stream heads、committed Events 与 current
+results。邀请人服务器只转交邀请和当前 governance Station 定位证据；它不是 bootstrap 真相源，除非它恰好就是经验证的
+current governance Station。
 
 ## 5. 预算与失败
 
-每 current.entries 最多100项，受 account frame 8 MiB canonical /16 MiB wire 和 round 16 MiB/16 frames
-总预算共同约束。分页只能在完整 selector 之间切分；causal_register 只发送唯一当前值及其 source。
-固定 `MAX_ATOMIC_CURRENT_ENTRY_CANONICAL_BYTES = 7 MiB (7,340,032 bytes)`，计数对象为完整
-CurrentResultEntry 的 RFC 8785 UTF-8 字节，包括 selector、target、revision 和完整 result/source 封装。
-producer、持久索引和 receiver MUST 使用同一固定上限；它不随 coverage、调用方或当前帧余量改变。
-能够符合此上限的完整 selector 必须在本帧装不下时延后，不得改成 unavailable。
-只有完整 entry 超过此固定上限时，publisher 才以同一 selector/target/revision 持久化
-unavailable/limit_exceeded；替换后的 entry 仍 MUST 满足上限。若坐标本身过大，连此固定失败结果也
-无法封装，使用 Realm unavailable/limit_exceeded，不能截断坐标、记 seen 或声明 baseline complete。
+单次响应必须遵循 transport 的 canonical 与 wire 大小上限。分页只能在完整 entry 之间切分；一个 entry 不得截断。
+结果暂不可计算、依赖 commit 缺失或授权状态不完整时，服务端 MUST fail closed，并要求调用者从当前 governance Station
+重新同步；不得伪造默认值、让客户端从部分 Event 猜测结果或跨 stream 拼出虚假的全局顺序。
 
-单 Realm 最小合法详情帧的必需封装预留 `1 MiB (1,048,576 bytes)`，定义为含一个 entry 的帧
-JCS 字节数减去该 entry 的 JCS 字节数，包括顶层 kind/cursor、Realm map key、current/entries
-容器，以及 baseline 的 snapshot_cursor/cut_revision/coverage/complete。其它可选通道、Realm 和
-payload MUST 在需要时拆到其它帧，不能挤占必需封装而改变原子结果。7 MiB + 1 MiB = 8 MiB。
-
-此保留量有 schema 上界证明：两个 cursor 各至多2048个 ASCII 字符；每个 DID core 至多512个
-Unicode code point，JCS 每个 code point 保守按最多6 bytes计（包含 JSON 转义），AccountActor
-含两个 DID core。覆盖100个完整 ActorId、32个 StrandId、100个 EventId、53字节 Realm key、
-安全整数 revision 及全部固定 JSON 键/标点后的必需封装仍小于1 MiB。不得把 code-point 上限
-直接当UTF-8字节上限。`tools/test_current_result_budget.py` 的冻结向量验证此上界、临界值与
-不同合法 coverage 下相同 entry 字节不变；schema 边界变化 MUST 同时更新并重新证明此预算。
-
-最大合法 Event 的完整当前值连同固定 source 必须能由本预算路径表达；并发候选数不扩大单条 current entry。
-单个最大合法值超过预算时使用上述 `limit_exceeded`，不得截断值。暂时读取或服务失败使用
-既有 Realm unavailable，不产生、安装或记录 seen 的 selector 结果，也不能声明 baseline complete。
-Realm 整体当前权威结果不可计算时使用既有 `realms[id].unavailable`，不能伪造完整空基线。
-
-客户端只对尚缺目标必要当前结果的操作等待；removed、unavailable、成员状态与 E2E pending 分开处理。
-服务器只返回登记的 typed current result，不返回 raw-latest、retag 合成对象或客户端 reducer 输出。
+当前结果不授予写权限。每次提交仍由治理 Station针对当前 capability、成员资格、policy、领域 revision 与 MLS 约束重新校验。

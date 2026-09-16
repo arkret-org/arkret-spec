@@ -13,10 +13,7 @@
       ],
       "properties": {
         "scheme": {
-          "enum": [
-            "mls_rfc9420",
-            "mls_exporter_aead_v1"
-          ]
+          "const": "mls_rfc9420"
         },
         "effective_scope": {
           "$ref": "./event-envelope.schema.json#/properties/scope_ref"

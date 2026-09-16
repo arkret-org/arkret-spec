@@ -19,8 +19,8 @@ updated: 2026-07-30
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
-- **Control Move precondition** 只表达 typed current result 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。ordinary Event 不携带 `preconditions[]`，其数据面约束由 causal refs、`auth_context.authority_refs` 与 Lattice 规则表达。
-- **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / ordinary Event / Control Move canonical hash 的 evidence 满足。
+- **state-changing Event precondition** 只表达 typed current result 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，其数据面约束由 causal refs、`commit_authorization_state.authority_refs` 与 deterministic projection 规则表达。
+- **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / Event / state-changing Event canonical hash 的 evidence 满足。
 
 因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 
@@ -90,10 +90,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `temporal`（无 constraint_subkind、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
 | `temporal` 带 `recurrence`、`constraint_subkind=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
 | `field_access`（无 `condition`） | `stateless` | (constraint_digest, op_kind) | 仅 allow / deny 列表比较 |
-| `field_access` 带 `condition.kind` | `realm_state` | (realm_id, frontier_digest, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
+| `field_access` 带 `condition.kind` | `realm_state` | (realm_id, source_commit_ref, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `kind_restriction` | `stateless` | (constraint_digest, op_target_kind) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_digest, op_target) | |
-| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_digest, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, source_commit_ref, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_labels`） | `stateless` | (constraint_digest, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `authority_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `authority_control` (`constraint_subkind=applet_authority`) | `grant_local` | (grant_id) | 对照 grant 内的 Applet / executor / registration epoch 绑定；registration evidence freshness 由引用解析另行校验 |
@@ -103,10 +103,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `claim_based` (`constraint_subkind=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`constraint_subkind=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`constraint_subkind=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
-| `claim_based` (`constraint_subkind=claim`，device/session binding 子情形：claim issuer = accepted PCR device) | `realm_state` | (realm_id, frontier_digest, actor_device_id) | device/session binding 不是独立 constraint_subkind（见 §2.2），它是 `constraint_subkind=claim` 的子情形；当需校验设备 / session 状态（来自 principal control stream）时该子判定为 `realm_state` |
+| `claim_based` (`constraint_subkind=claim`，device/session binding 子情形：claim issuer = accepted PCR device) | `realm_state` | (realm_id, source_commit_ref, actor_device_id) | device/session binding 不是独立 constraint_subkind（见 §2.2），它是 `constraint_subkind=claim` 的子情形；当需校验设备 / session 状态（来自 principal control stream）时该子判定为 `realm_state` |
 | `confidentiality` (`constraint_subkind=encryption`，纯静态声明：`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` / `approved_key_issuers` 列表成员比较) | `stateless` | (constraint_digest, op_target) | 仅做布尔标志与 issuer 列表集合比较，不读取 Realm state |
-| `confidentiality` (`constraint_subkind=encryption`，依赖 Realm 加密态：需对照 Realm `encryption_profile`、active Audit Applet Binding 或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, frontier_digest) | 仅这些依赖项走 slow path |
-| `confidentiality` (`constraint_subkind=visibility`) | `realm_state` | (realm_id, frontier_digest) | 看 Realm `history_access` |
+| `confidentiality` (`constraint_subkind=encryption`，依赖 scope 加密态：需对照 scope 的 MLS 激活状态或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, source_commit_ref) | 仅这些依赖项走 slow path |
+| `confidentiality` (`constraint_subkind=visibility`) | `realm_state` | (realm_id, source_commit_ref) | 看 Realm `history_access` |
 
 落地要点：
 
@@ -478,9 +478,9 @@ quota authority MUST 同时满足：
 
 ### 9.3 Approval signature replay protection（normative）
 
-**Approval signature** 是独立的 replay 防护证据。它由 approver DID 签发并绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明“某 approver 批准了该 Move”；其 nonce 命名空间不得与其它 challenge 或签名证据共享。
+**Approval signature** 是独立的 replay 防护证据。它由 approver DID 签发并绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明“某 approver 批准了该 Event”；其 nonce 命名空间不得与其它 challenge 或签名证据共享。
 
-无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Move 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `signature_invalid`）：
+无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Event 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `signature_invalid`）：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
@@ -607,7 +607,7 @@ quota authority MUST 同时满足：
 }
 ```
 
-**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` 这些布尔/枚举标志，以及 `approved_key_issuers` 的列表成员比较（"某 issuer DID 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 Realm 当前加密态时——即比较 Realm `encryption_profile` / active Audit Applet Binding，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuers` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
+**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` 这些布尔/枚举标志，以及 `approved_key_issuers` 的列表成员比较（"某 issuer DID 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 scope 当前加密态时——即比较 scope 的 MLS 激活状态，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuers` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
 
 ## 13. 可见性控制（confidentiality, constraint_subkind=visibility）
 
@@ -733,7 +733,7 @@ function evaluate_constraints(operation, grant_constraints):
     return DENIED
 ```
 
-实现 SHOULD 按 §2.3 的 `evaluation_class` 分组：先跑 `stateless` 与 `grant_local` 的 fast path（命中即可短路返回 DENIED / QUARANTINED / REQUIRES_REVIEW），再跑 `realm_state` 与 `external` 的 slow path（必要时走异步 / 缓存绑定 frontier）。`external` 类约束 MUST NOT 缓存。
+实现 SHOULD 按 §2.3 的 `evaluation_class` 分组：先跑 `stateless` 与 `grant_local` 的 fast path（命中即可短路返回 DENIED / QUARANTINED / REQUIRES_REVIEW），再跑 `realm_state` 与 `external` 的 slow path（必要时走异步 / 缓存绑定 checkpoint）。`external` 类约束 MUST NOT 缓存。
 
 ### 15.4 跨 grant 全局合并（normative）
 
@@ -932,7 +932,7 @@ function matches_field_access(operation, constraint):
 
 #### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
 
-`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ak.component.moderation_state.v1` typed current result”，从而决定该 typed current result 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `moderation_state` typed current result”，从而决定该 typed current result 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
 
 - 默认 `false`：普通 grant（`ak.strand.update` / `ak.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
 - 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / typed current result）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
@@ -1129,7 +1129,7 @@ Grant envelope 字段、签名规则与必填性以
 Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_depth`、
 `authority_path`、`authority_regrant_allowed` 见 §7.1。
 
-#### 20.3.5 Container Move Scope Constraint
+#### 20.3.5 Container Event Scope Constraint
 
 看板拖拽和有序集合移动 SHOULD 使用 `scope_limitation` constraint 的容器移动字段限定范围。完整字段
 见 §6.3；下例展示 grant 上下文中的常见组合：

@@ -1,9 +1,10 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.2",
+  "generated_at": "2026-09-16T10:50:00+08:00",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
-    "kind": "Arkret-owned discriminators, routing dimensions, registry families, and reducer/lattice dispatch.",
+    "kind": "Arkret-owned discriminators, routing dimensions, registry families, and reducer/authority-ordered projection dispatch.",
     "type": "Exact round-trip fields inherited from an external standard. Arkret-owned classification fields are forbidden on this axis.",
     "class": "Finite, unordered, closed classifications that do not select incompatible object shapes.",
     "tier": "Finite classifications with a declared strict total order and comparison semantics."

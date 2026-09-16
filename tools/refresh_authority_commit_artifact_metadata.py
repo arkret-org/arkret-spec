@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "spec/v1/artifacts"
 CONTRACT = ARTIFACTS / "registry/contract-registry.json"
 REFERENCE = ARTIFACTS / "reports/artifact-version-digests.json"
-VERSION = "2026-09-16.9"
-GENERATED_AT = "2026-09-16T19:00:00+08:00"
+VERSION = "2026-09-16.10"
+GENERATED_AT = "2026-09-16T21:30:00+08:00"
 
 
 def load(path: Path) -> Any:

@@ -71,15 +71,12 @@ except ImportError:  # pragma: no cover - CI installs the dependency.
     ChaCha20Poly1305 = None
 
 
-
 def sha256_text(value: str) -> str:
     return "sha256:" + hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-
 def base64url_text(value: str) -> str:
     return base64.urlsafe_b64encode(value.encode("utf-8")).rstrip(b"=").decode("ascii")
-
 
 
 def sha256_base64url_text(value: str) -> str:
@@ -127,7 +124,6 @@ def mls_expand_with_label_sha256(
         + context
     )
     return hkdf_expand_sha256(secret, info, length)
-
 
 
 def check_content_bound_event_id_fixture(lint: Lint) -> None:
@@ -340,7 +336,6 @@ def check_operation_selector_fixture(lint: Lint) -> None:
             signature_path,
             "signed request with an uncovered Arkret-Operation selector must fail closed",
         )
-
 
 
 def check_fixture_runner_contract(lint: Lint) -> None:
@@ -565,7 +560,6 @@ def check_erasure_verification_contract(lint: Lint) -> None:
             lint.fail(receipt_schema_path, "retained_stub must reference the standalone schema truth source")
 
 
-
 def check_producer_allocated_identity_vectors(lint: Lint) -> None:
     """Require the registry-driven five-case collision suite for every producer ID kind."""
     registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
@@ -605,7 +599,6 @@ def check_producer_allocated_identity_vectors(lint: Lint) -> None:
     }
     if actual_cases != expected_cases:
         lint.fail(fixture_path, "producer identity fixture must contain the closed five-case matrix")
-
 
 
 def check_applet_revoke_saga_contract(lint: Lint) -> None:
@@ -799,7 +792,6 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
                 )
 
 
-
 def check_normative_clause_registry(lint: Lint) -> None:
     """Reverse coverage: every registered normative clause must have live evidence.
 
@@ -924,7 +916,6 @@ def check_normative_clause_registry(lint: Lint) -> None:
     missing = included_categories - covered_categories
     if missing:
         lint.fail(path, f"coverage_scope.included_categories has no active clause: {sorted(missing)}")
-
 
 
 def check_vector_registry(lint: Lint) -> None:
@@ -1105,7 +1096,6 @@ def check_vector_registry(lint: Lint) -> None:
             )
 
 
-
 def check_cryptographic_suite_kat_bindings(lint: Lint) -> None:
     vector_path = ARTIFACTS / "registry" / "vector-registry.json"
     vector_registry = load_json(lint, vector_path)
@@ -1153,7 +1143,6 @@ def check_cryptographic_suite_kat_bindings(lint: Lint) -> None:
                     lint.fail(path, f"{label} status=reserved MUST NOT declare kat_vector_id")
                 if not isinstance(absence_reason, str) or not absence_reason.strip():
                     lint.fail(path, f"{label} status=reserved requires kat_absence_reason")
-
 
 
 def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -1299,7 +1288,6 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
             lint.fail(path, f"{label}.source_refs must include at least one source that mentions {key_pattern}")
 
 
-
 def check_vector_reference_closure(lint: Lint) -> None:
     definition_paths = [
         SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md",
@@ -1325,7 +1313,6 @@ def check_vector_reference_closure(lint: Lint) -> None:
         for vector_id in sorted(set(VECTOR_ID_TOKEN_RE.findall(text))):
             if vector_id not in known_vectors:
                 lint.fail(path, f"references undefined conformance vector id: {vector_id}")
-
 
 
 def check_security_closure_fixture(lint: Lint) -> None:
@@ -1441,7 +1428,6 @@ def check_security_closure_fixture(lint: Lint) -> None:
         lint.fail(path, f"missing required security closure vector fixture: {vector_id}")
 
 
-
 def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, Any]) -> None:
     vector_id = "ak.vector.aead.full_width_counter_nonce.v1"
     covers = data.get("covers_vectors")
@@ -1480,207 +1466,6 @@ def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, A
     if expected.get("high_order_zero_bytes") != leading_zeroes:
         lint.fail(path, "full-width counter nonce KAT high_order_zero_bytes drift")
 
-def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]) -> None:
-    cases = {
-        case.get("name"): case
-        for case in data.get("cases", [])
-        if isinstance(case, dict) and isinstance(case.get("name"), str)
-    }
-    case = cases.get("mls_exporter_aead_encrypt_decrypt_transcript")
-    if not isinstance(case, dict):
-        lint.fail(path, "exporter AEAD encrypt/decrypt transcript is missing")
-        return
-    inputs = case.get("input")
-    expected = case.get("expected")
-    if not isinstance(inputs, dict) or not isinstance(expected, dict):
-        lint.fail(path, "exporter AEAD transcript input/expected must be objects")
-        return
-
-    outer = inputs.get("outer_signed_event")
-    group = inputs.get("exact_group_state")
-    envelope = inputs.get("wire_envelope_without_ciphertext")
-    encryption_context = (
-        envelope.get("encryption_context") if isinstance(envelope, dict) else None
-    )
-    sender_domain = inputs.get("verified_sender_domain")
-    if (
-        not all(
-            isinstance(value, dict)
-            for value in (outer, group, envelope, encryption_context)
-        )
-        or not isinstance(sender_domain, str)
-    ):
-        lint.fail(path, "exporter AEAD transcript omits a closed header input")
-        return
-
-    effective_scope = outer.get("effective_scope")
-    if not isinstance(effective_scope, dict) or effective_scope.get("kind") != "realm":
-        lint.fail(path, "exporter AEAD transcript effective scope must be a Realm")
-        return
-    realm_id = effective_scope.get("realm_id")
-    if not isinstance(realm_id, str):
-        lint.fail(path, "exporter AEAD transcript omits realm_id")
-        return
-    expected_group_id = (
-        base64.urlsafe_b64encode(realm_id.encode("utf-8"))
-        .rstrip(b"=")
-        .decode("ascii")
-    )
-    if group.get("mls_group_id") != expected_group_id:
-        lint.fail(path, "exporter AEAD transcript group id is not derived from effective scope")
-    if (
-        group.get("content_scheme") != "mls_exporter_aead_v1"
-        or group.get("ciphersuite_id")
-        != "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
-    ):
-        lint.fail(path, "exporter AEAD transcript uses the wrong closed crypto profile")
-
-    verification_method = outer.get("producer_verification_method")
-    method_fragment = (
-        verification_method.rsplit("#", 1)[1]
-        if isinstance(verification_method, str) and "#" in verification_method
-        else None
-    )
-    if method_fragment is None or sender_domain != f"ak:device:{method_fragment}":
-        lint.fail(
-            path,
-            "exporter AEAD sender domain does not match the verified producer method",
-        )
-
-    header = {
-        "purpose": "arkret_event_content",
-        "envelope_version": envelope.get("version"),
-        "content_type": envelope.get("content_type"),
-        "scheme": group.get("content_scheme"),
-        "effective_scope": effective_scope,
-        "event_kind": outer.get("kind"),
-        "mls_group_id": group.get("mls_group_id"),
-        "epoch": encryption_context.get("epoch"),
-        "group_state_ref": encryption_context.get("group_state_ref"),
-        "sender_domain": sender_domain,
-        "counter": encryption_context.get("counter"),
-        "routing_context": {"kind": "none"},
-    }
-    if expected.get("reconstructed_pre_encryption_header") != header:
-        lint.fail(path, "exporter AEAD reconstructed pre-encryption header drifted")
-    aad = canonical_json(header).encode("utf-8")
-    if expected.get("aead_aad_canonical_json") != aad.decode("utf-8"):
-        lint.fail(
-            path,
-            "exporter AEAD canonical AAD is not derived from the reconstructed header",
-        )
-
-    try:
-        epoch_content_root = bytes.fromhex(inputs["epoch_content_root_hex"])
-        plaintext = bytes.fromhex(inputs["plaintext_hex"])
-        carried_key = bytes.fromhex(inputs["content_key_hex"])
-        carried_nonce = bytes.fromhex(expected["derived_nonce_hex"])
-        carried_ciphertext = bytes.fromhex(expected["ciphertext_with_tag_hex"])
-        opened_plaintext = bytes.fromhex(expected["opened_plaintext_hex"])
-        counter = encryption_context["counter"]
-    except (KeyError, TypeError, ValueError):
-        lint.fail(
-            path,
-            "exporter AEAD transcript contains malformed hexadecimal or counter input",
-        )
-        return
-    if (
-        len(epoch_content_root) != 32
-        or len(carried_key) != 16
-        or len(carried_nonce) != 12
-        or len(carried_ciphertext) < 16
-    ):
-        lint.fail(path, "exporter AEAD transcript uses invalid key, nonce or tag lengths")
-        return
-    if not isinstance(counter, int) or counter < 0 or counter >= 1 << 64:
-        lint.fail(path, "exporter AEAD transcript counter is outside uint64")
-        return
-    derived_key = mls_expand_with_label_sha256(
-        epoch_content_root, "ak.content-v1", sender_domain.encode("utf-8"), 16
-    )
-    if carried_key != derived_key:
-        lint.fail(
-            path,
-            "exporter AEAD content key is not derived from history secret and sender domain",
-        )
-    nonce = counter.to_bytes(12, "big")
-    if carried_nonce != nonce:
-        lint.fail(path, "exporter AEAD nonce is not I2OSP(counter, AEAD.Nn)")
-    if opened_plaintext != plaintext:
-        lint.fail(path, "exporter AEAD opened plaintext does not match transcript input")
-
-    required_mutations = {
-        "envelope_version",
-        "content_type",
-        "outer_event.kind",
-        "outer_event.effective_scope",
-        "producer_verification_method",
-        "group_state_ref",
-        "content_scheme",
-        "counter",
-        "ciphertext_tag",
-    }
-    negative_mutations = expected.get("negative_mutations")
-    if not isinstance(negative_mutations, list) or set(negative_mutations) != required_mutations:
-        lint.fail(path, "exporter AEAD negative mutation matrix drifted")
-    if AESGCM is None or InvalidTag is None:
-        lint.fail(path, "cryptography is required to verify the exporter AEAD transcript")
-        return
-    actual_ciphertext = AESGCM(derived_key).encrypt(nonce, plaintext, aad)
-    if carried_ciphertext != actual_ciphertext:
-        lint.fail(
-            path,
-            "exporter AEAD ciphertext/tag is not derived from the declared KDF, nonce, plaintext and AAD",
-        )
-        return
-    try:
-        actual_plaintext = AESGCM(derived_key).decrypt(nonce, carried_ciphertext, aad)
-    except InvalidTag:
-        lint.fail(path, "exporter AEAD registered transcript does not open")
-        return
-    if actual_plaintext != plaintext:
-        lint.fail(path, "exporter AEAD registered transcript opens to different plaintext")
-
-    mutated_header = dict(header)
-    mutated_header["event_kind"] = "ak.message.update"
-    mutated_aad = canonical_json(mutated_header).encode("utf-8")
-    mutated_ciphertext = bytearray(carried_ciphertext)
-    mutated_ciphertext[-1] ^= 1
-    mutated_root = bytes((epoch_content_root[0] ^ 1,)) + epoch_content_root[1:]
-    mutations = (
-        (
-            "epoch_content_root",
-            mls_expand_with_label_sha256(
-                mutated_root,
-                "ak.content-v1",
-                sender_domain.encode("utf-8"),
-                16,
-            ),
-            aad,
-            carried_ciphertext,
-        ),
-        (
-            "sender_domain",
-            mls_expand_with_label_sha256(
-                epoch_content_root,
-                "ak.content-v1",
-                (sender_domain + "x").encode("utf-8"),
-                16,
-            ),
-            aad,
-            carried_ciphertext,
-        ),
-        ("aad", derived_key, mutated_aad, carried_ciphertext),
-        ("ciphertext_tag", derived_key, aad, bytes(mutated_ciphertext)),
-    )
-    for label, key, test_aad, ciphertext in mutations:
-        try:
-            AESGCM(key).decrypt(nonce, ciphertext, test_aad)
-        except InvalidTag:
-            continue
-        lint.fail(path, f"exporter AEAD {label} mutation did not fail closed")
-
-
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
     fixture_dir = ARTIFACTS / "fixtures"
     registry_path = ARTIFACTS / "registry" / "contract-registry.json"
@@ -1702,7 +1487,6 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         check_fixture_operation_contracts(lint, path, data, operation_contracts)
         if path.name == "arkret-private-kdf-fixture.json" and isinstance(data, dict):
             check_private_kdf_full_width_nonce(lint, path, data)
-            check_private_kdf_exporter_aead(lint, path, data)
         if path.name == "producer-allocated-identity-collision-fixture.json":
             expected_parameter_source = {
                 "registry": "registry/contract-registry.json#id_kind_registry.id_kinds",
@@ -1958,16 +1742,6 @@ def check_declared_schema_fixture_instances(lint: Lint) -> None:
                 if (
                     owner.name == "read-cursor-multi-device-merge-fixture.json"
                     and key == "shared"
-                ):
-                    key_negative = True
-                # Proof transcripts are digest inputs, not wire instances: an
-                # unsigned projection deletes a member its family schema marks
-                # required, and a binding object that binds a `schema` field is
-                # not an instance of that schema. Their bytes are verified by
-                # proof_context_transcripts instead.
-                if (
-                    owner.name == "proof-context-transcript-fixture.json"
-                    and key in ("unsigned_object", "binding_object")
                 ):
                     key_negative = True
                 visit(owner, child, f"{pointer}/{key}", key_negative)
@@ -2505,7 +2279,6 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
         check_json_instance_against_schema(lint, fixture_path, name, schema_ref, instance)
 
 
-
 def check_snapshot_merkle_fixture(lint: Lint) -> None:
     """Execute the snapshot RFC 6962 root KAT, including actor subranges."""
 
@@ -2704,7 +2477,6 @@ def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> 
                 )
 
 
-
 def check_crypto_signature_fixture(lint: Lint) -> None:
     path = ARTIFACTS / "fixtures" / "crypto-signature-fixture.json"
     data = load_json(lint, path)
@@ -2782,39 +2554,6 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
         lint.fail(path, f"each active signature vector needs an algorithm-specific negative case: {sorted(missing_algorithm_negatives)}")
 
 
-
-def check_actor_frontier_digest_fixture(lint: Lint, path: Path, data: dict[str, Any]) -> None:
-    """Pin the specialized Actor frontier KAT and each schema-case transcript."""
-    from .frontier_reduction import check_frontier_reduction_fixture
-    check_frontier_reduction_fixture(lint, path, data)
-    domain = "ak-realm-actor-frontier-v1\0"
-    fields = {"kind", "realm_id", "actor_id", "next_actor_seq", "frontier_event_ids"}
-    vector = data.get("actor_frontier_digest")
-    if not isinstance(vector, dict):
-        lint.fail(path, "missing actor_frontier_digest KAT")
-        return
-    if vector.get("transcript_label_utf8_nul") != domain:
-        lint.fail(path, "Actor frontier transcript label mismatch")
-    canonical = vector.get("canonical_json")
-    try:
-        body = json.loads(canonical) if isinstance(canonical, str) else None
-    except json.JSONDecodeError:
-        body = None
-    if not isinstance(body, dict) or set(body) != fields or not isinstance(body.get("actor_id"), dict):
-        lint.fail(path, "Actor frontier KAT must bind the complete ActorId and exact transcript fields")
-    elif canonical != canonical_json(body):
-        lint.fail(path, "Actor frontier KAT canonical_json is not canonical")
-    elif vector.get("expected_digest") != sha256_text(domain + canonical):
-        lint.fail(path, "Actor frontier KAT digest mismatch")
-    for case in data.get("schema_validation_cases", []):
-        body = case.get("instance") if isinstance(case, dict) else None
-        if not isinstance(body, dict) or body.get("kind") != "realm_actor" or not fields <= body.keys():
-            continue
-        expected = sha256_text(domain + canonical_json({key: body[key] for key in fields}))
-        if body.get("frontier_digest") != expected:
-            lint.fail(path, f"Actor frontier schema case {case.get('name')!r} digest mismatch")
-
-
 def check_canonical_digest_fixtures(lint: Lint) -> None:
     """T4-1: canonical-JSON recompute guard.
 
@@ -2860,8 +2599,6 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
         data = load_json(lint, fixture_path)
         if data is None:
             continue
-        if fixture_path.name == "sync-fixture.json" and isinstance(data, dict):
-            check_actor_frontier_digest_fixture(lint, fixture_path, data)
 
         for case in iter_dict_nodes(data):
             for input_key, digest_key in shapes:
@@ -2920,8 +2657,6 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                         f"digest mismatch: domain separator plus {input_key!r} canonical bytes produce "
                         f"{recomputed} but {digest_key!r}={expected}",
                     )
-
-
 
 
 def check_direct_conversation_digest_vectors(lint: Lint) -> None:
@@ -3113,7 +2848,6 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
         )
 
 
-
 def _stated_preimage_bytes(source: str, decoding: str) -> bytes | None:
     if decoding == "utf8":
         return source.encode("utf-8")
@@ -3130,7 +2864,6 @@ def _stated_preimage_bytes(source: str, decoding: str) -> bytes | None:
     raise AssertionError(f"unknown stated-preimage decoding: {decoding}")
 
 
-
 def _stated_digest(data: bytes, encoding: str) -> str:
     digest = hashlib.sha256(data).digest()
     if encoding == "sha256_hex":
@@ -3140,7 +2873,6 @@ def _stated_digest(data: bytes, encoding: str) -> str:
     if encoding == "base64url":
         return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
     raise AssertionError(f"unknown stated-digest encoding: {encoding}")
-
 
 
 def check_schema_fixture_canonical_public_material(lint: Lint) -> None:
@@ -3176,7 +2908,6 @@ def check_schema_fixture_canonical_public_material(lint: Lint) -> None:
             fixture_path,
             "schema fixture must retain a CanonicalPublicMaterial structural case",
         )
-
 
 
 def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
@@ -3267,7 +2998,6 @@ def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
             walk(fixture, fixture_path, fixture_path.name in PLACEHOLDER_DIGEST_FIXTURES)
 
 
-
 def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
     fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
     fixture = load_json(lint, fixture_path)
@@ -3337,7 +3067,6 @@ def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
         lint.fail(schema_path, "Event Batch Receipt events must set uniqueItems=true")
 
 
-
 def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
     fixture = load_json(lint, fixture_path)
@@ -3381,7 +3110,6 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     expected_digest = "sha256:" + hashlib.sha256(canonical_metadata.encode("utf-8") + ciphertext).hexdigest()
     if vector.get("expected_digest") != expected_digest:
         lint.fail(fixture_path, "Encrypted Envelope expected_digest mismatch")
-
 
 
 def check_one_of_branch_discriminability(lint: Lint) -> None:
@@ -3573,7 +3301,6 @@ def check_one_of_branch_discriminability(lint: Lint) -> None:
             )
 
 
-
 def check_string_profile_format_vectors(lint: Lint) -> None:
     """The custom string formats must keep one executable vector set.
 
@@ -3699,7 +3426,6 @@ def check_string_profile_format_vectors(lint: Lint) -> None:
         lint.fail(fixture_path, f"custom format has no vector: {format_name}")
 
 
-
 def check_declared_canonical_json_strings(lint: Lint) -> None:
     """A fixture field named `*_canonical_json` MUST actually be canonical.
 
@@ -3739,1061 +3465,6 @@ def check_declared_canonical_json_strings(lint: Lint) -> None:
 
         walk(data, "")
 
-
-
-def check_reducer_profile_registry(lint: Lint) -> None:
-    registry_path = ARTIFACTS / "registry" / "reducer-profile-registry.json"
-    registry = load_json(lint, registry_path)
-    if not isinstance(registry, dict):
-        return
-    rows = registry.get("profiles")
-    if not isinstance(rows, list) or not rows:
-        lint.fail(registry_path, "profiles must be a non-empty array")
-        return
-
-    profile_pattern = re.compile(r"^ak\.reducer(?:\.[a-z0-9][a-z0-9_.-]*)?\.v[0-9]+$")
-    release_gate = registry.get("upgrade_release_gate")
-    required_edge_vector_cases = {
-        "successful_transition",
-        "source_head_eq_precondition",
-        "unregistered_target",
-        "undeclared_edge",
-        "concurrent_upgrade_conflict",
-    }
-    if not isinstance(release_gate, dict):
-        lint.fail(registry_path, "upgrade_release_gate must be an object")
-        release_gate = {}
-    configured_cases = release_gate.get("required_edge_vector_cases")
-    if (
-        not isinstance(configured_cases, list)
-        or set(configured_cases) != required_edge_vector_cases
-        or len(configured_cases) != len(required_edge_vector_cases)
-    ):
-        lint.fail(
-            registry_path,
-            "upgrade_release_gate.required_edge_vector_cases must name the complete closed upgrade case set",
-        )
-    if release_gate.get("successor_profile_requires_inbound_edge") is not True:
-        lint.fail(
-            registry_path,
-            "upgrade_release_gate.successor_profile_requires_inbound_edge must be true",
-        )
-
-    ids: set[str] = set()
-    for index, row in enumerate(rows):
-        if not isinstance(row, dict):
-            lint.fail(registry_path, f"profiles[{index}] must be an object")
-            continue
-        profile_id = row.get("profile_id")
-        if not isinstance(profile_id, str) or not profile_pattern.fullmatch(profile_id):
-            lint.fail(registry_path, f"profiles[{index}].profile_id must use ak.reducer.*.vN")
-            continue
-        if profile_id in ids:
-            lint.fail(registry_path, f"duplicate reducer profile id: {profile_id}")
-        ids.add(profile_id)
-        if row.get("status") != "active":
-            lint.fail(registry_path, f"{profile_id} status must be active")
-        if not isinstance(row.get("governs"), list) or not row["governs"]:
-            lint.fail(registry_path, f"{profile_id} must declare governs[]")
-        if not isinstance(row.get("supported_state_models"), list) or not row["supported_state_models"]:
-            lint.fail(registry_path, f"{profile_id} must declare supported_state_models[]")
-        edges = row.get("upgrade_edges")
-        if not isinstance(edges, list):
-            lint.fail(registry_path, f"{profile_id}.upgrade_edges must be an array")
-
-    genesis_profile = release_gate.get("genesis_profile")
-    if not isinstance(genesis_profile, str) or genesis_profile not in ids:
-        lint.fail(registry_path, "upgrade_release_gate.genesis_profile must identify a registered profile")
-
-    vector_registry_path = ARTIFACTS / "registry" / "vector-registry.json"
-    vector_registry = load_json(lint, vector_registry_path)
-    active_vector_ids = {
-        row.get("vector_id")
-        for row in (vector_registry.get("vectors", []) if isinstance(vector_registry, dict) else [])
-        if isinstance(row, dict) and row.get("status") == "active"
-    }
-    inbound_targets: set[str] = set()
-    edge_count = 0
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        for edge_index, edge in enumerate(row.get("upgrade_edges", [])):
-            edge_count += 1
-            if not isinstance(edge, dict):
-                lint.fail(registry_path, f"{row.get('profile_id')}.upgrade_edges[{edge_index}] must be an object")
-                continue
-            target = edge.get("target_profile")
-            transition = edge.get("state_transition")
-            if target not in ids:
-                lint.fail(registry_path, f"upgrade edge target is not registered: {target}")
-            else:
-                inbound_targets.add(target)
-            if target == row.get("profile_id"):
-                lint.fail(registry_path, f"{row.get('profile_id')} must not declare a self upgrade edge")
-            if transition != "identity" and not isinstance(transition, dict):
-                lint.fail(registry_path, "upgrade edge state_transition must be identity or a deterministic transition object")
-            vector_bindings = edge.get("conformance_vectors")
-            if not isinstance(vector_bindings, dict) or set(vector_bindings) != required_edge_vector_cases:
-                lint.fail(
-                    registry_path,
-                    f"{row.get('profile_id')}.upgrade_edges[{edge_index}].conformance_vectors "
-                    "must bind every required upgrade case exactly once",
-                )
-                continue
-            for case_name, vector_id in vector_bindings.items():
-                if not isinstance(vector_id, str) or vector_id not in active_vector_ids:
-                    lint.fail(
-                        registry_path,
-                        f"upgrade vector binding {case_name} must reference an active vector: {vector_id}",
-                    )
-
-    declared_edge_state = release_gate.get("current_v1_has_active_upgrade_edges")
-    if not isinstance(declared_edge_state, bool) or declared_edge_state != (edge_count > 0):
-        lint.fail(
-            registry_path,
-            "upgrade_release_gate.current_v1_has_active_upgrade_edges must match the published edge set",
-        )
-    if release_gate.get("successor_profile_requires_inbound_edge") is True:
-        for profile_id in sorted(ids - {genesis_profile}):
-            if profile_id not in inbound_targets:
-                lint.fail(
-                    registry_path,
-                    f"successor reducer profile has no published inbound upgrade edge: {profile_id}",
-                )
-
-    event_schema_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
-    event_schema = load_json(lint, event_schema_path)
-    requirement_properties = (
-        event_schema.get("properties", {}).get("requirements", {}).get("properties", {})
-        if isinstance(event_schema, dict)
-        else {}
-    )
-    if "reducer" in requirement_properties:
-        lint.fail(event_schema_path, "Event requirements must not declare reducer selection")
-
-    realm_schema_path = ARTIFACTS / "schemas" / "realm.schema.json"
-    realm_schema = load_json(lint, realm_schema_path)
-    if isinstance(realm_schema, dict):
-        if "reducer_profile" not in realm_schema.get("required", []):
-            lint.fail(realm_schema_path, "Realm.reducer_profile must be required")
-        reducer_property = realm_schema.get("properties", {}).get("reducer_profile")
-        if not isinstance(reducer_property, dict) or reducer_property.get("pattern") != profile_pattern.pattern:
-            lint.fail(realm_schema_path, "Realm.reducer_profile must use the canonical reducer profile pattern")
-
-    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
-    event_registry = load_json(lint, event_registry_path)
-    event_rows = event_registry.get("event_kinds", []) if isinstance(event_registry, dict) else []
-    by_kind = {
-        row.get("event_kind"): row
-        for row in event_rows
-        if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
-    }
-    expected_family = "ak.component.realm.reducer_profile.v1"
-    create_writes = by_kind.get("ak.realm.create", {}).get("cell_writes", [])
-    upgrade_writes = by_kind.get("ak.realm.upgrade", {}).get("cell_writes", [])
-    create_profile_writes = [write for write in create_writes if write.get("cell_family") == expected_family]
-    upgrade_profile_writes = [write for write in upgrade_writes if write.get("cell_family") == expected_family]
-    if len(create_profile_writes) != 1 or create_profile_writes[0].get("cell_subject") is not None:
-        lint.fail(event_registry_path, "ak.realm.create must initialize exactly one reducer-profile singleton cell")
-    if len(upgrade_profile_writes) != 1 or upgrade_profile_writes[0].get("cell_subject") is not None:
-        lint.fail(event_registry_path, "ak.realm.upgrade must write exactly one reducer-profile singleton cell")
-
-    dto_path = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
-    dto_schema = load_json(lint, dto_path)
-    binding = dto_schema.get("$defs", {}).get("FederationServiceBindingRef", {}) if isinstance(dto_schema, dict) else {}
-    binding_properties = binding.get("properties", {}) if isinstance(binding, dict) else {}
-    if any(name in binding_properties for name in ("reducer_profile", "reducer_profile_digest")):
-        lint.fail(dto_path, "FederationServiceBindingRef must not carry reducer identity")
-
-    describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
-    describe = load_json(lint, describe_path)
-    supported = describe.get("properties", {}).get("supported_reducer_profiles") if isinstance(describe, dict) else None
-    if not isinstance(supported, dict):
-        lint.fail(describe_path, "ServiceDescribe must declare supported_reducer_profiles")
-
-
-
-def check_mls_governance_proof_fixture(lint: Lint) -> None:
-    path = ARTIFACTS / "fixtures" / "mls-governance-proof-fixture.json"
-    data = load_json(lint, path)
-    if not isinstance(data, dict):
-        return
-
-    expected_vectors = {
-        "ak.vector.mls.governance_proof.verifier.v1",
-        "ak.vector.mls.governance_proof.materializer.v1",
-    }
-    if data.get("generated_by") != "tools/generate_mls_governance_proof_fixture.py":
-        lint.fail(path, "MLS governance fixture must name its deterministic generator")
-    if set(data.get("covers_vectors", [])) != expected_vectors:
-        lint.fail(path, "MLS governance fixture must cover verifier/materializer vectors exactly")
-    formula = data.get("page_digest_formula", {})
-    if not isinstance(formula, dict) or formula.get("domain") != "ak.mls-governance-proof-page-v1":
-        lint.fail(path, "MLS governance fixture must pin the v1 page-digest domain")
-
-    cases = data.get("cases")
-    expected_names = {
-        "genesis_base_equals_target",
-        "successor_base_equals_target",
-        "strict_descendant",
-        "confirmed_prefix_two_steps",
-    }
-    if not isinstance(cases, list) or {row.get("name") for row in cases if isinstance(row, dict)} != expected_names:
-        lint.fail(path, "MLS governance fixture must cover equal, descendant and multi-step confirmed-prefix cases")
-        return
-    for index, row in enumerate(cases):
-        if not isinstance(row, dict):
-            lint.fail(path, f"cases[{index}] must be an object")
-            continue
-        query = row.get("query")
-        query_digest = row.get("query_digest")
-        page_body = row.get("page_body_without_query_digest_and_page_digest")
-        outcome = row.get("outcome")
-        if not isinstance(query, dict) or not isinstance(page_body, dict) or not isinstance(outcome, dict):
-            lint.fail(path, f"cases[{index}] query/page_body/outcome must be objects")
-            continue
-        if query.get("profile") != "group_security_frontier":
-            lint.fail(path, f"cases[{index}] must use the sole near-current profile")
-        if not isinstance(query.get("proof_base_basis"), dict) or not isinstance(query.get("proof_target_basis"), dict):
-            lint.fail(path, f"cases[{index}] must carry complete SealBasis values")
-        expected_query_digest = "sha256:" + hashlib.sha256(
-            b"ak.mls-governance-proof-query-v1"
-            + b"\x00"
-            + canonical_json(query).encode("utf-8")
-        ).hexdigest()
-        if query_digest != expected_query_digest:
-            lint.fail(path, f"cases[{index}] query digest drifted")
-        digest_input = (
-            b"ak.mls-governance-proof-page-v1"
-            + b"\x00"
-            + expected_query_digest.encode("utf-8")
-            + b"\x00"
-            + canonical_json(page_body).encode("utf-8")
-        )
-        expected_digest = "sha256:" + hashlib.sha256(digest_input).hexdigest()
-        if row.get("expected_page_digest") != expected_digest:
-            lint.fail(path, f"cases[{index}] expected page digest drifted")
-        if outcome != {
-            "query_digest": expected_query_digest,
-            **page_body,
-            "page_digest": expected_digest,
-        }:
-            lint.fail(path, f"cases[{index}] outcome is not the exact query-digest/body composition")
-        forbidden = {
-            "proof_anchor_seal_ref", "proof_target_seal_ref", "from_epoch", "to_epoch",
-            "cursor", "continuation", "proof_result_set_id", "chunk_manifest",
-        }
-        if forbidden.intersection(query) or forbidden.intersection(outcome):
-            lint.fail(path, f"cases[{index}] contains a removed bulk/stateful field")
-
-    negatives = data.get("negative_cases")
-    expected_negative_names = {
-        "genesis_with_base_group_state_ref",
-        "successor_without_base_group_state_ref",
-        "concurrent_unreachable_basis",
-        "response_exceeds_byte_limit",
-        "multiple_same_realm_heads",
-        "multi_leaf_missing_branch",
-        "multi_leaf_duplicate_branch",
-        "multi_leaf_cross_root_witness",
-        "base_leaf_not_consumed",
-        "page_digest_mismatch",
-        "stateful_bulk_profile",
-    }
-    if not isinstance(negatives, list) or {row.get("name") for row in negatives if isinstance(row, dict)} != expected_negative_names:
-        lint.fail(path, "MLS governance frontier negative matrix drifted")
-
-    profile_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
-    profiles = load_json(lint, profile_path)
-    requirement = (
-        profiles.get("profile_requirements", {}).get("ak.profile.mls_governance_binding.full.v1", {})
-        if isinstance(profiles, dict)
-        else {}
-    )
-    required_operations = {
-        row.get("operation_id")
-        for row in requirement.get("operation_requirements", [])
-        if isinstance(row, dict)
-    }
-    if "ak.self.seals.read.mls_governance_proof.v1" not in required_operations:
-        lint.fail(profile_path, "MLS governance profile must require the typed Seal frontier endpoint")
-    if path.name not in requirement.get("required_fixtures", []):
-        lint.fail(profile_path, "MLS governance profile must require the frontier fixture")
-    return
-
-
-def backup_recovery_unlock_manifest_contract_errors(
-    fixture: dict[str, Any],
-    scalability: dict[str, Any],
-    operation_ids: set[str],
-    vector_registry: dict[str, Any],
-) -> list[str]:
-    """Validate the frozen-manifest recovery quota and its 300-scope KAT."""
-
-    errors: list[str] = []
-    access = scalability.get("backup_access")
-    ordinary = access.get("ordinary_download") if isinstance(access, dict) else None
-    recovery = access.get("recovery_session_unlock") if isinstance(access, dict) else None
-    unlock = access.get("unlock_operation") if isinstance(access, dict) else None
-    if not isinstance(ordinary, dict) or (
-        ordinary.get("window_seconds") != 86400
-        or ordinary.get("default_principal_download_limit") != 64
-        or ordinary.get("config_min_principal_download_limit") != 16
-        or ordinary.get("config_max_principal_download_limit") != 64
-        or ordinary.get("per_ip_unlock_burst") != 8
-        or ordinary.get("per_ip_unlock_sustained_per_minute") != 4
-    ):
-        errors.append("ordinary backup download limits must remain the closed 16..64 hardening profile")
-    if not isinstance(recovery, dict) or (
-        recovery.get("session_max_ttl_seconds") != 900
-        or recovery.get("completion_reserve_seconds") != 60
-        or recovery.get("allowances_per_manifest_entry") != 1
-        or recovery.get("max_concurrent_unlocks_per_session") != 8
-        or recovery.get("minimum_conformance_mls_scope_count") != 300
-    ):
-        errors.append("recovery-session manifest limits must pin 900 seconds, one allowance and the 300-scope floor")
-    single_operation = "ak.self.keys.backups.command.unlock.v1"
-    registered_unlock_operations = sorted(
-        operation_id
-        for operation_id in operation_ids
-        if operation_id.startswith("ak.self.keys.backups.") and "unlock" in operation_id
-    )
-    if not isinstance(unlock, dict) or (
-        unlock.get("operation_id") != single_operation
-        or unlock.get("request_cardinality") != "exactly_one_backup_id_from_path"
-        or unlock.get("batch_operation") is not None
-        or registered_unlock_operations != sorted([single_operation, "ak.self.keys.backups.command.issue_unlock_challenge.v1"])
-    ):
-        errors.append("v1 backup unlock must remain one registered single-object operation with no batch surface")
-
-    kat = fixture.get("backup_recovery_unlock_manifest_kat")
-    vector_id = "ak.vector.key_backup.recovery_session_manifest_capacity.v1"
-    if not isinstance(kat, dict):
-        return [*errors, "history recovery fixture must carry the frozen unlock manifest KAT"]
-    if (
-        kat.get("vector_id") != vector_id
-        or kat.get("classification") != "service_behavior"
-        or vector_id not in fixture.get("covers_vectors", [])
-    ):
-        errors.append("frozen unlock manifest KAT vector binding drifted")
-    registered = next(
-        (
-            row
-            for row in vector_registry.get("vectors", [])
-            if isinstance(row, dict) and row.get("vector_id") == vector_id
-        ),
-        None,
-    )
-    if not isinstance(registered, dict) or (
-        registered.get("status") != "active"
-        or registered.get("domain") != "key_backup"
-        or registered.get("applies_to_fixtures") != ["history-key-recovery-fixture.json"]
-    ):
-        errors.append("frozen unlock manifest vector must be active and bound to the history recovery fixture")
-
-    session = kat.get("session")
-    manifest = kat.get("frozen_manifest")
-    rate = kat.get("computed_recovery_rate")
-    outcome = kat.get("quota_outcome")
-    if not all(isinstance(value, dict) for value in (session, manifest, rate, outcome)):
-        return [*errors, "frozen unlock manifest KAT sections must be objects"]
-    assert isinstance(session, dict)
-    assert isinstance(manifest, dict)
-    assert isinstance(rate, dict)
-    assert isinstance(outcome, dict)
-
-    scope_count = manifest.get("mls_history_scope_count")
-    secret_storage_count = manifest.get("secret_storage_object_count")
-    entry_count = manifest.get("entry_count")
-    verified_at = session.get("verified_at_offset_seconds")
-    expires_at = session.get("expires_at_offset_seconds")
-    reserve = session.get("completion_reserve_seconds")
-    if not all(
-        isinstance(value, int) and not isinstance(value, bool)
-        for value in (scope_count, secret_storage_count, entry_count, verified_at, expires_at, reserve)
-    ):
-        errors.append("frozen unlock manifest KAT counts and offsets must be integers")
-        return errors
-    assert isinstance(scope_count, int)
-    assert isinstance(secret_storage_count, int)
-    assert isinstance(entry_count, int)
-    assert isinstance(verified_at, int)
-    assert isinstance(expires_at, int)
-    assert isinstance(reserve, int)
-    if (
-        scope_count < 300
-        or secret_storage_count != 1
-        or entry_count != scope_count + secret_storage_count
-        or manifest.get("allowances_per_entry") != 1
-        or manifest.get("total_allowances") != entry_count
-        or manifest.get("mutable_after_verified") is not False
-    ):
-        errors.append("frozen manifest must cover at least 300 MLS scopes plus secret storage with one immutable allowance each")
-    completion_window = expires_at - verified_at - reserve
-    if expires_at != 900 or reserve != 60 or completion_window <= 0:
-        errors.append("recovery manifest completion window must preserve the registered 900-second TTL and reserve")
-        return errors
-    expected_rate = (entry_count * 60 + completion_window - 1) // completion_window
-    actual_rate = rate.get("minimum_unlocks_per_minute")
-    if not isinstance(actual_rate, int) or isinstance(actual_rate, bool) or actual_rate < expected_rate:
-        errors.append("recovery manifest rate cannot complete the frozen entries before the reserved deadline")
-        return errors
-    expected_elapsed = (entry_count * 60 + actual_rate - 1) // actual_rate
-    deadline = expires_at - reserve
-    if (
-        rate.get("completed_unlocks") != entry_count
-        or rate.get("last_completion_offset_seconds") != expected_elapsed
-        or rate.get("completion_deadline_offset_seconds") != deadline
-        or expected_elapsed > deadline
-        or rate.get("completes_before_session_expiry") is not True
-    ):
-        errors.append("300-scope recovery schedule does not complete every allowance before session expiry")
-    if (
-        outcome.get("ordinary_24h_principal_counter_before")
-        != outcome.get("ordinary_24h_principal_counter_after")
-        or outcome.get("consumed_manifest_allowances") != entry_count
-        or outcome.get("remaining_manifest_allowances") != 0
-        or outcome.get("all_scope_objects_recovered") is not True
-        or outcome.get("fresh_device_proof_per_request") is not True
-        or outcome.get("object_bound_unlock_proof_per_request") is not True
-        or outcome.get("audit_per_request") is not True
-        or outcome.get("batch_request_count") != 0
-    ):
-        errors.append("recovery quota outcome must consume only per-object manifest allowances")
-    negative_by_name = {
-        row.get("name"): row
-        for row in kat.get("negative_cases", [])
-        if isinstance(row, dict) and isinstance(row.get("name"), str)
-    }
-    if set(negative_by_name) != {
-        "object_outside_frozen_manifest",
-        "consumed_allowance_reuse",
-        "manifest_mutation_after_verified",
-        "batch_unlock_request",
-    }:
-        errors.append("frozen unlock manifest negative matrix drifted")
-    else:
-        if negative_by_name["object_outside_frozen_manifest"].get("ordinary_counter_fallback") is not False:
-            errors.append("an object outside the manifest must not fall back to ordinary quota")
-        if negative_by_name["consumed_allowance_reuse"].get("ciphertext_returned") is not False:
-            errors.append("a consumed recovery allowance must not return ciphertext again")
-        batch = negative_by_name["batch_unlock_request"]
-        if batch.get("operation_registered") is not False or batch.get("partial_outcome") is not False:
-            errors.append("batch unlock and partial outcomes must remain rejected")
-    return errors
-
-
-def check_history_scale_fixture(lint: Lint) -> None:
-    path = ARTIFACTS / "fixtures" / "history-key-recovery-fixture.json"
-    data = load_json(lint, path)
-    if not isinstance(data, dict):
-        return
-    runner = data.get("runner")
-    if not isinstance(runner, dict) or runner.get("scale_generator") != "tools/generate_history_scale_fixture.py":
-        lint.fail(path, "history recovery fixture must name its streaming scale generator")
-    removed_rhrk_vector_id = "ak.vector.mls_exporter_aead.rhrk_archive_durable_before_gc.v1"
-    private_kdf_path = ARTIFACTS / "fixtures" / "arkret-private-kdf-fixture.json"
-    private_kdf = load_json(lint, private_kdf_path)
-    vector_registry_path = ARTIFACTS / "registry" / "vector-registry.json"
-    vector_registry = load_json(lint, vector_registry_path)
-    scalability_path = ARTIFACTS / "registry" / "history-recovery-scalability-registry.json"
-    scalability = load_json(lint, scalability_path)
-    contract_registry = load_json(lint, ARTIFACTS / "registry" / "contract-registry.json")
-    operation_ids = {
-        row.get("operation_id")
-        for row in (
-            contract_registry.get("operation_registry", {}).get("operations", [])
-            if isinstance(contract_registry, dict)
-            else []
-        )
-        if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
-    }
-    if isinstance(scalability, dict) and isinstance(vector_registry, dict):
-        for error in backup_recovery_unlock_manifest_contract_errors(
-            data, scalability, operation_ids, vector_registry
-        ):
-            lint.fail(path, error)
-    if removed_rhrk_vector_id in canonical_json(data) or (
-        isinstance(private_kdf, dict) and removed_rhrk_vector_id in canonical_json(private_kdf)
-    ) or (
-        isinstance(vector_registry, dict)
-        and removed_rhrk_vector_id in canonical_json(vector_registry)
-    ):
-        lint.fail(path, "removed exporter-classified RHRK durability vector must not remain as an alias")
-
-    scope_cases = data.get("scope_and_endpoint_kats")
-    if not isinstance(scope_cases, list):
-        lint.fail(path, "history recovery fixture must carry scope/group KATs")
-    else:
-        for case_index, case in enumerate(scope_cases):
-            if not isinstance(case, dict):
-                continue
-            for branch in ("realm", "circle"):
-                scope_case = case.get(branch)
-                if not isinstance(scope_case, dict):
-                    continue
-                effective_scope = scope_case.get("effective_scope")
-                if not isinstance(effective_scope, dict):
-                    lint.fail(
-                        path,
-                        f"scope/group KAT {case_index}.{branch} omits effective_scope",
-                    )
-                    continue
-                kind = effective_scope.get("kind")
-                scope_key = effective_scope.get(
-                    "realm_id" if kind == "realm" else "circle_id" if kind == "circle" else ""
-                )
-                if not isinstance(scope_key, str) or not scope_key:
-                    lint.fail(
-                        path,
-                        f"scope/group KAT {case_index}.{branch} has no canonical scope key",
-                    )
-                    continue
-                scope_key_bytes = scope_key.encode("utf-8")
-                expected_group_id = (
-                    base64.urlsafe_b64encode(scope_key_bytes)
-                    .rstrip(b"=")
-                    .decode("ascii")
-                )
-                if scope_case.get("effective_scope_key_hex") != scope_key_bytes.hex():
-                    lint.fail(
-                        path,
-                        f"scope/group KAT {case_index}.{branch} scope-key bytes drifted",
-                    )
-                if scope_case.get("expected_mls_group_id") != expected_group_id:
-                    lint.fail(
-                        path,
-                        f"scope/group KAT {case_index}.{branch} group id is not derived from its scope key",
-                    )
-            if case.get("name") == "standard_fresh_endpoint_floor":
-                model = case.get("deterministic_model")
-                seed_hex = case.get("seed_hex")
-                if not isinstance(model, dict) or model.get("algorithm") != "ak.standard-fresh-endpoint-model.v1":
-                    lint.fail(path, "standard fresh endpoint KAT must freeze its executable model algorithm")
-                elif not isinstance(seed_hex, str):
-                    lint.fail(path, "standard fresh endpoint KAT omits its unique model seed")
-                else:
-                    try:
-                        seed = bytes.fromhex(seed_hex)
-                        for tag in model.get("transition_tags", []):
-                            operation = tag["operation"]
-                            epoch = tag["epoch"]
-                            actual = hashlib.sha256(
-                                seed + b"\x00" + operation.encode("utf-8") + epoch.to_bytes(8, "big")
-                            ).hexdigest()
-                            if tag.get("sha256_hex") != actual:
-                                lint.fail(path, f"standard fresh endpoint transition tag drifted at epoch {epoch}")
-                    except (KeyError, TypeError, ValueError) as exc:
-                        lint.fail(path, f"standard fresh endpoint model is not executable: {exc}")
-
-    response_stream = data.get("response_stream_cases")
-    if not isinstance(response_stream, dict):
-        lint.fail(path, "history response stream KAT must be structured input, not prose cases")
-    else:
-        wire = response_stream.get("wire_instances", {})
-        for label, schema_ref, instance in (
-            ("manifest send", "schemas/history-key.schema.json#/$defs/history_key_response_send_request_body", wire.get("manifest_send")),
-            ("first send receipt", "schemas/history-key.schema.json#/$defs/history_key_response_send_receipt", wire.get("first_send_receipt")),
-            ("sequence list", "schemas/history-key.schema.json#/$defs/history_key_response_list_outcome", wire.get("sequence_ordered_list")),
-            ("ack request", "schemas/history-key.schema.json#/$defs/history_key_response_ack_request_body", wire.get("ack_request")),
-            ("ack outcome", "schemas/history-key.schema.json#/$defs/history_key_response_ack_outcome", wire.get("ack_outcome")),
-        ):
-            check_json_instance_against_schema(lint, path, label, schema_ref, instance)
-        byte_exact = response_stream.get("byte_exact", {})
-        try:
-            first = base64.urlsafe_b64decode(byte_exact["first_receipt_jcs_b64u"] + "==")
-            retry = base64.urlsafe_b64decode(byte_exact["exact_retry_receipt_jcs_b64u"] + "==")
-            receipt_bytes = canonical_json(wire["first_send_receipt"]).encode("utf-8")
-            if first != receipt_bytes or retry != first:
-                lint.fail(path, "history response exact retry receipt bytes drifted")
-        except (KeyError, TypeError, ValueError) as exc:
-            lint.fail(path, f"history response exact retry bytes are not executable: {exc}")
-        negative_names = {
-            row.get("name") for row in response_stream.get("negative_cases", []) if isinstance(row, dict)
-        }
-        if negative_names != {"same_id_different_content", "bad_source", "out_of_order_ack"}:
-            lint.fail(path, "history response stream mutation matrix is incomplete")
-
-    rhrk_method = data.get("rhrk_registration_rotation_kat")
-    if not isinstance(rhrk_method, dict):
-        lint.fail(path, "RHRK registration/rotation KAT must be structured input")
-    else:
-        events = rhrk_method.get("events", {})
-        for label, schema_ref, instance in (
-            ("RHRK register Event", "schemas/event-envelope.schema.json", events.get("register")),
-            ("RHRK rotate Event", "schemas/event-envelope.schema.json", events.get("rotate")),
-            ("RHRK register payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_register_payload", events.get("register", {}).get("payload") if isinstance(events.get("register"), dict) else None),
-            ("RHRK rotate payload", "schemas/event-payload.schema.json#/$defs/organization_recovery_key_rotate_payload", events.get("rotate", {}).get("payload") if isinstance(events.get("rotate"), dict) else None),
-        ):
-            check_json_instance_against_schema(lint, path, label, schema_ref, instance)
-        documents = rhrk_method.get("did_documents", {})
-        if any(isinstance(document, dict) and "service" in document for document in documents.values()):
-            lint.fail(path, "RHRK KAT must not add an unregistered DID service-designation requirement")
-        mutation_names = {
-            row.get("name") for row in rhrk_method.get("negative_mutations", []) if isinstance(row, dict)
-        }
-        required_rhrk_mutations = {
-            "wrong_curve", "wrong_method_type", "wrong_key_length", "wrong_controller",
-            "wrong_holder_proof_domain", "holder_tuple_mismatch", "register_before_realm_create",
-            "rotate_before_register", "rotate_missing_head_eq", "rotate_stale_head_eq",
-            "rotate_provenance_event_mismatch", "rotate_provenance_seal_mismatch",
-        }
-        if mutation_names != required_rhrk_mutations:
-            lint.fail(path, "RHRK registration/rotation mutation matrix is incomplete or expanded")
-        register = events.get("register") if isinstance(events, dict) else None
-        rotate = events.get("rotate") if isinstance(events, dict) else None
-        seal = rhrk_method.get("accepted_key_evidence_seal")
-        projected_op = rhrk_method.get("projected_rotate_op")
-        if isinstance(register, dict) and isinstance(rotate, dict):
-            prior_tuple = {
-                "key_tuple": register.get("payload", {}).get("new_key_tuple"),
-                "accepted_key_evidence_ref": register.get("event_id"),
-                "holder_trusted_basis": register.get("payload", {}).get("holder_trusted_basis"),
-            }
-            expected_precondition = [{
-                "cell_id": "ak:cell:ak.component.realm.organization_recovery_key.v1:null",
-                "predicate": {"op": "head_eq", "value": prior_tuple},
-            }]
-            if rotate.get("preconditions") != expected_precondition:
-                lint.fail(path, "RHRK rotate must carry the exact whole-value signed head_eq")
-            # event-auth-state-resolution.md section 9.3.1.4 deleted the rule that
-            # copied a Move's head_eq into `op.from`, so a projected sequenced_state
-            # set MUST NOT carry a predecessor value at all. Causality travels as
-            # the head identities the Seal admission path derives from the Move's
-            # own signed basis. The signed business head_eq above is unaffected.
-            if not isinstance(projected_op, dict) or "from" in projected_op:
-                lint.fail(path, "a projected sequenced_state set MUST NOT carry op.from")
-            seal_ref_value = (
-                seal.get("seal_id") if isinstance(seal, dict) else None
-            )
-            seal_covered = (
-                seal.get("covered_event_refs", []) if isinstance(seal, dict) else []
-            )
-            rotate_payload = rotate.get("payload", {})
-            if (
-                seal_ref_value != rotate_payload.get("expected_previous_key_evidence_seal_ref")
-                or register.get("event_id") not in seal_covered
-                or rotate_payload.get("expected_previous_key_evidence_ref") != register.get("event_id")
-            ):
-                lint.fail(path, "RHRK rotate provenance must cite the accepted Seal covering register")
-        concurrency_names = {
-            row.get("name")
-            for row in rhrk_method.get("concurrency_cases", [])
-            if isinstance(row, dict)
-        }
-        if concurrency_names != {
-            "same_seal_stale_revision_has_rejected_outcome",
-            "conflicting_confirmed_security_values_halt_domain",
-        }:
-            lint.fail(path, "RHRK sequenced-state concurrency cases are incomplete")
-
-    rhrk = data.get("organization_recovery_archive_durable_before_gc_kat")
-    rhrk_vector_id = (
-        "ak.vector.history_key.organization_recovery_archive_durable_before_gc.v1"
-    )
-    if not isinstance(rhrk, dict):
-        lint.fail(path, "history recovery fixture must carry the executable RHRK durability KAT")
-    elif (
-        rhrk.get("vector_id") != rhrk_vector_id
-        or rhrk.get("classification") != "service_behavior"
-        or rhrk_vector_id not in data.get("covers_vectors", [])
-    ):
-        lint.fail(path, "RHRK durability KAT classification or vector registration drifted")
-    else:
-        registered_rhrk = next(
-            (
-                row
-                for row in vector_registry.get("vectors", [])
-                if isinstance(row, dict) and row.get("vector_id") == rhrk_vector_id
-            ),
-            None,
-        ) if isinstance(vector_registry, dict) else None
-        if (
-            not isinstance(registered_rhrk, dict)
-            or registered_rhrk.get("domain") != "history_key"
-            or registered_rhrk.get("applies_to_fixtures")
-            != ["history-key-recovery-fixture.json"]
-            or registered_rhrk.get("source_refs")
-            != [
-                "spec/v1/zh/governance/history-visibility.md",
-                "spec/v1/artifacts/fixtures/history-key-recovery-fixture.json",
-            ]
-        ):
-            lint.fail(
-                path,
-                "RHRK durability vector registry row must bind its normative prose and service fixture",
-            )
-        typed_instances = (
-            ("RHRK archive plaintext", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_plaintext", rhrk.get("hpke_transcript", {}).get("plaintext")),
-            ("RHRK archive", "schemas/event-payload.schema.json#/$defs/organization_recovery_archive", rhrk.get("archive")),
-            ("RHRK commit payload", "schemas/event-payload.schema.json#/$defs/mls_commit_payload", rhrk.get("container_event", {}).get("payload")),
-            ("RHRK container Event", "schemas/event-envelope.schema.json", rhrk.get("container_event")),
-            ("RHRK archive tuple", "schemas/history-key.schema.json#/$defs/archive_authorization_tuple", rhrk.get("archive_authorization_tuple")),
-            ("RHRK traversal retention", "schemas/history-key.schema.json#/$defs/history_governance_traversal_retention", rhrk.get("replica", {}).get("history_traversal_retention")),
-            ("RHRK replica", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica", rhrk.get("replica")),
-            ("RHRK first receipt", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_replica_outcome", rhrk.get("first_receipt")),
-            ("RHRK barrier query", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_query", rhrk.get("barrier_query")),
-            ("RHRK barrier outcome", "schemas/history-key.schema.json#/$defs/organization_recovery_archive_list_outcome", rhrk.get("barrier_resolve_outcome")),
-        )
-        for label, schema_ref, instance in typed_instances:
-            check_json_instance_against_schema(lint, path, label, schema_ref, instance)
-
-        def decode_b64u(value: Any) -> bytes:
-            if not isinstance(value, str):
-                raise ValueError("not a base64url string")
-            return base64.urlsafe_b64decode(value + "=" * ((4 - len(value) % 4) % 4))
-
-        hpke = rhrk.get("hpke_transcript")
-        archive = rhrk.get("archive")
-        try:
-            if not isinstance(hpke, dict) or not isinstance(archive, dict):
-                raise ValueError("missing HPKE transcript or archive")
-            recipient_private_bytes = decode_b64u(hpke["recipient_private_key_b64u"])
-            ephemeral_private_bytes = decode_b64u(hpke["ephemeral_private_key_b64u"])
-            recipient_private = X25519PrivateKey.from_private_bytes(recipient_private_bytes)
-            ephemeral_private = X25519PrivateKey.from_private_bytes(ephemeral_private_bytes)
-            recipient_public = recipient_private.public_key().public_bytes(
-                serialization.Encoding.Raw, serialization.PublicFormat.Raw
-            )
-            enc = ephemeral_private.public_key().public_bytes(
-                serialization.Encoding.Raw, serialization.PublicFormat.Raw
-            )
-            if decode_b64u(hpke["recipient_public_key_b64u"]) != recipient_public:
-                raise ValueError("recipient public key is not derived from the frozen private input")
-            if decode_b64u(hpke["enc_b64u"]) != enc:
-                raise ValueError("enc is not derived from the frozen ephemeral input")
-            if archive.get("frozen_public_key_b64u") != hpke["recipient_public_key_b64u"]:
-                raise ValueError("archive frozen public key differs from the HPKE transcript")
-            if archive.get("enc") != hpke["enc_b64u"]:
-                raise ValueError("archive enc differs from the HPKE transcript")
-            archive_public = dict(archive)
-            archive_public.pop("enc")
-            archive_public.pop("ciphertext")
-            info = canonical_json(archive_public).encode("utf-8")
-            if decode_b64u(hpke["info_jcs_b64u"]) != info or decode_b64u(hpke["aad_jcs_b64u"]) != info:
-                raise ValueError("HPKE info/AAD is not the exact archive public tuple JCS")
-
-            def labeled_extract(suite_id: bytes, salt: bytes, label: bytes, ikm: bytes) -> bytes:
-                return hmac.new(
-                    salt or b"\x00" * 32,
-                    b"HPKE-v1" + suite_id + label + ikm,
-                    hashlib.sha256,
-                ).digest()
-
-            def labeled_expand(
-                suite_id: bytes, prk: bytes, label: bytes, info_value: bytes, length: int
-            ) -> bytes:
-                return hkdf_expand_sha256(
-                    prk,
-                    length.to_bytes(2, "big")
-                    + b"HPKE-v1"
-                    + suite_id
-                    + label
-                    + info_value,
-                    length,
-                )
-
-            kem_suite = b"KEM" + (0x0020).to_bytes(2, "big")
-            suite = b"HPKE" + bytes.fromhex("002000010003")
-            dh = ephemeral_private.exchange(recipient_private.public_key())
-            kem_context = enc + recipient_public
-            eae_prk = labeled_extract(kem_suite, b"", b"eae_prk", dh)
-            shared_secret = labeled_expand(kem_suite, eae_prk, b"shared_secret", kem_context, 32)
-            psk_id_hash = labeled_extract(suite, b"", b"psk_id_hash", b"")
-            info_hash = labeled_extract(suite, b"", b"info_hash", info)
-            key_schedule_context = b"\x00" + psk_id_hash + info_hash
-            secret = labeled_extract(suite, shared_secret, b"secret", b"")
-            key = labeled_expand(suite, secret, b"key", key_schedule_context, 32)
-            nonce = labeled_expand(suite, secret, b"base_nonce", key_schedule_context, 12)
-            exporter_secret = labeled_expand(
-                suite, secret, b"exp", key_schedule_context, 32
-            )
-            expected_bytes = {
-                "dh_b64u": dh,
-                "kem_context_b64u": kem_context,
-                "shared_secret_b64u": shared_secret,
-                "key_schedule_context_b64u": key_schedule_context,
-                "secret_b64u": secret,
-                "key_b64u": key,
-                "base_nonce_b64u": nonce,
-                "exporter_secret_b64u": exporter_secret,
-            }
-            for field, expected in expected_bytes.items():
-                if decode_b64u(hpke[field]) != expected:
-                    raise ValueError(f"HPKE derived field drifted: {field}")
-            plaintext_bytes = decode_b64u(hpke["plaintext_jcs_b64u"])
-            if plaintext_bytes != canonical_json(hpke["plaintext"]).encode("utf-8"):
-                raise ValueError("HPKE plaintext bytes are not typed plaintext JCS")
-            ciphertext = decode_b64u(hpke["ciphertext_b64u"])
-            if archive.get("ciphertext") != hpke["ciphertext_b64u"]:
-                raise ValueError("archive ciphertext differs from HPKE transcript")
-            if ChaCha20Poly1305(key).decrypt(nonce, ciphertext, info) != plaintext_bytes:
-                raise ValueError("HPKE transcript does not decrypt to the frozen plaintext")
-            if decode_b64u(hpke["opened_plaintext_jcs_b64u"]) != plaintext_bytes:
-                raise ValueError("HPKE opened plaintext assertion drifted")
-        except (KeyError, TypeError, ValueError, binascii.Error, InvalidTag) as exc:
-            lint.fail(path, f"RHRK durability HPKE transcript is not executable: {exc}")
-
-        try:
-            container_event = rhrk["container_event"]
-            container_preimage = decode_b64u(rhrk["container_event_producer_bytes_b64u"])
-            container_digest = "sha256:" + hashlib.sha256(container_preimage).hexdigest()
-            provenance = rhrk["transition_provenance"]
-            if container_preimage != canonical_json({
-                key: value for key, value in container_event.items() if key not in {"event_id", "proofs"}
-            }).encode("utf-8"):
-                raise ValueError("container Event digest preimage is not the canonical producer object")
-            if provenance["container_event_digest"] != container_digest:
-                raise ValueError("container Event digest drifted")
-            expected_event_ref = "ak:event:" + base64.urlsafe_b64encode(
-                b"\x01" + bytes.fromhex(container_digest[7:])
-            ).rstrip(b"=").decode("ascii")
-            if container_event["event_id"] != expected_event_ref or provenance["container_event_ref"] != expected_event_ref:
-                raise ValueError("container Event ref is not derived from its digest")
-            transition_bytes = decode_b64u(provenance["mls_transition_bytes_b64u"])
-            transition_digest = "sha256:" + hashlib.sha256(transition_bytes).hexdigest()
-            if (
-                provenance["mls_transition_digest"] != transition_digest
-                or archive["transition_digest"] != transition_digest
-                or container_event["payload"].get("commit_message_ref")
-                != "ak:blob:" + transition_digest
-            ):
-                raise ValueError("archive transition provenance is not single-sourced")
-            event_proof = container_event["proofs"][0]
-            event_transcript = rhrk["container_event_proof_transcript"]
-            event_binding = json.loads(decode_b64u(event_transcript["binding_jcs_b64u"]))
-            if (
-                event_binding["context"] != "ak.event_proof.v1"
-                or event_binding["event_digest"] != container_digest
-                or event_binding["actor_id"] != container_event["actor_id"]
-                or event_binding["verification_method"] != event_proof["verification_method"]
-                or event_binding["signer_resolution_evidence_ref"]
-                != event_proof["signer_resolution_evidence_ref"]
-                or "signer_resolution_evidence_digest" in event_binding
-                or "signer_resolution_evidence_digest" in event_proof
-                or event_binding["created_at"] != event_proof["created_at"]
-            ):
-                raise ValueError("container Event proof binding is incomplete")
-            event_signature = decode_b64u(event_proof["jws"].split("..", 1)[1])
-            Ed25519PublicKey.from_public_bytes(
-                decode_b64u(rhrk["signing_keys"]["source_ed25519_public_key_b64u"])
-            ).verify(
-                event_signature,
-                event_transcript["signing_input_ascii"].encode("ascii"),
-            )
-        except (KeyError, TypeError, ValueError, binascii.Error, InvalidSignature) as exc:
-            lint.fail(path, f"RHRK durability transition/container provenance drifted: {exc}")
-
-        try:
-            replica = rhrk["replica"]
-            replica_unsigned = dict(replica)
-            replica_unsigned.pop("service_proof")
-            replica_digest = "sha256:" + hashlib.sha256(
-                b"ak.organization-recovery-archive-replica-v1\x00"
-                + canonical_json(replica_unsigned).encode("utf-8")
-            ).hexdigest()
-            receipt = rhrk["first_receipt"]
-            if receipt["archive_replica_digest"] != replica_digest:
-                raise ValueError("first receipt does not bind the exact replica")
-            receipt_jcs = canonical_json(receipt).encode("utf-8")
-            if decode_b64u(rhrk["first_receipt_jcs_b64u"]) != receipt_jcs:
-                raise ValueError("first receipt canonical bytes drifted")
-            signing_keys = rhrk["signing_keys"]
-            proof_cases = (
-                (replica["service_proof"], rhrk["replica_proof_transcript"], signing_keys["source_ed25519_public_key_b64u"]),
-                (receipt["service_proof"], rhrk["receipt_proof_transcript"], signing_keys["holder_ed25519_public_key_b64u"]),
-            )
-            for proof, transcript, public_key_b64u in proof_cases:
-                if proof["payload_digest"] != transcript["payload_digest"]:
-                    raise ValueError("service proof payload digest drifted")
-                signature = decode_b64u(proof["jws"].split("..", 1)[1])
-                Ed25519PublicKey.from_public_bytes(decode_b64u(public_key_b64u)).verify(
-                    signature, transcript["signing_input_ascii"].encode("ascii")
-                )
-        except (KeyError, TypeError, ValueError, binascii.Error, InvalidSignature) as exc:
-            lint.fail(path, f"RHRK durability replica/receipt transcript drifted: {exc}")
-
-        try:
-            reread = rhrk["barrier_resolve_outcome"]["items"][0]
-            assertions = rhrk["exact_reread_assertions"]
-            if any(reread[field] != assertions[field] for field in assertions):
-                raise ValueError("barrier resolve is not the exact frozen archive row")
-            if reread["archive_replica_digest"] != replica_digest:
-                raise ValueError("barrier resolve does not expose the exact accepted replica digest")
-            ledger = rhrk["coverage_ledger"]
-            steps = {step["name"]: step for step in rhrk["steps"]}
-            if set(steps) != {
-                "gc_before_durable_acceptance",
-                "first_holder_replica_acceptance",
-                "exact_duplicate_replica",
-                "barrier_resolve_exact_reread",
-                "gc_after_exact_reread",
-            }:
-                raise ValueError("step matrix is incomplete")
-            if (
-                steps["gc_before_durable_acceptance"]["expected_decision"] != "failed_precondition"
-                or steps["gc_before_durable_acceptance"]["expected_ledger"] != ledger["initial"]
-                or steps["first_holder_replica_acceptance"]["expected_receipt"] != rhrk["first_receipt"]
-                or steps["first_holder_replica_acceptance"]["expected_ledger"] != ledger["after_first_accept"]
-                or steps["exact_duplicate_replica"]["expected_receipt_jcs_b64u"] != rhrk["first_receipt_jcs_b64u"]
-                or steps["exact_duplicate_replica"]["expected_new_archive_sequence_count"] != 0
-                or steps["barrier_resolve_exact_reread"]["expected_outcome"] != rhrk["barrier_resolve_outcome"]
-                or steps["barrier_resolve_exact_reread"]["expected_ledger"] != ledger["after_exact_reread"]
-                or steps["gc_after_exact_reread"]["expected_decision"] != "accepted"
-                or steps["gc_after_exact_reread"]["expected_ledger"] != ledger["after_local_gc"]
-            ):
-                raise ValueError("coverage-ledger or exact-retry step expectations drifted")
-            if (
-                ledger["initial"]["durable_holder_acceptance"] is not False
-                or ledger["after_first_accept"]["exact_holder_reread"] is not False
-                or ledger["after_exact_reread"]["covered_epochs"] != [archive["epoch"]]
-                or ledger["after_local_gc"]["local_history_secret_present"] is not False
-            ):
-                raise ValueError("coverage-ledger initial/intermediate/final states drifted")
-            negative_names = {row["name"] for row in rhrk["negative_mutations"]}
-            if negative_names != {
-                "barrier_missing_archive_replica_digest",
-                "barrier_archive_replica_digest_substitution",
-                "same_semantic_archive_changed_replicated_at",
-                "barrier_archive_bytes_mismatch",
-            }:
-                raise ValueError("RHRK durability negative matrix drifted")
-            if "private_database_row_shape" not in rhrk["forbidden_artifacts"]:
-                raise ValueError("RHRK durability KAT no longer forbids private storage shape")
-        except (KeyError, TypeError, ValueError) as exc:
-            lint.fail(path, f"RHRK durability state-machine closure drifted: {exc}")
-    kat = data.get("direct_traversal_kat")
-    if not isinstance(kat, dict):
-        lint.fail(path, "history recovery fixture must carry the executable direct-traversal KAT")
-        return
-    retention = kat.get("member_retention")
-    if not isinstance(retention, dict):
-        lint.fail(path, "direct-traversal KAT must contain a schema-valid member retention object")
-    elif retention.get("traversal_intent", {}).get("profile") != "member_history_delivery":
-        lint.fail(path, "direct-traversal member retention uses the wrong profile")
-    negatives = kat.get("negative_cases")
-    required_negatives = {
-        "hidden_predecessor",
-        "target_does_not_dominate_current",
-        "branch_stops_before_base",
-        "base_leaf_not_consumed",
-        "surplus_descriptor",
-    }
-    negative_by_name = {
-        row.get("name"): row for row in negatives or []
-        if isinstance(row, dict) and isinstance(row.get("name"), str)
-    }
-    if set(negative_by_name) != required_negatives:
-        lint.fail(path, "history direct-traversal executable negative matrix drifted")
-    for name, row in negative_by_name.items():
-        if row.get("expected_error") not in row.get("actual_errors", []):
-            lint.fail(path, f"history direct-traversal negative {name} has no matching observed error")
-
-    membership_cases = data.get("direct_traversal_kat", {}).get("since_join_lineage", {}).get("membership_state_cases", [])
-    if {case.get("name") for case in membership_cases} != {
-        "unwritten", "confirmed_join", "confirmed_leave", "confirmed_rejoin",
-    }:
-        lint.fail(path, "history membership sequenced-state cases are incomplete")
-    for case in membership_cases:
-        state = case.get("state")
-        expected = state.get("revision_event_id") if isinstance(state, dict) and state.get("value") == "join" else None
-        if case.get("expected_incarnation") != expected:
-            lint.fail(path, "history membership fixture selects an inactive sequenced revision")
-
-    replay_kat = data.get("direct_traversal_replay_kat")
-    if not isinstance(replay_kat, dict):
-        lint.fail(path, "history recovery fixture must carry the executable direct-traversal replay KAT")
-    else:
-        topology = replay_kat.get("topology", {})
-        if topology.get("seal_count") != 2 or topology.get("shape") != "genesis_then_successor":
-            lint.fail(path, "direct-traversal replay KAT must remain the minimal two-Seal topology")
-        signing = replay_kat.get("signing_inputs", {})
-        historical = signing.get("historical_descriptor", {})
-        current = signing.get("current_same_method_descriptor", {})
-        if (
-            historical.get("verification_method") != current.get("verification_method")
-            or historical.get("verification_method") != signing.get("verification_method")
-        ):
-            lint.fail(path, "replay KAT historical/current descriptors must use the same method id")
-        if historical.get("frozen_public_key_b64u") == current.get("frozen_public_key_b64u"):
-            lint.fail(path, "replay KAT historical/current descriptors must freeze different key bytes")
-        for label, descriptor in (("historical", historical), ("current", current)):
-            try:
-                key_bytes = base64.urlsafe_b64decode(descriptor.get("frozen_public_key_b64u", "") + "==")
-            except (ValueError, binascii.Error):
-                key_bytes = b""
-            if len(key_bytes) != 32:
-                lint.fail(path, f"replay KAT {label} Ed25519 public key must decode to 32 bytes")
-            if "frozen_public_key_digest" in descriptor:
-                lint.fail(path, f"replay KAT {label} carries a removed derived key digest")
-        for seed_name in ("historical_seed_b64u", "current_seed_b64u"):
-            try:
-                seed = base64.urlsafe_b64decode(signing.get(seed_name, "") + "==")
-            except (ValueError, binascii.Error):
-                seed = b""
-            if len(seed) != 32:
-                lint.fail(path, f"replay KAT {seed_name} must decode to 32 bytes")
-        cases = replay_kat.get("cases", [])
-        case_by_name = {
-            row.get("name"): row for row in cases
-            if isinstance(row, dict) and isinstance(row.get("name"), str)
-        }
-        required_replay_cases = {
-            "historical_frozen_notary_signature_positive",
-            "ambiguous_delta_resolver_response",
-            "current_key_same_method_substitution",
-        }
-        if set(case_by_name) != required_replay_cases:
-            lint.fail(path, "history direct-traversal replay case matrix drifted")
-        ambiguous = case_by_name.get("ambiguous_delta_resolver_response", {})
-        if (
-            ambiguous.get("expected_replayed_seal_count") != 0
-            or ambiguous.get("expected_committed_successor_count") != 0
-            or ambiguous.get("injection", {}).get("real_hash_collision_claimed") is not False
-        ):
-            lint.fail(path, "ambiguous resolver material must be symbolic and reject before replay")
-        substitution = case_by_name.get("current_key_same_method_substitution", {})
-        if (
-            substitution.get("expected_method_id_equal") is not True
-            or substitution.get("expected_public_key_bytes_equal") is not False
-            or substitution.get("expected_committed_successor_count") != 0
-            or substitution.get("predecessor_replay_may_have_occurred") is not True
-        ):
-            lint.fail(path, "current-key substitution assertions drifted")
-        if replay_kat.get("wire_reason_code") is not None or replay_kat.get("ordinary_events_in_delta") is not False:
-            lint.fail(path, "replay KAT must not invent a wire reason code or place ordinary Events in Seal.delta")
-
-    signer_kat = data.get("authenticated_signer_resolution_evidence_kat")
-    if not isinstance(signer_kat, dict) or signer_kat.get("evidence", {}).get("kind") != "service":
-        lint.fail(path, "history fixture must carry service signer-resolution evidence")
-    dependency_kat = data.get("governance_dependency_resolve_kat")
-    if not isinstance(dependency_kat, dict) or len(dependency_kat.get("resolve_outcome", {}).get("items", [])) != 2:
-        lint.fail(path, "history fixture must exercise both governance evidence branches")
-    scale = data.get("streaming_direct_traversal_scale_kats")
-    if not isinstance(scale, list) or [row.get("epoch_count") for row in scale if isinstance(row, dict)] != [26298, 65536]:
-        lint.fail(path, "history scale fixture must freeze 26,298 and 65,536 epoch runs")
-    for row in scale or []:
-        if not isinstance(row, dict):
-            continue
-        if row.get("verified_epoch_count") != row.get("epoch_count"):
-            lint.fail(path, "history scale run did not stream-verify every epoch")
-        if row.get("streaming_storage") != "temporary_sqlite_work_queue_and_visited":
-            lint.fail(path, "history scale run must use the disk-backed traversal journal")
-        if any(key in row for key in ("seals", "events", "receipts", "descriptors", "epoch_transitions")):
-            lint.fail(path, "large history scale summaries must not embed O(N) arrays")
-    overflow = data.get("streaming_direct_traversal_scale_negative_kats")
-    if not isinstance(overflow, list) or len(overflow) != 1:
-        lint.fail(path, "history scale fixture must contain one 65,537 prewrite reject")
-    else:
-        row = overflow[0]
-        if (
-            row.get("epoch_count") != 65537
-            or row.get("rejected_before_staging") is not True
-            or any(row.get(key) != 0 for key in (
-                "journal_rows", "resolved_objects", "outbox_writes"
-            ))
-        ):
-            lint.fail(path, "65,537 history scale reject must leave traversal journal and outbox empty")
 
 def websocket_canonical_wss_errors(value: object) -> list[str]:
     """Return profile-level canonicalization errors for a WebSocket base URL."""
@@ -4865,9 +3536,6 @@ def websocket_canonical_wss_errors(value: object) -> list[str]:
             errors.append("unreserved path characters must not be percent-encoded")
         index += 3
     return errors
-
-
-
 
 
 def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:

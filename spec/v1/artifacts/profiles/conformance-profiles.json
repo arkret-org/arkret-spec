@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.9",
-  "generated_at": "2026-09-16T09:35:00+08:00",
+  "version": "2026-09-16.10",
+  "generated_at": "2026-09-16T10:50:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -179,7 +179,7 @@
           "V"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-011",
-        "summary": "Light clients must not authorize a ordinary Event from a single leaf proof",
+        "summary": "Light clients must not authorize a Event from a single leaf proof",
         "required_evidence": [
           "vector_result"
         ]
@@ -399,7 +399,6 @@
     "ak.profile.full_client.v1",
     "ak.profile.e2ee_client.v1",
     "ak.profile.agent_signer_evidence.v1",
-    "ak.profile.e2ee_relaxed.v1",
     "ak.profile.enterprise_client.v1",
     "ak.profile.station_events_api.v1",
     "ak.profile.station.v1",
@@ -557,7 +556,6 @@
     "ak.profile.full_client.v1": "client",
     "ak.profile.e2ee_client.v1": "client",
     "ak.profile.agent_signer_evidence.v1": "interop",
-    "ak.profile.e2ee_relaxed.v1": "client",
     "ak.profile.enterprise_client.v1": "client",
     "ak.profile.sovereign_client.v1": "client",
     "ak.profile.station_events_api.v1": "server",
@@ -620,9 +618,6 @@
     "ak.profile.signature.pqc.v1": "admin",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": "interop",
     "ak.profile.mls_ciphersuite.pq_auth.v1": "interop",
-    "ak.profile.mls_governance_binding.full.v1": "admin",
-    "ak.profile.attested_audit.e2ee.v1": "admin",
-    "ak.profile.disclosed_audit.e2ee.v1": "admin",
     "ak.profile.mls.minimal_metadata_realm.v1": "admin",
     "ak.profile.traffic_metadata_hardened.v1": "admin",
     "ak.profile.key_backup.memory_hard.v1": "admin",
@@ -642,11 +637,8 @@
     "policy_decision_exchange"
   ],
   "e2ee_hardening": [
-    "ak.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
     "ak.profile.mls.minimal_metadata_realm.v1",
-    "ak.profile.attested_audit.e2ee.v1",
-    "ak.profile.disclosed_audit.e2ee.v1",
     "e2ee_report_framed_franking"
   ],
   "privacy_hardening": [
@@ -667,13 +659,9 @@
     "consent_isolation",
     "e2ee_franking_report",
     "proxy_download_policy",
-    "mls_governance_binding_floor",
     "unsupported_draft_fail_closed"
   ],
   "hardening_profiles": [
-    "ak.profile.mls_governance_binding.full.v1",
-    "ak.profile.attested_audit.e2ee.v1",
-    "ak.profile.disclosed_audit.e2ee.v1",
     "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.traffic_metadata_hardened.v1",
     "ak.profile.key_backup.memory_hard.v1"
@@ -1051,10 +1039,7 @@
       "realm_defaults": {
         "default_discoverability": "invite_only",
         "default_join_rule": "closed",
-        "history_access": "since_join",
-        "encryption_profile": "mls_rfc9420",
-        "content_encryption_floor": "e2ee_required",
-        "metadata_encryption_floor": "e2ee_required"
+        "history_access": "since_join"
       },
       "client_local_send_blockers": {
         "rationale": "personal_blocked is holder-private account state and is evaluated only on the holder device; the service exposes only blockers it can verify.",
@@ -1070,7 +1055,7 @@
       },
       "binding_invariants": [
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
-        "content_encryption_floor and metadata_encryption_floor MUST both equal e2ee_required.",
+        "The Realm scope is plaintext until its single ak.mls.genesis is accepted; that accepted RealmCommit irreversibly activates standard RFC 9420 for the scope and every later content write MUST be an MLS application message.",
         "The ak.realm.create Event requirements.schema MUST contain ak.profile.direct_conversation_realm.v1 and requirements.critical_extensions MUST contain fail_closed=true id ak.feature.direct_conversation_realm_role.v1 for payload scope.",
         "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
@@ -1078,7 +1063,7 @@
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
         "Cross-Station founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
-        "The four founding Events MUST be accepted in order and each MUST receive its own consecutive RealmCommit in the same Realm stream. The create-locked baseline is join_rule=closed, content_scheme=mls_exporter_aead_v1 and both e2ee_required floors together with the initial current history_access=since_join facet. A Station MUST reject a missing prefix, an interleaved unrelated Event, or a same-transaction facet Event that repeats or overrides a baseline value.",
+        "The four founding Events MUST be accepted in order and each MUST receive its own consecutive RealmCommit in the same Realm stream. The projected baseline is join_rule=closed together with the initial current history_access=since_join facet. A Station MUST reject a missing prefix, an interleaved unrelated Event, or a same-transaction facet Event that repeats or overrides a baseline value.",
         "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
@@ -1097,7 +1082,6 @@
           "ak.message.redact.own",
           "ak.message.revise.own",
           "ak.mls.commit",
-          "ak.delivery.mls_welcome.own_device",
           "ak.reaction.add",
           "ak.reaction.remove",
           "ak.read_cursor.advance",
@@ -1332,25 +1316,21 @@
         "federation_policy": "closed",
         "default_discoverability": "secret",
         "default_join_rule": "closed",
-        "history_access": "since_join",
-        "encryption_profile": "mls_rfc9420",
-        "content_encryption_floor": "e2ee_required",
-        "metadata_encryption_floor": "e2ee_required"
+        "history_access": "since_join"
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs, or applet_managed_control for Applet-managed Bot/Ghost PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in all three cases.",
-        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or RealmCommit processing is non-conformant.",
-        "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
-        "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
+        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing Event, lease, reducer, allowlist, or RealmCommit processing is non-conformant.",
+        "A PCR MUST accept its ak.mls.genesis before any control content write; that accepted RealmCommit irreversibly activates standard RFC 9420 for the PCR scope and no plaintext PCR content write is admissible afterwards.",
         "history_access MUST equal since_join. A new same-principal endpoint starts at its own initial Add/Welcome admission; durable device-list and normalized principal views provide the control baseline, and decryption uses only MLS state held locally by that endpoint.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
         "An Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
-        "Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
+        "Agent PCR genesis created_by MUST equal the Agent DID and governance_station_id MUST name the generation-0 governance Station; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "An applet_managed_control PCR genesis carries no FoundingDeviceDescriptor and its accepted genesis unit holds exactly one ak.realm.create, so the principal owns no device at genesis. Its delegated device MUST be authorized by an ordinary post-genesis successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact install that provisioned the principal. That Event MUST carry signer_resolution_evidence_ref and MUST NOT use a unit-local candidate overlay or join any atomic native unit: its signer is the already accepted managed-actor controller method, so the two named encoding.md omission exceptions stay exactly two. The device MUST stop being an effective signer as soon as that install is fenced, with applet_revoked and without waiting for a separate ak.device.revoke.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
-        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
+        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]
     },
     "ak.profile.core_event_store.v1": {
@@ -1485,7 +1465,7 @@
           ]
         },
         {
-          "requirement": "reaction OR-Set",
+          "requirement": "reaction authority-ordered keyed set",
           "coverage": [
             "schema-validation-fixture.json"
           ]
@@ -1854,87 +1834,6 @@
       },
       "profile_set": "extension_profile_implementation"
     },
-    "ak.profile.e2ee_relaxed.v1": {
-      "description": "Operation-local MLS binding interpreter for policy-derived relaxed E2EE. effective mls_send_pause=advisory selects this binding_profile; strict policy selects mls_governance_binding.full. This is not a Realm schema_refs or active-profile carrier.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [],
-      "depends_on": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "mutually_exclusive_with": [
-        "ak.profile.mls_governance_binding.full.v1"
-      ],
-      "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
-      "applies_to_roles": [
-        "e2ee_space"
-      ],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_capability_actions": [],
-      "required_features": [
-        "ak.feature.e2ee_relaxed.v1"
-      ],
-      "required_constraint_kinds": [],
-      "required_result_namespaces": [],
-      "required_fixtures": [],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "e2ee_relaxed"
-        ],
-        "unsupported_optional": "Servers that do not advertise ak.feature.e2ee_relaxed.v1 MUST reject ak.realm.policy_bundle writes that set mls_send_pause=\"advisory\" with unsupported_profile. They MUST NOT silently accept advisory semantics."
-      },
-      "downgrade_declaration_obligation": {
-        "policy_declaration_required": "The effective ak.realm.policy_bundle field mls_send_pause=\"advisory\" is the sole Realm declaration. Realm genesis/schema refs and out-of-band deployment config MUST NOT activate relaxed mode.",
-        "service_describe_required": "The serving implementation MUST advertise ak.feature.e2ee_relaxed.v1 and the claimed profile in ServiceDescribe before accepting advisory writes or projecting the Realm as relaxed to a peer/facade.",
-        "binding_profile_required": "Every MLS governance_binding emitted for a relaxed Realm MUST carry binding_profile=\"ak.profile.e2ee_relaxed.v1\" and the negotiated reducer_profile. Missing binding_profile, binding_profile=\"ak.profile.mls_governance_binding.full.v1\", or an unsupported profile id is a fail-closed mismatch.",
-        "export_marker_required": "Sync metadata, snapshots, backups, exports, and interop mapping receipts that summarize the Realm MUST preserve e2ee_relaxed=true and relaxed_window_max_ms. Consumers that observe advisory semantics without this marker MUST assume the downgrade is undeclared and reject new old-epoch decrypt admission."
-      },
-      "reducer_reject_reasons": [
-        "e2ee_relaxed_audit_binding_conflict"
-      ],
-      "client_ui_requirements": {
-        "banner_warning": "Realms declaring this profile MUST display a banner-level warning indicating that kick / ban is not cryptographically immediate; the warning MAY be temporarily collapsed but MUST NOT be permanently dismissable.",
-        "invite_warning": "When a user invites a new member, the UI SHOULD prompt with 'this Realm uses degraded E2EE' so the invitee can make an informed decision.",
-        "export_marker": "Sync metadata / backup / export MUST preserve a `e2ee_relaxed=true` marker so downstream consumers know the cryptographic guarantee is relaxed."
-      },
-      "downgrade_window_constraint": {
-        "field": "relaxed_window_max_ms",
-        "default": 30000,
-        "max": 300000,
-        "absolute_hard_ceiling_ms": 300000,
-        "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption.",
-        "receiver_enforcement": "Receiver MUST enforce the hard ceiling independently of any declared deployment value: if a Realm policy event sets relaxed_window_max_ms > absolute_hard_ceiling_ms (300000 ms / 5 min), the reducer MUST reject the policy update with reason_code `relaxed_window_exceeds_ceiling` (mapped from `schema_violation`), and the receiver MUST treat the policy event as failed_precondition. Receivers MUST NOT silently clamp the value to the ceiling, because a silent clamp would let a deployment publish a longer window than receivers honor and split visible policy state across implementations. Negative vector: `ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1` covers (a) reducer reject on policy write > 300000 ms, (b) receiver reject on old-epoch decrypt admission when the gap exceeds the per-policy declared window, and (c) reject when any deployment tries to redefine the ceiling via an unrelated profile.",
-        "compliance_profile_disabled": "Profiles in the compliance / audited tier (ak.profile.attested_audit.e2ee.v1, ak.profile.disclosed_audit.e2ee.v1, and any deployment with active Audit Applet Binding) MUST NOT enable ak.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
-      },
-      "federation_guard": {
-        "forbidden_federation_policy": [
-          "open",
-          "quarantine"
-        ],
-        "restricted_requires": [
-          "relaxed_fanout_deadline_ms <= relaxed_window_max_ms",
-          "max_federation_delivery_delay_ms <= relaxed_window_max_ms",
-          "each federation peer describes a fanout SLA not exceeding the relaxed window",
-          "each federation peer explicitly advertises ak.feature.e2ee_relaxed.v1 when it is expected to accept relaxed old-epoch decrypt admission"
-        ],
-        "interop_floor": "Full MLS governance binding (ak.profile.mls_governance_binding.full.v1) remains the federation E2EE interoperability floor. The relaxed profile (ak.profile.e2ee_relaxed.v1) is a declared downgrade below that floor and is accepted across federation only for restricted/closed deployments that satisfy the bounded-SLA requirements above.",
-        "reducer_reject_reason": "e2ee_relaxed_federation_policy_unsupported"
-      },
-      "fail_closed_conditions": [
-        "mls_send_pause=\"advisory\" without ak.profile.e2ee_relaxed.v1 declaration",
-        "combination of ak.profile.e2ee_relaxed.v1 with ak.profile.mls_governance_binding.full.v1, compliance-tier E2EE, active Audit Applet Binding, federation_policy=open, or federation_policy=quarantine",
-        "restricted federation without peer fanout SLA bounds within relaxed_window_max_ms",
-        "governance_binding.binding_profile missing, unsupported, or inconsistent with the Realm downgrade declaration",
-        "receiver old-epoch decrypt gap exceeds relaxed_window_max_ms or the absolute hard ceiling of 300000 ms"
-      ],
-      "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope.",
-      "profile_set": "extension_profile_implementation"
-    },
     "ak.profile.enterprise_client.v1": {
       "enforcement_phases": [
         "build",
@@ -2266,7 +2165,7 @@
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1.",
         "account_authority_surface_must": "The Station MUST publish exactly one auth_metadata.account_authority gate_account_base_url and expose all client-visible gate/account operations through that base. Any internal authentication process is deployment-private and MUST NOT publish a service kind, role-local Describe, service registration, federation identity, or peer-discoverable endpoint.",
         "session_grant_issuer_ledger_must": "The Station Account Authority MUST be the sole durable authority for immutable SessionGrant issuance records and active, revoked, or superseded lifecycle. It MUST derive the suite-tagged grant ID and JWT jti from the complete closed issuance preimage, atomically persist issuance before response, provide durable exact replay for issue, refresh, and revoke, and use the same ledger for cascade and introspection.",
-        "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, notary, or Event proof.",
+        "session_grant_dpop_binding_must": "Issue, refresh, replay retrieval, and protected-resource presentation MUST verify current holder/DPoP proof, exact HTTP target and method, issuer/audience, and canonical request digest. An S2S HTTP Message Signature authenticates transport only and never substitutes for holder proof or principal, device, governance-Station authority, or Event proof.",
         "account_status_publication_must": "The Station Account Authority MUST atomically commit its account row, immutable AccountStatusRecord, audit, and outbox; genesis is status_seq=1 active and every successor is a current-head CAS. It exposes bounded ak.peer.account_status.read.resolve.v1 for authorized replica recovery and publishes exact record bytes through ak.peer.account_status.command.submit.v1 without maintaining a second status truth.",
         "third_party_invite_provisioning_material_custody_must": "The verification service MUST generate and durably hold the invite token, the per-invite 256-bit token_salt or lookup pepper and the per-invite ephemeral signing key inside ak.open.third_party_invite.command.provision.v1, and MUST return only the public third_party_invite object, the effective expires_at, the activation deadline and an opaque provisioning_id. Returning the token, salt, pepper, ephemeral private key or the private delivery target, deriving any of them from token_commitment or verification_public_key, or treating a successful provisioning as a pending Realm Invite or as invite permission is forbidden.",
         "third_party_invite_activation_acceptance_attestation_must": "ak.open.third_party_invite.command.activate.v1 MUST bind a provisioned record to an invite only on a Station-signed ThirdPartyInviteAcceptanceAttestation whose signature, audience, exact verification_id, pending invite_state and revocation freshness all verify, and whose author, Realm, expiry and complete public material equal the frozen provisioning record member for member. A caller-reported invite id, a caller-computed invite digest, an Event signature or an HTTP success MUST NOT substitute. One provisioning record binds to exactly one invite for its whole life; a second attestation naming a different invite, Realm or author is duplicate_conflict and MUST NOT rebind, rotate the ephemeral key or reissue the token.",
@@ -2367,16 +2266,14 @@
         "unsupported_optional": "reject unsupported profile before accepting events"
       },
       "e2ee_mls_interop_floor": {
-        "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
-        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.delivery.mls_welcome, MLS-backed E2EE ordinary Events, or active MLS security-frontier state.",
+        "applies_when": "Any federation transaction carries or depends on ak.mls.genesis, ak.mls.commit, an MLS Welcome delivery, MLS-backed E2EE Events, or active MLS key-access-revision state.",
         "required_artifacts": [
           "governance_binding.binding_profile",
-          "governance_binding.reducer_profile",
+          "governance_binding.key_access_revision",
           "mls_governance_binding GroupContext extension 0xF1C0"
         ],
-        "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
-        "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
-        "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/ordinary Event before advancing Realm frontier."
+        "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or key_access_revision, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/Event.",
+        "minimum_binding": "The fixed v1 MLS GroupContext binding of crypto-media/encryption-and-audit.md section 2.5.1 {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}."
       }
     },
     "ak.profile.signal_message_stream.v1": {
@@ -2429,7 +2326,7 @@
       },
       "additional_requirements": {
         "encrypted_only_must": "Every ak.message.stream payload MUST be encrypted inside ak.schema.signal_envelope.v1 with signal_class=session; no plaintext branch exists.",
-        "authorization_must": "The recipient MUST verify ak.message.stream.send at the Signal envelope security basis and independently verify ak.message.create from its signed auth_context.authority_refs and signer evidence before display.",
+        "authorization_must": "The recipient MUST verify ak.message.stream.send at the Signal envelope security basis and independently verify ak.message.create from its signed commit_authorization_state.authority_refs and signer evidence before display.",
         "resource_must": "Producer and recipient enforce 16 KiB preview, 5 frames/s, 8 concurrent streams, 15-second keyframes and 10-minute lifetime within the generic 46 KiB plaintext / 64 KiB Signal envelope limits.",
         "final_binding_must": "Only a direct, verified ak.message.create with a message_id matching the complete retyped EventId token, actor, device, security scope, Realm, Strand and discussion track replaces the preview."
       }
@@ -3463,7 +3360,7 @@
       "wire_contract_refs": [
         "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_request",
         "schemas/principal-operations.schema.json#/$defs/sidecar_ensure_outcome",
-        "schemas/principal-operations.schema.json#/$defs/sidecar_control_frontier"
+        "schemas/principal-operations.schema.json#/$defs/sidecar_stream_head"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -3493,8 +3390,8 @@
           "existence_privacy_invariants",
           "single_executed_by_on_publish",
           "first_ensure_exact_create_then_context_attach",
-          "sidecar_context_excluded_from_control_frontier",
-          "ownership_lifecycle_authority_frontier"
+          "sidecar_context_excluded_from_authority_stream_head",
+          "ownership_lifecycle_expected_revision"
         ],
         "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize Circle/member/Strand/Relation objects for one (realm_id, controller_account_id)"
       }
@@ -3705,30 +3602,27 @@
         "required": [
           "mimi_draft_versions",
           "provider_directory",
-          "consent_model",
-          "mls_governance_binding_floor"
+          "consent_model"
         ],
         "unsupported_optional": "fail closed on unsupported draft"
       },
       "e2ee_mls_interop_floor": {
-        "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
         "applies_when": "A MIMI room binding is E2EE or carries mls_group_id, groupInfo, key material, or encrypted application messages that will be projected into a Arkret Realm/Strand.",
         "required_checks": [
           "ak.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
-          "governance_binding.binding_profile and reducer_profile are present and supported",
           "MIMI draft/profile fields are ignored for security decisions unless mapped to registered Arkret policy/capability state"
         ],
-        "downgrade_handling": "The ak.profile.e2ee_relaxed.v1 downgrade MUST NOT be represented to MIMI peers as equivalent to full MLS governance binding. If both sides explicitly support relaxed Arkret semantics, the relaxed federation guard still applies; otherwise the facade MUST reject or quarantine with mimi_room_state_incompatible or a governance binding reason.",
         "fail_closed_reason_family": [
           "mimi_governance_binding_missing",
           "mimi_governance_binding_mismatch",
-          "mimi_policy_root_mismatch",
+          "mimi_policy_revision_mismatch",
           "mimi_room_state_incompatible"
-        ]
+        ],
+        "minimum_binding": "The fixed v1 MLS GroupContext binding of crypto-media/encryption-and-audit.md section 2.5.1; a MIMI provider room state is never an equivalent governance truth."
       }
     },
     "ak.profile.sovereign_deployment.v1": {
-      "description": "Deployment and conformance profile for an organization-controlled Arkret service domain. It is advertised only through ServiceDescribe.supported_profiles and remains orthogonal to Realm structural role, organization relationship, notary choice and joined-member Station routing. It creates no Realm hosting field, primary service or complete-history authority. See zh/sync/sovereign-deployment.md sections 2, 3.2 and 7.1.",
+      "description": "Deployment and conformance profile for an organization-controlled Arkret service domain. It is advertised only through ServiceDescribe.supported_profiles and remains orthogonal to Realm structural role, organization relationship, current governance-Station selection and joined-member Station routing. It creates no Realm hosting field, primary service or complete-history authority. See zh/sync/sovereign-deployment.md sections 2, 3.2 and 7.1.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -4441,8 +4335,7 @@
       ],
       "inherits": [
         "ak.profile.organization.v1",
-        "ak.profile.e2ee_client.v1",
-        "ak.profile.mls_governance_binding.full.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "required_event_kinds": [
         "ak.device.revoke",
@@ -4550,72 +4443,6 @@
         "unsupported_optional": "deny cross-boundary operation"
       }
     },
-    "ak.profile.mls_governance_binding.full.v1": {
-      "description": "MLS GroupContext binding for an independently authority-committed Realm or Circle stream. Each Genesis or Commit binds the canonical effective scope, derived MLS group id, epoch transition, and monotonic key_access_revision. Governance authorization is decided by the current governance Station before the Event is committed; MLS carries no authority-commit or governance-proof bundle.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.keys.keypackages.command.claim.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.mls.read.group_state_material.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [
-        "ak.mls.commit"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.encrypted_envelope.v1",
-        "ak.schema.realm_commit.v1",
-        "ak.schema.mls_commit_submission.v1",
-        "ak.schema.mls_welcome_delivery.v1"
-      ],
-      "required_fixtures": [
-        "authority-commit-fixture.json"
-      ],
-      "optional_extensions": [
-        "ak.profile.mls.minimal_metadata_realm.v1"
-      ],
-      "feature_discovery": {
-        "required": [
-          "mls_governance_binding_extension",
-          "key_access_revision",
-          "mls_group_state_material"
-        ],
-        "unsupported_optional": "fail closed on scope, epoch, group id, or key-access revision mismatch"
-      },
-      "federation_interop_floor": {
-        "is_minimum_for_mls_backed_federation": true,
-        "requires_exact_extension_codepoint": "0xF1C0",
-        "requires_binding_profile": "ak.profile.mls_governance_binding.full.v1",
-        "forbids_silent_downgrade": [
-          "omitting the GroupContext extension",
-          "using a deployment-private alternate extension codepoint",
-          "accepting a Commit whose key_access_revision does not equal the current authority projection"
-        ]
-      },
-      "fail_closed_conditions": [
-        "governance binding missing from ak.mls.commit",
-        "effective_scope or derived mls_group_id mismatch",
-        "previous_epoch or next_epoch mismatch",
-        "key_access_revision differs from the current authority-committed projection",
-        "Commit and recipient Welcome delivery are not accepted as one atomic service transaction"
-      ]
-    },
     "ak.profile.mls.minimal_metadata_realm.v1": {
       "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "enforcement_phases": [
@@ -4648,7 +4475,6 @@
         "ak.schema.identity_link.v1"
       ],
       "required_fixtures": [
-        "audit-release-fixture.json",
         "privacy-security-fixture.json",
         "push-rule-core-fixture.json"
       ],
@@ -4777,113 +4603,6 @@
           "description": "At least one relay/indirection/decoy mechanism MUST be enabled for cross-domain high-privacy routes.",
           "value_shape": "string"
         }
-      }
-    },
-    "ak.profile.attested_audit.e2ee.v1": {
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.account.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "required_event_kinds": [
-        "ak.audit.applet_binding.create",
-        "ak.audit.applet_binding.state",
-        "ak.audit.session.request",
-        "ak.audit.session.authorize",
-        "ak.audit.session.notice",
-        "ak.audit.release",
-        "ak.audit.session.close",
-        "ak.audit.ryw_receipt",
-        "ak.mls.commit"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.encrypted_envelope.v1",
-        "ak.schema.audit_ryw_receipt.v1"
-      ],
-      "required_fixtures": [
-        "audit-release-fixture.json",
-        "privacy-security-fixture.json",
-        "push-rule-core-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "audit_applet_binding_visible",
-          "audit_release_service_attestation",
-          "audit_release_ryw_receipt",
-          "audit_release_session_notice",
-          "audit_assurance_class_attested_hardware"
-        ],
-        "unsupported_optional": "fail closed before joining auditable encrypted Realm"
-      }
-    },
-    "ak.profile.disclosed_audit.e2ee.v1": {
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.account.stream.subscribe.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "required_event_kinds": [
-        "ak.audit.applet_binding.create",
-        "ak.audit.applet_binding.state",
-        "ak.audit.session.request",
-        "ak.audit.session.authorize",
-        "ak.audit.session.notice",
-        "ak.audit.release",
-        "ak.audit.session.close",
-        "ak.audit.ryw_receipt",
-        "ak.mls.commit"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.encrypted_envelope.v1",
-        "ak.schema.audit_ryw_receipt.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json",
-        "push-rule-core-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "audit_applet_binding_visible",
-          "audit_release_ryw_receipt",
-          "audit_release_session_notice",
-          "audit_assurance_class_disclosed_policy",
-          "forbidden_marketing_terms_check"
-        ],
-        "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
     "ak.profile.binding.websocket.v1": {
@@ -5062,7 +4781,7 @@
         "required": [
           "circle_submit_payload_shape",
           "circle_signed_scope_ref_shape",
-          "circle_encryption_profile_floor_check",
+          "circle_mls_genesis_activation_check",
           "circle_scope_rebind_default_reject",
           "circle_member_state_transition_table"
         ],
@@ -5072,11 +4791,9 @@
         "submit_payload_must": "Object payload schemas that own scope_circle_id (including Strand, Morph, Relation, and scoped Space create/update shapes) MAY carry only that field as their actor-authored scope selector and MUST reject effective_scope (reason=effective_scope_reducer_managed). The rejection is decidable from the artifact schemas alone on both surfaces: every create shape reuses its object schema, and Relation - the one object schema that declares effective_scope on a patch surface - additionally forbids the effective_scope / effective_scope.* patch paths, registered per object kind in registry/reducer-managed-path-registry.json. Message and structural-operation payloads derive scope from accepted target references and MUST NOT invent a duplicate scope_circle_id; every Event still carries the producer-signed scope_ref.",
         "canonical_reducer_output_must": "The producer MUST sign the tagged Event scope_ref. The receiver MUST derive the effective scope from the frozen pre-state and payload, require exact equality with scope_ref, and materialize the same value as the object's read-only effective_scope. A later scope_circle_id rebind MUST NOT re-interpret historical Events or objects.",
         "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit ak.audit.accessed pairing.",
-        "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
-        "circle_content_encryption_floor_must": "Circle.content_encryption_floor (allow_plaintext | e2ee_required) is optional and symmetric with Circle.metadata_encryption_floor: when omitted it inherits the parent Realm content_encryption_floor, and the effective floor = max(parent Realm content_encryption_floor, Circle content_encryption_floor). Reducer MUST reject a Circle floor below the effective floor and MUST reject content_encryption_floor=e2ee_required on an encryption_profile=none Circle (reason=circle_encryption_below_realm_floor). See zh/models/circle.md §7.",
-        "encryption_floor_ratchet_must": "The effective content_encryption_floor and effective metadata encryption floor of any scope (Realm-default or Circle) are one-way ratchets: monotonically non-decreasing over time. A ak.realm.policy_bundle or ak.circle.update that lowers the effective content floor from e2ee_required to allow_plaintext MUST be rejected (reason=content_encryption_floor_downgrade); one that lowers the effective metadata floor MUST be rejected (reason=metadata_encryption_floor_downgrade). Tightening is always allowed. Vectors: ak.vector.e2ee.content_floor_downgrade_rejected.v1, ak.vector.e2ee.metadata_floor_downgrade_rejected.v1, ak.vector.circle.content_floor_below_realm_rejected.v1, ak.vector.e2ee.in_place_enable.v1.",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ak.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
-        "scope_invariant_must": "The Station sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors who are not members at that Event's committed Circle-stream position (see zh/models/circle.md §9.3 scope-delivery invariant)."
+        "scope_invariant_must": "The Station sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors who are not members at that Event's committed Circle-stream position (see zh/models/circle.md §9.3 scope-delivery invariant).",
+        "circle_mls_genesis_activation_must": "A Circle scope is plaintext until its own ak.mls.genesis is accepted. That accepted RealmCommit irreversibly activates standard RFC 9420 for the Circle scope; a later plaintext content write into the activated scope MUST be rejected and the activation MUST NOT be reversed. See zh/models/circle.md section 7."
       }
     },
     "ak.profile.personal_productivity.v1": {

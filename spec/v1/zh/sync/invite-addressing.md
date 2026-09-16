@@ -43,7 +43,7 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(int
 | `account_id` | `AccountId` | MUST | 被邀请 holder 的完整账号身份；`principal_id` 与 `station_id` 均不可省略或由上下文推断。 |
 | `service_resolution` | `service_resolution_carrier` | MUST | `account_id.station_id` 的首跳路由材料；形态必须是完整 method evidence 的 `inline`，或 `resolution_url` 发现线索。 |
 
-`account_id.station_id` 在 v1 中只表示托管该账号的 Station。它 **MUST NOT** 指向 notary、push gateway、Directory 或任意第三方服务。客户端 MUST 从显式 AccountId 取得目标 Station，MUST NOT 从当前 session、URL 或 DID Document 补齐账号身份。
+`account_id.station_id` 在 v1 中只表示托管该账号的 Station。它 **MUST NOT** 指向 Realm governance Station、push gateway、Directory 或任意第三方服务，除非该服务恰好也是该账号的托管 Station。客户端 MUST 从显式 AccountId 取得目标 Station，MUST NOT 从当前 session、URL 或 DID Document 补齐账号身份。
 
 invite/locator 必须携带 `service_resolution` 作为发现载体。可选 transport-only `route_assistance.mirror_hints[]` 最多四项，每项包含 mirror service 的 `did_core_id` 和独立 `service_resolution_carrier`。镜像只能转交目标 DID 方法证据，不能自行授权目标入口。该对象不改变 invite 的业务授权或 exact invitee AccountId，接收方 MAY 忽略。
 
@@ -262,7 +262,7 @@ effective_receive_policy =
 - `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`denied_actor_ids` / `denied_source_ids` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
 - `allowed_handle_domains`、`trusted_handle_issuer_ids`、`trusted_directory_ids`、`trusted_source_ids`、`accepted_subject_did_methods` 是部署级 allowlist；字段省略表示该维度不设部署级上限，字段存在且为空数组表示不接受该维度的任何候选。非空时必须命中。未命中 MUST 视为策略拒绝，不得通过响应区分“存在但被策略拒绝”和“不存在”。
 - `denied_source_ids` 命中时 MUST `drop` 且强制 `opaque`。
-- `applies_to` 是本对象**筛选面**的封闭列举，取值 `invite_delivery | contact_request`，省略等于两条全选。它只筛选 introduction-evidence 与分级披露类成员——`deployment_allowed_introduction_kinds`、`deployment_denied_introduction_kinds`、三个 `*_max_behavior`、`disclosure_max`，以及 handle domain / handle issuer / directory / source / DID method 各表。**`new_source_quota` 不受 `applies_to` 筛选**，见下一条。[`../identity/consent-model.md` §6.1.2](../identity/consent-model.md) 的 consent request 面不携带 introduction evidence、也不参与 §5.1 分级披露，上述成员在该面上没有可筛选的对象，因此本枚举**不**为它新增取值。
+- `applies_to` 是本对象**筛选面**的封闭列举，取值 `invite_delivery | contact_request`，省略等于两条全选。它只筛选 introduction-evidence 与分级披露类成员——`deployment_allowed_introduction_kinds`、`deployment_denied_introduction_kinds`、三个 `*_max_behavior`、`disclosure_max`，以及 handle domain / handle issuer / directory / source / DID method 各表。**`new_source_quota` 不受 `applies_to` 筛选**，见下一条。[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的 first-contact admission 面不携带 introduction evidence、也不参与 §5.1 分级披露，上述成员在该面上没有可筛选的对象，因此本枚举**不**为它新增取值。
 - `new_source_quota` 是 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) per-holder 新来源限速的**唯一**部署 carrier。字段与缺省：`window_seconds`（86400）、`default_new_sources_per_window`（3）、`max_new_sources_per_window`（10）、`retention_seconds`（2592000）、`default_new_sources_per_retention`（30）、`max_new_sources_per_retention`（200）。**省略该对象或任一字段不等于关闭 quota**，缺省即上表值；MUST 不变式 `max_* ≥ default_*` 与 `retention_seconds ≥ window_seconds` 由 validator 强制，违反者整个 constraints 对象以 `schema_violation` 拒绝。该 quota 与本节其它上限的交集独立计算：先按行为上限定 drop / quarantine / notify，命中 quarantine 后才在 admission chokepoint 执行 quota 判定。**该对象 MUST NOT 被 `applies_to` 筛选（normative）**：它是 [`../identity/consent-model.md` §6.1.1.3](../identity/consent-model.md) holder admission chokepoint 的阈值，invite delivery、contact delivery 与 consent request 三条面共用同一份 ledger 与同一组阈值，因此 `applies_to` 取何值都不改变它对三条面无条件生效。
 
 示例：
@@ -315,7 +315,7 @@ effective_receive_policy =
 - `payload.invitee_account_id` MUST 与 `invite_address.account_id` 完整相等，不得只比较 principal。
 - destination service 只从 `invitee_account_id.station_id` 派生；service resolution 与 route assistance 只在私有 transport carrier 中出现，MUST NOT 要求 durable Event 镜像它们。
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，第三方/token placeholder 或缺少 invitee 的前态 MUST 以 `failed_precondition` / `invite_kind_requires_revoke` 原子拒绝；不得信任请求补出的身份。该 Move 只推进 Invite lifecycle，不写 `member.state`。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel` 的 `invite_cancel_payload`：`invite_id`、与持久化目标完整相等的 `invitee_account_id`、`target_state` 及该 schema 允许的诊断字段。invitee 本人拒绝写入 `rejected`；inviter 或获授权管理 actor 撤销写入 `revoked`。reducer MUST 从 Invite 前态确认 exact invitee，第三方/token placeholder 或缺少 invitee 的前态 MUST 以 `failed_precondition` / `invite_kind_requires_revoke` 原子拒绝；不得信任请求补出的身份。该 Event 只推进 Invite lifecycle，不写 `member.state`。
 - `ak.invite.revoke` 使用独立 `invite_revoke_payload`，只推进 Invite lifecycle；指向尚未绑定账号的 3PID placeholder 时 MUST NOT 携带 `invitee_account_id`。取消或撤销不会合成 membership `leave` 写入。完整终态规则见 [`governance-objects.md` §5.3](../models/governance-objects.md)。
 
 ## 7. 私有 Invite Delivery
@@ -358,7 +358,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求完整证据的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
 4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID、Realm ID、producer 签名、可携带的 producer signer evidence 与原始授权。验证必须复用现有 Event proof 合同，从请求携带闭包或本地已验证缓存重算 `signer_resolution_evidence_ref` 并解析 exact producer key；不得相信发送者自报公钥、仅使用 Source-Service-ID，或要求账号原站在线。first-contact receiver 缺少闭包成员时只能 pending，并可按通用 dependency resolution 从任一获授权且能提供精确 content-addressed 对象的来源补齐；来源身份不进入 Event 授权结果。保留目标、有效期及重放约束。
-   投递仅证明已认证发送者发出邀请，**不验证或宣称**其 Realm 管理权限、成员资格或邀请 durable acceptance。接收方 MUST NOT 为投递求值成员级 Realm 授权闭包、要求本地 accepted RealmCommit 或获取 Realm peer dependencies。请求不承载邀请专用 authority-commit bundles；普通 authority-commit、RealmCommit 签名和 signer authority 准入规则保持不变。正常加入 / 同步负责 Realm 授权及 durable acceptance，投递不得物化 Realm、membership、accepted RealmCommit、projection 或 frontier。
+   投递仅证明已认证发送者发出邀请，**不验证或宣称**其 Realm 管理权限、成员资格或邀请 durable acceptance。接收方 MUST NOT 为投递求值成员级 Realm 授权闭包、要求本地 accepted RealmCommit 或获取 Realm peer dependencies。请求不承载邀请专用 authority-commit bundles；普通 authority-commit、RealmCommit 签名和 signer authority 准入规则保持不变。正常加入 / 同步负责 Realm 授权及 durable acceptance，投递不得物化 Realm、membership、accepted RealmCommit、projection 或 checkpoint。
    本步在 holder 查询、policy、consent、quota 与任何写入之前执行。结构错误返回 schema_violation，无效签名或 proof 绑定返回已注册的 signature_invalid；请求体仍受现有 8 MiB 上限约束。未能验证的 authority ref 不得作为任何可信状态或授权依据。
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。
 6. 验证 durable invite Event 未携带独立 route material；可选 `route_assistance` 只存在于 delivery transport，MUST NOT 要求它写入或匹配 durable Event，也 MUST NOT 把它当作授权证据。
@@ -379,7 +379,7 @@ notify 分支的 holder-private 投递承载是 account-data 私有 typed curren
 ### 7.1 定向邀请的加入前预览（normative）
 
 被邀请方在接受前查看 Realm 的**唯一来源**是已验证邀请中的完整 `inviter_account_id.station_id`。被邀请者自己的
-Station、另一成员 Station、notary、独立 Directory 与实际投递使用的 `Source-Service-ID` MUST NOT 替代该身份；
+Station、另一成员 Station、Realm governance Station、独立 Directory 与实际投递使用的 `Source-Service-ID` MUST NOT 替代该身份；
 同一 principal 在不同 Station 上的账号不可互换。Station 固定的是 service 身份而不是永不变化的 URL：端点发现、
 方法证据与新鲜度复用现有 `AuthenticatedServiceResolution`，同一 service 合法更新端点不改变来源，失联 MUST NOT
 通过替换服务身份兜底。

@@ -490,7 +490,7 @@ libp2p:
         type: string
       payload:
         type: object
-      frontier:
+      checkpoint:
         type: object
       proof:
         type: object

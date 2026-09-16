@@ -19,7 +19,7 @@ conformance 目录只引用 canonical machine artifact，不保存 schema / fixt
 
 - `encoding.md`：canonical JSON、hash、proof、HLC（§7）、cursor（§8）、rank、composite state key、encrypted envelope digest（§10）、AEAD nonce 唯一性（§10.1）的 wire 编码与操作伪代码。
 - `conformance-vectors.md`：合并的一致性测试向量，域索引以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。`ak.vector.identity.independent_admission.v1` 覆盖完整 AccountId 唯一性、接收站独立验证与撤销后的确定性分类。
-- `scalability-constraints.md`：v1 wire、授权、authority-commit/Lattice、Board/Relation/View 和 E2EE 的规模上限。
+- `scalability-constraints.md`：v1 wire、授权、authority-commit projection、Board/Relation/View 和 E2EE 的规模上限。
 - `schema-registry.md`：标准 schema / event type registry 的说明视图。
 - `conformance-profiles.md`：实现 profile 与一致性测试范围。
 - `conformance-suite.md`：自动化互操作 suite、向量优先级、组件测试矩阵。

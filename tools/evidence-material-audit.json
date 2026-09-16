@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 316,
+  "audited_occurrence_count": 313,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -276,7 +276,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 35,
+      "occurrences": 34,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -555,13 +555,6 @@
     },
     {
       "file": "forbidden-wire-fields.json",
-      "key": "attestation_evidence",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Context vocabulary key selects an owning schema and instance domain; it is not a wire evidence carrier."
-    },
-    {
-      "file": "forbidden-wire-fields.json",
       "key": "moderation_queue_item.evidence_policy",
       "occurrences": 1,
       "disposition": "registry_contract",
@@ -772,7 +765,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 35,
+      "occurrences": 34,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

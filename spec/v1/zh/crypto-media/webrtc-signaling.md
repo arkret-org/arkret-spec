@@ -97,7 +97,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_id`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
 - `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条携带 `ak.call.state.state_transition.to="ended"` 的 durable event；收到的客户端 MUST 全部挂断。
-- kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `ak.component.call.moderation.v1` effective OR-Set 的 ban 集合内，违反 `call_participant_removed`。
+- kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `call_moderation` effective authority-ordered keyed set 的 ban 集合内，违反 `call_participant_removed`。
 - force-mute MUST 以 `ak.call.state.mute_override` 写入 `(call_id, actor_id, device_id)` 的当前覆盖值；token issuer 与 SFU 在签发 / 刷新 / 接纳 participant send permission 前 MUST 应用该值，禁止被静音 track 继续上行。客户端本地强制静音只是 UX 镜像，MUST NOT 是唯一 enforcement。
 - 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ak.call.moderate` 的 actor 签名。
 
@@ -460,9 +460,9 @@ Candidate payload:
 规则：
 
 - `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission 接受一条 durable `ak.call.state.roster_delta.op="join"` 后才成立。P2P / mesh 候选不取得 `participant_binding`；SFU / MCU 的每个候选设备 MAY 在提交 join 前兑换短期 `participant_binding` 与 media token，winner 仍由首条 accepted roster join 确立。非 winner 的 binding / token MUST 由 issuer 立即撤销，或在不超过 `ring_timeout_ms`（[`call-state.md` §5](./call-state.md) 的登记常量，默认且最大 60,000 ms）的短 TTL 后失效，不得据此进入 media roster。
-- Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted call roster effective OR-Set 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
+- Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted call roster effective authority-ordered keyed set 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
 - 若同一 actor 的多个设备基于同一 prior call-state basis 并发 answer，reducer / admission service MUST 使用确定性 tiebreak，而不是本地接收顺序：按 `(device_id, proof.event_digest)` 字典序最小的候选成为唯一 winner；其它候选返回 `call_already_answered` 或发送 `reject{reason="call_already_answered"}`。该 tiebreak 只处理真正并发 sibling；非并发场景仍由已 accepted durable participant entry 吸收后续请求。
-- 发起端、其它接收端与 SFU MUST 以 accepted `ak.component.call.roster.v1` effective OR-Set 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
+- 发起端、其它接收端与 SFU MUST 以 accepted `call_roster` effective authority-ordered keyed set 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
 - 被拒绝或超时的设备 SHOULD 发送 `reject`，reason 为 `call_already_answered` 或 `timeout`，但拒绝帧本身不改变 durable winner。
 
 ## 8. 屏幕共享

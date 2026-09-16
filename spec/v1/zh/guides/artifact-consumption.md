@@ -18,7 +18,7 @@ updated: 2026-07-13
 
 实现侧应把以下 artifact 作为 v1 协议事实来源:
 
-- `registry/event-kind-registry.json`: event kind 是否 active、wire scope、typed current result family、execution、state_model、value_shape、payload schema。
+- `registry/event-kind-registry.json`: event kind 是否 active、wire scope、typed current result family、execution、domain reducer、value_shape、payload schema。
 - `registry/operation-registry.json`: service operation ID、transport binding（`http` / `grpc` / `mq`）、`body_class`、`success_shape_kind` 与 `response_schema_ref`。profile 归属不在本文件，见 `profiles/conformance-profiles.json`。
 - `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），避免假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。该要求的权威来源是 [`../overview/release-readiness.md`](../overview/release-readiness.md)。
 - `registry/track-name-registry.json`: `Strand.tracks` active key 的闭集、状态与 schema/profile owner；未登记名称不得仅凭正则匹配进入 reducer。
@@ -46,7 +46,7 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 
 - `arkret_schema::SpecArtifactBundle` 负责读取 artifact bundle 并提供 drift report。
 - `arkret_schema::event_payload_validator_catalog()` 负责从 event kind registry 和 schema registry 构建 payload validator。
-- `arkret_wire::ProfileId`（含 `ProfileId::role`）和 `arkret_wire::ReducerProfileId` 负责发布 generated conformance / reducer profile 标识与角色划分；`arkret_wire::generated::profile_requirements` 负责发布 profile requirement 表（与其余 generated registry 同处 `arkret-wire`，消费者一律直接引用该路径）。
+- `arkret_wire::ProfileId`（含 `ProfileId::role`）和 `arkret_wire::ReducerProfileId` 负责发布 generated conformance / fixed reducer semantics 标识与角色划分；`arkret_wire::generated::profile_requirements` 负责发布 profile requirement 表（与其余 generated registry 同处 `arkret-wire`，消费者一律直接引用该路径）。
 - 新增协议字段时，先更新 artifact，再重新生成 SDK generated module，最后让服务端/客户端消费 SDK API。
 
 服务端或客户端不应复制 generated profile requirement 表；需要本地别名时，应能追溯到 SDK/generated artifact。
@@ -64,7 +64,7 @@ Soland 是 Station，不是协议 registry 的来源。
 
 Inkson 是客户端，不应重新解释协议安全事实。
 
-- Agent audit binding、authz delegation、lattice pre-check、account data shape 应优先消费 SDK helper。
+- Agent audit binding、authz delegation、projection pre-check、account data shape 应优先消费 SDK helper。
 - UI 可以持有 view-model 和 local cache；`client.ui`、`client.blocklist`、profile gate 结果应能 roundtrip 到 server account data 或 server describe。
 - 附件/blob 展示应消费 SDK media/blob 类型和服务端 authenticated URL，避免长期使用 placeholder URL。
 

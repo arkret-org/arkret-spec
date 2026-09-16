@@ -376,7 +376,7 @@
     },
     "agent_action_approve_payload": {
       "type": "object",
-      "description": "Controller-signed security command binding one complete pre-authored ordinary Event by content-derived EventId. The canonical Event bytes exist before approval, avoiding any digest or RealmCommit self-reference. Confirmation atomically consumes the nonce and authorizes only that exact Event.",
+      "description": "Controller-signed security command binding one complete pre-authored Event by content-derived EventId. The canonical Event bytes exist before approval, avoiding any digest or RealmCommit self-reference. Confirmation atomically consumes the nonce and authorizes only that exact Event.",
       "required": [
         "approval_id",
         "agent_id",
@@ -621,7 +621,7 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle typed current result is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted RealmCommit covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
+      "description": "Payload for the single terminal ak.self.agent.deactivate Event. The lifecycle typed current result is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted RealmCommit covering this Event, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
       "required": [
         "transition",
         "previous_status",
@@ -705,7 +705,7 @@
     },
     "agent_key_approval_evidence": {
       "type": "object",
-      "description": "Evidence that authorized this agent key. Durable grant/approval/proposal/policy evidence carries ref so it can be replayed at the event frontier; the short-lived pairing_request branch instead binds pairing_request_id, request_canonical_digest, and approved_by and MUST omit ref.",
+      "description": "Evidence that authorized this agent key. Durable grant/approval/proposal/policy evidence carries ref so it can be replayed at the event checkpoint; the short-lived pairing_request branch instead binds pairing_request_id, request_canonical_digest, and approved_by and MUST omit ref.",
       "required": [
         "kind"
       ],
@@ -819,7 +819,7 @@
         },
         "supersedes": {
           "type": "array",
-          "description": "Exact complete active authorization set at authority_revision and first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Omit exactly when the active set is empty, including after revoke. Each authorization Event identifies its registered add dot. Same-key reauthorization uses the same exact-set rule. Remove the observed old-key typed results atomically and add the new authorization; never infer authority from historical row presence or map overwrite.",
+          "description": "Exact complete active authorization set at expected_revision and first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Omit exactly when the active set is empty, including after revoke. Each authorization Event identifies its registered add dot. Same-key reauthorization uses the same exact-set rule. Remove the observed old-key typed results atomically and add the new authorization; never infer authority from historical row presence or map overwrite.",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
@@ -883,7 +883,7 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.key.revoke. The or_set typed current result subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted RealmCommit. The authoring frontiers is the current authority-committed state; the payload carries no frontier field.",
+      "description": "Payload for ak.agent.key.revoke. The keyed-set projection typed current result subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted RealmCommit. The authoring checkpoints is the current authority-committed state; the payload carries no checkpoint field.",
       "required": [
         "agent_id",
         "key_id",
@@ -1136,7 +1136,7 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.pause. The status typed current result is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state; the reducer accepts the transition only under the accepted current control frontier.",
+      "description": "Payload for ak.self.agent.pause. The status typed current result is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state; the reducer accepts the transition only under the accepted current authority-committed results.",
       "required": [
         "transition",
         "previous_status",
@@ -1160,7 +1160,7 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. The status typed current result is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
+      "description": "Payload for ak.self.agent.resume. The status typed current result is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current authority-committed results before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
         "transition",
         "previous_status",
@@ -1494,11 +1494,6 @@
         },
         "accessed_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "ryw_required": {
-          "type": "boolean",
-          "default": true,
-          "description": "When true, plaintext release or privileged projection MUST wait for an accepted-history RYW receipt before disclosure."
         }
       },
       "allOf": [
@@ -1556,679 +1551,6 @@
         }
       ],
       "additionalProperties": false
-    },
-    "audit_applet_binding_create_payload": {
-      "type": "object",
-      "description": "Genesis payload for ak.audit.applet_binding.create. binding_id, initial active status, creator, and creation time are derived from the accepted Event envelope. Policy fields are immutable; changing them creates a new binding so historical release eligibility cannot be silently expanded.",
-      "required": [
-        "realm_id",
-        "effective_scope",
-        "applet_id",
-        "service_id",
-        "purpose_kinds",
-        "allowed_release_modes",
-        "audit_assurance_class",
-        "notice_policy",
-        "activation_frontier_digest",
-        "first_auditable_epoch",
-        "release_window_policy",
-        "policy_version_digest"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope"
-        },
-        "applet_id": {
-          "$ref": "./common-ids.schema.json#/$defs/applet_id"
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "purpose_kinds": {
-          "$ref": "#/$defs/string_list"
-        },
-        "allowed_release_modes": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "targeted_evidence_release",
-              "sealed_epoch_key_release"
-            ]
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "audit_assurance_class": {
-          "type": "string",
-          "enum": [
-            "attested_hardware",
-            "disclosed_policy"
-          ]
-        },
-        "notice_policy": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true
-        },
-        "approver_policy": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "activation_frontier_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Accepted RealmCommit coverage digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this coverage point."
-        },
-        "first_auditable_epoch": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "First MLS epoch eligible for this binding. Reducers MUST verify it is the epoch created by a ak.mls.commit covering activation_frontier_digest; earlier epochs are permanently ineligible."
-        },
-        "release_window_policy": {
-          "type": "object",
-          "required": [
-            "retroactive_release",
-            "eligibility_basis"
-          ],
-          "properties": {
-            "retroactive_release": {
-              "const": "forbidden",
-              "description": "v1 audited E2EE never permits a later binding or policy expansion to make pre-activation messages auditable."
-            },
-            "eligibility_basis": {
-              "const": "encrypted_after_binding_activation",
-              "description": "A message is eligible only if it was encrypted after a commit covering this binding/policy frontier."
-            },
-            "max_lookback_ms": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Optional maximum age, measured from session request/authorization time, for otherwise eligible material. Later policy changes may narrow this for future messages but MUST NOT expand already encrypted messages."
-            },
-            "max_epoch_span": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Optional cap on the number of committed historical epochs a single session/release may cover."
-            },
-            "allowed_target_kinds": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              "uniqueItems": true,
-              "description": "Optional target class allow-list for targeted_evidence_release."
-            }
-          },
-          "additionalProperties": false
-        },
-        "policy_version_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "attestation_policy": {
-          "type": "object",
-          "description": "The Realm-declared trust root list and allowed measurement set that every ak.audit.release release_attestation under this binding is verified against (zh/crypto-media/audited-e2ee.md section 6). Present exactly when audit_assurance_class is attested_hardware. Immutable like every other policy field: widening it requires a new binding genesis.",
-          "required": [
-            "trust_root_digests",
-            "allowed_code_digests",
-            "allowed_policy_versions"
-          ],
-          "properties": {
-            "trust_root_digests": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 16,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/digest"
-              },
-              "description": "sha256 over the decoded bytes_b64u of the last attestation_chains[] item (the vendor root). Evidence whose chain root is not listed is audit_release_attestation_invalid."
-            },
-            "allowed_code_digests": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 16,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/digest"
-              },
-              "description": "Allowed measurement.code_digest values of the release service image."
-            },
-            "allowed_policy_versions": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 16,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              "description": "Allowed measurement.policy_version values of the release service."
-            }
-          },
-          "additionalProperties": false
-        },
-        "not_before": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/nullable_timestamp"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "audit_assurance_class": {
-                "const": "attested_hardware"
-              }
-            },
-            "required": [
-              "audit_assurance_class"
-            ]
-          },
-          "then": {
-            "required": [
-              "attestation_policy"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "attestation_policy"
-              ]
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "audit_applet_binding_state_payload": {
-      "type": "object",
-      "description": "Lifecycle-only transition for an existing Audit Applet Binding. Scope and release policy cannot be edited by this Event; a policy change requires a new binding genesis.",
-      "required": [
-        "binding_id",
-        "from",
-        "to"
-      ],
-      "properties": {
-        "binding_id": {
-          "$ref": "#/$defs/audit_binding_id"
-        },
-        "from": {
-          "type": "string",
-          "enum": [
-            "active",
-            "suspended"
-          ]
-        },
-        "to": {
-          "type": "string",
-          "enum": [
-            "active",
-            "suspended",
-            "revoked"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "audit_binding_id": {
-      "type": "string",
-      "pattern": "^ak:audit_binding:[A-Za-z0-9_-]{44}$"
-    },
-    "audit_payload": {
-      "type": "object",
-      "minProperties": 1,
-      "properties": {
-        "target_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "purpose": {
-          "type": "string"
-        },
-        "accessed_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "audit_release_id": {
-      "type": "string",
-      "pattern": "^ak:audit_release:[A-Za-z0-9_-]{44}$"
-    },
-    "audit_release_payload": {
-      "$comment": "Reducer rejections for this payload carry registered sub-reasons: no active binding for the declared effective_scope is failed_precondition reason audit_release_binding_missing; effective_scope disagreeing with the active binding (or a Realm-scoped binding used to cover Circle history) is audit_release_scope_mismatch; a release without a valid prior ak.audit.session.notice for the same session/binding/scope is audit_release_notice_missing; targeting the current active MLS epoch is audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.1 / §4.4 / §5.2.",
-      "type": "object",
-      "description": "Payload for ak.audit.release. The current governance Station validates the notice, policy and current authorization atomically; the Event does not carry a RealmCommit or caller-selected safety basis.",
-      "required": [
-        "session_id",
-        "binding_id",
-        "realm_id",
-        "effective_scope",
-        "applet_id",
-        "service_id",
-        "release_mode",
-        "approver_actor_id",
-        "notice_ref",
-        "purpose_kind",
-        "legal_basis_ref",
-        "policy_version_digest",
-        "eligibility_proof",
-        "wrapped_material_digest",
-        "released_at"
-      ],
-      "properties": {
-        "session_id": {
-          "$ref": "#/$defs/audit_session_id"
-        },
-        "binding_id": {
-          "$ref": "#/$defs/audit_binding_id"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "$comment": "MUST equal the effective_scope of the active ak.audit.applet_binding; a mismatch is rejected with reason audit_release_scope_mismatch, and no active binding for the scope is audit_release_binding_missing. See zh/crypto-media/audited-e2ee.md §3 / §4.1."
-        },
-        "applet_id": {
-          "$ref": "./common-ids.schema.json#/$defs/applet_id"
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "release_mode": {
-          "type": "string",
-          "enum": [
-            "targeted_evidence_release",
-            "sealed_epoch_key_release"
-          ]
-        },
-        "sealed_epoch_range": {
-          "$ref": "#/$defs/mls_epoch_range"
-        },
-        "target_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/object_ref"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "approver_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "notice_ref": {
-          "$ref": "#/$defs/event_ref",
-          "$comment": "MUST reference an accepted ak.audit.session.notice of the same session, binding, scope, purpose and approved range; a release without a valid prior notice is rejected with reason audit_release_notice_missing. See zh/crypto-media/audited-e2ee.md §4.3 / §4.4."
-        },
-        "purpose_kind": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "legal_basis_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "policy_version_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "eligibility_proof": {
-          "type": "object",
-          "description": "Proof summary that the requested release is inside the binding activation frontier, first_auditable_epoch, release_window_policy, and the targets' encryption-time eligibility snapshots.",
-          "required": [
-            "binding_activation_frontier_digest",
-            "first_auditable_epoch",
-            "policy_snapshot_digest",
-            "target_eligibility_digest"
-          ],
-          "properties": {
-            "binding_activation_frontier_digest": {
-              "$ref": "#/$defs/digest"
-            },
-            "first_auditable_epoch": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "activation_commit_ref": {
-              "$ref": "#/$defs/event_ref",
-              "description": "ak.mls.commit that covered the activation frontier and created first_auditable_epoch, when the release covers MLS epoch material."
-            },
-            "policy_snapshot_digest": {
-              "$ref": "#/$defs/digest",
-              "description": "Digest of the binding/release window policy snapshot used when authorizing this release."
-            },
-            "target_eligibility_digest": {
-              "$ref": "#/$defs/digest",
-              "description": "Digest of the deterministic per-target/per-epoch eligibility set proving no pre-activation material is included."
-            }
-          },
-          "additionalProperties": false
-        },
-        "sealed_by_commit_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "wrapped_material_digest": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/digest"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "release_attestation": {
-          "$ref": "./audit-release-attestation.schema.json",
-          "description": "Remote attestation evidence of the release service's controlled output path. Required when the active binding's audit_assurance_class is attested_hardware and forbidden under disclosed_policy; that conditional depends on accepted state, so it is an admission check, not a schema keyword. Admission verifies it against the binding's attestation_policy (audit_release_attestation_invalid) and against the active binding / accepted authorize fields (audit_release_attestation_mismatch); see zh/crypto-media/audited-e2ee.md section 6."
-        },
-        "released_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "release_mode": {
-                "const": "targeted_evidence_release"
-              }
-            },
-            "required": [
-              "release_mode"
-            ]
-          },
-          "then": {
-            "required": [
-              "target_refs"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "release_mode": {
-                "const": "sealed_epoch_key_release"
-              }
-            },
-            "required": [
-              "release_mode"
-            ]
-          },
-          "then": {
-            "required": [
-              "sealed_epoch_range",
-              "sealed_by_commit_ref"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "audit_session_authorize_payload": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/audit_session_contract"
-        },
-        {
-          "required": [
-            "session_id",
-            "request_ref",
-            "approver_actor_id",
-            "approved_recipient_audit_actor_id",
-            "approved_recipient_public_key_ref",
-            "approved_release_mode",
-            "notice_policy",
-            "expires_at"
-          ],
-          "properties": {
-            "session_state": {
-              "const": "authorize"
-            }
-          },
-          "anyOf": [
-            {
-              "required": [
-                "approved_epoch_range"
-              ]
-            },
-            {
-              "required": [
-                "target_refs"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "audit_session_close_payload": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/audit_session_contract"
-        },
-        {
-          "required": [
-            "session_id",
-            "closer_actor_id",
-            "close_reason",
-            "release_refs"
-          ],
-          "properties": {
-            "session_state": {
-              "const": "close"
-            }
-          }
-        }
-      ]
-    },
-    "audit_session_id": {
-      "type": "string",
-      "pattern": "^ak:audit_session:[A-Za-z0-9_-]{44}$"
-    },
-    "audit_session_notice_payload": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/audit_session_contract"
-        },
-        {
-          "required": [
-            "session_id",
-            "authorize_ref",
-            "service_id",
-            "purpose_kind",
-            "approved_release_mode",
-            "approver_actor_id",
-            "member_notice_digest"
-          ],
-          "properties": {
-            "session_state": {
-              "const": "notice"
-            }
-          },
-          "anyOf": [
-            {
-              "required": [
-                "approved_epoch_range"
-              ]
-            },
-            {
-              "required": [
-                "target_refs"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "audit_session_contract": {
-      "type": "object",
-      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM typed current result ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; competing commands execute in the confirmed sequence; a stale relevant revision is durably rejected.",
-      "required": [
-        "binding_id",
-        "realm_id",
-        "effective_scope",
-        "session_state",
-        "occurred_at"
-      ],
-      "properties": {
-        "session_id": {
-          "$ref": "#/$defs/audit_session_id"
-        },
-        "binding_id": {
-          "$ref": "#/$defs/audit_binding_id"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope",
-          "$comment": "Session contract scope MUST match the active ak.audit.applet_binding effective_scope; a mismatch is rejected with reason audit_release_scope_mismatch, and no active binding for the scope is audit_release_binding_missing. See zh/crypto-media/audited-e2ee.md §3 / §4.1."
-        },
-        "session_state": {
-          "type": "string",
-          "enum": [
-            "request",
-            "authorize",
-            "notice",
-            "close"
-          ]
-        },
-        "applet_id": {
-          "$ref": "./common-ids.schema.json#/$defs/applet_id"
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "requested_by": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "approver_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "approved_recipient_audit_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Audit subject approved to receive release material. Required on ak.audit.session.authorize. The accepted authorize record is the sole recipient source for ak.audit.release; the release payload does not echo this field."
-        },
-        "approved_recipient_public_key_ref": {
-          "$ref": "#/$defs/verification_method",
-          "description": "Audit release recipient key approved by ak.audit.session.authorize. MUST resolve to approved_recipient_audit_actor_id's authorized audit-release key. The accepted authorize record is the sole key source for ak.audit.release; the release payload does not echo this field."
-        },
-        "closer_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "purpose_kind": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "legal_basis_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "requested_release_mode": {
-          "type": "string",
-          "enum": [
-            "targeted_evidence_release",
-            "sealed_epoch_key_release"
-          ]
-        },
-        "approved_release_mode": {
-          "type": "string",
-          "enum": [
-            "targeted_evidence_release",
-            "sealed_epoch_key_release"
-          ]
-        },
-        "requested_epoch_range": {
-          "$ref": "#/$defs/mls_epoch_range"
-        },
-        "approved_epoch_range": {
-          "$ref": "#/$defs/mls_epoch_range"
-        },
-        "target_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/object_ref"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "request_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "authorize_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "notice_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "notice_policy": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "member_notice_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "release_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/audit_release_id"
-          },
-          "uniqueItems": true
-        },
-        "close_reason": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "policy_version_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "occurred_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "audit_session_request_payload": {
-      "$comment": "Reducer rejections for this payload carry registered sub-reasons: no active ak.audit.applet_binding for the declared effective_scope is failed_precondition reason audit_release_binding_missing; an effective_scope disagreeing with the active binding is audit_release_scope_mismatch. See zh/crypto-media/audited-e2ee.md §4.1.",
-      "allOf": [
-        {
-          "$ref": "#/$defs/audit_session_contract"
-        },
-        {
-          "required": [
-            "requested_by",
-            "purpose_kind",
-            "legal_basis_ref",
-            "requested_release_mode",
-            "request_digest"
-          ],
-          "not": {
-            "required": [
-              "session_id"
-            ]
-          },
-          "properties": {
-            "session_state": {
-              "const": "request"
-            }
-          },
-          "anyOf": [
-            {
-              "required": [
-                "requested_epoch_range"
-              ]
-            },
-            {
-              "required": [
-                "target_refs"
-              ]
-            }
-          ]
-        }
-      ]
     },
     "board_space_id": {
       "type": "string",
@@ -2360,7 +1682,7 @@
             "recording",
             "transcript"
           ],
-          "description": "Whether this start event opens a recording or a transcription segment. REQUIRED: it selects the target capture typed current result family (ak.component.call.recording.v1 vs ak.component.call.transcript.v1) in the registered typed current result contract, so it MUST NOT be inferred from a missing-field default."
+          "description": "Whether this start event opens a recording or a transcription segment. REQUIRED: it selects the target capture typed current result family (call_recording vs call_transcript) in the registered typed current result contract, so it MUST NOT be inferred from a missing-field default."
         },
         "mode": {
           "type": "string",
@@ -2870,22 +2192,24 @@
               "type": "object",
               "required": [
                 "op",
-                "observed_dot_id",
                 "actor_id",
-                "device_id"
+                "device_id",
+                "expected_revision"
               ],
               "properties": {
                 "op": {
                   "const": "leave"
-                },
-                "observed_dot_id": {
-                  "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
                   "$ref": "./common-ids.schema.json#/$defs/actor_id"
                 },
                 "device_id": {
                   "$ref": "#/$defs/device_id"
+                },
+                "expected_revision": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Exact current call-roster revision observed by the producer."
                 }
               },
               "additionalProperties": false
@@ -2968,17 +2292,14 @@
               "type": "object",
               "required": [
                 "op",
-                "observed_dot_id",
                 "actor_id",
                 "restored_by",
-                "restored_at"
+                "restored_at",
+                "expected_revision"
               ],
               "properties": {
                 "op": {
                   "const": "restore_participant"
-                },
-                "observed_dot_id": {
-                  "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
                   "$ref": "./common-ids.schema.json#/$defs/actor_id"
@@ -2988,6 +2309,11 @@
                 },
                 "restored_at": {
                   "$ref": "#/$defs/timestamp"
+                },
+                "expected_revision": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Exact current moderation revision for this participant observed by the producer."
                 }
               },
               "additionalProperties": false
@@ -3225,11 +2551,16 @@
       "type": "object",
       "description": "ak.capability.relinquish — subject-only release of the actor own grant. The authority is the target grant subject's signature, never a capability: a narrowly-scoped holder that was never granted ak.capability.revoke must still be able to give up what it holds. The reducer target guard accepts actor == target.subject and nothing else, so this can never become an unauthorized revocation. Descendants of the released grant fail through their issuer_authority_refs at read time.",
       "required": [
-        "grant_id"
+        "grant_id",
+        "expected_revision"
       ],
       "properties": {
         "grant_id": {
           "$ref": "#/$defs/grant_id"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
         },
         "reason": {
           "type": "string"
@@ -3240,26 +2571,16 @@
     "capability_revoke_payload": {
       "type": "object",
       "required": [
-        "grant_id"
-      ],
-      "anyOf": [
-        {
-          "required": [
-            "grant_ref"
-          ]
-        },
-        {
-          "required": [
-            "grant_id"
-          ]
-        }
+        "grant_id",
+        "expected_revision"
       ],
       "properties": {
-        "grant_ref": {
-          "$ref": "#/$defs/grant_id"
-        },
         "grant_id": {
           "$ref": "#/$defs/grant_id"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0
         },
         "reason": {
           "type": "string"
@@ -3345,7 +2666,7 @@
     },
     "circle_patch_payload": {
       "type": "object",
-      "description": "Payload class for ak.circle.update. Patch path MUST NOT contain realm_id, encryption_profile, content_scheme, mls_group_id, history_access, state, state_changed_at, created_by, or created_at; history_access changes use dedicated ak.circle.history_access. Reducer enforces create-locks and semantic policy checks.",
+      "description": "Payload class for ak.circle.update. Patch path MUST NOT contain realm_id, mls_group_id, history_access, state, state_changed_at, created_by, or created_at; history_access changes use dedicated ak.circle.history_access. Reducer enforces create-locks and semantic policy checks.",
       "required": [
         "circle_id",
         "patch"
@@ -3409,7 +2730,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant evaluated in the holder's Principal Control Realm. The governance Station serializes changes; no typed current result or OR-Set tag is exposed on wire.",
+      "description": "Holder-private consent grant evaluated in the holder's Principal Control Realm. consent_id is the stable domain identity and the governance Station serializes changes on the PCR Realm stream.",
       "required": [
         "consent_id",
         "peer",
@@ -3461,15 +2782,21 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke the current consent identified by consent_id. The governance Station applies this Event in stream order, so no observed-dot set is required.",
+      "description": "Revoke the current consent identified by consent_id at exactly expected_revision. The governance Station rejects a stale revision and applies an accepted Event in stream order.",
       "required": [
-        "consent_id"
+        "consent_id",
+        "expected_revision"
       ],
       "properties": {
         "consent_id": {
           "type": "string",
           "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "MUST equal the consent_id of the ak.consent.grant being revoked."
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exact current consent revision observed by the producer."
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
@@ -3986,7 +3313,7 @@
     },
     "cross_object_redaction_payload": {
       "type": "object",
-      "description": "Payload for the cross-object ak.redaction. Shares the ak.component.object.redaction.v1 typed current result family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:. target_ref is the single target carrier; its lexical space covers both object targets and ak:event: targets, so the typed current result subject is well defined without a coalesce.",
+      "description": "Payload for the cross-object ak.redaction. Shares the object_redaction typed current result family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:. target_ref is the single target carrier; its lexical space covers both object targets and ak:event: targets, so the typed current result subject is well defined without a coalesce.",
       "required": [
         "target_ref"
       ],
@@ -4008,7 +3335,7 @@
     },
     "cross_object_redaction_target_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
       "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
     },
     "device_authorize_payload": {
@@ -4306,7 +3633,7 @@
     },
     "device_reanchor_payload": {
       "type": "object",
-      "description": "Closed account-local PCR recovery payload. The account authority is selected by the exact AccountId and one monotonic local device-generation CAS. PCR realm/frontier identifiers remain local recovery state and are not an external principal identity selector.",
+      "description": "Closed account-local PCR recovery payload. The account authority is selected by the exact AccountId and one monotonic local device-generation CAS. PCR realm/checkpoint identifiers remain local recovery state and are not an external principal identity selector.",
       "required": [
         "account_id",
         "recovery_authority_kind",
@@ -4388,7 +3715,7 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted RealmCommit covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
+      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted RealmCommit covering this Event. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no checkpoint or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
         "device_id",
         "revoked_by",
@@ -4773,7 +4100,7 @@
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Present exactly when the target Invite stores one, that is for a directed invite and never for a third-party invite; admission compares it byte-for-byte with the stored value. It is the only signed source from which the ak.component.invite.live_target.v1 slot subject can be derived, because the reducer projection grammar cannot convert the envelope ActorId into an AccountId."
+          "description": "Present exactly when the target Invite stores one, that is for a directed invite and never for a third-party invite; admission compares it byte-for-byte with the stored value. It is the only signed source from which the invite_live_target slot subject can be derived, because the reducer projection grammar cannot convert the envelope ActorId into an AccountId."
         }
       },
       "patternProperties": {
@@ -4806,7 +4133,7 @@
         "reason_code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Stable machine-readable diagnostic for the terminal transition this Move carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
+          "description": "Stable machine-readable diagnostic for the terminal transition this Event carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
         },
         "reason": {
           "type": "string"
@@ -4829,7 +4156,7 @@
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Present exactly when the target Invite stores one and target_state is not send_failed; forbidden for a 3PID placeholder and forbidden on send_failed. It is the only signed source from which the ak.component.invite.live_target.v1 slot subject can be derived, and send_failed keeps the invite inside the live set, so that transition derives no slot write and needs no account."
+          "description": "Present exactly when the target Invite stores one and target_state is not send_failed; forbidden for a 3PID placeholder and forbidden on send_failed. It is the only signed source from which the invite_live_target slot subject can be derived, and send_failed keeps the invite inside the live set, so that transition derives no slot write and needs no account."
         },
         "target_state": {
           "type": "string",
@@ -4841,12 +4168,12 @@
             "revoked_by_inviter_left",
             "invalidated_by_rate_limit"
           ],
-          "description": "Terminal invalidation of a pending invite, carried by an authorized writer's signed Control Move. send_failed and expired are observations the writer commits explicitly (third-party-invites.md 6.1); neither may be written by a local timer or delivery retry loop."
+          "description": "Terminal invalidation of a pending invite, carried by an authorized writer's signed Event. send_failed and expired are observations the writer commits explicitly (third-party-invites.md 6.1); neither may be written by a local timer or delivery retry loop."
         },
         "reason_code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Stable machine-readable diagnostic for the terminal transition this Move carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
+          "description": "Stable machine-readable diagnostic for the terminal transition this Event carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
         },
         "reason": {
           "type": "string"
@@ -5426,7 +4753,7 @@
       ]
     },
     "join_policy_component": {
-      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate typed current result family, and rides inside the ak.component.realm.policy_bundle.v1 sequenced_state value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
+      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate typed current result family, and rides inside the realm_policy_bundle commit-ordered projection value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
         "gates",
@@ -6076,7 +5403,7 @@
     },
     "message_redact_payload": {
       "type": "object",
-      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2). message_id is the single target carrier, so the ak.component.object.redaction.v1 typed current result subject is always the Message typed ID.",
+      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2). message_id is the single target carrier, so the object_redaction typed current result subject is always the Message typed ID.",
       "required": [
         "message_id"
       ],
@@ -6172,7 +5499,7 @@
     },
     "mimi_room_binding_payload": {
       "type": "object",
-      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 typed current result whose subject is payload.mimi_room_uri (see event-kind-registry.json result_selector). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS key_access_revision gate.",
+      "description": "Payload for ak.mimi.room_binding. Writes the mimi_room_binding typed current result whose subject is payload.mimi_room_uri (see event-kind-registry.json result_selector). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS key_access_revision gate.",
       "required": [
         "profile",
         "mimi_room_uri",
@@ -6188,7 +5515,7 @@
         },
         "mimi_room_uri": {
           "$ref": "./mimi-interop.schema.json#/$defs/mimi_room_uri",
-          "description": "Canonical MIMI room URI and the typed current result subject source for ak.component.mimi.room_binding.v1 (registry result_selector.kind = uri). The closed canonical form and the full percent-encoding that turns it into a TypedResultSelector subject are defined in zh/extensions/mimi-interop.md section 4 and zh/conformance/encoding.md section 4; a non-canonical spelling MUST be rejected with schema_violation rather than normalized."
+          "description": "Canonical MIMI room URI and the typed current result subject source for mimi_room_binding (registry result_selector.kind = uri). The closed canonical form and the full percent-encoding that turns it into a TypedResultSelector subject are defined in zh/extensions/mimi-interop.md section 4 and zh/conformance/encoding.md section 4; a non-canonical spelling MUST be rejected with schema_violation rather than normalized."
         },
         "binding_scope": {
           "type": "object",
@@ -6241,9 +5568,10 @@
           "$ref": "#/$defs/non_empty_string",
           "description": "MIMI content profile, e.g. application/mimi-content."
         },
-        "policy_root": {
-          "$ref": "#/$defs/digest",
-          "description": "Digest of the Arkret policy component projection bound to this MIMI room binding."
+        "policy_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Accepted ak.realm.policy_bundle revision this MIMI room binding projects. The facade compares it against the Realm's current committed policy revision and rejects a stale projection."
         },
         "status": {
           "type": "string",
@@ -6413,29 +5741,25 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 typed current result, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref.",
+      "description": "Payload for ak.moderation.decision.lift. The governance Station resolves decision_ref to the active decision for target_ref and applies the lift at exactly expected_revision.",
       "required": [
         "target_ref",
         "decision_ref",
-        "observed_dot_ids"
+        "expected_revision"
       ],
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/object_ref",
-          "description": "The moderated target whose ak.component.moderation_state.v1 typed current result the lift mutates. Same typed current result subject as the original ak.moderation.decision."
+          "description": "The moderated target whose moderation_state typed current result the lift mutates. Same typed current result subject as the original ak.moderation.decision."
         },
         "decision_ref": {
           "$ref": "#/$defs/event_ref",
           "description": "Reference to the prior ak.moderation.decision Event whose committed tag is being removed."
         },
-        "observed_dot_ids": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/or_set_dot"
-          },
-          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the complete EventId token of decision_ref, so a lift can only revoke that decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the typed current result. See zh/models/event-and-patch.md section 2.4.2."
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exact current moderation-target revision the producer observed. A different current revision rejects the Event as stale; exact retry remains idempotent."
         },
         "reason_code": {
           "type": "string",
@@ -6452,7 +5776,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes an or_set add effect onto the ak.component.moderation_state.v1 typed current result whose subject is target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
+      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes an keyed-set projection add effect onto the moderation_state typed current result whose subject is target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
       "required": [
         "target_ref",
         "decision",
@@ -6462,7 +5786,7 @@
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/object_ref",
-          "description": "The moderated target (event / object). Canonical string of this ref is the ak.component.moderation_state.v1 typed current result subject."
+          "description": "The moderated target (event / object). Canonical string of this ref is the moderation_state typed current result subject."
         },
         "decision": {
           "type": "string",
@@ -6476,11 +5800,11 @@
         },
         "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Actor or service DID issuing the committed moderation decision. Reducers use it as part of the or_set add tag."
+          "description": "Actor or service DID issuing the committed moderation decision. Reducers use it as part of the keyed-set projection add tag."
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/digest",
-          "description": "JCS SHA-256 digest of the moderated request or Event preview. Part of the moderation_state or_set add tag."
+          "description": "JCS SHA-256 digest of the moderated request or Event preview. Part of the moderation_state keyed-set projection add tag."
         },
         "action": {
           "type": "string",
@@ -6792,12 +6116,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|audit_binding|audit_session|audit_release|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
-    },
-    "or_set_dot": {
-      "type": "string",
-      "pattern": "^ak:event:[A-Za-z0-9_-]{44}:[0-9]+$",
-      "description": "Canonical OR-Set dot: \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry result_writes[]. See zh/models/event-and-patch.md section 2.4.2."
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "organization_discovery_state_payload": {
       "type": "object",
@@ -7447,7 +6766,7 @@
     },
     "policy_rule_state_payload": {
       "type": "object",
-      "description": "Policy rule state payload. rule_id is the stable ak.component.policy.rule.v1 typed current result subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). The typed current result is an ordered_log, so each accepted event appends one revision rather than replacing the previous one.",
+      "description": "Policy rule state payload. rule_id is the stable policy_rule typed current result subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). The typed current result is an append-only projection, so each accepted event appends one revision rather than replacing the previous one.",
       "required": [
         "rule_id",
         "value"
@@ -7696,7 +7015,7 @@
     },
     "reaction_payload": {
       "type": "object",
-      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The typed current result is a core OR-Set of reaction assertions and both kinds project one or_set_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
+      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The typed current result is a core authority-ordered keyed set of reaction assertions and both kinds project one keyed-set projection_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, authority-ordered keyed set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
         "target_ref",
         "key"
@@ -7734,7 +7053,7 @@
         },
         "encrypted_payload": {
           "$ref": "#/$defs/encrypted_envelope",
-          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. The decrypted plaintext JSON MUST validate as #/$defs/reaction_encrypted_payload_plaintext. When present, outer plaintext `key` MUST be the routing tag and `annotation` MUST be omitted; service-side OR-Set convergence still uses the outer routing key."
+          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. The decrypted plaintext JSON MUST validate as #/$defs/reaction_encrypted_payload_plaintext. When present, outer plaintext `key` MUST be the routing tag and `annotation` MUST be omitted; service-side authority-ordered keyed set convergence still uses the outer routing key."
         }
       },
       "additionalProperties": false
@@ -8030,14 +7349,14 @@
             "enum": [
               "official_badge",
               "realm_admin",
-              "notary_control",
+              "realm_authority",
               "moderation_policy",
               "retention_policy",
               "directory_listing",
               "plaintext_visible_service"
             ]
           },
-          "description": "Machine-readable scopes covered by the organization's consent. A scope here is an endorsement boundary only; actual Realm control still requires the corresponding Realm policy, notary, capability, or service-binding event."
+          "description": "Machine-readable scopes covered by the organization's consent. A scope here is an endorsement boundary only; actual Realm control still requires the corresponding Realm policy, governance-Station authority, capability, or service-binding Event."
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -8069,9 +7388,9 @@
             }
           ]
         },
-        "realm_frontier_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Optional digest of the Realm control frontier the organization evaluated when issuing this statement."
+        "realm_commit_ref": {
+          "$ref": "common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Optional RealmCommitId naming the authority commit whose current Realm state the organization evaluated when issuing this statement."
         },
         "organization_policy_ref": {
           "$ref": "#/$defs/object_ref",
@@ -8207,8 +7526,8 @@
     },
     "realm_policy_bundle_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and typed current result (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
-      "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 sequenced_state typed current result: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy facets that have no independent Event kind. Facets that DO have their own kind and typed current result (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
+      "description": "Enabled Realm policy component set, written wholesale into the realm_policy_bundle commit-ordered projection typed current result: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_revision MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
       "required": [
         "policy_revision"
       ],
@@ -8219,28 +7538,9 @@
           "minimum": 1,
           "description": "Strictly monotonic bundle revision; rollback or gaps are rejected."
         },
-        "content_encryption_floor": {
-          "$ref": "./realm.schema.json#/properties/content_encryption_floor"
-        },
-        "metadata_encryption_floor": {
-          "$ref": "./realm.schema.json#/properties/metadata_encryption_floor"
-        },
         "federation_policy": {
           "$ref": "./realm.schema.json#/properties/federation_policy",
           "description": "The sole producer carrier of the effective Realm federation policy. High-assurance Realm reducers require closed, restricted, or quarantine and reject open."
-        },
-        "mls_send_pause": {
-          "type": "string",
-          "enum": [
-            "advisory"
-          ],
-          "description": "Declaring advisory downgrades the MLS send pause from MUST to SHOULD and is the sole Realm policy carrier of effective_e2ee_relaxed; omitting the field in a later revision reverts to the strict full-binding default."
-        },
-        "relaxed_window_max_ms": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Policy-derived relaxed-mode removed-member decryption window. It is meaningful only when mls_send_pause=advisory. Omitting it means the 30000 ms default. The 300000 ms absolute ceiling is enforced by the reducer and independently by every receiver with reason_code relaxed_window_exceeds_ceiling, NOT by this schema.",
-          "$comment": "Deliberately unbounded above; ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1 requires 300001 to reach the reducer."
         },
         "media_service_decrypts": {
           "type": "boolean",
@@ -8326,7 +7626,7 @@
           "properties": {
             "consent_required": {
               "type": "boolean",
-              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm authority-commit precondition."
+              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Event is submitted. It MUST NOT be read as permission for a cross-Realm authority-commit precondition."
             }
           },
           "additionalProperties": false
@@ -8414,7 +7714,7 @@
     },
     "realm_set_default_strand_payload": {
       "type": "object",
-      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a typed current result head_eq precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts head_eq null and is only valid while the typed current result is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
+      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a typed current result expected_revision precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts expected_revision null and is only valid while the typed current result is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
       "required": [
         "realm_id",
         "strand_id"
@@ -8435,7 +7735,7 @@
               "type": "null"
             }
           ],
-          "description": "Optimistic-concurrency guard compared as a whole value after absent and explicit null are normalized to null. The reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Omission therefore asserts head_eq null and MUST fail once a default exists. Mismatch MUST be rejected (failed_precondition)."
+          "description": "Optimistic-concurrency guard compared as a whole value after absent and explicit null are normalized to null. The reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Omission therefore asserts expected_revision null and MUST fail once a default exists. Mismatch MUST be rejected (failed_precondition)."
         },
         "reason": {
           "type": "string"
@@ -8476,7 +7776,7 @@
       "required": [
         "relation"
       ],
-      "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered effect_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable typed current result value."
+      "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered result_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable typed current result value."
     },
     "relation_id": {
       "$ref": "./agent-operations.schema.json#/$defs/relation_id"
@@ -8511,7 +7811,7 @@
     },
     "relation_resolve_retain_outcome": {
       "type": "object",
-      "description": "Exactly one candidate head of the covered group keeps producing an active edge. retained_event_id MUST be a member of this Move's own baseline; the retained Relation keeps its original RelationId and the exact state that head determines. Every other covered candidate stops producing an active edge while its Events and its adjudication stay auditable.",
+      "description": "Exactly one candidate head of the covered group keeps producing an active edge. retained_event_id MUST be a member of this Event's own baseline; the retained Relation keeps its original RelationId and the exact state that head determines. Every other covered candidate stops producing an active edge while its Events and its adjudication stay auditable.",
       "required": [
         "kind",
         "retained_event_id"
@@ -8528,7 +7828,7 @@
     },
     "relation_resolve_void_all_outcome": {
       "type": "object",
-      "description": "No candidate in the covered group keeps producing an active edge. This voids only the candidates this Move explicitly covered: it preserves their facts for audit, does not revive a tombstoned or redacted object, changes no capability, and does not forbid a later lawful ak.relation.create under the same domain.",
+      "description": "No candidate in the covered group keeps producing an active edge. This voids only the candidates this Event explicitly covered: it preserves their facts for audit, does not revive a tombstoned or redacted object, changes no capability, and does not forbid a later lawful ak.relation.create under the same domain.",
       "required": [
         "kind"
       ],
@@ -8739,7 +8039,7 @@
     },
     "rsvp_entry": {
       "type": "object",
-      "description": "Complete RSVP typed current result value. The whole entry is the causal_register set value, so the deterministic winner carries the schedule source the responder observed plus the response itself.",
+      "description": "Complete RSVP typed current result value. The whole entry is the current-value projection set value, so the deterministic winner carries the schedule source the responder observed plus the response itself.",
       "required": [
         "schedule_basis_refs"
       ],
@@ -8960,15 +8260,8 @@
     },
     "sidecar_create_payload": {
       "type": "object",
-      "description": "Minimal native Sidecar genesis intent. sidecar_id is derived from the Event id; realm_id, controller_account_id, state and timestamps are reducer-derived from the accepted envelope and MUST NOT appear here.",
-      "required": [
-        "encryption_profile"
-      ],
-      "properties": {
-        "encryption_profile": {
-          "const": "mls_rfc9420"
-        }
-      },
+      "description": "Minimal native Sidecar genesis intent. The payload is empty: sidecar_id is derived from the Event id; realm_id, controller_account_id, state and timestamps are reducer-derived from the accepted envelope, and the Sidecar scope activates standard RFC 9420 through its own accepted ak.mls.genesis.",
+      "properties": {},
       "additionalProperties": false
     },
     "signature_material": {
@@ -9384,7 +8677,7 @@
         "health_endpoint": {
           "type": "string",
           "pattern": "^https://[^\\s]+$",
-          "description": "Client pre-flight endpoint, usable only for ordering foci_preferred before a session_focus is committed. Once ak.component.call.focus.v1 carries a session_focus, a connect failure MUST surface as focus unavailable and MUST NOT silently switch focus."
+          "description": "Client pre-flight endpoint, usable only for ordering foci_preferred before a session_focus is committed. Once call_focus carries a session_focus, a connect failure MUST surface as focus unavailable and MUST NOT silently switch focus."
         },
         "cascade_group": {
           "$ref": "#/$defs/non_empty_string",
@@ -9787,7 +9080,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the causal_register value as 'list_space_id' on the typed current result at ak:result:ak.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ak.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the current-value projection value as 'list_space_id' on the typed current result at ak:result:strand_position:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ak.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -10110,7 +9403,7 @@
     },
     "view_reconcile_payload": {
       "type": "object",
-      "description": "Payload for ak.view.reconcile. view_id is the ak.component.view.reconcile.v1 typed current result subject; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
+      "description": "Payload for ak.view.reconcile. view_id is the view_reconcile typed current result subject; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
       "required": [
         "view_id",
         "definition"

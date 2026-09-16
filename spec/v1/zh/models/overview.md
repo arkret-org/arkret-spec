@@ -82,13 +82,13 @@ Read Cursor（actor-private 已读位置，[private-objects.md](./private-object
 | Typed ID | 对象 | 说明 |
 | --- | --- | --- |
 | `ak:receipt:` | Event Batch Receipt | 可选审计 / 同步加速对象，不是 reducer 输入 |
-| `state-slot:`、`ak:cursor:`、`ak:realm_commit:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
+| ``、`ak:cursor:`、`ak:realm_commit:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
 
 字段级、必填性、枚举值与 wire 约束统一以 [`common-fields.md`](./common-fields.md) 与各对象文件中的字段表为准。Schema 引用见 `artifacts/schemas/`，event/operation registry 见 `artifacts/registry/`。
 
 ### 2.6 对象关系总览
 
-下图把核心 typed-id 之间的归属、容纳、引用、投影关系画成一张图。`ak:event:` 是事实根，所有共享对象都是 Event 集合在某个 reducer profile 下的物化结果。
+下图把核心 typed-id 之间的归属、容纳、引用、投影关系画成一张图。`ak:event:` 是事实根，所有共享对象都是 Event 集合在某个 fixed reducer semantics 下的物化结果。
 
 ```mermaid
 flowchart TB
@@ -175,7 +175,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 ### 3.5 Event 是事实
 
-所有协作变化最终都落为签名 `event`。Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 reducer profile 下的物化结果。详情见 [event-and-patch.md](./event-and-patch.md)。
+所有协作变化最终都落为签名 `event`。Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 fixed reducer semantics 下的物化结果。详情见 [event-and-patch.md](./event-and-patch.md)。
 
 ### 3.6 View 是投影定义
 
@@ -222,4 +222,4 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
 - Reducer conformance vector 见 `../conformance/conformance-vectors.md`。
 - Schema evolution 测试见 `../conformance/conformance-profiles.md`。
-- authority-commit / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。
+- authority-commit projection / capability 校验规则见 `../authz/event-auth-state-resolution.md`。

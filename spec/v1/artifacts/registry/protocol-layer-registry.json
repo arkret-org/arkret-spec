@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-16.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T16:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "description": "Exhaustive ownership of every active Arkret v1 Event.kind by Kernel, Collaboration Base, or Extension. Each kind appears exactly once. Layer ownership constrains conformance packaging and dependency direction; it does not change the Event Envelope wire shape.",
   "layer_rules": {
     "kernel": "Security and convergence primitives only: identity proof, native realm/circle/sidecar security scope shapes plus the create-only realm_genesis exception, Realm/Circle lifecycle, authority-commit/authz/membership/policy, MLS/key delivery, audit commitments, invitations, and device/account security. Sidecar domain Event kinds remain Extension-owned.",
@@ -11,15 +11,7 @@
   "event_kinds": {
     "kernel": [
       "ak.audit.accessed",
-      "ak.audit.applet_binding.create",
-      "ak.audit.applet_binding.state",
       "ak.audit.erasure_receipt",
-      "ak.audit.release",
-      "ak.audit.ryw_receipt",
-      "ak.audit.session.authorize",
-      "ak.audit.session.close",
-      "ak.audit.session.notice",
-      "ak.audit.session.request",
       "ak.capability.derived",
       "ak.capability.grant",
       "ak.capability.relinquish",
@@ -173,7 +165,7 @@
   },
   "invariants": [
     "Every active Event.kind in event-kind-registry.json MUST appear in exactly one layer array.",
-    "Kernel MUST NOT depend on a Collaboration Base or Extension schema, reducer profile, operation, or fixture.",
+    "Kernel MUST NOT depend on a Collaboration Base or Extension schema, fixed reducer semantics, operation, or fixture.",
     "Collaboration Base MAY depend on Kernel and MUST NOT depend on an Extension.",
     "An Extension MAY depend on Kernel and Collaboration Base and MUST declare its closure through an Extension Manifest.",
     "A layer reassignment is a conformance-packaging change and requires updating dependent profiles, manifests, and vectors in the same change."

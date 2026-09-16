@@ -143,11 +143,11 @@
           "items": {
             "$ref": "./event-envelope.schema.json"
           },
-          "description": "Complete canonical EventId-sorted ancestry needed to reach proof_event from the anchor frontier. Exact-ID dependency resolution supplies a missing remainder; incomplete evidence is pending, never verified."
+          "description": "Complete canonical EventId-sorted ancestry needed to reach proof_event from the anchor checkpoint. Exact-ID dependency resolution supplies a missing remainder; incomplete evidence is pending, never verified."
         }
       },
       "additionalProperties": false,
-      "description": "Optional security evidence that a franking-proof ordinary Event existed within a bounded interval. Independently verify the anchor RealmCommit quorum, the exact existence_anchor frontier, original Event producer proof and authority refs, service signer key validity over the full interval, and the exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is never required to send, accept or replicate ordinary messages. The Event does not enter RealmCommit.delta and no data observation root exists."
+      "description": "Optional security evidence that a franking-proof Event existed within a bounded interval. Independently verify the anchor RealmCommit quorum, the exact existence_anchor checkpoint, original Event producer proof and authority refs, service signer key validity over the full interval, and the exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is never required to send, accept or replicate ordinary messages. The Event does not enter RealmCommit.delta and no data observation root exists."
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

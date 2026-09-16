@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-16.8",
+  "version": "2026-09-16.10",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-09-16T18:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -26,7 +26,6 @@
     "ak.profile.applet_e2ee_join.v1",
     "ak.profile.applet_service.v1",
     "ak.profile.applet_widget.v1",
-    "ak.profile.attested_audit.e2ee.v1",
     "ak.profile.binding.websocket.v1",
     "ak.profile.blob_node.v1",
     "ak.profile.calendar_event.v1",
@@ -42,10 +41,8 @@
     "ak.profile.direct_conversation_realm.v1",
     "ak.profile.direct_conversation_repair.v1",
     "ak.profile.directory_service.v1",
-    "ak.profile.disclosed_audit.e2ee.v1",
     "ak.profile.draft_sync.v1",
     "ak.profile.e2ee_client.v1",
-    "ak.profile.e2ee_relaxed.v1",
     "ak.profile.encoding.cbor.v1",
     "ak.profile.enterprise_client.v1",
     "ak.profile.ephemeral_pairwise_principal.v1",
@@ -72,7 +69,6 @@
     "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1",
     "ak.profile.mls_ciphersuite.pq_auth.v1",
-    "ak.profile.mls_governance_binding.full.v1",
     "ak.profile.organization.v1",
     "ak.profile.organization_high_assurance_identity.v1",
     "ak.profile.personal_node.v1",
@@ -152,11 +148,6 @@
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.attested_audit.e2ee.v1",
-      "to": "ak.profile.e2ee_client.v1",
-      "kind": "inherits"
-    },
-    {
       "from": "ak.profile.chat_mvp.v1",
       "to": "ak.profile.minimal_client.v1",
       "kind": "inherits"
@@ -167,24 +158,9 @@
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.disclosed_audit.e2ee.v1",
-      "to": "ak.profile.e2ee_client.v1",
-      "kind": "inherits"
-    },
-    {
       "from": "ak.profile.e2ee_client.v1",
       "to": "ak.profile.full_client.v1",
       "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.e2ee_relaxed.v1",
-      "to": "ak.profile.e2ee_client.v1",
-      "kind": "depends_on"
-    },
-    {
-      "from": "ak.profile.e2ee_relaxed.v1",
-      "to": "ak.profile.mls_governance_binding.full.v1",
-      "kind": "mutually_exclusive_with"
     },
     {
       "from": "ak.profile.enterprise_client.v1",
@@ -214,11 +190,6 @@
     {
       "from": "ak.profile.high_security_organization.v1",
       "to": "ak.profile.e2ee_client.v1",
-      "kind": "inherits"
-    },
-    {
-      "from": "ak.profile.high_security_organization.v1",
-      "to": "ak.profile.mls_governance_binding.full.v1",
       "kind": "inherits"
     },
     {

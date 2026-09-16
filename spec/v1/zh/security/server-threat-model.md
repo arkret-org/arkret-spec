@@ -45,7 +45,7 @@ sidebar:
 
 8. **目录与枚举探测（Enumeration / Membership Probe）**
    利用返回时序、状态码差异推断隐私资源可见性、成员关系或组织结构。
-   **Consent / PSI oracle 细分**：PSI 命中位翻转时刻可泄露 grant/revoke 时序，跨 requester 稳定的裸 consent-state hash 可被离线枚举并关联 holder。防护以 [`identity/consent-model.md` §6.2.1 / §6.2.2](../identity/consent-model.md) 为权威：per-`(requester, holder)` 限速与 bucket 化、holder 可审计访问记录，以及 per-requester/session 加盐 HMAC 或 audience-bound opaque token。
+   **Consent / PSI oracle 细分**：PSI 命中位翻转时刻可泄露 grant/revoke 时序，跨 requester 稳定的裸 consent-state hash 可被离线枚举并关联 holder。防护以 [`identity/consent-model.md` §6.1.1 / §6.2.2](../identity/consent-model.md) 为权威：per-`(requester, holder)` 限速与 bucket 化、holder 可审计访问记录，以及 audience-bound opaque response。
 
 9. **队列与存储耗尽（Queue / Storage Exhaustion）**
    借助大对象、分页滑动、深分页、历史清单拉取导致资源占用失控。
@@ -155,7 +155,7 @@ sidebar:
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
-- **验证角色分工**：首次接纳外部材料、治理 Station和独立审计者按其领域合同验证 snapshot、resolver、frontier、policy 与 DID 状态；治理结果消费 Station按 [authority_commit-profiles §9](../sync/authority-commit-log.md) 认证 exact 治理结果证明，不被要求重放无关历史。普通客户端按 [server-trusted-results §1–§3](../sync/server-trusted-results.md) 核对请求、意图、已知身份与 E2EE，不执行泛化二次治理验证。
+- **验证角色分工**：首次接纳外部材料、治理 Station和独立审计者按其领域合同验证 snapshot、resolver、checkpoint、policy 与 DID 状态；治理结果消费 Station按 [authority_commit-profiles §9](../sync/authority-commit-log.md) 认证 exact 治理结果证明，不被要求重放无关历史。普通客户端按 [server-trusted-results §1–§3](../sync/server-trusted-results.md) 核对请求、意图、已知身份与 E2EE，不执行泛化二次治理验证。
 - **隔离与缓冲**：异常源先走 `quarantine` 与 `review` 决策，再决定 `allow`、`deny` 或 `reject`。
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
 - **故障收敛策略**：`rate_limited`、`soft_failed`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。
@@ -184,7 +184,7 @@ sidebar:
 | 拓扑污染 | 是 | 实际接纳/审计角色按 [discovery-directory §8.10 / §11](../discovery/discovery-directory.md) 验来源签名、source-ref 与背书授权，按 service-surface §2.6 验服务路由；普通客户端按已登记 Station 结果消费。不定义通用双签载体。 |
 | 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
 | 冲突/分叉 | **部分** | hash collision 与 actor over-fork 按各自可验证规则 quarantine；普通合法 sibling 保留历史并由固定 `(depth,EventId)` 收敛为单值，不能仅因陈旧或落选隔离。已授权恶意作者仍可写恶意内容、延长分支或消耗资源，依靠限速、审计、撤权与数据基准关闭缓解。 |
-| 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、frontier 一致性双重校验。 |
+| 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、checkpoint 一致性双重校验。 |
 | 跨域边界绕过 | 是 | source/destination/scope 每一层 must-bind 校验，禁止空域回退。 |
 | 邀请令牌滥用 | 是 | token 一次性约束、过期窗口、绑定 proof 重放检测。 |
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |
@@ -216,7 +216,7 @@ sidebar:
 
 - `Idempotency-Key` 与 `canonical hash` 一致后才可幂等接受；单事件级别仍以 `event_id` 去重。
 - 连续失败率升高的来源逐层下调优先级并退避；HTTP response 优先用 `Retry-After`，body 可附带 `retry_after_ms`。
-- fork / frontier 异常进入 `quarantine` 并执行本地再校验，不直接进入主 reducer。
+- fork / checkpoint 异常进入 `quarantine` 并执行本地再校验，不直接进入主 reducer。
 - 解析 federation peer endpoint、DID Document service entry 或 backfill/snapshot URL 前，必须先执行出站网络目标策略；命中私网、loopback、link-local 或 metadata 地址时 fail closed，不得进入重试风暴。
 
 ### 4.4 Blob / Media

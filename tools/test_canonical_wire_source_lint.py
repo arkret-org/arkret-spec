@@ -22,7 +22,6 @@ SCHEMA_NAMES = (
     "event-batch-receipt.schema.json",
     "key-backup.schema.json",
     "key-backup-active-series.schema.json",
-    "mls-governance-proof-bundle.schema.json",
 )
 
 

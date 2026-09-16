@@ -31,7 +31,7 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 
 **跨 Station 无 principal 授权关联（normative）**：遵守 [`common-fields.md` §4.2](../models/common-fields.md#42-主体引用字段)
 的账号隔离铁律。授予 `{P,S1}` 的权限对 `{P,S2}` 没有任何效力；接收方 MUST NOT 因二者 principal、
-DID 控制者或签名公钥相同而匹配 grant subject、补足 issuer authority、继承 owner/admin/notary/recovery
+DID 控制者或签名公钥相同而匹配 grant subject、补足 issuer authority、继承 owner/admin/RealmCommit-signing/recovery
 角色，或替代已离线、注销或永久失去 Station 的账号。condition selector 的匹配同样 MUST NOT 将同
 principal 的另一账号所持 membership、grant 或账号级 claim 当作当前账号的授权证据。其他账号只能
 凭独立有效的授权行动，不能将身份相似性作为 delegation、Realm 接管或 RealmCommit 恢复依据。
@@ -136,14 +136,14 @@ Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 authority commit basis / `auth_state_digest`）**自身有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root typed current result current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
 
-聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 使用 Realm 的冻结 reducer profile compiled rules：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再从同一 profile 解释器解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该 profile 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。同一稳定 reducer profile 的 coverage set 永久冻结；新增 durable Event/action coverage 必须进入 successor profile。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
+聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 使用 Realm 的冻结 fixed reducer semantics compiled rules：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再从同一 profile 解释器解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该 profile 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。同一稳定 fixed reducer semantics 的 coverage set 永久冻结；新增 durable Event/action coverage 必须进入 successor profile。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
 
 **Realm owner authority（normative）**：`ak.realm.owner` 是 Realm 内最高的显式授权聚合，有且仅有两个来源：
 
-1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `ak.component.realm.authority_root.v1` typed current result 的 current controller。该分支的 operational authorization **MUST** 使用该 typed current result 在同一 RealmCommit basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
+1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` typed current result 的 current controller。该分支的 operational authorization **MUST** 使用该 typed current result 在同一 RealmCommit basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
 2. **co-owner grant**——一条 active 的普通 `ak.realm.owner` grant。它给予 owner 的 operational / grant authority，但**不**给予 root-control authority：持有人不控制 authority-root typed current result。
 
-current-v1 **不定义** authority-policy override typed current result、role-assignment typed current result 或 deployment-local owner override。owner 的 direct Event coverage 与 grant issuer ceiling 分别是 reducer profile bundle 中冻结的 `ak.realm.owner.target_event_kinds` 与 `grant_authority_actions`；偏离默认只能通过本规范已经定义的显式 capability grant、revoke、constraint 与对应 policy control state 表达。实现不得从未知 typed current result、配置文件、`ServiceDescribe`、membership role 或 UI role 标签扩张/收窄这两个集合。这样 typed current result 缺席不是 fallback，而是 current-v1 的唯一协议状态。
+current-v1 **不定义** authority-policy override typed current result、role-assignment typed current result 或 deployment-local owner override。owner 的 direct Event coverage 与 grant issuer ceiling 分别是 fixed reducer semantics bundle 中冻结的 `ak.realm.owner.target_event_kinds` 与 `grant_authority_actions`；偏离默认只能通过本规范已经定义的显式 capability grant、revoke、constraint 与对应 policy control state 表达。实现不得从未知 typed current result、配置文件、`ServiceDescribe`、membership role 或 UI role 标签扩张/收窄这两个集合。这样 typed current result 缺席不是 fallback，而是 current-v1 的唯一协议状态。
 
 **Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root typed current result 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
 
@@ -157,7 +157,7 @@ Profile 对 non-event action 的显式授权规则必须登记在
 Realm effective owner（authority-root typed current result current controller 或 active co-owner grant）；
 该扩展只替换 issuer 来源，profile 的 registration / constraint / evidence gate 一条不减。
 Reducer 只有在同一
-`authority_revision` 对应的已确认状态下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
+`expected_revision` 对应的已确认状态下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
 effective owner）和 child resource，
 且被引用 registration、subject、constraint、epoch、scope、requested action 全部满足规则时，
 才可把该规则视为 child action 的 issuer 上界；任一 registration 缺失、profile 未声明、
@@ -166,23 +166,23 @@ unsupported 时都必须 `grant_exceeds_issuer_authority` fail closed。该机�
 豁免，不允许 owner/membership 隐式授权，也不允许 profile 声明 wildcard/prefix action。
 机器正负向闭包由 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 覆盖。
 
-Capability grant wire body MUST NOT 携带 registry version、timestamp 或 digest。`capability-action-registry.json` 只作为 spec/codegen/conformance 输入；production reducer 根据 Realm reducer profile 的 compiled action descriptors 判定 aggregate coverage 与 grant authority。
+Capability grant wire body MUST NOT 携带 registry version、timestamp 或 digest。`capability-action-registry.json` 只作为 spec/codegen/conformance 输入；production reducer 根据 Realm fixed reducer semantics 的 compiled action descriptors 判定 aggregate coverage 与 grant authority。
 
 - 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ak.capability.grant` action"误当作"可凭空铸造任意 capability"。
 - 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在签发 basis 下不再持有某 action，则不得据此签发包含该 action 的首发 grant。
-- Realm `schema_refs` 中出现任何结构角色 profile 都不得扩张 owner ceiling。`ak.realm.owner.grant_authority_actions` 是 reducer profile bundle 的冻结精确清单：默认 derivation 只选择 `profile=null` action，profile action 只有在 owner 的 compiled `grant_authority_rule.include_actions[]` 中逐字列出时才可由 root/co-owner 签发；这不是 generic active-profile 机制，也不授予 owner 直接 author 该 Event。current-v1 唯一显式 application exception 是 `ak.rsvp.set`：grant 可在 Calendar Strand 创建前签发，但后续 Event 仍必须由 `Strand.schema_refs` 中的 `ak.schema.calendar_event.v1` 与 `metadata.fields.calendar` 双向 guard 激活并命中 grant resource/constraint，否则拒绝。其它带 `profile` 的 action 仍只能经本节登记的 `non_event_grant_authority_rules[]` 及其完整 registration / constraint / evidence gate，或未来 reducer profile 明确加入 exact action；receiver MUST NOT 从 Realm profile、ServiceDescribe 或对象任意 schema ref 自行推导 owner ceiling。
+- Realm `schema_refs` 中出现任何结构角色 profile 都不得扩张 owner ceiling。`ak.realm.owner.grant_authority_actions` 是 fixed reducer semantics bundle 的冻结精确清单：默认 derivation 只选择 `profile=null` action，profile action 只有在 owner 的 compiled `grant_authority_rule.include_actions[]` 中逐字列出时才可由 root/co-owner 签发；这不是 generic active-profile 机制，也不授予 owner 直接 author 该 Event。current-v1 唯一显式 application exception 是 `ak.rsvp.set`：grant 可在 Calendar Strand 创建前签发，但后续 Event 仍必须由 `Strand.schema_refs` 中的 `ak.schema.calendar_event.v1` 与 `metadata.fields.calendar` 双向 guard 激活并命中 grant resource/constraint，否则拒绝。其它带 `profile` 的 action 仍只能经本节登记的 `non_event_grant_authority_rules[]` 及其完整 registration / constraint / evidence gate，或未来 fixed reducer semantics 明确加入 exact action；receiver MUST NOT 从 Realm profile、ServiceDescribe 或对象任意 schema ref 自行推导 owner ceiling。
 - 此规则关闭"窄 `ak.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ak.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
-- v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `ak.component.realm.authority_root.v1` typed current result，它由 `ak.realm.create` 的注册 reducer contract 在 genesis `state_root` 内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中该 Realm reducer profile 中 `ak.realm.owner` 的 frozen `grant_authority_actions`。typed current result 缺失、controller 不匹配或 epoch/generation 不一致时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
+- v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` typed current result，它由 `ak.realm.create` 的注册 reducer contract 在 genesis `state_root` 内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中该 Realm fixed reducer semantics 中 `ak.realm.owner` 的 frozen `grant_authority_actions`。typed current result 缺失、controller 不匹配或 epoch/generation 不一致时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
 - 除该 registered authority root 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免，也不承认任何形态的 creator / owner omnipotence 捷径。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
 
 **确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
-- issuer 自身有效持有的 effective capability 必须从签名 authority_revision 中各 Realm 的确认状态验证，并将可撤销的实际安全读取加入事务 revision/锁集合；执行时重新检查，不能靠 RealmCommit 年龄推断当前资格。
-- 若 issuer 的上界 ancestor 能力在该 `authority_revision` 对应的已确认状态下**被撤销 / superseded / expired / tombstoned**（即 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
+- issuer 自身有效持有的 effective capability 必须从签名 expected_revision 中各 Realm 的确认状态验证，并将可撤销的实际安全读取加入事务 revision/锁集合；执行时重新检查，不能靠 RealmCommit 年龄推断当前资格。
+- 若 issuer 的上界 ancestor 能力在该 `expected_revision` 对应的已确认状态下**被撤销 / superseded / expired / tombstoned**（即 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
 - 若 issuer 的上界 ancestor 能力在该已确认状态下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
 - 配置、确认前缀或确切授权依赖不能验证时 fail closed/pending；同 Realm 竞争 RealmCommit 不产生可选权限 heads。
 
-该规则使首发 grant 的上界校验有“先按 authority_revision 对应的已确认状态确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed”的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
+该规则使首发 grant 的上界校验有“先按 expected_revision 对应的已确认状态确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed”的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
 
 ### 3.3 注册的非 grant authority source（normative）
 
@@ -251,7 +251,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.create, ak.call.state, ak.call.summary}`；`ak.circle.member.add` → `ak.circle.member.state` |
 | **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ak.message.redact` → `{ak.message.redact, ak.redaction}` |
 
-`ak.mls.commit` action → `{ak.mls.commit, ak.mls.commit_failed}` 等“同一 action 同时覆盖正常 event 与诊断 / 派生 event”的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
+`ak.mls.commit` action 只授权提交 `ak.mls.commit` Event。Commit 校验失败是本地 operation outcome，不产生共享诊断 Event。
 
 `ak.message.redact` → `{ak.message.redact, ak.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="operation_verb"`（risk_tier=medium），即上表第四类“操作动词动作”。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准。
 
@@ -301,7 +301,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | `ak.agent.sidecar.*` | agent 对其 sidecar 的**操作面**（publish / write / exchange control） | 不改变 sidecar 是顶层对象这一事实 |
 
 `ak.realm.discover` 是 `non_event_surface` 的**目录发现调用**（动词），与 event kind `ak.realm.discovery`
-（名词，写入 `ak.component.realm.discovery.v1`）不是同一事物：前者是读取面，后者是可发现性声明的状态写入。
+（名词，写入 `realm_discovery`）不是同一事物：前者是读取面，后者是可发现性声明的状态写入。
 二者同时存在是有意的，MUST NOT 互相替代。
 
 #### 5.0.1 聚合 admin 覆盖集防权限蠕变（normative）
@@ -359,7 +359,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 Strand 权限只覆盖 Strand 自身字段、track entry 和 position / relation 管理。`ak.strand.update` 的 `allowed_write_fields` MUST 把 Strand Description（`content` / `encrypted_content`）与 Synthesis track 正文（`tracks.synthesis.content` / `tracks.synthesis.encrypted_content`）当作互不蕴含的独立路径：允许写其中一组 MUST NOT 自动允许另一组。`ak.strand.tracks.update` 只管理 track 的启用、primary、profile、template 与 track-local metadata，MUST NOT 用来写 Description 或 Synthesis 正文。Message 正文权限按 Strand 的 effective scope 判断：`Strand.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
-Circle membership 是 `sequenced_state`。缺少必要授权/确认依赖时 pending；已确认非成员时 deny；验证到同高度两个冲突确认时停止该安全域并保留故障证据。不得把安全故障解释成一个可 join 的成员多头状态，普通消息也不因此要求全局最新 RealmCommit。
+Circle membership 是 `commit-ordered projection`。缺少必要授权/确认依赖时 pending；已确认非成员时 deny；验证到同高度两个冲突确认时停止该安全域并保留故障证据。不得把安全故障解释成一个可 join 的成员多头状态，普通消息也不因此要求全局最新 RealmCommit。
 
 Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.morph.update` 对应 `ak.strand.read` / `ak.strand.create` / `ak.strand.update`),通过 `allowed_morph_kinds` constraint 进一步限定可创建或操作的 `morph_kind`。
 
@@ -389,8 +389,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.realm.admin`
 - `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root typed current result 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
 - `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`、`target_event_kinds=[]`、`event_mapping_kind=non_event_surface`；授权 installed Applet service 调用闭合的 Ghost Actor provisioning aggregate；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration，且不得解释为对 `ak.identity.accountability_grant` 或 `ak.profile.create` 的通用授权）
-- `ak.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`{ak.audit.applet_binding.create, ak.audit.applet_binding.state}`）
-- `ak.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
 - `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
 - `ak.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`ak.realm.plaintext_visible_services`）
@@ -434,9 +432,9 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 ### 5.5 服务动作
 
-v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `ak.component.mls.epoch.v1` typed current result reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
+v1 不注册独立的 `ak.mls.epoch` event；每个 group 的当前 epoch 由 accepted `ak.mls.commit` payload 中的 `next_epoch` 和对应 `mls_epoch` typed current result reducer 结果直接表达，没有"推进 epoch"这个独立可授权动作。
 
-Audit action 只授权受控审计 applet / release service 执行绑定、阶段性 session、成员通知、committed historical release、审计视图读取或审计材料导出。审计 applet 不是 MLS group 成员，也不会因 capability 获得实时消息 fanout；E2EE 合规 release 必须走 active `ak.audit.applet_binding.create/state`、`ak.audit.session.*`、`ak.audit.release` 和 RYW receipt。普通 Realm/Circle 治理举报不使用这些 action，举报只路由给 scoped 管理员 / moderator。
+Audit action 只授权对已可见材料的特权读取留痕（`ak.audit.accessed` 配对）。协议不提供把 MLS 历史密钥 release 给第三方的动作面。普通 Realm/Circle 治理举报只路由给 scoped 管理员 / moderator。
 
 ### 5.6 人类界面与个人状态动作
 
@@ -708,22 +706,22 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 4. 当某条 ref grant 已被 revoke 但 freshness 未到达时，reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点（防止攻击者 revoke-then-re-issue 构造环）。
 5. 同一 Event 携带的多 child grant（批量签发）MUST 整体 fail-or-pass；部分接受会产生不完整的图结构，reducer MUST NOT 部分接受。
 
-grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_frontier`（可放入 `refs[role="auth_frontier"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke / freshness 校验，但用于审计 child grant 是基于哪个 policy / auth frontier 派生的；缺失时实现仍 MUST 重新按当前 frontier 验证，MUST NOT 把 child grant 当作不可追溯授权。
+grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_revision`（可放入 `refs[role="auth_revision"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke / freshness 校验，但用于审计 child grant 是基于哪个 policy / auth checkpoint 派生的；缺失时实现仍 MUST 重新按当前 checkpoint 验证，MUST NOT 把 child grant 当作不可追溯授权。
 
-实现 SHOULD 维护 in-memory authority-graph adjacency cache，以使每次校验为 O(depth)；冷启动时从 committed control Events 与可验证 ordinary Event 授权引用重建。
+实现 SHOULD 维护 in-memory authority-graph adjacency cache，以使每次校验为 O(depth)；冷启动时从 committed control Events 与可验证 Event 授权引用重建。
 
 ### 10.3 Revoke 因果传播
 
 已确认撤销对所有依赖该 grant 的委托链按 action 与 scope 传递。新 grant 和安全操作在唯一安全确认顺序处检查真实当前前态；祖先已关闭时返回 `grant_revoked_upstream`。
 
-普通数据的 receiver 使用已验证的缓存授权，未知撤销允许传播窗口；本地已知撤销与 live admission 在同一持久事务串行化。历史 Event 由原授权实例和全部适用关闭 frontier 决定资格，接纳收据不保证永久有效。缺被引用依赖时 pending；仅因无法证明全球没有未知撤销，MUST NOT 强制原站在线或刷新 RealmCommit。
+所有共享持久 Event 都由当前治理 Station在 RealmCommit 位置读取 current grant 状态。消费方可以缓存 committed 结果，但缓存不得形成独立 accepted 状态；缺少 current authority 或必需依赖时保持 queued/pending，不得本地放行。
 
 ### 10.4 Revoke 与 relinquish 的分工（normative）
 
 撤销与主动放弃不共用一个 Event：
 
 - `ak.capability.revoke`：actor MUST 先通过普通 action authorization，随后 target guard 只接受 `actor == target.issuer`，或 actor 是 **target grant 自身 `realm_id`** 的 current root controller。仅仅控制 `authority_root_refs[]` 中某个跨 Realm 上游 root **不**获得撤销权。后一分支保证 Realm 转让后新 root owner 能治理旧 controller 签出的 grant；普通 co-owner 与 sibling 不能借 `ak.realm.owner` 撤销上游或同级 grant。不满足时 reducer MUST 拒绝，reason=`grant_revoke_not_authorized`。
-- `ak.capability.relinquish`：subject-only self-service Control Move，只接受 `actor == target.subject`。它只减少 actor 自身权限，因此 **MUST NOT** 要求 actor 另持 `ak.capability.revoke`——否则一个窄权限持有人可能无权放弃自己持有的东西。不满足时 reducer MUST 拒绝，reason=`grant_relinquish_not_subject`。被放弃 grant 的 descendants 同样按 refs 在读取时失效。
+- `ak.capability.relinquish`：subject-only self-service state-changing Event，只接受 `actor == target.subject`。它只减少 actor 自身权限，因此 **MUST NOT** 要求 actor 另持 `ak.capability.revoke`——否则一个窄权限持有人可能无权放弃自己持有的东西。不满足时 reducer MUST 拒绝，reason=`grant_relinquish_not_subject`。被放弃 grant 的 descendants 同样按 refs 在读取时失效。
 - authority-root typed current result **不是** grant，不能成为 revoke / relinquish 的 target；root controller 退出只能走 `ak.realm.owner.transfer`。
 - target grant 尚未投影时，revoke / relinquish MUST 进入 dependency pending，**MUST NOT** 预写未经关系校验的 tombstone——target guard 需要 target 才能校验 issuer / root-controller / subject 关系。pending revoke MUST 在 target grant 投影的**同一原子投影步**内生效，不得存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。
 
@@ -750,23 +748,24 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
   "kind": "ak.capability.revoke",
   "payload": {
     "grant_id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
+    "expected_revision": 0,
     "reason": "contract ended"
   }
 }
 ```
 
-v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id`；registry result_selector 从 `payload.grant_id` 派生。
+v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id` 与 `expected_revision`；registry result selector 从 `payload.grant_id` 派生。
 
-**撤销的生效切点（normative）**：capability revoke 在唯一安全序列的 committed outcome 生效，并派生精确授权关闭集合。payload 不自报 frontier；RealmCommit 依据完整命令及可获得历史生成关闭证明。普通消息允许未知撤销的传播窗口，获知后立即 gate，历史按所有适用 cut 重算；安全命令在实际执行位置检查授权和 revision。Consent 同样采用 sequenced_state，保留 observed-remove 集合值的完整 dots。
+**撤销的生效切点（normative）**：capability revoke 在目标 Realm stream 的 RealmCommit 位置生效。治理 Station在同一事务中验证目标 grant current revision 等于 `expected_revision`；竞争撤销至多一个成功，exact Event 重试返回原结果。撤销不追溯改写历史 Commit，但会阻止后续 Event 使用该 grant。
 
 ### 12.1 Grant typed current result 的确定性收敛（normative）
 
-capability 授权状态投影到 typed current result family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。该 family 明示 `execution=security`、`state_model=sequenced_state`、`value_shape=set`；grant create 的 `result_selector` 从 `envelope.event_id` 重类型派生，revoke / relinquish 从 `payload.grant_id` 引用同一 typed current result（每个 `grant_id` 一个 typed current result）。v1 只有这一个 capability typed current result family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。其集合操作由唯一确认的 RealmCommit 顺序执行：
+capability 授权状态投影到 typed current result family `capability_grant`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。每个 `grant_id` 有一个 closed current result，包含 canonical grant、status、revision 与产生该 revision 的 `CommittedEventRef`。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
 
-- **grant** = 对该 grant typed current result 的 tagged set **add**：add identity = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（identity 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照；应用位置仍由 `sequenced_state` 的确切 revision 决定。
-- **revoke** = 对**同一** grant typed current result 的 set **remove**，引用该 grant 的 add identity（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 typed current result；reducer **MUST** 在该 Control Move 的唯一确认前态中把目标 grant 的 add identity 解析为合法 add 后再 supersede。已移除的 add **MUST NOT** 因同 `grant_id` 的后续重放而复活；竞争命令由 RealmCommit 顺序逐项给出 accepted/rejected 结果。
-- **有效性** = 唯一确认序列中尚未被 observed-remove 的 grant add。typed current result 模型是 sequenced_state，值为完整活跃 tagged set；revoke 按确切 revision 执行移除。集合元素并存不代表安全分叉，安全状态只按 RealmCommit 确认顺序执行。
-- **GC / tombstone**：已被 committed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 typed current result **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
+- **grant**：`grant_id` 必须尚未存在，初始 revision 为 0，status=`active`。
+- **revoke / relinquish**：引用同一 `grant_id` 并携带 exact `expected_revision`；成功后 revision 加一且 status=`revoked` 或 `relinquished`。
+- **终态**：已撤销或主动放弃的 `grant_id` 不得通过重放或另一条 create Event 复活。
+- **压缩**：可以压缩 payload，但必须保留 grant ID、terminal status、revision 与 Commit 引用，snapshot / export 不得把 terminal grant 计为有效授权。
 
 conformance：[`capability-fixture.json`](../sync/authority-commit-log.md) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
 
@@ -875,15 +874,15 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 - `realm_id`、scope / track / object selector、subject DID、action 和 constraint profile。
 - `auth_state_digest`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status（包括 condition-selector grant 依赖的 `claim_status_root`）、device/session control authority commit 和相关 state event canonical digest 计算出的确定性 hash。
-- `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
+- `auth_revision`：参与该 hash 的 state event head set 或 snapshot checkpoint。
 - 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
 
-除非具体 deployment profile 另行声明可复算的 auth-state canonical encoding，`auth_state_digest` 在跨实现 wire 上是 issuer-local opaque commitment：它绑定 cache entry、snapshot authority binding 或审计记录与某个 `auth_frontier`，但第三方 verifier 的安全判定 MUST 来自按 `auth_frontier` 可取得的 accepted auth state 回放 / 查询结果。换言之，verifier MUST 检查 digest 与 frontier 的自洽性和新鲜度，MUST NOT 把无法逐字重算该 opaque digest 解释为授权通过。
+除非具体 deployment profile 另行声明可复算的 auth-state canonical encoding，`auth_state_digest` 在跨实现 wire 上是 issuer-local opaque commitment：它绑定 cache entry、snapshot authority binding 或审计记录与某个 `auth_revision`，但第三方 verifier 的安全判定 MUST 来自按 `auth_revision` 可取得的 accepted auth state 回放 / 查询结果。换言之，verifier MUST 检查 digest 与 checkpoint 的自洽性和新鲜度，MUST NOT 把无法逐字重算该 opaque digest 解释为授权通过。
 
 规则：
 
-- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 ordinary Event 或确认控制面 RealmCommit 并更新相关 typed current result 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ak.member.state` event，但产生的 typed current result 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
-- **Moderation state typed current result 与 cache 的关系**：committed moderation decision（写入 `ak.component.moderation_state.v1`，见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation typed current result 标记的 actor 不在其中），则该 typed current result 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 Event 或确认控制面 RealmCommit 并更新相关 typed current result 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ak.member.state` event，但产生的 typed current result 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
+- **Moderation state typed current result 与 cache 的关系**：committed moderation decision（写入 `moderation_state`，见 [`../governance/content-moderation.md`](../governance/content-moderation.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation typed current result 标记的 actor 不在其中），则该 typed current result 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
     2. `actions[]` 包含 `ak.moderation.decision` / `ak.moderation.decision.lift` 中的任一项（moderator role grant 通常依赖 moderation typed current result 决定谁是 moderator）；
@@ -896,7 +895,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认当前撤销状态的状态 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。
 - fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
-- 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、frontier 对账和 `auth_state_digest` 失效。
+- 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、checkpoint 对账和 `auth_state_digest` 失效。
 
 ### 18.2 撤销传播与当前检查
 

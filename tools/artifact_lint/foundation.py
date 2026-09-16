@@ -2376,8 +2376,6 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(operation_path, f"{operation_id} missing http binding")
         else:
             operation_http_map[operation_id] = http
-        if "http_compatibility_bindings" in row:
-            lint.fail(operation_path, f"{operation_id} must not declare removed http_compatibility_bindings")
         if http_only_variant:
             if grpc is not None:
                 lint.fail(operation_path, f"{operation_id} is http_only_variant and must not declare grpc binding")
@@ -3202,42 +3200,6 @@ def check_event_id_suite_registry(lint: Lint) -> None:
     for suite_id, code in expected_codes.items():
         if seen.get(code) != suite_id:
             lint.fail(path, f"wire_code 0x{code:02x} must be assigned to {suite_id}")
-
-
-
-def check_retired_event_id_contract(lint: Lint) -> None:
-    retired = re.compile(r"UUIDv8|uuidv8|34[- ]bit|88[- ]bit|11[- ]octet|248[- ]bit|31[- ]octet prefix|公元 2514|时间戳段")
-    owners = [
-        *sorted((SPEC_ROOT / "zh").rglob("*.md")),
-        *sorted((ARTIFACTS / "schemas").glob("*.json")),
-        ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml",
-        ARTIFACTS / "registry/digest-suite-registry.json",
-        ARTIFACTS / "registry/id-kind-registry.json",
-        ARTIFACTS / "registry/vector-registry.json",
-    ]
-    for path in owners:
-        match = retired.search(read_text(path))
-        if match:
-            lint.fail(path, f"retired Event-ID contract term remains: {match.group(0)!r}")
-    old_pattern = "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
-    id_registry_path = ARTIFACTS / "registry" / "id-kind-registry.json"
-    id_registry = load_json(lint, id_registry_path)
-    id_rows = id_registry.get("id_kinds", []) if isinstance(id_registry, dict) else []
-    retired_event_derived_kinds = {
-        row.get("kind")
-        for row in id_rows
-        if isinstance(row, dict)
-        and row.get("id_form") == "event_derived"
-        and isinstance(row.get("kind"), str)
-    }
-    for path in sorted((ARTIFACTS / "schemas").glob("*.json")):
-        schema_text = read_text(path)
-        if old_pattern in schema_text:
-            lint.fail(path, "schema retains retired UUIDv8 Event-ID pattern")
-        for kind in retired_event_derived_kinds:
-            derived_old_pattern = f"^ak:{kind}:[0-9a-f]{{8}}-[0-9a-f]{{4}}-8[0-9a-f]{{3}}-[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}"
-            if derived_old_pattern in schema_text:
-                lint.fail(path, f"schema retains retired UUIDv8 pattern for event-derived ak:{kind} ID")
 
 
 

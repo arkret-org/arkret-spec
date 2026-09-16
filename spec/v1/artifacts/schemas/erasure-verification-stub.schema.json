@@ -39,7 +39,7 @@
         "commit_ref": {
           "$ref": "#/$defs/subject_ref"
         },
-        "frontier_digest": {
+        "source_commit_ref": {
           "$ref": "#/$defs/digest"
         },
         "state_root": {

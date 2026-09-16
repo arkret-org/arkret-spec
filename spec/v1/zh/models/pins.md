@@ -30,7 +30,7 @@ Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或 scope-reference 
 
 `pin_scope` 是 projection home，不是安全边界。`kind=space` 时，reducer MUST 解析 Space metadata 的 effective scope；Space 不因此获得独立 membership、policy、history visibility 或 MLS boundary。
 
-typed current result special form 使用 `state-slot:ak.component.pin.v1:<pin_scope.id>`。v1 不注册 pin 专用 typed id。
+typed current result special form 使用 `pin:<pin_scope.id>`。v1 不注册 pin 专用 typed id。
 
 ## 3. Scope Safety
 
@@ -44,16 +44,16 @@ Pin note 若存在 MUST 使用 `EncryptedPayload` 加密；v1 不提供 plaintex
 
 ### 4.1 收敛（normative）
 
-`ak.component.pin.v1:<pin_scope.id>` 是 [`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md)
-的核心 `or_set`，其元素是 **pin 断言**：`ak.pin.add`、`ak.pin.remove` 与 `ak.pin.reorder`
-**各精确投影一个** `{"kind":"or_set_add","tag":{"dot":true},"value":{"field":"payload"}}`。
-remove 与 reorder 同样是**往集合里加一条断言**，而不是 observed-remove。
+`pin:<pin_scope.id>` 是 [`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md)
+的核心 `keyed-set projection`，其元素是 **pin 断言**：`ak.pin.add`、`ak.pin.remove` 与 `ak.pin.reorder`
+**各精确投影一个** `{"kind":"keyed-set projection_add","tag":{"dot":true},"value":{"field":"payload"}}`。
+remove 与 reorder 同样是**往集合里加一条断言**，而不是 explicit revocation。
 
 一个 pin scope 下的全部 pin 共用这一个 typed current result，因此 entry 身份分两层：`pin_scope` 由 typed current result subject
 承载，`target_ref` 是元素值上的字段。三个 kind 的元素值都是各自完整 payload，投影不拼装、
 改名或裁剪字段（[`event-and-patch.md` §2.4.2](./event-and-patch.md)）。
 
-**为什么 remove 不用 `or_set_remove_observed`**：无 `match` 的形态会移除同 scope 下**全部**
+**为什么 remove 不用 `keyed-set projection_remove_observed`**：无 `match` 的形态会移除同 scope 下**全部**
 target 的 pin；带 `match` 的形态只移除**冻结前态**下存活的 add dot，与该 remove 并发的 add
 不在其中，于是并发 (add, remove) 会静默收敛为 add；下一段要求这类互斥并发显式暴露而非任选一边，故 remove 必须是断言。
 
@@ -72,7 +72,7 @@ MUST 以 `failed_precondition`（`reason=pin_target_not_pinned`）拒绝该 `ak.
 **MUST NOT** 用只有 rank 的合成 entry 把目标重新放回 roster。目标对象尚未在本地物化时按
 [`common-fields.md` §5.1](./common-fields.md) 的「未知对象 pending / replay」保留待重放。
 
-该 or_set 的 join 是 dot 集合并，可交换、可结合、幂等。审计视图保留全部断言；领域投影可报告冲突，但该诊断不是新的 typed current result 状态或授权拒绝。
+该 keyed-set projection 的 join 是 dot 集合并，可交换、可结合、幂等。审计视图保留全部断言；领域投影可报告冲突，但该诊断不是新的 typed current result 状态或授权拒绝。
 
 重排必须保持稳定：不同 target 按 `(rank, target_ref)` 的 ASCII bytewise lexicographic ascending 排序；相同 rank 不构成互斥冲突。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与无冲突的 current materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。单一 target 的互不可达 reorder/add/remove 按上一段进入 `pin_conflict`，不得用 digest、HLC、actor id 或接收顺序选边。writer SHOULD 使用 rank rebalance 避免长期 rank 碰撞。
 

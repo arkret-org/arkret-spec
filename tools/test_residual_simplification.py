@@ -4,6 +4,8 @@ The HPKE counterexample exercises the Welcome GroupSecrets encryption layer,
 not a complete MLS group or a live Station. Product runners cover those layers.
 """
 import copy
+import hashlib
+import hmac
 import json
 import unittest
 from pathlib import Path
@@ -14,8 +16,32 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
-from tools.generate_history_scale_fixture import hpke_labeled_extract, hpke_labeled_expand
 from tools import test_self_signer_result_schema as signer_tests
+
+
+def hkdf_extract(salt: bytes, ikm: bytes) -> bytes:
+    return hmac.new(salt or b"\x00" * 32, ikm, hashlib.sha256).digest()
+
+
+def hkdf_expand(prk: bytes, info: bytes, length: int) -> bytes:
+    output = b""
+    block = b""
+    counter = 1
+    while len(output) < length:
+        block = hmac.new(prk, block + info + bytes([counter]), hashlib.sha256).digest()
+        output += block
+        counter += 1
+    return output[:length]
+
+
+def hpke_labeled_extract(suite_id: bytes, salt: bytes, label: bytes, ikm: bytes) -> bytes:
+    return hkdf_extract(salt, b"HPKE-v1" + suite_id + label + ikm)
+
+
+def hpke_labeled_expand(suite_id: bytes, prk: bytes, label: bytes, info: bytes, length: int) -> bytes:
+    labeled_info = length.to_bytes(2, "big") + b"HPKE-v1" + suite_id + label + info
+    return hkdf_expand(prk, labeled_info, length)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 A = ROOT / 'spec/v1/artifacts'

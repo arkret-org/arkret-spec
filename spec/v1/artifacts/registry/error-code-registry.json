@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.10",
-  "generated_at": "2026-09-16T09:35:00+08:00",
+  "version": "2026-09-16.11",
+  "generated_at": "2026-09-16T10:50:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -46,7 +46,7 @@
       "code": "pcr_authority_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The accepted PCR authority frontier, device generation, recovery-policy version or account-local-lineage binding is stale. DID freshness cannot repair this failure.",
+      "description": "The accepted PCR authority checkpoint, device generation, recovery-policy version or account-local-lineage binding is stale. DID freshness cannot repair this failure.",
       "type_uri": "https://arkret.org/problems/pcr_authority_stale",
       "title": "Pcr authority stale"
     },
@@ -70,7 +70,7 @@
       "code": "agent_signer_evidence_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "Agent signer evidence exists but its source freshness observation or state frontier is too old for the target Event admission. Consumers remain Unresolved/Stale and retry without promoting the Event to Verified.",
+      "description": "Agent signer evidence exists but its source freshness observation or state checkpoint is too old for the target Event admission. Consumers remain Unresolved/Stale and retry without promoting the Event to Verified.",
       "type_uri": "https://arkret.org/problems/agent_signer_evidence_stale",
       "title": "Agent signer evidence stale"
     },
@@ -86,7 +86,7 @@
       "code": "agent_authorization_conflicted",
       "http_status": 409,
       "scope": "both",
-      "description": "The accepted Agent key component contains conflicting active authorization state at the target frontier. The Event and signer evidence MUST be quarantined.",
+      "description": "The accepted Agent key component contains conflicting active authorization state at the target checkpoint. The Event and signer evidence MUST be quarantined.",
       "type_uri": "https://arkret.org/problems/agent_authorization_conflicted",
       "title": "Agent authorization conflicted"
     },
@@ -338,7 +338,7 @@
       "code": "source_refs_unverifiable",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative Station, resource source, or signed projection frontier.",
+      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative Station, resource source, or signed projection checkpoint.",
       "type_uri": "https://arkret.org/problems/source_refs_unverifiable",
       "title": "Source refs unverifiable"
     },
@@ -474,7 +474,7 @@
       "code": "read_receipt_compliance_floor_violated",
       "http_status": 422,
       "scope": "both",
-      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' â†’ child 'optional' or 'disabled') without the parent explicitly setting child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md Â§2.5.",
+      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' â†’ child 'optional' or 'disabled') without the parent explicitly setting child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Event with this wire code. See zh/discovery/read-receipts.md Â§2.5.",
       "type_uri": "https://arkret.org/problems/read_receipt_compliance_floor_violated",
       "title": "Read receipt compliance floor violated"
     },
@@ -599,12 +599,12 @@
       "title": "Device reanchor authority mismatch"
     },
     {
-      "code": "device_reanchor_frontier_mismatch",
+      "code": "device_reanchor_checkpoint_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A device re-anchor completion carries a frontier that does not match the recomputed device frontier. Dual-registered as a service code and a reason_code (see reason_codes[]).",
-      "type_uri": "https://arkret.org/problems/device_reanchor_frontier_mismatch",
-      "title": "Device reanchor frontier mismatch"
+      "description": "A device re-anchor completion carries a checkpoint that does not match the recomputed device checkpoint. Dual-registered as a service code and a reason_code (see reason_codes[]).",
+      "type_uri": "https://arkret.org/problems/device_reanchor_checkpoint_mismatch",
+      "title": "Device reanchor checkpoint mismatch"
     },
     {
       "code": "device_reanchor_authorize_mismatch",
@@ -791,12 +791,12 @@
       "title": "Timeout"
     },
     {
-      "code": "frontier_stale",
+      "code": "revision_stale",
       "http_status": 409,
       "scope": "both",
       "description": "The service's verified authority-stream head is behind the RealmCommit position required by the request.",
-      "type_uri": "https://arkret.org/problems/frontier_stale",
-      "title": "Frontier stale"
+      "type_uri": "https://arkret.org/problems/revision_stale",
+      "title": "Checkpoint stale"
     },
     {
       "code": "authorized_grant_revoked",
@@ -922,7 +922,7 @@
       "code": "mls_genesis_binding_proposal_required",
       "http_status": 422,
       "scope": "endpoint",
-      "description": "A 0 -> 0 group_security_frontier query targets a scope/group with no accepted MLS Genesis but omits proposed_group_genesis_binding. The service MUST NOT default content_scheme. The caller must resubmit the exact proposed immutable binding; the failed request produces no proof and no cache entry.",
+      "description": "A 0 -> 0 group_key_access_revision query targets a scope/group with no accepted MLS Genesis but omits proposed_group_genesis_binding. The caller must resubmit the exact proposed immutable binding; the failed request produces no proof and no cache entry.",
       "type_uri": "https://arkret.org/problems/mls_genesis_binding_proposal_required",
       "title": "MLS genesis binding proposal required"
     },
@@ -994,7 +994,7 @@
       "code": "policy_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The policy service, policy frontier, or policy proof required for this operation is temporarily unavailable.",
+      "description": "The policy service, realm_policy revision, or policy proof required for this operation is temporarily unavailable.",
       "type_uri": "https://arkret.org/problems/policy_unavailable",
       "title": "Policy unavailable"
     },
@@ -1138,7 +1138,7 @@
       "code": "projection_incomplete",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The requested projection cannot be claimed complete under the current supported feature set or dependency frontier.",
+      "description": "The requested projection cannot be claimed complete under the current supported feature set or dependency checkpoint.",
       "type_uri": "https://arkret.org/problems/projection_incomplete",
       "title": "Projection incomplete"
     },
@@ -1274,7 +1274,7 @@
       "code": "unsupported_profile",
       "http_status": 422,
       "scope": "both",
-      "description": "The selected operation, portable artifact, Realm genesis, or Realm reducer-profile control state requires a profile or feature the service does not implement. Reducer support is advertised in ServiceDescribe.supported_reducer_profiles; other capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
+      "description": "The selected operation or portable artifact requires a profile or feature the service does not implement. Capabilities use supported_features / supported_profiles. The server MUST fail closed and MUST NOT substitute a local default or permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify.v1 (see reason_codes[]).",
       "type_uri": "https://arkret.org/problems/unsupported_profile",
       "title": "Unsupported profile"
     },
@@ -1354,7 +1354,7 @@
       "code": "unsupported_protocol_version",
       "http_status": 422,
       "scope": "both",
-      "description": "A syntactically well-formed protocol-family bootstrap discriminator is not supported by the receiver. For v1 ServiceDescribe and equivalent ping surfaces, a protocol_version string other than the canonical value 1.0 makes the complete service unusable before capability intersection or route caching. Missing or non-string values remain schema_violation. A binding that implements Arkret-Protocol-Version header or equivalent media-type negotiation returns this code for an unsupported requested version. Dual-registered as a top-level service code and a reason_code. See zh/overview/evolution-and-compatibility.md Â§1 and Â§4.",
+      "description": "A syntactically well-formed protocol-family bootstrap discriminator is not supported by the receiver. For v1 ServiceDescribe and equivalent ping surfaces, a protocol_version string other than the canonical value 1.0 makes the complete service unusable before capability intersection or route caching. Missing or non-string values remain schema_violation. A binding that implements Arkret-Protocol-Version header or equivalent media-type negotiation returns this code for an unsupported requested version. Dual-registered as a top-level service code and a reason_code. See zh/overview/current-contract.md Â§1 and Â§4.",
       "type_uri": "https://arkret.org/problems/unsupported_protocol_version",
       "title": "Unsupported protocol version"
     },
@@ -2151,18 +2151,18 @@
       "title": "Cursor invalid"
     },
     {
-      "code": "frontier_unavailable",
+      "code": "revision_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The service cannot currently produce the requested frontier because required authority commit, reducer, or witness state is unavailable.",
-      "type_uri": "https://arkret.org/problems/frontier_unavailable",
-      "title": "Frontier unavailable"
+      "description": "The service cannot currently produce the requested checkpoint because required authority commit, reducer, or witness state is unavailable.",
+      "type_uri": "https://arkret.org/problems/revision_unavailable",
+      "title": "Checkpoint unavailable"
     },
     {
       "code": "mls_governance_anchor_unreachable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "The exact canonical proof_target_basis does not dominate the exact caller-supplied, locally trusted canonical proof_base_basis: at least one base leaf is neither retained as a target leaf nor an ancestor of a target leaf. Concurrent or otherwise unreachable cuts produce this error; byte-identical base and target antichains are a valid zero-transition query and MUST NOT produce it. Missing required RealmCommit/Event/witness material that prevents the service from deciding dominance is frontier_unavailable instead. The service MUST NOT substitute a single head, common descendant, target, or untrusted base. The caller MAY retry only with another complete locally trusted basis or another authorized proof service.",
+      "description": "The exact canonical proof_target_basis does not dominate the exact caller-supplied, locally trusted canonical proof_base_basis: at least one base leaf is neither retained as a target leaf nor an ancestor of a target leaf. Concurrent or otherwise unreachable cuts produce this error; byte-identical base and target antichains are a valid zero-transition query and MUST NOT produce it. Missing required RealmCommit/Event/witness material that prevents the service from deciding dominance is revision_unavailable instead. The service MUST NOT substitute a single head, common descendant, target, or untrusted base. The caller MAY retry only with another complete locally trusted basis or another authorized proof service.",
       "type_uri": "https://arkret.org/problems/mls_governance_anchor_unreachable",
       "title": "Mls governance anchor unreachable"
     },
@@ -2178,7 +2178,7 @@
       "code": "failed_plane",
       "http_status": 412,
       "scope": "both",
-      "description": "authority-commit plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane typed current result, or a ordinary Event targeted a control-plane typed current result. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md Â§13 and zh/sync/service-http-binding.md (write outcomes).",
+      "description": "authority-commit plane invariant failed: the registered reducer projection for a Event targeted a data-plane typed current result, or a Event targeted a control-plane typed current result. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md Â§13 and zh/sync/service-http-binding.md (write outcomes).",
       "type_uri": "https://arkret.org/problems/failed_plane",
       "title": "Failed plane"
     },
@@ -2473,94 +2473,6 @@
       "description": "Reading the full per-Strand watch state (including `muted` entries) requires both `ak.realm.notification.audit` and `ak.audit.accessed` capabilities; one was missing. See zh/models/strand-and-message.md Â§8.5."
     },
     {
-      "code": "audit_purpose_mismatch",
-      "applies_to": [
-        "auth_decision"
-      ],
-      "description": "Audit release service attestation_evidence.audit_purpose does not match the active binding/session purpose. Verifier MUST reject the release evidence; the service MAY re-attest with the correct purpose. See zh/crypto-media/audited-e2ee.md Â§6."
-    },
-    {
-      "code": "audit_receipt_invalidated",
-      "applies_to": [
-        "audit_decision"
-      ],
-      "description": "A previously valid Read-Your-Writes receipt has been invalidated by subsequent backfill, witness disagreement, or audit_assurance_class / Audit Applet Binding mismatch (see zh/crypto-media/audited-e2ee.md Â§6)."
-    },
-    {
-      "code": "audit_release_attestation_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Attested audit release evidence does not validate against the active binding/release policy, service DID, measurement, validity window, or attestation trust root."
-    },
-    {
-      "code": "audit_release_attestation_mismatch",
-      "applies_to": [
-        "schema_violation",
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Audit release service attestation evidence (ak.schema.audit_release_attestation.v1) does not match the active ak.audit.applet_binding, ak.audit.release service_id, measurement, or policy digest. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md Â§6."
-    },
-    {
-      "code": "audit_release_binding_inactive",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision",
-        "service_call"
-      ],
-      "description": "ak.audit.release was evaluated after the referenced ak.audit.applet_binding became suspended or revoked. Reducer and release service MUST recheck binding status at release time and fail closed unless it is still active."
-    },
-    {
-      "code": "audit_release_binding_missing",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A ak.audit.session.* or ak.audit.release event referenced no active ak.audit.applet_binding for the target Realm/Circle effective_scope. Audit release MUST fail closed without an active binding."
-    },
-    {
-      "code": "audit_release_current_epoch_forbidden",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "ak.audit.release attempted to release the current active MLS epoch. Releases may cover only committed historical epochs and MUST reference sealed_by_commit_ref when epoch material is involved."
-    },
-    {
-      "code": "audit_release_manifest_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "ak.audit.release manifest is inconsistent with the authorized session, binding policy, release mode, target_refs, sealed_epoch_range, recipient key, or wrapped_material_digest set."
-    },
-    {
-      "code": "audit_release_notice_missing",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "ak.audit.release lacks a valid prior ak.audit.session.notice for the same session, binding, scope, purpose, and approved range."
-    },
-    {
-      "code": "audit_release_retroactive_scope_forbidden",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "ak.audit.session.* or ak.audit.release attempted to cover messages, targets, or epochs before the binding activation frontier / first_auditable_epoch, or attempted to apply a later-expanded release_window_policy to already encrypted messages. Audit Applet Binding is non-retroactive; reducers MUST fail closed."
-    },
-    {
-      "code": "audit_release_scope_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "The audit request / authorization / notice / release effective_scope does not match the active binding or attempts to cover a Circle without a Circle-scoped binding."
-    },
-    {
       "code": "authority_cycle",
       "applies_to": [
         "event_envelope",
@@ -2617,12 +2529,12 @@
       "description": "The selected recording or transcription backend was unavailable."
     },
     {
-      "code": "backup_frontier_stale",
+      "code": "backup_revision_stale",
       "applies_to": [
         "device_recovery",
         "state_resolution"
       ],
-      "description": "`ak.schema.key_backup.v1.frontier_ref.frontier_digest` does not match the current principal control stream frontier, or `device_generation_ref` does not equal the active `current_device_generation_ref`. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md Â§7.6."
+      "description": "`ak.schema.key_backup.v1.source_commit_ref.source_commit_ref` does not match the current principal control stream checkpoint, or `device_generation_ref` does not equal the active `current_device_generation_ref`. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md Â§7.6."
     },
     {
       "code": "blob_redacted",
@@ -2677,7 +2589,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A participant whose `(actor_id, device_id)` has an effective kick in `ak.component.call.moderation.v1`, or whose actor has an effective ban there, attempted to re-establish a media leg or re-issue a join token. Token issuer / SFU MUST refuse; a banned actor MUST NOT rejoin until the ban is lifted. See zh/crypto-media/webrtc-signaling.md Â§3a."
+      "description": "A participant whose `(actor_id, device_id)` has an effective kick in `call_moderation`, or whose actor has an effective ban there, attempted to re-establish a media leg or re-issue a join token. Token issuer / SFU MUST refuse; a banned actor MUST NOT rejoin until the ban is lifted. See zh/crypto-media/webrtc-signaling.md Â§3a."
     },
     {
       "code": "call_state_terminal",
@@ -2749,11 +2661,18 @@
       "description": "Reducer rejected a `ak.circle.create` exceeding the per-Realm active Circle cap, or a `ak.circle.member.state -> join` that would exceed the per-actor active MLS-backed Circle cap. Caps bound cascade/delivery fanout and the M+R MLS-rotation amplification of a single membership change (zh/conformance/scalability-constraints.md Â§5, zh/models/circle.md Â§10.3)."
     },
     {
-      "code": "circle_encryption_below_realm_floor",
+      "code": "mls_activation_required",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when ak.circle.create / ak.circle.update would set a Circle encryption setting below the parent Realm floor: either Circle.encryption_profile below the parent Realm encryption_profile / effective content_encryption_floor (E2EE Realm / e2ee_required floor requires an MLS-backed Circle), or Circle.content_encryption_floor below the effective floor max(parent Realm content_encryption_floor, Circle), or a Circle with encryption_profile=none declaring content_encryption_floor=e2ee_required (no MLS-backed effective_scope to carry ciphertext). See zh/models/circle.md Â§7."
+      "description": "Sub-reason for failed_precondition when a Strand / Message / Morph / Blob content or metadata write carries plaintext into a scope whose ak.mls.genesis is already accepted. An activated scope accepts only RFC 9420 application ciphertext. See zh/models/circle.md section 7."
+    },
+    {
+      "code": "mls_activation_irreversible",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when an Event would deactivate, replace or re-run the accepted ak.mls.genesis of an already activated Realm, Circle or Sidecar scope. Activation is a one-way transition with no protocol path back to plaintext. See zh/models/realm-and-space.md section 2.3."
     },
     {
       "code": "circle_member_must_be_realm_member",
@@ -2824,14 +2743,6 @@
       "description": "Single non-enumerating device directory failure. Absent, invisible, unrelated, revoked, fenced and policy-denied targets MUST all use this one value so a caller cannot probe device existence or revocation state. See zh/crypto-media/device-lifecycle.md section 8.2."
     },
     {
-      "code": "e2ee_relaxed_audit_binding_conflict",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "The effective Realm policy sets mls_send_pause=advisory while an Audit Applet Binding is active. The policy write or binding activation MUST fail closed; no generic Realm profile list participates. See encryption-and-audit.md Â§2.4.2."
-    },
-    {
       "code": "consent_revoked",
       "applies_to": [
         "auth_decision"
@@ -2845,20 +2756,6 @@
         "state_resolution"
       ],
       "description": "Required recording or transcription consent was withdrawn."
-    },
-    {
-      "code": "content_encryption_floor_downgrade",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle or ak.circle.update would lower a scope's effective content_encryption_floor from e2ee_required back to allow_plaintext. The effective content encryption floor is a one-way ratchet (monotonically non-decreasing); tightening is allowed, lowering is rejected. See zh/models/realm-and-space.md Â§2.5 and zh/models/circle.md Â§7."
-    },
-    {
-      "code": "content_encryption_floor_violation",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a Realm declares content_encryption_floor=e2ee_required but a Strand / Message / Morph / Blob content write would land in a non-MLS-backed effective_scope (plaintext). The content effective_scope MUST be Realm-default MLS or Circle MLS. See zh/models/circle.md Â§7 (Realm.content_encryption_floor)."
     },
     {
       "code": "cross_domain_replay_rejected",
@@ -3068,22 +2965,6 @@
       "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Arkret MLS exporter (label `ak.rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/media-service-binding.md Â§8.1."
     },
     {
-      "code": "e2ee_relaxed_disallowed_in_compliance_profile",
-      "applies_to": [
-        "schema_violation",
-        "state_resolution"
-      ],
-      "description": "A deployment attempted to enable ak.profile.e2ee_relaxed.v1 alongside a compliance-tier profile (ak.profile.attested_audit.e2ee.v1 / ak.profile.disclosed_audit.e2ee.v1 / any active Audit Applet Binding). The relaxed window contradicts the compliance presumption that kick-out is cryptographically immediate; the combination MUST be rejected by the reducer. See artifacts/profiles/conformance-profiles.json#ak.profile.e2ee_relaxed.v1.downgrade_window_constraint.compliance_profile_disabled."
-    },
-    {
-      "code": "e2ee_relaxed_federation_policy_unsupported",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "A Realm attempted to combine ak.profile.e2ee_relaxed.v1 with an open or quarantine federation policy, or with restricted federation that lacks a bounded fanout SLA within the relaxed E2EE window."
-    },
-    {
       "code": "effective_scope_reducer_managed",
       "applies_to": [
         "schema_validation"
@@ -3106,7 +2987,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "Membership, policy, or governance frontier changed and the current MLS epoch does not yet have a winning ak.mls.commit whose governance_binding covers that frontier. Clients MUST pause new application messages for the scope until the effective epoch catches up. See zh/crypto-media/encryption-and-audit.md Â§2.4.1."
+      "description": "Membership, policy, or governance checkpoint changed and the current MLS epoch does not yet have a winning ak.mls.commit whose governance_binding covers that checkpoint. Clients MUST pause new application messages for the scope until the effective epoch catches up. See zh/crypto-media/encryption-and-audit.md Â§2.4.1."
     },
     {
       "code": "erasure_pending_is_terminal",
@@ -3241,7 +3122,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "An MLS Commit's mls_governance_binding GroupContext extension does not match the accepted key-access state or active epoch chain: group/epoch/profile fields disagree, key_access_revision is not the deterministic digest of the registered membership/leaf-key/MLS-membership/encryption-history frontier, or extension bytes differ from the Event payload. The receiver MUST reject the Commit - and, on a federation push, the batch - rather than advance an epoch under a forged or stale binding. See zh/crypto-media/encryption-and-audit.md Â§2.5."
+      "description": "An MLS Commit's mls_governance_binding GroupContext extension does not match the accepted key-access state or active epoch chain: group/epoch/profile fields disagree, key_access_revision is not the deterministic digest of the registered membership/leaf-key/MLS-membership/encryption-history checkpoint, or extension bytes differ from the Event payload. The receiver MUST reject the Commit - and, on a federation push, the batch - rather than advance an epoch under a forged or stale binding. See zh/crypto-media/encryption-and-audit.md Â§2.5."
     },
     {
       "code": "grant_revoke_not_authorized",
@@ -3252,11 +3133,11 @@
       "description": "A ak.capability.revoke passed ordinary action authorization but failed the target guard: the actor is neither the target grant's issuer nor the current root controller of the target grant's own realm_id. Controlling some upstream root reachable through authority_root_refs is deliberately not enough â€” a co-owner or sibling MUST NOT be able to revoke an upstream or peer grant by holding ak.realm.owner. The rejection MUST NOT disclose whether the target exists or which Realm it belongs to."
     },
     {
-      "code": "grant_revoked_before_event_frontier",
+      "code": "grant_revoked_before_event_checkpoint",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "The capability grant cited as authority was revoked at a frontier causally preceding this event; reducer rejects."
+      "description": "The capability grant cited as authority was revoked at a checkpoint causally preceding this event; reducer rejects."
     },
     {
       "code": "grant_revoked_upstream",
@@ -3264,7 +3145,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A child grant or Move depends on a parent grant that is locally known to be revoked, superseded, expired, or tombstoned. Reducers MUST fail closed immediately. See zh/authz/capabilities.md Â§10.3."
+      "description": "A child grant or Event depends on a parent grant that is locally known to be revoked, superseded, expired, or tombstoned. Reducers MUST fail closed immediately. See zh/authz/capabilities.md Â§10.3."
     },
     {
       "code": "grant_validity_window_empty",
@@ -3311,13 +3192,6 @@
         "moderation_report"
       ],
       "description": "Standard moderation reason: hate speech / targeted attacks against a protected group."
-    },
-    {
-      "code": "history_access_requires_history_capable_scheme",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when an MLS-backed Realm/Circle with content_scheme=mls_rfc9420 sets history_access other than since_join. A later endpoint starts from its own Add/Welcome admission and uses only locally held MLS state; plaintext and mls_exporter_aead_v1 may use either since_join or all_history_for_current_members. See zh/models/realm-and-space.md Â§2.3 and zh/crypto-media/encryption-and-audit.md Â§2.10."
     },
     {
       "code": "human_approval_required",
@@ -3452,7 +3326,7 @@
         "authz",
         "state_resolution"
       ],
-      "description": "A ak.member.state Move requests a membership FSM transition that is not listed as legal for the member's current state. Reducers MUST reject the Move with failed_precondition. See zh/models/realm-and-space.md Â§2.7."
+      "description": "A ak.member.state Event requests a membership FSM transition that is not listed as legal for the member's current state. Reducers MUST reject the Event with failed_precondition. See zh/models/realm-and-space.md Â§2.7."
     },
     {
       "code": "invalidated_by_rate_limit",
@@ -3675,21 +3549,6 @@
       "description": "`ak.message.redact` / `ak.message.revise` / equivalent Message write rejected because the target Message is already in a terminal state (`redacted` or `deleted`). In particular, `ak.message.revise` targeting a terminal Message MUST be rejected with this reason_code."
     },
     {
-      "code": "metadata_encryption_floor_downgrade",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle or ak.circle.update would lower a scope's effective metadata encryption floor to a lower level (comparison order allow_plaintext < e2ee_required). The effective metadata encryption floor is a one-way ratchet (monotonically non-decreasing). See zh/models/realm-and-space.md Â§2.5 and zh/models/circle.md Â§7."
-    },
-    {
-      "code": "metadata_encryption_floor_violation",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_floor floor (max of parent Realm floor, Circle metadata_encryption_floor and object profile requirement). See zh/models/circle.md Â§7."
-    },
-    {
       "code": "mimi_draft_unsupported",
       "applies_to": [
         "service_call",
@@ -3722,12 +3581,12 @@
       "description": "A MIMI submit_message was attempted over a provider binding whose local_provider_role is observer, which MUST NOT submit writes on behalf of local participants. The submission MUST be rejected. See zh/extensions/mimi-interop.md section 7."
     },
     {
-      "code": "mimi_policy_root_mismatch",
+      "code": "mimi_policy_revision_mismatch",
       "applies_to": [
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI room policy component does not match the Arkret Realm policy_root or ak.realm.policy_bundle state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md Â§4.1."
+      "description": "A MIMI room policy component does not match the accepted Arkret ak.realm.policy_bundle revision. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md Â§4.1."
     },
     {
       "code": "mimi_provider_unreachable",
@@ -3741,7 +3600,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "A ak.mimi.room_binding Control Move declared a payload.status value that is not a legal transition from the binding's current status (including an illegal initial status or any write after the terminal revoked state). Reducer MUST reject; the room binding status lifecycle is defined in zh/extensions/mimi-interop.md Â§4.2."
+      "description": "A ak.mimi.room_binding Event declared a payload.status value that is not a legal transition from the binding's current status (including an illegal initial status or any write after the terminal revoked state). Reducer MUST reject; the room binding status lifecycle is defined in zh/extensions/mimi-interop.md Â§4.2."
     },
     {
       "code": "mimi_room_state_incompatible",
@@ -3783,16 +3642,8 @@
       "description": "Standard moderation reason: misleading / false information posing harm."
     },
     {
-      "code": "mls_content_scheme_immutable",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "A policy or group-state transition attempted to change content_scheme after the ordinary Realm/Circle/Sidecar MLS group Genesis. The group scheme is immutable in v1; reducer and receiver MUST reject without creating an implicit second group. See zh/models/realm-and-space.md Â§2.3.1 and zh/crypto-media/encryption-and-audit.md Â§2.10."
-    },
-    {
       "code": "history_traversal_anchor_unreachable",
-      "description": "The exact retained direct-traversal target AuthorityRevision does not dominate every leaf of the caller-pinned trusted_history_base_basis or trusted_current_basis. The service MUST NOT substitute a head, common descendant or different basis. Missing material that prevents the decision is frontier_unavailable instead."
+      "description": "The exact retained direct-traversal target AuthorityRevision does not dominate every leaf of the caller-pinned trusted_history_base_basis or trusted_current_basis. The service MUST NOT substitute a head, common descendant or different basis. Missing material that prevents the decision is revision_unavailable instead."
     },
     {
       "code": "mls_genesis_already_exists",
@@ -3808,7 +3659,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Current MLS epoch's key_access_revision does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived frontier. See zh/crypto-media/media-service-binding.md Â§8.2 and zh/crypto-media/encryption-and-audit.md Â§2.5."
+      "description": "Current MLS epoch's key_access_revision does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived checkpoint. See zh/crypto-media/media-service-binding.md Â§8.2 and zh/crypto-media/encryption-and-audit.md Â§2.5."
     },
     {
       "code": "morph_already_terminal",
@@ -3892,7 +3743,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A `ak.gate.account.command.pair_agent_key.v1` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md Â§3.6 Â§4.5."
+      "description": "A `ak.gate.account.command.pair_agent_key.v1` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been closed). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md Â§3.6 Â§4.5."
     },
     {
       "code": "partial_auth_state",
@@ -3914,7 +3765,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_id` that has no matching value in the accepted call roster effective OR-Set (or matches a value whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant â€” this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/media-service-binding.md Â§7."
+      "description": "Backend (LiveKit / SFU / etc.) signalled `ParticipantConnected` with a `participant_id` that has no matching value in the accepted call roster effective authority-ordered keyed set (or matches a value whose `participant_binding` fails verification). Client MUST refuse to establish media streams for that participant â€” this closes the attack where a compromised backend tries to inject unauthorized participants into the conference. See zh/crypto-media/media-service-binding.md Â§7."
     },
     {
       "code": "patch_atomic_conflict",
@@ -3922,7 +3773,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Move. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md Â§4.4."
+      "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Event. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md Â§4.4."
     },
     {
       "code": "patch_path_invalid",
@@ -3957,7 +3808,7 @@
       "applies_to": [
         "pcr_genesis"
       ],
-      "description": "Genesis admission was attempted after the PCR frontier ceased to be empty, or after a PCR genesis receipt already existed. The caller must use device pairing or PCR-policy re-anchor."
+      "description": "Genesis admission was attempted after the PCR checkpoint ceased to be empty, or after a PCR genesis receipt already existed. The caller must use device pairing or PCR-policy re-anchor."
     },
     {
       "code": "pcr_genesis_unit_invalid",
@@ -3996,7 +3847,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A ak.realm.policy_bundle update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous policy frontier."
+      "description": "A ak.realm.policy_bundle update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous realm_policy revision."
     },
     {
       "code": "policy_revoked",
@@ -4054,7 +3905,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "The account status frontier contains a deactivation for the exact AccountId acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, membership writes targeting that account, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md Â§7.1 and zh/sync/federation.md Â§4.4.1."
+      "description": "The account status checkpoint contains a deactivation for the exact AccountId acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, membership writes targeting that account, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md Â§7.1 and zh/sync/federation.md Â§4.4.1."
     },
     {
       "code": "private_attachment",
@@ -4211,7 +4062,7 @@
         "state_resolution",
         "service_call"
       ],
-      "description": "An ak.realm.alias declaration carried an alias whose <domain> is not an authority domain of this Realm's trust_domain, so the Realm's own notary signature is not evidence that the domain's alias issuer authorized the claim. Reducers and directories MUST fail closed instead of registering a foreign-domain alias. See zh/discovery/object-addressing.md Â§3.3."
+      "description": "An ak.realm.alias declaration carried an alias whose <domain> is not an authority domain of this Realm's trust_domain, so the RealmCommit signature from the governance Station is not evidence that the domain's alias issuer authorized the claim. Domain reducers and directories MUST fail closed instead of registering a foreign-domain alias. See zh/discovery/object-addressing.md Â§3.3."
     },
     {
       "code": "realm_alias_homograph_forbidden",
@@ -4459,15 +4310,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets a derived-projection contains shape (Space(board) -> Space(list) or Space(list) -> Strand). Truth sources are the ak.component.space.parent.v1 and ak.component.strand.position.v1 typed results written via ak.space.parent / ak.strand.move / ak.strand.reorder Moves; only the non-derived object-composition contains form is directly writable. See zh/models/relation.md Â§3.2 and zh/models/realm-and-space.md Â§3.5-Â§3.6."
-    },
-    {
-      "code": "relaxed_window_exceeds_ceiling",
-      "applies_to": [
-        "schema_violation",
-        "state_resolution"
-      ],
-      "description": "A ak.realm.policy_bundle write under ak.profile.e2ee_relaxed.v1 declared relaxed_window_max_ms greater than the spec hard ceiling (300000 ms / 5 min). Reducer MUST reject the policy update and receivers MUST NOT silently clamp; otherwise visible policy state splits across implementations. See artifacts/profiles/conformance-profiles.json#ak.profile.e2ee_relaxed.v1.downgrade_window_constraint."
+      "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets a derived-projection contains shape (Space(board) -> Space(list) or Space(list) -> Strand). Truth sources are the space_parent and strand_position typed results written via ak.space.parent / ak.strand.move / ak.strand.reorder Events; only the non-derived object-composition contains form is directly writable. See zh/models/relation.md §3.2 and zh/models/realm-and-space.md §3.5-§3.6."
     },
     {
       "code": "resolution_history_ancestor_unknown",
@@ -4797,7 +4640,7 @@
         "client_sync",
         "state_resolution"
       ],
-      "description": "Local state does not match the authoritative frontier; client SHOULD reconcile via backfill or snapshot before continuing."
+      "description": "Local state does not match the authoritative checkpoint; client SHOULD reconcile via backfill or snapshot before continuing."
     },
     {
       "code": "storage_failed",
@@ -4912,7 +4755,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Current parser rejected an Event whose `kind` is not an active registered v1 kind. Sync, federation, snapshot, SDK, and conformance paths MUST fail closed and MUST NOT perform payload-shape disambiguation or alias lookup. See zh/spec-map.md Â§1.2.1 and zh/overview/evolution-and-compatibility.md."
+      "description": "Current parser rejected an Event whose `kind` is not an active registered v1 kind. Sync, federation, snapshot, SDK, and conformance paths MUST fail closed and MUST NOT perform payload-shape disambiguation or alias lookup. See zh/spec-map.md Â§1.2.1 and zh/overview/current-contract.md."
     },
     {
       "code": "unresolved_basis",
@@ -4984,7 +4827,7 @@
         "feature_discovery",
         "service_call"
       ],
-      "description": "The peer's protocol-family bootstrap discriminator is well formed but unsupported. The consumer rejects the complete service before reading version-specific capability claims or caching its route. Missing or non-string values remain schema_violation. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/overview/evolution-and-compatibility.md Â§1 and Â§4."
+      "description": "The peer's protocol-family bootstrap discriminator is well formed but unsupported. The consumer rejects the complete service before reading version-specific capability claims or caching its route. Missing or non-string values remain schema_violation. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/overview/current-contract.md Â§1 and Â§4."
     },
     {
       "code": "unsupported_signature_alg",
@@ -5142,7 +4985,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an Agent principal whose current `ak.component.agent.status.v1` typed current result is `deactivated` (terminal). The endpoint MUST fail closed and no resume path exists. The accepted parent lifecycle witness is sufficient to make all subordinate authorization ineffective; asynchronous cleanup need not synthesize key/grant revoke Events and cannot restore authority. Callers MUST NOT treat this as transient. See zh/identity/key-management.md Â§3.6 Â§4.11."
+      "description": "A request targeted an Agent principal whose current `agent_status` typed current result is `deactivated` (terminal). The endpoint MUST fail closed and no resume path exists. The accepted parent lifecycle witness is sufficient to make all subordinate authorization ineffective; asynchronous cleanup need not synthesize key/grant revoke Events and cannot restore authority. Callers MUST NOT treat this as transient. See zh/identity/key-management.md Â§3.6 Â§4.11."
     },
     {
       "code": "agent_paused",
@@ -5151,7 +4994,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an agent principal whose current `ak.component.agent.status.v1` typed current result is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md Â§3.6 Â§4.11."
+      "description": "A request targeted an agent principal whose current `agent_status` typed current result is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md Â§3.6 Â§4.11."
     },
     {
       "code": "agent_pcr_genesis_declaration_conflict",
@@ -5159,7 +5002,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the sequenced_state claim typed current result rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md Â§3.6.3."
+      "description": "A second ak.agent.provision declared a principal_control_realm_id that another accepted provision already claims. Inside one controller PCR the commit-ordered projection claim typed current result rejects it; across controllers the Station's local uniqueness index rejects it. Either way the write set is empty and the earlier claim is untouched. See zh/identity/key-management.md Â§3.6.3."
     },
     {
       "code": "call_summary_invalid",
@@ -5186,13 +5029,13 @@
       "description": "The atomic replacement ak.device.authorize payload digest, domain_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
-      "code": "device_reanchor_frontier_mismatch",
+      "code": "device_reanchor_checkpoint_mismatch",
       "applies_to": [
         "event_envelope",
         "auth_decision",
         "service_call"
       ],
-      "description": "The re-anchor pre_fence_basis is null despite an accepted RealmCommit, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "The re-anchor pre_fence_basis is null despite an accepted RealmCommit, omits or adds checkpoint leaves, has unreconstructable roots, or lost the admission-time checkpoint compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "direct_conversation_founding_unit_invalid",
@@ -5201,7 +5044,7 @@
         "service_call",
         "federation_transaction"
       ],
-      "description": "A Direct Conversation founding unit is not the closed caller-authored four-Event unit. Causes include a count other than four, wrong wire order, a missing peer or founder ak.member.state{join}, a missing ak.strand.create, a fifth Event, a mixed actor/pair/profile/Realm, domain_refs that do not chain the four Events, a missing founder-member head_eq null genesis guard, an envelope realm_id that is not retype(events[0] event_id), a main_strand_id that is not retype(events[3] event_id), a founding_unit_digest that does not match the recomputed value, or any request field asserting a service-allocated identifier, reservation handle or materialization draft. The whole unit is rejected with zero writes. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1."
+      "description": "A Direct Conversation founding unit is not the closed caller-authored four-Event unit. Causes include a count other than four, wrong wire order, a missing peer or founder ak.member.state{join}, a missing ak.strand.create, a fifth Event, a mixed actor/pair/profile/Realm, domain_refs that do not chain the four Events, a missing founder-member expected_revision null genesis guard, an envelope realm_id that is not retype(events[0] event_id), a main_strand_id that is not retype(events[3] event_id), a founding_unit_digest that does not match the recomputed value, or any request field asserting a service-allocated identifier, reservation handle or materialization draft. The whole unit is rejected with zero writes. See zh/identity/contact-and-direct-conversation.md sections 5.5 and 6.1."
     },
     {
       "code": "direct_conversation_participant_authority_denied",
@@ -5234,7 +5077,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot ak.component.invite.live_target.v1 is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no typed current result write; the closed error.details is InviteLiveTargetOccupiedProblem carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3."
+      "description": "Sub-reason for failed_precondition when ak.invite.create targets an account whose Realm live-target slot invite_live_target is already claimed by another live directed Invite. The Event is not accepted, enters no canonical history and derives no typed current result write; the closed error.details is InviteLiveTargetOccupiedProblem carrying the occupying invite_id and create_event_id. See zh/models/governance-objects.md section 5.3."
     },
     {
       "code": "moderation_control_split",
@@ -5258,7 +5101,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when a ordinary Event's registered reducer projection targets a control-plane typed current result. Data-plane events MUST only project writes to data-plane typed current result families; the receiver MUST reject the envelope instead of applying a cross-plane write. See zh/authz/event-auth-state-resolution.md Â§4."
+      "description": "Sub-reason for schema_violation when a Event's registered reducer projection targets a control-plane typed current result. Data-plane events MUST only project writes to data-plane typed current result families; the receiver MUST reject the envelope instead of applying a cross-plane write. See zh/authz/event-auth-state-resolution.md Â§4."
     },
     {
       "code": "realm_already_exists",
@@ -5275,7 +5118,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "An Event presented ak:result:ak.component.realm.authority_root.v1:null as its authorization_ref but the typed current result's current controller_actor_id is not the authorizing ActorId, or the epoch / authority_generation bound at issuance no longer matches the typed current result in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
+      "description": "An Event presented ak:result:realm_authority_root:null as its authorization_ref but the typed current result's current controller_actor_id is not the authorizing ActorId, or the epoch / authority_generation bound at issuance no longer matches the typed current result in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
     },
     {
       "code": "realm_authority_root_conflict",
@@ -5292,7 +5135,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "The Realm has no registered ak.component.realm.authority_root.v1 typed current result in the authorization basis, or an ak.realm.create bootstrap unit failed to materialize it. Reducer MUST reject the entire bootstrap unit atomically without leaving genesis, profile, policy, or membership facets, and MUST NOT fall back to membership or a realm_state.owner projection mirror. See zh/models/realm-and-space.md section 2.5."
+      "description": "The Realm has no registered realm_authority_root typed current result in the authorization basis, or an ak.realm.create bootstrap unit failed to materialize it. Reducer MUST reject the entire bootstrap unit atomically without leaving genesis, profile, policy, or membership facets, and MUST NOT fall back to membership or a realm_state.owner projection mirror. See zh/models/realm-and-space.md section 2.5."
     },
     {
       "code": "recording_consent_required",
@@ -5315,7 +5158,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an `ak.relation.resolve` Control Move does not match the complete candidate set the receiver rebuilds for `payload.conflict_domain` under the Move's frozen predecessor view: a missing member, a superseded head, a duplicate, a member of another domain, a `member_count` / `members_digest` mismatch, or a `retain_candidate` naming an event outside the covered baseline. The Move is rejected with zero typed current result writes; the author re-reads the material through `ak.self.relation_conflicts.read.candidates.v1` and signs a new Move. A byte-identical replay of an already accepted resolve stays idempotent by EventId and MUST NOT be reported with this reason. See zh/models/relation.md Â§6.4."
+      "description": "Sub-reason for failed_precondition when an `ak.relation.resolve` Event does not match the complete candidate set the receiver rebuilds for `payload.conflict_domain` under the Event's frozen predecessor view: a missing member, a superseded head, a duplicate, a member of another domain, a `member_count` / `members_digest` mismatch, or a `retain_candidate` naming an event outside the covered baseline. The Event is rejected with zero typed current result writes; the author re-reads the material through `ak.self.relation_conflicts.read.candidates.v1` and signs a new Event. A byte-identical replay of an already accepted resolve stays idempotent by EventId and MUST NOT be reported with this reason. See zh/models/relation.md Â§6.4."
     },
     {
       "code": "relation_kind_watches_derived",
@@ -5323,7 +5166,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets relation_kind=watches. The watches Relation is a derived projection only: its truth source is the ak.component.strand.watch.v1 typed current result written via the ak.strand.watch.set durable event, never a direct Relation write. See zh/models/relation.md Â§3.2 and zh/models/strand-and-message.md Â§8."
+      "description": "Sub-reason for schema_violation when a direct ak.relation.create / update / delete targets relation_kind=watches. The watches Relation is a derived projection only: its truth source is the strand_watch typed current result written via the ak.strand.watch.set durable event, never a direct Relation write. See zh/models/relation.md Â§3.2 and zh/models/strand-and-message.md Â§8."
     },
     {
       "code": "rsvp_basis_not_causal",
@@ -5380,7 +5223,7 @@
         "event_envelope",
         "crypto"
       ],
-      "description": "`ak.delivery.mls_welcome.payload.claim_ref.capabilities_digest` does not match the claimed KeyPackage capabilities, or the Welcome requires capabilities outside the claimed subset. Receivers MUST reject before decrypting the Welcome. See zh/crypto-media/encryption-and-audit.md Â§2.6."
+      "description": "An MlsWelcomeDelivery claim reference does not match the claimed KeyPackage capabilities. The recipient MUST reject the delivery before decrypting it."
     },
     {
       "code": "witness_disagreement",
@@ -5388,7 +5231,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; or a profile declares the observed sibling combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, producer_revision) are not by themselves disagreement: event-and-patch.md Â§2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads differences across different replication or disclosure scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md Â§12 and zh/sync/federation.md Â§4.5.1."
+      "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; or a profile declares the observed sibling combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Different valid event_id values at the same (realm_id, actor_id, producer_revision) are not by themselves disagreement: event-and-patch.md Â§2.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw commit_prefix_root / heads differences across different replication or disclosure scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md Â§12 and zh/sync/federation.md Â§4.5.1."
     },
     {
       "code": "third_party_invite_material_mismatch",

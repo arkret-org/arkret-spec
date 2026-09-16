@@ -36,11 +36,6 @@ PROBE = ARTIFACTS / "schemas" / "payload-form-probe.schema.json"
 
 EVENT_TOKEN = lint_artifacts.EVENT_TOKEN_PAYLOAD_REGEX
 PRODUCER_UUIDV7 = lint_artifacts.PRODUCER_UUID_PAYLOAD_REGEX
-CANONICAL_CELL = (
-    r"^ak:cell:ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+:"
-    r"(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*"
-    r"(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$"
-)
 
 
 class TypedIdPayloadFormLintTest(unittest.TestCase):
@@ -110,16 +105,16 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
 
     def test_bare_prefix_anchor_on_a_special_form_is_rejected(self) -> None:
         self._assert_rejected(
-            self._pattern("^ak:cell:"),
-            "validates ak:cell with an unterminated payload",
+            self._pattern("^ak:cursor:"),
+            "validates ak:cursor with an unterminated payload",
         )
 
     def test_unterminated_special_form_branch_is_rejected(self) -> None:
-        # The component is pinned but the subject segment is not terminated, so
-        # every trailing byte is still accepted.
+        # The digest suite is pinned but the digest segment is not terminated,
+        # so every trailing byte is still accepted.
         self._assert_rejected(
-            self._pattern(r"^ak:cell:ak\.component\.agent\.key\.v1:"),
-            "validates ak:cell with an unterminated payload",
+            self._pattern(r"^ak:blob:sha256:"),
+            "validates ak:blob with an unterminated payload",
         )
 
     # --- character class defects ----------------------------------------
@@ -139,8 +134,8 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
         )
 
     def test_special_form_payload_losing_a_registered_segment_is_rejected(self) -> None:
-        # ak:blob: is registered both as a producer UUID and as the two-segment
-        # digest form; one flat class is neither.
+        # ak:blob: is registered as the two-segment digest form, so a single
+        # flat character class collapses the suite and digest segments.
         self._assert_rejected(
             self._pattern("^ak:blob:[A-Za-z0-9._:-]+$"),
             "validates ak:blob with payload",
@@ -148,8 +143,8 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
 
     def test_content_addressed_kind_written_as_a_uuid_is_rejected(self) -> None:
         self._assert_rejected(
-            self._pattern(f"^ak:seal:{PRODUCER_UUIDV7}$"),
-            "validates ak:seal with payload",
+            self._pattern(f"^ak:signer_evidence:{PRODUCER_UUIDV7}$"),
+            "validates ak:signer_evidence with payload",
         )
 
     # --- length defects --------------------------------------------------
@@ -213,11 +208,8 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
 
     # --- canonical carriers stay accepted --------------------------------
 
-    def test_canonical_composite_or_set_dot_is_accepted(self) -> None:
+    def test_canonical_composite_event_position_is_accepted(self) -> None:
         self.assertEqual(self._pattern(f"^ak:event:{EVENT_TOKEN}:[0-9]+$"), [])
-
-    def test_canonical_cell_carrier_is_accepted(self) -> None:
-        self.assertEqual(self._pattern(CANONICAL_CELL), [])
 
     def test_canonical_blob_forms_are_accepted(self) -> None:
         self.assertEqual(
@@ -307,7 +299,7 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
         # A frame may bound a cursor and a DTO may pin one digest suite; neither
         # admits anything the registry rejects.
         self.assertEqual(self._pattern("^ak:cursor:[A-Za-z0-9_-]{1,2028}$"), [])
-        self.assertEqual(self._pattern("^ak:seal:sha256:[0-9a-f]{64}$"), [])
+        self.assertEqual(self._pattern("^ak:blob:sha256:[0-9a-f]{64}$"), [])
         self.assertEqual(self._pattern("^ak:mls:[a-z0-9_]+:[A-Za-z0-9._:-]+$"), [])
 
     # --- registry declares the alphabet -----------------------------------
@@ -334,32 +326,31 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
 
     def test_payload_pattern_losing_a_wire_form_segment_is_rejected(self) -> None:
         registry = self._shipped_registry()
-        self._special_row(registry, "seal")["payload_pattern"] = "[0-9a-f]{64}"
+        self._special_row(registry, "blob")["payload_pattern"] = "[0-9a-f]{64}"
         self._assert_rejected(
             self._contract_failures(registry),
             "carries fewer ':' segments than wire_form",
         )
 
     def test_digest_suite_payload_pattern_drift_is_rejected(self) -> None:
-        # Pinning one suite in the registry is exactly the drift that made the
-        # seal wire form contradict digest-suite-registry.json.
+        # Pinning one suite in the registry is exactly the drift that would make
+        # the blob wire form contradict digest-suite-registry.json.
         registry = self._shipped_registry()
-        self._special_row(registry, "seal")["payload_pattern"] = "sha256:[0-9a-f]{64}"
+        self._special_row(registry, "blob")["payload_pattern"] = "sha256:[0-9a-f]{64}"
         self._assert_rejected(
             self._contract_failures(registry),
             "MUST spell the active suites registered in digest-suite-registry.json",
         )
 
-    def test_seal_and_blob_share_the_active_digest_suite_value_space(self) -> None:
+    def test_blob_uses_the_active_digest_suite_value_space(self) -> None:
         registry = self._shipped_registry()
         lint = lint_artifacts.Lint()
         expected = lint_artifacts.active_digest_suite_payload_regex(lint)
         self.assertEqual(list(lint.errors), [])
         self.assertEqual(expected, "(?:sha256|blake3):[0-9a-f]{64}")
-        for kind in ("seal", "blob"):
-            row = self._special_row(registry, kind)
-            self.assertEqual(row["wire_form"], f"ak:{kind}:<digest-suite>:<digest>")
-            self.assertEqual(row["payload_pattern"], expected)
+        row = self._special_row(registry, "blob")
+        self.assertEqual(row["wire_form"], "ak:blob:<digest-suite>:<digest>")
+        self.assertEqual(row["payload_pattern"], expected)
 
     # --- payload alphabet reading ------------------------------------------
 
@@ -387,9 +378,7 @@ class TypedIdPayloadFormLintTest(unittest.TestCase):
             lint_artifacts.wire_form_payload_segments("<digest-suite>:<digest>"), 2
         )
         self.assertEqual(
-            lint_artifacts.wire_form_payload_segments(
-                "ak.component.<facet-path>.v<n>:<subject>"
-            ),
+            lint_artifacts.wire_form_payload_segments("<profile>:<profile_id>"),
             2,
         )
         self.assertEqual(lint_artifacts.wire_form_payload_segments("<base64url>"), 1)

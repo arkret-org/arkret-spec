@@ -7,10 +7,9 @@
     "entrypoint": "ak.suite.visibility.policy.v1"
   },
   "covers_vectors": [
-    "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
-    "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
-    "ak.vector.e2ee.in_place_enable.v1",
-    "ak.vector.circle.content_floor_below_realm_rejected.v1",
+    "ak.vector.e2ee.mls_activation_irreversible.v1",
+    "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
+    "ak.vector.circle.activation_independent_of_realm.v1",
     "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
     "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
     "ak.vector.history_access.since_join_prejoin_denied.v1",
@@ -18,111 +17,86 @@
   ],
   "cases": [
     {
-      "name": "content_floor_downgrade_rejected",
-      "vector_id": "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
-      "kind": "floor_ratchet",
-      "floor": "content_encryption_floor",
-      "previous": "e2ee_required",
-      "next": "allow_plaintext",
+      "name": "mls_activation_irreversible",
+      "vector_id": "ak.vector.e2ee.mls_activation_irreversible.v1",
+      "kind": "mls_activation",
+      "scope": "realm_default",
       "expected": {
         "outcome": "failed_precondition",
-        "reason": "content_encryption_floor_downgrade"
+        "reason": "mls_activation_irreversible"
       },
       "controls": [
         {
-          "previous": "allow_plaintext",
-          "next": "e2ee_required",
+          "state": "plaintext",
+          "event": "ak.mls.genesis",
           "outcome": "accepted"
         },
         {
-          "previous": "e2ee_required",
-          "next": "e2ee_required",
+          "state": "activated",
+          "event": "ak.mls.commit",
           "outcome": "accepted"
         }
       ],
       "assertions": [
-        "content_encryption_floor is a one-way ratchet",
-        "e2ee_required to allow_plaintext fails with content_encryption_floor_downgrade",
-        "tightening and preserving the floor are accepted"
+        "an accepted ak.mls.genesis activates the scope for standard RFC 9420",
+        "a second ak.mls.genesis for an activated scope fails with mls_activation_irreversible",
+        "no Event, policy field or reducer path returns an activated scope to plaintext"
       ]
     },
     {
-      "name": "metadata_floor_downgrade_rejected",
-      "vector_id": "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
-      "kind": "floor_ratchet",
-      "floor": "metadata_encryption_floor",
-      "previous": "e2ee_required",
-      "next": "allow_plaintext",
+      "name": "plaintext_write_after_activation_rejected",
+      "vector_id": "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
+      "kind": "mls_activation",
+      "scope": "realm_default",
       "expected": {
         "outcome": "failed_precondition",
-        "reason": "metadata_encryption_floor_downgrade"
+        "reason": "mls_activation_required"
       },
       "controls": [
         {
-          "previous": "allow_plaintext",
-          "next": "e2ee_required",
+          "state": "plaintext",
+          "write": "plaintext_content",
           "outcome": "accepted"
         },
         {
-          "previous": "e2ee_required",
-          "next": "e2ee_required",
+          "state": "activated",
+          "write": "encrypted_content",
           "outcome": "accepted"
         }
       ],
       "assertions": [
-        "metadata_encryption_floor is a one-way ratchet",
-        "e2ee_required to allow_plaintext fails with metadata_encryption_floor_downgrade",
-        "tightening and preserving the floor are accepted"
+        "plaintext content writes are accepted before the scope is activated",
+        "a plaintext content write into an activated scope fails with mls_activation_required",
+        "the activated scope accepts only RFC 9420 application ciphertext"
       ]
     },
     {
-      "name": "in_place_e2ee_enable",
-      "vector_id": "ak.vector.e2ee.in_place_enable.v1",
-      "kind": "floor_ratchet",
-      "floor": "content_encryption_floor",
-      "previous": "allow_plaintext",
-      "next": "e2ee_required",
-      "realm_encryption_profile": "mls_rfc9420",
+      "name": "circle_activation_independent_of_realm",
+      "vector_id": "ak.vector.circle.activation_independent_of_realm.v1",
+      "kind": "mls_activation",
+      "scope": "circle",
       "expected": {
-        "outcome": "accepted",
-        "post_upgrade_plaintext_write": "failed_precondition",
-        "post_upgrade_plaintext_reason": "content_encryption_floor_violation"
-      },
-      "assertions": [
-        "allow_plaintext to e2ee_required is accepted in place",
-        "the Realm does not need to be recreated",
-        "plaintext content writes after the upgrade fail closed"
-      ]
-    },
-    {
-      "name": "circle_content_floor_below_realm_rejected",
-      "vector_id": "ak.vector.circle.content_floor_below_realm_rejected.v1",
-      "kind": "circle_floor",
-      "realm_encryption_profile": "mls_rfc9420",
-      "realm_content_encryption_floor": "e2ee_required",
-      "circle_encryption_profile": "none",
-      "expected": {
-        "outcome": "failed_precondition",
-        "reason": "circle_encryption_below_realm_floor"
+        "outcome": "accepted"
       },
       "controls": [
         {
-          "realm_encryption_profile": "mls_rfc9420",
-          "realm_content_encryption_floor": "e2ee_required",
-          "circle_encryption_profile": "mls_rfc9420",
+          "realm_state": "activated",
+          "circle_state": "plaintext",
+          "write": "plaintext_content",
           "outcome": "accepted"
         },
         {
-          "realm_encryption_profile": "none",
-          "realm_content_encryption_floor": "allow_plaintext",
-          "circle_encryption_profile": "none",
-          "outcome": "accepted"
+          "realm_state": "plaintext",
+          "circle_state": "activated",
+          "write": "plaintext_content",
+          "outcome": "failed_precondition",
+          "reason": "mls_activation_required"
         }
       ],
       "assertions": [
-        "Circle encryption_profile=none cannot sit below an MLS or e2ee_required parent floor",
-        "the reducer reports circle_encryption_below_realm_floor",
-        "MLS-backed Circle and plaintext parent controls remain accepted"
+        "a Circle activates through its own accepted ak.mls.genesis",
+        "Realm-default activation does not activate a Circle scope and the reverse also holds",
+        "each scope enforces mls_activation_required only from its own accepted activation"
       ]
     },
     {

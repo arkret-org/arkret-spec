@@ -28,7 +28,7 @@ Arkret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config、共享可见性与 lifecycle `state` 属于 View 自身的 canonical state。它们可以通过 `ak.view.create` / `ak.view.update` 修改、签名、审计和同步。
 
-View 不承载被投影对象的 canonical state。Board Space / List Space / Strand / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和对应 stream 的 committed position。
+View 不承载被投影对象的 canonical state。Board Space / List Space / Strand / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、fixed reducer semantics 和对应 stream 的 committed position。
 
 这些对象事实必须从同一套底层结构产生：
 
@@ -148,15 +148,15 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 typed current result family** `ak.component.view.v1`（`causal_register`、固定 `(depth,EventId)` 单值 current）。
+三个 kind 写**同一个 typed current result family** `view`（`current-value projection`、固定 `(depth,EventId)` 单值 current）。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
 update / reconcile 用 `payload.view_id`，两者归一到同一个 typed current result。
 
 | kind | typed current result family | subject | 写入 | payload |
 | --- | --- | --- | --- | --- |
-| `ak.view.create` | `ak.component.view.v1` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | 创建时的 object snapshot |
-| `ak.view.update` | `ak.component.view.v1` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
-| `ak.view.reconcile` | `ak.component.view.v1` | `id:view(payload.view_id)` | `set` 整个 `payload.definition` | `{view_id, definition}` |
+| `ak.view.create` | `view` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | 创建时的 object snapshot |
+| `ak.view.update` | `view` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
+| `ak.view.reconcile` | `view` | `id:view(payload.view_id)` | `set` 整个 `payload.definition` | `{view_id, definition}` |
 
 **为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
 它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
@@ -289,7 +289,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。
 
 > `renderer` 的全局枚举(§3.1)允许 `custom` 用于**所有** kind:`custom` 是 profile-defined 展示面 escape hatch,本表每行的常用 renderer 之外都 MAY 取 `custom`(由 profile 声明语义),不参与真相归约。
 
-`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision frontier 与 authority-commit typed current result heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
+`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision checkpoint 与 authority-commit typed current result heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
 
 ## 5. Query Model
 
@@ -365,8 +365,8 @@ MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有效 access polic
 | 看板 | Board Space | 标准 Space 对象；授权、历史、E2EE 与 policy 仍解析到其 home Realm。 |
 | 列/泳道 | List Space | Board Space 内有序容器。 |
 | 卡片 | `strand` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
-| 卡片属于列 | 派生 `contains` projection | 真源是 `ak.component.strand.position.v1:<board_space_id>:<strand_id>` position typed current result；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
-| 列属于看板 | 派生 `contains` projection | 真源是 `ak.component.space.parent.v1:<list_space_id>` parent typed current result；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
+| 卡片属于列 | 派生 `contains` projection | 真源是 `strand_position:<board_space_id>:<strand_id>` position typed current result；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
+| 列属于看板 | 派生 `contains` projection | 真源是 `space_parent:<list_space_id>` parent typed current result；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
 | 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Strand；access 完全继承 Strand 的 effective scope（由 `Strand.scope_circle_id` 决定，null=Realm-default，否则=该 [Circle](./circle.md)）。 |
 
 ### 6.2 Board 不显示全 Realm 数据
@@ -383,7 +383,7 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 
 Board 展示由客户端按 §6.2 从已授权对象图本地派生，不登记独立的 v1 wire response 类型，也不要求服务端提供 View projection HTTP 入口。
 
-单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
+单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection checkpoint 做校验。
 
 ## 7. Timeline / Chat Projection
 

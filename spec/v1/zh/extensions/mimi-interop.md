@@ -37,13 +37,13 @@ updated: 2026-07-02
 
 | MIMI 角色 | Arkret 映射 |
 | --- | --- |
-| Provider | `mimi_provider_facade` service DID，通常由 Station、notary service 或受托 bridge 暴露。 |
-| Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Arkret 侧通常映射为 Station 或 notary service，负责 MIMI room fanout 和 groupInfo。 |
+| Provider | `mimi_provider_facade` service DID，通常由 Station 或受托 bridge 暴露。 |
+| Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Arkret 侧通常映射为 Station，负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Arkret 中表现为 federation peer 或 Applet bridge peer。 |
 | User / client | Arkret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Arkret Strand discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
-MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 producer-signed ordinary Event、Control Move、唯一确认的 RealmCommit 安全序列、按已登记状态模型投影的 typed current result state、capability refs 与 MLS key-access revision binding（`governance_binding.key_access_revision` + current confirmed group-state projection）。MIMI room state 是对这些状态的互操作投影。
+MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 producer-signed Event、state-changing Event、唯一确认的 RealmCommit 安全序列、按已登记状态模型投影的 typed current result state、capability refs 与 MLS key-access revision binding（`governance_binding.key_access_revision` + current confirmed group-state projection）。MIMI room state 是对这些状态的互操作投影。
 
 ## 3. Provider Discovery
 
@@ -152,7 +152,7 @@ controller 与 `service_id` 不同、unknown extension 试图改变路由、过�
 
 ## 4. Room Binding
 
-允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `ak.component.mimi.room_binding.v1` typed current result 的 Control Move registered projection。对应 Event kind 为 `ak.mimi.room_binding`；typed current result subject 是 `payload.mimi_room_uri`，registry 中的 `result_selector.kind` 为 `uri`。
+允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `mimi_room_binding` typed current result 的 state-changing Event registered projection。对应 Event kind 为 `ak.mimi.room_binding`；typed current result subject 是 `payload.mimi_room_uri`，registry 中的 `result_selector.kind` 为 `uri`。
 
 **`mimi_room_uri` canonical wire form 与 typed current result subject 编码（normative）**：`mimi_room_uri` 既是 wire 字段又是 `state_root` leaf 的 preimage 与排序键，因此它 MUST 是**封闭 canonical 形态**；receiver MUST NOT 先归一化再接受，非 canonical 输入 MUST 以 `schema_violation` 拒绝。若 `mimi://Example.com/r/1` 与 `mimi://example.com/r/1` 各落一个 typed current result，同一 room 就能有两个「首个 accepted binding」，§4.2 的初始状态与 `revoked` 终态都能靠换写法绕过。
 
@@ -170,12 +170,12 @@ canonical TypedResultSelector subject 由该 canonical URI 的 exact UTF-8 bytes
 
 ```text
 mimi://mimi.example.com/rooms/01JSMIMI
-→ state-slot:ak.component.mimi.room_binding.v1:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI
+→ mimi_room_binding:mimi%3A%2F%2Fmimi.example.com%2Frooms%2F01JSMIMI
 ```
 
 实现 MUST NOT 改用 hash 化 subject、URI 片段截取，或在 payload 中另立一个 caller 分配的 room 标识符作为 subject——后者会给同一 room URI 制造第二个身份，使 §4 的 1:1 语义无法在 wire 上强制。canonical 形态与 subject 编码的正反例由 [`ak.vector.encoding.result_selector_uri.v1`](../../artifacts/registry/vector-registry.json) 唯一闭合。
 
-`ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider_id`、`follower_provider_ids`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
+`ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider_id`、`follower_provider_ids`、`content_profile`、`policy_revision`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
 ```json
 {
@@ -195,7 +195,7 @@ mimi://mimi.example.com/rooms/01JSMIMI
     ],
     "mls_group_id": "base64url...",
     "content_profile": "application/mimi-content",
-    "policy_root": "sha256:...",
+    "policy_revision": 7,
     "created_at": "2026-04-30T00:00:00Z"
   }
 }
@@ -210,18 +210,16 @@ mimi://mimi.example.com/rooms/01JSMIMI
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
   - `observer`:本地 facade 只读投影该 room（监听 fanout / groupInfo 用于本地呈现或审计），MUST NOT 代表本地参与方向 MIMI room 提交 writes 或承担 hub fanout 职责。
 - `ak.mimi.room_binding` 的创建、更新和撤销 MUST require `ak.policy.manage`、`ak.realm.admin` 或等价 interop capability。
-- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 校验当前 epoch 的 `key_access_revision`；membership、实际 leaf key 与 key-access policy 进入 frontier，普通 capability 仍由 Event admission 独立校验。
+- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 校验当前 epoch 的 `key_access_revision`；membership、实际 leaf key 与 key-access policy 进入 checkpoint，普通 capability 仍由 Event admission 独立校验。
 - MIMI facade 在无法解析或验证 Arkret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Arkret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。`status` 的完整生命周期状态机（初始状态、合法迁移、终态、非法迁移拒绝、`migrating` 窗口与并发收敛）见 §4.2。
 
-**E2EE MIMI 互操作下界（normative）**：凡 MIMI room binding 携带 `mls_group_id`、groupInfo、key material 或加密 application message，并要投影到 Arkret Realm / Strand，facade MUST 把 Arkret `ak.profile.mls_governance_binding.full.v1` 当作最低 E2EE 互操作能力，而不是把 MIMI provider 的 room state 当成等价治理真相。具体要求：
+**E2EE MIMI 互操作下界（normative）**：凡 MIMI room binding 携带 `mls_group_id`、groupInfo、key material 或加密 application message，并要投影到 Arkret Realm / Strand，facade MUST 把 §2.5.1 固定 GroupContext binding 当作最低 E2EE 互操作能力，而不是把 MIMI provider 的 room state 当成等价治理真相。具体要求：
 
 - `ak.mimi.room_binding.mls_group_id`、MIMI groupInfo 中的 group id、Arkret `governance_binding.mls_group_id` 必须一致；
-- `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 必须存在且被本 facade 支持；未知或缺失时不得用 MIMI draft 字段、provider 目录或本地配置补齐；
+- 固定 binding 的 `effective_scope`、`base_group_state_ref`、`previous_epoch`、`next_epoch` 与 `key_access_revision` 必须全部存在且逐字段可验证；未知或缺失时不得用 MIMI draft 字段、provider 目录或本地配置补齐；
 - current winning MLS group state 的 `key_access_revision` 必须等于从当前 accepted key-access state 重算的值；
-- MIMI 未知字段仍按 §9.2 安全惰性处理，不得提升 provider role、放宽 `policy_root` 或改变 MLS epoch / group state 判定。
-
-`ak.profile.e2ee_relaxed.v1` 不得被 facade 对外表述为等价 full MLS Governance Binding。若本地 Realm 是 relaxed 降级，facade 只有在双方都显式声明 Arkret relaxed 语义、且满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 的 federation guard 时，才可投影 relaxed 窗口内的消息；否则 MUST reject / quarantine，reason 使用 `mimi_room_state_incompatible`、`mimi_governance_binding_missing` 或 `mimi_governance_binding_mismatch`。
+- MIMI 未知字段仍按 §9.2 安全惰性处理，不得提升 provider role、放宽 `policy_revision` 或改变 MLS epoch / group state 判定。
 
 ### 4.1 Fail-Closed Reason Taxonomy
 
@@ -231,8 +229,8 @@ MIMI facade 对 Arkret Realm 的入站投影失败时，MUST 使用稳定 reason
 | --- | --- | --- |
 | `mimi_governance_binding_missing` | 找不到可验证的 Arkret MLS Governance Binding。 | quarantine 或 reject，不投影到 Realm。 |
 | `mimi_governance_binding_mismatch` | binding 存在但 `realm_id` / `strand_id` / `mls_group_id` / provider DID 与当前 MIMI room state 不一致。 | quarantine；需要人工或 backfill 复核。 |
-| `mimi_policy_root_mismatch` | MIMI policy component 与 Arkret `policy_root` / `ak.realm.policy_bundle` 不一致。 | reject 当前 update，等待 fresh policy projection。 |
-| `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership、policy 形态，或试图把未被双方显式声明支持的 `ak.profile.e2ee_relaxed.v1` 降级当作 full MLS Governance Binding 投影。 | reject 或要求使用新 interop profile。 |
+| `mimi_policy_revision_mismatch` | MIMI policy component 与 accepted `ak.realm.policy_bundle` revision 不一致。 | reject 当前 update，等待 fresh policy projection。 |
+| `mimi_room_state_incompatible` | MIMI room state 使用本 profile 不支持的 lifecycle、membership 或 policy 形态。 | reject 或要求使用新 interop profile。 |
 | `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
 | `mimi_draft_unsupported` | 对端声明的 MIMI draft version 不在本 profile 支持集合。 | reject；不得按相近草案猜测解析。 |
 | `mimi_room_binding_status_transition_invalid` | `ak.mimi.room_binding.payload.status` 初始值非法、迁移不在 §4.2 表内，或试图修改 `revoked` 终态。 | reject；不得把缺失或未知 status 当作 accepted。 |
@@ -242,7 +240,7 @@ MIMI facade 对 Arkret Realm 的入站投影失败时，MUST 使用稳定 reason
 
 `payload.status` 是 binding 的生命周期判定字段，取值为封闭枚举 `proposed`、`accepted`、`revoked`、`migrating`（以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。状态迁移规则：
 
-- **初始状态**：对某个 `mimi_room_uri` 的首个被接受的 `ak.mimi.room_binding` Control Move MUST 把 `status` 设为 `proposed`（跨 provider 协商中，等待对端确认）或 `accepted`（本地 facade 即 hub 且无需对端确认时可直接激活）。以 `revoked` 或 `migrating` 作为初始状态的写入 MUST 被拒绝。
+- **初始状态**：对某个 `mimi_room_uri` 的首个被接受的 `ak.mimi.room_binding` state-changing Event MUST 把 `status` 设为 `proposed`（跨 provider 协商中，等待对端确认）或 `accepted`（本地 facade 即 hub 且无需对端确认时可直接激活）。以 `revoked` 或 `migrating` 作为初始状态的写入 MUST 被拒绝。
 - **迁移表**：
 
   | 当前状态 | 允许出边 | 触发条件 |
@@ -256,9 +254,9 @@ MIMI facade 对 Arkret Realm 的入站投影失败时，MUST 使用稳定 reason
 
 - **终态**：`revoked` 是唯一终态；对 `revoked` binding 的任何 `status` 变更 MUST 被拒绝。同一对象若需重新导出为 MIMI room，MUST 以新的 `mimi_room_uri` 建立新 binding 并重新通过 §4 的 capability 校验，不得复活已撤销 binding。
 - **非法迁移**：不在上表中的迁移（含初始状态违例与 `revoked` 后写入）MUST 被 reducer 以 `mimi_room_binding_status_transition_invalid` 拒绝。
-- **`migrating` 窗口语义**：进入 `migrating` 后，facade 对该 binding MUST 停止接受新的 MIMI writes 投影，仅允许 backfill、tombstone、report、legal hold 与 migration 所需的 groupInfo / state 转移及 migration proof 提交；`migrating -> accepted` 的 Control Move MUST 引用已验证的 migration proof 并携带 `payload.migration_outcome ∈ {completed, rolled_back}`（其它转换 MUST NOT 携带该字段），使"迁移完成"与"回滚"在 binding 状态上可区分、可审计；hub / follower 拓扑变更只能随该迁移落地。
+- **`migrating` 窗口语义**：进入 `migrating` 后，facade 对该 binding MUST 停止接受新的 MIMI writes 投影，仅允许 backfill、tombstone、report、legal hold 与 migration 所需的 groupInfo / state 转移及 migration proof 提交；`migrating -> accepted` 的 state-changing Event MUST 引用已验证的 migration proof 并携带 `payload.migration_outcome ∈ {completed, rolled_back}`（其它转换 MUST NOT 携带该字段），使"迁移完成"与"回滚"在 binding 状态上可区分、可审计；hub / follower 拓扑变更只能随该迁移落地。
 - **可写性判定**：仅 `accepted` 状态接受新的 MIMI writes 投影。`proposed` 状态下 facade MUST NOT 把 MIMI room state 投影到 Realm（目录 / 协商类流量除外）；`revoked` 后行为见 §4 撤销规则。
-- **并发收敛**：`ak.mimi.room_binding` 是写入 `ak.component.mimi.room_binding.v1` typed current result 的 Control Move，并发更新由控制面 RealmCommit 串行化仲裁，不存在数据面并发合并；后到的冲突 Move 在其 authority commit basis 下按本状态机重新校验，非法即拒绝。
+- **并发收敛**：`ak.mimi.room_binding` 是写入 `mimi_room_binding` typed current result 的 state-changing Event，并发更新由控制面 RealmCommit 串行化仲裁，不存在数据面并发合并；后到的冲突 Event 在其 authority commit basis 下按本状态机重新校验，非法即拒绝。
 
 ## 5. Endpoint Surface
 
@@ -281,9 +279,9 @@ MIMI facade 至少定义以下 canonical operation：
 decoded opaque payload 内的 `kind` 逐字相同，二者不一致必须在读取 room/binding 私有状态前
 以 `mimi_room_binding_event_invalid` 拒绝。普通 MIMI room/MLS update 是 receipt-only facade
 operation，不产生 Arkret Event。若 `update.kind == "ak.mimi.room_binding"`，请求 MUST 同时携带完整的
-caller-authored、caller-signed `room_binding_event` (`EventInitialSubmission`)。facade MUST
+caller-authored、caller-signed `room_binding_event` (`EventCommitSubmission`)。facade MUST
 验证该 Event 的 exact payload 与 path room、目标 Realm/Strand、`mls_group_id` 及已认证的
-MIMI operation 一致，再将 exact bytes 送入 ordinary Event admission；MUST NOT 合成、
+MIMI operation 一致，再将 exact bytes 送入 Event admission；MUST NOT 合成、
 重建、代签或 co-sign actor Event。binding 分支缺少该 Event、非 binding 分支携带该字段、外层与
 decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 `mimi_room_binding_event_invalid`（相同 HTTP status 与 body shape），精确原因只写内部 audit；conformance vector `ak.vector.mimi.room_update_branched_effect.v1` 同时锁定 binding 与 receipt-only 两个分支；该失败
@@ -337,7 +335,7 @@ operation id 与 error mapping 的双向闭包是机器判据。
 负向 conformance vector 为 `ak.vector.mimi.identifier_query_source_signature.v1`：缺失/无效来源签名
 必须在 PSI 求值前拒绝，并断言 `ak.open.mimi.read.provider_directory.v1` 不继承该 profile。
 
-Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret ordinary Event、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
+Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret Event、state-changing Event 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
 ### 5.1 MIMI operation actor proof（normative）
 
@@ -366,7 +364,7 @@ transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`�
 
 **密钥权威来源（normative）**：完整身份参与 transcript 与 authority lookup，两者缺一不可。
 
-- Account 发起的 `request_consent` 与 holder 的 `update_consent` MUST 按 exact AccountId（principal、Station）解析当前 accepted PCR generation 内的设备授权，并验证 method、设备状态、撤销与 generation；DID Document 只用于已登记的身份解析，不是普通设备签名的授权目录。MUST NOT 要求把设备 key 加入 DID Document，也 MUST NOT 用 root/update/recovery key 签普通 MIMI 操作。`update_consent` 仍须满足 §10 的 authority-root controller 和 ordinary Event admission；operation proof 不另授 consent 写权限。
+- Account 发起的 `request_consent` 与 holder 的 `update_consent` MUST 按 exact AccountId（principal、Station）解析当前 accepted PCR generation 内的设备授权，并验证 method、设备状态、撤销与 generation；DID Document 只用于已登记的身份解析，不是普通设备签名的授权目录。MUST NOT 要求把设备 key 加入 DID Document，也 MUST NOT 用 root/update/recovery key 签普通 MIMI 操作。`update_consent` 仍须满足 §10 的 authority-root controller 和 Event admission；operation proof 不另授 consent 写权限。
 - Agent requester 使用其 exact Actor 的当前 accepted runtime key，MUST 验证 lifecycle、controller/accountability、当前 key authorization、immutable provision ceiling、key scope 与本 operation 的 session scope。Agent key 不是 controller device。接收 Station 已持有这些当前私有权威事实时，可结合其已验证的 AgentRuntime session grant；grant 必须绑定同一 Actor、verification method 与当前 authorization。仅有 runtime 自报 key、公开 DID key 或 service transport signature 均不足以准入。
 - provider 发起的 key-material / identifier request 的 `requester_id` 是 service principal；无 requester 的 identifier proof 绑定已认证 source service。服务 proof 与服务 outcome 从相应 service 的 accepted key binding／受信 DID authority 取得 key，不得将这种 service 验签规则用于 Account 或 Agent。
 - 远端 Account／Agent 必须通过该 operation 获准使用的当前、保密 authority evidence 验证，证据须绑定 exact identity 与签名 method；实际请求、目标 verifier 和范围由请求自身签名及授权检查绑定。`request_consent` 当前没有通用远端 PCR 披露 carrier；裸 ActorId、provider assertion、同 principal 的本机账号、历史 Event 或其它 operation 的 signer evidence 均不补足这个缺口。没有合法证据来源时 MUST 在创建 correlation 或读取 holder 私有状态前 fail closed（`proof_invalid`），MUST NOT 推导并查询远端私有 PCR。此限制不影响接收 Station 本地可验证的 requester 向任意 exact holder 地址发起 opaque request。
@@ -391,7 +389,7 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。同时 MUST 校验本 binding 的 `local_provider_role ∈ { hub, follower }`;`local_provider_role=observer` 的 binding 不得代表本地参与方提交 writes(见 §4),facade MUST 拒绝该 submit_message,reason=`mimi_observer_write_forbidden`。
 2. 验证 MLS epoch 与 `ak.mimi.room_binding.mls_group_id` 匹配。
-3. 按 MLS key-access revision binding 验证：Commit 携带的 `governance_binding.key_access_revision` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 current winning group state；普通 Event 独立验证其 producer proof、签名因果 basis 与 `auth_context.authority_refs`，不引用 RealmCommit。
+3. 按 MLS key-access revision binding 验证：Commit 携带的 `governance_binding.key_access_revision` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 current winning group state；普通 Event 独立验证其 producer proof、签名因果 basis 与 `commit_authorization_state.authority_refs`，不引用 RealmCommit。
 4. 将 MIMI content container 映射为 `ak.message.create`、`ak.message.revise`、`ak.message.redact`、`ak.reaction.add`、`ak.reaction.remove` 或 `ak.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。
@@ -450,28 +448,28 @@ facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content
 
 ## 9. Policy Mapping
 
-Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered typed current result projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `result_family`、`execution`、`state_model` 与 `value_shape`；安全状态只消费唯一确认的 RealmCommit 顺序。
+Arkret v1 把 Realm-level policy 映射为 state-changing Event 的 registered typed current result projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `result_family`、`execution`、`domain reducer` 与 `value_shape`；安全状态只消费唯一确认的 RealmCommit 顺序。
 
 ### 9.1 typed current result Family 互译
 
 | Arkret result_family | Arkret Event kind | MIMI policy component（draft-ietf-mimi-room-policy） |
 | --- | --- | --- |
-| `ak.component.realm.policy.v1` | `ak.realm.policy` | （Arkret 专属；映射时合并入 `operational`） |
-| `ak.component.realm.join_rule.v1` | `ak.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
-| `ak.component.realm.history_access.v1` | `ak.realm.history_access` | MIMI 若能表达等价的 current-member history range 则映射；否则 fail closed，不臆造旧五档 visibility |
-| `ak.component.realm.discovery.v1` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
-| `ak.component.realm.alias.v1` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
-| `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `availability_policy` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
-| `ak.component.realm.asset_privacy_policy.v1` | `ak.realm.asset_privacy_policy` | `asset` |
-| `ak.component.realm.plaintext_visible_services.v1` | `ak.realm.plaintext_visible_services` | （Arkret 专属隐私透明度机制；MIMI 侧无对应） |
-| `ak.component.realm.media_service.v1` | `ak.realm.media_service` | （Arkret 专属，与 MIMI 的 hub provider 解耦） |
-| `ak.component.realm.schema.v1` | `ak.realm.schema` | （Arkret 专属，schema_refs 声明） |
-| `ak.component.realm.inheritance_policy.v1` | `ak.realm.inheritance_policy` | （Arkret 专属，per-parent 继承） |
-| `ak.component.realm.archive.v1` | `ak.realm.archive` | （部分等价于 MIMI lifecycle hint，目前 MIMI 草案未规范） |
-| `ak.component.realm.freeze.v1` | `ak.realm.freeze` | 同上 |
-| `ak.component.realm.tombstone.v1` | `ak.realm.tombstone` | 同上 |
-| `ak.component.realm.destroy.v1` | `ak.realm.destroy` | 同上 |
-| `ak.component.member.state.v1` | `ak.member.state` | MLS GroupContext 的 leaf node + roster；Arkret membership 不进入 MIMI policy components |
+| `realm_policy` | `ak.realm.policy` | （Arkret 专属；映射时合并入 `operational`） |
+| `realm_join_rule` | `ak.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
+| `realm_history_access` | `ak.realm.history_access` | MIMI 若能表达等价的 current-member history range 则映射；否则 fail closed，不臆造旧五档 visibility |
+| `realm_discovery` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
+| `realm_alias` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
+| `realm_policy_bundle` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `availability_policy` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
+| `realm_asset_privacy_policy` | `ak.realm.asset_privacy_policy` | `asset` |
+| `realm_plaintext_visible_services` | `ak.realm.plaintext_visible_services` | （Arkret 专属隐私透明度机制；MIMI 侧无对应） |
+| `realm_media_service` | `ak.realm.media_service` | （Arkret 专属，与 MIMI 的 hub provider 解耦） |
+| `realm_schema` | `ak.realm.schema` | （Arkret 专属，schema_refs 声明） |
+| `realm_inheritance_policy` | `ak.realm.inheritance_policy` | （Arkret 专属，per-parent 继承） |
+| `realm_archive` | `ak.realm.archive` | （部分等价于 MIMI lifecycle hint，目前 MIMI 草案未规范） |
+| `realm_freeze` | `ak.realm.freeze` | 同上 |
+| `realm_tombstone` | `ak.realm.tombstone` | 同上 |
+| `realm_destroy` | `ak.realm.destroy` | 同上 |
+| `member_state` | `ak.member.state` | MLS GroupContext 的 leaf node + roster；Arkret membership 不进入 MIMI policy components |
 
 #### 9.1.1 Candidate-profile-only 行（base profile MUST reject）
 
@@ -487,9 +485,9 @@ Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered typed cur
 > | `roles` | `ak.capability.grant` / `ak.capability.revoke`（capability 是 allow 的唯一来源，不是 policy 子字段） |
 > | `preauth` | `ak.realm.policy_bundle` payload 的 `preauth` 组件（[`../identity/consent-model.md` §6.1](../identity/consent-model.md)） |
 > | `bot` | `ak.realm.policy_bundle` payload 的 `agent_participation` 组件（[`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)） |
-> | `operational` | `ak.realm.policy` facet event（`ak.component.realm.policy.v1`，见 §9.1 首行） |
+> | `operational` | `ak.realm.policy` facet event（`realm_policy`，见 §9.1 首行） |
 >
-> MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` typed current result；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
+> MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` typed current result；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 accepted policy 投影表达，与父 Realm policy 取更严格者。
 
 ### 9.2 Unknown Handling
 
@@ -497,18 +495,18 @@ Arkret 的 unknown handling 来自登记的 state model 与 criticality：
 
 | Arkret | MIMI |
 | --- | --- |
-| `sequenced_state` 安全语义或未知核心状态模型 | `must-understand` |
-| `causal_register` deterministic winner | `should-understand` / single current value with retained history |
+| `commit-ordered projection` 安全语义或未知核心状态模型 | `must-understand` |
+| `current-value projection` deterministic winner | `should-understand` / single current value with retained history |
 | 非授权 projection extension | `silently-drop`，但必须保留 raw bytes 或 canonical hash |
 
 **Facade 责任**：
 
-- 接收 MIMI policy update 时 MUST 验证目标 `result_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Control Move `kind + payload`；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
+- 接收 MIMI policy update 时 MUST 验证目标 `result_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 state-changing Event `kind + payload`；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
 - 发送 Arkret state 到 MIMI 时 MUST 按 §9.1 表生成 MIMI component。Arkret 专属 component（无 MIMI 对应）在 facade 输出中标记为 `application/vnd.arkret.component+json` 私有扩展。
 
-MIMI role 只能作为 interop projection。Arkret 授权仍以 capability Control Move / grant typed current result 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `ak.capability.grant` / `ak.capability.revoke` / `ak.capability.relinquish`）或具体 `ak.realm.<facet>` Control Move effect，并经过 Arkret Control Move refs 授权验证后才能生效。
+MIMI role 只能作为 interop projection。Arkret 授权仍以 capability state-changing Event / grant typed current result 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `ak.capability.grant` / `ak.capability.revoke` / `ak.capability.relinquish`）或具体 `ak.realm.<facet>` state-changing Event effect，并经过 Arkret state-changing Event refs 授权验证后才能生效。
 
-**未知字段安全惰性（normative）**：interop schema 为前向兼容演进中的 IETF MIMI Internet-Draft，有意在 top-level 与 `mimi` / `binding_scope` / `payload` 子树保留开放 `additionalProperties`。接收方 MUST 把该 surface 上任何未识别字段视为**安全惰性**：MUST 忽略其参与任何安全判定，且 MUST NOT 让它影响 authorization、identity binding、`policy_root`、MLS epoch / group state、routing / hub-follower 关系或任何 signature / digest transcript。已知字段仍以 schema pin 的定义为准；未识别字段只能作为不可信的 draft passthrough 保留（如需保留 raw bytes / canonical hash 见 §9.2 表）。实现 MUST NOT 依据未识别字段提升 provider role、改写 `policy_root` 或放宽 governance binding 校验。
+**未知字段安全惰性（normative）**：interop schema 为前向兼容演进中的 IETF MIMI Internet-Draft，有意在 top-level 与 `mimi` / `binding_scope` / `payload` 子树保留开放 `additionalProperties`。接收方 MUST 把该 surface 上任何未识别字段视为**安全惰性**：MUST 忽略其参与任何安全判定，且 MUST NOT 让它影响 authorization、identity binding、`policy_revision`、MLS epoch / group state、routing / hub-follower 关系或任何 signature / digest transcript。已知字段仍以 schema pin 的定义为准；未识别字段只能作为不可信的 draft passthrough 保留（如需保留 raw bytes / canonical hash 见 §9.2 表）。实现 MUST NOT 依据未识别字段提升 provider role、改写 `policy_revision` 或放宽 governance binding 校验。
 
 ## 10. Identifiers And Consent
 
@@ -565,17 +563,17 @@ Actor，也 MUST 按 profile / authority 检查拒绝，不能只靠 JSON enum �
 `{kind:"actor"}` 分支，**不在**此禁令内，且**不要求**它先获得正在请求的 consent 或先加入 Realm——
 映射的 holder claim、账号身份绑定与同意是三件不同的事实。未知、过期、属于其它来源/holder 或调用方不可见的 correlation，以及 revoke/deny 找不到匹配 active observed dots，统一返回相同的 `not_found` 失败形态与披露等级，不得说明记录是否存在、目标是谁或 holder 是否已有 consent typed current result。
 
-`update_consent` **MUST** 携带完整 `consent_event: EventInitialSubmission`：`decision=accept` 对应 `event.kind=ak.consent.grant`，`decision=deny|revoke` 对应 `event.kind=ak.consent.revoke`。`event.actor_id` 必须等于请求 `actor_id` 与私有 correlation 的 holder，且 Event actor 与认证 holder 必须是该 holder Principal Control Realm 当前 authority-root controller；grant payload 的 `consent_id`、peer 与 scope 必须**逐字等于** facade 私有 correlation 冻结的那三个值（peer 由 `correlation.requester_actor_id` 唯一派生为 `{kind:"actor", actor_id:…}`，correlation 不另存第三份同内容真相），revoke payload 的 `consent_id` 与 active `observed_dot_ids` 必须解析到该 correlation 的同一 holder/peer/scope typed current result。facade 同时验证覆盖完整 unsigned body 的 detached operation signature；`authorization_ref` 必须绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf，也不接受 `consent_write` 委派；普通 PCR write、co-owner grant、controller / agent automation 或 payload approval evidence 均不能替代。facade 只能把 exact submission 交给 ordinary Event admission，**MUST NOT** 代签、重建或合成 Event。deny/revoke 没有可枚举的 active observed dots 时必须用不泄露 holder 状态的拒绝结束，不能写“成功但无 Event”的本地状态。成功响应必须返回 `status=accepted` 与唯一 `event_ref`；相同 Event ID 的逐字节重放返回同一结果。
+`update_consent` **MUST** 携带完整 `consent_event: EventCommitSubmission`：`decision=accept` 对应 `event.kind=ak.consent.grant`，`decision=deny|revoke` 对应 `event.kind=ak.consent.revoke`。`event.actor_id` 必须等于请求 `actor_id` 与私有 correlation 的 holder，且 Event actor 与认证 holder 必须是该 holder Principal Control Realm 当前 authority-root controller；grant payload 的 `consent_id`、peer 与 scope 必须**逐字等于** facade 私有 correlation 冻结的那三个值（peer 由 `correlation.requester_actor_id` 唯一派生为 `{kind:"actor", actor_id:…}`，correlation 不另存第三份同内容真相），revoke payload 的 `consent_id` 与 active `revoked_event_refs` 必须解析到该 correlation 的同一 holder/peer/scope typed current result。facade 同时验证覆盖完整 unsigned body 的 detached operation signature；`authorization_ref` 必须绑定当前 authority-root 授权。`ak.consent.grant` / `ak.consent.revoke` 是 `root_control_only` action，不支持由不同主体独立 managed-behalf，也不接受 `consent_write` 委派；普通 PCR write、co-owner grant、controller / agent automation 或 payload approval evidence 均不能替代。facade 只能把 exact submission 交给 Event admission，**MUST NOT** 代签、重建或合成 Event。deny/revoke 没有可枚举的 active observed dots 时必须用不泄露 holder 状态的拒绝结束，不能写“成功但无 Event”的本地状态。成功响应必须返回 `status=accepted` 与唯一 `event_ref`；相同 Event ID 的逐字节重放返回同一结果。
 
 ## 11. Abuse Report And Proxy Download
 
-`ak.open.mimi.command.report_abuse.v1` MUST 携带并提交一条 exact caller-authored、caller-signed `report_event: EventInitialSubmission`，其 Event kind 为 `ak.self.moderation.report`。facade 只把逐字节相同 submission 交给普通 Event admission，MUST NOT 代签、重建或合成 Event；该 open operation 也 **MUST NOT** 调用 `ak.self.moderation.command.report.v1`。contract `durable_effect` 是这条真实 accepted moderation Event，不存在 `bridges_to` self operation。E2EE report 的 `report_event` payload SHOULD 携带 message franking proof 与 encrypted evidence package。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+`ak.open.mimi.command.report_abuse.v1` MUST 携带并提交一条 exact caller-authored、caller-signed `report_event: EventCommitSubmission`，其 Event kind 为 `ak.self.moderation.report`。facade 只把逐字节相同 submission 交给普通 Event admission，MUST NOT 代签、重建或合成 Event；该 open operation 也 **MUST NOT** 调用 `ak.self.moderation.command.report.v1`。contract `durable_effect` 是这条真实 accepted moderation Event，不存在 `bridges_to` self operation。E2EE report 的 `report_event` payload SHOULD 携带 message franking proof 与 encrypted evidence package。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
 入站 report 的 request 是 closed 形态：`{reporter_authority, report_event, authority_commit_proof_bundles?}`。Realm、Strand/scope、target、reason、description、evidence、franking、principal attribution 与 MIMI provenance 只从已签名 `report_event` 读取；`reporter_authority` 携带完整 `actor_id`、exact current accepted `membership_event_id`、exact current accepted `room_binding_event_id`、短期 `expires_at` 与 holder detached JWS `proof`。source provider 的唯一 authority 是 RFC 9421 authenticated Provider-ID/source service，body 内自报值不授权。
 
 本地 detached-signature domain `ak.mimi_reporter_authority_proof.v1` 的唯一 transcript 覆盖收敛后的完整 request，并只删除 `reporter_authority.proof`：`payload_digest` 由 `{reporter_authority（不含 proof）, report_event, 实际存在的 authority_commit_proof_bundles?}` 计算；binding 还包含由 `reporter_authority.actor_id` 注入的 `issuer`、固定 `operation_id=ak.open.mimi.command.report_abuse.v1`、`membership_event_id`、`room_binding_event_id`、`expires_at` 与 proof `verification_method` / `created_at` / `domain` / `audience`。`domain` MUST 是该本地签名域，`audience` MUST 是接收 facade service。facade 必须从 exact Actor 当前 accepted device/agent proxy authority state 解析 verification method 与授权链；carrier 自报 key、provider assertion、同 principal 本机账号、consent、holder claim 或 opaque evidence 都不能替代。proof 过期、设备/代理撤销，以及 Event 内 provider/room/target 被替换，均在读 target 私有状态或写 Event 前拒绝。
 
-facade 必须独立解析两个 Event ref 并确认它们在当前 accepted RealmCommit frontier 下仍分别是：(a) `actor_id` 在 exact Realm 的 joined participation；(b) 该 canonical room 对 exact Realm/Strand/provider 的唯一 accepted binding。相同 principal 的其它 Station membership 不匹配；零个或多个 current binding、ref 已被 successor/revoke 覆盖、room/provider/realm/strand 任一不一致都按 `mimi_reporter_resolution_required` 统一拒绝且零副作用。随后 restricted Realm/Circle visibility 与 per-reporter 限速使用完整 `actor_id`；attribution Event payload 中 `reporter_id` 仍只保存 principal，并至少按 `(actor_id, authenticated Provider-ID)` 双维度限速。consent-only、opaque 非空与 pairwise/pending reporter 一律不能提交 Arkret moderation Event。
+facade 必须独立解析两个 Event ref 并确认它们在当前 accepted RealmCommit checkpoint 下仍分别是：(a) `actor_id` 在 exact Realm 的 joined participation；(b) 该 canonical room 对 exact Realm/Strand/provider 的唯一 accepted binding。相同 principal 的其它 Station membership 不匹配；零个或多个 current binding、ref 已被 successor/revoke 覆盖、room/provider/realm/strand 任一不一致都按 `mimi_reporter_resolution_required` 统一拒绝且零副作用。随后 restricted Realm/Circle visibility 与 per-reporter 限速使用完整 `actor_id`；attribution Event payload 中 `reporter_id` 仍只保存 principal，并至少按 `(actor_id, authenticated Provider-ID)` 双维度限速。consent-only、opaque 非空与 pairwise/pending reporter 一律不能提交 Arkret moderation Event。
 
 **Event 交叉绑定（normative）**：`report_event.event.actor_id` MUST 等于 `reporter_authority.actor_id`，其签名 key MUST 是同一 authority 校验得到的当前 device/agent proxy key。request 不携带 Event payload 镜像；facade 只从已签名 Event 读取 Realm、scope、target、reason、description、evidence/franking。payload `reporter_id` MUST 等于 Actor signing principal，`provenance="mimi_facade"`，且 payload `source_provider_id` MUST 等于 authenticated Provider-ID；后者只是与 transport authority 的一致性约束，body 断言本身不授予 provider authority。任一交叉绑定不一致先于 domain-state 检查统一拒绝并零写入。
 
@@ -609,6 +607,6 @@ Arkret v1 的 MIMI 支持固定为 facade profile：
 - 不把 MIMI hub 变成 Arkret 的唯一 truth source。
 - 不用 MIMI room id 替代 `realm_id`。
 - 不用 MIMI user identifier 替代 DID。
-- 不绕过 Arkret capability Control Move refs 与本地授权检查。
+- 不绕过 Arkret capability state-changing Event refs 与本地授权检查。
 - 不把 MIMI provider accepted timestamp 替代 Arkret HLC / event hash。
 - 支持 MIMI 草案版本 pinning，并允许未来 profile 处理草案变化。

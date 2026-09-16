@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-16.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T16:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -166,7 +166,7 @@
       "15": "reserved"
     },
     "digest_length_bytes": 32,
-    "event_derived_retype_compatibility": "Realm and Event token headers are identical, so an ak.realm.create Event token is byte-identical to its Realm token and retyping only swaps the ak:event: / ak:realm: prefix. v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
+    "event_derived_retype_identity": "Realm and Event token headers are identical, so an ak.realm.create Event token is byte-identical to its Realm token and retyping only swaps the ak:event: / ak:realm: prefix. v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",
     "high_nibble_carries_no_category": "The high nibble is reserved zero and carries no category information. Realm purpose lives in the signed create payload; implementations MUST NOT infer purpose from realm_id."
   },
   "special_forms": [
@@ -246,7 +246,7 @@
       "status": "active",
       "content_addressed": true,
       "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
-      "description": "Content-addressed OrganizationRegistrationReceipt identifier. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt_claims)), where receipt_claims is exactly the receipt object with registration_receipt_id and proof both omitted; it is the same content-addressed family as service_registration_receipt and MUST NOT be reused as a Realm capability, membership, notary designation or service delegation."
+      "description": "Content-addressed OrganizationRegistrationReceipt identifier. The lowercase hexadecimal suffix MUST equal SHA-256(canonical_json(receipt_claims)), where receipt_claims is exactly the receipt object with registration_receipt_id and proof both omitted; it is the same content-addressed family as service_registration_receipt and MUST NOT be reused as a Realm capability, membership, governance-Station designation or service delegation."
     },
     {
       "kind": "plan",
@@ -366,51 +366,6 @@
       "description": "Applet registration/service ID",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "attestation",
-      "category": "audit",
-      "status": "active",
-      "wire_form": "ak:attestation:<uuidv7>",
-      "description": "Attestation object ID for registered attestation object families.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "audit_binding",
-      "category": "audit",
-      "status": "active",
-      "wire_form": "ak:audit_binding:<44-char-event-token>",
-      "description": "Audit Applet Binding ID derived from ak.audit.applet_binding.create and referenced by binding state and audit session events.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.audit.applet_binding.create"
-      ]
-    },
-    {
-      "kind": "audit_release",
-      "category": "audit",
-      "status": "active",
-      "wire_form": "ak:audit_release:<44-char-event-token>",
-      "description": "Audit release manifest ID derived from ak.audit.release for a committed historical release under an active audit binding/session.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.audit.release"
-      ]
-    },
-    {
-      "kind": "audit_session",
-      "category": "audit",
-      "status": "active",
-      "wire_form": "ak:audit_session:<44-char-event-token>",
-      "description": "Audit release session ID derived from ak.audit.session.request. Threads request, authorize, notice, release, and close events for one bounded historical audit window.",
-      "id_form": "event_derived",
-      "identity_authority": "event",
-      "genesis_event_kinds": [
-        "ak.audit.session.request"
-      ]
     },
     {
       "kind": "authorization_lease",

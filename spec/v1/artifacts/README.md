@@ -16,8 +16,7 @@ updated: 2026-05-25
   - 事件 kind、schema、typed-ID 与 operation 的源定义。
 - `artifacts/registry/error-code-registry.json`
   - 错误码体系。
-- `artifacts/registry/reducer-profile-registry.json`
-  - Realm reducer profile、共识语义范围、支持的 lattice、conformance vector group 与显式 upgrade edge。
+  - Realm fixed reducer semantics、共识语义范围、支持的 authority-ordered projection、conformance vector group 与显式 upgrade edge。
 - `artifacts/registry/registry-manifest.json`
   - `artifacts/registry/` 下所有机器注册表索引。
 - `artifacts/profiles/conformance-profiles.json`
@@ -29,7 +28,7 @@ updated: 2026-05-25
 - `artifacts/bindings/non-http-bindings.yaml`
   - gRPC / WS / SSE / MQ / libp2p 等 binding extension profile 概要。
 - `artifacts/fixtures/*.json`
-  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、authority-commit/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
+  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、authority-commit/authority-ordered projection、capability、sync、privacy/security、federation、MIMI 等）。
 - `artifacts/deployment-probes.json`
   - 部署层机器探针，覆盖 TLS 握手、运维 posture 等不属于 object-model conformance vector 的可验收要求。
 - `artifacts/reports/*`
@@ -93,7 +92,7 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 
 ### 2.1 JSON Schema 校验边界
 
-JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同时通过 Event Envelope schema、event-kind registry、active profile requirements、payload class、capability resolution、reducer precondition/projection 和 RealmCommit/Lattice state 校验后，才能被实现当作协议有效。实现 MUST NOT 把单独的 `schemas/*.schema.json` 通过结果当作 security-sensitive event 的接受条件；schema-only validator 只能用于早期格式拒绝和开发期诊断。
+JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同时通过 Event Envelope schema、event-kind registry、active profile requirements、payload class、capability resolution、reducer precondition/projection 和 RealmCommit/authority-ordered projection state 校验后，才能被实现当作协议有效。实现 MUST NOT 把单独的 `schemas/*.schema.json` 通过结果当作 security-sensitive event 的接受条件；schema-only validator 只能用于早期格式拒绝和开发期诊断。
 
 ## 3. CI 要求
 
@@ -106,4 +105,4 @@ JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同
 
 - 同步的真源是 `artifacts/` 下的 canonical schemas + `contract-registry.json` 及其派生 registry view；下游不得引入自己的第二套 event kind / schema namespace。
 - **禁止生成 `round*.rs` 一类“轮次文件”**：下游不得把每一次 spec 同步落成 `round1.rs` / `round2.rs` / `round_*.rs` 之类按导入轮次累加的文件。同步必须收敛为按对象 / 模块组织的稳定生成产物（每个 schema 或 registry 对应一个稳定命名的生成单元），使重复同步是幂等替换而非追加。
-- typed current result state metadata（`event-kind-registry.json` 的 `execution`、`state_model`、`value_shape`、`result_family`、`result_selector`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。
+- typed current result state metadata（`event-kind-registry.json` 的 `execution`、`domain reducer`、`value_shape`、`result_family`、`result_selector`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。

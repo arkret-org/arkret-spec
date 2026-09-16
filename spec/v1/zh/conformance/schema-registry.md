@@ -71,7 +71,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 
 | 豁免类别 | 例子 | 权威定义位置 |
 | --- | --- | --- |
-| 算法 / 编码 profile id | `ak.rank.lexofractional.v1`、`ak.reducer.core.v1` | 定义文档（encoding.md §9、realm-state-snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
+| 算法 / 编码 profile id | `ak.rank.lexofractional.v1` | 定义文档（encoding.md §9）；它不是 conformance profile，不进 conformance-profiles.json |
 | client-local scheme id（不进 wire 互操作面） | `ak.secret_storage.v1`、secret storage 的 `ak.mls.v1` | device-lifecycle.md / key-management.md |
 | 信封 scheme 常量 | `ak.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ak.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
 | hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.invite.claim.binding_proof.v1`、`ak.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
@@ -178,7 +178,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.create` | Realm create |
 | `ak.realm.profile` | Realm profile facet |
 | `ak.realm.alias` | Realm alias declaration or durable value tombstone（alias 的唯一 wire 承载） |
-| `ak.realm.upgrade` | Realm reducer profile upgrade |
 | `ak.realm.organization` | Organization-authorized Realm relationship statement or revocation |
 | `ak.realm.link` | Typed Realm link graph edge |
 | `ak.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
@@ -265,7 +264,7 @@ Schema evolution MUST：
 - 不修改既有字段语义
 - 可选字段应先于必填字段添加
 - reducer 行为变化需提供变更说明
-- 若变更授权、可见性、排序或收敛语义，需声明新 schema 或 reducer profile
+- 若变更授权、可见性、排序或收敛语义，需声明新 schema 或 fixed reducer semantics
 
 v1 canonical object（Event Envelope / RealmCommit / Operation / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径。Event kind-bound payload 不允许 `{}` 空 schema：有限 family 必须由 payload schema直接以 `$ref` / `oneOf` 闭合。扩展只能使用该具体 payload显式声明的 `x_*`/extension member或新的 versioned kind/schema；Event顶层不再提供通用 `requirements` 或 `unsigned` 逃生口。`ak.schema.define.value` 的 wrapper仍 closed且 `value`必填，schema identity唯一取自 `value.$id`。receiver MUST执行 [`payload-validator-profile-registry.json`](../../artifacts/registry/payload-validator-profile-registry.json) 的定义校验 profile。对 schema允许但实现未识别的显式扩展内容，接收方必须在 canonical bytes、存储、转发和签名校验中原样保留。
 
@@ -277,9 +276,9 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 
 上文覆盖字段级演进；本节回答**值集级**演进：event kind、error code、闭集枚举等新增合法值时的兼容级别，以及已发布实现的处置义务。判定的第一步是区分值集的权威承载形态（与 §1.2 的机读归属规则同源）；同一 token 不得同时以两种承载形态声明。
 
-**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、typed id kind（`id-kind-registry.json`——typed ID 前缀为 wire 字符串值集，新增 kind 向后兼容，与同源 generated 的 event kind / capability action 同类）、feature id 等。
+**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind、capability action、typed id kind 与 feature id 等。
 
-- 新增条目是**向后兼容演进**（minor）：只体现在 registry 的 `version` / `generated_at` 推进，不要求新 schema 版本，也不要求 schema profile bump。
+- 新增条目推进 registry 的 `version` / `generated_at`；是否需要新 schema ID 由该字段所在 closed schema 决定。
 - registry / profile 的规范内容发生任何变化时，顶层 `version` MUST 推进；若该 artifact 携带 `generated_at`，该时间戳也 MUST 推进且日期必须与 date-shaped `version` 一致。`tools/check_artifact_versions.py` 的内容摘要排除这两个元数据字段，并把其余内容绑定到受版本控制的 reference manifest；内容变化但元数据未推进、或 metadata/content reference 漂移，均 MUST 使 release gate 失败。
 - 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。
 - 生成代码 SHOULD 为开放注册集值提供 non-exhaustive / `Unknown(String)` 兜底变体，MUST NOT 用封闭 enum 让未知值导致整体反序列化失败。

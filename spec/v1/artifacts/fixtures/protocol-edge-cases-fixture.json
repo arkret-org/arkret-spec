@@ -568,7 +568,7 @@
         "send_failed_holder_requires_revoke_before_a_new_create",
         "third_party_revoke_forging_invitee_account_id_is_reducer_projection_failed",
         "directed_revoke_omitting_invitee_account_id_is_reducer_projection_failed",
-        "release_head_eq_spelled_as_invite_id_is_failed_precondition"
+        "release_expected_revision_spelled_as_invite_id_is_failed_precondition"
       ],
       "expected": {
         "decision": "mixed",
@@ -584,16 +584,16 @@
         "slot_value_source": "envelope.event_id"
       },
       "assertions": [
-        "the only source of truth for directed invite live uniqueness is ak.component.invite.live_target.v1 whose subject is the single-component composite over canonical_json(payload.invitee_account_id) and never contains realm_id",
-        "ak.invite.create carries head_eq null for that typed current result and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no typed current result write",
+        "the only source of truth for directed invite live uniqueness is invite_live_target whose subject is the single-component composite over canonical_json(payload.invitee_account_id) and never contains realm_id",
+        "ak.invite.create carries expected_revision null for that typed current result and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no typed current result write",
         "the rejection details are closed to reason_code, invite_id and create_event_id and MUST NOT be reported as cas_conflict",
         "two concurrent directed creates contend on the same typed current result so exactly one wins under the authority-commit basis and the loser is rejected, independent of any implementation-private index or insertion order",
         "a terminal invite releases the slot with an explicit set null write that keeps its own head, and a later create for the same account is accepted; a create whose basis is pinned to an earlier free state is still rejected because the head identities differ even though both settle to null",
-        "reaching expires_at does not release the slot; only a registered Move does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
+        "reaching expires_at does not release the slot; only a registered Event does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
         "send_failed keeps the slot claimed and the payload schema forbids invitee_account_id there, so the client must revoke before creating a replacement invite",
         "a third-party invite whose revoke payload carries a forged invitee_account_id fails stored_field_matches_payload with reducer_projection_failed and releases no slot",
         "a directed invite whose terminal revoke omits invitee_account_id fails the same predicate, so a directed invite cannot leak a permanently claimed slot",
-        "the slot value is the literal ak:event: create_event_id; a release Move whose head_eq carries the ak:invite: spelling is failed_precondition"
+        "the slot value is the literal ak:event: create_event_id; a release Event whose expected_revision carries the ak:invite: spelling is failed_precondition"
       ]
     },
     {
@@ -679,7 +679,7 @@
         "expiry compares the signed claim event created_at against the invite expires_at and never uses receiver-local now",
         "all clock variants and the backfill replay produce identical outcome and identical invite typed current result value",
         "the rejected claim writes no shared effect",
-        "pending to expired must come from a separate accepted ak.invite.revoke Control Move"
+        "pending to expired must come from a separate accepted ak.invite.revoke Event"
       ]
     },
     {

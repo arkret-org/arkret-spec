@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-13.1",
+  "version": "2026-09-16.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-13T10:43:01+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -87,19 +87,6 @@
       "conflicts": []
     },
     {
-      "feature_id": "ak.feature.e2ee_relaxed.v1",
-      "status": "active",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md",
-      "service_kinds": [],
-      "required_operation_pairs": [],
-      "required_profiles": [],
-      "required_limits": [],
-      "semantic_guarantees": [
-        "The deployment supports the explicitly relaxed E2EE policy branch defined by the normative encryption contract."
-      ],
-      "conflicts": []
-    },
-    {
       "feature_id": "ak.feature.identity.webvh_native_log.v1",
       "status": "active",
       "defined_in": "zh/identity/identity-did.md",
@@ -135,32 +122,6 @@
       "required_limits": [],
       "semantic_guarantees": [
         "Message bodies accept the versioned Content Block structural contract."
-      ],
-      "conflicts": []
-    },
-    {
-      "feature_id": "ak.feature.mls_exporter_aead.v1",
-      "status": "active",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md",
-      "service_kinds": [],
-      "required_operation_pairs": [],
-      "required_profiles": [],
-      "required_limits": [],
-      "semantic_guarantees": [
-        "Application encryption derives AEAD material through the registered MLS exporter labels."
-      ],
-      "conflicts": []
-    },
-    {
-      "feature_id": "ak.feature.mls_governance_binding.full.v1",
-      "status": "active",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md",
-      "service_kinds": [],
-      "required_operation_pairs": [],
-      "required_profiles": [],
-      "required_limits": [],
-      "semantic_guarantees": [
-        "MLS epochs are fully bound to the accepted Arkret governance frontier."
       ],
       "conflicts": []
     },

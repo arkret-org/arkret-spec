@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-16.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T11:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -201,18 +201,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.audit.applet_binding",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.applet_binding.create",
-        "ak.audit.applet_binding.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
       "action": "ak.audit.export",
       "category": "service",
       "risk_tier": "high",
@@ -229,61 +217,6 @@
       "target_event_kinds": [],
       "profile": null,
       "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.audit.release",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.release"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.authorize",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.authorize"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.close",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.close"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.notice",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.notice"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.request",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.request"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.call.join",
@@ -1133,7 +1066,7 @@
         "ak.realm.alias"
       ],
       "profile": null,
-      "notes": "Claims, renames or tombstones the Realm's human-readable alias (ak.realm.alias event; projects ak.component.realm.alias.v1). high risk because an alias is the address users type and share: capturing or re-pointing one is a phishing / impersonation primitive. Holding ak.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. See zh/discovery/object-addressing.md §3.3.",
+      "notes": "Claims, renames or tombstones the Realm's human-readable alias (ak.realm.alias event; projects realm_alias). high risk because an alias is the address users type and share: capturing or re-pointing one is a phishing / impersonation primitive. Holding ak.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. See zh/discovery/object-addressing.md §3.3.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -1234,13 +1167,6 @@
         "ak.agent.key.revoke",
         "ak.applet.registration",
         "ak.audit.accessed",
-        "ak.audit.applet_binding.create",
-        "ak.audit.applet_binding.state",
-        "ak.audit.release",
-        "ak.audit.session.authorize",
-        "ak.audit.session.close",
-        "ak.audit.session.notice",
-        "ak.audit.session.request",
         "ak.call.create",
         "ak.call.recording.start",
         "ak.call.state",
@@ -1333,14 +1259,8 @@
         "ak.agent.key.revoke",
         "ak.approval.vote",
         "ak.audit.accessed",
-        "ak.audit.applet_binding",
         "ak.audit.export",
         "ak.audit.query",
-        "ak.audit.release",
-        "ak.audit.session.authorize",
-        "ak.audit.session.close",
-        "ak.audit.session.notice",
-        "ak.audit.session.request",
         "ak.call.join",
         "ak.call.moderate",
         "ak.call.record",
@@ -1437,7 +1357,7 @@
         "ak.view.update"
       ],
       "profile": null,
-      "notes": "Highest explicit authority inside one Realm. Held either by the current controller of the ak.component.realm.authority_root.v1 typed current result (root authority, not a grant) or by an ordinary revocable co-owner grant. Both derived sets are rule-generated; hand edits are rejected by tools/artifact_pipeline.py check.",
+      "notes": "Highest explicit authority inside one Realm. Held either by the current controller of the realm_authority_root typed current result (root authority, not a grant) or by an ordinary revocable co-owner grant. Both derived sets are rule-generated; hand edits are rejected by tools/artifact_pipeline.py check.",
       "coverage_rule": {
         "exclude_self": true,
         "require_profile_null": true,

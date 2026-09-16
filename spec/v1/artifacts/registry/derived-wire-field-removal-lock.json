@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-16.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T16:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -670,18 +670,6 @@
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.notary_signer_descriptor_frozen_public_key_digest.v1",
-      "ruling": "2026-09-12-1825 A1",
-      "schema": "schemas/realm.schema.json",
-      "path": "/$defs/notary_signer_descriptor",
-      "removed": "frozen_public_key_digest",
-      "source": {
-        "field": "frozen_public_key_b64u"
-      },
-      "derivation": "SHA-256 of canonical public key bytes decoded according to key_kind; compare canonical bytes for key identity.",
-      "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.account_registration_control_proof_log_head_digest.v1",
       "ruling": "2026-09-12-1825 A13",
       "schema": "schemas/account-operations.schema.json",
@@ -690,7 +678,7 @@
       "source": {
         "field": "did_version_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {
@@ -702,7 +690,7 @@
       "source": {
         "field": "did_version_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {
@@ -714,7 +702,7 @@
       "source": {
         "field": "did_version_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {
@@ -726,7 +714,7 @@
       "source": {
         "field": "did_version_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {
@@ -738,7 +726,7 @@
       "source": {
         "field": "did_version_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {
@@ -750,7 +738,7 @@
       "source": {
         "field": "version_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {
@@ -822,7 +810,7 @@
       "source": {
         "field": "request_id"
       },
-      "derivation": "No hidden legacy digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
+      "derivation": "No hidden alternate digest is added to the closed account-registration or identity-creation proof transcript. When another contract requires the full method_history_head, compute it from the exact verified method entry/document. WebVH versionId entryHash excludes proof and substitutes the predecessor versionId, so decoding it cannot produce the complete signed-entry JCS digest. Synthetic did:web/did:key commitments retain their registered adapter rules.",
       "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md"
     },
     {

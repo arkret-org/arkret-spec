@@ -37,8 +37,8 @@ Schema id: `ak.schema.morph.v1`
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 结构验证的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
 | `morph_kind` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
-| `metadata` | no | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
-| `encrypted_metadata` | no | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_floor` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
+| `metadata` | no | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。scope 已激活 MLS 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。scope 激活 MLS 后必须放入 `encrypted_metadata`。 |
+| `encrypted_metadata` | no | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。scope 已激活 MLS 时 MUST 提供本字段；未激活时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
@@ -55,7 +55,7 @@ Schema id: `ak.schema.morph.v1`
 
 ### 2.1 Event 家族
 
-本表为人类可读说明视图；完整集合与 `wire_scope` / `reducer_input` / lattice 属性以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准，capability action 以 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 为准，lifecycle 状态校验模板见 [`common-fields.md` §5.1 / §5.2](./common-fields.md)。
+本表为人类可读说明视图；完整集合与 `wire_scope` / `reducer_input` / projection 属性以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准，capability action 以 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 为准，lifecycle 状态校验模板见 [`common-fields.md` §5.1 / §5.2](./common-fields.md)。
 
 | event kind | reducer_input | payload 形态 | capability action | 前置 / 说明 |
 | --- | --- | --- | --- | --- |
@@ -123,7 +123,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 | 顺序 | 来源 | 作用 | 谁可写 |
 | --- | --- | --- | --- |
 | 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性与类型。 | Morph create（**create-locked**） |
-| 2 | Realm schema `morph_kind_profiles[<morph_kind>]` | **Realm-scoped 收紧**：声明该 `morph_kind` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | `ak.realm.schema` state event（写入 `ak.component.realm.schema.v1` typed current result，与 `schema_refs` 同载；声明形态见 [governance-objects.md §2.3](./governance-objects.md)） |
+| 2 | Realm schema `morph_kind_profiles[<morph_kind>]` | **Realm-scoped 收紧**：声明该 `morph_kind` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | `ak.realm.schema` state event（写入 `realm_schema` typed current result，与 `schema_refs` 同载；声明形态见 [governance-objects.md §2.3](./governance-objects.md)） |
 | 3 | Morph object 的 `morph_kind` (string) | **业务标签 / discoverability key**：用于 query / view / capability `allowed_morph_kinds` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
 | 4 | Morph object 的 `facets` (map) | **UI / projection hint**：选择默认 renderer、查询过滤、降级展示；MUST NOT 影响授权、状态机、reducer、wire 互操作。 | Morph create / `ak.morph.update` |
 
@@ -152,7 +152,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 - 授权（capability check、capability `allowed_morph_kinds`、resource selector）
 - 状态机 transition
-- 排序 / Lattice join / Control Move precondition
+- 排序 / deterministic projection join / state-changing Event precondition
 - reducer 行为（接受 / 拒绝 / soft fail）
 - event kind 接受规则
 - wire 互操作（canonical bytes / event digest / signature）
@@ -179,7 +179,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 当一个 facet hint 在 cardinality / required-ness / state machine 等维度上与同名概念在 [`relation.md` §3.2](./relation.md) 的标准关系规则或 [`common-fields.md` §5](./common-fields.md) 的标准状态机发生**冲突**时（例如 `assignable` facet 暗示单负责人，但标准 `assigned_to` 允许多个 Actor），适用以下仲裁规则：
 
 1. **标准 Relation / Schema / Event kind registry / Capability action 在所有 reducer 与 wire 层面胜出**（与 §4.0 决策矩阵一致）：reducer MUST 按这些权威声明评估 cardinality、required-ness、transition、precondition 与 wire 拒绝。
-2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、Control Move precondition、reducer 接受/拒绝或 wire 校验。
+2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、state-changing Event precondition、reducer 接受/拒绝或 wire 校验。
 3. **schema_refs[] 与 morph_kind_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与标准 Relation / Schema 冲突"，提示规范文档维护者澄清意图。
 4. 实现 MUST NOT 把 facet 当作"沉默约束"——即 facet 不出现于 wire 上不代表约束被满足/不满足，约束只由标准 Relation / Schema 决定。
 
@@ -187,11 +187,11 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 ### 5.2 Profile-declared generic container events（normative）
 
-`ak.container.move_item` / `ak.container.rebalance` 是 Realm profile 明确启用的通用容器 Control Move，不由 `container` facet 激活。Profile MUST 声明允许的 `(container object type, item object type, relation_kind)` 三元组；未声明三元组 MUST `unsupported_feature`，facet 出现与否不改变结果。标准 Space(board/list) → Strand placement 继续使用 `ak.strand.move` / `ak.strand.reorder`，MUST NOT 同时启用 generic container event，以避免双 truth source；generic 事件只服务 profile-defined Morph/Strand 等非标准容器。
+`ak.container.move_item` / `ak.container.rebalance` 是 Realm profile 明确启用的通用容器 state-changing Event，不由 `container` facet 激活。Profile MUST 声明允许的 `(container object type, item object type, relation_kind)` 三元组；未声明三元组 MUST `unsupported_feature`，facet 出现与否不改变结果。标准 Space(board/list) → Strand placement 继续使用 `ak.strand.move` / `ak.strand.reorder`，MUST NOT 同时启用 generic container event，以避免双 truth source；generic 事件只服务 profile-defined Morph/Strand 等非标准容器。
 
-`ak.container.move_item` payload 为封闭 `container_move_item_payload`：`item_ref`、目标 `container_ref`、`relation_kind`、`rank` 必填，`from_container_ref` 与 `expected_position_digest` 可选。它写 `ak.component.container.position.v1:(container_ref,item_ref)` 的 `causal_register` typed current result；同一 item 在 profile 声明 exclusive 时，reducer MUST 原子移除旧 container position 并写新位置。`expected_position_digest` 若存在，必须等于当前 position typed current result canonical digest，否则 `failed_precondition` `cas_conflict`。寄存器 winner 按固定因果全序选择；容器显示排序按 [`../conformance/encoding.md`](../conformance/encoding.md) rank + canonical tie-break，不得由 facet、HLC 或到达顺序选 winner。
+`ak.container.move_item` payload 为封闭 `container_move_item_payload`：`item_ref`、目标 `container_ref`、`relation_kind`、`rank` 必填，`from_container_ref` 与 `expected_position_digest` 可选。它写 `container_position:(container_ref,item_ref)` 的 `current-value projection` typed current result；同一 item 在 profile 声明 exclusive 时，reducer MUST 原子移除旧 container position 并写新位置。`expected_position_digest` 若存在，必须等于当前 position typed current result canonical digest，否则 `failed_precondition` `cas_conflict`。寄存器 winner 按固定因果全序选择；容器显示排序按 [`../conformance/encoding.md`](../conformance/encoding.md) rank + canonical tie-break，不得由 facet、HLC 或到达顺序选 winner。
 
-`ak.container.rebalance` payload 为封闭 `container_rebalance_payload`：`container_ref`、`relation_kind`、`positions[]`、`expected_order_digest` 必填。`positions[].item_ref` MUST 唯一，rank MUST 唯一且符合 canonical rank grammar；整批原子写 `ak.component.container.order.v1:<container_ref>` 的 `causal_register` typed current result。`expected_order_digest` 不匹配时整个 Move `cas_conflict`，不得部分改 rank。单次最多 10,000 positions；更大容器必须分层或由 profile 提供独立分页 rebalance 方案。
+`ak.container.rebalance` payload 为封闭 `container_rebalance_payload`：`container_ref`、`relation_kind`、`positions[]`、`expected_order_digest` 必填。`positions[].item_ref` MUST 唯一，rank MUST 唯一且符合 canonical rank grammar；整批原子写 `container_order:<container_ref>` 的 `current-value projection` typed current result。`expected_order_digest` 不匹配时整个 Event `cas_conflict`，不得部分改 rank。单次最多 10,000 positions；更大容器必须分层或由 profile 提供独立分页 rebalance 方案。
 
 ## 6. Schema Contract
 
@@ -219,4 +219,4 @@ Morph `schema_refs[]` 的固定规则见 [§4.1](#41-schema-refs-固定规则nor
 
 ### Morph lifecycle 合同入口
 
-`morph` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `morph_not_active` / `morph_not_archived`；终态操作对已终态对象返回 `morph_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+`morph` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `result_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `morph_not_active` / `morph_not_archived`；终态操作对已终态对象返回 `morph_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

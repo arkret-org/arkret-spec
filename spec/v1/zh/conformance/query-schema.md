@@ -165,7 +165,7 @@ Projection 只减少返回字段，不提升权限。
 
 [`query.schema.json`](../../artifacts/schemas/query.schema.json) 只定义可复用的 query / search **请求**形状，不定义通用响应 envelope。每个 URL endpoint 的响应必须以 operation registry 的 `response_schema_ref` 与 OpenAPI binding 为准；v1 没有要求所有查询响应携带 `basis` / `grade`，也没有登记跨 operation 通用的 `key_view_ref` 字段。
 
-若某个 operation 需要 `frontier`、barrier cursor、RealmCommit basis 或可验证 proof，必须在该 operation 的 response schema 中逐字段登记。实现不得把私有响应扩展描述成 v1 core 的通用响应契约。
+若某个 operation 需要 `checkpoint`、barrier cursor、RealmCommit basis 或可验证 proof，必须在该 operation 的 response schema 中逐字段登记。实现不得把私有响应扩展描述成 v1 core 的通用响应契约。
 
 ## 9. 安全规则
 

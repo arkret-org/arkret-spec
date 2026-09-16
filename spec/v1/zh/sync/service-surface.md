@@ -36,7 +36,7 @@ DID method state 用于解析稳定 `did_core_id`、service identity、verificat
 - 消费 Station验证 producer proof、authority chain、commit signature 与逐 stream 连续性；
 - Directory、invite、cache 和 mirror 只提供 locator，不能产生或替代 authority。
 
-治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 authority-commit、RealmCommit、typed current result root、actor chain 或 reducer profile。
+治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 authority-commit、RealmCommit、typed current result root、actor chain 或 fixed reducer semantics。
 
 ### 2.3 接口必须天然支持幂等重试
 
@@ -118,7 +118,7 @@ Describe 至少声明 self submit/read/subscribe 能力；承担 federation 的 
 
 ### 4.2 提交 Event
 
-`ak.self.events.command.submit.v1` 接收单个 `EventInitialSubmission {event}`。Account Station验证本地 session 与 producer proof，随后把 exact bytes 转发给已验证 current authority；它不能自行报告 accepted。
+`ak.self.events.command.submit.v1` 接收单个 `EventCommitSubmission {event}`。Account Station验证本地 session 与 producer proof，随后把 exact bytes 转发给已验证 current authority；它不能自行报告 accepted。
 
 `ak.peer.events.command.submit.v1` 只允许目标 Realm 的 current governance Station执行 admission。结果为 `committed`、`duplicate`、`rejected` 或 retryable unavailable状态。成功返回 Event 与 `RealmCommit`；拒绝不写共享 pending 对象。
 

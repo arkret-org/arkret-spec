@@ -95,7 +95,7 @@ Schema id: `ak.schema.actor_profile.v1`
 - `membership_cause` 是 closed lifecycle cause，仅作审计分类，不授予 authority；安全 provenance 来自 terminal Event、exact controller binding、实际 signer、pre-state exact set 与原子提交。自由文本 `reason` 最长 256 个 Unicode scalar values，不得作为 cascade 成立的证据。
 - `agent_slug` 只为 Agent 的 **controller-scoped mention selector** 服务。它与 controller handle 组合成输入 token `@<controller-handle>/<agent_slug>`，发送前必须解析为 Agent 的完整 `subject_account_id`。权威绑定来自 `ak.schema.agent_selector_claim.v1`，而不是 DID path 或 Actor Profile 字面值；Actor Profile 上的 `agent_slug` 只是 list/get、roster、mention picker 可用的投影 hint。`agent_slug` 本身 MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。Reducer / profile projection 在同一 verified controller principal 下发现多个 active Agents 使用同一有效 selector claim 时，MUST 把该 selector 解析为 ambiguous 并 fail closed；实现 MAY 拒绝造成冲突的 `ak.profile.create` / `ak.profile.update` 或 selector claim。`agent_slug` 变化只影响未来输入解析，历史 mention 仍按已持久化的 `subject_account_id` 指向原 Agent。
 
-- **两类 registered writer 必须产出同一个语义目标（normative）**：`ak.component.agent.selector_claim.v1`
+- **两类 registered writer 必须产出同一个语义目标（normative）**：`agent_selector_claim`
   这个 typed current result family 有两个写入方——独立的 `ak.agent.selector_claim` 与 `ak.agent.provision` 的 selector 投影。
   typed current result namespace 两侧都保持 principal 级 `(controller principal, agent_slug)`，**不加 Station**；
   被选中的目标两侧都必须是同一个完整 AccountId。
@@ -110,7 +110,7 @@ Schema id: `ak.schema.actor_profile.v1`
     响应，必须拿到真实 controller 签名的 claim；拿不到就不能广告 / 返回该成功面，
     服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
 
-- **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `sequenced_state` 安全 typed current result。controller principal 与 slug 派生唯一 subject（namespace 不含 Station）；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须恰含已签 authority_revision 中该 typed current result 当前 revision 的 exact bind/provision 来源；首次未写入时为空，不得附加旧 revision 或其它 namespace 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
+- **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `commit-ordered projection` 安全 typed current result。controller principal 与 slug 派生唯一 subject（namespace 不含 Station）；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须恰含已签 expected_revision 中该 typed current result 当前 revision 的 exact bind/provision 来源；首次未写入时为空，不得附加旧 revision 或其它 namespace 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
 
 - **Selector 解析（normative）**：先读取唯一已确认值，再检查当前 Agent lifecycle、accountability、visibility 和 expiry。null 或过期不返回成功，也不显露被取代的旧 bind。缺确认材料 fail closed。解析结果仍须独立验证完整 AccountId；selector 不替代成员、grant 或审计责任身份。provision 不伪造内层 claim proof，portable claim 需要真实 controller 签名。
 
@@ -130,7 +130,7 @@ Schema id: `ak.schema.actor_profile.v1`
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_principal_ids[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
 
 **问责记录只有一条，来源有两个（normative）**：
-`ak.component.identity.accountability.v1` 承载的是**同一条**问责记录，
+`identity_accountability` 承载的是**同一条**问责记录，
 它有两个已登记写入方——独立的 `ak.identity.accountability_grant`，
 以及 `ak.agent.provision` 在 controller PCR 内的原子问责投影
 （[`../identity/key-management.md` §3.6](../identity/key-management.md)：
@@ -148,7 +148,7 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
   `{issuer_id, subject_id, accountability_scope（归一化排序数组）, not_before, expires_at?, grant_status}`。
   provision 映射 `controller_principal_id` / `agent_id`，通用 grant 映射 `issuer_id` / `subject_id`。
   两侧 MUST 使用显式登记的 `value_projection` 产出该形状，
-  MUST NOT 在普通 `effect_projection.value.field` 路径里暗加改名或裁剪。
+  MUST NOT 在普通 `result_projection.value.field` 路径里暗加改名或裁剪。
 - **provision 派生值**：`not_before = envelope.created_at`，且 admission MUST 校验
   `payload.created_at == envelope.created_at`，避免两个签名时间产生歧义；
   `expires_at` **省略**（含义是不设时间到期，MUST NOT 写 JSON `null`，
@@ -162,7 +162,7 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
   MUST NOT 伪造 detached accountability proof，也 MUST NOT 把 provision 冒充独立 grant Event。
 
 统一形状只消除**结构性伪差异**。不同 `not_before`、`expires_at` 或 `grant_status`
-仍是真实不同的决定，按 `sequenced_state` 的确认顺序和实际前置条件处理。
+仍是真实不同的决定，按 `commit-ordered projection` 的确认顺序和实际前置条件处理。
 
 `ak.identity.accountability_grant` 字段:
 

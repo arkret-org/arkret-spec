@@ -26,7 +26,7 @@
     "spec/v1/artifacts/registry/calendar-timezone-registry.json",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and semantic vectors for the calendar-event Strand profile: single canonical schema activation, half-open all-day and timed intervals on signed local anchors, the RFC 8984 recurrence subset with its implicit defaults and rejected members, TZDB identity, schedule revision frontier and basis binding, deterministic RSVP reducer projection, series/instance effective projection, RSVP admission, attendee roster invariants, and the RSVP response privacy branches. Server-side schedule notification derivation is carried by calendar-notification-fixture.json so the client and server profiles do not inherit each other vector closure.",
+  "description": "Schema and semantic vectors for the calendar-event Strand profile: single canonical schema activation, half-open all-day and timed intervals on signed local anchors, the RFC 8984 recurrence subset with its implicit defaults and rejected members, TZDB identity, schedule revision checkpoint and basis binding, deterministic RSVP reducer projection, series/instance effective projection, RSVP admission, attendee roster invariants, and the RSVP response privacy branches. Server-side schedule notification derivation is carried by calendar-notification-fixture.json so the client and server profiles do not inherit each other vector closure.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -1198,7 +1198,7 @@
       "name": "schedule_revision_concurrent_writes_choose_one_winner",
       "vector_id": "ak.vector.calendar.schedule_revision.v1",
       "precondition": "two concurrent accepted schedule updates produce different canonical calendar bytes",
-      "action": "compute the schedule causal_register and author ak.rsvp.set against its winner",
+      "action": "compute the schedule current-value projection and author ak.rsvp.set against its winner",
       "semantic_outcome": "accept",
       "expected_projection": "exactly one schedule_revision_source wins by fixed (depth,EventId) rank; schedule_basis_refs contains only that source and no resolution Event is required"
     },
@@ -1230,7 +1230,7 @@
     {
       "name": "rsvp_reducer_projection_value_must_equal_payload_entry",
       "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
-      "precondition": "registry declares effect_projection set(payload.entry), and the submitted Event contains only kind plus its typed payload rather than producer-selected writes",
+      "precondition": "registry declares result_projection set(payload.entry), and the submitted Event contains only kind plus its typed payload rather than producer-selected writes",
       "action": "mutate the reducer implementation so the projected set value differs from payload.entry",
       "semantic_outcome": "reject",
       "expected_reason_code": "reducer_projection_failed"
@@ -1263,7 +1263,7 @@
       "name": "rsvp_effective_projection_causal_successor_dominates",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
       "precondition": "the same responder rewrites an earlier RSVP while observing it",
-      "action": "join the causal_register typed current result in either arrival order",
+      "action": "join the current-value projection typed current result in either arrival order",
       "semantic_outcome": "accept",
       "expected_projection": "the causal successor is the unique winner and the result is independent of arrival order, HLC and created_at"
     },
@@ -1279,7 +1279,7 @@
       "name": "rsvp_effective_projection_ciphertext_difference_is_not_conflict",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
       "precondition": "two concurrent writes whose plaintext responses and basis are identical",
-      "action": "compute the causal_register winner after decryption",
+      "action": "compute the current-value projection winner after decryption",
       "semantic_outcome": "accept",
       "expected_projection": "one source identity wins by fixed (depth,EventId) rank; equal plaintext does not merge identities or create conflict"
     },
@@ -1376,7 +1376,7 @@
     {
       "name": "rsvp_admission_basis_validity_is_projection_only",
       "vector_id": "ak.vector.calendar.rsvp_admission.v1",
-      "precondition": "basis passes shape and target admission, but decryption later shows the referenced update did not touch the calendar subtree, or the set is not the frontier the responder observed",
+      "precondition": "basis passes shape and target admission, but decryption later shows the referenced update did not touch the calendar subtree, or the set is not the checkpoint the responder observed",
       "action": "compare the accepted set of an e2ee Realm against a plaintext Realm fed the same events",
       "semantic_outcome": "accept",
       "expected_projection": "both Realms accept the identical canonical set; the discrepancy surfaces only in the authorized projection as unresolved_basis or stale, so a server that happens to read plaintext MUST NOT reject what an e2ee server accepts"

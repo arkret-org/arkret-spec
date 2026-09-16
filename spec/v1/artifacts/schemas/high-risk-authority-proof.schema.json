@@ -31,7 +31,7 @@
     },
     "recovery_unlock_proof": {
       "type": "object",
-      "description": "Recovery-unlock proof. recovery_session_id MUST select a verified, unexpired recovery session for the transcript's exact account. The session's accepted proof summary MUST be recovery_unlock and bind proof.verification_method; the verifier resolves that key only from the recovery policy frozen into the session. Current device keys, DID-document fallback keys, service keys and retired recovery keys MUST be rejected.",
+      "description": "Recovery-unlock proof. recovery_session_id MUST select a verified, unexpired recovery session for the transcript's exact account. The session's accepted proof summary MUST be recovery_unlock and bind proof.verification_method; the verifier resolves that key only from the recovery policy frozen into the session. Current device keys, DID-document fallback keys, service keys and revoked recovery keys MUST be rejected.",
       "required": [
         "kind",
         "recovery_session_id",

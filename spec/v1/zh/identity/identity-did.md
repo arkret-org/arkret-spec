@@ -262,7 +262,7 @@ Arkret v1 core conformance 要求如下：
 
 > **高保障 profile 加固（normative，profile-gated）**：`high_security_organization` 与 `sovereign_deployment` 对登记为 `method_successor` 或 `ongoing_governance` 的 `did:webvh` 调用，MUST 使用带 inclusion/consistency proof 的 append-only witness log。该要求不适用于仅由 human PCR 授权的 recovery、membership、device 或 capability 动作。
 
-> **`ak.profile.key_transparency.v1` 覆盖范围（normative，profile-gated）**：log-backed witness 可覆盖账号内部 device key、authorization frontier 与 KeyPackage 发布，但其外部 account label MUST 只使用 `(principal_id, station_id)`；PCR realm、genesis receipt 与 frontier 只能作为该 pair 内部审计材料，不能形成第二套 principal equality。
+> **`ak.profile.key_transparency.v1` 覆盖范围（normative，profile-gated）**：log-backed witness 可覆盖账号内部 device key、authorization checkpoint 与 KeyPackage 发布，但其外部 account label MUST 只使用 `(principal_id, station_id)`；PCR realm、genesis receipt 与 checkpoint 只能作为该 pair 内部审计材料，不能形成第二套 principal equality。
 >
 > **为什么 fallback 是 cache-only**（rationale）：把既有 `did:webvh` identity 临时改按同域 `did:web` 解析，会把 SCID/history 信任根降级成 DNS+TLS 当前状态。独立注册的 `did:web` anchor 合法，但绝不是另一条 `did:webvh` identity 的 fallback。
 
@@ -446,7 +446,7 @@ verification 侧反向执行——「把 log entry 当作字符串，把从 DID 
 
 ### 3.7 服务身份自举（Service Identity Bootstrap）
 
-一个服务的 `service_id` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`ak.session.grant`、notary authority commit、claim attestation）、其派生子身份（如 `{service_id}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
+一个服务的 `service_id` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`ak.session.grant`、RealmCommit、claim attestation）、其派生子身份（如 `{service_id}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
 
 本节规范服务如何获得并持有自身 service identity。目标是让部署**无需人工 mint DID 字符串即可启动**，同时以 fail-closed 纪律防止身份被代持或被静默替换。约束按重要性排列：
 
@@ -583,19 +583,19 @@ Resolver policy MUST 至少定义：
 
 principal 创建时，注册方 MUST 接收 `did`，用 method adapter 验证其 inception/current control、method history 与本地 trust policy，并确认 `project(did)` 逐字等于待创建的 `did_core_id`。验证通过后，PCR genesis 的 `initial_resolution` MUST 同时承诺 `did`、`method_history_head` 与 `version_id`；服务端不得只把它留在临时注册会话或私有账号表。
 
-PCR reducer MUST 以 create-locked typed current result family `ak.component.identity.resolution.v1` 初始化当前 resolution。后续更新只允许 durable Event `ak.identity.resolution.update`；其 payload 只携 `next {did, method_history_head, version_id}`，前序状态只来自 Event envelope 中唯一一条针对 `state-slot:ak.component.identity.resolution.v1:null` 的 `head_eq` precondition，其 `value` 是完整的 current `resolution_projection`。admission MUST 验证：
+PCR reducer MUST 以 create-locked typed current result family `identity_resolution` 初始化当前 resolution。后续更新只允许 durable Event `ak.identity.resolution.update`；其 payload 只携 `next {did, method_history_head, version_id}`，前序状态只来自 Event envelope 中唯一一条针对 `identity_resolution:null` 的 `expected_revision` precondition，其 `value` 是完整的 current `resolution_projection`。admission MUST 验证：
 
 创建协议需要持久化的是 **immutable creation anchor**，不是 current source ref：它可以引用携
 `initial_resolution` 的 PCR genesis，或引用一个由该 genesis 唯一交叉绑定、且已经独立验证 method evidence
 的 provision Event。长期业务记录不得复制“当前 resolution Event ref”；运行时必须以完整
 `AccountId=(principal_id, station_id)` 选择唯一 PCR lineage，并从
-`ak.component.identity.resolution.v1` typed current result 读取 current projection。这样 rotation 只推进 typed current result，不要求重装、
+`identity_resolution` typed current result 读取 current projection。这样 rotation 只推进 typed current result，不要求重装、
 重 provision 或改写业务记录，也不得为满足字段名强造无意义 update。公开读取仍只使用本节登记的最小化
 attested projection，私有 resolver row、内联 DID Document 与 core→DID 模板都不是合法第二载体。
 
 - 新 `did` 经同一 method adapter 投影后仍逐字等于 PCR principal `did_core_id`；
 - method-native history 从 accepted current head 连续推进，且新 entry 的控制 proof、witness/freshness 与本地 policy 有效；
-- signed `head_eq.value` 逐字段等于 accepted current typed current result，method-native successor 从其中的 `method_history_head` 连续推进；禁止用 payload 回声字段、跳头、回滚或并发覆盖；
+- signed `expected_revision.value` 逐字段等于 accepted current typed current result，method-native successor 从其中的 `method_history_head` 连续推进；禁止用 payload 回声字段、跳头、回滚或并发覆盖；
 - Event author、proof 与 PCR 当前控制状态闭合，Station 的声明或 transport 身份不能替代 method-native 验证。
 
 上述两个 history position 字段不得由实现自由命名或省略。`did:webvh:1.0` 的 `method_history_head` 是当前已验证 log entry 的 RFC 8785 JCS SHA-256，`version_id` 是同一 entry 的 method-native `versionId`；`did:web:1` 使用当前已验证 DID Document 的 RFC 8785 JCS SHA-256，并以同一摘要构造 `synthetic-jcs-sha256:<hex>`；`did:key:1` 使用 canonical `did` UTF-8 字节的 SHA-256，并以同一摘要构造 `synthetic-did-sha256:<hex>`。算法与字符串格式以 `contract-registry.json` 的 active adapter row 为唯一权威。
@@ -608,7 +608,7 @@ Profile 是该 typed current result 的公开 **current projection**，可以发
 
 账号内部 PCR genesis/RealmCommit/history 作为审计材料，只能由授权 operation `ak.self.identity.read.resolution_audit.v1` 返回，其授权只取绑定 exact `account_id` 的 current holder session。recovery actor 必须先完成既有 recovery transaction、成为 current holder 后再读；v1 **MUST NOT** 为同一审计数据另建 recovery-session/capability 授权支路。**caller 自报的 intent 不构成授权**，因为任何已认证调用者都能自报。unknown 账号、错误 authority pair 与无权调用者 **MUST** 共用同一反枚举结果。该面复用统一 evidence 形状：exact genesis/current/predecessor Event、genesis receipt 与覆盖 current Event 的 accepted RealmCommit；verifier 通过登记 reducer 重放 current Event，v1 **MUST NOT** 再叠加 resolution 专用的 state-typed current result Merkle proof。这样避免为单一字段建立第二套不可复用证明系统。这些字段不改变 external identity，也 **MUST NOT** 成为普通 federated Event 验证的前置条件；普通 Event 只验证 in-envelope producer proof 与 可携带 producer signer evidence。
 
-审计面的 history 披露上限是闭合的：`history_depth` 取值范围 `0..256`，缺省 `0`（只返回 current head），越界 **MUST** `param_invalid`，实现 **MUST NOT** 用私有上限静默替换。`after_resolution_event_ref` 把披露区间排他性截止在调用方已持有的 ancestor，该 ref **MUST** 是本账号 current lineage 内的 genesis Event 或已接受 `ak.identity.resolution.update`，否则 **MUST** `param_invalid` 并带 reason `resolution_history_ancestor_unknown`；它与 `history_depth = 0` 同时出现同样 **MUST** `param_invalid`。返回的 predecessor 段 **MUST** 连续且不跳条，条数 **MUST NOT** 超过 `history_depth`；到达 head 0 或该 ancestor 时 `history_complete = true`，否则 `history_complete = false` 且 **MUST** 返回最旧一条已披露 Event 的 exact `head_eq` precondition 中 `value.resolution_event_ref` 作为 `next_audit_cursor`。该签名 guard 是最旧 Event 的直接前驱坐标，唯一来源是已验证的 `head_eq` current value。被省略的历史是 unknown，不是 absent。
+审计面的 history 披露上限是闭合的：`history_depth` 取值范围 `0..256`，缺省 `0`（只返回 current head），越界 **MUST** `param_invalid`，实现 **MUST NOT** 用私有上限静默替换。`after_resolution_event_ref` 把披露区间排他性截止在调用方已持有的 ancestor，该 ref **MUST** 是本账号 current lineage 内的 genesis Event 或已接受 `ak.identity.resolution.update`，否则 **MUST** `param_invalid` 并带 reason `resolution_history_ancestor_unknown`；它与 `history_depth = 0` 同时出现同样 **MUST** `param_invalid`。返回的 predecessor 段 **MUST** 连续且不跳条，条数 **MUST NOT** 超过 `history_depth`；到达 head 0 或该 ancestor 时 `history_complete = true`，否则 `history_complete = false` 且 **MUST** 返回最旧一条已披露 Event 的 exact `expected_revision` precondition 中 `value.resolution_event_ref` 作为 `next_audit_cursor`。该签名 guard 是最旧 Event 的直接前驱坐标，唯一来源是已验证的 `expected_revision` current value。被省略的历史是 unknown，不是 absent。
 
 外部接收方**不要求**为任意其他 principal 持久保存 current resolution binding。普通 profile 浏览可以消费公开 projection；human 历史 device/Event evidence使用 genesis receipt 钉住的 registration evidence 与 PCR authorization chain，不重新取得 latest projection。只有 §4 的 current external claim、method successor、optional DID-root recovery 与持续 DID governance 调用点才刷新 current evidence；无法刷新时仅这些动作 fail closed。
 
@@ -641,11 +641,11 @@ ephemeral pairwise actor principal 转为长期关系时也适用本节：它必
 
 #### 4.2.3 已认证账号的当前 Principal 与唯一 PCR
 
-**派生缓存恢复（normative）**：实现升级、缓存驱逐或 checkpoint 规则指纹变化不撤销已接纳事实。不可复用的缓存 MUST 从同一 accepted RealmCommit frontier 的完整有效依赖重建，安全 revision provenance 与普通 typed current result 证据 必须遵守相同的恢复边界；不得把缓存失效永久传播成后继状态的不可用标志。重建期间可返回下述 503；缺失、冲突或被隔离的真实依赖仍须 fail closed。重建不得选择接收顺序中的最后一个值、跳过依赖、直接改 ready 标志，或重建/重新授权设备；派生结果发布与当前 frontier 有效性检查必须原子完成。
+**派生缓存恢复（normative）**：实现升级、缓存驱逐或 checkpoint 规则指纹变化不撤销已接纳事实。不可复用的缓存 MUST 从同一 accepted RealmCommit checkpoint 的完整有效依赖重建，安全 revision provenance 与普通 typed current result 证据 必须遵守相同的恢复边界；不得把缓存失效永久传播成后继状态的不可用标志。重建期间可返回下述 503；缺失、冲突或被隔离的真实依赖仍须 fail closed。重建不得选择接收顺序中的最后一个值、跳过依赖、直接改 ready 标志，或重建/重新授权设备；派生结果发布与当前 checkpoint 有效性检查必须原子完成。
 
 `ak.self.current_principal.read.resolve.v1`（`POST /_arkret/self/account/current-principal`）是普通已登录客户端读取自己账号当前身份与唯一 PCR 的标准结果入口，遵循 [账号服务器信任](../sync/server-trusted-results.md) §1–2。调用方 MUST 已建立绑定预期 Station、完整 AccountId 与当前 holder 的认证会话；本接口不建立首次接入信任锚，也不支持任意第三方身份查询。
 
-**首次注册的初始 current（normative）**：完整 human genesis unit 原子接纳时 MUST 同事务发布初始 identity resolution current typed current result；该完整 Account 的已认证读取 MUST 可以在首个 RealmCommit 前返回该精确初始结果。该 bootstrap 分支是封闭例外：immutable creation anchor、完整 accepted genesis unit 与精确初始 typed current result/source MUST 在同一次一致观察中仍有效，且该 PCR 不得已有 accepted RealmCommit 或 accepted `ak.identity.resolution.update` successor；不能用 Event 索引代替 typed current result。派生 readiness、checkpoint 或 cache 元数据既不能建立也不能阻断该结果，实现不得在零 RealmCommit 时运行基于 RealmCommit frontier 的治理 current rebuild。任一 accepted RealmCommit 或 accepted resolution successor 存在后，MUST NOT 回退到 genesis projection，只适用下文普通 current 可用性规则。此初始化只确立身份，不宣称治理 frontier ready。
+**首次注册的初始 current（normative）**：完整 human genesis unit 原子接纳时 MUST 同事务发布初始 identity resolution current typed current result；该完整 Account 的已认证读取 MUST 可以在首个 RealmCommit 前返回该精确初始结果。该 bootstrap 分支是封闭例外：immutable creation anchor、完整 accepted genesis unit 与精确初始 typed current result/source MUST 在同一次一致观察中仍有效，且该 PCR 不得已有 accepted RealmCommit 或 accepted `ak.identity.resolution.update` successor；不能用 Event 索引代替 typed current result。派生 readiness、checkpoint 或 cache 元数据既不能建立也不能阻断该结果，实现不得在零 RealmCommit 时运行基于 RealmCommit checkpoint 的治理 current rebuild。任一 accepted RealmCommit 或 accepted resolution successor 存在后，MUST NOT 回退到 genesis projection，只适用下文普通 current 可用性规则。此初始化只确立身份，不宣称治理 checkpoint ready。
 
 首次注册角色验收 MUST 覆盖：完整 genesis 已原子接纳、初始 current 存在且尚无 RealmCommit 时读取成功；partial genesis、source quarantine、初始 current 缺失时不返回成功；治理 current 已未决或不可用时不回退；精确注册重放不覆盖后继 current。客户端验收 MUST 覆盖在未完成 recovery 时建立已确认 Account 的存储上下文、失败重启后复用同一 checkpoint，以及未接纳 draft 不得建立该上下文。
 
@@ -665,13 +665,13 @@ closed `CurrentPrincipalOutcome` 字段按序如下：
 | `principal_control_realm_id` | `RealmId` | 必填，该完整账号唯一的已接纳 PCR lineage |
 | `resolution_projection` | `PrincipalResolutionProjection` | 必填，复用既有 closed projection，字段顺序为 `did, method_history_head, version_id, resolution_event_ref, updated_at` |
 
-Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选择唯一 PCR，从已验证、已接纳的 `ak.component.identity.resolution.v1` current typed current result 读取 projection；外部 DID method history、attestation 与依赖验证由 Station 完成。该 typed current result、source 与所属 PCR 的 accepted current 状态 MUST 在同一次一致观察中仍然有效；异步 post-commit 缓存或仅存在 resolution Event 的索引行不构成成功依据。已经验证的 pinned method state MAY 直接复用；本查询 MUST NOT 重新构造完整 portable method history，也不因外部 DID hosting 暂时不可达而撤销已接纳 PCR 事实。Station MUST NOT 依赖可选 Profile 是否存在、用本地 DID 模板补空、选择第一个候选 PCR，或在 current 分支未决时返回旧 projection 冒充成功。结果 MUST 满足 `project(resolution_projection.did) == account_id.principal_id`；`resolution_event_ref` 与 `updated_at` 仅指向已接纳的 current resolution，不表示独立有效期或授权租约。
+Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选择唯一 PCR，从已验证、已接纳的 `identity_resolution` current typed current result 读取 projection；外部 DID method history、attestation 与依赖验证由 Station 完成。该 typed current result、source 与所属 PCR 的 accepted current 状态 MUST 在同一次一致观察中仍然有效；异步 post-commit 缓存或仅存在 resolution Event 的索引行不构成成功依据。已经验证的 pinned method state MAY 直接复用；本查询 MUST NOT 重新构造完整 portable method history，也不因外部 DID hosting 暂时不可达而撤销已接纳 PCR 事实。Station MUST NOT 依赖可选 Profile 是否存在、用本地 DID 模板补空、选择第一个候选 PCR，或在 current 分支未决时返回旧 projection 冒充成功。结果 MUST 满足 `project(resolution_projection.did) == account_id.principal_id`；`resolution_event_ref` 与 `updated_at` 仅指向已接纳的 current resolution，不表示独立有效期或授权租约。
 
 请求与响应的 canonical JSON 各 MUST ≤ 65536 bytes。请求字节超限 MUST 返回 `413 payload_too_large`；closed 字段/类型不符 MUST 返回 `422 schema_violation`；合法响应无法在预算内完整返回 MUST 返回 `limit_exceeded`，MUST NOT 截断 projection。未认证采用既有 401 合同。错会话账号、错 Station、目标不存在或不可见 MUST 返回同一 `404 not_found`；已认证且可见的自己账号尚无可用已验证 current 结果、依赖缺失或 current 分支未决 MUST 返回 `503 temporarily_unavailable`。这些情况 MUST NOT 返回空成功、借 optional Profile 填充，或回退到客户端审计下载。
 
 客户端 MUST 核对 closed 结构、预算、request_id、完整账号、预期 Station/route、当前 session/device generation 与 DID projection 绑定；旧会话迟到结果 MUST 丢弃。同一完整账号已有 PCR 绑定时，新结果 MUST 与之相等；不得静默改绑。已有 projection 的 `updated_at` 更晚时 MUST 拒绝回退；相等时间不替代 exact current 结果，也不得由客户端自行解析历史裁决分支。本响应不签发未来操作的授权租约。客户端 MAY 保存本账号的身份/PCR 定位结果；后续写入仍由 Station 逐次核对当前授权，需要 exact authoring basis 的操作仍通过各自标准接口准备。
 
-该结果 MUST NOT 携带 method history、projection attestation、PCR genesis/current Event、RealmCommit 或其它 portable evidence。普通登录与 PCR 定位 MUST NOT 调用审计接口作为结果验证前置；审计与 peer/服务器外部验证角色的既有证据接口和密码学规则保持不变。本接口不提供 Genesis notary、公钥或媒体服务路由授权；这两类自己 Station 已验证结果分别由 [server-trusted-results.md §5.8、§5.9](../sync/server-trusted-results.md) 的登记载体承担。
+该结果 MUST NOT 携带 method history、projection attestation、PCR genesis/current Event、RealmCommit 或其它 portable evidence。普通登录与 PCR 定位 MUST NOT 调用审计接口作为结果验证前置；审计与 peer/服务器外部验证角色的既有证据接口和密码学规则保持不变。本接口不提供 generation-0 governance Station、公钥或媒体服务路由授权；这两类自己 Station 已验证结果分别由 [server-trusted-results.md §5.8、§5.9](../sync/server-trusted-results.md) 的登记载体承担。
 
 ### 4.3 Identity Receipt 签名 transcript
 
@@ -772,7 +772,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 **device 绑定策略（normative）**：上述 challenge / 签名 payload 在 multi-device principal（principal 控制 ≥1 个授权 device key）下 MUST 额外携带并签名覆盖 `device_id`,绑定到发起绑定 / 恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成绑定 / 恢复（与 [`account-lifecycle.md` §4](./account-lifecycle.md) soft-logout 恢复的 `device_id` 必填要求一致）。仅当 principal 在 control stream 中**无任何未撤销 device record**（不持有任何当前有效的 device-bound key，proof 由 account auth key / passkey / recovery key 签署）时方可省略 `device_id`。Station Account Authority MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，绕过同 principal 其它设备复用 proof 的窗口。豁免不成立时不得对 device-bound 路径接受缺 `device_id` 的 proof。
 
-该豁免判定 MUST 基于 **fresh PCR control-stream frontier**。control stream 不可达、frontier stale 或 device 投影 freshness 为 `unknown` 时，Station Account Authority MUST 保守按“存在 device record”处理。DID resolver degraded 与此 PCR frontier 判定正交：soft logout、account recovery 和普通 device 路径不得因 DID outage 额外失败；只有显式选择 DID-root factor 的分支才读取 current DID freshness。
+该豁免判定 MUST 基于 **fresh PCR control-stream checkpoint**。control stream 不可达、checkpoint stale 或 device 投影 freshness 为 `unknown` 时，Station Account Authority MUST 保守按“存在 device record”处理。DID resolver degraded 与此 PCR checkpoint 判定正交：soft logout、account recovery 和普通 device 路径不得因 DID outage 额外失败；只有显式选择 DID-root factor 的分支才读取 current DID freshness。
 
 Station Account Authority 在以下情况下 MUST NOT 接受 identity control proof：
 
@@ -1110,7 +1110,7 @@ method history——本部署不控制它。
 `organization_profile_manage` / `organization_realm_endorse` / `organization_service_delegate`，
 且 `ensure` 携带的集合 MUST 与 challenge 所载逐项一致。开放的 scope 词表会让部署凭空铸出
 组织从未同意的管理权。持有 scope 是"日后可以做某事"的许可，不是动作本身：
-registration 本身不创建 Realm、成员、notary、capability 或 service delegation。
+registration 本身不创建 Realm、成员、governance-Station authority、capability 或 service delegation。
 
 **不可枚举。** `resource.get` 对"无权管理"与"不存在"MUST 返回同一个 `did_not_found`，
 否则该查询会成为枚举本部署绑定了哪些组织的侧信道。

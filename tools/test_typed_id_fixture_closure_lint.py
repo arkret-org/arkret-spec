@@ -3,12 +3,11 @@
 The prefix, id_form and payload-form closures all read
 ``typed_id_validation_documents``, which sweeps ``artifacts/schemas`` and
 ``artifacts/openapi``. A conformance fixture validates nothing, so it sat
-outside every one of them, and a shipped positive vector carried
-``ak:seal:<uuidv7>`` -- a wire form the registry never declared and the repo's
-own schemas reject -- with two ``batch_tag`` digests computed over exactly those
-bytes. Implementations align to a vector byte for byte, so an unregistered form
-in a KAT is worse than a loose regex: it freezes the wrong value into a
-published expectation.
+outside every one of them, and a shipped positive vector carried a
+content-addressed identifier written as ``<uuidv7>`` -- a wire form the registry
+never declared and the repo's own schemas reject. Implementations align to a
+vector byte for byte, so an unregistered form in a KAT is worse than a loose
+regex: it freezes the wrong value into a published expectation.
 
 Each case below reproduces one shape that failure can take and asserts the value
 closure rejects it, asserts the legitimate shapes stay accepted, and holds the
@@ -18,9 +17,7 @@ value can opt out by renaming its field.
 
 from __future__ import annotations
 
-import base64
 import copy
-import hashlib
 import inspect
 import json
 import sys
@@ -36,14 +33,13 @@ from tools.artifact_lint import runner
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 FIXTURES = ARTIFACTS / "fixtures"
-ENCODING_FIXTURE = FIXTURES / "encoding-fixture.json"
 EXEMPTIONS = lint_artifacts.FIXTURE_TYPED_ID_EXEMPTION_PATH
 SYNTHETIC = FIXTURES / "synthetic-fixture.json"
 
 EVENT_TOKEN = "AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09"
-REGISTERED_SEAL = "ak:seal:sha256:" + "a" * 64
-UNREGISTERED_SEAL = "ak:seal:01964185-0400-7000-8000-00000000000a"
-OR_SET_DOT = f"ak:event:{EVENT_TOKEN}:0"
+COMMIT_TOKEN = "BZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09"
+REGISTERED_COMMIT = f"ak:realm_commit:{COMMIT_TOKEN}"
+UNREGISTERED_COMMIT = "ak:realm_commit:01964185-0400-7000-8000-00000000000a"
 
 
 def _load(path: Path) -> Any:
@@ -90,12 +86,6 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
     def _shipped_exemptions(self) -> dict[str, Any]:
         return copy.deepcopy(_load(EXEMPTIONS))
 
-    def _or_set_vector(self) -> dict[str, Any]:
-        for vector in _load(ENCODING_FIXTURE)["vectors"]:
-            if vector.get("vector_id") == "ak.vector.encoding.or_set_dot_and_batch_tag.v1":
-                return vector
-        raise AssertionError("or_set_dot_and_batch_tag vector is missing")
-
     # --- committed tree -------------------------------------------------
 
     def test_committed_fixtures_pass(self) -> None:
@@ -113,46 +103,27 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
 
     # --- the regression this closure exists for --------------------------
 
-    def test_uuid_shaped_seal_value_is_rejected(self) -> None:
+    def test_uuid_shaped_content_addressed_value_is_rejected(self) -> None:
         self._assert_rejected(
-            self._run({"cases": [{"value": UNREGISTERED_SEAL}]}),
-            f"ships ak:seal value {UNREGISTERED_SEAL!r}",
+            self._run({"cases": [{"value": UNREGISTERED_COMMIT}]}),
+            f"ships ak:realm_commit value {UNREGISTERED_COMMIT!r}",
         )
-
-    def test_or_set_batch_tags_are_digests_of_the_registered_values(self) -> None:
-        # The vector's own definition: batch_tag =
-        # base64url_nopad(sha256(tag_context || 0x0A || dot || 0x0A ||
-        # canonical_json(value))). Recomputing it here binds the published digest
-        # to the published value, so correcting one without the other fails.
-        vector = self._or_set_vector()
-        batch_add = vector["batch_add"]
-        values = [case["value"] for case in batch_add["cases"]]
-        self.assertEqual(values, batch_add["sorted_values"])
-        self.assertEqual(values, sorted(values))
-        for case in batch_add["cases"]:
-            canonical = json.dumps(case["value"], ensure_ascii=False, separators=(",", ":"))
-            preimage = f"{batch_add['tag_context']}\n{batch_add['dot']}\n{canonical}"
-            self.assertEqual(case["tag_preimage_utf8"], preimage)
-            self.assertEqual(
-                case["batch_tag"],
-                base64.urlsafe_b64encode(
-                    hashlib.sha256(preimage.encode("utf-8")).digest()
-                ).decode("ascii").rstrip("="),
-            )
 
     # --- carrier positions ----------------------------------------------
 
     def test_object_key_is_inside_the_closure(self) -> None:
-        failures = self._run({UNREGISTERED_SEAL: {"covered": True}})
-        self._assert_rejected(failures, f"ships ak:seal value {UNREGISTERED_SEAL!r}")
+        failures = self._run({UNREGISTERED_COMMIT: {"covered": True}})
+        self._assert_rejected(
+            failures, f"ships ak:realm_commit value {UNREGISTERED_COMMIT!r}"
+        )
 
     def test_embedded_canonical_json_string_is_inside_the_closure(self) -> None:
         # This is the digest preimage shape: an unregistered value can hide
         # inside a preimage even after every standalone copy is corrected.
-        preimage = f'ak.covered-seal-tag-v1\n{OR_SET_DOT}\n"{UNREGISTERED_SEAL}"'
+        preimage = f'ak.commit-tag-v1\nak:event:{EVENT_TOKEN}\n"{UNREGISTERED_COMMIT}"'
         self._assert_rejected(
             self._run({"tag_preimage_utf8": preimage}),
-            f"ships ak:seal value {UNREGISTERED_SEAL!r}",
+            f"ships ak:realm_commit value {UNREGISTERED_COMMIT!r}",
         )
 
     def test_unquoted_prose_mention_is_not_a_value(self) -> None:
@@ -160,8 +131,8 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
             self._run(
                 {
                     "note": (
-                        "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; "
-                        "request a proof for ak:cell:ak.component.member.state.v1"
+                        "Commit ids follow ak:realm_commit:<44-char-base64url>; "
+                        "request a proof for ak:realm_commit:<commit>"
                     )
                 }
             ),
@@ -190,14 +161,8 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
 
     # --- registered forms stay accepted -----------------------------------
 
-    def test_registered_seal_digest_form_is_accepted(self) -> None:
-        self.assertEqual(self._run({"value": REGISTERED_SEAL}), [])
-
-    def test_canonical_or_set_dot_is_accepted(self) -> None:
-        # The dot is a registered composite carrier; the value closure reads the
-        # same swept schema branches the payload-form closure holds to the
-        # registry, so it needs no restated wire form of its own.
-        self.assertEqual(self._run({"tag": OR_SET_DOT}), [])
+    def test_registered_commit_digest_form_is_accepted(self) -> None:
+        self.assertEqual(self._run({"value": REGISTERED_COMMIT}), [])
 
     def test_both_registered_blob_forms_are_accepted(self) -> None:
         self.assertEqual(
@@ -229,11 +194,11 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
         self._assert_rejected(
             self._run(
                 {
-                    "negative_cases": [{"invalid_seal_id": UNREGISTERED_SEAL}],
-                    "reject_cases": [{"value": UNREGISTERED_SEAL}],
+                    "negative_cases": [{"invalid_commit_id": UNREGISTERED_COMMIT}],
+                    "reject_cases": [{"value": UNREGISTERED_COMMIT}],
                 }
             ),
-            f"ships ak:seal value {UNREGISTERED_SEAL!r}",
+            f"ships ak:realm_commit value {UNREGISTERED_COMMIT!r}",
         )
 
     def test_exemption_is_pinned_to_the_exact_value(self) -> None:
@@ -290,7 +255,7 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
             {
                 "pointer": "encoding-fixture.json#/vectors/0/nothing_here",
                 "position": "value",
-                "value": UNREGISTERED_SEAL,
+                "value": UNREGISTERED_COMMIT,
                 "category": "deliberate_negative_vector",
                 "reason": "n/a",
             }
@@ -310,18 +275,18 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
     def test_value_occurrence_rows(self) -> None:
         rows = lint_artifacts.typed_id_fixture_value_rows(
             {
-                "a": UNREGISTERED_SEAL,
-                "b": [f'ctx\n{OR_SET_DOT}\n"{REGISTERED_SEAL}"'],
-                UNREGISTERED_SEAL: 1,
-                "c": "ak:seal:",
+                "a": UNREGISTERED_COMMIT,
+                "b": [f'ctx\nak:event:{EVENT_TOKEN}\n"{REGISTERED_COMMIT}"'],
+                UNREGISTERED_COMMIT: 1,
+                "c": "ak:realm_commit:",
             }
         )
         self.assertEqual(
             [(pointer, position, segment) for pointer, position, segment, _p, _v in rows],
             [
-                ("/a", "value", "seal"),
-                ("/b/0", "embedded_json_string", "seal"),
-                (f"/{UNREGISTERED_SEAL}", "object_key", "seal"),
+                ("/a", "value", "realm_commit"),
+                ("/b/0", "embedded_json_string", "realm_commit"),
+                (f"/{UNREGISTERED_COMMIT}", "object_key", "realm_commit"),
             ],
         )
 
@@ -332,17 +297,14 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
         forms = lint_artifacts.registered_typed_id_value_forms(lint, registry, path)
         self.assertEqual(list(lint.errors), [])
         self.assertIn(lint_artifacts.EVENT_TOKEN_PAYLOAD_REGEX, forms["event"])
-        self.assertIn("(?:sha256|blake3):[0-9a-f]{64}", forms["seal"])
         self.assertIn(lint_artifacts.PRODUCER_UUID_PAYLOAD_REGEX, forms["blob"])
         self.assertIn("(?:sha256|blake3):[0-9a-f]{64}", forms["blob"])
         self.assertTrue(
-            lint_artifacts.payload_matches_registered_form(
-                f"{EVENT_TOKEN}:0", forms["event"]
-            )
+            lint_artifacts.payload_matches_registered_form(EVENT_TOKEN, forms["event"])
         )
         self.assertFalse(
             lint_artifacts.payload_matches_registered_form(
-                "01964185-0400-7000-8000-00000000000a", forms["seal"]
+                "01964185-0400-7000-8000-00000000000a", forms["realm_commit"]
             )
         )
 

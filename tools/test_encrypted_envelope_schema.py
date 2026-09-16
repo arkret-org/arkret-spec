@@ -33,17 +33,24 @@ class EncryptedEnvelopeSchemaTest(unittest.TestCase):
             "ciphertext": "AQID",
         }
 
-    def test_counter_presence_selects_one_closed_branch(self):
+    def test_standard_context_is_the_only_closed_branch(self):
         standard = self.envelope()
         self.validator.validate(standard)
-        for counter in (0, 7, 9007199254740991):
-            exporter = copy.deepcopy(standard)
-            exporter["encryption_context"]["counter"] = counter
-            self.validator.validate(exporter)
-        for counter in (None, False, -1, "0", 0.5, 9007199254740992, 18446744073709551615):
-            with self.subTest(counter=counter):
+        with_routing = copy.deepcopy(standard)
+        with_routing["encryption_context"]["routing_context"] = {
+            "target_ref": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
+            "routing_tag": "A" * 43,
+        }
+        self.validator.validate(with_routing)
+        for field, value in (("counter", 0), ("scheme", "mls_rfc9420"), ("unknown", True)):
+            with self.subTest(field=field):
                 invalid = copy.deepcopy(standard)
-                invalid["encryption_context"]["counter"] = counter
+                invalid["encryption_context"][field] = value
+                self.assertFalse(self.validator.is_valid(invalid))
+        for missing in ("epoch", "group_state_ref"):
+            with self.subTest(missing=missing):
+                invalid = copy.deepcopy(standard)
+                del invalid["encryption_context"][missing]
                 self.assertFalse(self.validator.is_valid(invalid))
 
     def test_epoch_and_extra_fields_obey_canonical_envelope(self):
@@ -52,7 +59,7 @@ class EncryptedEnvelopeSchemaTest(unittest.TestCase):
         self.validator.validate(value)
         value["encryption_context"]["epoch"] += 1
         self.assertFalse(self.validator.is_valid(value))
-        for context in ({"scheme": "mls_rfc9420"}, {"counter": 0, "unknown": True}):
+        for context in ({"scheme": "mls_rfc9420"}, {"unknown": True}):
             value = self.envelope()
             value["encryption_context"].update(context)
             self.assertFalse(self.validator.is_valid(value))

@@ -105,7 +105,7 @@ Event chain 可以由以下形态承载：
 - 多个受控 storage replica 保存的只读副本。
 - Station 在 DID Document 中声明的服务 endpoint。
 
-Event 的实际存储形态由实现决定：可以是数据库表、对象存储中的 Event blob、文件系统 append-only log、Merkle log、content-addressed block store，或这些形式的组合。协议只要求它能稳定输出 canonical Event bytes、hash、签名、frontier、cursor 和 proof material。
+Event 的实际存储形态由实现决定：可以是数据库表、对象存储中的 Event blob、文件系统 append-only log、Merkle log、content-addressed block store，或这些形式的组合。协议只要求它能稳定输出 canonical Event bytes、hash、签名、checkpoint、cursor 和 proof material。
 
 Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`producer_revision` 路径递增约束、`domain_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Station。Station 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
@@ -123,12 +123,12 @@ Station 不是身份本身，也不能替 principal 伪造 Event，**更不是�
 明文规则：
 
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
-- 如果 Realm 声明了 shared notary / Station sync surface，该服务必须是 Realm policy 中显式列出的受信 Station 或组织服务 DID。
+- 如果 Realm 声明了 shared Station sync surface，该服务必须是 Realm policy 中显式列出的受信 Station 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
 - Realm member identity 由完整 ActorId 决定；目标 Station 从其 account 分支派生，endpoint 另走标准 service resolution。DID Document 不补齐账号身份或 membership route。
 - 私有正文、附件预览、全文索引、通知摘要、embedding 与可逆派生摘要的受托服务可见边界，由 [`sync/service-surface.md` §5.4](../sync/service-surface.md) 的 `plaintext_visible_services` 权威规则定义；本节只记录该边界属于 Realm policy，而不重复条目 schema 与授权事件。
 - 接收方 Station 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
-- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_access` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ak.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_access=all_history_for_current_members` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_access` 是否世界可读、scope 是否尚未激活 MLS；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ak.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_access=all_history_for_current_members` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection
@@ -140,7 +140,7 @@ Station 不是身份本身，也不能替 principal 伪造 Event，**更不是�
 - View 是可同步的投影定义，不拥有被投影对象的事实。
 - 查询、搜索和 projection MUST NOT 绕过 Realm policy、`allowed_tracks` action scope、history visibility、E2EE 可见性或 capability。`allowed_tracks` 只在已有 Realm / capability 授权内缩小 track 范围，不是独立 track-level ACL。
 - 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Realm policy 列入 `plaintext_visible_services`。
-- 派生输出 MUST NOT 成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和对应 stream 的 committed positions 重新计算。
+- 派生输出 MUST NOT 成为唯一真相源；缓存丢失后必须能从 signed Event、fixed reducer semantics、View definition 和对应 stream 的 committed positions 重新计算。
 
 ### 2.5 Blob Store
 
@@ -285,9 +285,9 @@ flowchart TB
 - 当前态查询
 - 视图查询
 - 搜索
-- **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
+- **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync checkpoint 等待特定写入前沿的到达，保障“读己之所写”体验。
 
-Projection Plane 的输出是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计），不依赖 Presentation Plane 的渲染逻辑；该输出形态的权威 normative 约束（response 结构、`basis` / `frontier` / `grade`）见 [`conformance/query-schema.md` §8](../conformance/query-schema.md)，授权过滤与不绕过 Realm policy / history visibility / E2EE 可见性的 normative 规则见 [同文 §9](../conformance/query-schema.md)。本子节的描述为 informative，字段约束以该锚点为准。Local Query 是 Projection Plane 的职责之一，不是独立平面。
+Projection Plane 的输出是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计），不依赖 Presentation Plane 的渲染逻辑；该输出形态的权威 normative 约束（response 结构、`basis` / `checkpoint` / `grade`）见 [`conformance/query-schema.md` §8](../conformance/query-schema.md)，授权过滤与不绕过 Realm policy / history visibility / E2EE 可见性的 normative 规则见 [同文 §9](../conformance/query-schema.md)。本子节的描述为 informative，字段约束以该锚点为准。Local Query 是 Projection Plane 的职责之一，不是独立平面。
 
 ### 3.5 Presentation Plane
 
@@ -360,7 +360,7 @@ flowchart LR
         DIR["Directory Service"]
         BLOB["Blob Service<br/>(bounded bytes only)"]
         PUSH["Push Gateway"]
-        EXT["Media / TURN / SFU · Applet Service · Agent Runtime<br/>Notary · Moderation · Archive · Key/Account Recovery"]
+        EXT["Media / TURN / SFU · Applet Service · Agent Runtime<br/>Moderation · Archive · Key/Account Recovery"]
     end
 
     C1 --> EV
@@ -619,10 +619,10 @@ Arkret v1 固定以下方向：
 Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Station / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ak.profile.station.v1` 或 `ak.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
-- Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。
-- Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、reducer profile 和对应 stream 的 RealmCommit position。
+- Client sync、subscribe、backfill、snapshot checkpoint 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。
+- Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、fixed reducer semantics 和对应 stream 的 RealmCommit position。
 - Capability cache 只能作为优化。缓存命中必须绑定 exact authority revision、grant / revoke / claim 状态和 policy version；上下文缺失、过期或无法验证时 MUST fail closed 或重新执行完整 authz。
-- 多 Station 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
+- 多 Station 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、checkpoint、snapshot hash、fixed reducer semantics 和 plaintext visibility 后再选用服务。
 - 加密 envelope、Station device/key surface、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
 - Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端 MUST NOT 仅信任外部 projection 或 search dump。
 

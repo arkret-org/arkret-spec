@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-16.8",
+  "version": "2026-09-16.9",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T09:30:00+08:00",
+  "generated_at": "2026-09-16T10:50:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -430,7 +430,7 @@
         "agent_provision_scope_migration_required",
         "agent_key_scope_reauthorization_required"
       ],
-      "description": "Agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted control frontier; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events.",
+      "description": "Agent runtime key pairing. Admission verifies current controller/Agent authority, the pairing handle, requested-scope disclosure, proof-of-possession and accepted authority-committed current results; backup availability is neither an input nor a gate. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events.",
       "codes": []
     },
     {
@@ -940,7 +940,7 @@
       "operation_specific": [
         "not_found",
         "unsupported_feature",
-        "frontier_unavailable",
+        "revision_unavailable",
         "payload_too_large",
         "limit_exceeded",
         "cursor_expired",
@@ -949,7 +949,7 @@
         "dependency_missing",
         "rate_limited"
       ],
-      "description": "Unauthorized, nonexistent, expired/revoked/cross-account invite or currently disallowed policy share non-enumerating not_found and timing bucket, rechecked each page. Expired/lost context is cursor_expired; mismatched binding is cursor_integrity_invalid. Request identity conflict is duplicate_conflict. Missing accepted basis is frontier_unavailable, missing graph record is dependency_missing. Each page is at most 8 MiB; record/context/work budget exhaustion is limit_exceeded with prior progress retained, never truncated success. Required but undisclosable private-scope material is frontier_unavailable; an invite cannot override scope disclosure authorization.",
+      "description": "Unauthorized, nonexistent, expired/revoked/cross-account invite or currently disallowed policy share non-enumerating not_found and timing bucket, rechecked each page. Expired/lost context is cursor_expired; mismatched binding is cursor_integrity_invalid. Request identity conflict is duplicate_conflict. Missing accepted basis is revision_unavailable, missing graph record is dependency_missing. Each page is at most 8 MiB; record/context/work budget exhaustion is limit_exceeded with prior progress retained, never truncated success. Required but undisclosable private-scope material is revision_unavailable; an invite cannot override scope disclosure authorization.",
       "codes": []
     },
     {
@@ -1075,7 +1075,7 @@
       "http_alias": "POST /_arkret/root/identity/recovery-policy",
       "operation_specific": [
         "failed_precondition",
-        "frontier_unavailable",
+        "revision_unavailable",
         "proof_invalid",
         "recovery_principal_isolation",
         "recovery_policy_genesis_not_v1",
@@ -1083,7 +1083,7 @@
         "recovery_policy_version_not_monotonic",
         "recovery_proof_kind_unknown"
       ],
-      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and the closed policy signature transcript/authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. frontier_unavailable is the retry-safe response while the submitted Event is valid but its covering control RealmCommit/AuthorityRevision has not materialized.",
+      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and the closed policy signature transcript/authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. revision_unavailable is the retry-safe response while the submitted Event is valid but its covering control RealmCommit/AuthorityRevision has not materialized.",
       "codes": []
     },
     {
@@ -1162,10 +1162,10 @@
         "avatar_blob_ref_invalid",
         "unsupported_profile_patch_path",
         "failed_precondition",
-        "frontier_unavailable",
+        "revision_unavailable",
         "duplicate_conflict"
       ],
-      "description": "Profile self-service accepts exactly one holder-signed ak.profile.create or ak.profile.update EventInitialSubmission. failed_precondition covers create against an existing Profile, update without an accepted Profile, target/PCR/session authority mismatch, expected_state_digest mismatch, and deterministic profile reducer guards. frontier_unavailable is retry-safe while the valid Control Move lacks accepted RealmCommit coverage. Replaying the same Event identity with different bytes returns duplicate_conflict; exact replay after coverage returns the stored outcome without another aggregate delta. Update patch paths remain limited to display_name, avatar_blob_ref, and profile_fields.<key>; avatar_url is rejected.",
+      "description": "Profile self-service accepts exactly one holder-signed ak.profile.create or ak.profile.update EventCommitSubmission. failed_precondition covers create against an existing Profile, update without an accepted Profile, target/PCR/session authority mismatch, expected_state_digest mismatch, and deterministic profile reducer guards. revision_unavailable is retry-safe while the valid Event lacks accepted RealmCommit coverage. Replaying the same Event identity with different bytes returns duplicate_conflict; exact replay after coverage returns the stored outcome without another aggregate delta. Update patch paths remain limited to display_name, avatar_blob_ref, and profile_fields.<key>; avatar_url is rejected.",
       "codes": []
     },
     {
@@ -1399,7 +1399,7 @@
         "applet_namespace_mismatch",
         "applet_registration_unauthorized"
       ],
-      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact account ActorId, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1.",
+      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact account ActorId, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/checkpoints, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1.",
       "codes": []
     },
     {
@@ -1506,7 +1506,7 @@
         "media_plaintext_service_not_authorised",
         "media_service_foci_required"
       ],
-      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media security-frontier freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[].",
+      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media key-access-revision freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[].",
       "codes": []
     },
     {
@@ -1616,13 +1616,13 @@
       "operation_specific": [
         "failed_precondition",
         "duplicate_conflict",
-        "frontier_unavailable",
+        "revision_unavailable",
         "source_refs_unverifiable",
         "contact_lineage_conflict",
         "continuity_evidence_unavailable",
         "continuity_invalid"
       ],
-      "description": "Two-phase holder-local Contact request acceptance stores one signed fact and its source receipt. Target resolution and delivery occur later through the receipted peer carrier, so an unresolved target does not reject prepare. It writes no Private Consent and conflicts on byte drift, slot reuse or an already-consumed request ref; frontier_unavailable is retry-safe while the holder PCR actor or accepted RealmCommit frontier is unavailable.",
+      "description": "Two-phase holder-local Contact request acceptance stores one signed fact and its source receipt. Target resolution and delivery occur later through the receipted peer carrier, so an unresolved target does not reject prepare. It writes no Private Consent and conflicts on byte drift, slot reuse or an already-consumed request ref; revision_unavailable is retry-safe while the holder PCR actor or accepted RealmCommit checkpoint is unavailable.",
       "codes": []
     },
     {
@@ -1813,7 +1813,7 @@
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
-        "backup_frontier_stale",
+        "backup_revision_stale",
         "not_found"
       ],
       "description": "SecurityRotation old-series erasure rejects plan mismatch, missing authoritative pointers and conflicting replay; partial storage progress is a typed success outcome.",
@@ -1840,7 +1840,7 @@
       "operation_specific": [
         "not_found",
         "recovery_evidence_unbound",
-        "backup_frontier_stale",
+        "backup_revision_stale",
         "series_chain_broken",
         "signature_invalid",
         "untrusted_backup_signature"
@@ -1852,10 +1852,10 @@
       "http_alias": "GET /_arkret/self/keys/backups",
       "operation_specific": [
         "cursor_invalid",
-        "frontier_unavailable",
+        "revision_unavailable",
         "limit_exceeded"
       ],
-      "description": "Current accepted PCR pointer state is required even for empty/filtered metadata pages. frontier_unavailable is never represented as absent; cursor_invalid rejects stale or cross-selector continuation; limit_exceeded rejects a result that cannot fit a complete bounded page.",
+      "description": "Current accepted PCR pointer state is required even for empty/filtered metadata pages. revision_unavailable is never represented as absent; cursor_invalid rejects stale or cross-selector continuation; limit_exceeded rejects a result that cannot fit a complete bounded page.",
       "codes": []
     },
     {
@@ -1970,7 +1970,7 @@
         "dependency_missing",
         "duplicate_conflict",
         "failed_precondition",
-        "frontier_unavailable",
+        "revision_unavailable",
         "not_found",
         "payload_too_large",
         "unsupported_feature"
@@ -2037,11 +2037,11 @@
       "operation_specific": [
         "not_found",
         "unsupported_feature",
-        "frontier_unavailable",
+        "revision_unavailable",
         "failed_precondition",
         "payload_too_large"
       ],
-      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 frontier_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. A required authority-stream head or admission basis that cannot be derived is 503 frontier_unavailable and never a defaulted position=0.",
+      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 revision_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. A required authority-stream head or admission basis that cannot be derived is 503 revision_unavailable and never a defaulted position=0.",
       "codes": []
     },
     {
@@ -2185,7 +2185,7 @@
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
       "http_alias": "POST /_arkret/self/third-party-invites/acceptance-attestation",
       "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. Not visible, not authored by the caller and not pending all return the uniform not_found of third-party-invites.md section 6; a current accepted basis the Station cannot confirm inside the Realm revocation freshness window returns frontier_unavailable.",
+      "description": "No operation-specific error codes beyond the universal failure surface. Not visible, not authored by the caller and not pending all return the uniform not_found of third-party-invites.md section 6; a current accepted basis the Station cannot confirm inside the Realm revocation freshness window returns revision_unavailable.",
       "codes": []
     },
     {

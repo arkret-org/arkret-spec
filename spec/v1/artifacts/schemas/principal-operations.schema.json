@@ -111,14 +111,14 @@
       "type": "object",
       "required": [
         "receiver_eligibility_basis",
-        "causal_frontiers",
+        "commit_prefixes",
         "share_authority_ref"
       ],
       "properties": {
         "receiver_eligibility_basis": {
           "$ref": "#/$defs/receiver_eligibility_basis"
         },
-        "causal_frontiers": {
+        "commit_prefixes": {
           "type": "object",
           "required": [
             "share"
@@ -151,7 +151,7 @@
         "verified_display_allowed",
         "controlled_cache_allowed",
         "subsequent_share_allowed",
-        "current_policy_frontier"
+        "current_policy_commit_event_id"
       ],
       "properties": {
         "verified_display_allowed": {
@@ -163,7 +163,7 @@
         "subsequent_share_allowed": {
           "type": "boolean"
         },
-        "current_policy_frontier": {
+        "current_policy_commit_event_id": {
           "$ref": "#/$defs/event_id"
         }
       },
@@ -638,7 +638,7 @@
         }
       ]
     },
-    "sidecar_control_frontier": {
+    "sidecar_stream_head": {
       "type": "object",
       "required": [
         "create_event_ref",

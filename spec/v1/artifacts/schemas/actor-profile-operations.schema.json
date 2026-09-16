@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/actor-profile-operations.schema.json",
   "title": "Arkret Actor Profile Operations",
-  "description": "Authorized anti-enumeration display view of a co-member global Actor Profile, served by the authenticated own Station. The ordinary profile Event is provenance, not a complete CRDT proof. The operation grants no identity, capability or membership authority and never requires an ordinary Event to obtain RealmCommit coverage.",
+  "description": "Authorized anti-enumeration display view of a co-member global Actor Profile, served by the authenticated own Station. The ordinary profile Event is provenance, not a complete CRDT proof. The operation grants no identity, capability or membership authority and never requires an Event to obtain RealmCommit coverage.",
   "$defs": {
     "resolve_request": {
       "type": "object",

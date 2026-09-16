@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 144,
+    "complete_event_id": 146,
     "digest_copy_or_commitment": 5,
     "external_event_namespace": 1
   },
@@ -205,12 +205,6 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "audit-ryw-receipt.schema.json",
-      "json_pointer": "/properties/audit_event_id",
-      "field": "audit_event_id",
-      "classification": "complete_event_id"
-    },
-    {
       "schema": "authority-commit-operations.schema.json",
       "json_pointer": "/$defs/committed_event_ref/properties/event_id",
       "field": "event_id",
@@ -250,6 +244,12 @@
       "schema": "contact-operations.schema.json",
       "json_pointer": "/$defs/contact_accept_request/oneOf/0/properties/request_event_ref",
       "field": "request_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/contact_current_proof/properties/accepted_commit_event_ids",
+      "field": "accepted_commit_event_ids",
       "classification": "complete_event_id"
     },
     {
@@ -328,6 +328,12 @@
       "schema": "contact-operations.schema.json",
       "json_pointer": "/$defs/direct_conversation_summary/properties/binding_event_ref",
       "field": "binding_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "contact-operations.schema.json",
+      "json_pointer": "/$defs/glare_concurrency_attestation/properties/observed_commit_event_ids",
+      "field": "observed_commit_event_ids",
       "classification": "complete_event_id"
     },
     {
@@ -716,13 +722,19 @@
     },
     {
       "schema": "principal-operations.schema.json",
+      "json_pointer": "/$defs/history_t2/properties/current_policy_commit_event_id",
+      "field": "current_policy_commit_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "principal-operations.schema.json",
       "json_pointer": "/$defs/prepared_event_draft/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "principal-operations.schema.json",
-      "json_pointer": "/$defs/sidecar_control_frontier/properties/create_event_ref",
+      "json_pointer": "/$defs/sidecar_stream_head/properties/create_event_ref",
       "field": "create_event_ref",
       "classification": "complete_event_id"
     },

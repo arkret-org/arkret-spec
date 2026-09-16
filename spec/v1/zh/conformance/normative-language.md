@@ -83,7 +83,7 @@ Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs
 
 `spec/v1/zh/**/*.md` 的 frontmatter **取值**采用以下封闭词表，lint MUST 拒绝未知值。本节约束的是下列各字段的取值域，不是 frontmatter 的键集合——`title` / `see_also` 等其它键不受本词表限制：
 
-- `status`：`draft` / `candidate` / `stable` / `deprecated`；
+- `status`：`draft` / `candidate` / `stable`；
 - `normative`：YAML boolean `true` / `false`；
 - `stability`：current-v1 树中只能是 `v1`，表示协议代际，不表示 core / optional。可选性必须由
   profile 与 protocol-layer / binding registry 表达，不得发明 `v1-extension` 等复合取值。

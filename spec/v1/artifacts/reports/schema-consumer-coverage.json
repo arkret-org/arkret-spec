@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 216,
+    "total_schemas": 214,
     "by_consumer": {
-      "declared_wire": 55,
+      "declared_wire": 54,
       "event_kind": 3,
       "inbound": 51,
       "outbound": 62,
-      "prose": 103,
+      "prose": 101,
       "prose_only": 2,
-      "schema_reference": 154,
-      "startup_compile": 216,
-      "vectors": 111
+      "schema_reference": 153,
+      "startup_compile": 214,
+      "vectors": 108
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 105,
+    "without_vector_coverage": 106,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -89,7 +89,6 @@
     "ak.schema.applet_managed_actor_provision.v1",
     "ak.schema.applet_registration_epoch_evidence.v1",
     "ak.schema.applet_widget_declaration.v1",
-    "ak.schema.audit_release_attestation.v1",
     "ak.schema.authenticated_signer_resolution_evidence.v1",
     "ak.schema.authority_commit_operations.v1",
     "ak.schema.authority_set_policy.v1",
@@ -132,6 +131,8 @@
     "ak.schema.message_prepare_outcome.v1",
     "ak.schema.message_prepare_request.v1",
     "ak.schema.mimi_operations.v1",
+    "ak.schema.mls_commit_submission.v1",
+    "ak.schema.mls_welcome_delivery.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.patch.v1",
     "ak.schema.presence_preference.v1",
@@ -875,43 +876,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.audit_release_attestation.v1",
-      "file": "schemas/audit-release-attestation.schema.json",
-      "consumers": {
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
-      }
-    },
-    {
-      "schema_id": "ak.schema.audit_ryw_receipt.v1",
-      "file": "schemas/audit-ryw-receipt.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "prose": "normative_text",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "audit read-your-writes receipt",
-        "normative_ref": "zh/models/event-and-patch.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "consumers": {
@@ -1193,8 +1157,6 @@
           "ak.schema.applet_registration_epoch_evidence.v1",
           "ak.schema.applet_registration_epoch_transcript.v1",
           "ak.schema.applet_widget_declaration.v1",
-          "ak.schema.audit_release_attestation.v1",
-          "ak.schema.audit_ryw_receipt.v1",
           "ak.schema.authenticated_signer_resolution_evidence.v1",
           "ak.schema.authority_commit_operations.v1",
           "ak.schema.authority_set_policy.v1",
@@ -2016,7 +1978,6 @@
       "file": "schemas/holder-quarantine.schema.json",
       "consumers": {
         "declared_wire": "account_data_plaintext",
-        "prose": "normative_text",
         "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "fixture"
@@ -2597,13 +2558,15 @@
       "file": "schemas/mls-commit-submission.schema.json",
       "consumers": {
         "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
+        "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.authority_commit_operations.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {
@@ -2611,13 +2574,15 @@
       "file": "schemas/mls-welcome-delivery.schema.json",
       "consumers": {
         "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
+        "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.mls_commit_submission.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {
@@ -4033,8 +3998,6 @@
           "ak.schema.applet_package.v1",
           "ak.schema.applet_registration_epoch_transcript.v1",
           "ak.schema.applet_widget_declaration.v1",
-          "ak.schema.audit_release_attestation.v1",
-          "ak.schema.audit_ryw_receipt.v1",
           "ak.schema.authenticated_signer_resolution_evidence.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.blob.v1",

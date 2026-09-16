@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/circle-operations.schema.json",
   "title": "Arkret Circle Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Every write operation carries the caller-signed ak.circle.* Event and the service submits those exact bytes through ordinary Event admission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
+  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Every write operation carries the caller-signed ak.circle.* Event and the service submits those exact bytes through authority Event submission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/circle_create_request_body"
@@ -43,7 +43,7 @@
     },
     "circle_view": {
       "type": "object",
-      "description": "Circle projection row returned by create/get/lifecycle operations. Reducer-managed mls_group_id is present exactly for MLS-backed Circles; actor create payloads cannot carry it.",
+      "description": "Circle projection returned by create/get/lifecycle operations. MLS activation is derived from an accepted ak.mls.genesis in this Circle stream.",
       "required": [
         "circle_id",
         "realm_id",
@@ -52,7 +52,6 @@
         "directory_visibility",
         "join_rule",
         "history_access",
-        "encryption_profile",
         "state",
         "member_ids",
         "created_by",
@@ -104,33 +103,6 @@
             "all_history_for_current_members"
           ]
         },
-        "content_encryption_floor": {
-          "type": "string",
-          "enum": [
-            "allow_plaintext",
-            "e2ee_required"
-          ]
-        },
-        "metadata_encryption_floor": {
-          "type": "string",
-          "enum": [
-            "allow_plaintext",
-            "e2ee_required"
-          ]
-        },
-        "encryption_profile": {
-          "type": "string",
-          "enum": [
-            "none",
-            "mls_rfc9420"
-          ]
-        },
-        "content_scheme": {
-          "enum": [
-            "mls_rfc9420",
-            "mls_exporter_aead_v1"
-          ]
-        },
         "mls_group_id": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
@@ -164,23 +136,6 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "encryption_profile": {
-                "const": "mls_rfc9420"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "content_scheme",
-              "mls_group_id"
-            ]
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "circle_create_request_body": {
@@ -193,7 +148,7 @@
         "create_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
             },
             {
               "properties": {
@@ -214,7 +169,7 @@
               ]
             }
           ],
-          "description": "Closed ak.circle.create Event authored and signed by the authenticated caller. Admission requires the payload closed union and forbids id/mls_group_id. The reducer derives both identifiers. encryption_profile='none' is allowed only when the parent Realm content-encryption floor permits plaintext."
+          "description": "Closed ak.circle.create Event authored and signed by the authenticated caller. Admission requires the payload closed union and forbids id/mls_group_id. The reducer derives both identifiers. The Circle scope stays plaintext until its own ak.mls.genesis is accepted."
         }
       },
       "additionalProperties": false
@@ -248,7 +203,7 @@
         "member_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
             },
             {
               "properties": {
@@ -269,14 +224,14 @@
               ]
             }
           ],
-          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through ordinary Event admission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.actor_id is the authenticated caller and that payload.circle_id names the path Circle. Moving another actor to join requires ak.circle.member.manage narrowed by allowed_circle_ids, and the target MUST already be a joined parent-Realm member; knock requires join_rule=knock. A self-service join is gated on the Circle join_rule instead."
+          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through authority Event submission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.actor_id is the authenticated caller and that payload.circle_id names the path Circle. Moving another actor to join requires ak.circle.member.manage narrowed by allowed_circle_ids, and the target MUST already be a joined parent-Realm member; knock requires join_rule=knock. A self-service join is gated on the Circle join_rule instead."
         }
       },
       "additionalProperties": false
     },
     "circle_member_delete_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.circle.member.state leave Event and nothing else. The path circle_id and actor_id MUST respectively equal member_event.event.payload.circle_id and payload.member_id; member_event.event.realm_id MUST equal the path Circle's parent Realm. The path name actor_id is a route selector only; the canonical Event payload identity field is member_id. The service submits the exact signed Event through ordinary Event admission and MUST NOT rebuild it or synthesize a leave Event.",
+      "description": "Carries the caller-signed ak.circle.member.state leave Event and nothing else. The path circle_id and actor_id MUST respectively equal member_event.event.payload.circle_id and payload.member_id; member_event.event.realm_id MUST equal the path Circle's parent Realm. The path name actor_id is a route selector only; the canonical Event payload identity field is member_id. The service submits the exact signed Event through authority Event submission and MUST NOT rebuild it or synthesize a leave Event.",
       "required": [
         "member_event"
       ],
@@ -284,7 +239,7 @@
         "member_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
             },
             {
               "properties": {
@@ -322,7 +277,7 @@
               ]
             }
           ],
-          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller, with membership fixed to leave and expected_membership carrying the concrete current membership as the signed head_eq guard. Admission MUST bind the Event proof to the exact account-local lineage selected by the authenticated session; matching only the caller DID is insufficient. Removing another actor requires ak.circle.member.manage narrowed to the path Circle; self-service leave uses ak.circle.member.add."
+          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller, with membership fixed to leave and expected_membership carrying the concrete current membership as the signed expected_revision guard. Admission MUST bind the Event proof to the exact account-local lineage selected by the authenticated session; matching only the caller DID is insufficient. Removing another actor requires ak.circle.member.manage narrowed to the path Circle; self-service leave uses ak.circle.member.add."
         }
       },
       "additionalProperties": false

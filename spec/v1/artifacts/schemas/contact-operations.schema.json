@@ -640,7 +640,7 @@
         "peer",
         "head_event_ref",
         "terminal",
-        "accepted_frontier",
+        "accepted_commit_event_ids",
         "complete_through",
         "fresh_until",
         "signature"
@@ -665,7 +665,7 @@
           "type": "boolean",
           "description": "Signed current-head classification. true authenticates the round-wide fence from a confirmed ak.contact.tombstone; both directional proofs may reference that same source tombstone without inventing another holder Event. The counterpart verifies the original source proof and retains its own direction's complete_through version. Incomplete local direction material permits a known-terminal fence but no fabricated completeness proof. A historical predecessor in a recontact continuity chain requires true from both directional proofs."
         },
-        "accepted_frontier": {
+        "accepted_commit_event_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/event_id"
@@ -1976,7 +1976,7 @@
         "issuer_id",
         "peer_id",
         "request_receipt_digests",
-        "observed_frontier",
+        "observed_commit_event_ids",
         "complete_through",
         "unconsumed_slot_checkpoint",
         "observed_at",
@@ -2004,7 +2004,7 @@
           "maxItems": 2,
           "uniqueItems": true
         },
-        "observed_frontier": {
+        "observed_commit_event_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/event_id"

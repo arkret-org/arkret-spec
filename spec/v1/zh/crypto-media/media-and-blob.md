@@ -301,7 +301,7 @@ GET /_arkret/self/blob/get?blob_ref=<ref>
 | `blob_ref` | query | `string` | required | 内容寻址 blob 引用。 |
 | `Authorization` | header | `bearer token` 或 `device proof` | 私有 blob required | 调用者认证。 |
 | `Range` | header | `string` | optional | Range 下载范围。 |
-| `X-Arkret-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 frontier 覆盖该 cursor 描述的 target event 前阻塞响应。 |
+| `X-Arkret-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 checkpoint 覆盖该 cursor 描述的 target event 前阻塞响应。 |
 
 响应字段 / header：
 
@@ -344,7 +344,7 @@ Range: bytes=<start>-<end>
 
 规则：
 
-- `X-Arkret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `frontier_stale` 或 `temporarily_unavailable`。
+- `X-Arkret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 checkpoint 覆盖该 cursor 描述的 target event，超时返回 `revision_stale` 或 `temporarily_unavailable`。
 - 下载授权 MUST 绑定 actor DID、device/session、Realm id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session credential 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
@@ -434,7 +434,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 `media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。`presigned` 不是合法 visibility 枚举值。
 
-### 5.4 Pre-Signed URL（浏览器原生标签兼容性例外）
+### 5.4 Pre-Signed URL（浏览器原生标签认证例外）
 
 §5 与 [`server-threat-model.md` §2.1 #21 URL 凭证泄露](../security/server-threat-model.md) 规定受保护下载 MUST NOT 接受 query string 中的认证材料。该规则的存在原因是 query string 会被 HTTP access log、代理、CDN、浏览器历史、复制链接和 `Referer` 头无差别记录，长期 capability 一旦落入 URL 即等价于失控。
 
@@ -639,12 +639,12 @@ Cache-Control: public, immutable, max-age=31536000
 规则：
 
 - 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ak.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
-- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `ak.component.realm.asset_privacy_policy.v1` 安全 typed current result 在当前已确认状态中已设置且字段逐字为 true，才允许继续评估 presign。policy 缺失、未确认、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
+- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `realm_asset_privacy_policy` 安全 typed current result 在当前已确认状态中已设置且字段逐字为 true，才允许继续评估 presign。policy 缺失、未确认、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
 - `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ak.self.blob.command.presign.v1` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `ak.component.realm.asset_privacy_policy.v1` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/authority-commit/RealmCommit admission 保护；它本身不改变 MLS key 持有人，必须排除在 `key_access_revision` 外。
+- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `realm_asset_privacy_policy` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/authority-commit/RealmCommit admission 保护；它本身不改变 MLS key 持有人，必须排除在 `key_access_revision` 外。
 
 ## 7. Safety
 

@@ -86,7 +86,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 - `rejected`
 - `tombstoned`
 
-`ak.realm.link` 写入 `ak.component.realm.link.v1` typed current result。typed current result subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`state_model=causal_register`、`execution=data`；并发 status 按固定 `(depth,EventId)` 选择唯一 current，导航只从该 winner 投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+`ak.realm.link` 写入 `realm_link` typed current result。typed current result subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`domain reducer=current-value projection`、`execution=data`；并发 status 按固定 `(depth,EventId)` 选择唯一 current，导航只从该 winner 投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
 
 允许的状态迁移如下；`absent` 只表示尚无 typed current result，不是 wire 状态：
 
@@ -94,10 +94,10 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 | --- | --- | --- |
 | `absent` | `active` / `rejected` / `tombstoned` | 创建声明；直接 tombstone 用于幂等删除。 |
 | `active` | `active` / `rejected` / `tombstoned` | 同态写可更新 label/commitment；拒绝或终止。 |
-| `rejected` | `rejected` / `active` / `tombstoned` | 本侧可在新的已授权 Control Move 中重新接受。 |
+| `rejected` | `rejected` / `active` / `tombstoned` | 本侧可在新的已授权 state-changing Event 中重新接受。 |
 | `tombstoned` | `tombstoned` | 终态；仅允许字节等价的幂等重放。 |
 
-未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是普通 `causal_register`：每条写入按其冻结业务前态验证迁移，合法并发写按固定 `(depth,EventId)` 选择唯一 current，不产生 `⊥`，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与并发 winner 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
+未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是普通 `current-value projection`：每条写入按其冻结业务前态验证迁移，合法并发写按固定 `(depth,EventId)` 选择唯一 current，不产生 `⊥`，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与并发 winner 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
 
 Projection MAY 派生：
 
@@ -129,7 +129,7 @@ Projection MAY 派生：
 若 Realm 需要从另一个 Realm 派生 capability 或 policy，必须使用目标 Realm 内的显式 policy：
 
 - `ak.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
-- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in，承载 Event 的 `authority_revision` 固定有效治理基线。payload 只携带完整的派生 `grant` 与逐字相等的 `grant_id`，不得复制 policy 或进度 sidecar 字段。
+- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in，承载 Event 的 `expected_revision` 固定有效治理基线。payload 只携带完整的派生 `grant` 与逐字相等的 `grant_id`，不得复制 policy 或进度 sidecar 字段。
 
 继承规则：
 

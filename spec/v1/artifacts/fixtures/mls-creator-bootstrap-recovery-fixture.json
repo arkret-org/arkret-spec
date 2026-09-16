@@ -29,7 +29,7 @@
       "invariants": [
         "no Realm create was submitted and no governance query was sent",
         "no selector-dependent random material was generated",
-        "the next run requires an explicit selection and may not infer content_scheme or content_scheme"
+        "the next run requires an explicit closed creation intent and may not infer the proposed_group_genesis_binding"
       ]
     },
     {
@@ -40,7 +40,7 @@
       "expected": "resume_from_frozen_selector",
       "invariants": [
         "the record carries the complete owner_actor_id, the canonical effective_scope and operation=mls_genesis",
-        "content_scheme, the conditional content_scheme and the complete closed proposed_group_genesis_binding are readable without any projection",
+        "the complete closed proposed_group_genesis_binding is readable without any projection",
         "the create Event id is derived from the frozen signed unit, not from a server response"
       ]
     },
@@ -51,7 +51,7 @@
       "expected_state": "genesis_intent_persisted",
       "expected": "resume_from_the_previous_closed_intent",
       "invariants": [
-        "the replacement never became durable, so the previously committed content_scheme, content_scheme and proposed_group_genesis_binding are still the only readable intent",
+        "the replacement never became durable, so the previously committed proposed_group_genesis_binding is still the only readable intent",
         "a selector the user picked but the client never committed authorizes nothing and is not recovered from UI state",
         "no second record exists for the same (owner_actor_id, effective_scope, operation) key"
       ]
@@ -63,7 +63,7 @@
       "expected_state": "genesis_intent_persisted",
       "expected": "resume_from_the_replaced_closed_intent",
       "invariants": [
-        "the whole closed intent was replaced atomically; no run observes the new content_scheme beside the old content_scheme or the old proposed_group_genesis_binding",
+        "the whole closed intent was replaced atomically; no run observes the new proposed_group_genesis_binding beside the old one",
         "the superseded selector is no longer readable and is never used to rebuild the 0->0 query",
         "the logical key, the immutable creator device and signer method, the frozen signed Realm-create unit and the create Event id derived from it are unchanged",
         "the replacement precedes the 0->0 governance query and every selector-dependent random material"
@@ -88,7 +88,7 @@
       "expected_state": "realm_accepted",
       "expected": "resume_at_the_zero_to_zero_query",
       "invariants": [
-        "the accepted create Event id, its bytes digest, encryption_profile, the digest suite and the authority-root resolution are durable",
+        "the accepted create Event id, its bytes digest, the digest suite and the authority-root resolution are durable",
         "the exact accepted-Genesis query returned a definite absent before this state was entered",
         "every genesis_intent_persisted field is unchanged"
       ]
@@ -232,12 +232,12 @@
   "scenario_cases": [
     {
       "name": "selector_amendment_at_genesis_intent_persisted",
-      "given": "the record is at genesis_intent_persisted with content_scheme=mls_exporter_aead_v1 and a content_scheme, and the creator changes the choice to mls_rfc9420 before any 0->0 query",
+      "given": "the record is at genesis_intent_persisted with a committed proposed_group_genesis_binding, and the creator regenerates that binding before any 0->0 query",
       "action": "commit the replacement intent and run the recoverer after a reload",
       "expected": "resume_from_the_replaced_closed_intent",
       "invariants": [
         "the whole closed intent including proposed_group_genesis_binding is replaced in one durable commit, never patched field by field",
-        "the already signed ak.realm.create unit stays valid because its closed payload carries neither selector",
+        "the already signed ak.realm.create unit stays valid because its closed payload carries no part of the binding",
         "no second active record and no second attempt generation is created"
       ]
     },
@@ -355,7 +355,7 @@
     },
     {
       "name": "selector_amendment_after_realm_accepted",
-      "given": "the record has reached realm_accepted and the creator asks for a different content_scheme",
+      "given": "the record has reached realm_accepted and the creator asks for a different proposed_group_genesis_binding",
       "action": "attempt to replace the closed creation intent",
       "expected": "fail_closed",
       "invariants": [

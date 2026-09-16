@@ -19,7 +19,7 @@
     "private_request_event_id",
     "user_facing_response_event_ids",
     "status",
-    "folded_frontier"
+    "folded_checkpoint"
   ],
   "properties": {
     "schema": {
@@ -39,7 +39,7 @@
     },
     "source_event_id": {
       "$ref": "#/$defs/event_id",
-      "description": "Optional accepted Event id copied from the request context as the source Event for this exchange. This identifies one Event, not a frontier or trust anchor."
+      "description": "Optional accepted Event id copied from the request context as the source Event for this exchange. This identifies one Event, not a checkpoint or trust anchor."
     },
     "source_hlc": {
       "$ref": "#/$defs/hlc"
@@ -96,8 +96,8 @@
       "$ref": "#/$defs/event_id",
       "description": "Controller-authored ak.agent.sidecar.exchange.control Event that produced complete or failed."
     },
-    "folded_frontier": {
-      "$ref": "#/$defs/folded_frontier"
+    "folded_checkpoint": {
+      "$ref": "#/$defs/folded_checkpoint"
     }
   },
   "allOf": [
@@ -240,7 +240,7 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
-    "folded_frontier": {
+    "folded_checkpoint": {
       "type": "object",
       "description": "Local cache coverage. event_ids are the canonical sorted maximal causal heads of all contributing accepted exchange facts. event_set_digest commits to the canonical sorted complete contributing Event-id set. max_hlc is display/cache metadata only and never proves causal dominance.",
       "required": [

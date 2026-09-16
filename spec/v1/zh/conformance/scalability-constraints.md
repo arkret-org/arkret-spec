@@ -44,7 +44,7 @@ Event canonical bytes、operation canonical body、HTTP wire bytes 是三个独�
 
 #### 2.1.1 Event（1 MiB）
 
-测量完整 producer-signed Event canonical JSON。Event没有 `unsigned`、`producer_revision`、`domain_refs`、`domain_refs`、`auth_context`、`preconditions`、`authority_revision` 或 `requirements`。
+测量完整 producer-signed Event canonical JSON。Event没有 `unsigned`、`producer_revision`、`domain_refs`、`domain_refs`、`commit_authorization_state`、`preconditions`、`expected_revision` 或 `requirements`。
 
 #### 2.1.2 JSON operation canonical body（8 MiB）
 
@@ -147,7 +147,7 @@ Snapshot SHOULD 至少保留当前和一个前代有效 manifest。Planned hando
 
 ### 7.1 Current result 的边界
 
-实现内部数据库表与索引不是 wire contract。Event、snapshot、query 与 proof 只暴露各领域 schema 明确定义的 typed result，不暴露通用 state model、dot、root 或 lattice operation。
+实现内部数据库表与索引不是 wire contract。Event、snapshot、query 与 proof 只暴露各领域 schema 明确定义的 typed result，不暴露通用 state model、dot、root 或 projection operation。
 
 ## 8. 错误语义
 

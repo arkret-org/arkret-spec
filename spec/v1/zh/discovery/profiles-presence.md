@@ -74,7 +74,7 @@ updated: 2026-07-03
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Move 以该 Event-derived ID 为 profile typed current result subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
+Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Event 以该 Event-derived ID 为 profile typed current result subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
@@ -116,7 +116,7 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
 }
 ```
 
-Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile typed current result。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Event 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile typed current result。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
 
 ```json
 {
@@ -161,7 +161,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 - 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event 与该 Event 所支撑的当前显示投影。全局 Profile 是普通 causal 状态，没有 covering RealmCommit，服务端 MUST NOT 为填充该结果等待 RealmCommit 或伪造 RealmCommit 覆盖。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.events.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示，但 MUST 自行验证返回的 exact signed Event 及其与该 actor 和其 Principal Control Realm 的绑定，不得把裸 `actor_profile` 当作证据；一条 patch Event 不证明完整投影、无并发或全网新鲜，证明边界见 [`../sync/service-http-binding.md` §5.1](../sync/service-http-binding.md)
 
-`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 typed current result `state-slot:ak.component.profile.create.v1:<target_actor_profile_id>`（`causal_register`，按固定 `(depth,EventId)` 产生唯一 current），`result_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。
+`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 typed current result `profile_create:<target_actor_profile_id>`（`current-value projection`，按固定 `(depth,EventId)` 产生唯一 current），`result_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。
 
 ### 2.4 Per-Realm Profile 覆写
 

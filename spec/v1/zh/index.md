@@ -83,7 +83,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 2. Realm 创建后锁定 schema 与策略基线。
 3. Event-first 写入并做初始 auth state 校验。
 4. 客户端执行 `event-auth-state-resolution` 收敛。
-5. 使用 snapshot / frontier 建立快速重建路径。
+5. 使用 snapshot / checkpoint 建立快速重建路径。
 6. 讨论类空间先验 MLS state，再决定是否解密展示。
 7. reducer 产出 canonical projection，UI 只消费 projection。
 8. 失败场景进入可恢复退化状态（如 `decryption_pending`、`state_mismatch`、`projection_incomplete`）；这些标准退化状态 / 错误标识的 canonical 语义详见 [`artifacts/registry/error-code-registry.json`](../artifacts/registry/error-code-registry.json)。
@@ -163,7 +163,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 - `protocol_version`（canonical 字段值固定为字符串 `"1.0"`；wire / describe 响应 MUST NOT 写成 `1.0.0` 或 `v1.0.0`。术语主条目见 [`overview/glossary.md` §2](./overview/glossary.md)）
 - conformance profile（如 `ak.profile.full_client.v1`）
-- schema / reducer profile（如 `ak.schema.event.v1` 与 `ak.profile.core_event_store.v1`）
+- schema / fixed reducer semantics（如 `ak.schema.event.v1` 与 `ak.profile.core_event_store.v1`）
 - 尺度与分页边界（默认见 `conformance/scalability-constraints.md`）
 
 > `protocol_version` 字段值（`"1.0"`）与发布 / release tag（`v1.0.0`，见 [`overview/release-readiness.md`](./overview/release-readiness.md)）是两个不同维度：前者是 wire-level 协议大版本标识，后者是仓库发布线标签。两者 MUST NOT 互换填入对方位置。

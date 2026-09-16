@@ -27,7 +27,6 @@ from .core import (
 )
 
 
-
 def check_error_code_closure(lint: Lint) -> None:
     """T4-3: error code closure.
 
@@ -174,7 +173,6 @@ def check_error_code_closure(lint: Lint) -> None:
             lint.fail(path, f"reason_code referenced but not in error-code-registry.json: {code!r}")
 
 
-
 def check_error_code_registry_uniqueness(lint: Lint) -> None:
     """Reject duplicates and asymmetric explicit dual-registration metadata.
 
@@ -245,7 +243,6 @@ def check_error_code_registry_uniqueness(lint: Lint) -> None:
         if top_declares_dual != reason_declares_dual:
             missing_side = "reason_codes" if top_declares_dual else "codes"
             lint.fail(path, f"{code!r} dual-registration description missing reciprocal label in {missing_side}")
-
 
 
 def check_operations_error_mapping_closure(lint: Lint) -> None:
@@ -321,7 +318,6 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
                 lint.fail(mapping_path, f"operations[] references operation_id absent from operation-registry.json: {op_id!r}")
 
 
-
 def check_fixture_reject_reason_closure(lint: Lint) -> None:
     """Fixture reject `reason` codes must resolve in error-code-registry.json.
 
@@ -368,7 +364,6 @@ def check_fixture_reject_reason_closure(lint: Lint) -> None:
             walk(data, None, "$", path)
 
 
-
 def check_openapi_no_floating_number(lint: Lint) -> None:
     """T4-5: forbid `type: number` in OpenAPI.
 
@@ -408,7 +403,6 @@ def check_openapi_no_floating_number(lint: Lint) -> None:
             waiver_window -= 1
 
 
-
 def _load_field_order_rules(lint: Lint) -> dict[str, Any]:
     """Load the declarative field-ordering rule config (C-BET-03).
 
@@ -439,7 +433,6 @@ def _load_field_order_rules(lint: Lint) -> dict[str, Any]:
         lint.fail(FIELD_ORDER_RULES_PATH, "field-order rule config must be a JSON object")
         return default
     return {**default, **data}
-
 
 
 def check_field_order(lint: Lint) -> None:
@@ -646,7 +639,6 @@ def check_field_order(lint: Lint) -> None:
             recurse(schema_path, "$", data)
 
 
-
 def check_model_required_field_table_coverage(lint: Lint) -> None:
     """Ensure core model field tables list every schema-required top-level field."""
 
@@ -735,7 +727,6 @@ def check_model_required_field_table_coverage(lint: Lint) -> None:
             )
 
 
-
 def check_exporter_label_registry(lint: Lint) -> None:
     """Validate the media exporter-label registry (OPT-003 / TERM-006).
 
@@ -778,7 +769,6 @@ def check_exporter_label_registry(lint: Lint) -> None:
                 lint.fail(path, f"labels[{index}] empty-context entry must define context_encoding")
 
 
-
 def json_pointer_get(data: Any, pointer: str) -> Any:
     current = data
     for token in pointer.removeprefix("/").split("/"):
@@ -788,7 +778,6 @@ def json_pointer_get(data: Any, pointer: str) -> Any:
             continue
         return None
     return current
-
 
 
 def check_alg_registry(lint: Lint) -> None:
@@ -1070,7 +1059,6 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
         lint.fail(authoring_path, "managed_actor_bundle must use the exact role-neutral field set")
 
 
-
 def check_service_kind_registry(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "service-kind-registry.json"
     data = load_json(lint, path)
@@ -1201,7 +1189,6 @@ def check_service_kind_registry(lint: Lint) -> None:
                 )
 
 
-
 def check_mls_pq_suite_registration(lint: Lint) -> None:
     """Every reserved PQ-MLS row must track the current MLS WG suite mapping.
 
@@ -1282,76 +1269,6 @@ def check_mls_pq_suite_registration(lint: Lint) -> None:
         lint.fail(path, "private MLS_128_XWING_AES128GCM_SHA256_Ed25519 alias is forbidden")
 
 
-
-def check_mls_governance_proof_bounds(lint: Lint) -> None:
-    """Stateless exact proof responses and Service Describe limits stay identical."""
-    schema_path = ARTIFACTS / "schemas" / "mls-governance-proof-bundle.schema.json"
-    schema = load_json(lint, schema_path)
-    if not isinstance(schema, dict):
-        return
-
-    expected_schema_values = {
-        "/$defs/proof_request_common/properties/byte_limit/minimum": 65536,
-        "/$defs/proof_request_common/properties/byte_limit/maximum": 1048576,
-        "/$defs/merkle_membership_witness/properties/siblings/maxItems": 64,
-    }
-    for pointer, expected in expected_schema_values.items():
-        actual = json_pointer_get(schema, pointer)
-        if actual != expected:
-            lint.fail(schema_path, f"{pointer} must be {expected}, got {actual!r}")
-
-    schema_keys = {
-        key
-        for _path, _value, key in walk_json(schema)
-        if isinstance(key, str)
-    }
-    for forbidden in (
-        "proof_result_set_id", "cursor", "next_cursor", "expected_result_digest",
-        "expected_bundle_digest", "chunk_manifest", "complete_control_state_v1",
-    ):
-        if forbidden in schema_keys:
-            lint.fail(schema_path, f"stateless governance proof schema must forbid legacy {forbidden}")
-
-    fixture_path = ARTIFACTS / "fixtures" / "scalability-limits-fixture.json"
-    fixture = load_json(lint, fixture_path)
-    exact_query_cases = [
-        case
-        for case in (fixture or {}).get("cases", [])
-        if isinstance(case, dict) and case.get("name") == "mls_governance_proof_exact_query_matrix"
-    ] if isinstance(fixture, dict) else []
-    if len(exact_query_cases) != 1:
-        lint.fail(fixture_path, "MLS governance bounds fixture requires one exact-query matrix")
-    elif any(
-        forbidden in json.dumps(exact_query_cases[0], sort_keys=True)
-        for forbidden in ("chunk_request_matrix", "expected_bundle_digest", "chunk_index")
-    ):
-        lint.fail(fixture_path, "MLS governance exact-query matrix retains a legacy chunk field")
-
-    if set(schema.get("$defs", {}).get("read_request", {})) != {"$ref"}:
-        lint.fail(schema_path, "stateless governance read_request must be the sole group-security frontier ref")
-
-    describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
-    describe = load_json(lint, describe_path)
-    if not isinstance(describe, dict):
-        return
-    describe_expected = {"max_exact_response_bytes": 1048576}
-    limit_schema = (
-        describe.get("properties", {})
-        .get("limits", {})
-        .get("properties", {})
-        .get("mls_governance_proof", {})
-    )
-    required_limits = set(limit_schema.get("required") or []) if isinstance(limit_schema, dict) else set()
-    if required_limits != set(describe_expected):
-        lint.fail(describe_path, f"MLS governance proof limit fields must be {sorted(describe_expected)}")
-    limit_properties = limit_schema.get("properties", {}) if isinstance(limit_schema, dict) else {}
-    for field, expected in describe_expected.items():
-        actual = limit_properties.get(field, {}).get("const") if isinstance(limit_properties, dict) else None
-        if actual != expected:
-            lint.fail(describe_path, f"limits.mls_governance_proof.{field} must const {expected}, got {actual!r}")
-
-
-
 def check_action_reference_closure(lint: Lint) -> None:
     """STR-002 / OPT-005: every action declared in capabilities.md §5 (动作集合)
     bullet lists MUST resolve in capability-action-registry.json (the canonical
@@ -1421,7 +1338,6 @@ def check_action_reference_closure(lint: Lint) -> None:
             f"capabilities.md §5 declares action {action!r} not present in "
             f"capability-action-registry.json (hand-list drift)",
         )
-
 
 
 def check_device_messages_cursor_binding(lint: Lint) -> None:

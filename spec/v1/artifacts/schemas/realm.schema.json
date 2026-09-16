@@ -11,9 +11,7 @@
     "default_discoverability",
     "default_join_rule",
     "history_access",
-    "reducer_profile",
-    "encryption_profile",
-    "notary",
+    "governance_station_id",
     "created_by",
     "created_at"
   ],
@@ -29,7 +27,7 @@
         "required": [
           "alias"
         ],
-        "$comment": "forbidden Realm addressing field; the only alias carrier is the ak.realm.alias Event (ak.component.realm.alias.v1). See zh/discovery/object-addressing.md section 3.3."
+        "$comment": "forbidden Realm addressing field; the only alias carrier is the ak.realm.alias Event (realm_alias). See zh/discovery/object-addressing.md section 3.3."
       },
       {
         "required": [
@@ -134,7 +132,7 @@
         "null"
       ],
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$",
-      "description": "Derived ordinary default-Strand selection from causal_register ak.component.realm.set_default_strand.v1. The deterministic (depth, EventId) winner selects the candidate; it is effective only when the selected Strand is eligible, non-terminal, and in the same Realm. Selection grants no authority."
+      "description": "Derived ordinary default-Strand selection from current-value projection realm_set_default_strand. The deterministic (depth, EventId) winner selects the candidate; it is effective only when the selected Strand is eligible, non-terminal, and in the same Realm. Selection grants no authority."
     },
     "default_discoverability": {
       "type": "string",
@@ -166,42 +164,9 @@
       ],
       "description": "Scope-local history range ratchet initialized by Realm create. Only all_history_for_current_members to since_join may change state; widening back to all_history is permanently forbidden. Standard MLS requires since_join."
     },
-    "reducer_profile": {
-      "type": "string",
-      "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
-      "description": "Materialized value of the Realm reducer-profile singleton control typed current result. ak.realm.create supplies its genesis value; only ak.realm.upgrade may change it."
-    },
-    "encryption_profile": {
-      "type": "string",
-      "enum": [
-        "none",
-        "mls_rfc9420",
-        "external"
-      ]
-    },
-    "content_scheme": {
-      "type": "string",
-      "enum": [
-        "mls_rfc9420",
-        "mls_exporter_aead_v1"
-      ],
-      "description": "MLS content scheme, required exactly for encryption_profile=mls_rfc9420 and frozen by the accepted group Genesis. Allowed values are mls_rfc9420 and mls_exporter_aead_v1. It is never mutable policy state."
-    },
-    "content_encryption_floor": {
-      "type": "string",
-      "enum": [
-        "allow_plaintext",
-        "e2ee_required"
-      ],
-      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). This is the Realm's actual content-encryption on/off switch. When e2ee_required, the effective_scope of Strand / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM (whether an MLS group exists), not which Arkret fields enter ciphertext. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with content_encryption_floor_downgrade. Defaults to allow_plaintext when absent."
-    },
-    "metadata_encryption_floor": {
-      "type": "string",
-      "enum": [
-        "allow_plaintext",
-        "e2ee_required"
-      ],
-      "description": "Realm-wide metadata encryption floor (models/circle.md §7), binary and symmetric with content_encryption_floor. allow_plaintext lets user-readable metadata stay wire-plaintext; e2ee_required forces it into encrypted_metadata. Comparison order allow_plaintext < e2ee_required. Effective floor = max(parent Realm value, Circle metadata floor, object profile requirement); any write below the effective floor MUST failed_precondition (reason=metadata_encryption_floor_violation). MUST NOT be relaxed by Circle, Space, or object profile. Space does not carry a metadata floor value. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with metadata_encryption_floor_downgrade. When absent, reducers default to e2ee_required for mls_rfc9420 or content_encryption_floor=e2ee_required Realms, otherwise allow_plaintext."
+    "governance_station_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+      "description": "Current governance Station service identity, derived from generation-0 genesis and the verified consecutive handoff chain. It is the authority that signs RealmCommit records for every independent Realm, Circle, and Sidecar stream in this Realm generation."
     },
     "agent_participation": {
       "type": "object",
@@ -266,11 +231,7 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Digest suite (canonicalization x hash tuple) used for ordinary Event ids, Control Move ids, RealmCommit ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed ordinary Events retain the suite of their signed authority context. Transition uses the control-plane transition Move and dual-root RealmCommit defined by event-auth-state-resolution.md §13."
-    },
-    "notary": {
-      "$ref": "#/$defs/notary_configuration",
-      "description": "Closed notary configuration. Every signer slot freezes actor, DID URL and exact public key. Successor changes are authorized by predecessor-state frozen descriptors before replacement is installed; current DID resolution is never substituted."
+      "description": "Digest suite (canonicalization x hash tuple) used for Event ids, Event ids, RealmCommit ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed Events retain the suite of their signed authority context. Transition uses the control-plane transition Event and dual-root RealmCommit defined by event-auth-state-resolution.md §13."
     },
     "commit_compaction_max_interval_ms": {
       "type": "integer",
@@ -308,252 +269,6 @@
   },
   "allOf": [
     {
-      "if": {
-        "properties": {
-          "security_class": {
-            "const": "high_assurance"
-          }
-        },
-        "required": [
-          "security_class"
-        ]
-      },
-      "then": {
-        "required": [
-          "content_encryption_floor",
-          "metadata_encryption_floor"
-        ],
-        "properties": {
-          "federation_policy": {
-            "enum": [
-              "closed",
-              "restricted",
-              "quarantine"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "$comment": "Principal-control and Agent-control Realms share the ak.profile.principal_control_realm.v1 materialized guard. fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, history_access MUST be permanently pinned to since_join, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
-      "if": {
-        "properties": {
-          "fields": {
-            "properties": {
-              "purpose": {
-                "enum": [
-                  "principal_control",
-                  "agent_control",
-                  "applet_managed_control"
-                ]
-              }
-            },
-            "required": [
-              "purpose"
-            ]
-          }
-        },
-        "required": [
-          "fields"
-        ]
-      },
-      "then": {
-        "required": [
-          "content_scheme",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "history_access"
-        ],
-        "properties": {
-          "encryption_profile": {
-            "const": "mls_rfc9420"
-          },
-          "content_scheme": {
-            "const": "mls_rfc9420"
-          },
-          "content_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "metadata_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "history_access": {
-            "const": "since_join"
-          },
-          "schema_refs": {
-            "contains": {
-              "const": "ak.profile.principal_control_realm.v1"
-            }
-          }
-        }
-      }
-    },
-    {
-      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable principal-control or Agent-control purpose discriminator, and pins history_access and both encryption floors symmetrically with the forward guard.",
-      "if": {
-        "properties": {
-          "schema_refs": {
-            "contains": {
-              "const": "ak.profile.principal_control_realm.v1"
-            }
-          }
-        },
-        "required": [
-          "schema_refs"
-        ]
-      },
-      "then": {
-        "required": [
-          "encryption_profile",
-          "content_scheme",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "history_access",
-          "fields"
-        ],
-        "properties": {
-          "encryption_profile": {
-            "const": "mls_rfc9420"
-          },
-          "content_scheme": {
-            "const": "mls_rfc9420"
-          },
-          "content_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "metadata_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "history_access": {
-            "const": "since_join"
-          },
-          "fields": {
-            "properties": {
-              "purpose": {
-                "enum": [
-                  "principal_control",
-                  "agent_control",
-                  "applet_managed_control"
-                ]
-              }
-            },
-            "required": [
-              "purpose"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "$comment": "Direct Conversation Realms are ordinary Collaboration Realms with a closed machine role. The discriminator and profile must appear together; history_access is permanently pinned to since_join and create-locked Realm security fields are pinned here while the exact-two membership, participant identity, no-Space and main-Strand rules are reducer/profile invariants.",
-      "if": {
-        "properties": {
-          "fields": {
-            "properties": {
-              "collaboration_role": {
-                "const": "direct_conversation"
-              }
-            },
-            "required": [
-              "collaboration_role"
-            ]
-          }
-        },
-        "required": [
-          "fields"
-        ]
-      },
-      "then": {
-        "required": [
-          "content_scheme",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "history_access"
-        ],
-        "properties": {
-          "schema_refs": {
-            "contains": {
-              "const": "ak.profile.direct_conversation_realm.v1"
-            }
-          },
-          "encryption_profile": {
-            "const": "mls_rfc9420"
-          },
-          "content_scheme": {
-            "const": "mls_exporter_aead_v1"
-          },
-          "default_join_rule": {
-            "const": "closed"
-          },
-          "content_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "metadata_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "history_access": {
-            "const": "since_join"
-          }
-        }
-      }
-    },
-    {
-      "$comment": "The inverse Direct Conversation guard prevents a profile-tagged ordinary Realm from omitting its collaboration role discriminator or materializing an impossible all-history state.",
-      "if": {
-        "properties": {
-          "schema_refs": {
-            "contains": {
-              "const": "ak.profile.direct_conversation_realm.v1"
-            }
-          }
-        },
-        "required": [
-          "schema_refs"
-        ]
-      },
-      "then": {
-        "required": [
-          "encryption_profile",
-          "content_scheme",
-          "default_join_rule",
-          "content_encryption_floor",
-          "metadata_encryption_floor",
-          "history_access",
-          "fields"
-        ],
-        "properties": {
-          "encryption_profile": {
-            "const": "mls_rfc9420"
-          },
-          "content_scheme": {
-            "const": "mls_exporter_aead_v1"
-          },
-          "default_join_rule": {
-            "const": "closed"
-          },
-          "content_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "metadata_encryption_floor": {
-            "const": "e2ee_required"
-          },
-          "history_access": {
-            "const": "since_join"
-          },
-          "fields": {
-            "properties": {
-              "collaboration_role": {
-                "const": "direct_conversation"
-              }
-            },
-            "required": [
-              "collaboration_role"
-            ]
-          }
-        }
-      }
-    },
-    {
       "$comment": "Principal Control and Direct Conversation are mutually exclusive Realm roles.",
       "not": {
         "properties": {
@@ -571,88 +286,6 @@
     }
   ],
   "$defs": {
-    "notary_signer_descriptor": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "actor_id",
-            "verification_method",
-            "key_kind",
-            "jose_algorithm",
-            "frozen_public_key_b64u"
-          ],
-          "properties": {
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "key_kind": {
-              "const": "ed25519_raw32"
-            },
-            "jose_algorithm": {
-              "const": "Ed25519"
-            },
-            "frozen_public_key_b64u": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{43}$"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "actor_id",
-            "verification_method",
-            "key_kind",
-            "jose_algorithm",
-            "frozen_public_key_b64u"
-          ],
-          "properties": {
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "key_kind": {
-              "const": "p256_sec1_compressed33"
-            },
-            "jose_algorithm": {
-              "const": "ES256"
-            },
-            "frozen_public_key_b64u": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{44}$"
-            }
-          },
-          "additionalProperties": false
-        }
-      ],
-      "description": "Historical RealmCommit signing authority. The verification method controller projects to actor_id. Canonical key bytes are decoded from frozen_public_key_b64u according to key_kind and jose_algorithm; any local digest is SHA-256 of those bytes and is not transmitted. User/controller authority and Station execution authority remain distinct."
-    },
-    "notary_configuration": {
-      "type": "object",
-      "required": [
-        "signer",
-        "max_clock_error_ms"
-      ],
-      "properties": {
-        "signer": {
-          "$ref": "#/$defs/notary_signer_descriptor"
-        },
-        "max_clock_error_ms": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 60000
-        }
-      },
-      "additionalProperties": false,
-      "description": "One frozen RealmCommit signing authority and one durable governance executor per Realm. No quorum, threshold, leader election or view-change configuration exists. Identity-control signing authority remains fixed by the accepted user/controller rules; a Station never acquires those private keys. Authorized replacement requires the previous authority to close its write position and the successor to inherit the complete accepted prefix."
-    },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"
     },

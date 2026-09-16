@@ -266,7 +266,7 @@ document.addEventListener("astro:after-swap", boot);
                 "glossary",
                 "current-model",
                 "release-readiness",
-                "evolution-and-compatibility",
+                "current-contract",
               ]),
             },
             {

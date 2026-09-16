@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.7",
+  "version": "2026-09-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T18:00:00+08:00",
+  "generated_at": "2026-09-16T18:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -146,7 +146,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Controller-signed one-shot publication authorization in the target Realm safety sequence. approved_event_id binds the complete pre-authored ordinary Event. The same confirmed command allocates (controller ActorId, approval_nonce) once; it is not a reusable private approval followed by receiver-local consumption. The original Event remains ordinary data and requires this exact confirmation only when its explicit approval constraint applies.",
+      "payload": "Controller-signed one-shot publication authorization in the target Realm safety sequence. approved_event_id binds the complete pre-authored Event. The same confirmed command allocates (controller ActorId, approval_nonce) once; it is not a reusable private approval followed by receiver-local consumption. The original Event remains ordinary data and requires this exact confirmation only when its explicit approval constraint applies.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
       "id_source": "not_an_object_id"
     },
@@ -190,7 +190,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent key authorization is a sequenced_state security command with complete observed-remove set representation. Same-key replacement removes all authorization dots visible at the signed basis and adds one replacement dot, after exact revision and authority checks at execution. Competing replacements cannot survive as concurrent permission heads. Runtime replacement pairs a new raw key and revokes prior active keys in the same confirmed transaction.",
+      "payload": "Agent key authorization is a commit-ordered projection security command with complete explicit revocation set representation. Same-key replacement removes all authorization dots visible at the signed basis and adds one replacement dot, after exact revision and authority checks at execution. Competing replacements cannot survive as concurrent permission heads. Runtime replacement pairs a new raw key and revokes prior active keys in the same confirmed transaction.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
       "id_source": "not_an_object_id"
     },
@@ -229,7 +229,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-signed bind or explicit null-target unbind for one controller/agent_slug sequenced_state typed current result in the controller PCR. A bound target is a complete AccountId. Unbind source_refs identify the exact confirmed bind/provision predecessor. Competing commands check relevant revisions in confirmed order; stale commands are rejected, never joined as ambiguous security heads.",
+      "payload": "Controller-signed bind or explicit null-target unbind for one controller/agent_slug commit-ordered projection typed current result in the controller PCR. A bound target is a complete AccountId. Unbind source_refs identify the exact confirmed bind/provision predecessor. Competing commands check relevant revisions in confirmed order; stale commands are rejected, never joined as ambiguous security heads.",
       "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
       "id_source": "not_an_object_id"
     },
@@ -332,35 +332,9 @@
       "verb_form_rationale": "Pure audit announcement: the Event records the accomplished fact that a privileged read or privacy-sensitive paired write already happened, and carries no reducer action to perform.",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
+      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_accessed_payload",
       "id_source": "not_an_object_id"
-    },
-    {
-      "event_kind": "ak.audit.applet_binding.create",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Audit Applet Binding genesis. binding_id is omitted and derived by retyping event_id. Declares immutable scope and release policy; initial lifecycle state is active.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_applet_binding_create_payload",
-      "id_source": "event_derived",
-      "id_kind": "audit_binding",
-      "admission_checks": [
-        "attestation_policy is present exactly when audit_assurance_class is attested_hardware; it is the Realm-declared trust root list and allowed measurement set that ak.audit.release release_attestation is verified against"
-      ]
-    },
-    {
-      "event_kind": "ak.audit.applet_binding.state",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Audit Applet Binding lifecycle transition. Policy or scope changes require a new binding create so non-retroactive eligibility remains unambiguous.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_applet_binding_state_payload",
-      "id_source": "reference"
     },
     {
       "event_kind": "ak.audit.erasure_receipt",
@@ -372,84 +346,6 @@
       "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/erasure_receipt_payload",
       "id_source": "not_an_object_id"
-    },
-    {
-      "event_kind": "ak.audit.release",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "committed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or committed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; committed epoch releases must reference sealed_by_commit_ref. Release and close execute in confirmed command order; confirmed close rejects a later release and an earlier release changes the log revision checked by close. A release targeting the current active MLS epoch MUST be rejected with reason audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.4 / §5.2.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
-      "parameters": {
-        "required_session_state": "notice",
-        "ordered_close_vs_release": "confirmed_close_blocks_release_prior_release_stales_close",
-        "within_commit_order": "command_results_order"
-      },
-      "id_source": "event_derived",
-      "id_kind": "audit_release",
-      "admission_checks": [
-        "the active binding resolved for binding_id declares audit_assurance_class; attested_hardware requires payload.release_attestation and disclosed_policy forbids it (schema_violation when the member is present or absent against that class)",
-        "release_attestation trust root, validity window, format, platform family and measurement validate against the binding's attestation_policy: attestation_chains root digest is listed in trust_root_digests, measurement.code_digest in allowed_code_digests, measurement.policy_version in allowed_policy_versions, platform.family is not software_test_only, and validity.not_before <= envelope created_at < validity.expires_at with a window of at most 90 days; any failure is audit_release_attestation_invalid",
-        "release_attestation realm_id, service_id and audit_policy_version_digest equal the active binding's realm_id, service_id and policy_version_digest, and audit_actor_id equals the approved_recipient_audit_actor_id of the session's accepted authorize; any mismatch is audit_release_attestation_mismatch"
-      ]
-    },
-    {
-      "event_kind": "ak.audit.ryw_receipt",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": false,
-      "payload": "Audit RYW receipt",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_payload",
-      "id_source": "not_an_object_id"
-    },
-    {
-      "event_kind": "ak.audit.session.authorize",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_authorize_payload",
-      "id_source": "reference"
-    },
-    {
-      "event_kind": "ak.audit.session.close",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Terminal audit release-session close. The current governance Station compares release_refs with its authority-committed session projection and serializes close against release Events on the applicable stream.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_close_payload",
-      "id_source": "reference"
-    },
-    {
-      "event_kind": "ak.audit.session.notice",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_notice_payload",
-      "id_source": "reference"
-    },
-    {
-      "event_kind": "ak.audit.session.request",
-      "category": "audit",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs. session_id is omitted and derived by retyping this Event's event_id.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_session_request_payload",
-      "id_source": "event_derived",
-      "id_kind": "audit_session"
     },
     {
       "event_kind": "ak.call.create",
@@ -561,7 +457,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes an independent MLS group and epoch-0 governance binding when encryption_profile=mls_rfc9420.",
+      "payload": "Circle create (intra-Realm scoped event/message boundary). The Circle scope stays plaintext until its own ak.mls.genesis is accepted.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
       "id_source": "event_derived",
       "id_kind": "circle"
@@ -617,7 +513,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle metadata patch. history_access, realm_id, encryption_profile, content_scheme and MLS identity fields are create-locked.",
+      "payload": "Circle metadata patch. history_access, realm_id and MLS identity fields are create-locked.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
       "id_source": "reference"
     },
@@ -773,7 +669,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "pcr_recovery",
-      "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact account-local lineage. It fences the old PCR generation against the complete accepted RealmCommit frontier. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
+      "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact account-local lineage. It fences the old PCR generation against the complete accepted RealmCommit checkpoint. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "id_source": "not_an_object_id"
     },
@@ -785,7 +681,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Device revocation. Every accepted proposal atomically persists a canonical ControlProposalAck and ak.schema.device_revocation_state.v1 revocation_pending record for the exact reducer-derived authority/device/generation. It is not eligible for the Ack-less self-principal PCR exception.",
+      "payload": "Device revocation. Every accepted proposal atomically persists a canonical EventCommitSubmissionAck and ak.schema.device_revocation_state.v1 revocation_pending record for the exact reducer-derived authority/device/generation. It is not eligible for the Ack-less self-principal PCR exception.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_revoke_payload",
       "id_source": "not_an_object_id"
     },
@@ -838,7 +734,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one head_eq guard for ak:result:ak.component.identity.resolution.v1:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
+      "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one expected_revision guard for ak:result:identity_resolution:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
       "id_source": "not_an_object_id"
     },
@@ -849,7 +745,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite accept. payload.invitee_account_id is present exactly when the target Invite stores one, that is for a directed invite and never for a third-party invite; it exists so the ak.component.invite.live_target.v1 slot subject is derivable from the signed Event. When present the Move atomically releases that slot and MUST carry its head_eq precondition equal to the stored create_event_id.",
+      "payload": "Invite accept. payload.invitee_account_id is present exactly when the target Invite stores one, that is for a directed invite and never for a third-party invite; it exists so the invite_live_target slot subject is derivable from the signed Event. When present the Event atomically releases that slot and MUST carry its expected_revision precondition equal to the stored create_event_id.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_accept_payload",
       "id_source": "reference"
     },
@@ -860,7 +756,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite cancel. Directed invites only: the Move terminates the invite (rejected or revoked) and atomically releases the ak.component.invite.live_target.v1 slot keyed by canonical_json(payload.invitee_account_id), carrying that typed current result's head_eq precondition equal to the stored create_event_id.",
+      "payload": "Invite cancel. Directed invites only: the Event terminates the invite (rejected or revoked) and atomically releases the invite_live_target slot keyed by canonical_json(payload.invitee_account_id), carrying that typed current result's expected_revision precondition equal to the stored create_event_id.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_cancel_payload",
       "id_source": "reference"
     },
@@ -879,7 +775,7 @@
         "re-check verification_id against current effective Realm allowlist",
         "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
         "transition invite typed current result pending -> claimed and materialize subject-bound membership proposal",
-        "reject with expired_invite_token when expires_at <= claim Event.created_at without shared-state writes; expiration requires a separate authorized ak.invite.revoke Control Move"
+        "reject with expired_invite_token when expires_at <= claim Event.created_at without shared-state writes; expiration requires a separate authorized ak.invite.revoke Event"
       ],
       "conformance_vectors": [
         "ak.vector.invite.claim_reducer_state_machine.v1",
@@ -895,7 +791,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Move atomically claims the Realm live-target slot ak.component.invite.live_target.v1 keyed by canonical_json(payload.invitee_account_id) and MUST carry that typed current result's head_eq null precondition; a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
+      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Event atomically claims the Realm live-target slot invite_live_target keyed by canonical_json(payload.invitee_account_id) and MUST carry that typed current result's expected_revision null precondition; a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
       "id_source": "event_derived",
       "id_kind": "invite"
@@ -907,7 +803,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite revoke. Carries the terminal or send_failed transition of a directed or third-party invite. payload.invitee_account_id is present exactly when the target Invite stores one and target_state is not send_failed; send_failed keeps the invite live, so the schema forbids the field there and no slot write is derived. When present the Move atomically releases the ak.component.invite.live_target.v1 slot keyed by canonical_json(payload.invitee_account_id) and MUST carry its head_eq precondition equal to the stored create_event_id.",
+      "payload": "Invite revoke. Carries the terminal or send_failed transition of a directed or third-party invite. payload.invitee_account_id is present exactly when the target Invite stores one and target_state is not send_failed; send_failed keeps the invite live, so the schema forbids the field there and no slot write is derived. When present the Event atomically releases the invite_live_target slot keyed by canonical_json(payload.invitee_account_id) and MUST carry its expected_revision precondition equal to the stored create_event_id.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_revoke_payload",
       "id_source": "reference"
     },
@@ -1068,7 +964,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS commit. governance_binding MUST keep the Genesis-fixed content_scheme and bind the current key_access_revision.",
+      "payload": "MLS commit. governance_binding MUST bind the current key_access_revision.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_payload",
       "id_source": "not_an_object_id"
     },
@@ -1090,7 +986,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "committed moderation decision (writes ak.component.moderation_state.v1 typed current result)",
+      "payload": "committed moderation decision (writes moderation_state typed current result)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_payload",
       "id_source": "not_an_object_id"
     },
@@ -1101,7 +997,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Lift a previously committed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
+      "payload": "Lift a previously committed moderation decision (explicit revocation/supersede the referenced decision in moderation_state)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_lift_payload",
       "id_source": "not_an_object_id"
     },
@@ -1113,7 +1009,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "crypto_verifiable",
-      "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 typed current result subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
+      "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the moderation_franking_proof typed current result subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
       "payload_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
       "id_source": "reference"
     },
@@ -1340,7 +1236,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm genesis and profile schemas are closed and carry no alias property. Declaration payloads and {tombstone:true} both set ak.component.realm.alias.v1 through the registered sequenced_state effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
+      "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm genesis and profile schemas are closed and carry no alias property. Declaration payloads and {tombstone:true} both set realm_alias through the registered commit-ordered projection effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
       "id_source": "not_an_object_id"
     },
@@ -1612,7 +1508,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enabled Realm policy components set, written wholesale into the sequenced_state typed current result (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
+      "payload": "Enabled Realm policy components set, written wholesale into the commit-ordered projection typed current result (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_revision MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "id_source": "not_an_object_id"
     },
@@ -1634,7 +1530,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "The only reducer input for Realm title, summary and avatar. The complete closed profile value replaces the ak.component.realm.profile.v1 singleton; create and policy Events cannot carry these fields.",
+      "payload": "The only reducer input for Realm title, summary and avatar. The complete closed profile value replaces the realm_profile singleton; create and policy Events cannot carry these fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_profile_payload",
       "id_source": "not_an_object_id"
     },
@@ -1750,9 +1646,9 @@
       "admission": "capability_gated",
       "admission_checks": [
         "conflict_domain resolves to a directly writable relation-kind-registry.json shape whose registered primary_conflict_domain equals conflict_domain.domain_kind; a derived_projection shape is rejected with schema_violation (reason=relation_kind_contains_derived or relation_kind_watches_derived)",
-        "the receiver rebuilds the complete active candidate head set of the domain from its own accepted Relation history under this Move's frozen predecessor view, recomputes the chained commitment of zh/models/relation.md section 6.3, and requires byte equality with payload.baseline.members_digest and payload.baseline.member_count; a missing member, a superseded head, a duplicate, a foreign-domain member or any later group change rejects the Move with failed_precondition reason=relation_conflict_baseline_stale and zero typed current result writes",
+        "the receiver rebuilds the complete active candidate head set of the domain from its own accepted Relation history under this Event's frozen predecessor view, recomputes the chained commitment of zh/models/relation.md section 6.3, and requires byte equality with payload.baseline.members_digest and payload.baseline.member_count; a missing member, a superseded head, a duplicate, a foreign-domain member or any later group change rejects the Event with failed_precondition reason=relation_conflict_baseline_stale and zero typed current result writes",
         "when payload.baseline.member_event_ids is present it MUST equal that rebuilt set element by element in canonical bytewise-ascending order; member_count above 64 omits the inline list and is proven by members_digest alone, and the ordinary 16-head diagnostic bound MUST NOT be applied to this evidence",
-        "a retain_candidate outcome names a retained_event_id that belongs to this Move's own baseline; a name outside the covered set is rejected with failed_precondition reason=relation_conflict_baseline_stale",
+        "a retain_candidate outcome names a retained_event_id that belongs to this Event's own baseline; a name outside the covered set is rejected with failed_precondition reason=relation_conflict_baseline_stale",
         "the actor independently holds the registered ak.relation.resolve capability over every candidate in the covered group and its scope; holding ak.relation.update on one member never authorizes adjudicating the others",
         "Relation conflict resolution is an ordinary causal successor. It observes the complete intended domain candidate set and does not reset security state or invoke an unregistered recovery authority."
       ],
@@ -2120,7 +2016,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a causal_register typed current result keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this typed current result, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a current-value projection typed current result keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this typed current result, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_watch_set_payload",
       "id_source": "reference"
     },
@@ -2231,7 +2127,7 @@
             "payload.draft_id"
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "transition",
           "from": {
             "const": null
@@ -2250,7 +2146,7 @@
             "payload.draft_id"
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "transition",
           "from": {
             "const": null
@@ -2269,7 +2165,7 @@
             "payload.draft_id"
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "transition",
           "from": {
             "const": "proposed"
@@ -2290,7 +2186,7 @@
             }
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "set",
           "value": {
             "field": "payload"
@@ -2309,7 +2205,7 @@
             "payload.key"
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "set",
           "value": {
             "field": "payload"
@@ -2329,7 +2225,7 @@
             "payload.push_route"
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "set",
           "value": {
             "field": "payload"
@@ -2349,7 +2245,7 @@
             "payload.read_scope"
           ]
         },
-        "effect_projection": {
+        "result_projection": {
           "kind": "merge",
           "value": {
             "field": "payload"

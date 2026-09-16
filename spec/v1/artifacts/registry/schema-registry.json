@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.8",
+  "version": "2026-09-16.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T18:30:00+08:00",
+  "generated_at": "2026-09-16T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -273,21 +273,6 @@
       "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
     },
     {
-      "schema_id": "ak.schema.audit_release_attestation.v1",
-      "file": "schemas/audit-release-attestation.schema.json",
-      "status": "active",
-      "description": "Remote attestation evidence for an attested_hardware audit release service. Carried inline as audit_release_payload.release_attestation on every ak.audit.release under a binding whose audit_assurance_class is attested_hardware; verified at admission against the binding's attestation_policy (audit_release_attestation_invalid) and the active binding fields (audit_release_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §6."
-    },
-    {
-      "schema_id": "ak.schema.audit_ryw_receipt.v1",
-      "file": "schemas/audit-ryw-receipt.schema.json",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "audit read-your-writes receipt",
-        "normative_ref": "zh/models/event-and-patch.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "status": "active",
@@ -473,7 +458,7 @@
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "status": "active",
-      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence RealmCommit frontier and replacement authorization digest.",
+      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence RealmCommit checkpoint and replacement authorization digest.",
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
         "selector": "event kind ak.device.reanchor payload",

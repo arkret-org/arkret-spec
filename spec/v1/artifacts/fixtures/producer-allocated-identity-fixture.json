@@ -14,7 +14,6 @@
     "selected_id_kinds": [
       "announce",
       "applet",
-      "attestation",
       "authorization_lease",
       "backup",
       "backup_series",

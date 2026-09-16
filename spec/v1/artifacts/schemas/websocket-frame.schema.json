@@ -434,7 +434,7 @@
                 "kind": {
                   "enum": [
                     "catchup_complete",
-                    "frontier",
+                    "checkpoint",
                     "heartbeat",
                     "dropped",
                     "resync_required",
@@ -454,7 +454,7 @@
               "properties": {
                 "kind": {
                   "enum": [
-                    "frontier",
+                    "checkpoint",
                     "heartbeat",
                     "catchup_complete",
                     "epoch_rotation",

@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/mimi-interop.schema.json",
   "title": "Arkret MIMI Interoperability",
   "description": "Provider directory, room binding, and content mapping receipt objects for ak.profile.mimi_interop.v1.",
-  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The provider_directory security core (schema, service_id, proof) and the complete capability declaration are required, and proof is the shared closed detached-JWS shape, so the openness is limited to extension subtrees and cannot mask a missing or unverifiable signature. Unknown fields anywhere on this surface are security-inert (see zh/extensions/mimi-interop.md §9.2): receivers MUST ignore them for all security decisions and MUST NOT let them affect authorization, identity binding, policy_root, MLS epoch/group state, routing, or any signature/digest transcript.",
+  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The provider_directory security core (schema, service_id, proof) and the complete capability declaration are required, and proof is the shared closed detached-JWS shape, so the openness is limited to extension subtrees and cannot mask a missing or unverifiable signature. Unknown fields anywhere on this surface are security-inert (see zh/extensions/mimi-interop.md §9.2): receivers MUST ignore them for all security decisions and MUST NOT let them affect authorization, identity binding, policy_revision, MLS epoch/group state, routing, or any signature/digest transcript.",
   "anyOf": [
     {
       "$ref": "#/$defs/provider_directory"
@@ -28,7 +28,7 @@
     },
     "mimi_room_uri": {
       "type": "string",
-      "description": "Canonical MIMI room URI. It is the ak.component.mimi.room_binding.v1 typed current result subject source, so it is a closed canonical form rather than a free URI: lowercase mimi:// scheme, host[:port] authority with no userinfo, lowercase A-label host, no leading-zero port, at least one non-empty path segment, no dot or dot-dot segment, no trailing slash, no query, no fragment, uppercase percent escapes, and no percent-encoding of unreserved octets (RFC 3986 section 6.2.2.2). A receiver MUST reject a non-canonical value with schema_violation and MUST NOT normalize it first, because two spellings of one room would otherwise each own a first accepted binding and the revoked terminal state could be bypassed by respelling. typed current result subject encoding is the uri subject kind of zh/conformance/encoding.md section 4. The pattern below expresses the structural half of the canonical form; two rules it cannot express portably -- the default port 443 MUST NOT be written explicitly, and a percent escape MUST NOT encode an unreserved octet -- are normative all the same and are closed by ak.vector.encoding.result_selector_uri.v1 plus the SDK typed validator, which every producer and receiver MUST apply in addition to this pattern. See zh/extensions/mimi-interop.md section 4.",
+      "description": "Canonical MIMI room URI. It is the mimi_room_binding typed current result subject source, so it is a closed canonical form rather than a free URI: lowercase mimi:// scheme, host[:port] authority with no userinfo, lowercase A-label host, no leading-zero port, at least one non-empty path segment, no dot or dot-dot segment, no trailing slash, no query, no fragment, uppercase percent escapes, and no percent-encoding of unreserved octets (RFC 3986 section 6.2.2.2). A receiver MUST reject a non-canonical value with schema_violation and MUST NOT normalize it first, because two spellings of one room would otherwise each own a first accepted binding and the revoked terminal state could be bypassed by respelling. typed current result subject encoding is the uri subject kind of zh/conformance/encoding.md section 4. The pattern below expresses the structural half of the canonical form; two rules it cannot express portably -- the default port 443 MUST NOT be written explicitly, and a percent escape MUST NOT encode an unreserved octet -- are normative all the same and are closed by ak.vector.encoding.result_selector_uri.v1 plus the SDK typed validator, which every producer and receiver MUST apply in addition to this pattern. See zh/extensions/mimi-interop.md section 4.",
       "pattern": "^mimi://[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*(?::(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+)+$",
       "maxLength": 512
     },
@@ -208,7 +208,7 @@
     },
     "room_binding": {
       "type": "object",
-      "description": "MIMI room binding effect payload. In authority-commit/Lattice state, the typed current result subject is payload.mimi_room_uri for ak.component.mimi.room_binding.v1.",
+      "description": "MIMI room binding effect payload. In authority-commit/authority-ordered projection state, the typed current result subject is payload.mimi_room_uri for mimi_room_binding.",
       "required": [
         "kind",
         "payload"
@@ -285,8 +285,9 @@
                 "application/vnd.arkret.content+json"
               ]
             },
-            "policy_root": {
-              "$ref": "#/$defs/digest"
+            "policy_revision": {
+              "type": "integer",
+              "minimum": 1
             },
             "status": {
               "type": "string",
@@ -304,7 +305,7 @@
                 "completed",
                 "rolled_back"
               ],
-              "description": "Outcome of a migrating->accepted transition: completed (new topology in effect) or rolled_back (original topology restored). MUST be present on a migrating->accepted Control Move so the result is auditable; MUST be absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2."
+              "description": "Outcome of a migrating->accepted transition: completed (new topology in effect) or rolled_back (original topology restored). MUST be present on a migrating->accepted Event so the result is auditable; MUST be absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2."
             }
           },
           "additionalProperties": true

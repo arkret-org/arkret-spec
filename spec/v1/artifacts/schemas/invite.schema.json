@@ -455,7 +455,7 @@
     },
     "third_party_invite_acceptance_attestation_outcome": {
       "type": "object",
-      "description": "Success body of ak.self.third_party_invite.read.acceptance_attestation.v1. An invite that is not visible to the caller, was not authored by the caller, or is not pending on the current accepted basis returns the uniform not_found of section 6; a basis the Station cannot currently confirm returns frontier_unavailable.",
+      "description": "Success body of ak.self.third_party_invite.read.acceptance_attestation.v1. An invite that is not visible to the caller, was not authored by the caller, or is not pending on the current accepted basis returns the uniform not_found of section 6; a basis the Station cannot currently confirm returns revision_unavailable.",
       "required": [
         "acceptance_attestation"
       ],

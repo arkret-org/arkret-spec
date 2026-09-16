@@ -115,7 +115,7 @@
       "code": "audit_agent_key_destruction_attestation_missing",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "v1 无“agent 持有 epoch 密钥→迁移销毁”状态机；release 输出由 RYW receipt/attestation 门控。"
+      "why": "v1 无“agent 持有 epoch 密钥→迁移销毁”状态机，该 reason code 无产生路径。"
     },
     {
       "code": "audit_agent_remove_requires_paired_destruction_attestation",

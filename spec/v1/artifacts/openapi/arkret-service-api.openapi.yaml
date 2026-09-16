@@ -318,7 +318,7 @@ components:
         maxLength: 128
         pattern: ^[A-Za-z0-9._~-]+$
     XArkretWaitFor:
-      description: Causal frontier token the caller is waiting on.
+      description: Causal checkpoint token the caller is waiting on.
       schema:
         type: string
         minLength: 1
@@ -1847,7 +1847,7 @@ paths:
 
         With `catchup=true` and `after=<cursor>` the server first replays
 
-        the bounded catch-up range from that cursor up to the current frontier,
+        the bounded catch-up range from that cursor up to the current checkpoint,
 
         then emits `catchup_complete` per Realm and continues with live frames.
 
@@ -1897,7 +1897,7 @@ paths:
       - name: catchup
         in: query
         description: When true and `after` is present, the server first replays the bounded catch-up range from `after=` to
-          the current frontier, then transitions to live. This is not full-history retrieval.
+          the current checkpoint, then transitions to live. This is not full-history retrieval.
         schema:
           type: boolean
           default: false
@@ -2728,7 +2728,7 @@ paths:
 
         This operation never creates a durable Event, receipt, RealmCommit, producer_revision
 
-        or Realm frontier update, and the destination cannot forward a received
+        or Realm checkpoint update, and the destination cannot forward a received
 
         envelope to a third peer.
 
@@ -2801,7 +2801,7 @@ paths:
 
         never persists the envelope as a durable Event and never advances
 
-        producer_revision, RealmCommit state, or Realm frontier. Point-to-point device
+        producer_revision, RealmCommit state, or Realm checkpoint. Point-to-point device
 
         verification and secret distribution use the to-device queue instead.
 
@@ -2912,7 +2912,7 @@ paths:
 
         membership in current `foci[]`, session_focus persistence, MLS
 
-        MLS media security-frontier freshness, and `media_service_decrypts`
+        MLS media key-access-revision freshness, and `media_service_decrypts`
 
         pre-conditions (§10.5.1).
 
@@ -2947,7 +2947,7 @@ paths:
 
             re-target the established focus rather than retrying; or
 
-            `mls_governance_binding_stale` — current MLS epoch policy_root
+            `mls_governance_binding_stale` — current MLS epoch key_access_revision
 
             does not cover the `ak.realm.media_service` typed current result; or
 
@@ -3040,7 +3040,7 @@ paths:
         name: X-Arkret-Wait-For
         required: false
         description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until
-          the local frontier covers target.event_id, or emits an error frame (timeout / frontier_stale / temporarily_unavailable).
+          the local checkpoint covers target.event_id, or emits an error frame (timeout / revision_stale / temporarily_unavailable).
         schema:
           type: string
           pattern: ^ak:cursor:[A-Za-z0-9_-]+$
@@ -3113,7 +3113,7 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Update the authenticated principal's Actor Profile projection.
-      description: 'Carries exactly one holder-signed profile_event EventInitialSubmission.
+      description: 'Carries exactly one holder-signed profile_event EventCommitSubmission.
 
         event.realm_id is the account-local PCR Realm selector, and
 
@@ -3146,7 +3146,7 @@ paths:
 
         an ID, or adding a concurrency guard. Until accepted RealmCommit coverage is available
 
-        it returns frontier_unavailable; exact retry then returns the stored outcome
+        it returns revision_unavailable; exact retry then returns the stored outcome
 
         without a second account-aggregate delta. No Directory or account-data Event is
 
@@ -5684,10 +5684,10 @@ paths:
         schema:
           type: string
           const: ak.self.moderation.command.report.v1
-      description: Accepts exactly one direct-holder signed ak.self.moderation.report ordinary Event in report_event. The
+      description: Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The
         authenticated session principal must equal both event.actor_id and payload.reporter. The signed Event realm/scope
         must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched targets all return
-        not_found. The service forwards exact bytes through ordinary Event admission and never authors, rebuilds, co-signs
+        not_found. The service forwards exact bytes through authority Event submission and never authors, rebuilds, co-signs
         or adds preconditions. Exact replay returns the stored submitted outcome; the same Event id with different bytes returns
         duplicate_conflict. routed_to is omitted unless the caller independently holds moderation/governance capability for
         the exact scope.
@@ -9343,7 +9343,7 @@ paths:
       operationId: ak.gate.account.command.pair_agent_key
       description: Agent runtime key pairing. Admission validates current controller/Agent authority, the fresh pairing handle,
         the verifier/audience/challenge-bound private requested_scope disclosure, proof-of-possession and the accepted control
-        frontier. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation
+        checkpoint. Backup availability and history-only MLS material are neither inputs nor readiness gates. The operation
         validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize on approval. Agent runtime
         private keys are locally generated and never uploaded or restored.
       security:
@@ -9632,9 +9632,9 @@ paths:
 
         outcome maps all three request phases without inventing another state.
 
-        Source context is never part of the MLS control frontier or
+        Source context is never part of the MLS authority-committed result set or
 
-        security-frontier digest.
+        security revision.
 
         '
       security:

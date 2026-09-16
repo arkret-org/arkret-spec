@@ -350,7 +350,7 @@
     "view_renderer": {
       "$ref": "./query.schema.json#/$defs/view_renderer"
     },
-    "state_frontier": {
+    "state_revision": {
       "type": "object",
       "required": [
         "state_digest"
@@ -469,8 +469,8 @@
             "additionalProperties": true
           }
         },
-        "frontier": {
-          "$ref": "#/$defs/state_frontier"
+        "checkpoint": {
+          "$ref": "#/$defs/state_revision"
         }
       },
       "additionalProperties": false

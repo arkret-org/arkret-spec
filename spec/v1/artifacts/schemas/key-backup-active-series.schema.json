@@ -11,7 +11,7 @@
     "active_series_id",
     "series_pointer_version",
     "previous_series_ids",
-    "frontier_ref",
+    "source_commit_ref",
     "issued_at",
     "auth_data"
   ],
@@ -41,9 +41,9 @@
       },
       "description": "Retained old series used only for read-old-data or erasure transition. MUST NOT be treated as a primary recovery source."
     },
-    "frontier_ref": {
-      "$ref": "#/$defs/frontier_ref",
-      "description": "Principal Control Realm frontier and current identity-root device generation under which active_series_id was selected."
+    "source_commit_ref": {
+      "$ref": "#/$defs/source_commit_ref",
+      "description": "Principal Control Realm source RealmCommit and current identity-root device generation under which active_series_id was selected."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"
@@ -104,7 +104,7 @@
     "backup_series_id": {
       "$ref": "./agent-operations.schema.json#/$defs/backup_series_id"
     },
-    "frontier_ref": {
+    "source_commit_ref": {
       "type": "object",
       "required": [
         "realm_commit_id",
@@ -116,7 +116,7 @@
         },
         "device_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced frontier."
+          "description": "PCR-local monotonic device generation. This is not a DID versionId and MUST equal the accepted current_device_generation_ref at the referenced checkpoint."
         }
       },
       "additionalProperties": false

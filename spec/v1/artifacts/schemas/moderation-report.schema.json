@@ -8,7 +8,7 @@
     "moderation_report_event_submission": {
       "allOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
         },
         {
           "properties": {
@@ -52,11 +52,6 @@
                   {
                     "required": [
                       "applet_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "authority_revision"
                     ]
                   },
                   {
