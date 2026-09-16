@@ -195,7 +195,7 @@ Reducer projection 的 `observed_dot_ids[]` MUST 逐字等于 payload 的 `obser
 
 **完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, consent_scope) intent 需要 client 在构造 revoke Control Move 前先查询当前 typed current result 的 已确认安全集合，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
 
-撤销在该revoke Control Move被accepted Seal覆盖后立即生效；此前凭Consent发出的invite或其它非Contact action不追溯失效。Contact事实不读取本cell。
+撤销在该 revoke Control Move 被目标 stream 的 RealmCommit 接纳后立即生效；此前凭 Consent 发出的 invite 或其它非 Contact action不追溯失效。Contact 事实不读取 Consent typed current result。
 
 ## 4. Scope 枚举
 
@@ -465,6 +465,6 @@ consent 的去重 / 撤销键含 `intent.peer`（见 §3.2 的两个封闭分支
 
 ## 9. 与未来 Capability Constraint 的关系
 
-扩展profile MAY引入`consent_required` capability constraint，使非Contact action在Control Move验证时检查holder consent。本cell是其查询源；Contact/Personal DM不得使用该constraint替代directional Contact authority。
+扩展profile MAY引入`consent_required` capability constraint，使非Contact action在Control Move验证时检查holder consent。Consent typed current result 是其查询源；Contact/Personal DM不得使用该constraint替代directional Contact authority。
 
 请求的 consent_scope MUST 显式携带且无默认值。Personal DM 不查询 Consent，不从缺失 scope 推断 direct_message；MIMI、Contact cascade 与 quota 使用同一保留枚举。

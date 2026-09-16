@@ -714,7 +714,7 @@ ingest 通道 MUST 防御：
 - **Quota burning**：Directory MUST 对 per-resource、per-Station、per-IP 限流；超限返回 `rate_limited`。
 - **Source-ref 伪造**：Directory MUST 拒绝 `source_ref_access.source_refs` 中包含 source Station 无法在该 exact current announce carrier 下解析的 event id。wrong source/Directory、carrier 外 ref、另一次 announce、过期、withdraw/superseded 或 source hint 推导都不得放行。
 - **撤销规避**：Directory MUST NOT 接受 `as_of` 早于已记录 withdraw 时间的 announce（`takedown_in_force`）。
-- **Policy rollback**：Directory MUST 解析并验证 `source_refs` 对应的 accepted frontier；若其权威 predecessor/successor 关系早于当前已索引 frontier，则拒绝 `policy_revision_rollback`。`policy_revision` 只是该已验证 frontier 的 JCS/SHA-256 结果，不从 `discovery_event.payload` 读取，也不按摘要字典序比较。
+- **Policy rollback**：Directory MUST 解析并验证 `source_refs` 中每个 `CommittedEventRef`，并按各自 `stream_ref` 核对 RealmCommit 的连续 `stream_position` 与 ancestry；任何来源早于该 stream 当前已索引 head 时拒绝 `policy_revision_rollback`。`policy_revision` 只是这些已验证引用的 JCS/SHA-256 结果，不从 `discovery_event.payload` 读取，也不按摘要字典序比较。
 
 Directory operator MAY 维护资源黑名单（abuse、垃圾、法律）；命中黑名单时 MUST 直接返回 `accept_policy_denied`，不得进入 ingest 流程后再静默丢弃。
 

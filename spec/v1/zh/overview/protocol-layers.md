@@ -77,8 +77,8 @@ state       = reduce(profile, prior_state, signed_fact)
 ```
 
 producer MUST NOT 携带 `effects[]`、`conflict_keys_digest`，也 MUST NOT 任意选择可从
-accepted governance basis 求出的 capability 引用。typed current result family、subject derivation、lattice、
-bottom 与 state projection 是 reducer contract 的内部声明，不是 wire 上的第二份事实。
+accepted governance basis 求出的 capability 引用。typed current result family、subject derivation、state model
+与 projection 是 reducer contract 的内部声明，不是 wire 上的第二份事实。
 
 每个 reducer contract MUST 是由 schema-validated `kind + payload`、签名 envelope 字段、
 已验证 basis 和前态决定的纯函数；不得读取本地到达顺序、未签名数据库字段或本地墙钟来决定

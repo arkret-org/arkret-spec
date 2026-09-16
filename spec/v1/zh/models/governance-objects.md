@@ -229,11 +229,8 @@ Schema id: `ak.schema.invite.v1`
   `default_join_rule` 与 join-policy facet；Invite id 是 `retype(create_event.event_id)`
   （[`common-fields.md` §6.0](./common-fields.md)），因此由 Invite id 反查该 Event 并从其 basis 重放规则是
   规范定义的 canonical projection，不是实现私有扫描。reducer **MUST** 在准入 `ak.invite.create` 时按该
-  basis 判定；claim / accept 阶段 **MUST NOT** 拿"当前"policy 或某份物化副本重判一次——两者都会引入本条要
-  防止的邀请后规则混淆，而副本还会额外漂移。曾存在的 `join_rule_snapshot` 字段按此裁决删除：它是开放
-  object、没有正文判据，实现据此长出过互不相容的三种内容（join rule 副本、`invite_token` +
-  `introduction_evidence_digest`、以及 `private_delivery` 标记），其中把 `invite_token` 写进 Invite 更是把
-  私有 locator 带进了公开对象。
+  basis 判定；claim / accept 阶段 **MUST NOT** 拿"当前"policy 或某份物化副本重判一次——两者都会引入邀请后
+  规则混淆，而副本还会额外漂移。Invite 对象 MUST NOT 携带 join rule snapshot 或私有 locator。
 - **private delivery material MUST NOT 物化到 Invite（normative）**：`invite_token`、
   `introduction_evidence`、receive-policy 状态与任何 transport material **MUST NOT** 出现在 Invite 对象上。
   Invite 上唯一合法的私有投递痕迹是 `introduction_evidence_digest`（摘要，不含 raw locator token）；

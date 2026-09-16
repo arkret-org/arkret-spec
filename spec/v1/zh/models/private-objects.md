@@ -101,7 +101,7 @@ Schema id: `ak.schema.notification.v1`
 
 `notification_kind=mention` 覆盖普通 direct mention 与 audience mention（例如 `@all` / `@here`）。派生器 MUST 遵守 [`strand-and-message.md` §9.4](./strand-and-message.md)：
 
-- Direct mention 以结构化节点的 `subject_account_id`（完整 AccountId）为目标，逐字节比较两个分量；audience mention 先按 source event causal frontier、Message effective scope、Realm / Circle policy 与可见性规则展开 receiver set。`strand_watchers` / `strand_engaged` audience 的 watcher 命中由完整 effective watch level 计算，但只作为 receiver-side fanout 条件。
+- Direct mention 以结构化节点的 `subject_account_id`（完整 AccountId）为目标，逐字节比较两个分量；audience mention 先按 source Event 的 committed stream position、Message effective scope、Realm / Circle policy 与可见性规则展开 receiver set。`strand_watchers` / `strand_engaged` audience 的 watcher 命中由完整 effective watch level 计算，但只作为 receiver-side fanout 条件。
 - 对同一 `(actor_id, source_event_id, notification_kind)` MUST 去重。一个 Message 中重复 direct mention、direct mention 与 audience mention 同时命中、或 watch / reply / assignment 叠加命中，都不得在同一 push delivery window 内产生多次 wakeup。
 - `actor_id` MUST 是接收 notification 的 actor，而不是发送者。默认发送者自 mention 不产生 notification，除非该 actor 的私有 push rule 显式 opt-in。
 - 派生器 MUST 在生成 notification 前应用 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖；无访问权或被静音时不得留下可查询的 notification stub。

@@ -28,7 +28,7 @@ Arkret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config、共享可见性与 lifecycle `state` 属于 View 自身的 canonical state。它们可以通过 `ak.view.create` / `ak.view.update` 修改、签名、审计和同步。
 
-View 不承载被投影对象的 canonical state。Board Space / List Space / Strand / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
+View 不承载被投影对象的 canonical state。Board Space / List Space / Strand / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和对应 stream 的 committed position。
 
 这些对象事实必须从同一套底层结构产生：
 

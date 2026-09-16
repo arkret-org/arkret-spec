@@ -450,7 +450,7 @@ facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content
 
 ## 9. Policy Mapping
 
-Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered typed current result projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `result_family`、`execution`、`state_model`、`value_shape` 与 `bottom`；安全状态只消费唯一确认的 RealmCommit 顺序。
+Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered typed current result projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `result_family`、`execution`、`state_model` 与 `value_shape`；安全状态只消费唯一确认的 RealmCommit 顺序。
 
 ### 9.1 typed current result Family 互译
 
@@ -571,7 +571,7 @@ Actor，也 MUST 按 profile / authority 检查拒绝，不能只靠 JSON enum �
 
 `ak.open.mimi.command.report_abuse.v1` MUST 携带并提交一条 exact caller-authored、caller-signed `report_event: EventInitialSubmission`，其 Event kind 为 `ak.self.moderation.report`。facade 只把逐字节相同 submission 交给普通 Event admission，MUST NOT 代签、重建或合成 Event；该 open operation 也 **MUST NOT** 调用 `ak.self.moderation.command.report.v1`。contract `durable_effect` 是这条真实 accepted moderation Event，不存在 `bridges_to` self operation。E2EE report 的 `report_event` payload SHOULD 携带 message franking proof 与 encrypted evidence package。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
-入站 report 的 request 是 closed 收敛形态：`{reporter_authority, report_event, authority_commit_proof_bundles?}`，不得携带 `realm_id`、`strand_id`、`target_ref`、reason、description、evidence、franking、`reporter_id` 或 `source_provider_id` 等旧外层镜像，也不得兼容双读。`reporter_authority` 保留完整 `actor_id`、exact current accepted `membership_event_id`、exact current accepted `room_binding_event_id`、短期 `expires_at` 与 holder detached JWS `proof`。facade 从已签名 `report_event` 读取 Realm、Strand/scope、target、reason、description、evidence、franking、principal attribution 与 MIMI provenance；source provider 的唯一 authority 是 RFC 9421 authenticated Provider-ID/source service，body 内自报值不授权。
+入站 report 的 request 是 closed 形态：`{reporter_authority, report_event, authority_commit_proof_bundles?}`。Realm、Strand/scope、target、reason、description、evidence、franking、principal attribution 与 MIMI provenance 只从已签名 `report_event` 读取；`reporter_authority` 携带完整 `actor_id`、exact current accepted `membership_event_id`、exact current accepted `room_binding_event_id`、短期 `expires_at` 与 holder detached JWS `proof`。source provider 的唯一 authority 是 RFC 9421 authenticated Provider-ID/source service，body 内自报值不授权。
 
 本地 detached-signature domain `ak.mimi_reporter_authority_proof.v1` 的唯一 transcript 覆盖收敛后的完整 request，并只删除 `reporter_authority.proof`：`payload_digest` 由 `{reporter_authority（不含 proof）, report_event, 实际存在的 authority_commit_proof_bundles?}` 计算；binding 还包含由 `reporter_authority.actor_id` 注入的 `issuer`、固定 `operation_id=ak.open.mimi.command.report_abuse.v1`、`membership_event_id`、`room_binding_event_id`、`expires_at` 与 proof `verification_method` / `created_at` / `domain` / `audience`。`domain` MUST 是该本地签名域，`audience` MUST 是接收 facade service。facade 必须从 exact Actor 当前 accepted device/agent proxy authority state 解析 verification method 与授权链；carrier 自报 key、provider assertion、同 principal 本机账号、consent、holder claim 或 opaque evidence 都不能替代。proof 过期、设备/代理撤销，以及 Event 内 provider/room/target 被替换，均在读 target 私有状态或写 Event 前拒绝。
 

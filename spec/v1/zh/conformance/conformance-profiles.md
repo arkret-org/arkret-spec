@@ -150,7 +150,7 @@ MUST 支持：
 - duplicate conflict quarantine
 - scalability constraints 中的 batch、event size 和 retry 规则
 
-Coverage mapping：endpoint 能力由 `operation_requirements` 覆盖；signed Event Envelope、destination binding 与分项结果由 `required_schemas` + `federation-fixture.json` 覆盖；dependency missing / duplicate conflict quarantine 由 `event-envelope-negative-fixture.json` 与 `sync-fixture.json` 覆盖；batch、event size 与 retry 规则由 `scalability-constraints.md` 和 `federation-fixture.json` 覆盖。
+Coverage mapping：endpoint 能力由 `operation_requirements` 覆盖；signed Event Envelope、destination binding 与分项结果由 `required_schemas` + `independent-admission-fixture.json` 覆盖；dependency missing / duplicate conflict quarantine 由 `schema-validation-fixture.json` 与 `authority-commit-fixture.json` 覆盖；batch、event size 与 retry 规则由 `scalability-constraints.md` 和 `scalability-limits-fixture.json` 覆盖。
 
 MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge 和 full-text search。
 
@@ -176,7 +176,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 - Event Envelope MUST 先通过 `ak.schema.event.v1`，再按 `Event.kind` 通过 `ak.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
 - 事件/关系/对象/View 的 `created_at`、`realm_id`、`proof`、`hlc`、`producer_revision`、`domain_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；schema 依赖通过 `Event.requirements.schema[]` 表达，Reducer 版本由 Realm control state 决定。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
-- State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation。
+- State / snapshot / projection 进度和 wait-for token MUST 以 `CommittedEventRef`、stream ref 与 RealmCommit position 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
 - 裸名事件（如 `realm.create`）MUST 被拒绝，不能作为新增标准互操作行为。
 - 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。
@@ -251,7 +251,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE ordinary Event 的普通 `auth_context.authority_refs` 与 MLS frontier 正交；服务端不得要求同一 RealmCommit 覆盖自身。
+声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前 MLS epoch 密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 `key_access_revision`。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE ordinary Event 的普通 `auth_context.authority_refs` 与 MLS frontier 正交；服务端不得要求同一 RealmCommit 覆盖自身。
 
 E2EE 客户端消费自己 Account Station 确认的 exact scope/group/epoch/security-frontier 结果，核对本地 MLS leaves、待签 intent 与 GroupContext extension 的对应关系，执行 MLS Commit/Welcome 密码学处理；MUST NOT 收集治理闭包、验证历史 authority 或自行重建治理 frontier。没有所需服务器结果时，仅相关 scope 保持 pending。该服务器 policy profile 的 proof bundle 与完整 verify/materialize mutation/limit runner 属于服务器或独立审计角色，不是普通 full/e2ee 客户端的继承要求；SDK 是共享代码位置，不代表客户端角色。客户端 conformance 覆盖已确认结果消费、错账号/Realm/scope/group/epoch/basis 绑定、pending 与端到端篡改拒绝。
 
@@ -691,7 +691,7 @@ MUST 支持:
 - key proof 绑定 `challenge` / `audience_id` / `request_canonical_digest` / agent principal（由 `principal_id` + `proof.verification_method` 一致性 enforced）/ `issued_at` / `expires_at`。Wire 不引入独立 `nonce`；challenge 是唯一随机请求标识。首次验证的 300 秒时窗、签名 transcript、冻结 body 与新鲜 HTTP DPoP 分离，遵循 key-management §3.6.1。相同 challenge 不得重复签发，但符合 §6.2 的 completed exact retry 必须返回原凭证；不同 intent 或 holder 的重放必须拒绝。
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
-- capability 只能由 accepted immutable provision `requested_scope.actions[]` 按 registry 的 exact-any `activation_operations` 选择；key/session、内容 action、runtime attestation、grant/participation 与产品 preset 都不得重新选择或取消。interactive 的五项 activation 任一出现即要求三层覆盖完整 `interactive_chat.mandatory_operations`，包括互不替代的 Event frontier 与 RealmCommit frontier；KeyPackage upload/consume/revoke 任一出现即要求三层覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层按 provision→key→session 的最高缺失层依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`；server 不得自动补 operation，也不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
+- capability 只能由 accepted immutable provision `requested_scope.actions[]` 按 registry 的 exact-any `activation_operations` 选择；key/session、内容 action、runtime attestation、grant/participation 与产品 preset 都不得重新选择或取消。interactive 的 submit、scan、subscribe 任一出现即要求三层覆盖完整 `interactive_chat.mandatory_operations`；KeyPackage upload/consume/revoke 任一出现即要求三层覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层按 provision→key→session 的最高缺失层依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`；server 不得自动补 operation，也不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
 - 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
 - Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
@@ -905,7 +905,7 @@ SHOULD 支持：
 - idempotency tests
 - reducer convergence tests（含 authority-commit/Lattice 向量）
 - authority-commit/Lattice vectors（见 `conformance-vectors.md`）
-- Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json`）
+- Event Envelope negative vectors（见 `artifacts/fixtures/schema-validation-fixture.json`）
 - redaction vectors（见 `conformance-vectors.md`）
 - capability vectors（见 `conformance-vectors.md`）
 - sync fixture、state-resolution fixture、capability fixture 和 privacy/security fixture（见 `artifacts/fixtures/*.json`）
@@ -1039,7 +1039,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
-| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.envelope.negative_admission.v1` / `event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
+| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`schema-validation-fixture.json`）；"先于消费"的内部顺序为 U |
 | <a id="ak-sdk-002"></a>2 | `proof`、`hlc`、`producer_revision`、`domain_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.authority_commit_lattice.*` 并发撤销 fail closed 向量） |
@@ -1051,7 +1051,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 ordinary Event，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |
 | <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
-| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（`ak.vector.envelope.negative_admission.v1` / `event-envelope-negative-fixture.json` case `reject_unknown_critical_feature`） |
+| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（`schema-validation-fixture.json`） |
 | <a id="ak-sdk-014"></a>14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
 | <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
 | <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |

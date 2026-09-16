@@ -285,11 +285,6 @@
       "description": "Maximum fixed child-chain lifetime only for actions explicitly required to be finite by their risk/constraint contract. Defaults to 24 hours for those actions; first use freezes the bound and redelegation cannot renew it. It does not impose expiry on unbounded ordinary chat/read/organizer authorization.",
       "default": 86400000
     },
-    "bottom_escalation_after_ms": {
-      "type": "integer",
-      "minimum": 60000,
-      "description": "Reserved governance diagnostic timeout. It MUST NOT alter ordinary causal_register ordering, select a value, or turn a losing write into quarantine."
-    },
     "retention_policy_id": {
       "type": "string",
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"

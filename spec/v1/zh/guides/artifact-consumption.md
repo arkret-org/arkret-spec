@@ -18,7 +18,7 @@ updated: 2026-07-13
 
 实现侧应把以下 artifact 作为 v1 协议事实来源:
 
-- `registry/event-kind-registry.json`: event kind 是否 active、wire scope、typed current result family、execution、state_model、value_shape、bottom、payload schema。
+- `registry/event-kind-registry.json`: event kind 是否 active、wire scope、typed current result family、execution、state_model、value_shape、payload schema。
 - `registry/operation-registry.json`: service operation ID、transport binding（`http` / `grpc` / `mq`）、`body_class`、`success_shape_kind` 与 `response_schema_ref`。profile 归属不在本文件，见 `profiles/conformance-profiles.json`。
 - `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），避免假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。该要求的权威来源是 [`../overview/release-readiness.md`](../overview/release-readiness.md)。
 - `registry/track-name-registry.json`: `Strand.tracks` active key 的闭集、状态与 schema/profile owner；未登记名称不得仅凭正则匹配进入 reducer。

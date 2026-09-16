@@ -30,9 +30,9 @@ info:
 
     operation-specific required fields directly from OpenAPI without consulting
 
-    prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get, read.resolve,
+    prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get,
 
-    read.scan, read.frontier}`, `ak.peer.events.{command.submit, read.resolve, read.scan, read.frontier}`, `ak.self.account.{read.viewer,
+    read.scan, stream.subscribe}`, `ak.peer.events.{command.submit, read.resolve_committed, read.scan}`, `ak.self.account.{read.viewer,
     stream.subscribe, command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
 
     `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
@@ -43,9 +43,9 @@ info:
 
     `EventFederationSubmission`, `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
 
-    `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome` / `PeerEventsQueryOutcome`,
+    `CommittedEventResolveRequest` / `CommittedEventResolveOutcome`, `EventsQueryOutcome` / `PeerEventsQueryOutcome`,
 
-    `EventsFrontierState`, `SignalSubmitOutcome`,
+    `RealmCommit`, `SignalSubmitOutcome`,
 
     `IdentityResolveOutcome` / `IdentityDocumentView`, `DidOperationSubmitRequestBody` / `DidOperationSubmitOutcome`,
 
@@ -5098,7 +5098,7 @@ paths:
               $ref: '#/components/schemas/MessagePrepareRequestBody'
       responses:
         '200':
-          description: Complete unsigned Message Event and accepted actor frontier bound to the exact request.
+          description: Complete unsigned Message Event draft bound to the exact request.
           content:
             application/json:
               schema:

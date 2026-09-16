@@ -19,7 +19,7 @@ updated: 2026-08-25
 实现者应从机器工件与中文规范读取同一套协议事实模型：
 
 - 唯一共享 wire fact 是 Event Envelope
-- reducer、frontier、snapshot、sync、federation 和 fixture 以 `event_id` / actor frontier 为语义单位
+- reducer、snapshot、sync、federation 和 fixture 以 `CommittedEventRef`、独立 authority stream 与 RealmCommit position 为语义单位
 - `operation_id` 仅表示服务 canonical operation 或 SDK 内部幂等标识
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry

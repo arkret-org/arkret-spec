@@ -7740,7 +7740,7 @@
       "additionalProperties": false
     },
     "read_receipt_policy_payload": {
-      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. The sole compliance exception is child_privacy_tightening_against_required; history_access has no read-receipt compatibility branch. See zh/discovery/read-receipts.md §2.5.1.",
+      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. The sole compliance exception is child_privacy_tightening_against_required; history_access is not a read-receipt input. See zh/discovery/read-receipts.md §2.5.1.",
       "type": "object",
       "minProperties": 1,
       "properties": {
@@ -8317,9 +8317,6 @@
         },
         "max_authority_lifetime_ms": {
           "$ref": "./realm.schema.json#/properties/max_authority_lifetime_ms"
-        },
-        "bottom_escalation_after_ms": {
-          "$ref": "./realm.schema.json#/properties/bottom_escalation_after_ms"
         },
         "preauth": {
           "type": "object",

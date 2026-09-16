@@ -86,7 +86,7 @@ Own Station返回typed current result和source committed ref。Directory exact r
 
 ## 10. Snapshot
 
-Snapshot由current authority签名，包含typed sections、每条获准stream head、history floor与chunk digests。它不包含Cell/state root/replay program。
+Snapshot由current authority签名，包含typed sections、每条获准stream head、history floor、Station计算的state root与chunk digests。
 
 ## 11. 首次加入 Realm
 

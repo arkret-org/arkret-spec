@@ -37,7 +37,7 @@ Event没有通用 `producer_revision`、`domain_refs` 或 `domain_refs`。业务
 
 ## 7. 其他普通状态与结构
 
-Membership、policy、Strand、Message、Relation、Circle和capability由各自typed reducer处理。实现可用内部表/索引，但不得暴露Cell/state-model DSL。
+Membership、policy、Strand、Message、Relation、Circle和capability由各自 typed reducer处理。wire 只暴露 producer-signed Event、RealmCommit 与登记的 typed current result。
 
 ## 8. 安全状态与 RealmCommit
 

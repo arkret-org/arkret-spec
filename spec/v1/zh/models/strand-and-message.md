@@ -450,7 +450,6 @@ event_kind  := ak.strand.watch.set
 result_family := ak.component.strand.watch.v1
 result_id     := state-slot:ak.component.strand.watch.v1:<strand_id>:<watcher_actor_id>
 lattice     := causal_register
-bottom      := reject
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
                  "level_public": boolean? }
               | null
@@ -533,7 +532,7 @@ Station sync surface 在计算"是否应该通知 X"时 MUST 取以下集合的�
 
 Audience mention 可以把 watch state 用作 receiver-side fanout 条件，但不得把 watch 列表公开给发送者。具体规则：
 
-- `strand_watchers` audience 只包含在 source event causal frontier 下对该 Strand 有读取权、且 effective watch level 为 `participating` 或 `all` 的 actor；`mentions_only` 与无记录不算 watcher，`muted` 必须排除。
+- `strand_watchers` audience 只包含在 source Event 的 committed stream position 处对该 Strand 有读取权、且 effective watch level 为 `participating` 或 `all` 的 actor；`mentions_only` 与无记录不算 watcher，`muted` 必须排除。
 - `strand_engaged` audience 是 `strand_participants ∪ strand_watchers`。其中 `strand_participants` 由该 Strand discussion track 中至少一条 active Message 的 `created_by` 派生；被 redacted 后不再可见的消息不得单独使作者进入参与者集合。
 - Dispatcher MAY 使用完整 watch typed current result、actor-private watch state 或受托通知服务状态计算 receiver 是否命中 audience mention；但它 MUST NOT 把命中原因、watch level、watcher 列表或 recipient count 暴露给 sender、普通 Realm 成员、push gateway 或公开日志。
 - `level_public=true` 只影响普通 projection 是否展示该 actor 正在 watch；不影响该 actor 是否被 `strand_watchers` / `strand_engaged` audience 命中。通知命中仍由完整 effective watch level 计算。
@@ -559,7 +558,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 当 Strand 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
 
 - Watch typed current result 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Strand 的 watch 写入 MUST `failed_precondition`。
-- Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Station sync surface 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
+- Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Station sync surface 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 在 source Event 的 committed Circle-stream position 处不属于 `Circle.members` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
 - Realm-only 成员（不在 Circle 中）不会看到该 Strand 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
 换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权；watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
@@ -786,7 +785,7 @@ Agent selector 解析后的 mention 节点示例：
 
 普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_kind=mention` 时 MUST 使用下列规则：
 
-- 目标 actor 的 account 分支 MUST 逐字节等于结构化 mention 节点的 `subject_account_id`（`principal_id` 与 `station_id` 都相等），并且在 source event 的 causal frontier 下拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。**同 principal 不同 Station 的账号 MUST NOT 命中**：只比较 principal 分量会把通知投递给另一个 Station 上的同名 principal 账号。
+- 目标 actor 的 account 分支 MUST 逐字节等于结构化 mention 节点的 `subject_account_id`（`principal_id` 与 `station_id` 都相等），并且在 source Event 的 committed stream position 处拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。**同 principal 不同 Station 的账号 MUST NOT 命中**：只比较 principal 分量会把通知投递给另一个 Station 上的同名 principal 账号。
 - 同一 Message / revision 中重复出现同一 `subject_account_id` MUST 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
 - 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
 - `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
@@ -812,7 +811,7 @@ v1 定义 audience mention 作为一等结构化 AST 节点，唯一的 wire 承
 
 - `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Strand 绑定 Circle 时只包含该 Circle scope 的可见成员。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Arkret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
 - `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
-- `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source event causal frontier 下计算，不能信任客户端填入的计数或列表。
+- `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source Event 的 committed stream position 处计算，不能信任客户端填入的计数或列表。
 
 `@here` 在 Arkret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="strand_engaged"`，即“曾经参与当前 Strand discussion 或当前有效 watch 该 Strand 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile。该 profile MUST 明确 threat model、可观察面与机器可判定的隐私判据，并至少交付 online/offline 成对负向向量：在输入 Message、授权可见集合与非 presence 状态相同、只改变某 target 的 presence 时，未获该 target presence 读取权的 sender / observer 所见提交响应 status、响应字段集合、recipient count、delivery error、push/fanout 可见副作用与 profile 声明的 timing bucket MUST 相同；任何内部 audience expansion 计数不得返回给该 observer。未定义上述判据、未交付成对向量，或未声明该 profile 时，接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本，不得宣称 presence privacy。
 
@@ -919,7 +918,7 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 | --- | --- | --- | --- | --- |
 | `key` | yes | `string` | 单 NFC Unicode emoji cluster 或 profile 注册短 tag；MUST NOT 是外层 HMAC routing tag。 | 真实 reaction key。 |
 | `annotation` | no | `string` | 最大 2048 chars。 | 加密附注。 |
-| `remove_add_event_ids` | conditional | `array<id:event>` | 仅 `ak.reaction.remove` MAY 携带；`ak.reaction.add` MUST 省略。 | 客户端收敛加速 hint；服务端仍按外层 actor / target_ref / key / causal frontier 收敛。 |
+| `remove_add_event_ids` | conditional | `array<id:event>` | 仅 `ak.reaction.remove` MAY 携带；`ak.reaction.add` MUST 省略。 | 客户端收敛加速 hint；服务端仍按外层 actor / target_ref / key 和已提交的业务依赖求值。 |
 
 #### 9.8.2 Target 范围（v1 决策）
 
@@ -949,7 +948,7 @@ add dot 就不复存在，审计视图无从重建；本节又要求 remove 连*
 
 因此下文"不引用核心 `or_set` lattice"的准确含义是：**remove-wins 收敛规则不是 or_set 的
 join**，而是该 or_set 之上的**默认视图投影**。typed current result 的 join 仍是核心 or_set 的 dot 集合并，
-仍然可交换、可结合、幂等且不声明 Bottom。领域投影直接从完整 dot 集计算 remove-wins 视图；实现 MUST NOT 据此把该 typed current result 实现成第六种 state model。
+仍然可交换、可结合、幂等。领域投影直接从完整 dot 集计算 remove-wins 视图；实现 MUST NOT 据此把该 typed current result 实现成第六种 state model。
 
 默认视图的成员判定式：actor `A` 属于 `(target_ref, key)` 的 `members[]`，当且仅当集合中存在
 一条 `A` 在该 `(target_ref, key)` 上的 add 断言 `α`，使得对 `A` 在该 `(target_ref, key)` 上的

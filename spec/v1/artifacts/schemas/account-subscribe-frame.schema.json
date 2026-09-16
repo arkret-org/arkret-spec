@@ -580,7 +580,7 @@
         },
         "event_states": {
           "type": "array",
-          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary causal_register concurrency never produces failed_bottom: it is resolved by the fixed (depth, EventId) order. Any bottom detail is limited to separately registered domain invariants and is keyed by typed current result rather than duplicated per event. See zh/sync/service-surface.md §5.3.",
+          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary causal_register concurrency is resolved by the fixed (depth, EventId) order. See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [
@@ -601,14 +601,13 @@
                   "control_committed",
                   "failed_precondition",
                   "failed_plane",
-                  "failed_bottom",
                   "rejected_commit",
                   "fork_quarantine"
                 ]
               },
               "event_state_reason_code": {
                 "type": "string",
-                "description": "Optional short reason code (e.g., 'result_in_bottom_state'). For failure detail beyond the enum."
+                "description": "Optional registered reason code for failure detail beyond the enum."
               }
             },
             "additionalProperties": false

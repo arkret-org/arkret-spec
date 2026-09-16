@@ -161,7 +161,7 @@ authz/current-result 接口取得；不可要求客户端从 grant Events 求权
 
 `result_contracts` 中 `result_selector: null` 表示单例，不能误读为动态 subject。对于上述尚未写入的单例，
 publisher 必须在验证完整 accepted 状态后发布已确认空值；数据库中缺少结果行本身不是空值证明。
-派生 publication 标为 ready 但缺少必要基线条目时，读取方必须使其失效并通过既有 accepted frontier
+派生 publication 标为 ready 但缺少必要基线条目时，读取方必须使其失效并通过对应 stream 的 committed head
 重建路径修复，不能永久重试同一不完整 publication，也不能由客户端补默认值或发出新的治理 Event。
 default Strand pointer 是 causal_register 单例，同样适用本条：从未提交 `ak.realm.set_default_strand`
 的 Realm 必须以省略 `source` 的已确认空值发布该 pointer，不得因此使详情基线无法完成；
@@ -194,9 +194,9 @@ Unicode code point，JCS 每个 code point 保守按最多6 bytes计（包含 JS
 不同合法 coverage 下相同 entry 字节不变；schema 边界变化 MUST 同时更新并重新证明此预算。
 
 最大合法 Event 的完整当前值连同固定 source 必须能由本预算路径表达；并发候选数不扩大单条 current entry。
-单个最大合法值超过预算时使用上述 `limit_exceeded`，不得退回旧式完整 heads 或截断值。暂时读取或服务失败使用
+单个最大合法值超过预算时使用上述 `limit_exceeded`，不得截断值。暂时读取或服务失败使用
 既有 Realm unavailable，不产生、安装或记录 seen 的 selector 结果，也不能声明 baseline complete。
 Realm 整体当前权威结果不可计算时使用既有 `realms[id].unavailable`，不能伪造完整空基线。
 
 客户端只对尚缺目标必要当前结果的操作等待；removed、unavailable、成员状态与 E2E pending 分开处理。
-服务器不得复活旧 state/state_after、raw-latest、retag 合成对象或客户端 reducer 作为兼容路径。
+服务器只返回登记的 typed current result，不返回 raw-latest、retag 合成对象或客户端 reducer 输出。

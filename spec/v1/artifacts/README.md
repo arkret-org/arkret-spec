@@ -106,4 +106,4 @@ JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同
 
 - 同步的真源是 `artifacts/` 下的 canonical schemas + `contract-registry.json` 及其派生 registry view；下游不得引入自己的第二套 event kind / schema namespace。
 - **禁止生成 `round*.rs` 一类“轮次文件”**：下游不得把每一次 spec 同步落成 `round1.rs` / `round2.rs` / `round_*.rs` 之类按导入轮次累加的文件。同步必须收敛为按对象 / 模块组织的稳定生成产物（每个 schema 或 registry 对应一个稳定命名的生成单元），使重复同步是幂等替换而非追加。
-- typed current result state metadata（`event-kind-registry.json` 的 `execution`、`state_model`、`value_shape`、`bottom`、`result_family`、`result_selector`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。
+- typed current result state metadata（`event-kind-registry.json` 的 `execution`、`state_model`、`value_shape`、`result_family`、`result_selector`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。

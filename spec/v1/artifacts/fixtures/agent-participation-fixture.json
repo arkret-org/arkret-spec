@@ -356,7 +356,7 @@
         "selection_unchanged": true
       },
       "assertions": [
-        "a bottom, stale or unresolvable required policy layer fails the action-time gate closed",
+        "a stale, unavailable or unverifiable required policy layer fails the action-time gate closed",
         "the unresolved policy is treated as all false and the controller selection stays stored unchanged"
       ]
     },

@@ -72,7 +72,7 @@ MUST 以 `failed_precondition`（`reason=pin_target_not_pinned`）拒绝该 `ak.
 **MUST NOT** 用只有 rank 的合成 entry 把目标重新放回 roster。目标对象尚未在本地物化时按
 [`common-fields.md` §5.1](./common-fields.md) 的「未知对象 pending / replay」保留待重放。
 
-该 or_set 的 join 是 dot 集合并，可交换、可结合、幂等且不声明 Bottom。审计视图保留全部断言；领域投影可报告冲突，但该诊断不是新的 typed current result 状态或授权拒绝。
+该 or_set 的 join 是 dot 集合并，可交换、可结合、幂等。审计视图保留全部断言；领域投影可报告冲突，但该诊断不是新的 typed current result 状态或授权拒绝。
 
 重排必须保持稳定：不同 target 按 `(rank, target_ref)` 的 ASCII bytewise lexicographic ascending 排序；相同 rank 不构成互斥冲突。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与无冲突的 current materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。单一 target 的互不可达 reorder/add/remove 按上一段进入 `pin_conflict`，不得用 digest、HLC、actor id 或接收顺序选边。writer SHOULD 使用 rank rebalance 避免长期 rank 碰撞。
 

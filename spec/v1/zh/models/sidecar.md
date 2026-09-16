@@ -135,7 +135,7 @@ context attach 只控制 private view 放置位置。它不得：
 
 ## 5. 参与者与有效访问
 
-Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 accepted frontier 上的纯派生集合：
+Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 Sidecar stream 当前 committed head 上的纯派生集合：
 
 ```text
 desired_agent_ids(S, F) =
@@ -227,7 +227,7 @@ Sidecar archive/restore/member Event：
 `tombstoned` 不可逆。Sidecar terminal 只终止 native Sidecar scope、MLS 与 private projection，不触发或
 修改任何 Circle lifecycle。
 
-**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是 accepted frontier 的纯函数，
+**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是 Sidecar stream 当前 committed head 的纯函数，
 v1 **没有**注册任何 Sidecar erase / tombstone Event 或 operation；tombstone 只由上表右列的上游 terminal
 派生。§1 的「每个 `(realm_id, controller_account_id)` 至多一个 non-tombstoned Sidecar」因此是**永久 reservation**：
 一旦某个 `(realm_id, controller_account_id)` 的 Sidecar 进入 `tombstoned`，同一 key **MUST NOT** 再有新的
@@ -272,7 +272,7 @@ context mappings。
 1. `retype(ak.sidecar.create.event_id) == sidecar.id`。
 2. schema 与 registry 中不存在 `backing_circle_id` 或 `ak.sidecar.access.replace`。
 3. Sidecar create 不产生 Circle/member/Strand/Relation write。
-4. `desired_agent_ids` 只能从 accepted frontier 派生；任何 operation 均不可写入或覆盖它。
+4. `desired_agent_ids` 只能从 Sidecar stream 当前 committed head 派生；任何 operation 均不可写入或覆盖它。
 5. native `scope_ref.kind="sidecar"` 进入 digest、delivery/query 与 RealmCommit 验证。加密时从已签名外层
    Event 的 exact `scope_ref` 重构 closed pre-encryption header；最小 wire envelope 不复制
    scope、`sidecar_id`、AAD 或其 digest。接收方必须按

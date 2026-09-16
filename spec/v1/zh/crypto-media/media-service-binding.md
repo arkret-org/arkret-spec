@@ -93,7 +93,7 @@ sidebar:
 
 ## 3. Token Exchange (normative)
 
-会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件。`backend_token` 是由同级 `backend_kind` 判别的 closed union：`arkret_native` 必须携带 [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) 的 typed object；`livekit`、`mediasoup`、`janus`、`moq_relay` 必须携带非空 opaque string，并由对应 backend SDK 继续解析。客户端 MUST 拒绝 branch 不匹配、未知 backend、把 object 再编码成 JSON string 或启发式双读的响应。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability、当前 accepted Realm policy；服务实际取得媒体明文时还必须绑定当前 `key_access_revision`。
+会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件。`backend_token` 是由同级 `backend_kind` 判别的 closed union：`arkret_native` 必须携带 [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) 的 typed object；`livekit`、`mediasoup`、`janus`、`moq_relay` 必须携带非空 opaque string，并由对应 backend SDK 继续解析。客户端 MUST 拒绝 branch 不匹配、未知 backend 或把 object 再编码成 JSON string 的响应。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability、当前 accepted Realm policy；服务实际取得媒体明文时还必须绑定当前 `key_access_revision`。
 
 请求：
 

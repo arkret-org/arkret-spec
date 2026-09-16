@@ -20,7 +20,7 @@ Snapshot 是加速恢复的派生物，不是真相源。真相源是 producer-s
 RealmCommit。Snapshot 必须绑定 Realm、authority generation、签发时各个可见 stream head、typed current
 rows 的 commitment、创建时间和 Station proof。
 
-Snapshot 不使用 chunk-level 通用状态格式，不携带 typed current result、actor frontier、CRDT tombstone 或 caller 定义的
+Snapshot 的 chunk 只携带本章登记的 snapshot entry、对应 stream ref、RealmCommit position 与 Station 计算的
 state root。大对象可经 Blob surface 传输，但 snapshot schema 中每个引用必须内容寻址。
 
 ## 2. 可见 stream heads

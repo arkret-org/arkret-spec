@@ -612,7 +612,7 @@ Profile 是该 typed current result 的公开 **current projection**，可以发
 
 外部接收方**不要求**为任意其他 principal 持久保存 current resolution binding。普通 profile 浏览可以消费公开 projection；human 历史 device/Event evidence使用 genesis receipt 钉住的 registration evidence 与 PCR authorization chain，不重新取得 latest projection。只有 §4 的 current external claim、method successor、optional DID-root recovery 与持续 DID governance 调用点才刷新 current evidence；无法刷新时仅这些动作 fail closed。
 
-DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影为同一个 `did_core_id`，就是上述 resolution update；历史 Event 的 `actor_id`、grant subject 与 membership reference 不变。若 method 或 identity core 改变并产生不同 `did_core_id`，则是新主体：旧主体的 Event、设备、capability、账号和 Realm membership MUST NOT 通过旧式 DID continuity proof、双方 continuity 声明、SCID 猜测或 profile 重写自动继承。需要转移业务关系时必须走普通 re-grant、重新邀请、账号显式换绑或治理恢复，并在 UI 中明确显示主体已改变。
+DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影为同一个 `did_core_id`，就是上述 resolution update；历史 Event 的 `actor_id`、grant subject 与 membership reference 不变。若 method 或 identity core 改变并产生不同 `did_core_id`，则是新主体：其 Event、设备、capability、账号和 Realm membership 独立。需要转移业务关系时必须走普通 re-grant、重新邀请、账号显式换绑或治理恢复，并在 UI 中明确显示主体已改变。
 
 #### 4.2.1 `did:webvh` 健康检查
 
@@ -949,8 +949,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 
 本表的机器真相源是
 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json)。
-`ArkretStation` 与 `ArkretDirectory` 不属于 v1 登记 type，也不是 `ArkretService` 的 alias；接收方
-必须拒绝而不是双读。specialized organization/Agent type 不得替代 service bootstrap 的
+接收方只接受 registry 登记的 DID service type。specialized organization/Agent type 不得替代 service bootstrap 的
 `ArkretService + serviceKind`。
 
 自己 Station 为客户端解析组织控制或准备组织操作时，MUST 验证：
@@ -1163,6 +1162,6 @@ Arkret v1 对 DID 实现要求如下：
   allowlist 中的 `did:web`。deployment policy 只能收紧这些集合，不能增加任何角色的 method；
   `did:webvh` outage 只允许 cache-only degraded mode。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`，并且 MUST 覆盖 `did:webvh` 的完整 human 注册锚正例以及 `did:key`、`did:web` human 注册的 `unsupported_did_method` 早拒绝；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
-- `did_core_id` / `did` projection、resolution Event、Profile current projection 与选择性 RealmCommit/typed current result evidence MUST 有正负向 conformance coverage；旧式跨 DID continuity proof 不得恢复为身份等价机制。
+- `did_core_id` / `did` projection、resolution Event、Profile current projection 与选择性 RealmCommit/typed current result evidence MUST 有正负向 conformance coverage；身份等价只由相同 `did_core_id` 建立。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、arkret bindings 和 evidence；不得丢弃外部 DID 的原始语义。
 - 无法验证 method history 的 adapter 只能声明 limited trust profile，并且 MUST NOT 被默认用于高风险组织、service delegation 或长期 principal 创建。

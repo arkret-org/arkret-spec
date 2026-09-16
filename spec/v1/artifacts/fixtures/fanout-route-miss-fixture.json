@@ -66,7 +66,7 @@
     {
       "name": "authority_loss_cancels_before_send_and_rejoin_does_not_revive",
       "given": "all frozen exact joined-member ActorId witnesses for a pending target have left, been banned or been replaced by a different ActorId",
-      "action": "make a route available, run the dispatcher, then join the same member or service again under a new Event frontier",
+      "action": "make a route available, run the dispatcher, then join the same member or service again at a later committed stream position",
       "expected": "cancelled_authority_lost",
       "invariants": [
         "no network request is sent after authority loss",

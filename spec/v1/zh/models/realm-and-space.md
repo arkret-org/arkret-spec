@@ -90,7 +90,6 @@ Schema id: `ak.schema.realm.v1`
 | `notary` | yes | closed object | `{signer,max_clock_error_ms}`，唯一冻结 signer descriptor（完整 ActorId、verification method DID URL、canonical key bytes、JOSE alg）；不携 key digest、配置 kind 或签署者数组。 | 当前与历史 RealmCommit 签发规则，见 [authority_commit-profiles](../sync/authority-commit-log.md)。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["commit_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor confirmed membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_commit`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
-| `bottom_escalation_after_ms` | no | `integer` | typed current result `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -109,7 +108,7 @@ Schema id: `ak.schema.realm.v1`
 | `default_join_rule` | `ak.realm.join_rule`。 |
 | `history_access` | `ak.realm.history_access`。 |
 | non-public history range | 该 scope 唯一 current `ak.realm.history_access`；exporter key delivery 与 Event projection 共用它。 |
-| bundle 组件集合（本节 §2.2，含 `federation_policy`、freshness / proposal / compaction / authority-lifetime / bottom-escalation 时窗） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
+| bundle 组件集合（本节 §2.2，含 `federation_policy`、freshness / proposal / compaction / authority-lifetime 时窗） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
 | alias | `ak.realm.alias`。 |
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
 | Station admission policy | 直接约束 member AccountId 中的 `station_id`；不复制成员级 route evidence。 |
@@ -120,7 +119,7 @@ Schema id: `ak.schema.realm.v1`
 Realm 结构角色 profile 只允许出现在 `ak.realm.create.payload.object.schema_refs` 的封闭三项 allowlist 中，并随 genesis create-lock。后续 `ak.realm.schema.payload.value.schema_refs` 只接受 `ak.schema.*.vN`；它不能新增、删除或替换结构角色 profile。两条写入路径的接受面有意不对称，receiver MUST NOT 用 profile 字符串的通用匹配、默认补齐或私有 active-profile 集合抹平该边界。
 
 v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`。实现 MUST 拒绝这些形态，
-不得建立双写/双读路径，也不得把完整 Realm create object 缓存为第二真相源。
+所有实现只读写上述唯一 carrier，不得把完整 Realm create object 缓存为第二真相源。
 
 `owning_organization_ids`、`fields`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
@@ -513,7 +512,7 @@ Direct Conversation Realm MUST：
 - participant authority 只在 immutable binding、恰好两个 stable participant、actor active membership、conversation 未 suspended、Realm/Strand/MLS cross-binding、非终态 scope 与 action-specific gate 同时成立时生效。membership、`created_by`、role/projection mirror 与相同 `pair_key` 都不是其替代来源；authority reset 不使 baseline 失效。
 - 基数是同一 trust domain/pair 的 `0..1` stable binding，且一旦 accepted，该 pair 永久复用同一个 Realm 与 main Strand。suspended、rejoin、rekey、恢复或 erasure 都不创建 successor；结果不明的创建只能由 founder 重放逐字节相同的 signed unit，不得重新 author 另一组 Event。
 
-任一参与方主动离开或被移出 DM Realm 后，同一 immutable binding 立即投影为 `suspended`，双方 participant authority 失效，不需要也不得写 retirement fact。后续 `ak.self.direct_conversation.read.resolve.v1` MUST 返回同一 `pair_key`、Realm 与 main Strand；只有恢复所需 authorization basis 后，才可在同一 Realm 执行标准 rejoin/rekey 并恢复为 `found`。resolve 是查询入口，MUST NOT 承载 `create` phase；DM Realm 的唯一创建入口是 [`../identity/contact-and-direct-conversation.md` §5.4](../identity/contact-and-direct-conversation.md) 的 founder-only founding admission。实现不得创建 successor、predecessor-linked binding、竞争 Realm 或历史 segment；旧 epoch/history key 仍逐次按 event-time visibility 与 history-sharing policy裁决。
+任一参与方主动离开或被移出 DM Realm 后，同一 immutable binding 立即投影为 `suspended`，双方 participant authority 失效，不需要也不得写 retirement fact。后续 `ak.self.direct_conversation.read.resolve.v1` MUST 返回同一 `pair_key`、Realm 与 main Strand；只有恢复所需 authorization basis 后，才可在同一 Realm 执行标准 rejoin/rekey 并恢复为 `found`。resolve 是查询入口，MUST NOT 承载 `create` phase；DM Realm 的唯一创建入口是 [`../identity/contact-and-direct-conversation.md` §5.4](../identity/contact-and-direct-conversation.md) 的 founder-only founding admission。实现不得创建 successor、predecessor-linked binding、竞争 Realm 或历史 segment；客户端只能解密其本地仍持有对应 MLS state/material 的密文。
 
 ## 3. Space
 

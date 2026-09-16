@@ -152,12 +152,6 @@ paths:
   /_arkret/self/events/{event_id}:
     get:
       operationId: ak.self.events.resource.get
-  /_arkret/self/events/resolve:
-    query:
-      operationId: ak.self.events.read.resolve
-  /_arkret/self/events/frontier:
-    query:
-      operationId: ak.self.events.read.frontier
   /_arkret/self/signal:
     post:
       operationId: ak.self.signal.command.send
@@ -173,12 +167,9 @@ paths:
       operationId: ak.peer.events.command.submit
     query:
       operationId: ak.peer.events.read.scan
-  /_arkret/peer/events/resolve:
+  /_arkret/peer/events/resolve-committed:
     query:
-      operationId: ak.peer.events.read.resolve
-  /_arkret/peer/events/frontier:
-    query:
-      operationId: ak.peer.events.read.frontier
+      operationId: ak.peer.events.read.resolve_committed
 
   /_arkret/self/account/viewer:
     get:
@@ -364,7 +355,7 @@ paths:
 | `ak.root.identity.document.resource.get.v1` / `ak.root.identity.log.read.list.v1` / `ak.root.identity.receipts.read.list.v1` | `GET /_arkret/root/identity/document`, `GET /_arkret/root/identity/log`, `GET /_arkret/root/identity/receipts` | gRPC Identity Registry / witness query |
 | `ak.self.security_transaction.command.create.v1` / `resource.get` / `command.continue` | `POST /_arkret/self/security-transactions`、`GET /_arkret/self/security-transactions/{transaction_id}`、`POST .../{transaction_id}/continue` | gRPC `SelfSecurityTransactions/Create` / `Get` / `Continue`；durable transaction resource，不依赖短期 HTTP cache |
 | `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | gRPC `SelfEvents/Submit` / 队列 `self.events.command.submit` |
-| `ak.self.events.resource.get.v1` / `ak.self.events.read.resolve.v1` / `ak.self.events.read.scan.v1` / `ak.self.events.read.frontier.v1` | resource.get 使用 `GET`；read operations 使用 `QUERY /_arkret/self/events/{resolve,frontier}` 或 `QUERY /_arkret/self/events` | gRPC `SelfEvents/Get` / `SelfEvents/Resolve` / `SelfEvents/Scan` / `SelfEvents/Frontier` |
+| `ak.self.events.resource.get.v1` / `ak.self.events.read.scan.v1` | resource.get 使用 `GET`；scan 使用 `QUERY /_arkret/self/events` | gRPC `SelfEvents/Get` / `SelfEvents/Scan` |
 | `ak.self.events.stream.subscribe.v1` | `GET /_arkret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
 | `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | gRPC `PeerEvents/Submit` / 队列 `peer.events.command.submit` |
 | `ak.peer.events.read.resolve_committed.v1` / `ak.peer.events.read.scan.v1` | `QUERY` bindings | gRPC `PeerEvents/ResolveCommitted` / `PeerEvents/Scan` |

@@ -612,7 +612,7 @@ system/human -> `ak.strand.update` 或 `ak.morph.update`
 预设名的语义约束(MUST):
 
 - **预设名不进入 canonical wire。** 预设只是 UI / SDK 便捷输入;server 接收与持久化的永远是 `ak.capability.grant` 的 `actions[]`、resource selector、registered constraints 与 effective validity window(§6.1)。任何 grant 校验、审计、issuer-authority 收窄都基于展开后的 canonical 形态,MUST NOT 依赖预设名。
-- **预设是 additive shorthand,不表达 deny / cap / only。** 同时选择多个预设时，结果是各预设 action / grant template 的**并集**;预设**不**移除、上限化或否定任何其他预设授予的权限。历史命名(如 `read_only` / `draft_only`)有 deny / cap 误导性,MUST NOT 作为 normative 预设名出现。若部署需要收窄，收窄只能通过 resource selector 与 constraint 表达，不能通过预设名。
+- **预设是 additive shorthand,不表达 deny / cap / only。** 同时选择多个预设时，结果是各预设 action / grant template 的**并集**;预设**不**移除、上限化或否定任何其他预设授予的权限。若部署需要收窄，收窄只能通过 resource selector 与 constraint 表达，不能通过预设名。
 - **实现 MUST NOT 引入未在下表登记的预设名**(例如 `write_summary` 等任意字符串)而不先在本表登记。
 - **高风险预设 MUST 展开为完整 grant template**——包含 registry 要求的 required constraints 与有限 `expires_at`,而非无约束的 action union。
 
@@ -764,8 +764,8 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id`；regis
 capability 授权状态投影到 typed current result family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。该 family 明示 `execution=security`、`state_model=sequenced_state`、`value_shape=set`；grant create 的 `result_selector` 从 `envelope.event_id` 重类型派生，revoke / relinquish 从 `payload.grant_id` 引用同一 typed current result（每个 `grant_id` 一个 typed current result）。v1 只有这一个 capability typed current result family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。其集合操作由唯一确认的 RealmCommit 顺序执行：
 
 - **grant** = 对该 grant typed current result 的 tagged set **add**：add identity = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（identity 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照；应用位置仍由 `sequenced_state` 的确切 revision 决定。
-- **revoke** = 对**同一** grant typed current result 的 set **remove**，引用该 grant 的 add identity（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 typed current result；reducer **MUST** 在该 Control Move 的唯一确认前态中把目标 grant 的 add identity 解析为合法 add 后再 supersede。已移除的 add **MUST NOT** 因同 `grant_id` 的后续重放而复活；竞争命令由 RealmCommit 顺序逐项给出 accepted/rejected 结果，不产生安全域 Bottom。
-- **有效性** = 唯一确认序列中尚未被 observed-remove 的 grant add。typed current result 模型是 sequenced_state，值为完整活跃 tagged set；revoke 按确切 revision 执行移除。集合元素并存不代表安全分叉，不能通过无序权限 join 或 Bottom 替代确认。
+- **revoke** = 对**同一** grant typed current result 的 set **remove**，引用该 grant 的 add identity（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dot_ids` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 typed current result；reducer **MUST** 在该 Control Move 的唯一确认前态中把目标 grant 的 add identity 解析为合法 add 后再 supersede。已移除的 add **MUST NOT** 因同 `grant_id` 的后续重放而复活；竞争命令由 RealmCommit 顺序逐项给出 accepted/rejected 结果。
+- **有效性** = 唯一确认序列中尚未被 observed-remove 的 grant add。typed current result 模型是 sequenced_state，值为完整活跃 tagged set；revoke 按确切 revision 执行移除。集合元素并存不代表安全分叉，安全状态只按 RealmCommit 确认顺序执行。
 - **GC / tombstone**：已被 committed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 typed current result **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
 
 conformance：[`capability-fixture.json`](../sync/authority-commit-log.md) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。

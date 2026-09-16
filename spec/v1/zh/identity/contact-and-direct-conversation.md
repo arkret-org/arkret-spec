@@ -118,8 +118,8 @@ Control 查询、确切 RealmCommit prepare/sign/submit 流程，再以原 bytes
 对 human self-principal PCR，commit 的 exact Event 由 current active accepted device 以 canonical
 `{holder}#{device_id}` method 签名；Station 不持有 holder 私钥，也不得代签 producer Event。Station 只在 current authority 验证成功后签发 RealmCommit，并于同一事务 materialize Contact effect。
 
-request prepare 是 holder-local authoring：它 **MUST** 从 holder PCR 的 current actor frontier 与 accepted RealmCommit
-frontier 固定 `producer_revision`、`domain_refs` 与 `authority_revision`；任一 frontier 暂不可得时返回可重试的
+request prepare 是 holder-local authoring：它 **MUST** 从 holder PCR 的 current committed stream head
+固定 `producer_revision`、`domain_refs` 与 `authority_revision`；该 head 暂不可得时返回可重试的
 `frontier_unavailable` 且零写入。target principal 的解析与投递属于 commit 后的 durable receipted outbox / peer
 carrier；因此 target 当前离线或不可解析 **MUST NOT** 把本地 prepare 改写成 `not_found`，也不得伪造已投递状态。
 
@@ -275,7 +275,7 @@ commitment 与 receipt 的 `accepted_at` 一致。延后签名按该历史时点
 `glare_concurrency_attestation` 同理签 `subject_id: ActorId`、`peer_id: ActorId` 与
 `issuer_id: DidCoreId`。两张 attestation 必须分别是 `p0 -> p1` 与 `p1 -> p0`，issuer 必须是 subject 在
 `observed_at` 已接受的 Station service authority；同 core 异 Station与同 Station双账号均按完整 ActorId 独立判定，
-不得保留裸 core 兼容分支。
+必须按完整 ActorId 判定，不接受只含 `did_core_id` 的形态。
 
 `ak.peer.contacts.command.submit.v1` 是唯一 peer carrier，其 closed XOR 分支分别机器限定原始 signed Event kind为
 `ak.contact.requested|accepted|rejected|scope.update|tombstone`并携该分支exact acceptance receipt与允许的

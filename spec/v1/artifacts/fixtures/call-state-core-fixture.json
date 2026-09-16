@@ -74,7 +74,7 @@
       "assertions": [
         "ringing to active and ringing to missed compete in the confirmed sequence; the first valid command advances the revision",
         "the command evaluated second against the stale revision is durably rejected with no state effect",
-        "the result follows the confirmed RealmCommit order and never creates sibling heads or Bottom"
+        "the result follows the confirmed RealmCommit order and never creates sibling safety-state heads"
       ]
     },
     {
@@ -91,7 +91,7 @@
         "any derived projection kind, tag, value, from, or to mismatch fails with reducer_projection_failed",
         "an unchanged axis produces no projected write and a redundant same-value write is rejected",
         "focus validation sets the complete focus value and cannot omit or replace a committed session_focus",
-        "all safety axes use sequenced_state and never produce sibling heads or Bottom"
+        "all safety axes use sequenced_state and never produce sibling safety-state heads"
       ]
     }
   ]

@@ -134,9 +134,9 @@ Describe 至少声明 self submit/read/subscribe 能力；承担 federation 的 
 
 `ak.self.events.read.scan.v1` 与 `ak.peer.events.read.scan.v1` 按**单个获准 stream**的连续 position 分页。每页不得把多个 Circle/Sidecar 拼成 Realm 总序，也不得用隐藏 stream 的 position gap 暗示其活动。历史可见性、membership join floor 和 retention 可以裁剪可读起点。
 
-### 4.6 获取 Event frontier
+### 4.6 获取 stream head
 
-frontier 是每条已获准 stream 的 `{head_commit_ref, next_position}` 集合，不是 actor frontier，也不是全 Realm 总 head。公开 authority bundle只披露 Realm stream head；私有 Circle/Sidecar heads 只进入获权 snapshot 或 handoff manifest。
+每条获准 stream 以 `{head_commit_ref, next_position}` 表示当前进度。公开 authority bundle只披露 Realm stream head；私有 Circle/Sidecar heads 只进入获权 snapshot 或 handoff manifest。
 
 ## 5. Account Aggregate / Snapshot Surface
 

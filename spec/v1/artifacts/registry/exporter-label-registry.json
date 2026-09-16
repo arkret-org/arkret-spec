@@ -1,12 +1,13 @@
 {
-  "version": "2026-09-01.1",
+  "version": "2026-09-16.1",
+  "generated_at": "2026-09-16T09:35:00+08:00",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
     {
-      "label": "ak.history-v1",
+      "label": "ak.epoch-content-root-v1",
       "primitive": "MLS-Exporter",
-      "purpose": "Per-epoch exporter-scheme history root",
+      "purpose": "Per-epoch exporter-scheme content root",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
       "context_fields": [
         "effective_scope"
@@ -28,7 +29,7 @@
     {
       "label": "ak.content-v1",
       "primitive": "ExpandWithLabel",
-      "parent_secret": "ak.history-v1",
+      "parent_secret": "ak.epoch-content-root-v1",
       "purpose": "Per-verified-sender exporter content AEAD key",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10",
       "context_fields": [
@@ -66,14 +67,14 @@
       "empty_context_forbidden": true,
       "empty_context_error": "mls_exporter_context_invalid",
       "forbid_reuse_with": [
-        "ak.history-v1",
+        "ak.epoch-content-root-v1",
         "ak.signal-root-v1"
       ]
     },
     {
       "label": "ak.reaction-routing-v1",
       "primitive": "ExpandWithLabel",
-      "parent_secret": "history_secret for exporter scheme; ak.reaction-routing-root-v1 for standard scheme",
+      "parent_secret": "epoch_content_root for exporter scheme; ak.reaction-routing-root-v1 for standard scheme",
       "purpose": "One-hour target-bound reaction routing HMAC key",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
       "context_fields": [
@@ -114,14 +115,14 @@
       "empty_context_forbidden": true,
       "empty_context_error": "mls_exporter_context_invalid",
       "forbid_reuse_with": [
-        "ak.history-v1",
+        "ak.epoch-content-root-v1",
         "ak.reaction-routing-root-v1"
       ]
     },
     {
       "label": "ak.signal-v1",
       "primitive": "ExpandWithLabel",
-      "parent_secret": "history_secret for exporter scheme; ak.signal-root-v1 for standard scheme",
+      "parent_secret": "epoch_content_root for exporter scheme; ak.signal-root-v1 for standard scheme",
       "purpose": "Per-verified-sender Signal AEAD key",
       "defined_in": "zh/sync/signal.md §1",
       "context_fields": [

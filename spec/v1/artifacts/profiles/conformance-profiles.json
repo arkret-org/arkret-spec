@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.7",
-  "generated_at": "2026-09-16T18:00:00+08:00",
+  "version": "2026-09-16.8",
+  "generated_at": "2026-09-16T09:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1475,28 +1475,25 @@
         {
           "requirement": "Strand discussion timeline",
           "coverage": [
-            "sync-fixture.json"
+            "authority-commit-fixture.json"
           ]
         },
         {
           "requirement": "message edit/redaction",
           "coverage": [
-            "sync-fixture.json",
             "redaction-fixture.json"
           ]
         },
         {
           "requirement": "reaction OR-Set",
           "coverage": [
-            "reaction-fixture.json",
-            "authority_commit-lattice-fixture.json"
+            "schema-validation-fixture.json"
           ]
         },
         {
           "requirement": "discussion history visibility and membership trimming",
           "coverage": [
-            "privacy-security-fixture.json",
-            "sync-fixture.json"
+            "privacy-security-fixture.json"
           ]
         },
         {
@@ -1611,20 +1608,20 @@
         {
           "requirement": "basic ordering and tie break",
           "coverage": [
-            "sync-fixture.json"
+            "authority-commit-fixture.json"
           ]
         },
         {
           "requirement": "pagination gap and backfill order",
           "coverage": [
-            "sync-fixture.json"
+            "cursor-negative-fixture.json"
           ]
         },
         {
           "requirement": "token expiry recovery",
           "coverage": [
             "encoding-fixture.json",
-            "sync-fixture.json"
+            "cursor-negative-fixture.json"
           ]
         }
       ],
@@ -2316,14 +2313,14 @@
           "requirement": "service DID authentication and destination binding validation",
           "coverage": [
             "operation_requirements",
-            "federation-fixture.json"
+            "authority-commit-fixture.json"
           ]
         },
         {
           "requirement": "federation transaction idempotency and per-item accepted/rejected/quarantine results",
           "coverage": [
             "ak.schema.event_batch_receipt.v1",
-            "federation-fixture.json"
+            "independent-admission-fixture.json"
           ]
         },
         {
@@ -2331,28 +2328,28 @@
           "coverage": [
             "ak.schema.event.v1",
             "ak.schema.event_payload.v1",
-            "event-envelope-negative-fixture.json"
+            "schema-validation-fixture.json"
           ]
         },
         {
           "requirement": "dependency missing pull/backfill recovery",
           "coverage": [
             "ak.peer.events.read.scan.v1",
-            "ak.peer.events.read.resolve.v1",
-            "sync-fixture.json"
+            "ak.peer.events.read.resolve_committed.v1",
+            "authority-commit-fixture.json"
           ]
         },
         {
           "requirement": "duplicate conflict quarantine",
           "coverage": [
-            "event-envelope-negative-fixture.json"
+            "schema-validation-fixture.json"
           ]
         },
         {
           "requirement": "batch, event size and retry rules",
           "coverage": [
             "scalability-constraints.md",
-            "federation-fixture.json"
+            "scalability-limits-fixture.json"
           ]
         }
       ],
@@ -5079,7 +5076,7 @@
         "circle_content_encryption_floor_must": "Circle.content_encryption_floor (allow_plaintext | e2ee_required) is optional and symmetric with Circle.metadata_encryption_floor: when omitted it inherits the parent Realm content_encryption_floor, and the effective floor = max(parent Realm content_encryption_floor, Circle content_encryption_floor). Reducer MUST reject a Circle floor below the effective floor and MUST reject content_encryption_floor=e2ee_required on an encryption_profile=none Circle (reason=circle_encryption_below_realm_floor). See zh/models/circle.md §7.",
         "encryption_floor_ratchet_must": "The effective content_encryption_floor and effective metadata encryption floor of any scope (Realm-default or Circle) are one-way ratchets: monotonically non-decreasing over time. A ak.realm.policy_bundle or ak.circle.update that lowers the effective content floor from e2ee_required to allow_plaintext MUST be rejected (reason=content_encryption_floor_downgrade); one that lowers the effective metadata floor MUST be rejected (reason=metadata_encryption_floor_downgrade). Tightening is always allowed. Vectors: ak.vector.e2ee.content_floor_downgrade_rejected.v1, ak.vector.e2ee.metadata_floor_downgrade_rejected.v1, ak.vector.circle.content_floor_below_realm_rejected.v1, ak.vector.e2ee.in_place_enable.v1.",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ak.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
-        "scope_invariant_must": "The Station sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors not in that Circle's member frontier at the Event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
+        "scope_invariant_must": "The Station sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors who are not members at that Event's committed Circle-stream position (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     },
     "ak.profile.personal_productivity.v1": {

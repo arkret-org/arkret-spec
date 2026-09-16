@@ -90,7 +90,7 @@ self-surface 的 `circle_view`（[`circle-operations.schema.json#/$defs/circle_v
 
 **typed current result 归属与 subject 语义（normative）**：
 
-- `ak.component.circle.create.v1`（`ordered_log`，`result_selector=null`）是**本 Realm 的 Circle 创建日志**：一个 Realm 内每创建一个 Circle 追加一条 entry，typed current result 本身由 Event envelope 的 `realm_id` 定位。它**不是** per-Circle 的 genesis singleton，因此 MUST NOT 把 `circle_id` 编进 typed current result subject；null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)。`ordered_log` 的合并不产生冲突值，本 family 也不定义额外的领域冲突语义；`ordered_log` 不声明 Bottom policy（[`../authz/event-auth-state-resolution.md` §7](../authz/event-auth-state-resolution.md)）；Circle 身份唯一性由 `circle_id` 的 typed-id 唯一性与 §3 的 create 校验在 admission 阶段保证，不由状态模型冲突表达。
+- `ak.component.circle.create.v1`（`ordered_log`，`result_selector=null`）是**本 Realm 的 Circle 创建日志**：一个 Realm 内每创建一个 Circle 追加一条 entry，typed current result 本身由 Event envelope 的 `realm_id` 定位。它**不是** per-Circle 的 genesis singleton，因此 MUST NOT 把 `circle_id` 编进 typed current result subject；null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)。`ordered_log` 的合并不产生冲突值，本 family 也不定义额外的领域冲突语义；Circle 身份唯一性由 `circle_id` 的 typed-id 唯一性与 §3 的 create 校验在 admission 阶段保证，不由状态模型冲突表达。
 - `ak.component.circle.tombstone.v1`（`sequenced_state`）是 **per-Circle** 终态槽位，`result_selector={"type":"coalesce","fields":["payload.circle_id","payload.target_ref"]}`，与 `ak.circle.archive` / `ak.circle.restore` 写入的 `ak.component.circle.lifecycle.v1` 采用同一 subject 形态。coalesce 的第二项是必需的：三个 Circle lifecycle kind 的 payload class 是 `object_lifecycle_payload`（§5 表），它以 `target_ref` 作为目标对象的**唯一来源**、不携带 `circle_id`，因此只声明 `payload.circle_id` 的 subject 在该 payload 上不可派生。这与 `ak.morph.*` / `ak.space.*` / `ak.strand.*` / `ak.relation.tombstone` 已登记的 `coalesce[payload.<kind>_id, payload.target_ref]` 形态一致。它 MUST NOT 使用 null subject——per-Realm 单例槽位只能容纳一个 Circle 的 tombstone，第二个 Circle 会错误复用第一个的安全槽位，导致错误的前置拒绝或覆盖归属。
 
 ## 6. 对象 scope 表达
@@ -313,7 +313,7 @@ tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiv
 
 ### 9.3 Sync / 投递不变量
 
-> **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Station sync surface MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
+> **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Station sync surface MUST NOT 向在 `E` 的 committed Circle-stream position 处不属于 `C.members` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
 
 特例:
 - `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、`member_ids`、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；原生 Sidecar 的独立存在性隐私由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。

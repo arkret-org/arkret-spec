@@ -324,7 +324,7 @@ Commit MUST 执行：
 - preview 对 registration epoch evidence 解析出的 exact DID method version MUST 要求状态为 current/active；可解析但已 deactivated 的 service DID 必须以 `applet_registration_epoch_evidence_deactivated` 独立 fail closed，不得误报 document-unresolvable，也不得回退到未版本化 current DID、package sibling 或 service-local key。
 - 当 recomputed plan canonical `plan_digest` 与 signed `authoring_request.plan_digest` 不一致时 MUST fail closed，返回 `applet_install_plan_mismatch`，并要求管理员重新 preview/approve；commit 不携第二个 plan digest。
 
-正式安装的 registration、grant、Bot provision、PCR genesis、accountability 与 Profile 是本地单事务 fixed set；preview-time 或 reduce-time 任一步失败都 MUST 零 Event、零 projection、零 Applet record、零幂等结果。旧的逐 Event fan-out、partial accepted/rejected refs 与 orphan registration 模型删除，不提供兼容。该 fixed set MUST NOT 写 federation outbox；远端不能用 `ak.peer.events.command.submit.v1` 单独重放其中的 `applet_managed_control` genesis。
+正式安装的 registration、grant、Bot provision、PCR genesis、accountability 与 Profile 是本地单事务 fixed set；preview-time 或 reduce-time 任一步失败都 MUST 零 Event、零 projection、零 Applet record、零幂等结果。该 fixed set MUST NOT 写 federation outbox；远端不能用 `ak.peer.events.command.submit.v1` 单独重放其中的 `applet_managed_control` genesis。
 
 Revoke 使用 caller-signed event-log saga。请求中的 `effective_scope` 与 path `applet_id` 共同选择唯一 current
 effective install；该操作只撤销这个 exact install，不得隐式撤销同一 Applet 在其它 scope 的 active install。

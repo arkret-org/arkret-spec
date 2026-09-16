@@ -280,7 +280,7 @@ Receiver MUST 在本 Move 的冻结 predecessor view 下，从自己已接纳的
 - 结果相同或不同的并发 resolution 都保留各自 Event 身份，并按固定 `(depth,EventId)` 选择唯一 resolution winner；不得按接收顺序、HLC 或结果内容选边。
 - 每条 resolution 仍必须独立覆盖完整、冻结的 Relation 领域候选集合；固定 winner 只决定多个合法裁决中哪个当前生效，不放宽 baseline 完整性。
 - 后续 `ak.relation.resolve` 引用当前 resolution winner，产生更高 depth 并自然取代它；payload MUST NOT 另设一份"被取代的历史裁决列表"形成第二真相源。
-- 新发现且不在 winner 冻结 baseline 中的 Relation 领域候选仍会重新触发 `require_review`；这属于跨 typed current result 领域完整性检查，不是 resolution typed current result 的通用多头 Bottom。
+- 新发现且不在 winner 冻结 baseline 中的 Relation 领域候选仍会重新触发 `require_review`；这是跨 typed current result 的领域完整性检查。
 
 **17-head 恢复（normative）**：超过普通诊断上限的域按同一 carrier 修复。author 通过 `ak.self.relation_conflicts.read.candidates.v1` 取得 17 条（或更多）成员的完整材料，按 §6.3 复算 `members_digest`，内联名单（`member_count ≤ 64`）或仅携承诺（`≥ 65`），再提交一条 `ak.relation.resolve`。实现 MUST NOT 因为普通 fanout 上限先拒绝所有修复材料，也 MUST NOT 把 16 复制成修复证据的上限。
 

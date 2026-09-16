@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.8",
+  "version": "2026-09-16.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T18:30:00+08:00",
+  "generated_at": "2026-09-16T09:30:00+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit MLS content-scheme selection to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -13,7 +13,7 @@
     "This transaction applies to effective_scope.kind realm and circle only. effective_scope.kind=\"sidecar\" keeps the independent handshake profile of zh/crypto-media/encryption-and-audit.md section 2.5.1 and is out of scope here; a client MUST NOT open this record for a sidecar scope.",
     "A recoverer reads the durable record and executes the single next arrow its current state allows. A retryable transport failure, a page reload, a process crash and an unavailable accepted-Genesis query do not change the logical state. Rebuilding material from UI state is never a recovery path.",
     "Any change to a field of an active attempt after the Genesis is signed is not a retry and MUST fail closed. A second window or a background effect may only join the existing record.",
-    "v1 registers no compatibility branch that infers the selector from an accepted history facet, a Realm projection or an old UI combination. Development data without a formal record follows the retention rules: converge on an existing accepted Genesis, fail closed and explicitly discard the stale local draft when there is definitely none, and stay unwritable while the accepted state is unknown.",
+    "The selector is read only from the formal transaction record. A local draft without that record follows the retention rules: converge on an existing accepted Genesis, discard the draft when there is definitely none, and stay unwritable while the accepted state is unknown.",
     "Adding a state, an arrow or a required durable field requires an active vector-registry.json row that injects a crash and a reload on both sides of the new arrow in the same registry release."
   ],
   "record_identity": {

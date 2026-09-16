@@ -300,7 +300,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 **c. `status` 字段纪律**——`schema-registry.json` 的 schema 条目只允许 `active`；未知或非 active 状态一律 fail closed，不存在为了旧数据解析而保留的 schema 行。省略 `status` 的 source row按 `active` 解释；新增或修改 schema 行 MUST 显式写出 `status`。其它 registry 若定义 `profile_extension` 等状态，只在其自身 closed contract 内有效，不得套用到 schema registry。
 
 - 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-registry.json` → pipeline 再生成，见 §1）。
-- schema registry 只包含当前标准面的条目；v1 不含 deprecated schema row、alias 或解析分支。
+- schema registry 只包含 current-v1 的 active canonical 条目；解析必须精确命中登记的 schema id 与 shape。
   历史快照不属于当前 schema registry 的输入，消费者 MUST 只接受当前 registry 声明的 shape。
 
 ### 6.2 禁字段的机读上下文（normative）

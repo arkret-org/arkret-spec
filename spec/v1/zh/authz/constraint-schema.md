@@ -174,7 +174,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
-**依赖不可判定时 fail closed**：condition 所引用的数据 typed current result 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按确认顺序求值，不存在控制寄存器 Bottom。
+**依赖不可判定时 fail closed**：condition 所引用的数据 typed current result 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按 RealmCommit 确认顺序求值。
 
 实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
@@ -339,7 +339,7 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
 
 `applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service / `bot_actor_id` 的 `did_core_id`，或已按 Applet profile provision 的具体 ghost actor `did_core_id`；控制证明中的DID URL 必须经 adapter 投影到该值，不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
 
-该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未知的旧式 `constraint_kind=applet_delegation_binding` 不属于 v1 wire，MUST fail closed，不得作为别名接受。
+该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未登记的 `constraint_kind` MUST fail closed。
 
 ### 7.4 再授权控制字段的 reducer 求值规则（normative）
 

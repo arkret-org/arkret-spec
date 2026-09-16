@@ -150,7 +150,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | `roster_delta` | `ak.component.call.roster.v1` | `sequenced_state` | set |
 | `mute_override` | `ak.component.call.mute_override.v1` | `sequenced_state` | register |
 
-安全状态没有无序 Bottom join。普通结果保留完整 Event 证据并按固定 `(depth,EventId)` 投影唯一 current；result 不授予采集、密钥或读取权限。精确 subject、条件、投影由 registry 唯一派生。
+安全状态按 RealmCommit 顺序确认。普通结果保留完整 Event 证据并按固定 `(depth,EventId)` 投影唯一 current；result 不授予采集、密钥或读取权限。精确 subject、条件、投影由 registry 唯一派生。
 
 **未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `result_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result typed current result write。完整 op 由 registry `effect_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 

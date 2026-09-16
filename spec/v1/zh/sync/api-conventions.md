@@ -563,7 +563,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 X-Arkret-Wait-For: <cursor>
 ```
 
-如果服务在超时前到达该 cursor 描述的 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `param_invalid`。
+如果服务在超时前到达该 cursor 描述的 authority stream position，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 stream head。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `param_invalid`。
 
 **Wait-for canonical 与投影（normative）**：`X-Arkret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Arkret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
 
@@ -650,7 +650,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 **path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-registry.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ak.schema.*.v1`）和 event kind 版本后缀承载。
 
-版本与能力发现走 **`*.describe` 协商**：调用方 MUST 先精确比较 `describe.protocol_version`；与本地支持的 `"1.0"` 不等时 MUST 以 `unsupported_protocol_version` fail closed，不得解释或缓存其它声明。版本匹配后，调用方再用 `describe.supported_operation_bundles` 的精确 carrier/schema 交集与 `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。当前尚未发布，破坏性修订直接更新 current-v1 canonical event kind、schema、profile、fixture 与 `forbidden-wire-fields`，不保留 rename alias、迁移表或双读路径。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。选择支持该请求 header 或等价 media-type 参数的 binding，对不支持的形状合法版本 MUST 返回 `unsupported_protocol_version`，不得猜测或回退。
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 先精确比较 `describe.protocol_version`；与本地支持的 `"1.0"` 不等时 MUST 以 `unsupported_protocol_version` fail closed，不得解释或缓存其它声明。版本匹配后，调用方再用 `describe.supported_operation_bundles` 的精确 carrier/schema 交集与 `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。传输层版本使用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。选择支持该请求 header 或等价 media-type 参数的 binding，对不支持的形状合法版本 MUST 返回 `unsupported_protocol_version`，不得猜测或回退。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 

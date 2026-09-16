@@ -35,7 +35,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ### 1.1 Stream frame 序列约束的机读锚点（normative）
 
-`ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 的 NDJSON 多帧序列由 registered vector `ak.vector.sync.stream_frame_sequence.v1` 机读固化（fixture `sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准）。两类 stream 的输出和客户端 reconnect 状态机都 MUST 通过同一组完整 trace 断言；逐帧 JSON Schema validation 不能替代序列测试：
+`ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 的 NDJSON 多帧序列必须按各自 frame schema 与下列完整 trace 断言测试；逐帧 JSON Schema validation 不能替代序列测试：
 
 - 必须固化并执行的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
   1. `catchup=true` 时，`catchup_complete` 之前 MUST 至少出现一个 `delta` frame（baseline / catch-up delta）；`catchup=false` 时 MUST NOT 出现 `catchup_complete`。
@@ -83,14 +83,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.root.identity.command.submit_did_operation.v1` | 提交 DID 更新操作。 |
 | `ak.self.events.command.submit.v1` | 提交 signed Event Envelope。 |
 | `ak.self.events.resource.get.v1` | 按 ID 读取单个 Event。 |
-| `ak.self.events.read.resolve.v1` | 批量读取 Event。 |
-| `ak.self.events.read.scan.v1` | 按 actor / Realm / cursor 双向查询 Event。 |
-| `ak.self.events.stream.subscribe.v1` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay。 |
-| `ak.self.events.read.frontier.v1` | 获取 actor 或 Realm 的可见 Event frontier。 |
+| `ak.self.events.read.scan.v1` | 按获准的单个 authority stream 与 cursor 连续查询 Event。 |
+| `ak.self.events.stream.subscribe.v1` | 订阅获准 stream 的增量流，可选 bounded catch-up replay。 |
 | `ak.peer.events.command.submit.v1` | federation peer 推送 signed Event Envelope 批次。 |
-| `ak.peer.events.read.resolve.v1` | federation peer 按 event id / digest 补洞解析 Event。 |
-| `ak.peer.events.read.scan.v1` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
-| `ak.peer.events.read.frontier.v1` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
+| `ak.peer.events.read.resolve_committed.v1` | federation peer 按 `CommittedEventRef` 精确读取 Event 与对应 RealmCommit。 |
+| `ak.peer.events.read.scan.v1` | federation peer 按获准的单个 authority stream 与 cursor 拉取或回填 Event。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
 | `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
 | `ak.self.agent.participation.resource.replace.v1` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |

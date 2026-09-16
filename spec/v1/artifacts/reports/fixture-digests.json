@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "bd205828feee6aa5fb59cd48311eaf036a720da48f4f9e0e03aafda3ebf8b694"
+      "sha256": "963c437deb929e9b68b30adb5e435186d2c77374b2969c52f00a767a054d8ec7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
-      "sha256": "25c030df5e00aa6b2b87fc8f43fa04f3e36972fb75f381b9aea71030ccb8e671"
+      "sha256": "0fad87879e94618e23f89124b4ff89819fb5f65ae38a49e3eb75734f2e44fee9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
-      "sha256": "7a58cefcb0e852bcb84b4221e34fd7b74c43f348c427bf54f7954db0a296cf48"
+      "sha256": "b9a7d7ec7ac85d891faa5d2c67ef920141a33890fed44dc06749d2da06ca28c7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json",

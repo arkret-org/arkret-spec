@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 53,
+  "version": 54,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-16T18:30:00+08:00",
+  "generated_at": "2026-09-16T09:30:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -2985,7 +2985,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_strand_refs, allowed_circle_refs, denied_strand_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Strand, or Morph containers.",
+      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs use `_refs` because they may identify Space, Strand, or Morph containers.",
       "match": {
         "kind": "field",
         "values": [
@@ -3064,7 +3064,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. Event.scope_ref is a valid polymorphic signed reference. The old fields parent_ref, default_realm_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire.",
+      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. Event.scope_ref is a valid polymorphic signed reference.",
       "match": {
         "kind": "field",
         "values": [

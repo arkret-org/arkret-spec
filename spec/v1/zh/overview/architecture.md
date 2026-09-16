@@ -140,7 +140,7 @@ Station 不是身份本身，也不能替 principal 伪造 Event，**更不是�
 - View 是可同步的投影定义，不拥有被投影对象的事实。
 - 查询、搜索和 projection MUST NOT 绕过 Realm policy、`allowed_tracks` action scope、history visibility、E2EE 可见性或 capability。`allowed_tracks` 只在已有 Realm / capability 授权内缩小 track 范围，不是独立 track-level ACL。
 - 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Realm policy 列入 `plaintext_visible_services`。
-- 派生输出 MUST NOT 成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
+- 派生输出 MUST NOT 成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和对应 stream 的 committed positions 重新计算。
 
 ### 2.5 Blob Store
 
@@ -620,8 +620,8 @@ Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Station / Direc
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。
-- Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、reducer profile 和 causal frontier。
-- Capability cache 只能作为优化。缓存命中必须绑定 causal frontier、grant / revoke / claim 状态和 policy version；上下文缺失、过期或发生分叉时 MUST fail closed 或重新执行完整 authz。
+- Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、reducer profile 和对应 stream 的 RealmCommit position。
+- Capability cache 只能作为优化。缓存命中必须绑定 exact authority revision、grant / revoke / claim 状态和 policy version；上下文缺失、过期或无法验证时 MUST fail closed 或重新执行完整 authz。
 - 多 Station 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
 - 加密 envelope、Station device/key surface、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
 - Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端 MUST NOT 仅信任外部 projection 或 search dump。

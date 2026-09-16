@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8641,
+    "total_properties": 8639,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2373,
+      "optional": 2371,
       "optional_defaulted": 51,
       "required": 5773,
       "required_nullable": 289,
@@ -6571,7 +6571,6 @@
         "/$defs/realm_policy_bundle_payload/properties/agent_participation": "optional",
         "/$defs/realm_policy_bundle_payload/properties/allowed_third_party_invite_verification_ids": "optional",
         "/$defs/realm_policy_bundle_payload/properties/availability_policy": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/bottom_escalation_after_ms": "optional",
         "/$defs/realm_policy_bundle_payload/properties/commit_compaction_max_interval_ms": "optional",
         "/$defs/realm_policy_bundle_payload/properties/content_encryption_floor": "optional",
         "/$defs/realm_policy_bundle_payload/properties/federation_policy": "optional",
@@ -9698,7 +9697,6 @@
         "/properties/availability_policy/properties/min_holders": "required",
         "/properties/availability_policy/properties/minimum_retention_ms": "optional_defaulted",
         "/properties/avatar_blob_ref": "optional",
-        "/properties/bottom_escalation_after_ms": "optional",
         "/properties/commit_compaction_max_interval_ms": "optional_defaulted",
         "/properties/content_encryption_floor": "optional",
         "/properties/content_scheme": "optional",

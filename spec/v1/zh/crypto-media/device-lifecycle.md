@@ -1019,7 +1019,7 @@ draft ID/digest、eligible committer、ciphersuite、issuer、issued/expires-at�
 reservation在任何 claim CAS之前持久化；claim-before rejection零烧。
 
 唯一顺序是：target-device signed reservation → KeyPackage claim CAS → durable committer journal genesis +
-exact commitment → member Event accepted → append accepted frontier → Add Commit + Welcome → recipient durable
+exact commitment → member Event accepted in its authority stream → append RealmCommit → Add Commit + Welcome → recipient durable
 group state + consume intent → consume original claim。
 
 journal genesis与committer commitment必须在member acceptance之前存在，并逐字绑定member draft、claim、
@@ -1030,7 +1030,7 @@ frontier/Commit facts。takeover必须签 predecessor、current epoch与相同 e
 
 注册唯一 authority source `ak.authority.membership_compensation.v1`。补偿 delegation由实际 accepted join
 Event的authoring proof signer产生；其无签名、无`delegation_id`的closed core逐字绑定
-admission/join identity、member Event ID/digest、membership cell与J1 provenance、subject、真实
+admission/join identity、member Event ID/digest、member Event对应的 RealmCommit与J1 provenance、subject、真实
 `actor_id/executed_by?/authorization_ref?/verification_method`分支、executor service DID+proof key、resource、
 deadline及唯一action。对exact RFC8785/JCS core计算SHA-256，并机械派生外层
 `delegation_id=ak:membership_compensation_delegation:sha256:<lowercase_hex>`；ID后缀就是该digest的唯一wire表示，

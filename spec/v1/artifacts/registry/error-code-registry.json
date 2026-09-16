@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.8",
-  "generated_at": "2026-09-16T18:30:00+08:00",
+  "version": "2026-09-16.9",
+  "generated_at": "2026-09-16T09:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -794,7 +794,7 @@
       "code": "frontier_stale",
       "http_status": 409,
       "scope": "both",
-      "description": "The service frontier is behind the causal frontier required by the request.",
+      "description": "The service's verified authority-stream head is behind the RealmCommit position required by the request.",
       "type_uri": "https://arkret.org/problems/frontier_stale",
       "title": "Frontier stale"
     },
@@ -2183,14 +2183,6 @@
       "title": "Failed plane"
     },
     {
-      "code": "failed_bottom",
-      "http_status": 409,
-      "scope": "both",
-      "description": "authority-commit lattice join produced bottom (irreconcilable state) while applying the reducer-projected writes. Terminal failure state per zh/authz/event-auth-state-resolution.md Â§13; MUST NOT be reported as cas_conflict.",
-      "type_uri": "https://arkret.org/problems/failed_bottom",
-      "title": "Failed bottom"
-    },
-    {
       "code": "device_revocation_pending",
       "http_status": 409,
       "scope": "endpoint",
@@ -2352,7 +2344,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "An Agent action or mention fanout requires the current target-local deployment/Realm/Circle/Strand participation policy, but one or more required layers are bottom (âŠ¥), stale or unresolvable. The action-time gate treats the unresolved policy as all false. The controller's private selection remains stored unchanged. See zh/authz/capabilities.md Â§5.4."
+      "description": "An Agent action or mention fanout requires the current target-local deployment/Realm/Circle/Strand participation policy, but one or more required layers are stale, unavailable, or unverifiable. The action-time gate treats the unresolved policy as all false. The controller's private selection remains stored unchanged. See zh/authz/capabilities.md Â§5.4."
     },
     {
       "code": "agent_participation_ceiling_widen",
@@ -3272,7 +3264,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A child grant or Move depends on a parent grant that is locally known to be revoked, superseded, expired, or tombstoned. Reducers MUST fail closed without waiting for the child causal frontier to include the revoke. See zh/authz/capabilities.md Â§10.3."
+      "description": "A child grant or Move depends on a parent grant that is locally known to be revoked, superseded, expired, or tombstoned. Reducers MUST fail closed immediately. See zh/authz/capabilities.md Â§10.3."
     },
     {
       "code": "grant_validity_window_empty",
@@ -3409,14 +3401,6 @@
         "identity_creation"
       ],
       "description": "The InitialSessionGrantRequest digest, device id, audience, scope ceiling, or RFC 7638 thumbprint does not match the frozen registration and handoff holder binding."
-    },
-    {
-      "code": "insufficient_challenge_samples",
-      "applies_to": [
-        "client_sync",
-        "realm_state_snapshot_verification"
-      ],
-      "description": "A high-assurance range/challenge attestation does not carry the required minimum number of event_id (or equivalent) samples. The challenge MUST reject. See sync/client-sync.md and fixtures/sync-fixture.json."
     },
     {
       "code": "integrity_failed",
@@ -5185,14 +5169,6 @@
       "description": "A `ak.call.summary` event was rejected because its `final_state` is not a terminal call state, the referenced `call_id` has no terminal `ak.call.state` head, or a divergent summary already exists for the call (the summary typed current result is write-once). Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md Â§7."
     },
     {
-      "code": "result_in_bottom_state",
-      "applies_to": [
-        "state_resolution",
-        "auth_decision"
-      ],
-      "description": "An explicitly registered cross-typed current result domain invariant cannot produce a valid combined projection from the deterministic winner of each involved ordinary typed current result. This diagnostic grants no authority, creates no safety state, and MUST NOT be emitted for ordinary causal_register concurrency by itself."
-    },
-    {
       "code": "dependency_missing",
       "applies_to": [
         "batch_item",
@@ -5266,7 +5242,7 @@
         "policy_decision",
         "state_resolution"
       ],
-      "description": "A moderation control typed current result resolved to bottom under conflicting committed Control Moves; downstream decisions depending on the typed current result fail closed until the split is resolved."
+      "description": "Committed moderation control evidence is internally inconsistent or cannot be verified; downstream decisions depending on it fail closed until a complete valid state is available."
     },
     {
       "code": "moderation_state_conflict",
@@ -5274,7 +5250,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "The referenced moderation state typed current result is in bottom / exposed multi-head conflict. Read, write, and distribute paths MUST fail closed rather than selecting a temporary winner. See zh/governance/content-moderation.md."
+      "description": "The referenced moderation state cannot be verified as a complete valid projection. Read, write, and distribute paths MUST fail closed. See zh/governance/content-moderation.md."
     },
     {
       "code": "plane_cross_write",
@@ -5449,8 +5425,7 @@
         "overbroad_request",
         "schema_violation",
         "failed_precondition",
-        "failed_plane",
-        "failed_bottom"
+        "failed_plane"
       ]
     },
     "predicates": {

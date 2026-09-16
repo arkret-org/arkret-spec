@@ -95,7 +95,7 @@ see_also:
 ### 3.3 Station / Events / Sync / Projection
 
 - signed Event Envelope 是唯一 canonical fact。
-- Station 通过 `/_arkret/self/events/*` API 提交、读取、回填和验证 Event frontier。
+- Station 通过 `/_arkret/self/events/*` API 提交、读取和按独立 authority stream 连续回填 Event，并以 RealmCommit head 验证进度。
 - Station 是主体控制或委托的服务边界；Station sync surface 是其 Realm 同步能力。
 - 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`conformance/query-schema.md`](./conformance/query-schema.md) §8–§9）。
 
