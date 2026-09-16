@@ -74,7 +74,7 @@ updated: 2026-07-03
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Move 以该 Event-derived ID 为 profile cell subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
+Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到 actor 的 principal control Realm。物化 Profile ID 是把该 create Event 的 `event_id` 原 token 换成 `ak:actor_profile:` 前缀后的值；`payload.object.id` MUST 省略。Move 以该 Event-derived ID 为 profile typed current result subject。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
@@ -82,10 +82,10 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
   "kind": "ak.profile.create",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "actor_seq": 1,
+  "producer_revision": 1,
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0001-a13f9c2e",
-  "prev_refs": [],
+  "domain_refs": [],
   "refs": [],
   "payload": {
     "object": {
@@ -116,7 +116,7 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
 }
 ```
 
-Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile typed current result。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
 
 ```json
 {
@@ -124,10 +124,10 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "kind": "ak.profile.update",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "actor_seq": 2,
+  "producer_revision": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
-  "prev_refs": [
+  "domain_refs": [
     "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
   ],
   "refs": [
@@ -158,10 +158,10 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 ```
 
 - `ak.profile.create` 初始化完整对象；`ak.profile.update` 仅携带发生变化的字段（delta 更新）
-- 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event 与该 Event 所支撑的当前显示投影。全局 Profile 是普通 causal 状态，没有 covering Seal，服务端 MUST NOT 为填充该结果等待 Seal 或伪造 Seal 覆盖。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.events.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
+- 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event 与该 Event 所支撑的当前显示投影。全局 Profile 是普通 causal 状态，没有 covering RealmCommit，服务端 MUST NOT 为填充该结果等待 RealmCommit 或伪造 RealmCommit 覆盖。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.events.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示，但 MUST 自行验证返回的 exact signed Event 及其与该 actor 和其 Principal Control Realm 的绑定，不得把裸 `actor_profile` 当作证据；一条 patch Event 不证明完整投影、无并发或全网新鲜，证明边界见 [`../sync/service-http-binding.md` §5.1](../sync/service-http-binding.md)
 
-`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 cell `state-slot:ak.component.profile.create.v1:<target_actor_profile_id>`（`causal_register`，按固定 `(depth,EventId)` 产生唯一 current），`cell_subject` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。
+`ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 typed current result `state-slot:ak.component.profile.create.v1:<target_actor_profile_id>`（`causal_register`，按固定 `(depth,EventId)` 产生唯一 current），`result_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。
 
 ### 2.4 Per-Realm Profile 覆写
 
@@ -175,10 +175,10 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "kind": "ak.profile.realm_override",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "actor_seq": 3,
+  "producer_revision": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
-  "prev_refs": [
+  "domain_refs": [
     "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM"
   ],
   "refs": [
@@ -261,7 +261,7 @@ timestamp 或对齐 Unix epoch UTC、duration 不小于 PT60S 的 ISO 8601 inter
 
 Station sync surface 不得解密、聚合或投影 presence 内容。
 
-**持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用 [`signal.md` §2](../sync/signal.md) 对相应 verified endpoint 规定的严格递增 `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `seal_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted Seal、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
+**持续在线刷新（normative）。** 声明自己当前可达并选择广播 presence 的发送端（包括前台客户端、后台常驻客户端与 Agent runtime）MUST 在上一条 `ak.presence` 的 effective expiry 之前发送同一 scope 的后继信号；每个后继信号 MUST 使用 [`signal.md` §2](../sync/signal.md) 对相应 verified endpoint 规定的严格递增 `payload_sequence`、新的 Signal nonce，并重新绑定发送时的 accepted `commit_ref` / MLS epoch。对 v1 `session` class 的 30 秒上限，实现 SHOULD 使用 20–25 秒的刷新周期，并 MUST 为调度、网络抖动与 session refresh 预留至少 5 秒余量；不得把进程健康检查、WebSocket / account stream keepalive 或最后一次 durable Message 当作 presence 刷新。运行时一旦不能取得当前授权、accepted RealmCommit、可持久化的 MLS Signal nonce state，或不能在 expiry 前完成加密提交，MUST 停止宣称 online；接收端继续按上面的 TTL 规则自然聚合为 `offline`，不得延长旧信号。
 
 刷新生命周期 MUST 与该 runtime 的可达生命周期一致：启动并完成 session、scope 与 MLS readiness 后 SHOULD 立即首发；正常运行期间按上述周期刷新；pause / deactivate / unbind、授权或 session 无法恢复、网络断开且不能提交、进程关闭时停止刷新。发送端 MAY 在可用且不会拖延关闭时发送显式 `state="offline"`，但接收端不得依赖该 best-effort 信号，TTL expiry 始终是权威离线边界。对同时接入 durable Event 流的 Agent，presence 发送失败不得阻塞或伪造 Message 接收/回复成功；两条链路必须分别暴露可诊断状态。
 
@@ -309,7 +309,7 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Station sync sur
 - `ak.schema.signal_typing.v1` identity 固定 discussion family，plaintext 不携 `track_name`；
 - plaintext TTL 不得放宽外层 Signal TTL，客户端到期后自动清除指示；
 - 客户端 SHOULD 每 3 秒至多发送一次，并在停止输入后发送 `typing=false`；
-- 接收方 MUST 在验证 Signal proof、scope、Seal/MLS basis、AAD 并解密后，才应用单调
+- 接收方 MUST 在验证 Signal proof、scope、RealmCommit/MLS basis、AAD 并解密后，才应用单调
   `payload_sequence`；
 - fanout 只能面向目标 effective scope 的 active members，world-readable 历史不赋予外部观察者
   接收 typing 的资格；

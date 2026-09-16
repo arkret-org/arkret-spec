@@ -1,19 +1,19 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.6",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
     "The event_kind set MUST equal ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds exactly. A kind admitted for write with no exposure decision, and an exposure decision for a kind that cannot be written, both fail the gate.",
     "exposures[] is a list, not a single value: one kind MAY leave the Realm through several independent paths, and each path carries its own authorization policy.",
     "An empty exposures[] means PCR-private. The gate rejects a private kind whose literal kind string is reachable inside any outward carrier schema fragment registered here.",
-    "carrier declares what actually crosses the boundary: exact_event is the verbatim signed Event, derived_field is a projected value, receipt and seal are acceptance evidence over the Event, did_service_entry is a public DID Document service entry.",
+    "carrier declares what actually crosses the boundary: exact_event is the verbatim signed Event, derived_field is a projected value, receipt and authority commit are acceptance evidence over the Event, did_service_entry is a public DID Document service entry.",
     "authorization_policy_id and anti_enumeration_policy_id MUST reference a policy registered below. public is an explicit policy value; a missing authorization_policy_id is never read as public.",
     "Every exposure resolves exactly one reusable outward disclosure policy through outward_disclosure_policy_mapping, unless it carries an explicit outward_disclosure_policy_id override. The referenced policy is defined in outward-disclosure-policy-registry.json.",
     "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry."
   ],
   "carrier_kinds": {
     "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
-    "derived_field": "A value projected from the Event or from the cell it writes; not the Event itself.",
+    "derived_field": "A value projected from the Event or from the typed current result it writes; not the Event itself.",
     "receipt": "Signed acceptance evidence naming the Event.",
     "did_service_entry": "A service entry in a publicly resolvable DID Document.",
     "realm_commit": "The authority-signed RealmCommit that accepted the disclosed Event."
@@ -433,5 +433,5 @@
       "exposures": []
     }
   ],
-  "generated_at": "2026-09-16T08:30:00+08:00"
+  "generated_at": "2026-09-16T16:30:00+08:00"
 }

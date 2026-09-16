@@ -60,7 +60,7 @@ Forward-private profile 的最小 wire 语义：
 
 ## 4. Realm Search Policy
 
-`ak.realm.search_policy` 写入 Realm policy cell。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。
+`ak.realm.search_policy` 写入 Realm policy typed current result。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。
 
 Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数据类别、index retention 和 revocation behavior。是否允许 plaintext-visible search MUST 由 `data_classes` 中是否包含 `plaintext` / `reversible_summary` 表达，不得另设未注册的 boolean 字段。
 

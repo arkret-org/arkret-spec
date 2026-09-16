@@ -581,7 +581,7 @@
         },
         "holder_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact Account the request is addressed to, chosen and signed by the requester. It is not evidence that the holder exists, is visible or has consented: creating the private correlation queries no consent cell, and a request that is syntactically valid and authenticated MUST produce an indistinguishable opaque outcome whether or not the holder exists. A correlation may freeze a target nobody can legitimately accept; it carries no authority. This operation resolves no aliases -- the external identifier to Arkret identity mapping happens before it, under the section 10 rules."
+          "description": "Exact Account the request is addressed to, chosen and signed by the requester. It is not evidence that the holder exists, is visible or has consented: creating the private correlation queries no consent typed current result, and a request that is syntactically valid and authenticated MUST produce an indistinguishable opaque outcome whether or not the holder exists. A correlation may freeze a target nobody can legitimately accept; it carries no authority. This operation resolves no aliases -- the external identifier to Arkret identity mapping happens before it, under the section 10 rules."
         },
         "purpose": {
           "type": "string",
@@ -655,7 +655,7 @@
         },
         "consent_event": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-          "description": "Exact EventInitialSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active cell and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
+          "description": "Exact EventInitialSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active typed current result and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
         },
         "signature": {
           "$ref": "#/$defs/signature"
@@ -876,7 +876,7 @@
     "mimi_reporter_authority": {
       "type": "object",
       "x-arkret-signature-domain": "ak.mimi_reporter_authority_proof.v1",
-      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the compact report body with only reporter_authority.proof omitted: reporter_authority, report_event and any cbs_proof_bundles. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state, cross-checks report_event.event.actor_id, authenticates the provider at the transport layer, and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
+      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the compact report body with only reporter_authority.proof omitted: reporter_authority, report_event and any authority_commit_proof_bundles. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state, cross-checks report_event.event.actor_id, authenticates the provider at the transport layer, and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
       "required": [
         "actor_id",
         "membership_event_id",

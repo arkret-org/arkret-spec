@@ -21,7 +21,7 @@ Arkret 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 h
 - handle 到 DID 的解析
 - 双向绑定验证
 - 多 handle 场景的 primary handle 选择规则（§3.2.1）
-- 事件内 mention reference 与 profile snapshot 的 DID-sealed 形态（§3.8）
+- 事件内 mention reference 与 profile snapshot 的 DID-committed 形态（§3.8）
 - pairwise DID 隐私模型
 - 选择性披露 / 不可链接 presentation
 
@@ -510,7 +510,7 @@ holder 的实时身份面还 MUST 应用 [`discovery/client-preferences.md` §3.
 
 #### 3.8.4 与 Organization Authority Migration 的关系
 
-因 §3.8 规定权威引用字段一律 DID-sealed，组织 authority domain 迁移（`acme.example → acme.com`）在历史事件层不需要 rewrite：
+因 §3.8 规定权威引用字段一律 DID-committed，组织 authority domain 迁移（`acme.example → acme.com`）在历史事件层不需要 rewrite：
 
 - 旧事件内的 mention / profile reference 权威字段是 `subject_account_id`，subject 不变；
 - 渲染时按 §3.2.1 解析当前 primary handle，得到新 domain 的 handle 字符串；
@@ -881,7 +881,7 @@ grant subject = alice@google.com
 
 Agent 的 immutable global ceiling（`requested_scope`）只以域分离 digest 的形式出现在公开 DID Document 与其历史中。当 authorizing verifier 需要判定该 ceiling 时，controller MUST 通过本章的 verifier-bound 私有披露出示完整 scope。
 
-v1 不定义通用 credential presentation Event：本章是 Arkret wire 上唯一的私有披露路径。其载体是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象，只经认证机密通道一次性出示，不产生 durable Event、cell 或 account data；它是授权证据，不授予任何 action 或 resource，也不是把 scope 发布为 credential registry 或 Realm fact。
+v1 不定义通用 credential presentation Event：本章是 Arkret wire 上唯一的私有披露路径。其载体是 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 的闭合对象，只经认证机密通道一次性出示，不产生 durable Event、typed current result 或 account data；它是授权证据，不授予任何 action 或 resource，也不是把 scope 发布为 credential registry 或 Realm fact。
 
 ### 16.1 请求面
 

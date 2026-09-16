@@ -99,7 +99,7 @@ v1 recurrence 是 RFC 8984 JSCalendar `RecurrenceRule` 的 snake_case 子集：`
 
 创建携带 Calendar 子树的 Strand，或显式写入该子树（含其祖先路径 `metadata`、`metadata.fields` 的替换／删除）的 Event，构成该 Strand 的 **schedule revision DAG**。写入与原值相同仍是一次显式 revision；是否需要 RSVP 重新确认则按下文 significant-change 表比较日程值，不能把“新 revision”直接等同于“日程已改变”。仅写入 `metadata.title` 等不包含 Calendar 子树的路径不产生新的 schedule revision。此定义按签名写入意图与因果关系求值，不依赖 receiver 的到达顺序。
 
-schedule revision winner 是对象 source DAG 中全部 eligible schedule revision 按普通 `causal_register` 固定 `(depth,EventId)` 顺序选出的唯一最大项。Event A 是 Calendar Event C 的业务因果前驱，当且仅当 A 是 C 的同 Cell `causal_refs[]` 传递祖先；中间可以有任意非 Calendar 更新，但它们不抬高 schedule Cell 的 depth。MUST 从 accepted source 因果关系计算，禁止用 HLC、墙钟或接收顺序选值。相同 accepted Event 集合的所有拓扑到达顺序必须给出相同 winner。
+schedule revision winner 是对象 source DAG 中全部 eligible schedule revision 按普通 `causal_register` 固定 `(depth,EventId)` 顺序选出的唯一最大项。Event A 是 Calendar Event C 的业务因果前驱，当且仅当 A 是 C 的同 typed current result `domain_refs[]` 传递祖先；中间可以有任意非 Calendar 更新，但它们不抬高 schedule typed current result 的 depth。MUST 从 accepted source 因果关系计算，禁止用 HLC、墙钟或接收顺序选值。相同 accepted Event 集合的所有拓扑到达顺序必须给出相同 winner。
 Calendar patch 与标题／正文 patch 使用同一对象基线规则，不添加额外 schedule base。
 
 Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` 与 `schedule_resolution_state`：
@@ -144,22 +144,22 @@ Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` �
 
 RSVP 通过 `ak.rsvp.set` 写入，payload 是 `{event_ref, occurrence, entry}`。
 
-- `occurrence`：JSON `null` 表示整个 series；实例级 RSVP 使用 canonical instance key——all-day 写成 `YYYY-MM-DD`，timed 写成 `YYYY-MM-DDTHH:mm:ss[Zone]`（Zone 为已签名的 canonical IANA Zone name）。两种分支的日期部分都 MUST 是真实的 proleptic-Gregorian date；只匹配数字正则但实际不存在的日期（如 `2026-02-30`）MUST 以 `rsvp_occurrence_not_canonical` 拒绝。该判定只需解析本 Event 的签名字符串，属于 shape admission，不依赖 Calendar 子树明文。producer MUST 在签名前生成 canonical key；receiver MUST 拒绝非 canonical key，MUST NOT "接受后修复"自己的缓存地址。非 recurring Calendar 只允许 `occurrence=null`，避免同一单次事件同时出现 series 与 base-instance 两个 cell。
+- `occurrence`：JSON `null` 表示整个 series；实例级 RSVP 使用 canonical instance key——all-day 写成 `YYYY-MM-DD`，timed 写成 `YYYY-MM-DDTHH:mm:ss[Zone]`（Zone 为已签名的 canonical IANA Zone name）。两种分支的日期部分都 MUST 是真实的 proleptic-Gregorian date；只匹配数字正则但实际不存在的日期（如 `2026-02-30`）MUST 以 `rsvp_occurrence_not_canonical` 拒绝。该判定只需解析本 Event 的签名字符串，属于 shape admission，不依赖 Calendar 子树明文。producer MUST 在签名前生成 canonical key；receiver MUST 拒绝非 canonical key，MUST NOT "接受后修复"自己的缓存地址。非 recurring Calendar 只允许 `occurrence=null`，避免同一单次事件同时出现 series 与 base-instance 两个 typed current result。
 - `entry` 是封闭对象 `{schedule_basis_refs, response | encrypted_response}`。
 
 ### 8.1 schedule_basis_refs
 
-`entry.schedule_basis_refs[]` 精确列出 responder 实际观察到的唯一 schedule revision winner，series 与 instance RSVP **均必填且长度固定为 1**。保留数组 wire 形状是既有 payload 合同，不表示多头；其 item 是 `event_digest`，与 envelope `causal_refs[]` 同型：
+`entry.schedule_basis_refs[]` 精确列出 responder 实际观察到的唯一 schedule revision winner，series 与 instance RSVP **均必填且长度固定为 1**。保留数组 wire 形状是既有 payload 合同，不表示多头；其 item 是 `event_digest`，与 envelope `domain_refs[]` 同型：
 
 - 非空、去重、按 digest canonical UTF-8 byte order 升序排列；
-- MUST 是 envelope `causal_refs[]` 的**子集**——这是纯 byte 级集合包含判定，无需解析目标 Event，因此服务端在 E2EE 下同样 MUST 执行；不满足时以 `rsvp_basis_not_causal` 拒绝，MUST NOT 进入 pending；
+- MUST 是 envelope `domain_refs[]` 的**子集**——这是纯 byte 级集合包含判定，无需解析目标 Event，因此服务端在 E2EE 下同样 MUST 执行；不满足时以 `rsvp_basis_not_causal` 拒绝，MUST NOT 进入 pending；
 - schema 将 `minItems=maxItems=1` 固定为单来源；空数组或多项都以 `schema_violation` 拒绝。客户端不得把落选 schedule Event 填入 basis。
 
 **判定分层（normative）**：basis 的校验严格分成三层，且每层的可判定材料在 E2EE 与 plaintext Realm 中**完全相同**，因此两类部署 MUST 得到同一个 canonical accepted set：
 
 | 层 | 判定材料 | 未通过时 |
 | --- | --- | --- |
-| shape admission | 只看本 Event 自身（恰好一项 / ⊆ `causal_refs`） | `rsvp_basis_not_causal` 或 `schema_violation` 拒绝，MUST NOT pending |
+| shape admission | 只看本 Event 自身（恰好一项 / ⊆ `domain_refs`） | `rsvp_basis_not_causal` 或 `schema_violation` 拒绝，MUST NOT pending |
 | target admission | 被引用 Event 的**明文 envelope**：`realm_id`、`kind`、target ref | 引用 Event 尚未到达时按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 的 `dependency_missing` 保持 pending；已到达但 Realm / kind / target 不符时拒绝 |
 | basis 有效性 | 需要读取 Calendar 子树明文：唯一引用来源是否构成目标 schedule revision、是否等于 authoring 时实际观察的 winner | **不是** admission 条件，只在授权投影中判定，见 §9 的 `unresolved_basis` / `stale_orphaned` |
 
@@ -183,9 +183,9 @@ Envelope 在 E2EE 下同样是明文，因此 target admission 不构成解密�
 
 ### 8.3 收敛
 
-RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `causal_register` 收敛；cell subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 cell value。
+RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `causal_register` 收敛；typed current result subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`schedule_basis_refs` 不进入 subject，但 MUST 进入 typed current result value。
 
-registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**整个 entry** 是 lattice set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
+registry 为该 typed current result write 登记 `effect_projection = set(payload.entry)`：**整个 entry** 是 lattice set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
 
 同一 responder 的因果后继 RSVP 以更高 depth 支配旧值；真正并发且 entry 不同的 RSVP 按固定 `(depth,EventId)` 选择唯一 winner。MUST NOT 由 HLC、`created_at` 或到达顺序选边，也不得因为解密后的 plaintext 相同而折叠不同 Event 身份。用户下一次基于当前 winner 回应会自然产生更高 depth，不存在 RSVP 专用冲突修复流程。
 
@@ -218,7 +218,7 @@ registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**�
 
 授权实现 MUST 能从已授权事件集本地计算 `CalendarRsvpProjection`；profile 不要求新增远端 Calendar API。
 
-每个 Cell 的唯一 winner 沿**两条正交轴**分类，二者都通过才可参加 effective response；任一轴不通过的 winner MUST 单列并保留审计。projection 只处理已被 accept 的 Event，因此错误 basis 与非 canonical occurrence 不会出现在这里——它们已在 §8.4 的 shape admission 被拒。
+每个 typed current result 的唯一 winner 沿**两条正交轴**分类，二者都通过才可参加 effective response；任一轴不通过的 winner MUST 单列并保留审计。projection 只处理已被 accept 的 Event，因此错误 basis 与非 canonical occurrence 不会出现在这里——它们已在 §8.4 的 shape admission 被拒。
 
 | 轴 | 取值 | 参加 effective response |
 | --- | --- | --- |
@@ -235,7 +235,7 @@ registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**�
 1. basis 轴 MUST 按上表判定，MUST NOT 猜测；无法判定即 `unresolved_basis`。
 2. 若存在可参加的 instance winner，则 effective response 只取 instance winner；否则回退到 `occurrence=null` 的可参加 series winner。
 3. instance 与 series winner MUST NOT 做 union，避免把 fallback 与 override 误显示成两个回应。
-4. canonical projection 暴露每个相关 Cell 的 winner 及其 provenance。读取端先验证 envelope，再按分支取 response（`encrypted_response` 解密后、`response` 直接），均按同一 `rsvp_response` schema 校验，得到 response 轴取值。
+4. canonical projection 暴露每个相关 typed current result 的 winner 及其 provenance。读取端先验证 envelope，再按分支取 response（`encrypted_response` 解密后、`response` 直接），均按同一 `rsvp_response` schema 校验，得到 response 轴取值。
 5. 被排除的 winner MUST 连同其排除轴与原因一并暴露，供 UI 解释"为什么这条回应不算数"。
 6. archived / redacted / `calendar.status=cancelled` 目标的 projection 状态与历史 RSVP 显示规则 MUST 明确；redacted target MUST NOT 继续暴露 roster 或 response 内容。
 7. projection 输出 MUST 受与 Calendar Strand 相同的 effective scope / history visibility 约束，MUST NOT 用 RSVP 存在性泄露不可见事件或 attendee 身份。

@@ -2,7 +2,7 @@
   "suite": "hpke_suite_kat",
   "profile": "ak.profile.e2ee_client.v1",
   "version": "2026-07-03",
-  "description": "RFC 9180 byte-level known-answer tests (base mode, single-shot seal semantics) for the active application-layer HPKE suites of hpke-suite-registry.json. Values are the official RFC 9180 / CFRG test-vector bytes, re-verified with an independent HPKE implementation (DeriveKeyPair, SetupBaseR, Open, key-schedule intermediates) before inclusion. Implementations MUST reproduce every listed intermediate (shared_secret, key, base_nonce, exporter_secret) and every ciphertext byte-for-byte.",
+  "description": "RFC 9180 byte-level known-answer tests (base mode, single-shot authority commit semantics) for the active application-layer HPKE suites of hpke-suite-registry.json. Values are the official RFC 9180 / CFRG test-vector bytes, re-verified with an independent HPKE implementation (DeriveKeyPair, SetupBaseR, Open, key-schedule intermediates) before inclusion. Implementations MUST reproduce every listed intermediate (shared_secret, key, base_nonce, exporter_secret) and every ciphertext byte-for-byte.",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.crypto.hpke.v1"
@@ -238,7 +238,7 @@
     },
     {
       "name": "reject_unregistered_suite_id",
-      "description": "An HPKE-sealed surface selects a suite id that is not an active row of hpke-suite-registry.json.",
+      "description": "An HPKE-committed surface selects a suite id that is not an active row of hpke-suite-registry.json.",
       "hpke_suite": "ak.hpke_x448_aead_aes256gcm.v1",
       "expected": {
         "decision": "reject",

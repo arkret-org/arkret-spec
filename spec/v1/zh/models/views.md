@@ -137,7 +137,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 `ak.views.private.<view_id>` 加密 account data 保存；其 plaintext value 仍按
 `ak.schema.view.v1` 校验。`ak.view.create` / `ak.view.update` reducer MUST 拒绝
 `visibility="private"`（`schema_violation`, `reason_code="private_view_requires_account_data"`），
-不得把 title、query 或 layout 写入共享 Realm cell。查询共享 View 的 operation MUST 只返回
+不得把 title、query 或 layout 写入共享 Realm typed current result。查询共享 View 的 operation MUST 只返回
 `visibility="shared"`；private View 只经 holder 的 account-data surface 同步。可执行覆盖见
 [`../conformance/conformance-vectors.md` §5.11](../conformance/conformance-vectors.md) 的
 `ak.vector.account_data.private_view_inbox_binding.v1`。
@@ -148,11 +148,11 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 cell family** `ak.component.view.v1`（`causal_register`、固定 `(depth,EventId)` 单值 current）。
+三个 kind 写**同一个 typed current result family** `ak.component.view.v1`（`causal_register`、固定 `(depth,EventId)` 单值 current）。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
-update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
+update / reconcile 用 `payload.view_id`，两者归一到同一个 typed current result。
 
-| kind | cell family | subject | 写入 | payload |
+| kind | typed current result family | subject | 写入 | payload |
 | --- | --- | --- | --- | --- |
 | `ak.view.create` | `ak.component.view.v1` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | 创建时的 object snapshot |
 | `ak.view.update` | `ak.component.view.v1` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
@@ -160,16 +160,16 @@ update / reconcile 用 `payload.view_id`，两者归一到同一个 cell。
 
 **为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
 它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
-权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 cell 上，
+权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 typed current result 上，
 而 因果寄存器合同禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
 
 由此产生三条约束：
 
-- **update / reconcile MUST NOT 创造不存在的 View。**目标 cell 在签名 basis 下没有真实对象基值时
+- **update / reconcile MUST NOT 创造不存在的 View。**目标 typed current result 在签名 basis 下没有真实对象基值时
   MUST 拒绝，MUST NOT 把 `null` 或空对象当作隐式初始化，也不得存储任何部分效果。
-- **三条写入采用同一 canonical 对象值口径。**cell 中 MUST NOT 保存可自报的 `id`，
+- **三条写入采用同一 canonical 对象值口径。**typed current result 中 MUST NOT 保存可自报的 `id`，
   读取时由 subject 派生；`reconcile.definition` 同样 MUST NOT 携带 `id`，
-  否则 create 与 reconcile 会在同一个 cell 里留下两种值形状。
+  否则 create 与 reconcile 会在同一个 typed current result 里留下两种值形状。
 - **reconcile 的 whole-value `set` 引用其观察到的唯一 current source。**
   并发但未被观察的分支仍保留为历史候选并参与固定 rank；「已知良好的定义」不是无条件覆盖全部未来写入的特权。
 
@@ -180,7 +180,7 @@ View 首次出现时携带 object snapshot；update 携带增量 patch，无法�
 
 因此 reconcile 的 payload MUST 是 `view_reconcile_payload`（`{view_id, definition}` 闭合对象），
 **MUST NOT** 复用 create / update 的 `view_payload`：后者的 `{definition}` 分支连 `view_id`
-都不要求，而 `view_id` 是 cell subject，缺失即无法定址。
+都不要求，而 `view_id` 是 typed current result subject，缺失即无法定址。
 
 reconcile 不改变 §3.1 的终态规则：目标 View 的 accepted lifecycle state 为 `tombstoned` 时，
 reconcile MUST 以 `failed_precondition`、`reason_code="view_already_terminal"` 拒绝。
@@ -289,7 +289,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。
 
 > `renderer` 的全局枚举(§3.1)允许 `custom` 用于**所有** kind:`custom` 是 profile-defined 展示面 escape hatch,本表每行的常用 renderer 之外都 MAY 取 `custom`(由 profile 声明语义),不参与真相归约。
 
-`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision frontier 与 CBS cell heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
+`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision frontier 与 authority-commit typed current result heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
 
 ## 5. Query Model
 
@@ -365,8 +365,8 @@ MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有效 access polic
 | 看板 | Board Space | 标准 Space 对象；授权、历史、E2EE 与 policy 仍解析到其 home Realm。 |
 | 列/泳道 | List Space | Board Space 内有序容器。 |
 | 卡片 | `strand` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
-| 卡片属于列 | 派生 `contains` projection | 真源是 `ak.component.strand.position.v1:<board_space_id>:<strand_id>` position cell；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
-| 列属于看板 | 派生 `contains` projection | 真源是 `ak.component.space.parent.v1:<list_space_id>` parent cell；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
+| 卡片属于列 | 派生 `contains` projection | 真源是 `ak.component.strand.position.v1:<board_space_id>:<strand_id>` position typed current result；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
+| 列属于看板 | 派生 `contains` projection | 真源是 `ak.component.space.parent.v1:<list_space_id>` parent typed current result；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
 | 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Strand；access 完全继承 Strand 的 effective scope（由 `Strand.scope_circle_id` 决定，null=Realm-default，否则=该 [Circle](./circle.md)）。 |
 
 ### 6.2 Board 不显示全 Realm 数据

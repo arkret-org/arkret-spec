@@ -20,10 +20,7 @@
       "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_kind": {
-      "enum": [
-        "secret_storage",
-        "mls_history"
-      ]
+      "const": "secret_storage"
     },
     "series_id": {
       "type": "string",
@@ -33,43 +30,14 @@
       "type": "integer",
       "minimum": 0
     },
-    "effective_scope": {
-      "$ref": "./event-payload.schema.json#/$defs/history_effective_scope"
-    },
     "items": {
       "type": "array",
-      "minItems": 1
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/secret_storage_item"
+      }
     }
   },
-  "oneOf": [
-    {
-      "properties": {
-        "backup_kind": {
-          "const": "secret_storage"
-        },
-        "items": {
-          "items": {
-            "$ref": "#/$defs/secret_storage_item"
-          }
-        }
-      },
-      "not": {
-        "required": [
-          "effective_scope"
-        ]
-      }
-    },
-    {
-      "properties": {
-        "backup_kind": {
-          "const": "mls_history"
-        }
-      },
-      "required": [
-        "effective_scope"
-      ]
-    }
-  ],
   "$defs": {
     "secret_storage_item": {
       "type": "object",

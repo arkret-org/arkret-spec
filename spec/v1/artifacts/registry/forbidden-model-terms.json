@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 9,
+  "version": 11,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
   "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
@@ -123,30 +123,6 @@
       "notes": "Arkret v1 typed IDs use ak:; cx: may appear only in negative tests."
     },
     {
-      "id": "delegate",
-      "context": "authz_model_term",
-      "since_revision": "2026-07-31",
-      "rejection_level": "docs_only",
-      "replacement": "authority",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "v1 has one grant shape. A grant records the authority it was issued under in issuer_authority_refs; a realm_root ref is a rooted terminal and a grant ref is an edge. There is no separate delegation event, cell family or wire bit, so the word names nothing in the current model. Controller-to-agent authority and delegated_pcr_genesis are distinct registered concepts; a principal DID document carrying DID Core business delegation is rejected by the identity-anchor profile."
-    },
-    {
-      "id": "delegation",
-      "context": "authz_model_term",
-      "since_revision": "2026-07-31",
-      "rejection_level": "docs_only",
-      "replacement": "authority",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "v1 has one grant shape. A grant records the authority it was issued under in issuer_authority_refs; a realm_root ref is a rooted terminal and a grant ref is an edge. There is no separate delegation event, cell family or wire bit, so the word names nothing in the current model. Controller-to-agent authority and delegated_pcr_genesis are distinct registered concepts; a principal DID document carrying DID Core business delegation is rejected by the identity-anchor profile."
-    },
-    {
       "id": "strand_branch",
       "context": "identifier_or_field_name",
       "since_revision": "0a5ab85",
@@ -157,18 +133,6 @@
         "negative_test"
       ],
       "notes": "Strand uses track as its display-only segment identifier. Variable and field names MUST NOT contain 'strand_branch'."
-    },
-    {
-      "id": "subdelegation",
-      "context": "authz_model_term",
-      "since_revision": "2026-07-31",
-      "rejection_level": "docs_only",
-      "replacement": "authority",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "v1 has one grant shape. A grant records the authority it was issued under in issuer_authority_refs; a realm_root ref is a rooted terminal and a grant ref is an edge. There is no separate delegation event, cell family or wire bit, so the word names nothing in the current model. Controller-to-agent authority and delegated_pcr_genesis are distinct registered concepts; a principal DID document carrying DID Core business delegation is rejected by the identity-anchor profile."
     },
     {
       "id": "track members",
@@ -193,97 +157,6 @@
         "negative_test"
       ],
       "notes": "Chinese form of 'Controlled Collaboration Realm'; use 'External Collaboration Realm' per zh/models/realm-and-space.md §2.7. The strict sovereign-deployment policy is a deployment-profile requirement on External Collaboration Realm in zh/sync/sovereign-deployment.md §4."
-    },
-    {
-      "id": "DeviceBootstrap",
-      "term": "DeviceBootstrap",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "PCR genesis unit + Standard SessionGrant",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
-    },
-    {
-      "id": "device_bootstrap",
-      "term": "device_bootstrap",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "pcr_genesis_unit",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
-    },
-    {
-      "id": "cross_signing_binding",
-      "term": "cross_signing_binding",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "authorization_binding_kind=root_anchored|accepted_device",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
-    },
-    {
-      "id": "ssk_generation",
-      "term": "ssk_generation",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "device_generation_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
-    },
-    {
-      "id": "enrollment_authority_binding",
-      "term": "enrollment_authority_binding",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "PCR authorization evidence",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
-    },
-    {
-      "id": "ArkretDeviceEnrollmentAuthority",
-      "term": "ArkretDeviceEnrollmentAuthority",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "identity-root anchored PCR genesis/re-anchor",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
-    },
-    {
-      "id": "authorize_recovery_device",
-      "term": "authorize_recovery_device",
-      "context": "retired_identity_model",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "commit_recovery_unit",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Current wire and normative prose MUST use the root-anchored PCR device model."
     }
   ]
 }

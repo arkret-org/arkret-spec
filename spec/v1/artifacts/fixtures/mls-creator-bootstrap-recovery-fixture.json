@@ -29,7 +29,7 @@
       "invariants": [
         "no Realm create was submitted and no governance query was sent",
         "no selector-dependent random material was generated",
-        "the next run requires an explicit selection and may not infer content_scheme or durability_policy"
+        "the next run requires an explicit selection and may not infer content_scheme or content_scheme"
       ]
     },
     {
@@ -40,7 +40,7 @@
       "expected": "resume_from_frozen_selector",
       "invariants": [
         "the record carries the complete owner_actor_id, the canonical effective_scope and operation=mls_genesis",
-        "content_scheme, the conditional durability_policy and the complete closed proposed_group_genesis_binding are readable without any projection",
+        "content_scheme, the conditional content_scheme and the complete closed proposed_group_genesis_binding are readable without any projection",
         "the create Event id is derived from the frozen signed unit, not from a server response"
       ]
     },
@@ -51,7 +51,7 @@
       "expected_state": "genesis_intent_persisted",
       "expected": "resume_from_the_previous_closed_intent",
       "invariants": [
-        "the replacement never became durable, so the previously committed content_scheme, durability_policy and proposed_group_genesis_binding are still the only readable intent",
+        "the replacement never became durable, so the previously committed content_scheme, content_scheme and proposed_group_genesis_binding are still the only readable intent",
         "a selector the user picked but the client never committed authorizes nothing and is not recovered from UI state",
         "no second record exists for the same (owner_actor_id, effective_scope, operation) key"
       ]
@@ -63,7 +63,7 @@
       "expected_state": "genesis_intent_persisted",
       "expected": "resume_from_the_replaced_closed_intent",
       "invariants": [
-        "the whole closed intent was replaced atomically; no run observes the new content_scheme beside the old durability_policy or the old proposed_group_genesis_binding",
+        "the whole closed intent was replaced atomically; no run observes the new content_scheme beside the old content_scheme or the old proposed_group_genesis_binding",
         "the superseded selector is no longer readable and is never used to rebuild the 0->0 query",
         "the logical key, the immutable creator device and signer method, the frozen signed Realm-create unit and the create Event id derived from it are unchanged",
         "the replacement precedes the 0->0 governance query and every selector-dependent random material"
@@ -134,7 +134,7 @@
       "expected_state": "epoch0_state_persisted",
       "expected": "reuse_the_persisted_epoch0_material",
       "invariants": [
-        "the device-secret-encrypted private state, the raw GroupInfo and ratchet tree bytes and refs, the durability archive, the frozen created_at and the exact unsigned Genesis core are all durable",
+        "the device-secret-encrypted private state, the raw GroupInfo and ratchet tree bytes and refs, the frozen created_at and the exact unsigned Genesis core are all durable",
         "no randomness is regenerated"
       ]
     },
@@ -232,7 +232,7 @@
   "scenario_cases": [
     {
       "name": "selector_amendment_at_genesis_intent_persisted",
-      "given": "the record is at genesis_intent_persisted with content_scheme=mls_exporter_aead_v1 and a durability_policy, and the creator changes the choice to mls_rfc9420 before any 0->0 query",
+      "given": "the record is at genesis_intent_persisted with content_scheme=mls_exporter_aead_v1 and a content_scheme, and the creator changes the choice to mls_rfc9420 before any 0->0 query",
       "action": "commit the replacement intent and run the recoverer after a reload",
       "expected": "resume_from_the_replaced_closed_intent",
       "invariants": [

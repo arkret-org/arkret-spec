@@ -58,8 +58,8 @@
       "runner": "cotest::conformance::audit_release::run_release_window_vector",
       "assertions": [
         "release cannot precede first_auditable_epoch",
-        "sealed epoch release cannot include the current active epoch",
-        "sealed epoch release requires sealed_by_commit_ref",
+        "committed epoch release cannot include the current active epoch",
+        "committed epoch release requires sealed_by_commit_ref",
         "target release must be inside the encryption-time eligibility snapshot"
       ]
     },
@@ -80,9 +80,9 @@
       "runner": "cotest::conformance::audit_release::run_close_release_concurrency_vector",
       "assertions": [
         "confirmed close rejects later release; prior release stales a close authored against the previous release log revision",
-        "a release accepted in an earlier Seal must appear in close release_refs",
+        "a release accepted in an earlier RealmCommit must appear in close release_refs",
         "release after close is rejected",
-        "release order is confirmed Seal sequence then command_results position"
+        "release order is confirmed RealmCommit sequence then command_results position"
       ]
     },
     {

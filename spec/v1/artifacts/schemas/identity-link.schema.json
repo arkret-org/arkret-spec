@@ -13,9 +13,6 @@
     "trust_domain",
     "mls_leaf_index",
     "mls_epoch",
-    "response_signing_verification_method",
-    "response_signing_public_key_b64u",
-    "response_signing_public_key_digest",
     "effective_at",
     "proof"
   ],
@@ -75,21 +72,6 @@
       "type": "integer",
       "minimum": 0
     },
-    "response_signing_verification_method": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-      "description": "Pairwise DID URL used only for generic history response PayloadProof signatures. Its controller MUST project to pairwise_actor_id."
-    },
-    "response_signing_public_key_b64u": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{43}$",
-      "description": "Raw 32-byte Ed25519 response-signing public key encoded as unpadded base64url."
-    },
-    "response_signing_public_key_digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "SHA-256 digest of the decoded response_signing_public_key_b64u bytes."
-    },
     "effective_at": {
       "$ref": "#/$defs/timestamp"
     },
@@ -123,7 +105,7 @@
         },
         "payload_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Hash of canonical input bytes: utf8('ak.identity-link-v1\\n') || canonical_json(identity-link object with proof.payload_digest and proof.signature omitted). The signed object includes trust_domain and the independent history response-signing key binding."
+          "description": "Hash of canonical input bytes: utf8('ak.identity-link-v1\\n') || canonical_json(identity-link object with proof.payload_digest and proof.signature omitted)."
         },
         "signature": {
           "type": "string",

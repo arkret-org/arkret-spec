@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.4",
+  "version": "2026-09-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T11:30:00+08:00",
+  "generated_at": "2026-09-16T18:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2083,13 +2083,13 @@
     {
       "operation_id": "ak.self.consent.command.grant.v1",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/consent/cells/grant",
+      "http": "POST /_arkret/self/consent/results/grant",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_grant_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/ConsentGrantRequestBody",
-        "response": "#/components/schemas/ConsentCellView"
+        "response": "#/components/schemas/ConsentResultView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2111,13 +2111,13 @@
     {
       "operation_id": "ak.self.consent.command.revoke.v1",
       "surface_class": "extension",
-      "http": "POST /_arkret/self/consent/cells/revoke",
+      "http": "POST /_arkret/self/consent/results/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/ConsentRevokeRequestBody",
-        "response": "#/components/schemas/ConsentCellView"
+        "response": "#/components/schemas/ConsentResultView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2125,12 +2125,12 @@
     {
       "operation_id": "ak.self.consent.read.list.v1",
       "surface_class": "extension",
-      "http": "GET /_arkret/self/consent/cells",
+      "http": "GET /_arkret/self/consent/results",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_list",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ConsentCellList"
+        "response": "#/components/schemas/ConsentResultList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -2138,12 +2138,12 @@
     {
       "operation_id": "ak.self.consent.resource.get.v1",
       "surface_class": "extension",
-      "http": "GET /_arkret/self/consent/cell",
+      "http": "GET /_arkret/self/consent/result",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ConsentCellView"
+        "response": "#/components/schemas/ConsentResultView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

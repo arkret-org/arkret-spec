@@ -20,7 +20,7 @@ Snapshot 是加速恢复的派生物，不是真相源。真相源是 producer-s
 RealmCommit。Snapshot 必须绑定 Realm、authority generation、签发时各个可见 stream head、typed current
 rows 的 commitment、创建时间和 Station proof。
 
-Snapshot 不使用 chunk-level 通用状态格式，不携带 Cell、actor frontier、CRDT tombstone 或 caller 定义的
+Snapshot 不使用 chunk-level 通用状态格式，不携带 typed current result、actor frontier、CRDT tombstone 或 caller 定义的
 state root。大对象可经 Blob surface 传输，但 snapshot schema 中每个引用必须内容寻址。
 
 ## 2. 可见 stream heads
@@ -36,7 +36,7 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 
 `typed_current_rows[]` 是 closed typed union。每个 row 必须包含 reducer kind、业务主键、revision 及最后接受
 该 revision 的 Commit reference。相同主键只能出现一次。接收方须从 snapshot 边界之后的逐 stream tail
-继续运行相同 reducer；不得用 generic patch、Cell merge 或 wall-clock last-write-wins 修补差异。
+继续运行相同 reducer；不得用 generic patch、typed current result merge 或 wall-clock last-write-wins 修补差异。
 
 ## 4. 创建与验证
 

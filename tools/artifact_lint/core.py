@@ -755,7 +755,7 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     # PCR genesis receipt device/HPKE key digests: SHA-256 over the canonical
     # multikey, written with the sha256: prefix the receipt schema requires.
     ("preimage_utf8", "expected", "utf8", "sha256_hex", ""),
-    ("rejected_retired_preimage_utf8", "rejected_retired_expected", "utf8", "sha256_hex", ""),
+    ("noncanonical_preimage_utf8", "noncanonical_expected", "utf8", "sha256_hex", ""),
     (
         "canonical_bytes_utf8",
         "expected_registration_epoch",

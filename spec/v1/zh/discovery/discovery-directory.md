@@ -193,7 +193,7 @@ flowchart TB
 | `invite_only` | ! | ✓ | ✗ | ✓ | ✗ | ✓ |
 | `secret` | ! | ✓ | ✗ | ✗ | ✗ | ✓ |
 
-`history_access` 与上述任一组合正交，且始终只有 `since_join | all_history_for_current_members` 两个当前值。它只控制治理 Station 可以向当前成员返回多少**明文或其本来有权读取的历史 Event**；discoverability 不能授予历史读取。MLS scope 固定从有效 Add/Welcome 起可读，既不分发加入前 epoch secret，也不存在 private history-key surface。
+`history_access` 与上述任一组合正交，且始终只有 `since_join | all_history_for_current_members` 两个当前值。它只控制治理 Station 可以向当前成员返回多少**明文或其本来有权读取的历史 Event**；discoverability 不能授予历史读取。MLS scope 固定从有效 Add/Welcome 起可读。
 
 本矩阵是 authority-commit admission 不变量：治理 Station 在提交任何会改变三轴的 typed Event 前，MUST 以该 stream 当前 committed state 加上候选 Event 得到的 post-write 状态执行本表。使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 且不得生成 `RealmCommit`。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
 

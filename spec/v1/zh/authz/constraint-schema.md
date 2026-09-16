@@ -19,7 +19,7 @@ updated: 2026-07-30
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
-- **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。ordinary Event 不携带 `preconditions[]`，其数据面约束由 causal refs、`auth_context.authority_refs` 与 Lattice 规则表达。
+- **Control Move precondition** 只表达 typed current result 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。ordinary Event 不携带 `preconditions[]`，其数据面约束由 causal refs、`auth_context.authority_refs` 与 Lattice 规则表达。
 - **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / ordinary Event / Control Move canonical hash 的 evidence 满足。
 
 因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
@@ -174,7 +174,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
-**依赖不可判定时 fail closed**：condition 所引用的数据 cell 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按确认顺序求值，不存在控制寄存器 Bottom。
+**依赖不可判定时 fail closed**：condition 所引用的数据 typed current result 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按确认顺序求值，不存在控制寄存器 Bottom。
 
 实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
@@ -925,17 +925,17 @@ function matches_field_access(operation, constraint):
 
 ### 18.1 约束缓存
 
-约束求值结果的可缓存性 MUST 按 §2.3 的 `evaluation_class` 分类决定缓存键，并与 fast-path capability cache 共用授权状态绑定规则：缓存 entry MUST 绑定确定性 `auth_state_digest`（覆盖当前 accepted grant/revoke、membership、policy、必要 claim status、device/session seal 等），MUST NOT 仅以 `(grant_id, operation_type, resource_kind)` 之类的 subject/action/resource 三元组为键——后者无法在底层授权状态变化时失效，是 [`capabilities.md` §18.1](./capabilities.md) 明令禁止的反模式。
+约束求值结果的可缓存性 MUST 按 §2.3 的 `evaluation_class` 分类决定缓存键，并与 fast-path capability cache 共用授权状态绑定规则：缓存 entry MUST 绑定确定性 `auth_state_digest`（覆盖当前 accepted grant/revoke、membership、policy、必要 claim status、device/session authority commit 等），MUST NOT 仅以 `(grant_id, operation_type, resource_kind)` 之类的 subject/action/resource 三元组为键——后者无法在底层授权状态变化时失效，是 [`capabilities.md` §18.1](./capabilities.md) 明令禁止的反模式。
 
 - 缓存键、TTL 与失效语义以 §2.3 evaluation_class 表与 [`capabilities.md` §18.1](./capabilities.md) 的 `auth_state_digest` 绑定为准。
 - `external` 类约束 MUST NOT 缓存（见 §2.3 / §15.3）。
 
 #### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
 
-`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ak.component.moderation_state.v1` cell”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ak.component.moderation_state.v1` typed current result”，从而决定该 typed current result 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
 
 - 默认 `false`：普通 grant（`ak.strand.update` / `ak.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
-- 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / cell）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
+- 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / typed current result）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
 - 归属：在 [`capabilities.md` §6](./capabilities.md) 约束清单与映射表中登记于“moderation 缓存依赖标记”分组（不归入任一 constraint family）；机读权威源为 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 的 `depends_on_moderation_state` 属性。
 - 一个 `{"depends_on_moderation_state": true}` 不需要 `constraint_kind`/`effect` 之外的求值语义；它与同一 grant 内的其它 typed constraint 并列承载，仅供缓存失效引擎读取。
 

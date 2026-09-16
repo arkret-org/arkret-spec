@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/consent-operations.schema.json",
-  "title": "Arkret Consent Cell Self-Management Operation DTOs",
+  "title": "Arkret Consent typed current result Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for holder-private consent state serialized by the current governance Station.",
   "anyOf": [
     {
@@ -200,7 +200,7 @@
     },
     "consent_request_outcome": {
       "type": "object",
-      "description": "Constant anti-enumeration response. Missing holder, denial, rate-limit drop and quarantine acceptance all return this exact shape; no cell id, state, dots, timestamps or expiry are exposed.",
+      "description": "Constant anti-enumeration response. Missing holder, denial, rate-limit drop and quarantine acceptance all return this exact shape; no typed current result id, state, dots, timestamps or expiry are exposed.",
       "required": [
         "accepted_for_processing"
       ],

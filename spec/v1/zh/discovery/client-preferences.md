@@ -202,13 +202,13 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 - 客户端 MAY 在共享 Realm 视图中隐藏或折叠被屏蔽内容。
 - 客户端 MUST NOT 把 blocklist 发布到公共 Realm 状态或目录服务。
 - 对被屏蔽方的可观察行为 MUST 与普通不可达 / 不可枚举场景一致：客户端和受托服务不得返回 `blocked_by_user`、不得发送 read receipt / typing / presence 的差异信号、不得因为 block 命中改变公开错误码、延迟模式或 directory 结果形态。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
-- `ak.account.blocklist` 是 actor-private/account-private durable cell：它可以在 holder 的设备间同步，但不进入共享 Realm Seal coverage、membership state、Directory ingest 或 federation payload。
+- `ak.account.blocklist` 是 actor-private/account-private durable typed current result：它可以在 holder 的设备间同步，但不进入共享 Realm RealmCommit coverage、membership state、Directory ingest 或 federation payload。
 - 若服务端代表用户执行 blocklist 过滤（例如通知、DM invite、call invite 或 directory preview），该服务 MUST 被 holder 显式授权读取对应 blocklist 明文，或声明自身进入 `plaintext_visible_services.data_classes=["blocklist"]` / 等价 holder-private confidential service；否则只能转发给客户端本地过滤。服务端执行模式不得让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
 - `handle` target 只与发送者已验证 handle claim 中的 canonical `handle`逐字比较；`domain` target 只与该已验证 handle claim 的 domain 分量，或按 [`../identity/did-usage-and-verification.md`](../identity/did-usage-and-verification.md) 已验证的 DID 域名绑定比较。display name、未验证 handle / DID 字符串或裸字符串后缀均不得命中这两类 target；`keyword` 才是纯内容字符串过滤。三者命中都只在 holder-private projection 生效，不证明也不得推断任何 actor、service、Organization 或 Realm 的控制关系。
 
 #### 3.5.1 收取与过滤边界（normative）
 
-- **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / Seal 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、Seal coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
+- **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / RealmCommit 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、RealmCommit coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
 - **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、Contact authority 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone.v1{block_peer=true}` 作为同一持久化 saga 执行并重试至闭合；Contact tombstone使稳定 conversation 投影为 `suspended` 并禁止新 application message，Consent revoke不得作为替代或附加门槛。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
 - **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 在受托服务有权读取 blocklist 时可于 holder surface 前 drop；否则服务必须以不可区分形态转发加密材料，由客户端本地过滤。两种模式都不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
 - **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 Contact tombstone真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。

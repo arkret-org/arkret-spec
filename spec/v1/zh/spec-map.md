@@ -37,7 +37,7 @@ see_also:
 - `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`track-name-registry.json`、`id-kind-registry.json`、`capability-action-registry.json`、`calendar-timezone-registry.json`：从 canonical catalog 生成的 current-wire 视图。`track-name-registry.json` 固定 `Strand.tracks` 的 active key 与 owner；`calendar-timezone-registry.json` 额外锁定 calendar schedule 可 pin 的 IANA TZDB release 与 zone canonicalization 规则。
 - `artifacts/registry/error-code-registry.json`：标准 service error 与 `reason_code` 的 canonical registry。
 - `artifacts/profiles/conformance-profiles.json`：profile、feature、unknown/unsupported 行为和 profile role 的机器矩阵。
-- `artifacts/schemas/*.schema.json`：wire object、DTO、event payload、proof、capability、cursor、seal 与 extension object 的 JSON Schema。
+- `artifacts/schemas/*.schema.json`：wire object、DTO、event payload、proof、capability、cursor、authority commit 与 extension object 的 JSON Schema。
 - `artifacts/openapi/arkret-service-api.openapi.yaml`：HTTP/JSON binding shape；它约束 HTTP 形状，不替代抽象 operation、event kind、typed id 或 reducer 语义。
 - `artifacts/fixtures/*.json` 与 `artifacts/registry/vector-registry.json`：conformance vector 的机器索引与可执行样例。
 - `artifacts/registry/forbidden-wire-fields.json` 与 `artifacts/registry/forbidden-model-terms.json`：current-wire/current-model 的禁止字段和禁止术语检测源。
@@ -72,7 +72,7 @@ see_also:
 | 群聊 / 频道类场景 | Realm 负责成员和历史边界；Strand + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/strand-and-message.md`、`governance/history-visibility.md` |
 | Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ak.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
 | Jira issue / workflow / issue links | Issue 对应 Strand；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/strand-and-message.md`、`models/relation.md`、`models/common-fields.md` |
-| Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
+| Watchers / 通知规则 / 勿扰 | Watch typed current result 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
 | 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Strand、Message、Morph 或 Relation。外部 runtime 的私有协议 session 不进入 Arkret 共享 history。 | `extensions/applet-integration.md`、`models/extension-objects.md` |
 
 ## 3. 核心概念边界
@@ -151,7 +151,7 @@ see_also:
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / server_revision_cas / cascade。 |
-| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas typed current result + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision frontier、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、Event-derived 身份、native scope、Realm-scoped desired/effective 派生集合、独立 MLS、context view 映射、存在性隐私与专用 UI 不变量。 |
@@ -176,7 +176,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/cbs-profiles.md` | 退役模型说明与 authority-commit迁移边界；不得作为现行实现合同。 |
+| `sync/authority-commit-log.md` | Authority commit、独立 stream、治理 Station 轮换与 handoff。 |
 | `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
@@ -224,8 +224,8 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、PCR 设备授权、secret storage、key backup。 |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + current winning group-state projection）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
-| `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、sealed historical release、RYW receipt、`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS key-access revision binding（`governance_binding.key_access_revision` + current winning group-state projection）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
+| `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、committed historical release、RYW receipt、`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
 | `crypto-media/media-service-binding.md` | 媒体服务发现（`ak.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |

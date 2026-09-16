@@ -39,7 +39,7 @@
           }
         }
       ],
-      "description": "Non-empty duplicate-free closed set used only for display and accountability governance; never grants authorization. A string is the singleton-set wire form. Array order has no semantic meaning. Canonical authors emit singleton sets as strings and multi-value sets in ascending raw UTF-8 byte order; receivers accept every schema-valid ordering and normalize only for cell-subject derivation, domain equality, and projection union."
+      "description": "Non-empty duplicate-free closed set used only for display and accountability governance; never grants authorization. A string is the singleton-set wire form. Array order has no semantic meaning. Canonical authors emit singleton sets as strings and multi-value sets in ascending raw UTF-8 byte order; receivers accept every schema-valid ordering and normalize only for typed current result-subject derivation, domain equality, and projection union."
     },
     "not_before": {
       "$ref": "#/$defs/timestamp"

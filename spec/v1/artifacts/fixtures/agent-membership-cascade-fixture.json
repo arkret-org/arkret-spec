@@ -48,7 +48,7 @@
       "name": "effective_membership_is_exact_controller_generation_and",
       "expected": "agent_active_only_while_all_conjuncts_hold",
       "invariants": [
-        "agent member cell is join",
+        "agent member typed current result is join",
         "controller current join Event equals controller_membership_generation_ref",
         "controller authority pair matches exactly",
         "Agent lifecycle and provision/accountability bindings remain active"

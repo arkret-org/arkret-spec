@@ -34,14 +34,14 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Schema | 216 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 54 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 218 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 65 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 86 | `artifacts/profiles/conformance-profiles.json` |
+| Claimable conformance profile | 64 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 85 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数由 pipeline 单独核验；bundle schema id 可登记到现有 schema artifact 的 `$defs`，因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含三项 wire 约束：(1) `ak.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ak.member.identity.update` payload 不重复可从 `identity_payload` 本体推导的 carrier digest，roster cache 使用独立的 `member_display_state_digest`；(3) 直接 DID 邀请（`ak.schema.invite.v1` 中出现 `invitee_account_id` 且不属于 `third_party_invite` 分支）MUST 携带 exact `invitee_account_id` 与 `introduction_evidence_digest`，route material 仅在私有投递链路消费，不进入 durable Invite，使 base invite 不依赖 handle resolve 作为投递授权。current parser 只接受当前 registry/schema 中存在的 canonical 形态，不运行草案迁移层。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（86）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（85）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/artifact_lint/` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
@@ -77,7 +77,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、MIMI 等 schema 已注册。 |
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 标准 `ak:<kind>:` prefix 以机器注册表为准。 |
 | Profile 矩阵 | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | `core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
-| Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、CBS/Lattice、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
+| Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、authority-commit/Lattice、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
 | Snapshot 约束 | `artifacts/schemas/realm-state-snapshot.schema.json`, `zh/conformance/realm-state-snapshot-schema.md`, `zh/sync/operations-sync.md` | manifest 必须包含 `event_set_commitment`；高保障 profile 支持 inclusion / omission challenge。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-evidence.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | signed report request、queue item、E2EE evidence / franking 边界有独立且无循环依赖的 schema 与服务绑定。 |
 | Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `artifacts/fixtures/fanout-route-miss-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push、membership ActorId routing projection 有回归向量。 |
@@ -104,7 +104,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - fixture 与 Markdown JSON 示例 MUST NOT 使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，MUST NOT 被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；MUST NOT 让 schema `$id` 解析到 HTML 文档。
 - Public catalog snapshot MUST 与发布状态一致并受版本控制：`spec/v1/release-metadata.json#release_tag` 是规范工具、release gate、站点展示与 public snapshot 命名共同消费的唯一机器源，site-local TypeScript 不得复制其字面量。stable promotion 前该值固定为 `v1.0.0-candidate`，Git tree 中只允许 `site/public/v1/contract-registry-1.0.0-candidate.json`；`artifact_pipeline.py generate` 刷新它，`check` 校验唯一文件名、受跟踪实物及其与 `artifacts/registry/contract-registry.json` byte identity。promotion 只能在所有 gate 通过后原子切换 `release_tag` 为 `v1.0.0`、删除旧 candidate snapshot、生成并提交 `contract-registry-1.0.0.json`；release tag 直接绑定该 tracked 文件。
-- Circle stable gate MUST 闭合签名 Event `scope_ref`、对象 `effective_scope` projection、ordinary Event / Seal output shape、Seal canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
+- Circle stable gate MUST 闭合签名 Event `scope_ref`、对象 `effective_scope` projection、ordinary Event / RealmCommit output shape、RealmCommit canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
 - `/en/v1/...` 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。除非未来另行接受新的语言政策提案，本规范不承诺提供完整英文版。
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
 - promotion 提交 MUST 同时把 §5.1.1 的 post-GA 变更控制作为后继发布门禁启用；stable tag、stable public catalog snapshot 与签名 conformance claim 共同构成后继兼容性比较的不可变基线。
@@ -113,7 +113,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 `v1.0.0` promotion 的原子提交是 pre-GA 激进修订与 post-GA 兼容维护的唯一分界。该提交之后，以下规则适用于全部 v1 patch / minor 发布、catalog 刷新与 registry 变更：
 
-1. **冻结面。** 已发布 canonical schema 的 `$id` 与 bytes、Event kind / operation id / error token 的既有语义、reducer profile 的 admission / cell projection / lattice join / state root / security frontier 语义，以及已发布 vector id 的判定结果均 MUST 保持不可变。active registry id MUST NOT 被删除、改名、复用为另一语义或用 alias 隐式重定向。必须改变共识语义时，MUST 新增 reducer profile；首个及每个后继 profile 都必须满足 `reducer-profile-registry.json#upgrade_release_gate`，在同一发布中提供 source→target edge 与完整升级正负向量，不得原地改变 `ak.reducer.core.v1`。
+1. **冻结面。** 已发布 canonical schema 的 `$id` 与 bytes、Event kind / operation id / error token 的既有语义、reducer profile 的 admission / typed current result projection / lattice join / state root / key-access revision 语义，以及已发布 vector id 的判定结果均 MUST 保持不可变。active registry id MUST NOT 被删除、改名、复用为另一语义或用 alias 隐式重定向。必须改变共识语义时，MUST 新增 reducer profile；首个及每个后继 profile 都必须满足 `reducer-profile-registry.json#upgrade_release_gate`，在同一发布中提供 source→target edge 与完整升级正负向量，不得原地改变 `ak.reducer.core.v1`。
 2. **兼容新增。** 新 id / schema / operation 只有在旧 receiver 对未协商值的既有 fail-closed 或开放集规则仍成立、旧 canonical bytes 与历史验签结果不变、producer 在使用前完成相应 schema / feature / profile 协商，并补齐 mixed-version 正负向量时，才 MAY 在 v1 线新增。任何改变既有对象 accepted/rejected 集、授权、可见性、排序、收敛或密码学认证输入的变更都不是“澄清”，MUST 走新 versioned id 或新 reducer profile。
 3. **退役状态先于退役行。** 当前 candidate registry 不引入 `deprecated` / `retired` 行。首次计划退役之前，accepted compatibility proposal MUST 在同一变更中先定义受影响 registry 的 closed status 词表、每个状态的 producer / receiver 行为、catalog diff lint 和 mixed-version vectors，并同步修订 [`schema-registry.md` §6.1(c)](../conformance/schema-registry.md) 的 pre-GA active-only 规则；在这些前置项落地前，active 行 MUST NOT 改为其它状态。不得先添加一条 `deprecated` 行再补消费者语义。
 4. **两阶段退役与最短观测窗口。** 合法退役必须按 `active → deprecated → retired` 两阶段推进。进入 `deprecated` 的 stable catalog 必须同时公布替代项或明确的功能移除理由、迁移与回滚说明、最后允许 producer 发送的条件和兼容向量；该 catalog 公开之时才开始观测窗口。`deprecated → retired` 之间 MUST 至少经过连续 180 天，且最后 90 天不得有未解决的 critical/high 兼容事故，并须有至少两个独立实现通过旧 producer / 新 receiver 与新 producer / 旧 receiver 的适用 mixed-version runner 证据。观测数据 MUST 聚合且隐私最小化，不得为了退役统计收集 Event payload、Realm 成员关系或可识别用户轨迹。
@@ -131,7 +131,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 ### 5.3 `v1-conformance-certified` 实现认证
 
 - reference validator、reference reducer、reference authz evaluator 与 conformance runner 已发布
-- canonical JSON、Event Envelope negative vectors、CBS/Lattice、capability、privacy/security、sync 与 snapshot vectors 由 CI 执行
+- canonical JSON、Event Envelope negative vectors、authority-commit/Lattice、capability、privacy/security、sync 与 snapshot vectors 由 CI 执行
 - 公开发布的翻译与附属文档 MUST NOT 偏离同一 registry 与 fixture 基线
 
 ## 6. 工程交付要求

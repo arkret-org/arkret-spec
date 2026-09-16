@@ -60,11 +60,9 @@ RealmCommit。接收者按 `welcome_id` 幂等 ACK；ACK 不改变已接纳 Comm
 
 单 authority 模型不证明治理 Station 没有审查、扣留或错误接纳一个真实 producer Event。它只提供统一顺序、
 即时 current authorization 判断和获准 stream 的连续性。需要 Byzantine transparency 的部署必须使用未来的独立 witness
-profile，不得恢复 CBS/Seal/Cell 双平面。
+profile，不得恢复 authority-commit/RealmCommit/typed current result 双平面。
 
-## 6. 稳定引用锚点
-
-下列章节号供既有领域页引用，不恢复已退役的专用 Seal 查询。
+## 6. 信任边界细则
 
 ### 1.1 攻击者与责任矩阵
 
@@ -80,7 +78,7 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 
 #### 5.2.1 认证收件人的 Welcome 引用发现
 
-调用方通过 Commit Event ref 与 typed MLS current 判断 winning transition，不通过独立 Seal proof。
+调用方通过 Commit Event ref 与 typed MLS current 判断 winning transition，不通过独立 RealmCommit proof。
 
 ### 5.6 按次 current 与精确历史签名公钥
 

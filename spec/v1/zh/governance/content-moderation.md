@@ -58,8 +58,8 @@ flowchart TB
     Cap -- "否" --> DenyCap["拒绝 (missing_capability)<br>没有任何 deny 层能补救"]
     Cap -- "是" --> Mod{"2. Moderation Policy<br>(Realm / Organization / Service)"}
 
-    Mod -- "deny / hard_deny" --> DenyMod["拒绝并写入<br>ak.component.moderation_state.v1<br>(sealed Move，跨 peer 一致)"]
-    Mod -- "quarantine" --> Quar["事件进 quarantine 队列<br>不进 effective state<br>(sealed)"]
+    Mod -- "deny / hard_deny" --> DenyMod["拒绝并写入<br>ak.component.moderation_state.v1<br>(committed Move，跨 peer 一致)"]
+    Mod -- "quarantine" --> Quar["事件进 quarantine 队列<br>不进 effective state<br>(committed)"]
     Mod -- "require_review" --> Rev["进 review 队列<br>等待 moderator 决策"]
     Mod -- "allow" --> Stored["写入 Realm 历史<br>(canonical fact)"]
 
@@ -71,17 +71,17 @@ flowchart TB
 读图要点：
 
 - **Capability 是唯一 allow 来源**：黑名单 / moderation policy / personal blocklist 都不能凭空创造权限。
-- **Moderation 决策 MUST sealed**（见 §2.6）：`hard_deny` / `quarantine` / `require_review` / `dismiss` 必须通过 sealed Move 写入 `ak.component.moderation_state.v1` cell；`dismiss` 仅终结绑定的举报 queue item，不改变目标内容的 effective decision。
-- **Personal Blocklist 不进 cell**：它只是接收方本地客户端 view 过滤，不广播、不共享、不替 Realm 删除其他人可见的事实。
+- **Moderation 决策 MUST committed**（见 §2.6）：`hard_deny` / `quarantine` / `require_review` / `dismiss` 必须通过 committed Move 写入 `ak.component.moderation_state.v1` typed current result；`dismiss` 仅终结绑定的举报 queue item，不改变目标内容的 effective decision。
+- **Personal Blocklist 不进 typed current result**：它只是接收方本地客户端 view 过滤，不广播、不共享、不替 Realm 删除其他人可见的事实。
 - **Blocklist 不可枚举**：个人 block 命中不得向被屏蔽方或 federation peer 暴露为独立错误码、receipt 差异、presence / typing 差异或 directory 结果差异；对外表现必须与普通不可见、不可达或不存在一致。
 
-### 2.6 Moderation 决策 MUST Sealed
+### 2.6 Moderation 决策 MUST committed
 
-任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 sealed Move 写入 `ak.component.moderation_state.v1` cell。`dismiss` 同样使用 sealed `ak.moderation.decision`，但其 `target_ref` MUST 指向被驳回举报的 `ak.self.moderation.report` Event，且只把对应 queue item 终结为 `resolved`；它在目标内容的 decision fold 中等价于 `none`，不得放行本来缺少 capability 或被其它 active decision 拒绝的操作。个人 blocklist 仍是 out-of-band，不进入该 cell。
+任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 committed Move 写入 `ak.component.moderation_state.v1` typed current result。`dismiss` 同样使用 committed `ak.moderation.decision`，但其 `target_ref` MUST 指向被驳回举报的 `ak.self.moderation.report` Event，且只把对应 queue item 终结为 `resolved`；它在目标内容的 decision fold 中等价于 `none`，不得放行本来缺少 capability 或被其它 active decision 拒绝的操作。个人 blocklist 仍是 out-of-band，不进入该 typed current result。
 
-**确定性收敛与提交路径（normative）**：`ak.component.moderation_state.v1` cell 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 sequenced_state 及集合值定义，与 capability cell（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ak.moderation.decision` = 对 moderation_state cell 的安全集合 **add**；`ak.moderation.decision.lift` = 对同一 cell 的**部分撤销**，投影为 `or_set_remove_dots`，移除集合逐字节等于 payload 的 `observed_dot_ids[]`。裁决一律经 `POST /_arkret/self/events` 作为 self-authored Move 提交，**不经任何实现私有运维 / admin 写路径**；治理状态完全由数据/控制面 reducer 收敛，运维管理面不持有 moderation 真相。lift 只解除指定 decision 的后续治理效力，不删除审计事实，也不复原已经接受的 redaction tombstone、已经密码学销毁的 content key 或其它不可逆 effect；需要恢复可见内容时只能由有权 actor 创建新的 replacement Event / object，并重新执行当下 authz 与 content policy。
+**确定性收敛与提交路径（normative）**：`ak.component.moderation_state.v1` typed current result 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 sequenced_state 及集合值定义，与 capability typed current result（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ak.moderation.decision` = 对 moderation_state typed current result 的安全集合 **add**；`ak.moderation.decision.lift` = 对同一 typed current result 的**部分撤销**，投影为 `or_set_remove_dots`，移除集合逐字节等于 payload 的 `observed_dot_ids[]`。裁决一律经 `POST /_arkret/self/events` 作为 self-authored Move 提交，**不经任何实现私有运维 / admin 写路径**；治理状态完全由数据/控制面 reducer 收敛，运维管理面不持有 moderation 真相。lift 只解除指定 decision 的后续治理效力，不删除审计事实，也不复原已经接受的 redaction tombstone、已经密码学销毁的 content key 或其它不可逆 effect；需要恢复可见内容时只能由有权 actor 创建新的 replacement Event / object，并重新执行当下 authz 与 content policy。
 
-**active decision set 与 effective decision（normative）**：moderation_state cell 的当前值是“所有尚未被 observed-remove 的 decision add”组成的集合，不是 last-writer register。对某次 read / write / distribute，reducer 先筛出 target 与可选 `action` 对本次路径适用的 active entries，再按封闭收紧序 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；`dismiss` 只适用于 report queue item 且 fold 为 `none`，`soft_deny` 不写 cell，`allow` 也不是 decision add。多个 issuer 或同一 issuer 的多个合法 add 并存是确认安全集合的正常状态，必须按该 fold 得到相同结果，**不得**因“集合元素多于一个”直接报 `moderation_control_split`，也不得按本地到达顺序选 winner。只有同一 add identity 对应不同 canonical bytes、remove provenance 不可验证、竞争确认或完整状态证明损坏等安全故障才进入 split fail-closed。
+**active decision set 与 effective decision（normative）**：moderation_state typed current result 的当前值是“所有尚未被 observed-remove 的 decision add”组成的集合，不是 last-writer register。对某次 read / write / distribute，reducer 先筛出 target 与可选 `action` 对本次路径适用的 active entries，再按封闭收紧序 `hard_deny > quarantine > require_review > none` 取最严格 effective decision；`dismiss` 只适用于 report queue item 且 fold 为 `none`，`soft_deny` 不写 typed current result，`allow` 也不是 decision add。多个 issuer 或同一 issuer 的多个合法 add 并存是确认安全集合的正常状态，必须按该 fold 得到相同结果，**不得**因“集合元素多于一个”直接报 `moderation_control_split`，也不得按本地到达顺序选 winner。只有同一 add identity 对应不同 canonical bytes、remove provenance 不可验证、竞争确认或完整状态证明损坏等安全故障才进入 split fail-closed。
 
 **`require_review` 承载与解除（normative）**：active `decision="require_review"` add 本身就是 pending-review 的 canonical 承载；review queue 是从这些 active adds（以及独立 report queue items）派生的 View，不另造第三套中间态。候选 Event / operation 在 review 期间保持 proposal / observed-only，不得进入 effective state。reviewer 必须用以下封闭路径结束该 gate：
 
@@ -94,14 +94,14 @@ flowchart TB
 移除集合与该数组**逐字节相等**。每个 dot 的 `event_id` 段 MUST 等于 `decision_ref` 的完整 EventId token——
 这就是上一条"不得隐式 lift 其它 issuer 的 decision"的机器可读形式。
 
-lift MUST NOT 使用 `or_set_remove_observed`：该形态移除冻结前态下该 cell 上**全部**存活 add
+lift MUST NOT 使用 `or_set_remove_observed`：该形态移除冻结前态下该 typed current result 上**全部**存活 add
 dot，会连带撤销其它 issuer 的 decision；[`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md)
 逐字禁止用它做部分撤销。`decision_ref` 与 `observed_dot_ids[]` 不可互相替代：前者是
 `ak:event:<44-char-event-token>`，dot 是 `ak:event:<44-char-event-token>:<write_index>`，二者永不逐字节相等，而 §2.4.2
 不提供 `event_ref -> dot` 的派生式。
 
 若要替换既有处置，提交方可在同一 batch 中 lift 被指名的旧 decision dot 并新增 replacement decision；
-新 decision 是同一 cell 上的新 dot，继续参与最严格 fold。
+新 decision 是同一 typed current result 上的新 dot，继续参与最严格 fold。
 
 ## 3. 内容举报 (Report)
 
@@ -133,7 +133,7 @@ POST /_arkret/self/moderation/report
 该 self operation 只接受 reporter 本人设备直接签名：`event.actor_id == payload.reporter ==
 session principal`，并禁止 `executed_by`、`authorization_ref`、`applet_id`、`source_provider` 与
 MIMI facade provenance。它是 ordinary Event，MUST 携带 `auth_context`，MUST NOT 携带
-`seal_basis` 或 `preconditions`。服务端只把 exact signed bytes 送入 ordinary Event admission，
+`authority_revision` 或 `preconditions`。服务端只把 exact signed bytes 送入 ordinary Event admission，
 不得构造、重建、共同签名或注入任何 guard。
 
 响应字段：
@@ -249,9 +249,9 @@ Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略�
 }
 ```
 
-**Durable Event 与 report 内嵌对象的单一合同（normative）**：[`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 同时是 `ak.moderation.franking_proof` durable Event 的完整 payload 合同，以及 report payload 内嵌 `franking_proof` 的合同；两处不得维护不同字段集。`payload.event_id` 是**被证明已接收的 encrypted Event ID**，也是 `ak.component.moderation.franking_proof.v1` ordered-log cell 的 subject；它不是承载该 proof 的外层 Event 自身 `event_id`。Proof 在接收密文时由 receiving service 生成，先于且独立于任何后续 report，因此 payload MUST NOT 携带 `report_id` 或 `target_ref`，report 与 proof 的关联由 report 内嵌该完整 proof 对象建立。
+**Durable Event 与 report 内嵌对象的单一合同（normative）**：[`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 同时是 `ak.moderation.franking_proof` durable Event 的完整 payload 合同，以及 report payload 内嵌 `franking_proof` 的合同；两处不得维护不同字段集。`payload.event_id` 是**被证明已接收的 encrypted Event ID**，也是 `ak.component.moderation.franking_proof.v1` ordered-log typed current result 的 subject；它不是承载该 proof 的外层 Event 自身 `event_id`。Proof 在接收密文时由 receiving service 生成，先于且独立于任何后续 report，因此 payload MUST NOT 携带 `report_id` 或 `target_ref`，report 与 proof 的关联由 report 内嵌该完整 proof 对象建立。
 
-当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 cell 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受且内容承诺可重算的 encrypted Event、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `verification_method` 在 `received_at` 验证；该 method 的 controller 投影 MUST 等于 `received_by` 并在该 Realm 获授权。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
+当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 typed current result 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受且内容承诺可重算的 encrypted Event、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `verification_method` 在 `received_at` 验证；该 method 的 controller 投影 MUST 等于 `received_by` 并在该 Realm 获授权。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
 
 规则：
 
@@ -260,14 +260,14 @@ Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略�
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
 - **`received_by` / `received_at` 向非群成员 moderator 最小化（normative）**：Canonical `franking_proof` 必须保留被签名的 receiving service DID 与精确接收时间，分别按 schema 的 DID / timestamp 形态承载，否则无法执行 service-key authority 与签名时点校验；实现 MUST NOT 把 DID digest 填入 canonical `received_by`，也 MUST NOT 把 bucket 值冒充 canonical `received_at`。由于这两项会暴露 Station 拓扑与秒级活动 timing，完整 proof payload 只允许在持有对应治理 capability 的验证路径内解密/读取。普通 reporter 或不具该能力的非群 moderator只能取得**非 proof 的最小化投影**：`received_by` MAY 投影为 service DID digest 或“某授权投递服务”布尔证明，`received_at` SHOULD bucket 化；该投影 MUST 标记为不可直接验签，MUST NOT 重新提交为 `ModerationReport.franking_proof` 或 `ak.moderation.franking_proof` payload。Raw Event API、backfill 与 federation 对无权 caller / peer MUST 隐去完整 payload，只可返回 payload digest / redacted stub。§3.4.1 的精确校验只发生在授权验证路径内。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
-- Moderator 验证时 MUST 检查 reporter 可见性、目标消息的普通 Event 验证结果与内容承诺、franking service signature、durable proof Event 和 evidence package 签名。若请求可选的期限内存在证明，还必须独立验证安全 Seal 的 `existence_anchor`；该 Seal 不接受普通 Event，也不参与消息发送。具备独立 MLS/治理密钥权限时 MAY 在另一证据路径验证 AEAD/AAD；该结果不写回 franking proof。
+- Moderator 验证时 MUST 检查 reporter 可见性、目标消息的普通 Event 验证结果与内容承诺、franking service signature、durable proof Event 和 evidence package 签名。若请求可选的期限内存在证明，还必须独立验证安全 RealmCommit 的 `existence_anchor`；该 RealmCommit 不接受普通 Event，也不参与消息发送。具备独立 MLS/治理密钥权限时 MAY 在另一证据路径验证 AEAD/AAD；该结果不写回 franking proof。
 - 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
 #### 3.4.1 不存在治理密钥释放
 
 Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ak.self.moderation.command.report.v1` 自动升级为 `ak.audit.session.request`，MUST NOT 因举报向 moderator、Station sync surface 或外部 verifier release 历史 key / epoch key。
 
-需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
+需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + committed release session；这与用户举报是不同协议流程。
 
 Franking 信任链：
 
@@ -276,7 +276,7 @@ Franking 信任链：
 3. 验证该 service DID 在目标 Realm 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
 4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Realm。
 5. 按上述唯一 JCS transcript 验证签名，并对 `replay_nonce` 执行有界跨举报去重。
-6. 若需要证明 franking proof 在服务 key 有效期内已存在，取得 byte-identical proof Event、一个确认安全 Seal 中的确切 `existence_anchor` 和完整普通 Event frontier 祖先依赖。验证确切 franking grant/generation、原 producer proof/authority refs、target、服务 key、Seal 唯一签名 与有界时间；整个 anchor 不确定区间必须位于 key 有效期且不早于 `proof.received_at`。proof Event 不进入 Seal.delta，anchor 只对其已存在这一安全事实作承诺。它不证明自报 received_at 恰为真实投递时间。缺证据时只保留服务签名声明，不宣称有独立时间证明；普通聊天不等待该可选证明。
+6. 若需要证明 franking proof 在服务 key 有效期内已存在，取得 byte-identical proof Event、一个确认安全 RealmCommit 中的确切 `existence_anchor` 和完整普通 Event frontier 祖先依赖。验证确切 franking grant/generation、原 producer proof/authority refs、target、服务 key、RealmCommit 唯一签名 与有界时间；整个 anchor 不确定区间必须位于 key 有效期且不早于 `proof.received_at`。proof Event 不进入 RealmCommit.delta，anchor 只对其已存在这一安全事实作承诺。它不证明自报 received_at 恰为真实投递时间。缺证据时只保留服务签名声明，不宣称有独立时间证明；普通聊天不等待该可选证明。
 
 ## 4. 用户屏蔽 (Ignore/Block)
 
@@ -341,13 +341,13 @@ holder 显式授权读取 blocklist 明文的 confidential service 才能代表 
 
 - 被封禁用户无法重新加入该 Realm
 - 其未来的 Operation 提交将被 Station sync surface 拒绝
-- 是否对其隐藏**已可见**历史内容由 Realm Policy 决定；但 ban 后的 **key share 与 server-mediated backfill MUST fail closed**，其 fail-closed 真相源为 [`history-visibility.md` §6](./history-visibility.md) 与 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)（把“接收 principal / device 已处于 ban / leave / removed”列为主体级拒绝终态）。Realm policy 只能在此基础上**更严**，MUST NOT 放宽该 fail-closed 边界向被封禁主体继续交付 key / 历史。
+- 是否对其隐藏**已可见**历史内容由 Realm Policy 决定；ban 后的 stream backfill 与新 MLS epoch delivery MUST fail closed。其真相源为 [`history-visibility.md` §6](./history-visibility.md) 与 [`../crypto-media/device-lifecycle.md` §12](../crypto-media/device-lifecycle.md)：接收 principal / device 已处于 ban / leave / removed 时不得获得新的 committed Event 或 Welcome delivery。Realm policy 只能在此基础上**更严**。
 
 ### 5.3 Realm 内审核状态边界
 
-v1 不定义可复制的 Realm 级 blocklist、server ACL 或 content-filter policy Event。Realm 内持久化治理动作由既有原语直接表达：成员封禁使用 `ak.member.state{membership=ban}`，内容撤回使用 `ak.message.redact`，隔离、复核及其解除使用 sealed `ak.moderation.decision` / `ak.moderation.decision.lift`。
+v1 不定义可复制的 Realm 级 blocklist、server ACL 或 content-filter policy Event。Realm 内持久化治理动作由既有原语直接表达：成员封禁使用 `ak.member.state{membership=ban}`，内容撤回使用 `ak.message.redact`，隔离、复核及其解除使用 committed `ak.moderation.decision` / `ak.moderation.decision.lift`。
 
-服务端 MAY 配置部署本地的风险信号、过滤器与 ACL，但这些配置不是 Realm 共享状态，不得伪装成标准 Event，也不得赋予 capability。Organization 明确适用于某 Realm 的 `ak.organization.moderation_policy` 可作为额外 deny 层；Realm 不存在独立 override cell。
+服务端 MAY 配置部署本地的风险信号、过滤器与 ACL，但这些配置不是 Realm 共享状态，不得伪装成标准 Event，也不得赋予 capability。Organization 明确适用于某 Realm 的 `ak.organization.moderation_policy` 可作为额外 deny 层；Realm 不存在独立 override typed current result。
 ### 5.4 消息审核队列
 
 Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报记录与 §2.6 active `require_review` decision。举报 item 的 `status={submitted,resolved}` 只描述 report lifecycle；policy review item 的 pending / resolved 由对应 decision add 是否仍 active 派生，不得为后者伪造 `moderation-queue-item.status` 新枚举。建议使用标准 View 机制：
@@ -420,12 +420,12 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 
 该策略由 `ak.organization.moderation_policy` Event 承载。它的 payload 是
 [`event-payload.schema.json#/$defs/organization_moderation_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
-`organization_id: did_core_id`（即唯一 cell subject）加上
+`organization_id: did_core_id`（即唯一 typed current result subject）加上
 whole-value `value`；策略内容全部位于 `value` 内，**不得**平铺到 payload 顶层——该 schema 是
 `additionalProperties:false`，平铺形态会被直接拒绝。`value` 是 required，且 v1 只有
 `organization_moderation_policy_document` 这一 closed family：不存在 `value.schema` selector、外部 schema
 分派或 subject-only no-op/tombstone；未知 value 字段同样以 `schema_violation` 拒绝。Event 本身已由 Organization 治理密钥签名并进入
-accepted Seal state，因此 payload **不携带**独立的 detached `proof`：再签一次覆盖的是同一批 canonical
+accepted RealmCommit state，因此 payload **不携带**独立的 detached `proof`：再签一次覆盖的是同一批 canonical
 bytes，只会多出一条可漂移的第二真相源。
 
 ```json

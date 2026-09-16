@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signal-relay.schema.json",
   "title": "Arkret Signal Peer Relay Request",
-  "description": "Bounded single-hop peer relay request for encrypted SignalEnvelope values. The request is short-lived, best-effort, non-idempotent, and never creates durable Event, Seal, frontier, receipt, or delivery state.",
+  "description": "Bounded single-hop peer relay request for encrypted SignalEnvelope values. The request is short-lived, best-effort, non-idempotent, and never creates durable Event, RealmCommit, frontier, receipt, or delivery state.",
   "type": "object",
   "required": [
     "realm_id",

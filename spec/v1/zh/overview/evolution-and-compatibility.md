@@ -29,7 +29,7 @@ Arkret/1 分别管理四个版本维度，任何实现不得用其中一个替�
 | --- | --- | --- |
 | 协议族 | `protocol_version="1.0"` | 标识 Arkret/1 的身份、签名域、Event 因果模型与核心认证规则。接收方在使用 describe 中任何其它声明前 MUST 先执行精确版本比较；不等于 `"1.0"` 时将整个服务判定为不可用并产生 `unsupported_protocol_version`，不得继续能力交集、缓存路由或发起业务请求。 |
 | Wire schema | `schema_id`、带 `.vN` 的 event kind / operation schema | 定义单个 Event、DTO、证明或持久对象的 closed shape。 |
-| Realm reducer profile | Realm 的 `ak.component.realm.reducer_profile.v1` singleton control cell | 定义 Event admission、cell projection、lattice join、state root 与 security frontier 的共识语义。 |
+| Realm reducer profile | Realm 的 `ak.component.realm.reducer_profile.v1` singleton control typed current result | 定义 Event admission、typed current result projection、lattice join、state root 与 key-access revision 的共识语义。 |
 | Capability | `ServiceDescribe` 的 operation、feature、schema/profile 能力集合 | 决定可选功能是否可用。 |
 
 Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请求判定。实现不得用构建 SHA、发布版本、源码树摘要、
@@ -39,9 +39,9 @@ Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请�
 
 ## 2. Realm reducer profile
 
-Reducer profile ID 使用 `ak.reducer.*.vN` 命名空间。当前注册的基线是 `ak.reducer.core.v1`。`ak.profile.*` 只表示实现、部署、产品或 conformance profile，不得写入 Realm reducer-profile cell。
+Reducer profile ID 使用 `ak.reducer.*.vN` 命名空间。当前注册的基线是 `ak.reducer.core.v1`。`ak.profile.*` 只表示实现、部署、产品或 conformance profile，不得写入 Realm reducer-profile typed current result。
 
-每个 Realm 恰有一个 reducer-profile singleton control cell：
+每个 Realm 恰有一个 reducer-profile singleton control typed current result：
 
 ```text
 state-slot:ak.component.realm.reducer_profile.v1:null
@@ -51,13 +51,13 @@ state-slot:ak.component.realm.reducer_profile.v1:null
 
 1. `ak.realm.create.payload.object.reducer_profile` 提供 genesis 值。
 2. `ak.realm.upgrade.payload.target_reducer_profile` 是唯一后继写入口；该 Control Move 必须用标准 `head_eq` precondition 绑定 source profile。
-3. profile cell 使用 `sequenced_state`、`plane=control`，按唯一确认序列执行；竞争升级按相关 revision 检查拒绝，不合并安全权限。
+3. profile typed current result 使用 `sequenced_state`、`plane=control`，按唯一确认序列执行；竞争升级按相关 revision 检查拒绝，不合并安全权限。
 4. profile ID 的已发布语义不可原地修改；语义变化必须注册新的 ID 和从 source 到 target 的确定性 upgrade edge。
 5. upgrade Event 本身由 source profile 解释；治理 basis 已包含该 upgrade 的后继才由 target profile 解释。
 
 当前 v1 registry 没有 active upgrade edge，因此任何 `ak.realm.upgrade` 都按 §4 以 `failed_precondition` 拒绝；这是已裁决的 v1 边界，不是隐式成功或实现缺省。首个后继 reducer profile 只能在同一发布中同时登记 source→target edge，并满足 `reducer-profile-registry.json#upgrade_release_gate` 要求的成功 transition、source `head_eq` precondition、未注册 target、未声明 edge 与并发 upgrade 冲突五类向量后发布。
 
-普通 Event 不声明 reducer profile。ordinary Event 从其已签 `auth_context.authority_refs` 固定的授权状态读取 reducer 合同；Control Move 从 `seal_basis` 绑定的确认前缀读取，并按实际执行位置重验相关 revision。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
+普通 Event 不声明 reducer profile。ordinary Event 从其已签 `auth_context.authority_refs` 固定的授权状态读取 reducer 合同；Control Move 从 `authority_revision` 绑定的确认前缀读取，并按实际执行位置重验相关 revision。实现不得从本地 latest state、软件默认值、接收顺序或调用方字段推断。
 
 ## 3. Profile carrier 边界
 
@@ -65,7 +65,7 @@ Reducer profile 只出现在以下 canonical 位置：
 
 - Realm create 的 `payload.object.reducer_profile`；
 - Realm upgrade 的 `payload.target_reducer_profile`；
-- Snapshot、MLS governance proof / binding 等必须脱离 Realm 状态独立验证的 reducer-derived artifact；
+- Snapshot 与 MLS key-access binding 等必须脱离 Realm 状态独立验证的 authority-derived artifact；
 - `ServiceDescribe.supported_reducer_profiles[]`，用于广告本进程实际可执行的集合。
 
 普通 Event、Event submit/query/subscribe/resolve/pull、普通 Realm operation 和 federation service binding 均不携带 reducer profile。调用方不得增加私有 header、query 或 JSON 字段来选择 reducer。
@@ -79,7 +79,7 @@ Reducer profile 只出现在以下 canonical 位置：
 - `supported_profiles[]`：实现、部署或产品 conformance profile；
 - `supported_features[]`：可选功能。
 
-目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `unsupported_profile`；其它 Realm 不受影响。缺少计算 profile cell 所需的 CBS 依赖返回 `dependency_missing`；已证明的安全确认分叉按安全域故障处理，停止基于争议后继扩权。
+目标 Realm 的 active reducer profile 不在本地实现集合时，该 Realm 操作返回 `unsupported_profile`；其它 Realm 不受影响。缺少计算 profile typed current result 所需的 authority-commit 依赖返回 `dependency_missing`；已证明的安全确认分叉按安全域故障处理，停止基于争议后继扩权。
 
 Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；target 未注册时返回 `unsupported_profile`；registry 中不存在 source→target edge 时返回 `failed_precondition`。
 
@@ -91,7 +91,7 @@ Reducer upgrade target 的词法形状不合法时返回 `schema_violation`；ta
 - 已声明 extensible map 内的 namespaced 非 critical 字段可以按 schema 规则保留或忽略；
 - critical extension 不受支持时只拒绝相关 Event；
 - 不改变共识结果的功能使用 capability 协商；
-- 改变 Event admission、cell、state root 或 security frontier 的功能使用新 reducer profile 和显式 Realm upgrade；
+- 改变 Event admission、typed current result、state root 或 key-access revision 的功能使用新 reducer profile 和显式 Realm upgrade；
 - 文档、fixture、实现重构与无语义 registry 整理不改变联邦判定。
 
 任何进入签名语义的 canonical bytes 与已发布语义都不得原地重定义。每项影响 wire、状态、授权、安全、同步或互操作的变化必须进入对应 schema / registry，并有 conformance vector、fixture 或明确测试计划。
@@ -116,7 +116,7 @@ HTTP path 不承担协议版本语义；能力由 `GET /_arkret/describe` 和各
 | describe 完整性 | 签名 `AuthenticatedServiceResolution` 的 `describe_digest` 反向绑定 | route 解析的二跳确认 | digest 不一致时不切换业务流量 | [`../sync/service-surface.md` §2.6](../sync/service-surface.md) |
 | 对象 shape | schema id 与带 `.vN` 的 event kind / operation carrier；schema 内闭集枚举按版本冻结 | schema validation | `schema_violation`，或算法 selector 对应的稳定 `unsupported_*` 码 | [`../conformance/schema-registry.md` §6、§6.1](../conformance/schema-registry.md) |
 | 开放注册集取值 | event kind、error code、relation kind、typed id kind、feature id 等 registry 字符串集合 | 反序列化与语义处置两段分离 | 未知值原样保留、不使整体解码失败；语义处置仍按各消费面 fail-closed 规则 | [`../conformance/schema-registry.md` §6.1(a)](../conformance/schema-registry.md) |
-| 共识语义 | Realm 的 reducer-profile singleton control cell | 每条 Event 从其 CBS governance basis 读取 | `unsupported_profile` | 本文 §2、§4 |
+| 共识语义 | Realm 的 reducer-profile singleton control typed current result | 每条 Event 从其 authority-commit governance basis 读取 | `unsupported_profile` | 本文 §2、§4 |
 | 逐 Event 硬要求 | `requirements.schema[]` / `features[]` / `critical_extensions[]` | Event admission | 未知 critical 标识 MUST fail closed | [`../conformance/schema-registry.md` §6](../conformance/schema-registry.md)、[`../conformance/conformance-profiles.md` §3](../conformance/conformance-profiles.md) |
 | 算法 agility（四面） | signature / digest / HPKE / MLS ciphersuite 四个 registry 的 schema 内 selector | 验签、摘要、应用层封装、MLS 群组协商 | `unsupported_signature_alg` / `unsupported_digest_algorithm` / `unsupported_hpke_suite` / `unsupported_ciphersuite` | [`../conformance/encoding.md` §3.2、§6.1](../conformance/encoding.md)、[`../crypto-media/encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)、[`../conformance/schema-registry.md` §6.1(b.1)](../conformance/schema-registry.md) |
 | 端到端对端能力 | KeyPackage `capabilities` 与 claim `required_capabilities`（`required_capabilities ⊆ capabilities`） | KeyPackage claim | `claim_failed` | [`../crypto-media/device-lifecycle.md` §9](../crypto-media/device-lifecycle.md)、[`../crypto-media/encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md) |
@@ -157,7 +157,7 @@ HTTP path 不承载版本（§6）出于同一逻辑的传输面推论：URL 里
 
 ### 9.3 为什么共识语义单独走 reducer profile
 
-describe 协商是**成对**的：A 与 B 各自声明，交集只约束这一对连接。但 Realm 的共识语义（Event admission、cell projection、lattice join、state root、security frontier）必须对**所有成员、所有时间点**的验证者给出同一答案，否则同一 Realm 会在不同实现上分叉。所以它不走 describe，而是写进 Realm 自身的 governance 状态（reducer-profile singleton cell，§2），普通 Event 从自身已签授权上下文读取该 Cell，安全命令按其确认执行位置验证该 Cell——任何时候重放历史，每条 Event 都由它当时生效的语义解释，与验证者本地软件的新旧无关。升级共识语义因此不是"发布新软件"，而是 Realm 内一次可审计的显式治理动作（`ak.realm.upgrade`），带 `head_eq` 前置条件、由 source profile 解释、经 registry 声明的 upgrade edge 门禁（`reducer-profile-registry.json#upgrade_release_gate`）。
+describe 协商是**成对**的：A 与 B 各自声明，交集只约束这一对连接。但 Realm 的共识语义（Event admission、typed current result projection、lattice join、state root、key-access revision）必须对**所有成员、所有时间点**的验证者给出同一答案，否则同一 Realm 会在不同实现上分叉。所以它不走 describe，而是写进 Realm 自身的 governance 状态（reducer-profile singleton typed current result，§2），普通 Event 从自身已签授权上下文读取该 typed current result，安全命令按其确认执行位置验证该 typed current result——任何时候重放历史，每条 Event 都由它当时生效的语义解释，与验证者本地软件的新旧无关。升级共识语义因此不是"发布新软件"，而是 Realm 内一次可审计的显式治理动作（`ak.realm.upgrade`），带 `head_eq` 前置条件、由 source profile 解释、经 registry 声明的 upgrade edge 门禁（`reducer-profile-registry.json#upgrade_release_gate`）。
 
 ### 9.4 典型混合版本场景
 

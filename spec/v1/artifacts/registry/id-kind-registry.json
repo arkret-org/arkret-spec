@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T08:30:00+08:00",
+  "generated_at": "2026-09-16T16:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -393,7 +393,7 @@
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_release:<44-char-event-token>",
-      "description": "Audit release manifest ID derived from ak.audit.release for a sealed historical release under an active audit binding/session.",
+      "description": "Audit release manifest ID derived from ak.audit.release for a committed historical release under an active audit binding/session.",
       "id_form": "event_derived",
       "identity_authority": "event",
       "genesis_event_kinds": [

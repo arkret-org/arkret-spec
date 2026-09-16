@@ -104,7 +104,7 @@ Sidecar create accepted 后，全部 Sidecar-private Event 必须使用：
 ```
 
 Receiver MUST 验证 Sidecar 存在、Realm 一致、actor 属于当前有效访问集合，并将完整 `scope_ref`
-纳入 Event digest、AAD、query/delivery 裁剪与 Seal coverage。普通 Circle API、Circle capability 与 Circle
+纳入 Event digest、AAD、query/delivery 裁剪与 RealmCommit coverage。普通 Circle API、Circle capability 与 Circle
 membership proof 不能授权 Sidecar Event。
 
 ## 4. Context attach：映射，不创建对象
@@ -185,7 +185,7 @@ resource-scoped capability、Agent participation selection 与 action policy 继
 
 ## 6. 原生 MLS 绑定
 
-Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑定 Circle ID 或 membership cell。
+Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑定 Circle ID 或 membership typed current result。
 不存在 controller-global Sidecar MLS group：不同 `sidecar_id` 的 Add/Remove/Update、Welcome、epoch、future
 epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidecar 复用或传播。
 
@@ -273,7 +273,7 @@ context mappings。
 2. schema 与 registry 中不存在 `backing_circle_id` 或 `ak.sidecar.access.replace`。
 3. Sidecar create 不产生 Circle/member/Strand/Relation write。
 4. `desired_agent_ids` 只能从 accepted frontier 派生；任何 operation 均不可写入或覆盖它。
-5. native `scope_ref.kind="sidecar"` 进入 digest、delivery/query 与 Seal 验证。加密时从已签名外层
+5. native `scope_ref.kind="sidecar"` 进入 digest、delivery/query 与 RealmCommit 验证。加密时从已签名外层
    Event 的 exact `scope_ref` 重构 closed pre-encryption header；最小 wire envelope 不复制
    scope、`sidecar_id`、AAD 或其 digest。接收方必须按
    [`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md) 从外层 Event 与 exact

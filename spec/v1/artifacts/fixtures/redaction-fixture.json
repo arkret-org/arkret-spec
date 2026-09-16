@@ -529,7 +529,7 @@
       "name": "event_target_does_not_drive_object_state",
       "vector_id": "ak.vector.redaction.event_target_does_not_drive_object_state.v1",
       "input": "event_targeted_redaction_on_strand_create_event",
-      "expected": "derived_object_state_stays_active_and_redaction_cells_stay_independent"
+      "expected": "derived_object_state_stays_active_and_redaction_results_stay_independent"
     },
     {
       "name": "policy_scope",

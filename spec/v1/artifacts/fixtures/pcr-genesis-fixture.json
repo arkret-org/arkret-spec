@@ -75,7 +75,7 @@
       "ak.realm.create",
       "ak.device.authorize"
     ],
-    "authorize_prev_refs": [
+    "authorize_domain_refs": [
       "create.event_id"
     ],
     "root_commitment_input": "authorize.payload",
@@ -257,7 +257,7 @@
       "expected": "reject"
     },
     {
-      "field": "genesis_unit.events[1].prev_refs",
+      "field": "genesis_unit.events[1].domain_refs",
       "expected": "reject"
     },
     {
@@ -502,9 +502,9 @@
     "device_key_digest": {
       "expected": "sha256:88d57d808ea9594c50a950437f08bb72a09c824491351cb7b016d7552cd11dea",
       "preimage_utf8": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-      "rejected_reason": "digesting the whole did:key: URI is the retired convention; the receipt binds the bare multikey",
-      "rejected_retired_expected": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
-      "rejected_retired_preimage_utf8": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "rejected_reason": "digesting the whole did:key URI is noncanonical; the receipt binds the bare multikey",
+      "noncanonical_expected": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
+      "noncanonical_preimage_utf8": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
       "source_pointer": "/founding_device_descriptor/device_public_key_did",
       "transform": "strip the did:key: prefix"
     },

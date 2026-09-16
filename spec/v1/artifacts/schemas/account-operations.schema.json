@@ -165,7 +165,7 @@
             "generation_fenced",
             "conflicted"
           ],
-          "description": "Lifecycle projection only, matching device-lifecycle.md section 14.1. revocation_pending is reducer-derived from durable accepted ak.device.revoke proposal state; trust/evidence quality is reported separately in verification_state."
+          "description": "Lifecycle projection only, matching device-lifecycle.md section 14.1. revocation_pending is authority-derived from a durable accepted ak.device.revoke security transaction; trust/evidence quality is reported separately in verification_state."
         },
         "verification_state": {
           "type": "string",
@@ -209,7 +209,7 @@
           "items": {
             "$ref": "./device-revocation-state.schema.json#/$defs/device_revocation_gate_record"
           },
-          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by (acceptance_seq, proposal_digest). At most 128 distinct unresolved proposals may be admitted; exact replay consumes no slot, confirmed rejected command result removes one pending slot, and an already revoked generation accepts no new proposal. Sealing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
+          "description": "All gate-relevant durable revoke records for the exact device/generation, sorted by acceptance_seq and Event id. At most 128 distinct unresolved transactions may be admitted; exact replay consumes no slot, a terminal rejected result removes one pending slot, and an already revoked generation accepts no new transaction. Committing one record makes lifecycle status revoked but MUST NOT hide other surviving pending records."
         }
       },
       "allOf": [
@@ -496,7 +496,7 @@
         }
       },
       "additionalProperties": false,
-      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
     },
     "account_handoff_authentication_proof": {
       "type": "object",
@@ -1031,7 +1031,7 @@
         }
       },
       "additionalProperties": false,
-      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
     },
     "identity_creation_registration": {
       "type": "object",
@@ -1664,7 +1664,7 @@
           ]
         }
       ],
-      "description": "Holder-signed ordinary Actor Profile Event. (event.actor_id, event.station_id) MUST equal the authenticated session's exact account authority pair, and event.realm_id MUST select that pair's local unique PCR lineage. Accepted-profile presence is evaluated only within that lineage. With no accepted profile there the exact Event MUST be ak.profile.create and its materialized actor_profile ID is derived by retyping event.event_id; the create payload MUST NOT carry id. With an accepted profile there the exact Event MUST be ak.profile.update and payload.target_ref MUST equal that accepted create-derived ID. On create payload.object.principal_id MUST equal event.actor_id; on update the accepted target profile's materialized principal_id MUST equal it. Holder direct proof is required without executed_by, authorization_ref or Applet provenance. Event preconditions MUST be empty; update concurrency uses only the optional signed payload.expected_state_digest. The service submits the exact bytes through ordinary Event admission and MUST NOT author, rebuild, co-sign, choose an ID or add a concurrency guard. A valid ordinary profile Event returns its outcome after durable independent admission, without waiting for Seal coverage or advancement; exact retry returns the stored outcome."
+      "description": "Holder-signed ordinary Actor Profile Event. (event.actor_id, event.station_id) MUST equal the authenticated session's exact account authority pair, and event.realm_id MUST select that pair's local unique PCR lineage. Accepted-profile presence is evaluated only within that lineage. With no accepted profile there the exact Event MUST be ak.profile.create and its materialized actor_profile ID is derived by retyping event.event_id; the create payload MUST NOT carry id. With an accepted profile there the exact Event MUST be ak.profile.update and payload.target_ref MUST equal that accepted create-derived ID. On create payload.object.principal_id MUST equal event.actor_id; on update the accepted target profile's materialized principal_id MUST equal it. Holder direct proof is required without executed_by, authorization_ref or Applet provenance. Event preconditions MUST be empty; update concurrency uses only the optional signed payload.expected_state_digest. The service submits the exact bytes through ordinary Event admission and MUST NOT author, rebuild, co-sign, choose an ID or add a concurrency guard. A valid ordinary profile Event returns its outcome after durable independent admission, without waiting for RealmCommit coverage or advancement; exact retry returns the stored outcome."
     },
     "account_update_profile_request_body": {
       "type": "object",
@@ -2253,7 +2253,7 @@
         }
       },
       "additionalProperties": false,
-      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
     },
     "identity_abandonment_request_body": {
       "type": "object",

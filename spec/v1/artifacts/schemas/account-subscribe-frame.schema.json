@@ -97,7 +97,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+            "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
           },
           "maxItems": 100
         }
@@ -580,7 +580,7 @@
         },
         "event_states": {
           "type": "array",
-          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary causal_register concurrency never produces failed_bottom: it is resolved by the fixed (depth, EventId) order. Any bottom detail is limited to separately registered domain invariants and is keyed by cell rather than duplicated per event. See zh/sync/service-surface.md §5.3.",
+          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary causal_register concurrency never produces failed_bottom: it is resolved by the fixed (depth, EventId) order. Any bottom detail is limited to separately registered domain invariants and is keyed by typed current result rather than duplicated per event. See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [
@@ -598,17 +598,17 @@
                   "data_local",
                   "data_observed",
                   "control_pending",
-                  "control_sealed",
+                  "control_committed",
                   "failed_precondition",
                   "failed_plane",
                   "failed_bottom",
-                  "rejected_seal",
+                  "rejected_commit",
                   "fork_quarantine"
                 ]
               },
               "event_state_reason_code": {
                 "type": "string",
-                "description": "Optional short reason code (e.g., 'cell_in_bottom_state'). For failure detail beyond the enum."
+                "description": "Optional short reason code (e.g., 'result_in_bottom_state'). For failure detail beyond the enum."
               }
             },
             "additionalProperties": false
@@ -906,7 +906,7 @@
           "type": "array",
           "description": "Optional inline effective ak.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_account_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+            "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
           }
         },
         "handle_claim_digests": {

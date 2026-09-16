@@ -183,7 +183,7 @@
         "context_ref": {
           "type": "string",
           "pattern": "^(ak:(realm|space|strand|message|morph|relation|view):[A-Za-z0-9_-]{44}|did:.+)$",
-          "description": "Optional timeline / renderer context object reference. This is not a Seal."
+          "description": "Optional timeline / renderer context object reference. This is not a RealmCommit."
         },
         "projection": {
           "type": "string",

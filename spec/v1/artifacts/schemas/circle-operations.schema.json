@@ -136,13 +136,6 @@
           "pattern": "^[A-Za-z0-9_-]+$",
           "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId))."
         },
-        "durability_policy": {
-          "type": "string",
-          "enum": [
-            "none",
-            "organization_recovery_key"
-          ]
-        },
         "state": {
           "$ref": "#/$defs/circle_state"
         },
@@ -176,36 +169,6 @@
           "if": {
             "properties": {
               "encryption_profile": {
-                "const": "none"
-              }
-            }
-          },
-          "then": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "content_scheme"
-                  ]
-                },
-                {
-                  "required": [
-                    "mls_group_id"
-                  ]
-                },
-                {
-                  "required": [
-                    "durability_policy"
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "encryption_profile": {
                 "const": "mls_rfc9420"
               }
             }
@@ -214,47 +177,6 @@
             "required": [
               "content_scheme",
               "mls_group_id"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "content_scheme": {
-                "const": "mls_rfc9420"
-              }
-            },
-            "required": [
-              "content_scheme"
-            ]
-          },
-          "then": {
-            "properties": {
-              "history_access": {
-                "const": "since_join"
-              }
-            },
-            "not": {
-              "required": [
-                "durability_policy"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "content_scheme": {
-                "const": "mls_exporter_aead_v1"
-              }
-            },
-            "required": [
-              "content_scheme"
-            ]
-          },
-          "then": {
-            "required": [
-              "durability_policy"
             ]
           }
         }

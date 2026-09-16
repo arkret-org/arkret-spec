@@ -101,7 +101,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 `ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。该 message 的权威内容只有 `transfer_id`、`key_envelope` 与 `expires_at`；Receiver MUST 以 `transfer_id` 选择已认证、已解密的 exact account-data transfer record，并只从该 record 取得 `blob_ref`（其内嵌 digest 即 ciphertext commitment）、AEAD profile、nonce/nonce_prefix 与 segment 参数。`expires_at` 过期、record 不存在/未认证、envelope 无法在该 record 的 recipient/device context 下解开时 MUST 拒绝；不得接受 message 对这些 record 字段的回声或用回声替代 record 校验。
 
-`key_envelope` 是 RFC 9180 base-mode 单发 seal（`SetupBaseS` / `SetupBaseR`），suite 由 `scheme` 选定。其 HPKE `info` 与 AEAD `aad` MUST 是同一份 bytes，即下列对象的 RFC 8785 JCS：
+`key_envelope` 是 RFC 9180 base-mode 单发 authority commit（`SetupBaseS` / `SetupBaseR`），suite 由 `scheme` 选定。其 HPKE `info` 与 AEAD `aad` MUST 是同一份 bytes，即下列对象的 RFC 8785 JCS：
 
 ```text
 file_transfer_key_aad = {

@@ -21,7 +21,7 @@ Account/consumer Station可以验证、排队、转发和缓存，但不能独�
 
 ## 3. 历史分类与因果依赖
 
-Event没有通用 `actor_seq`、`prev_refs` 或 `causal_refs`。业务依赖使用registry声明的typed payload字段或`refs[]` role。依赖某个accepted事实时使用exact committed ref；业务引用不产生跨stream总序。
+Event没有通用 `producer_revision`、`domain_refs` 或 `domain_refs`。业务依赖使用registry声明的typed payload字段或`refs[]` role。依赖某个accepted事实时使用exact committed ref；业务引用不产生跨stream总序。
 
 ## 4. 授权关闭
 
@@ -33,15 +33,15 @@ Event没有通用 `actor_seq`、`prev_refs` 或 `causal_refs`。业务依赖使�
 
 ## 6. 因果寄存器
 
-通用causal register已退役。默认同一typed target按Commit顺序更新；需要防覆盖的kind在payload定义`expected_revision`，比较失败则conflict。
+同一 typed target 按 Commit 顺序更新；需要防覆盖的 kind 在 payload 定义 `expected_revision`，比较失败则 conflict。
 
 ## 7. 其他普通状态与结构
 
 Membership、policy、Strand、Message、Relation、Circle和capability由各自typed reducer处理。实现可用内部表/索引，但不得暴露Cell/state-model DSL。
 
-## 8. 安全状态与 Seal
+## 8. 安全状态与 RealmCommit
 
-Seal已退役。`RealmCommit`是唯一finality；它不携state root、effect list或通用proof。相同stream position出现两个不同有效Commit时，消费方冻结该Realm/stream并保留equivocation evidence。
+`RealmCommit` 是唯一 finality；它只承诺单个 Event 的接纳及同 stream predecessor，不携 state root、effect list 或通用 proof。相同 stream position 出现两个不同有效 Commit 时，消费方冻结该 Realm/stream 并保留 equivocation evidence。
 
 ## 9. 跨域与不可逆效果
 
@@ -53,7 +53,7 @@ MLS只保留shared `ak.mls.genesis`和`ak.mls.commit` Event。治理 Station跟�
 
 ## 11. 安全状态根与序列化
 
-通用state root已删除。Snapshot完整性由manifest signature、typed sections、stream heads、history floors和chunk digests提供；它不授权新写入。
+Snapshot 完整性由 manifest signature、typed sections、stream heads、history floors 和 chunk digests 提供；它不授权新写入。
 
 ## 12. Notary 与 reducer 配置
 
@@ -63,9 +63,9 @@ Realm不再选择notary/reducer profile/digest transition。v1 reducer和digest�
 
 current v1不支持Realm内suite transition。Event/Commit ID使用协议固定suite；未知或错误suite fail closed。
 
-## 14. 控制面 Control Proposal Ack 与 inclusion obligation
+## 14. 提交结果与积压恢复
 
-Control Proposal Ack、defer window、pending sample和inclusion obligation已退役。治理 Station一次提交返回committed、duplicate、rejected或retryable unavailable；后两者不写共享pending状态。
+治理 Station 一次提交返回 committed、duplicate、rejected 或 retryable unavailable；后两者不写共享 pending 状态。
 
 ### 14.1 持久恢复与积压终结（normative）
 
@@ -73,4 +73,4 @@ Account Station可以耐久保存exact signed Event并重试。它必须先刷�
 
 ## 15. Actor 分叉与内容地址碰撞
 
-Actor sibling/fork概念已删除。相同Event ID、不同canonical bytes是内容地址冲突，全部拒绝并告警；相同Event多次提交是幂等。Authority equivocation按§8处理，base v1不自动选winner。
+相同 Event ID、不同 canonical bytes 是内容地址冲突，全部拒绝并告警；相同 Event 多次提交是幂等。Authority equivocation 按 §8 处理，base v1 不自动选 winner。

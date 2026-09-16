@@ -680,20 +680,20 @@
     },
     {
       "schema": "moderation-evidence.schema.json",
-      "json_pointer": "/$defs/franking_proof/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "moderation-evidence.schema.json",
-      "json_pointer": "/$defs/franking_seal_observation_request/properties/proof_event_id",
+      "json_pointer": "/$defs/franking_commit_observation_request/properties/proof_event_id",
       "field": "proof_event_id",
       "classification": "complete_event_id"
     },
     {
       "schema": "moderation-evidence.schema.json",
-      "json_pointer": "/$defs/franking_seal_observation_request/properties/target_event_id",
+      "json_pointer": "/$defs/franking_commit_observation_request/properties/target_event_id",
       "field": "target_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "moderation-evidence.schema.json",
+      "json_pointer": "/$defs/franking_proof/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

@@ -8,7 +8,7 @@
   "covers_vectors": [
     "ak.vector.capability.issuer_authority_bound.v1",
     "ak.vector.capability.validity_window.v1",
-    "ak.vector.capability.authority_expiry_seal.v1",
+    "ak.vector.capability.authority_expiry_commit.v1",
     "ak.vector.capability.authority_cycle.v1",
     "ak.vector.capability.moderation_dependency.v1",
     "ak.vector.capability.freshness_risk_matrix.v1",
@@ -64,17 +64,17 @@
       }
     },
     {
-      "name": "authority_expiry_seal",
-      "vector_id": "ak.vector.capability.authority_expiry_seal.v1",
+      "name": "authority_expiry_commit",
+      "vector_id": "ak.vector.capability.authority_expiry_commit.v1",
       "variants": [
         "redelegate_same_bound",
         "redelegate_shorter_bound",
         "redelegate_widened_bound",
-        "fixed_seal_replay"
+        "fixed_commit_replay"
       ],
       "expected": {
         "widened_reason": "authority_expiry_widening",
-        "expiry_seal_rotated": false
+        "expiry_commit_rotated": false
       }
     },
     {
@@ -186,7 +186,7 @@
     {
       "name": "limited_timeline_state_at_window_start",
       "vector_id": "ak.vector.sync.state_at_window_start.v1",
-      "basis": "first_limited_event.prev_refs causal closure joined at nearest reachable Seal",
+      "basis": "first_limited_event.domain_refs causal closure joined at nearest reachable RealmCommit",
       "variants": [
         "deterministic_join",
         "unreachable_basis",
@@ -232,7 +232,7 @@
           "rotate_at_limit": "success"
         },
         {
-          "field": "seal.predecessor_ref",
+          "field": "authority commit.predecessor_ref",
           "genesis_value": null,
           "successor_cardinality": 1,
           "invalid": [
@@ -243,7 +243,7 @@
           "failure": "state_mismatch"
         },
         {
-          "field": "compaction_seal.covered_event_digests",
+          "field": "compaction_commit.covered_event_digests",
           "limit": 1048576,
           "test": [
             1048575,
@@ -515,8 +515,8 @@
       "variants": [
         "create_keeps_member_leave_then_accept_joins",
         "accept_without_pending_or_claimed_invite_prestate_is_rejected",
-        "cancel_rejected_leaves_member_cell_unchanged",
-        "revoke_with_expired_reason_leaves_member_cell_unchanged",
+        "cancel_rejected_leaves_member_result_unchanged",
+        "revoke_with_expired_reason_leaves_member_result_unchanged",
         "third_party_create_and_revoke_write_no_member_state",
         "bare_member_state_ban_from_leave_uses_membership_fsm",
         "direct_inviter_cancel_revoked_is_accepted",
@@ -546,12 +546,12 @@
       "assertions": [
         "ak.invite.create atomically writes invite.lifecycle and the invite.live_target slot while ak.invite.accept atomically writes invite.lifecycle, member.state join and the invite.live_target release",
         "the membership FSM has no invite state and exact invite acceptance uses the registered leave to join edge",
-        "a rejected or revoked or expired invite changes only invite.lifecycle and leaves the member cell byte-identical",
+        "a rejected or revoked or expired invite changes only invite.lifecycle and leaves the member typed current result byte-identical",
         "the 3PID create and revoke branches produce no member.state projection; claim produces only a subject-bound membership proposal",
         "a direct member ban from leave is evaluated independently by the membership FSM",
         "ak.invite.cancel is valid only for a stored direct invitee binding; token and 3PID invites require the high-risk ak.invite.revoke path",
         "a direct cancel requires signed payload.invitee_account_id to equal the stored invitee binding",
-        "claimed to accepted is a registered invite FSM edge and ak.invite.accept must derive its from state from the frozen cell",
+        "claimed to accepted is a registered invite FSM edge and ak.invite.accept must derive its from state from the frozen typed current result",
         "a directed ak.invite.revoke to send_failed writes only invite.lifecycle and leaves the invite.live_target slot claimed",
         "a third-party ak.invite.revoke writes only invite.lifecycle because its payload carries no invitee_account_id",
         "the write count is branch-dependent, not per kind: ak.invite.accept and ak.invite.revoke derive the invite.live_target write only when the payload carries invitee_account_id, so a third-party accept is two writes and a send_failed or third-party revoke is one"
@@ -585,9 +585,9 @@
       },
       "assertions": [
         "the only source of truth for directed invite live uniqueness is ak.component.invite.live_target.v1 whose subject is the single-component composite over canonical_json(payload.invitee_account_id) and never contains realm_id",
-        "ak.invite.create carries head_eq null for that cell and the Seal additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no cell write",
+        "ak.invite.create carries head_eq null for that typed current result and the RealmCommit additionally derives the full head-identity guard for it; a second directed create for the same account is rejected with failed_precondition and invite_live_target_occupied, enters no canonical history and derives no typed current result write",
         "the rejection details are closed to reason_code, invite_id and create_event_id and MUST NOT be reported as cas_conflict",
-        "two concurrent directed creates contend on the same cell so exactly one wins under the CBS basis and the loser is rejected, independent of any implementation-private index or insertion order",
+        "two concurrent directed creates contend on the same typed current result so exactly one wins under the authority-commit basis and the loser is rejected, independent of any implementation-private index or insertion order",
         "a terminal invite releases the slot with an explicit set null write that keeps its own head, and a later create for the same account is accepted; a create whose basis is pinned to an earlier free state is still rejected because the head identities differ even though both settle to null",
         "reaching expires_at does not release the slot; only a registered Move does, so the slot stays claimed until ak.invite.revoke with target_state expired is accepted",
         "send_failed keeps the slot claimed and the payload schema forbids invitee_account_id there, so the client must revoke before creating a replacement invite",
@@ -677,7 +677,7 @@
       },
       "assertions": [
         "expiry compares the signed claim event created_at against the invite expires_at and never uses receiver-local now",
-        "all clock variants and the backfill replay produce identical outcome and identical invite cell value",
+        "all clock variants and the backfill replay produce identical outcome and identical invite typed current result value",
         "the rejected claim writes no shared effect",
         "pending to expired must come from a separate accepted ak.invite.revoke Control Move"
       ]

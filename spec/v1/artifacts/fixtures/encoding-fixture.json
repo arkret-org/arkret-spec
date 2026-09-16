@@ -5,7 +5,7 @@
   },
   "profile": "ak.vector_group.encoding.v1",
   "version": "2026-09-14.1",
-  "description": "Core canonical-encoding and digest-algorithm vectors retained after the authority-commit clean break. Event ordering and Cell projection vectors were retired with the decentralized protocol.",
+  "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
     {

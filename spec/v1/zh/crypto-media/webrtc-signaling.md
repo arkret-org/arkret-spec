@@ -117,7 +117,7 @@ Content-Type: application/json
 
 请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
-客户端调用 `ice_config_endpoint` 前 MUST 按 [`media-service-binding.md` §2.1](./media-service-binding.md) 消费自己 Station 的已验证媒体服务绑定结果，核对 `ak.realm.media_service` 的该 exact cell value 与结果 `route.service_id` 一致，且该 endpoint 的 origin 落在 `route.base_url` 之内。缺失、stale 或不一致时 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential；ICE config 响应签名的 kid 也 MUST 命中同一结果的 `signing_keys`，否则 `token_issuer_unauthorised`。endpoint 变更不进入 `security_frontier_digest`，因此这里 **MUST NOT** 额外要求该 event 被当前 epoch MLS governance binding 覆盖，也不得为它强制 rekey。
+客户端调用 `ice_config_endpoint` 前 MUST 按 [`media-service-binding.md` §2.1](./media-service-binding.md) 消费自己 Station 的已验证媒体服务绑定结果，核对 `ak.realm.media_service` 的该 exact typed current result value 与结果 `route.service_id` 一致，且该 endpoint 的 origin 落在 `route.base_url` 之内。缺失、stale 或不一致时 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential；ICE config 响应签名的 kid 也 MUST 命中同一结果的 `signing_keys`，否则 `token_issuer_unauthorised`。endpoint 变更不进入 `key_access_revision`，因此这里 **MUST NOT** 额外要求该 event 被当前 epoch MLS governance binding 覆盖，也不得为它强制 rekey。
 
 **凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_arkret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
 
@@ -275,7 +275,7 @@ Content-Type: application/json
 使用 `signal_class=setup`，moderation frame 使用 `moderation`，其余使用 `session`。
 
 接收方 MUST 在 ringing、candidate application 或任何副作用之前验证外层 device proof、
-Seal basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 在
+RealmCommit basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 在
 `(realm_id, call_id, actor_id, device_id)` 上单调递增。失败、过期、重放、未知 signal kind
 或被吊销设备的 frame 必须 fail closed。规范外层 schema 是
 [`signal-envelope.schema.json`](../../artifacts/schemas/signal-envelope.schema.json)；

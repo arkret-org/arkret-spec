@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/device-revocation-state.schema.json",
   "title": "Arkret Durable Device Revocation State",
-  "description": "Durable exact-device revocation fence. A receiver that knows this authenticated pending/revoked state blocks affected new live actions locally. Unknown remote revocation can have a propagation window for ordinary data. Fresh proof issue is not a separate Event admission action. Terminal safety outcomes preserve exact proposal, authorization and generation binding.",
+  "description": "Durable exact-device revocation fence. A receiver that knows this authenticated pending/revoked state blocks affected new live actions locally. Unknown remote revocation can have a propagation window for ordinary data. Fresh proof issue is not a separate Event admission action. Terminal safety outcomes preserve exact transaction, authorization and generation binding.",
   "oneOf": [
     {
       "$ref": "#/$defs/device_revocation_record"
@@ -29,7 +29,7 @@
       ]
     },
     "device_revocation_gate_record": {
-      "description": "Gate-relevant durable state for an exact device generation. Rejected records are audit history and are excluded; pending and revoked records remain visible together so sealing one proposal cannot hide another surviving pending proposal.",
+      "description": "Gate-relevant durable state for an exact device generation. Rejected records are audit history and are excluded; pending and revoked records remain visible together so committing one transaction cannot hide another surviving pending transaction.",
       "oneOf": [
         {
           "$ref": "#/$defs/device_revocation_pending_state"
@@ -114,11 +114,11 @@
         },
         "proposal_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "The complete accepted revoke proposal Event identifier and the sole wire source of that Event digest. Consumers recover the digest from this identifier when validating the embedded Ack or a terminal decision; this record MUST NOT duplicate it as a sibling field."
+          "description": "The complete accepted revoke Event identifier and the sole wire source of that Event digest. Consumers recover the digest from this identifier when validating a terminal decision; this record MUST NOT duplicate it as a sibling field."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Actual durable atomic-commit time assigned when the Event, canonical Ack, derived selectors and pending index commit. It is independent of, and MUST NOT be copied from, a pre-collected ControlProposalAck.received_at."
+          "description": "Actual durable atomic-commit time assigned when the Event, derived selectors and pending index commit. It is assigned by the authority transaction and MUST NOT be producer supplied."
         },
         "acceptance_seq": {
           "type": "integer",
@@ -136,94 +136,16 @@
           "type": "object",
           "required": [
             "status",
-            "decision_state",
             "denied_actions"
           ],
           "properties": {
             "status": {
               "const": "revocation_pending"
             },
-            "decision_state": {
-              "enum": [
-                "pending",
-                "deferred",
-                "overdue"
-              ]
-            },
             "denied_actions": {
               "$ref": "#/$defs/denied_actions"
-            },
-            "fault_reason": {
-              "const": "control_proposal_decision_overdue"
             }
-          },
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "decision_state": {
-                    "const": "overdue"
-                  }
-                },
-                "required": [
-                  "decision_state"
-                ]
-              },
-              "then": {
-                "required": [
-                  "fault_reason"
-                ]
-              },
-              "else": {
-                "not": {
-                  "required": [
-                    "fault_reason"
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "decision_state": {
-                    "const": "pending"
-                  }
-                },
-                "required": [
-                  "decision_state"
-                ]
-              },
-              "then": {
-                "not": {
-                  "required": [
-                    "decisions"
-                  ]
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "decision_state": {
-                    "const": "deferred"
-                  }
-                },
-                "required": [
-                  "decision_state"
-                ]
-              },
-              "then": {
-                "required": [
-                  "decisions"
-                ],
-                "properties": {
-                  "decisions": {
-                    "minItems": 1
-                  }
-                }
-              }
-            }
-          ]
+          }
         }
       ],
       "unevaluatedProperties": false
@@ -256,13 +178,13 @@
           "type": "object",
           "required": [
             "status",
-            "sealed_at"
+            "committed_at"
           ],
           "properties": {
             "status": {
               "const": "revoked"
             },
-            "sealed_at": {
+            "committed_at": {
               "$ref": "#/$defs/timestamp"
             }
           }
@@ -371,7 +293,7 @@
     },
     "device_revocation_gate_decision_receipt": {
       "type": "object",
-      "description": "Origin-Station durable decision made under its local device lock. Shared revocation becomes effective only through its authority-committed Event; this internal receipt carries no Control Proposal or Seal witness.",
+      "description": "Origin-Station durable decision made under its local device lock. Shared revocation becomes effective only through its authority-committed Event; this internal receipt carries no Control Proposal or RealmCommit witness.",
       "required": [
         "account_id",
         "device_id",

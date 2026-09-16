@@ -27,7 +27,7 @@
     },
     "route_assistance": {
       "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
-      "description": "Optional transport-only route recovery hints covered by the locator proof. They MUST NOT enter an invite Event or Realm member cell, do not extend this locator's expires_at, and do not authorize delivery or route switching."
+      "description": "Optional transport-only route recovery hints covered by the locator proof. They MUST NOT enter an invite Event or Realm member typed current result, do not extend this locator's expires_at, and do not authorize delivery or route switching."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"

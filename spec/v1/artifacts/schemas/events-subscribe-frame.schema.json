@@ -45,7 +45,7 @@
           "const": "event"
         },
         "payload": {
-          "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+          "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
         }
       },
       "required": [

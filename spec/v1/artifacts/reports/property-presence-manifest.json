@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8681,
+    "total_properties": 8641,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2390,
-      "optional_defaulted": 55,
-      "required": 5790,
-      "required_nullable": 290,
-      "tristate": 156
+      "optional": 2373,
+      "optional_defaulted": 51,
+      "required": 5773,
+      "required_nullable": 289,
+      "tristate": 155
     },
-    "tristate_occurrences": 156,
-    "tristate_audit_targets": 122,
+    "tristate_occurrences": 155,
+    "tristate_audit_targets": 121,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 114,
+      "absent_null_equivalent": 113,
       "condition_guarded": 7,
       "distinct": 1
     }
@@ -102,7 +102,6 @@
     "handle-claim.schema.json/$defs/handle_claim_status_view/allOf/1/else/properties/revocation",
     "handle-claim.schema.json/$defs/handle_claim_status_view/allOf/2/then/properties/verified_at",
     "holder-quarantine.schema.json/$defs/quarantine_entry/allOf/0/else/properties/consent_scope",
-    "key-backup-plaintext.schema.json/oneOf/0/properties/items",
     "key-backup.schema.json/allOf/0/then/properties/encryption",
     "key-backup.schema.json/allOf/0/then/properties/encryption/properties/kdf",
     "key-backup.schema.json/properties/encryption/allOf/0/then/properties/aead",
@@ -688,16 +687,6 @@
       "instance_path": "/consent_scope",
       "occurrences": [
         "/$defs/quarantine_entry/allOf/0/else/properties/consent_scope"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "key-backup-plaintext.schema.json",
-      "shape": "#",
-      "instance_path": "/items",
-      "occurrences": [
-        "/oneOf/0/properties/items"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3398,10 +3387,6 @@
         "/$defs/circle_scope_rotate_outcome/properties/mls_group_id": "optional",
         "/$defs/circle_scope_rotate_outcome/properties/note": "optional",
         "/$defs/circle_view/allOf/0/if/properties/encryption_profile": "optional",
-        "/$defs/circle_view/allOf/1/if/properties/encryption_profile": "optional",
-        "/$defs/circle_view/allOf/2/if/properties/content_scheme": "required",
-        "/$defs/circle_view/allOf/2/then/properties/history_access": "optional",
-        "/$defs/circle_view/allOf/3/if/properties/content_scheme": "required",
         "/$defs/circle_view/properties/circle_id": "required",
         "/$defs/circle_view/properties/content_encryption_floor": "optional",
         "/$defs/circle_view/properties/content_scheme": "optional",
@@ -3409,7 +3394,6 @@
         "/$defs/circle_view/properties/created_by": "required",
         "/$defs/circle_view/properties/directory_visibility": "required",
         "/$defs/circle_view/properties/display": "required",
-        "/$defs/circle_view/properties/durability_policy": "optional",
         "/$defs/circle_view/properties/encryption_profile": "required",
         "/$defs/circle_view/properties/history_access": "required",
         "/$defs/circle_view/properties/join_rule": "required",
@@ -3427,7 +3411,6 @@
       },
       "conditionally_required": [
         "/$defs/circle_view/properties/content_scheme",
-        "/$defs/circle_view/properties/durability_policy",
         "/$defs/circle_view/properties/mls_group_id"
       ]
     },
@@ -3443,12 +3426,7 @@
         "/$defs/display/properties/symbol/properties/glyph": "optional",
         "/allOf/0/if/properties/state": "required",
         "/allOf/1/if/properties/encryption_profile": "required",
-        "/allOf/1/then/properties/content_encryption_floor": "optional",
-        "/allOf/2/if/properties/encryption_profile": "required",
-        "/allOf/3/if/properties/content_scheme": "required",
-        "/allOf/3/then/properties/history_access": "optional",
-        "/allOf/4/if/properties/content_scheme": "required",
-        "/allOf/5/oneOf/0/if/properties/encryption_profile": "required",
+        "/allOf/2/oneOf/0/if/properties/encryption_profile": "required",
         "/properties/agent_participation": "optional",
         "/properties/agent_participation/properties/agent": "required",
         "/properties/content_encryption_floor": "optional",
@@ -3457,7 +3435,6 @@
         "/properties/created_by": "required",
         "/properties/directory_visibility": "required",
         "/properties/display": "required",
-        "/properties/durability_policy": "optional",
         "/properties/encryption_profile": "required",
         "/properties/history_access": "required",
         "/properties/id": "optional",
@@ -3478,7 +3455,6 @@
         "/$defs/display/properties/symbol/properties/emoji",
         "/$defs/display/properties/symbol/properties/glyph",
         "/properties/content_scheme",
-        "/properties/durability_policy",
         "/properties/id",
         "/properties/mls_group_id",
         "/properties/state_changed_at"
@@ -4268,16 +4244,10 @@
         "/$defs/device_revocation_gate_decision_receipt/properties/linearized_at": "required",
         "/$defs/device_revocation_gate_decision_receipt/properties/target_device_authorize_event_id": "optional",
         "/$defs/device_revocation_gate_decision_receipt/properties/target_device_generation_ref": "optional",
-        "/$defs/device_revocation_pending_state/allOf/1/allOf/0/if/properties/decision_state": "required",
-        "/$defs/device_revocation_pending_state/allOf/1/allOf/1/if/properties/decision_state": "required",
-        "/$defs/device_revocation_pending_state/allOf/1/allOf/2/if/properties/decision_state": "required",
-        "/$defs/device_revocation_pending_state/allOf/1/allOf/2/then/properties/decisions": "required_nullable",
-        "/$defs/device_revocation_pending_state/allOf/1/properties/decision_state": "required",
         "/$defs/device_revocation_pending_state/allOf/1/properties/denied_actions": "required",
-        "/$defs/device_revocation_pending_state/allOf/1/properties/fault_reason": "optional",
         "/$defs/device_revocation_pending_state/allOf/1/properties/status": "required",
         "/$defs/device_revocation_rejected_state/allOf/1/properties/status": "required",
-        "/$defs/device_revoked_state/allOf/1/properties/sealed_at": "required",
+        "/$defs/device_revoked_state/allOf/1/properties/committed_at": "required",
         "/$defs/device_revoked_state/allOf/1/properties/status": "required"
       },
       "conditionally_required": [
@@ -4286,8 +4256,7 @@
         "/$defs/device_revocation_gate_check_request_body/properties/expected_device_generation_ref",
         "/$defs/device_revocation_gate_decision_receipt/properties/accepted_commit_id",
         "/$defs/device_revocation_gate_decision_receipt/properties/target_device_authorize_event_id",
-        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_generation_ref",
-        "/$defs/device_revocation_pending_state/allOf/1/properties/fault_reason"
+        "/$defs/device_revocation_gate_decision_receipt/properties/target_device_generation_ref"
       ]
     },
     "did-binding-contracts.schema.json": {
@@ -4809,6 +4778,10 @@
         "/$defs/trigger/oneOf/1/properties/kind": "required",
         "/allOf/0/if/not/properties/subject": "required_nullable",
         "/allOf/0/if/not/properties/subject/properties/kind": "required",
+        "/properties/commit_inclusion": "optional",
+        "/properties/commit_inclusion/properties/commit_ref": "optional",
+        "/properties/commit_inclusion/properties/frontier_digest": "optional",
+        "/properties/commit_inclusion/properties/state_root": "optional",
         "/properties/completed_at": "required",
         "/properties/event_digest": "optional",
         "/properties/legal_hold_ref": "tristate",
@@ -4816,10 +4789,6 @@
         "/properties/redaction_authorization_ref": "optional",
         "/properties/retained_digests": "optional",
         "/properties/scope": "required",
-        "/properties/seal_inclusion": "optional",
-        "/properties/seal_inclusion/properties/frontier_digest": "optional",
-        "/properties/seal_inclusion/properties/seal_ref": "optional",
-        "/properties/seal_inclusion/properties/state_root": "optional",
         "/properties/stub_schema": "required",
         "/properties/subject": "required",
         "/properties/trigger": "required"
@@ -4873,6 +4842,7 @@
         "ak.schema.event.v1"
       ],
       "properties": {
+        "/$defs/authority_committed_event/allOf/1/properties/kind": "required",
         "/$defs/external_ref/properties/event_id": "optional",
         "/$defs/external_ref/properties/external_id": "optional",
         "/$defs/external_ref/properties/instance_id": "optional",
@@ -5200,7 +5170,6 @@
         "/$defs/semantic_ref/anyOf/1/properties/critical": "required",
         "/$defs/semantic_ref/anyOf/1/properties/id": "required",
         "/$defs/semantic_ref/anyOf/1/properties/role": "required",
-        "/$defs/shared_history_event/allOf/1/properties/kind": "required",
         "/allOf/10/if/properties/kind": "required",
         "/allOf/10/then/properties/payload": "optional",
         "/allOf/100/if/properties/kind": "required",
@@ -6151,7 +6120,6 @@
         "/$defs/history_access_payload/properties/from": "required_nullable",
         "/$defs/history_access_payload/properties/reason": "optional",
         "/$defs/history_access_payload/properties/to": "required",
-        "/$defs/history_effective_scope/allOf/1/properties/kind": "required",
         "/$defs/invite_accept_payload/properties/invite_id": "required",
         "/$defs/invite_accept_payload/properties/invitee_account_id": "optional",
         "/$defs/invite_cancel_payload/properties/invite_id": "required",
@@ -6604,6 +6572,7 @@
         "/$defs/realm_policy_bundle_payload/properties/allowed_third_party_invite_verification_ids": "optional",
         "/$defs/realm_policy_bundle_payload/properties/availability_policy": "optional",
         "/$defs/realm_policy_bundle_payload/properties/bottom_escalation_after_ms": "optional",
+        "/$defs/realm_policy_bundle_payload/properties/commit_compaction_max_interval_ms": "optional",
         "/$defs/realm_policy_bundle_payload/properties/content_encryption_floor": "optional",
         "/$defs/realm_policy_bundle_payload/properties/federation_policy": "optional",
         "/$defs/realm_policy_bundle_payload/properties/handle_issuer_policies": "optional",
@@ -6612,18 +6581,13 @@
         "/$defs/realm_policy_bundle_payload/properties/handle_issuer_policies/items/properties/issuer_id": "required",
         "/$defs/realm_policy_bundle_payload/properties/join_policy": "optional",
         "/$defs/realm_policy_bundle_payload/properties/max_authority_lifetime_ms": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/max_proposal_defers": "optional",
         "/$defs/realm_policy_bundle_payload/properties/media_service_decrypts": "optional",
         "/$defs/realm_policy_bundle_payload/properties/metadata_encryption_floor": "optional",
         "/$defs/realm_policy_bundle_payload/properties/mls_send_pause": "optional",
         "/$defs/realm_policy_bundle_payload/properties/policy_revision": "required",
         "/$defs/realm_policy_bundle_payload/properties/preauth": "optional",
         "/$defs/realm_policy_bundle_payload/properties/preauth/properties/consent_required": "required",
-        "/$defs/realm_policy_bundle_payload/properties/proposal_absolute_deadline_ms": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/proposal_decision_window_ms": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/proposal_intake_sla_ms": "optional",
         "/$defs/realm_policy_bundle_payload/properties/relaxed_window_max_ms": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/seal_compaction_max_interval_ms": "optional",
         "/$defs/realm_policy_payload/properties/reason": "optional",
         "/$defs/realm_policy_payload/properties/state": "optional",
         "/$defs/realm_policy_payload/properties/value": "required",
@@ -7292,9 +7256,6 @@
         "/properties/proof/properties/signature_algorithm": "required",
         "/properties/proof/properties/verification_method": "required",
         "/properties/realm_id": "required",
-        "/properties/response_signing_public_key_b64u": "required",
-        "/properties/response_signing_public_key_digest": "required",
-        "/properties/response_signing_verification_method": "required",
         "/properties/schema": "required",
         "/properties/status": "optional_defaulted",
         "/properties/strand_id": "optional",
@@ -7657,20 +7618,13 @@
         "/$defs/secret_storage_item/properties/secret_b64u": "required",
         "/$defs/secret_storage_item/properties/secret_generation": "optional",
         "/$defs/secret_storage_item/properties/secret_id": "required",
-        "/oneOf/0/properties/backup_kind": "optional",
-        "/oneOf/0/properties/items": "tristate",
-        "/oneOf/1/properties/backup_kind": "optional",
         "/properties/backup_id": "required",
         "/properties/backup_kind": "required",
-        "/properties/effective_scope": "optional",
         "/properties/items": "required",
         "/properties/schema": "required",
         "/properties/series_id": "required",
         "/properties/series_seq": "required"
-      },
-      "conditionally_required": [
-        "/properties/effective_scope"
-      ]
+      }
     },
     "key-backup-unlock-proof.schema.json": {
       "schema_ids": [
@@ -8076,7 +8030,6 @@
         "/$defs/backup_active_series_state/properties/account_id": "required",
         "/$defs/backup_active_series_state/properties/authority_commit_id": "required",
         "/$defs/backup_active_series_state/properties/control_realm_id": "required",
-        "/$defs/backup_active_series_state/properties/mls_history": "required",
         "/$defs/backup_active_series_state/properties/secret_storage": "required",
         "/$defs/backup_metadata/properties/actor_id": "required",
         "/$defs/backup_metadata/properties/backup_id": "required",
@@ -8664,20 +8617,20 @@
         "/$defs/evidence_package/properties/recipient_public_key_ref": "required",
         "/$defs/evidence_package/properties/reporter_signature": "required",
         "/$defs/evidence_package/properties/target_refs": "required",
+        "/$defs/franking_commit_observation_outcome/properties/ancestry_events": "required",
+        "/$defs/franking_commit_observation_outcome/properties/proof_event": "required",
+        "/$defs/franking_commit_observation_outcome/properties/service_signer_evidence": "required",
+        "/$defs/franking_commit_observation_outcome/properties/target_event": "required",
+        "/$defs/franking_commit_observation_request/properties/proof_event_id": "required",
+        "/$defs/franking_commit_observation_request/properties/realm_id": "required",
+        "/$defs/franking_commit_observation_request/properties/target_event_id": "required",
         "/$defs/franking_proof/properties/event_id": "required",
         "/$defs/franking_proof/properties/realm_id": "required",
         "/$defs/franking_proof/properties/received_at": "required",
         "/$defs/franking_proof/properties/received_by": "required",
         "/$defs/franking_proof/properties/replay_nonce": "required",
         "/$defs/franking_proof/properties/signature": "required",
-        "/$defs/franking_proof/properties/verification_method": "required",
-        "/$defs/franking_seal_observation_outcome/properties/ancestry_events": "required",
-        "/$defs/franking_seal_observation_outcome/properties/proof_event": "required",
-        "/$defs/franking_seal_observation_outcome/properties/service_signer_evidence": "required",
-        "/$defs/franking_seal_observation_outcome/properties/target_event": "required",
-        "/$defs/franking_seal_observation_request/properties/proof_event_id": "required",
-        "/$defs/franking_seal_observation_request/properties/realm_id": "required",
-        "/$defs/franking_seal_observation_request/properties/target_event_id": "required"
+        "/$defs/franking_proof/properties/verification_method": "required"
       }
     },
     "moderation-queue-item.schema.json": {
@@ -9738,11 +9691,6 @@
         "/allOf/4/then/properties/history_access": "required",
         "/allOf/4/then/properties/metadata_encryption_floor": "required",
         "/allOf/5/not/properties/fields": "required_nullable",
-        "/allOf/6/if/properties/encryption_profile": "required",
-        "/allOf/7/if/properties/content_scheme": "required",
-        "/allOf/7/then/properties/history_access": "optional",
-        "/allOf/8/then/properties/content_scheme": "optional",
-        "/allOf/9/if/properties/content_scheme": "required",
         "/properties/agent_participation": "optional",
         "/properties/agent_participation/properties/agent": "required",
         "/properties/availability_policy": "optional",
@@ -9751,6 +9699,7 @@
         "/properties/availability_policy/properties/minimum_retention_ms": "optional_defaulted",
         "/properties/avatar_blob_ref": "optional",
         "/properties/bottom_escalation_after_ms": "optional",
+        "/properties/commit_compaction_max_interval_ms": "optional_defaulted",
         "/properties/content_encryption_floor": "optional",
         "/properties/content_scheme": "optional",
         "/properties/created_at": "required",
@@ -9759,7 +9708,6 @@
         "/properties/default_join_rule": "required",
         "/properties/default_strand_id": "tristate",
         "/properties/digest_algorithm": "optional_defaulted",
-        "/properties/durability_policy": "optional",
         "/properties/encryption_profile": "required",
         "/properties/federation_policy": "optional",
         "/properties/fields": "optional",
@@ -9768,20 +9716,15 @@
         "/properties/history_access": "required",
         "/properties/id": "optional",
         "/properties/max_authority_lifetime_ms": "optional_defaulted",
-        "/properties/max_proposal_defers": "optional_defaulted",
         "/properties/metadata_encryption_floor": "optional",
         "/properties/notary": "required",
         "/properties/owning_organization_ids": "optional",
         "/properties/policy_id": "optional",
         "/properties/preview_policy_id": "optional",
-        "/properties/proposal_absolute_deadline_ms": "optional_defaulted",
-        "/properties/proposal_decision_window_ms": "optional_defaulted",
-        "/properties/proposal_intake_sla_ms": "optional_defaulted",
         "/properties/reducer_profile": "required",
         "/properties/retention_policy_id": "optional",
         "/properties/schema": "required",
         "/properties/schema_refs": "required",
-        "/properties/seal_compaction_max_interval_ms": "optional_defaulted",
         "/properties/security_class": "optional",
         "/properties/summary": "optional",
         "/properties/title": "required",
@@ -9792,7 +9735,6 @@
       "conditionally_required": [
         "/properties/content_encryption_floor",
         "/properties/content_scheme",
-        "/properties/durability_policy",
         "/properties/fields",
         "/properties/metadata_encryption_floor"
       ]
@@ -11495,7 +11437,7 @@
     },
     "typed-current-result.schema.json": {
       "schema_ids": [
-        "ak.schema.typed_current_result.v1"
+        "ak.schema.result_projection.v1"
       ],
       "properties": {
         "/$defs/member_state_result/properties/revision": "required",

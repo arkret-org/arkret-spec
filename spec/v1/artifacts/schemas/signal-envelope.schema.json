@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signal-envelope.schema.json",
   "title": "Arkret Signal Envelope",
-  "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances actor_seq, Seal coverage, state_root, or reducer state.",
+  "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances producer_revision, RealmCommit coverage, state_root, or reducer state.",
   "type": "object",
   "required": [
     "realm_id",

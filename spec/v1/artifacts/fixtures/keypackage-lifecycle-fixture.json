@@ -778,7 +778,7 @@
         "the destination independently enforces both directional Contact heads/scopes, capability and authority gates without consulting Consent",
         "Direct Conversation peer claim never falls back to a last-resort KeyPackage",
         "business failures do not expose target inventory or per-device reasons",
-        "claims_digest and the destination receipt cover returned evidence bytes but never replace the underlying identity-root, Seal and current-authority verification",
+        "claims_digest and the destination receipt cover returned evidence bytes but never replace the underlying identity-root, RealmCommit and current-authority verification",
         "device and Agent evidence branches are exact XOR and cannot fall back to one another"
       ]
     },
@@ -820,7 +820,7 @@
       },
       "assertions": [
         "Welcome claim_ref.keypackage_digest must match the digest recomputed from the claimed KeyPackage bytes",
-        "published ak.mls.keypackage payload digest participates in the same recomputed equality check",
+        "published ak.resource.mls_keypackage payload digest participates in the same recomputed equality check",
         "the claim signer is an accepted current-generation requester device",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]

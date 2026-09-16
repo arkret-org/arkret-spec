@@ -15,10 +15,7 @@ see_also:
 
 ## 1. 当前基线
 
-Arkret v1 的旧 CBS、Seal、Cell、actor-chain、frontier、MLS governance proof 与 history-key
-向量已经退役，不得继续作为 current-wire 验收依据。历史向量保留在 `old-decenter` 分支。
-
-当前 authority-commit 基线由 `ak.vector.authority_commit.independent_streams.v1` 覆盖，机器样例位于
+Authority-commit 基线由 `ak.vector.authority_commit.independent_streams.v1` 覆盖，机器样例位于
 `artifacts/fixtures/authority-commit-fixture.json`，并由 `tools/test_authority_commit_protocol.py` 执行。
 
 该向量必须证明：
@@ -30,14 +27,13 @@ Arkret v1 的旧 CBS、Seal、Cell、actor-chain、frontier、MLS governance pro
 4. join locator 只是提示；snapshot 与获准 stream tails 来自验证后的当前治理 Station。
 5. MLS Add Commit 与全部 Welcome deliveries 在同一 authority transaction 全成或全败。
 
-## 2. 后续领域向量
+## 2. 领域向量
 
-仍适用于 typed reducer、身份、能力、媒体与扩展领域的向量必须按新的 Event/RealmCommit 边界重新生成后
-再登记。不得把已删除 fixture 的 vector id、Seal/Cell 字段或旧 operation 当成占位依赖。
+Typed reducer、身份、能力、媒体与扩展领域的向量必须使用本规范定义的 Event/RealmCommit 边界，并由 vector registry 登记。
 
 ### 2.5.7 领域加密向量
 
-领域加密向量必须使用 current MLS group state 和 key-access revision，不得使用已退役的 Seal/frontier proof。
+领域加密向量必须使用 current MLS group state、key-access revision 与对应 stream 的 committed Event reference。
 
 ### 2.5.8 审计与媒体向量
 

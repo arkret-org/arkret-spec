@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T08:30:00+08:00",
+  "generated_at": "2026-09-16T18:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -16,7 +16,7 @@
       "schema_id": "ak.schema.account_current_result.v1",
       "file": "schemas/account-current-result.schema.json",
       "status": "active",
-      "description": "Server-trusted typed current cell results, deterministic causal-register sources, versioned removal and exact baseline coverage."
+      "description": "Server-trusted typed current typed current result results, deterministic causal-register sources, versioned removal and exact baseline coverage."
     },
     {
       "schema_id": "ak.schema.account_data_encrypted_value.v1",
@@ -321,7 +321,7 @@
       "file": "schemas/keys-operations.schema.json",
       "fragment": "#/$defs/backup_series_erase_confirmation",
       "status": "active",
-      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage and mls_history backup objects were erased after authoritative pointer switch."
+      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage backup objects were erased after authoritative pointer switch."
     },
     {
       "schema_id": "ak.schema.blob.v1",
@@ -381,7 +381,7 @@
       "schema_id": "ak.schema.consent_operations.v1",
       "file": "schemas/consent-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ak.self.consent.*); see zh/identity/consent-model.md."
+      "description": "Closed request/response DTO bundle for self-surface holder-private consent typed current result operations (ak.self.consent.*); see zh/identity/consent-model.md."
     },
     {
       "schema_id": "ak.schema.contact_operations.v1",
@@ -473,7 +473,7 @@
       "schema_id": "ak.schema.device_reanchor.v1",
       "file": "schemas/device-reanchor.schema.json",
       "status": "active",
-      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence Seal frontier and replacement authorization digest.",
+      "description": "Closed PCR-policy recovery payload binding one account-local lineage, accepted policy/session, monotonic PCR generation CAS, complete pre-fence RealmCommit frontier and replacement authorization digest.",
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
         "selector": "event kind ak.device.reanchor payload",
@@ -484,7 +484,7 @@
       "schema_id": "ak.schema.device_revocation_state.v1",
       "file": "schemas/device-revocation-state.schema.json",
       "status": "active",
-      "description": "Reducer-owned durable state machine for accepted ak.device.revoke proposals: mandatory Ack, exact authority/device/generation binding, universal revocation_pending gates, exact confirmed rejected command result release, overdue fault retention and covering-Seal finality."
+      "description": "Authority-commit-owned durable state for ak.device.revoke security transactions: exact authority/device/generation binding, universal revocation_pending gates, terminal command-result release, fault retention and consecutive same-stream RealmCommit finality."
     },
     {
       "schema_id": "ak.schema.did_binding_contracts.v1",
@@ -646,7 +646,7 @@
       "schema_id": "ak.schema.holder_quarantine.v1",
       "file": "schemas/holder-quarantine.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
+      "description": "Actor-private plaintext account-data typed current result value of ak.account.holder_quarantine, written only by the recipient Station CAS materializer. surface_kind discriminates invite_delivery from consent_request. See zh/identity/consent-model.md and zh/sync/client-sync.md.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.holder_quarantine",
@@ -702,7 +702,7 @@
       "schema_id": "ak.schema.invite_delivery.v1",
       "file": "schemas/invite-delivery.schema.json",
       "status": "active",
-      "description": "Actor-private plaintext account-data cell value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
+      "description": "Actor-private plaintext account-data typed current result value of ak.account.invite_delivery, the holder-private delivered invite credential carrier written by the recipient Station on the notify branch. See zh/sync/invite-addressing.md section 7.",
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "account_data key ak.account.invite_delivery",
@@ -1151,7 +1151,7 @@
       "file": "schemas/realm-join-intake.schema.json",
       "fragment": "#/$defs/self_application_status_outcome",
       "status": "active",
-      "description": "Own-Station validated join application progress: origin forwarding fact, receiving-Realm state and the accepted covering Seal reference, with no Ack, authority set or Seal bytes."
+      "description": "Own-Station validated join application progress: origin forwarding fact, receiving-Realm state and the accepted covering RealmCommit reference, with no Ack, authority set or RealmCommit bytes."
     },
     {
       "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
@@ -1231,7 +1231,7 @@
       "file": "schemas/security-transaction.schema.json",
       "fragment": "#/$defs/recovery_terminal_commit",
       "status": "active",
-      "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation Seal together with its recovery receipt. It is the sole wire carrier that brings that Seal into the single atomic commit_recovery_unit commit."
+      "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation RealmCommit together with its recovery receipt. It is the sole wire carrier that brings that RealmCommit into the single atomic commit_recovery_unit commit."
     },
     {
       "schema_id": "ak.schema.registration_did_evidence.v1",
@@ -1258,6 +1258,12 @@
     {
       "schema_id": "ak.schema.resource_selector.v1",
       "file": "schemas/resource-selector.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.result_projection.v1",
+      "file": "schemas/typed-current-result.schema.json",
+      "status": "active",
+      "description": "Closed typed current-result selector and value union."
     },
     {
       "schema_id": "ak.schema.rsvp.v1",
@@ -1423,12 +1429,6 @@
         "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
         "normative_ref": "zh/sync/transport-bindings.md#7"
       }
-    },
-    {
-      "schema_id": "ak.schema.typed_current_result.v1",
-      "file": "schemas/typed-current-result.schema.json",
-      "status": "active",
-      "description": "Closed typed current-result selector and value union."
     },
     {
       "schema_id": "ak.schema.view.v1",

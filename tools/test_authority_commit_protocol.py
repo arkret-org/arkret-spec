@@ -54,8 +54,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             "unsigned",
         }
         self.assertTrue(retired.isdisjoint(event["required"]))
-        forbidden = event["allOf"][-3]["not"]["anyOf"]
-        self.assertEqual({item["required"][0] for item in forbidden}, retired)
+        self.assertTrue(retired.isdisjoint(event["properties"]))
 
     def test_realm_circle_and_sidecar_are_independent_streams(self):
         stream = read("schemas/realm-commit.schema.json")["$defs"]["stream_ref"]

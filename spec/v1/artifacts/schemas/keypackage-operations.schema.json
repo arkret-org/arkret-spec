@@ -1645,7 +1645,7 @@
         },
         "welcome_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
-          "description": "Exact accepted ak.mls.welcome Event referenced by this durable receipt; this is not a Welcome byte carrier."
+          "description": "Exact accepted ak.delivery.mls_welcome Event referenced by this durable receipt; this is not a Welcome byte carrier."
         },
         "welcome_digest": {
           "$ref": "#/$defs/digest"

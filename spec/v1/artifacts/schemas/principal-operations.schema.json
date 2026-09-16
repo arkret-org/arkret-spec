@@ -393,7 +393,7 @@
         }
       ],
       "additionalProperties": false,
-      "$comment": "The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted."
+      "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
     },
     "pcr_genesis_unit": {
       "type": "object",

@@ -40,7 +40,7 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 - federation policy
 - retention / legal hold
 - plaintext-visible service
-- event frontier / Seal pipeline
+- event frontier / RealmCommit pipeline
 
 `Realm` 的语义接近“保护域”或“治理域”，不是“项目文件夹”。一个组织通常会拥有多个 Realm：公开项目、普通内部项目、机密项目、HR 项目、法务项目可以由同一组织入口的 View 展示，但每棵 canonical Space tree MUST 位于同一个 Realm。
 
@@ -56,14 +56,14 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 Realm-default group 与每个 MLS-backed Circle group 完全独立。Realm policy 不提供 Circle group/secret/counter fallback。
 `history_access` 是 Realm 自有的单向安全 ratchet：create 初始化为二态之一，之后仅允许
 `all_history_for_current_members → since_join`，永久禁止放宽；standard scheme 固定为 `since_join`。
-它只约束历史交付，不进入 MLS security frontier。具体 T0/T1 与恢复规则见
+它只约束历史交付，不进入 MLS key-access revision。具体 T0/T1 与恢复规则见
 [`history-visibility.md`](../governance/history-visibility.md)。
 
 ### 2.3 Schema id 与字段
 
 Schema id: `ak.schema.realm.v1`
 
-> Materialized Realm 上以 **reducer 派生** 标注的字段（`policy_id` / `default_discoverability` / `default_join_rule` / `history_access` / `federation_policy` 等）只是当前态快照。写入路径必须使用对应 per-facet state event（`ak.realm.policy` / `ak.realm.join_rule` / `ak.realm.history_access` / `ak.realm.discovery` / `ak.realm.policy_bundle` / ...），不得直接 PATCH Realm 对象更新这些字段。`trust_domain`、`encryption_profile`、`content_scheme` 与 `durability_policy` 在 create/MLS Genesis 时锁定，后续不可变；后两者不得出现在 mutable policy bundle 中。
+> Materialized Realm 上以 **reducer 派生** 标注的字段（`policy_id` / `default_discoverability` / `default_join_rule` / `history_access` / `federation_policy` 等）只是当前态快照。写入路径必须使用对应 per-facet state event（`ak.realm.policy` / `ak.realm.join_rule` / `ak.realm.history_access` / `ak.realm.discovery` / `ak.realm.policy_bundle` / ...），不得直接 PATCH Realm 对象更新这些字段。`trust_domain`、`encryption_profile` 与 `content_scheme` 在 create/MLS Genesis 时锁定，后续不可变；`content_scheme` 不得出现在 mutable policy bundle 中。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -79,19 +79,18 @@ Schema id: `ak.schema.realm.v1`
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
 | `history_access` | yes | `enum(since_join, all_history_for_current_members)` | reducer 派生且在任一时点恰有一个 current 值；可由治理更新，并非 create-locked。`mls_rfc9420` 只能使用 `since_join`；plaintext 与 `mls_exporter_aead_v1` 可使用二态之一。 | scope-local 历史访问策略。 |
-| `reducer_profile` | yes | `ak.reducer.*.vN` | genesis 写入 singleton control cell；只允许 `ak.realm.upgrade` 修改。 | 当前 Realm 共识 reducer。 |
+| `reducer_profile` | yes | `ak.reducer.*.vN` | genesis 写入 singleton control typed current result；只允许 `ak.realm.upgrade` 修改。 | 当前 Realm 共识 reducer。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Arkret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
-| `content_scheme` | no | `enum(mls_rfc9420, mls_exporter_aead_v1)` | MLS group Genesis 时显式固定并纳入 `security_frontier_digest`；仅当 `encryption_profile=mls_rfc9420` 时适用。`mls_rfc9420` 使用 MLS PrivateMessage 且不产生可交付历史 secret，故只能配 `history_access=since_join`；`mls_exporter_aead_v1` 使用 per-epoch `history_secret`，可按二态 policy 交付。同一 derived `mls_group_id` 生命周期内 immutable；后续 policy write 不得切换，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
+| `content_scheme` | no | `enum(mls_rfc9420, mls_exporter_aead_v1)` | MLS group Genesis 时显式固定并纳入 `key_access_revision`；仅当 `encryption_profile=mls_rfc9420` 时适用。`mls_rfc9420` 使用 MLS PrivateMessage；`mls_exporter_aead_v1` 使用设备从本地 MLS state 导出的 per-epoch content root。两者都不定义跨设备历史密钥交付；历史密文能否打开只取决于客户端仍持有的 MLS state/material。同一 derived `mls_group_id` 生命周期内 immutable；后续 policy write 不得切换，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Strand / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle 或对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
-| `durability_policy` | conditional | `enum(none, organization_recovery_key)` | 与 `content_scheme` 一同由 accepted MLS Genesis 固定且 create-locked；`content_scheme=mls_exporter_aead_v1` 时必填，其它 scheme 必须省略。任何后续 policy/Commit/group-state 变化均 `failed_precondition`。 | Realm 恢复密钥（RHRK）持久化策略。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
-| `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §13](../authz/event-auth-state-resolution.md)）。 |
-| `notary` | yes | closed object | `{signer,max_clock_error_ms}`，唯一冻结 signer descriptor（完整 ActorId、verification method DID URL、canonical key bytes、JOSE alg）；不携 key digest、配置 kind 或签署者数组。 | 当前与历史 Seal 签发规则，见 [cbs-profiles](../authz/cbs-profiles.md)。 |
-| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["seal_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor confirmed membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
-| `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_seal`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
-| `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
+| `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition RealmCommit（[`event-auth-state-resolution.md` §13](../authz/event-auth-state-resolution.md)）。 |
+| `notary` | yes | closed object | `{signer,max_clock_error_ms}`，唯一冻结 signer descriptor（完整 ActorId、verification method DID URL、canonical key bytes、JOSE alg）；不携 key digest、配置 kind 或签署者数组。 | 当前与历史 RealmCommit 签发规则，见 [authority_commit-profiles](../sync/authority-commit-log.md)。 |
+| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["commit_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor confirmed membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
+| `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_commit`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
+| `bottom_escalation_after_ms` | no | `integer` | typed current result `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -115,7 +114,7 @@ Schema id: `ak.schema.realm.v1`
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
 | Station admission policy | 直接约束 member AccountId 中的 `station_id`；不复制成员级 route evidence。 |
 | verified organization relationship | `ak.realm.organization`。 |
-| lifecycle、其它已有专用 facet | 对应 registered event/cell。 |
+| lifecycle、其它已有专用 facet | 对应 registered event/typed current result。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
 
 Realm 结构角色 profile 只允许出现在 `ak.realm.create.payload.object.schema_refs` 的封闭三项 allowlist 中，并随 genesis create-lock。后续 `ak.realm.schema.payload.value.schema_refs` 只接受 `ak.schema.*.vN`；它不能新增、删除或替换结构角色 profile。两条写入路径的接受面有意不对称，receiver MUST NOT 用 profile 字符串的通用匹配、默认补齐或私有 active-profile 集合抹平该边界。
@@ -136,31 +135,16 @@ v1 不定义 monolithic `ak.realm.update` 或 `ak.component.realm.metadata.v1`�
 1. **Realm-side acceptance**：事件必须作为目标 Realm 的 durable reducer-input event 被接受；写入者必须满足 `ak.realm.admin`，或处于 §2.5 允许的 create bootstrap 同批初始配置路径。这表示 Realm 当前治理面接受该组织关系声明。
 2. **Organization-side consent**：`payload.authorization` 必须验证到 `payload.organization_id` 的 DID control state、threshold governance proof，或该组织 DID Document / governance profile 显式委派的 Account Authority / `ArkretGovernanceService`。委派 purpose MUST 覆盖 `ak.realm.organization`、`payload.relationship` 和 `payload.control_scopes`；事件时间必须落在 delegation 有效期内，且未被撤销。
 
-`ak.realm.organization` 的 reducer cell subject 是 `(payload.organization_id, payload.relationship)`；`payload.status="active"` 表示该组织关系当前生效，`payload.status="revoked"` 表示同一组织关系已撤销。`statement_id` 只用于审计和替换 / 撤销链路，不是 cell subject。Directory 或客户端显示"官方 / 组织治理 / sponsor / directory certified"状态时，MUST 同时检查该 cell 的 latest accepted value 为 `active`、已到 `not_before`（若存在）、未超过 `expires_at`（若存在）、`control_scopes` 覆盖所展示的语义，并按时点解析组织 DID / delegation。
+`ak.realm.organization` 的 reducer typed current result subject 是 `(payload.organization_id, payload.relationship)`；`payload.status="active"` 表示该组织关系当前生效，`payload.status="revoked"` 表示同一组织关系已撤销。`statement_id` 只用于审计和替换 / 撤销链路，不是 typed current result subject。Directory 或客户端显示"官方 / 组织治理 / sponsor / directory certified"状态时，MUST 同时检查该 typed current result 的 latest accepted value 为 `active`、已到 `not_before`（若存在）、未超过 `expires_at`（若存在）、`control_scopes` 覆盖所展示的语义，并按时点解析组织 DID / delegation。
 
 不同控制语义不能由组织归属自动推导：
 
 - `relationship="owner"` 或 `control_scopes` 包含 `official_badge` 只表示组织背书该 Realm 的身份归属；不自动授予组织管理员 capability。
 - 组织能否管理成员、policy、retention、moderation 或明文可见服务，仍由 `ak.realm.admin` capability、Realm policy facet、service binding 或对应控制事件决定。
-- 组织作为 notary、notary controller 或 RHRK 接收方，必须分别由 `notary` / notary control move、`durability_policy` 等字段和事件明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。组织关系本身也不能替账号选择 Station。
+- 组织作为 notary 或 notary controller 时，必须由 `notary` 或对应 control Event 明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。组织关系本身也不能替账号选择 Station。
 - Realm admin 单方面把某个稳定 Organization principal id 写入 `owning_organization_ids`，如果没有对应 active `ak.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
 
 被授权读取 Realm 的客户端通过 self-surface 操作 `ak.self.realm_organization.read.list.v1`（`GET /_arkret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ak.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hint_ids`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hint_ids` 渲染为未验证声明。public discovery 路径（Directory Service 的 `ak.find.directory.read.resolve_realm.v1` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
-
-### 2.3.1 `durability_policy`（normative）
-
-`durability_policy` 是 exporter effective scope 在 create/Genesis 时固定的必填 string：`none|organization_recovery_key`。非-exporter Realm
-必须省略。它与 `content_scheme` 都不属于 `ak.realm.policy_bundle` complete-set；reducer 从 exact accepted Genesis/group state 读取并纳入 security frontier，任何后续 Event 试图改变任一值都以 `failed_precondition` 零写入拒绝。Realm authority 同一时点只登记一把逻辑 organization recovery key tuple；scope 不复制 recipient、holder、
-threshold 或 custody topology。每个 exporter Realm/Circle 独立 opt in，Circle 不继承父 Realm 选择。
-
-创建者在 accepted Genesis 之前对 `content_scheme` / `durability_policy` 的选择只是本地创建意图，其唯一耐久载体是
-[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md) 的 creator bootstrap
-transaction record。`ak.realm.create` closed payload、`ak.realm.profile`、`ak.realm.history_access` facet 与任何
-current/UI projection MUST NOT 复制这两个值，也 MUST NOT 被用来反推它们。
-
-选择 organization key 时，每个 winning Genesis/Commit 必须在同一 signed Event 内携本 scope/epoch 恰一份 archive；
-缺少唯一 accepted authority key tuple 或 archive 时 transition 拒绝。Rotation 只影响后续 transition；历史 archive
-继续按旧 key id 投影，不 backfill/revoke。Custody 的多副本、HSM、Shamir 或 threshold 不上 Realm/Circle wire。
 
 ### 2.4 最小示例
 
@@ -249,7 +233,7 @@ v1 Realm 算法固定为 `digest_suite=0x1`（SHA-256），因此 v1 唯一合�
 该 nibble 不承载派生类别信息，语义与 Event ID 的 reserved nibble 完全一致。任何非零高 nibble MUST NOT 产出，收到 MUST 以 `realm_id_not_event_derived`
 拒绝。低 nibble `0x0` 与 `0x2..0xF` 非法/保留；普通 Event 支持其它低-nibble suite 不代表 Realm 自动支持。
 
-PCR 的**身份锚**与其 `realm_id` 是两件事：realm id 按上述通则由 genesis Event 派生，而该 PCR 属于哪个 principal 由 create 携带的唯一 critical root anchor ref 决定（见 [`../identity/key-management.md` §5.0.1](../identity/key-management.md)）。远端 verifier 需要判定"某 Seal 是否属于该 principal 的 PCR"时，MUST 以已签名的 `pcr_genesis_unit` receipt 中承诺的 `realm_id` 为准，MUST NOT 从 principal DID 自行重算。
+PCR 的**身份锚**与其 `realm_id` 是两件事：realm id 按上述通则由 genesis Event 派生，而该 PCR 属于哪个 principal 由 create 携带的唯一 critical root anchor ref 决定（见 [`../identity/key-management.md` §5.0.1](../identity/key-management.md)）。远端 verifier 需要判定"某 RealmCommit 是否属于该 principal 的 PCR"时，MUST 以已签名的 `pcr_genesis_unit` receipt 中承诺的 `realm_id` 为准，MUST NOT 从 principal DID 自行重算。
 
 因此 `ak:realm:` 始终只有一种物理形态：`ak:realm:<44-char-token>`，解码后恰为 33 octets。所有 Realm（含 human PCR 与 Agent PCR）都重类型其 create Event 的 token（header `0x0S`）。它不是 producer 自选。
 
@@ -271,11 +255,11 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 1. 先定位该 Realm 的 `ak.realm.create` 并取得其完整 canonical bytes；
 2. 对所有分支重算并校验 `event_id`；
 3. 对**所有** `purpose` 校验 `retype(event_id) == realm_id`，且 `genesis_salt` 为 canonical Base64URL-no-pad 的 32 octets；`purpose="principal_control"` 走 `did_root_anchor` 分支时另需校验 create 携带的唯一 critical `did_inception` root anchor ref，走 organization-governed `delegated_pcr_genesis` 分支时改验 `executed_by` / `authorization_ref` 的 governance delegation（该分支 MUST 不含 `did_inception`，两分支因此结构互斥）；`purpose="agent_control"` 时 create **不携带任何 anchor ref**，改为反查 controller PCR 中是否已存在 accepted 的 `ak.agent.provision` 声明了 `retype(本 create 的 event_id)`，无匹配 MUST 零写入拒绝（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）；
-4. 取得并验证完整 ordered genesis unit 与其 genesis Seal/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、Seal 或 effective Realm projection；
+4. 取得并验证完整 ordered genesis unit 与其 genesis RealmCommit/state commitment；identity 或 genesis closure 任一未完成前 MUST NOT 接受该 Realm 的后续 Event、RealmCommit 或 effective Realm projection；
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
 
-上面第 3 条大体已被现有机制隐含——Control Move 要 `seal_basis`、ordinary Event 要 `auth_context.authority_refs`，Seal 链最终 root 在 genesis Seal——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
+上面第 3 条大体已被现有机制隐含——Control Move 要 `authority_revision`、ordinary Event 要 `auth_context.authority_refs`，RealmCommit 链最终 root 在 genesis RealmCommit——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
 
 **这条使 `realm_id` 自证。**一个恶意 join candidate 服务自造的"Realm S"时，其 genesis 内容不同 → `event_id` 不同 → `retype(event_id) ≠ S` → 首次接触即被拒。因此 invite、`join_candidates[]` 与 Directory 响应 **MUST NOT** 被要求携带 genesis digest 或 authority-root 值：自证不需要外部背书，也不引入对邀请者或 Directory 的新信任。拒绝时的对外语义复用 [`../sync/federation.md` §5.0](../sync/federation.md) 规则 4 的统一最小披露失败族。
 
@@ -291,19 +275,19 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 `ak.realm.create` 是 Realm 生命周期的 genesis event，只建立 Realm identity/security core、create log、notary、reducer profile 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
-**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条 proof 必须省略 `signer_resolution_evidence_ref`：root key 只从同一提交冻结的 registration DID/root-control evidence 解析，founding device key 只从 root-signed descriptor、authorize payload 与 unit-local candidate overlay 解析。两条通过 `ak.peer.principal_genesis.command.submit.v1` 原子接受，均免 `seal_basis`；descriptor 与 authorize payload 必须逐字段/digest 相等。任一 Event 脱离完整 unit/receipt closure 均不可接纳或复验，省略规则不得用于其它 create/authorize。Agent PCR 的 controller-authorized分支 MUST 使用 `purpose="agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
+**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条 proof 必须省略 `signer_resolution_evidence_ref`：root key 只从同一提交冻结的 registration DID/root-control evidence 解析，founding device key 只从 root-signed descriptor、authorize payload 与 unit-local candidate overlay 解析。两条通过 `ak.peer.principal_genesis.command.submit.v1` 原子接受，均免 `authority_revision`；descriptor 与 authorize payload 必须逐字段/digest 相等。任一 Event 脱离完整 unit/receipt closure 均不可接纳或复验，省略规则不得用于其它 create/authorize。Agent PCR 的 controller-authorized分支 MUST 使用 `purpose="agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
 以下五项是所有 purpose 共有的无条件 registered writes；另有五条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle 与三个互斥 purpose 的 history-access 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
 
-`ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.cell_writes[]` 中登记；wire 不重复携带：
+`ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.result_writes[]` 中登记；wire 不重复携带：
 
-1. **写入 `ak.component.realm.genesis.v1` singleton**：值为 closed `ak.schema.realm_genesis.v1` object；该 cell 是 create-locked identity/security core 的唯一权威。
+1. **写入 `ak.component.realm.genesis.v1` singleton**：值为 closed `ak.schema.realm_genesis.v1` object；该 typed current result 是 create-locked identity/security core 的唯一权威。
 2. **写入 `ak.component.realm.create.v1` ordered log**：记录 accepted create 用于审计/backfill；同一 Realm 的不同 create 以 `realm_already_exists` 或 collision quarantine 拒绝，不由 lattice 选择 winner。
 3. **写入 `ak.component.notary.v1` singleton**：初值为 `payload.object.notary`；后继只能由 `ak.realm.notary` 承担。
 
 4. **写入 `ak.component.realm.reducer_profile.v1` singleton**：初值为 `payload.object.reducer_profile`；必须是本地支持的 active registry row，否则整个 unit 返回 `unsupported_profile`。后继只能由 `ak.realm.upgrade` 承担。
 
-5. **写入 `ak.component.realm.authority_root.v1` cell**（`sequenced_state`，`cell_subject=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
+5. **写入 `ak.component.realm.authority_root.v1` typed current result**（`sequenced_state`，`result_selector=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
 
    ```text
    {
@@ -313,48 +297,48 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
    }
    ```
 
-   `(realm_id, cell_ref)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 只是当前控制者，`controller_epoch` 只随 root controller 轮换递增，`authority_generation` 只随整代授权重置递增。owner/admin coverage 由 Realm 的冻结 `reducer_profile` 解释器决定，不进入该 cell。author 不得自行提供 `controller_actor_id` / `controller_epoch` / `authority_generation`，也不得携带该三字段之外的成员；出现额外 author-supplied 字段时 MUST 原子拒绝（`failed_precondition`，`reason="realm_authority_root_conflict"`）。
+   `(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 只是当前控制者，`controller_epoch` 只随 root controller 轮换递增，`authority_generation` 只随整代授权重置递增。owner/admin coverage 由 Realm 的冻结 `reducer_profile` 解释器决定，不进入该 typed current result。author 不得自行提供 `controller_actor_id` / `controller_epoch` / `authority_generation`，也不得携带该三字段之外的成员；出现额外 author-supplied 字段时 MUST 原子拒绝（`failed_precondition`，`reason="realm_authority_root_conflict"`）。
 
 6. **条件写入 `ak.component.identity.resolution.v1` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
-7. **条件写入 `ak.component.agent.status.v1` cell**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
-8. **条件写入 `ak.component.realm.history_access.v1` FSM cell**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
-9. **条件写入同一 history-access FSM cell**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
-10. **条件写入同一 history-access FSM cell**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
+7. **条件写入 `ak.component.agent.status.v1` typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
+8. **条件写入 `ak.component.realm.history_access.v1` FSM typed current result**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
+9. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
+10. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
 
-以上五条无条件写入加五条条件 row 构成 create 的完整 projection；第 8 至 10 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis Seal/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
+以上五条无条件写入加五条条件 row 构成 create 的完整 projection；第 8 至 10 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis RealmCommit/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
-**root authority 的语义边界（normative）**：authority-root cell 的 current controller 在给定 Seal basis 下凭该 cell 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、sealed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
+**root authority 的语义边界（normative）**：authority-root typed current result 的 current controller 在给定 RealmCommit basis 下凭该 typed current result 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、committed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
 
-- 授权判定 MUST 使用该 cell 在同一 Seal basis 下的 registered inclusion proof，并逐项校验 `controller_actor_id`、`controller_epoch` 与 `authority_generation`，再由该 Realm 的 reducer profile compiled rules 判定 owner coverage。任何以 `created_by`、membership、projection mirror 或运行时 registry digest 回退的实现都重新引入了隐式提权洞。
-- 服务实现若维护 `realm_state.owner` 一类投影镜像，它只能是该 cell 的可丢弃 projection mirror，MUST NOT 参与授权判定。
+- 授权判定 MUST 使用该 typed current result 在同一 RealmCommit basis 下的 registered inclusion proof，并逐项校验 `controller_actor_id`、`controller_epoch` 与 `authority_generation`，再由该 Realm 的 reducer profile compiled rules 判定 owner coverage。任何以 `created_by`、membership、projection mirror 或运行时 registry digest 回退的实现都重新引入了隐式提权洞。
+- 服务实现若维护 `realm_state.owner` 一类投影镜像，它只能是该 typed current result 的可丢弃 projection mirror，MUST NOT 参与授权判定。
 - 该 authority 的 resource 固定为本 Realm 的 `realm_wide`，MUST NOT 为其它 Realm 提供普通 issuer upper bound；跨 Realm 派生只能走已注册的 `ak.capability.derived` 规则（[`realm-links.md` §6](./realm-links.md)）。
-- 普通 `ak.realm.owner` grant 只表示**可撤销的 co-owner**：持有人具有 owner 的 operational / grant authority，但不控制 authority-root cell，因而不能 author root-control Event。`ak.realm.owner` 逐字存在于 owner 的 `grant_authority_actions`，所以 root controller 与 co-owner **都可以**把 `ak.realm.owner` 继续授予他人——这是期望行为，不是漏洞；它不改变"root-control 平面唯一且不可经普通 grant 获得"。
-- current-v1 没有 authority-policy override / role-assignment singleton。owner/admin 的可配置差异由显式 capability grant、revoke、constraint 与既有 policy control cells 表达；未知 cell、部署配置、`ServiceDescribe` 或 UI role 不得进入 owner 判定。`ak.realm.owner.target_event_kinds` 与 `grant_authority_actions` 只来自 reducer profile compiled bundle，并保持 direct-author 与 grant-issuer 两个集合分离。
+- 普通 `ak.realm.owner` grant 只表示**可撤销的 co-owner**：持有人具有 owner 的 operational / grant authority，但不控制 authority-root typed current result，因而不能 author root-control Event。`ak.realm.owner` 逐字存在于 owner 的 `grant_authority_actions`，所以 root controller 与 co-owner **都可以**把 `ak.realm.owner` 继续授予他人——这是期望行为，不是漏洞；它不改变"root-control 平面唯一且不可经普通 grant 获得"。
+- current-v1 没有 authority-policy override / role-assignment singleton。owner/admin 的可配置差异由显式 capability grant、revoke、constraint 与既有 policy control typed results 表达；未知 typed current result、部署配置、`ServiceDescribe` 或 UI role 不得进入 owner 判定。`ak.realm.owner.target_event_kinds` 与 `grant_authority_actions` 只来自 reducer profile compiled bundle，并保持 direct-author 与 grant-issuer 两个集合分离。
 
-**genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_actor_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted Seal 下的 root-cell inclusion proof。
+**genesis batch 内的 staged root proof（normative）**：同一 ordered submit batch 中位于 create 之后的 Event MAY 使用 staged authority-root proof，其绑定的 create Event MUST 是同批 slot 0，且 `controller_actor_id` MUST 等于 signed envelope `actor_id`。该 proof 只在此原子 unit 内有效；batch 外一律要求 accepted RealmCommit 下的 root-typed current result inclusion proof。
 
-Realm bootstrap event set 以 create 开始。创建时没有 accepted Seal，因此下列两个**互斥封闭分支**内的 Event MAY 免 `seal_basis`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-seal) 使用同一句，两处 MUST 保持逐条一致）：
+Realm bootstrap event set 以 create 开始。创建时没有 accepted RealmCommit，因此下列两个**互斥封闭分支**内的 Event MAY 免 `authority_revision`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 使用同一句，两处 MUST 保持逐条一致）：
 
 - 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_access → discovery`，可选 `alias`，条件 `plaintext_visible_services`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
-- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `head_eq null`。`ak.strand.create` 平时是携 `auth_context` 的 ordinary Event；但该 exact unit 的 Genesis Seal 同时覆盖四条，Strand 无法引用尚不存在的 Seal，因此在且仅在该 unit 内免 basis。
+- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `head_eq null`。`ak.strand.create` 平时是携 `auth_context` 的 ordinary Event；但该 exact unit 的 Genesis RealmCommit 同时覆盖四条，Strand 无法引用尚不存在的 RealmCommit，因此在且仅在该 unit 内免 basis。
 
-不在该列表内的 Control Move 一律要求 `seal_basis`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有非锚点 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-seal) 携带 basis。
+不在该列表内的 Control Move 一律要求 `authority_revision`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有非锚点 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 携带 basis。
 
 Authz 含义：
 
 - 同批 facet 在 creator member slot 生效前依赖 staged authority-root proof，而不是 create 隐式 membership。批次外的授权不得回退到 envelope actor、create author 或服务本地 owner mirror。
-- `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST 拒绝：回退用顶层 code=`policy_revision_rollback`，跳号用 code=`failed_precondition` 且 reason_code=`policy_revision_gap`。任何用于缓存或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS security frontier 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
+- `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST 拒绝：回退用顶层 code=`policy_revision_rollback`，跳号用 code=`failed_precondition` 且 reason_code=`policy_revision_gap`。任何用于缓存或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS key-access revision 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
 - **加密 floor 单向 ratchet（normative）**：Realm 的 effective `content_encryption_floor` 与 effective `metadata_encryption_floor` MUST 随时间单调非降。`ak.realm.policy_bundle` 若把 `content_encryption_floor` 从 `e2ee_required` 降回 `allow_plaintext`，reducer MUST `failed_precondition`，reason=`content_encryption_floor_downgrade`；若把 `metadata_encryption_floor` 降到更低等级（比较序 `allow_plaintext < e2ee_required`），reducer MUST `failed_precondition`，reason=`metadata_encryption_floor_downgrade`。收紧（抬高 floor）永远允许，只有降低被拒。该 ratchet 使"加密一旦开启不可撤销"成为治理层硬约束，并消除静默 downgrade 攻击面；Circle 级同一规则与 effective floor 计算见 [`circle.md` §7](./circle.md)。
 - 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up；human PCR：root-anchored create 第一、founding-device-signed authorize 第二且 unit 到此结束。顺序或形态不符以 `pcr_genesis_unit_invalid` 原子拒绝。
 - byte-identical unit retry 返回原 accepted identity/receipt，不产生第二个 Realm 或副作用；不同 canonical bytes 声称同一 Realm id 时 MUST `realm_already_exists` 或 collision quarantine。
 
 Server 端实现合规要点：
 
-- server 必须先在隔离 staged state 上按 wire order 验证完整 unit，再以一个 storage transaction 提交 canonical Events、全部 registered cells、receipt/ack 与 federation outbox；任何失败后上述可观察状态均为零。
-- effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle cells；不得把 create payload 原样复制为完整 Realm，也不得读取 `ak.component.realm.metadata.v1` cell。
+- server 必须先在隔离 staged state 上按 wire order 验证完整 unit，再以一个 storage transaction 提交 canonical Events、全部 registered typed results、receipt/ack 与 federation outbox；任何失败后上述可观察状态均为零。
+- effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle typed results；不得把 create payload 原样复制为完整 Realm，也不得读取 `ak.component.realm.metadata.v1` typed current result。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
-**Backfill / federation peer 一致性（normative）**：peer 可先取得 create bytes，但在完整 bootstrap closure 与 genesis state commitment 验证前必须保持 unresolved，不得接受后续 Realm Event、Seal 或发布 effective projection。creator membership 来自 unit 最后独立 `ak.member.state{join}` slot；缺失不得本地补造。
+**Backfill / federation peer 一致性（normative）**：peer 可先取得 create bytes，但在完整 bootstrap closure 与 genesis state commitment 验证前必须保持 unresolved，不得接受后续 Realm Event、RealmCommit 或发布 effective projection。creator membership 来自 unit 最后独立 `ak.member.state{join}` slot；缺失不得本地补造。
 
 ### 2.6 Realm 终态 (`ak.realm.tombstone` / `ak.realm.destroy`)
 
@@ -371,18 +355,18 @@ Realm 有两个终态 event，语义不同：
 
 Realm 的 lifecycle 由 archive、tombstone、destroy 等已登记事实组合；freeze 是独立普通写入 gate。四个可逆操作都沿用原 sequenced_state：
 
-| Event | cell family | effect | capability action |
+| Event | typed current result family | effect | capability action |
 | --- | --- | --- | --- |
 | `ak.realm.archive` | `ak.component.realm.archive.v1` | 常量 true | `ak.realm.archive` |
 | `ak.realm.restore` | `ak.component.realm.archive.v1` | 常量 false | `ak.realm.archive` |
 | `ak.realm.freeze` | `ak.component.realm.freeze.v1` | 常量 true | `ak.realm.freeze` |
 | `ak.realm.unfreeze` | `ak.component.realm.freeze.v1` | 常量 false | `ak.realm.freeze` |
 
-payload 只接受已登记的可选 reason，不接受 archived/frozen boolean、effective_at 或 freeze_expires_at。Event kind 唯一决定 effect，重放和并发继续按同一 CAS contract。restore 只解除 archive，unfreeze 只解除 freeze；二者均不能解除 terminal/redaction、其它 gate 或 capability 限制。无论交付顺序如何，任一适用 gate 仍关闭就不得普通写入，缺安全确认材料 fail closed；不另存与这些 cell 竞争的 Realm 总状态。
+payload 只接受已登记的可选 reason，不接受 archived/frozen boolean、effective_at 或 freeze_expires_at。Event kind 唯一决定 effect，重放和并发继续按同一 CAS contract。restore 只解除 archive，unfreeze 只解除 freeze；二者均不能解除 terminal/redaction、其它 gate 或 capability 限制。无论交付顺序如何，任一适用 gate 仍关闭就不得普通写入，缺安全确认材料 fail closed；不另存与这些 typed current result 竞争的 Realm 总状态。
 
 被 archived 或 frozen 关闭的非豁免普通写入返回 `realm_frozen`（HTTP 403）。封闭豁免集合为：(a) archive/restore/freeze/unfreeze；(b) tombstone/destroy 终态升级；(c) `ak.audit.*` 与 `ak.audit.erasure_receipt`；(d) `ak.member.state{membership="leave"}`、capability/delegation/device/key revoke 及其必需审计。所有豁免仍验证普通 capability、CAS basis、签名与 schema。policy_bundle、新增成员和授权扩张不豁免；子对象直接复用此集合。终态按 §2.6.1 的更严格规则处理，不能凭恢复豁免绕过。
 
-生命周期只由正式 Event/Seal 接受推进。时钟推进不会清除冻结；解冻必须提交 unfreeze。计划执行由产品在实际执行时 author/sign/submit，不是已接受 Event 的延迟效力，也不改变既有 revocation fence 的时点。
+生命周期只由正式 Event/RealmCommit 接受推进。时钟推进不会清除冻结；解冻必须提交 unfreeze。计划执行由产品在实际执行时 author/sign/submit，不是已接受 Event 的延迟效力，也不改变既有 revocation fence 的时点。
 
 #### 2.6.0.1 产品态"解散 Realm"映射（normative）
 
@@ -408,7 +392,7 @@ payload 只接受已登记的可选 reason，不接受 archived/frozen boolean�
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Station；peer 获知有效确认后 MUST 立即持久化 live fence，标记 `realm_terminal_state` 和相同 `terminal_kind`；仍可接收历史证明与 backfill，按授权关闭规则判定历史资格，禁止借历史导入触发新 live 效果。
 6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm parent 禁止；普通外部引用不得进入 canonical placement 或 Space 删除依赖集合。
-7. **Circle scope cascade**：父 Realm tombstone 或 destroy 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle cell 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 Seal 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`, `reason_code=realm_terminal_state`）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
+7. **Circle scope cascade**：父 Realm tombstone 或 destroy 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle typed current result 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 RealmCommit 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`, `reason_code=realm_terminal_state`）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
 
 #### 2.6.2 跨 Station Erasure Receipt Fanout（normative）
 
@@ -428,19 +412,19 @@ payload 只接受已登记的可选 reason，不接受 archived/frozen boolean�
 
 提交操作的幂等域固定为 `(source service, destination service, Idempotency-Key)`：同 key / 同 canonical body 必须返回首次生成的 byte-identical acknowledgement 与原 `accepted_at`；同 key / 不同 body 返回 `duplicate_conflict` 且零写入。receiver acknowledgement 的 proof 对去掉 proof 的完整 closed object 使用 `H("ak.erasure-receipt-acceptance.v1", object)`，因此发送方可以离线验证谁在何时接受了哪一个 receipt digest。
 
-**Hash chain linkage 保留**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），供后续 verifier 校验 Event ID 的结构、Event ID 与冗余 digest 的一致性、receipt/stub binding，并连接外部仍存在的 proof、Seal 与授权证据。它只保留已记录的 identity/linkage evidence；原 canonical Event bytes 已擦除后，stub 不能独立重算或证明这些 bytes 的 hash preimage。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `ak.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、seal inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
+**Hash chain linkage 保留**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），供后续 verifier 校验 Event ID 的结构、Event ID 与冗余 digest 的一致性、receipt/stub binding，并连接外部仍存在的 proof、RealmCommit 与授权证据。它只保留已记录的 identity/linkage evidence；原 canonical Event bytes 已擦除后，stub 不能独立重算或证明这些 bytes 的 hash preimage。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `ak.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、authority commit inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
 
 ### 2.7 Realm Membership FSM（normative）
 
-`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `ak.component.member.state.v1`，状态模型为 `sequenced_state`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member cell 的 genesis write，MUST 携带 `head_eq null` 并进入 genesis Seal。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
+`ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `ak.component.member.state.v1`，状态模型为 `sequenced_state`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member typed current result 的 genesis write，MUST 携带 `head_eq null` 并进入 genesis RealmCommit。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
 
-Invite 过期只推进 `invite.lifecycle`，不写共享 member cell。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member cell；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
+Invite 过期只推进 `invite.lifecycle`，不写共享 member typed current result。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member typed current result；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
 共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
 上表 `leave -> join` 另有一个封闭的 Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
 
-controller terminal transition 不再隐式改写 Agent canonical member cell。effective Agent membership 从 accepted member/controller/provision facts确定性派生；controller 不再处于 binding 所指 generation 的 active `join` 时，Agent 在同一 control view 立即无效。canonical cleanup 只接受 [`actor.md` §3.3](./actor.md) 定义的签名 cascade unit：self leave 为 controller transition + exact Agent leave set 的原子 batch；第三方紧急 ban/remove 为 terminal Event + durable exact-set cleanup intent，后续 complete-set batch 一次性写入 Agent leave。已为 `ban` 的 Agent 保持 `ban`，不得被 cleanup 降级；controller rejoin 的新 Event ID 不复活旧 Agent binding。
+controller terminal transition 不再隐式改写 Agent canonical member typed current result。effective Agent membership 从 accepted member/controller/provision facts确定性派生；controller 不再处于 binding 所指 generation 的 active `join` 时，Agent 在同一 control view 立即无效。canonical cleanup 只接受 [`actor.md` §3.3](./actor.md) 定义的签名 cascade unit：self leave 为 controller transition + exact Agent leave set 的原子 batch；第三方紧急 ban/remove 为 terminal Event + durable exact-set cleanup intent，后续 complete-set batch 一次性写入 Agent leave。已为 `ban` 的 Agent 保持 `ban`，不得被 cleanup 降级；controller rejoin 的新 Event ID 不复活旧 Agent binding。
 
 ### 2.8 Realm 角色分类（normative）
 
@@ -448,7 +432,7 @@ controller terminal transition 不再隐式改写 Agent canonical member cell。
 [`common-fields.md` §4.2 的账号隔离铁律](./common-fields.md#42-主体引用字段)。PCR 绑定完整 AccountId，
 原 Station 永久停止服务时不能由另一 Station 上同 principal 的 Account 接续。Collaboration Realm
 的创建者、管理员或 notary 账号失效，不会把其权力赋予同 principal 的另一账号；Realm 是否能继续推进
-由其已接受治理状态及已定义恢复授权决定。Seal signer、恢复签名者与管理员的 account 身份比较 MUST
+由其已接受治理状态及已定义恢复授权决定。RealmCommit signer、恢复签名者与管理员的 account 身份比较 MUST
 包含 `station_id`，历史签名验证成功不构成账号替换或当前治理授权。
 
 schema 层只有一个 `ak.schema.realm.v1`；按 **用途** 把 Realm 分成两大类，Collaboration 再按 **成员是否跨信任域** 分两类。所有 Realm 共享同一组生命周期 event（`ak.realm.create` / `ak.realm.tombstone` / `ak.realm.destroy`）与同一套 reducer 规则；下面的分类影响的是 marker 字段、policy 字段默认值与允许的 event kind 集合。
@@ -469,17 +453,17 @@ Realm（ak.schema.realm.v1，schema 层统一）
   - `schema_refs` 包含 `ak.profile.principal_control_realm.v1`
   - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
   - effective `content_encryption_floor = "e2ee_required"` 且 `metadata_encryption_floor = "e2ee_required"`。v1 不存在"明文地板的 PCR"：两条 floor 由 PCR profile baseline 固定，不是 genesis object 的 producer 字段。
-   - `created_by` 从 create envelope 的完整 `actor_id` 派生；genesis `notary={signer:...,max_clock_error_ms:1000}` 的唯一 signer actor_id 指向同一完整 ActorId；Seal proof 必须逐字使用该冻结 descriptor 的 verification method/key，而不是 current resolver key。
+   - `created_by` 从 create envelope 的完整 `actor_id` 派生；genesis `notary={signer:...,max_clock_error_ms:1000}` 的唯一 signer actor_id 指向同一完整 ActorId；RealmCommit proof 必须逐字使用该冻结 descriptor 的 verification method/key，而不是 current resolver key。
   - genesis `security_class = "high_assurance"`；effective `federation_policy ∈ {closed, restricted, quarantine}` 来自 profile/policy projection。
   - effective `history_access = "since_join"`。Standard-MLS PCR 不提供可交付 history secret；新 endpoint 从自己的 initial Add/Welcome admission 起读取密文，durable device-list / normalized principal view 提供必要控制 baseline，不恢复 foreign active MLS state。
 - 事件类型由 `ak.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 identity resolution / device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。allowlist 是**闭合**的：正文要求写入 PCR 的每个 kind MUST 出现在其中，反之亦然；`ak.identity.resolution.update`（[`../identity/identity-did.md` §4.2](../identity/identity-did.md)）与 `ak.contact.scope.update`（[`../identity/contact-and-direct-conversation.md` §3](../identity/contact-and-direct-conversation.md)）同属该 allowlist。
 - Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；Agent lifecycle 的 `actor_id` 必须是 exact account variant，service variant、同 principal 异 Station 的替代或 payload principal mirror 不匹配均 fail closed。realm id 本身按 §2.5.0 通则从 genesis Event 派生，**实现私有的 deterministic id 派生不是验证证据**。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist + 外露注册表** 共同锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
-- **Availability holder 的 PCR 特例是 create-locked，不是隐式 membership**：human、Agent 与 Applet-managed PCR genesis 都明确不写 `ak.component.member.state.v1`，因此首个及后续 successor Seal 的 eligible holder 只从 predecessor closure 中唯一 accepted create 的、已由 原始 producer proof 与 historical signer evidence 完整验证的 `station_id` 派生。该 frozen service DID 是 PCR 对 §8 AvailabilityReceipt 的唯一 holder carrier；不得把 authority-root controller、notary signer、current account row 或 session 当成 holder，也不得为满足默认 quorum 给 PCR 合成 member state。
-- **外露方向同样闭合（normative）**：`realm_event_kind_policy.allowed_event_kinds` 只锁"能写什么"。允许写入的 kind 中，有一部分必须离开该 Realm 才能让协议成立——远端做设备信任重放、Seal 归属判定、Contact 验证闭环与 KeyPackage claim 都需要它们。**这些外露路径 MUST 逐条登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)**，其 `event_kinds[]` 集合 MUST 与本 allowlist 逐字相等。每条 `exposures[]` 声明 carrier 形态（`exact_event` / `derived_field` / `receipt` / `seal` / `did_service_entry`）、surface、`operation_id` 与方向、exact `schema_ref` 与 JSON Pointer、`authorization_policy_id`，以及适用时的 `anti_enumeration_policy_id`。`exposures[]` 为空即 **PCR-private**：该 kind MUST NOT 经任何 `ak.open.*` / `ak.peer.*` / 跨 principal `ak.self.*` 面或公开 DID Document entry 到达域外。conformance vector `ak.vector.identity.pcr_outward_exposure_registry.v1` 覆盖 registry 正反向闭合与各授权分支的反枚举等价性。
+- **Availability holder 的 PCR 特例是 create-locked，不是隐式 membership**：human、Agent 与 Applet-managed PCR genesis 都明确不写 `ak.component.member.state.v1`，因此首个及后续 successor RealmCommit 的 eligible holder 只从 predecessor closure 中唯一 accepted create 的、已由 原始 producer proof 与 historical signer evidence 完整验证的 `station_id` 派生。该 frozen service DID 是 PCR 对 §8 AvailabilityReceipt 的唯一 holder carrier；不得把 authority-root controller、notary signer、current account row 或 session 当成 holder，也不得为满足默认 quorum 给 PCR 合成 member state。
+- **外露方向同样闭合（normative）**：`realm_event_kind_policy.allowed_event_kinds` 只锁"能写什么"。允许写入的 kind 中，有一部分必须离开该 Realm 才能让协议成立——远端做设备信任重放、RealmCommit 归属判定、Contact 验证闭环与 KeyPackage claim 都需要它们。**这些外露路径 MUST 逐条登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)**，其 `event_kinds[]` 集合 MUST 与本 allowlist 逐字相等。每条 `exposures[]` 声明 carrier 形态（`exact_event` / `derived_field` / `receipt` / `authority commit` / `did_service_entry`）、surface、`operation_id` 与方向、exact `schema_ref` 与 JSON Pointer、`authorization_policy_id`，以及适用时的 `anti_enumeration_policy_id`。`exposures[]` 为空即 **PCR-private**：该 kind MUST NOT 经任何 `ak.open.*` / `ak.peer.*` / 跨 principal `ak.self.*` 面或公开 DID Document entry 到达域外。conformance vector `ak.vector.identity.pcr_outward_exposure_registry.v1` 覆盖 registry 正反向闭合与各授权分支的反枚举等价性。
 - **`public` 是显式策略值，不是缺省**：缺少 `authorization_policy_id` MUST NOT 被解释为公开。新增任何承载 PCR 派生字段的对外面而未在该注册表登记，release gate MUST 红；把某个 carrier 悄悄扩大到第二个仍标记 private 的 kind 同样 MUST 红。
-- **历史读取无平行 policy（normative）**：PCR 只有 current `history_access=since_join`，不存在 profile-fixed key-sharing baseline、公开 share Event 或 archive/recovery-service source。PCR 的 standard MLS profile 不进入 history-key delivery、history backup 或 RHRK archive；控制基线由 durable device-list / normalized principal view 提供。
+- **PCR 历史读取（normative）**：PCR 固定 `history_access=since_join`。新 endpoint 从自己的有效 Add/Welcome 起读取密文；控制基线由 durable device-list / normalized principal view 提供。
 - **PCR 不得有 alias（normative）**：`ak.realm.alias` 同样不在 allowlist 内，PCR 只能按 `realm_id` 寻址；给身份基础设施控制流挂一个人类可读、可猜测的短地址会把 principal 的控制 Realm 公开暴露。写入 MUST `principal_control_event_kind_forbidden`。
 
 #### 2.8.2 Collaboration Realm
@@ -510,7 +494,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 - Sovereign deployment 对 External Collaboration Realm 加的那一组 policy 来自 `ak.profile.sovereign_deployment.v1`，是 **部署 profile** 决定的 policy 配置，不是另一种 Realm 类型。
 - PCR 永远是 Internal 的，不存在 "External PCR"：principal DID 与其 control Realm 1:1 绑定，跨域 PCR 在结构上不存在。
 - `security_class=high_assurance` 是横切标签，可叠加在 Internal / External Collaboration Realm 与 PCR 上，不属于本分类的一层节点。
-- 这套分类是 **prose / glossary 层** 的角色术语，便于跨章节统一指代；底层 schema、reducer、Seal pipeline、Move 处理对三类一视同仁。
+- 这套分类是 **prose / glossary 层** 的角色术语，便于跨章节统一指代；底层 schema、reducer、RealmCommit pipeline、Move 处理对三类一视同仁。
 
 #### 2.8.4 Direct Conversation Realm（1:1 DM）
 
@@ -591,15 +575,15 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 - `ak.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Strand。
 - `ak.space.restore`：仅允许 `archived -> active`；不级联 restore。
-- `ak.space.tombstone`：不可逆；在它自己签名的 accepted Seal basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent cell 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical cells。
-- 上述准入检查 MUST 使用指定 accepted Seal basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved cell 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
-- v1 不为 Space lifecycle 与所有可能指向它的 parent/position cell 新建跨 cell 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/cell 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写使用原 parent/position cell 的唯一 current source。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
+- `ak.space.tombstone`：不可逆；在它自己签名的 accepted RealmCommit basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent typed current result 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical typed results。
+- 上述准入检查 MUST 使用指定 accepted RealmCommit basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved typed current result 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
+- v1 不为 Space lifecycle 与所有可能指向它的 parent/position typed current result 新建跨 typed current result 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/typed current result 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写使用原 parent/position typed current result 的唯一 current source。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
 ### 3.5 `ak.space.parent` 因果父边
 
-`ak.component.space.parent.v1` 以 SpaceId 为 subject，使用普通 `causal_register`，值为 `parent_space_id | null`。`ak.space.create` 从签名 `object.parent_space_id` 产生初始写，省略时显式写 null；metadata 投影排除该字段。后续父边只由 `ak.space.parent` 修改，通用 metadata patch 禁止改它。普通父边变更不需要新 Seal。
+`ak.component.space.parent.v1` 以 SpaceId 为 subject，使用普通 `causal_register`，值为 `parent_space_id | null`。`ak.space.create` 从签名 `object.parent_space_id` 产生初始写，省略时显式写 null；metadata 投影排除该字段。后续父边只由 `ak.space.parent` 修改，通用 metadata patch 禁止改它。普通父边变更不需要新 RealmCommit。
 
 `expected_parent_space_id` / 已登记 precondition 只校验签名因果基底，不是全局 CAS。写入在该基底内验证存在性、同 Realm、可读 scope、自指及无环；缺证明 pending，不以本地当前图替换基底。不可读 parent 对外返回既有 `space_parent_unreadable`，已验证跨 Realm 返回 `space_realm_mismatch`。
 
@@ -612,19 +596,19 @@ parent 只是导航关系，不授予读取权，不修改 `scope_circle_id`、R
 Strand 在 board/list 类 Space 中的位置由普通因果寄存器维护：
 
 ```text
-cell_id     := state-slot:ak.component.strand.position.v1:<board_space_id>:<strand_id>
+result_id     := state-slot:ak.component.strand.position.v1:<board_space_id>:<strand_id>
 state_model := causal_register
 execution   := data
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
-该 family 的 registry `cell_subject.kind` 固定为 `typed_pair`，两个有序分量依次为
+该 family 的 registry `result_selector.kind` 固定为 `typed_pair`，两个有序分量依次为
 `id:space(payload.board_space_id)` 与 `id:strand(payload.strand_id)`。因此上式是可逆的
 canonical wire 编码，不适用 `tuple/composite` 的 SHA-256 subject；producer、reducer、Current
-publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 Cell id。解析时必须同时
+publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 typed current result id。解析时必须同时
 验证 Board 与 Strand 两个 typed-ID 分量，不能只截取末尾 Strand，也不能接受 hash subject。
 
-`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据，不携带 `seal_basis`。`expected_position` 与 `from_space_id` 只校验签名因果基底，不能把离线并发变成唯一成功的 CAS。多个并发位置写均可被接受，但该 position cell 始终按普通 `causal_register` 的固定 `(depth,EventId)` rank 产生唯一 current winner；只有 winner 产生 effective placement/contains，落选 Event 仅保留历史与 provenance，不进入第二个 UI “冲突列”。后继引用当前 winner 即产生更高 depth 的正常移动，无需观察或人工修复全部落选分支。WIP 在各自签名基底校验；合流后由同一固定 winner 计算当前占用，不得按到达顺序撤销某一合法写来伪装硬容量保证。
+`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据，不携带 `authority_revision`。`expected_position` 与 `from_space_id` 只校验签名因果基底，不能把离线并发变成唯一成功的 CAS。多个并发位置写均可被接受，但该 position typed current result 始终按普通 `causal_register` 的固定 `(depth,EventId)` rank 产生唯一 current winner；只有 winner 产生 effective placement/contains，落选 Event 仅保留历史与 provenance，不进入第二个 UI “冲突列”。后继引用当前 winner 即产生更高 depth 的正常移动，无需观察或人工修复全部落选分支。WIP 在各自签名基底校验；合流后由同一固定 winner 计算当前占用，不得按到达顺序撤销某一合法写来伪装硬容量保证。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 
@@ -637,11 +621,11 @@ publisher 与 selector validator MUST 从同一 registry row 得到完全相同�
 | `rank` | yes | `string` | 目标 List 内 canonical rank。 |
 | `expected_position` | no | `object{space_id?: id:space, rank?: string, relation_id?: id:relation}` | 可选 CAS 诊断前像；字段集封闭。 |
 
-Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Move 的 position cell 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Move 使用相同的独立授权、因果基底与 WIP 后像判定。create 成功而 Move 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Move，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position cell 投影，不得合成 canonical Relation Event。
+Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Move 的 position typed current result 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Move 使用相同的独立授权、因果基底与 WIP 后像判定。create 成功而 Move 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Move，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position typed current result 投影，不得合成 canonical Relation Event。
 
 Board、List 与 Strand 的实际 `realm_id` MUST 相同；创建、首次 move、后续 move 和 reorder 均无 profile 例外。已可验证的跨 Realm placement MUST `failed_precondition / space_realm_mismatch`；普通 move / reparent MUST NOT 修改 Realm。 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 
-Board 或目标 List 的 lifecycle 在写入签名 basis 下已是 `tombstoned` 时，首次 move、后续 move 与 reorder MUST 以既有 `failed_precondition / space_not_active` 拒绝。合流后得知目标已 tombstoned 时，按 §3.4 的 joined-view gate 保留 position cell 但不派生有效 placement/contains 边，直到显式 move；不得静默改到 root、清除 cell 或用到达顺序选择 tombstone 与 placement 的赢家。
+Board 或目标 List 的 lifecycle 在写入签名 basis 下已是 `tombstoned` 时，首次 move、后续 move 与 reorder MUST 以既有 `failed_precondition / space_not_active` 拒绝。合流后得知目标已 tombstoned 时，按 §3.4 的 joined-view gate 保留 position typed current result 但不派生有效 placement/contains 边，直到显式 move；不得静默改到 root、清除 typed current result 或用到达顺序选择 tombstone 与 placement 的赢家。
 
 ### 3.7 示例
 
@@ -700,11 +684,11 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 - Realm links：[`realm-links.md`](./realm-links.md)。
 - Strand / Message / track 语义：[strand-and-message.md](./strand-and-message.md)。
 - Relation 基数与跨 Realm 规则：[relation.md](./relation.md)。
-- CBS / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- authority-commit / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - `ak.strand.move` / causal_register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
 - Realm genesis/profile/effective projection 与 Space schema：`artifacts/schemas/realm-genesis.schema.json`、`artifacts/schemas/realm-profile.schema.json`、`artifacts/schemas/realm.schema.json`、`artifacts/schemas/space.schema.json`。
 
 
 ### Space lifecycle 合同入口
 
-`space` 的 lifecycle 以 contract registry 中对应 cell family 的 `transition_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `space_not_active` / `space_not_archived`；终态操作对已终态对象返回 `space_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+`space` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `space_not_active` / `space_not_archived`；终态操作对已终态对象返回 `space_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

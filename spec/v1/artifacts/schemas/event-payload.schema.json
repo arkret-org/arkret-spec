@@ -298,7 +298,7 @@
     },
     "actor_profile_create_payload": {
       "type": "object",
-      "description": "Initial actor profile payload. The materialized resolution projection is reducer-managed from the PCR resolution cell and is forbidden on this authoring surface. id/updated_by/updated_at are likewise materialized fields, not create input.",
+      "description": "Initial actor profile payload. The materialized resolution projection is reducer-managed from the PCR resolution typed current result and is forbidden on this authoring surface. id/updated_by/updated_at are likewise materialized fields, not create input.",
       "required": [
         "object"
       ],
@@ -341,7 +341,7 @@
     },
     "actor_profile_update_payload": {
       "type": "object",
-      "description": "Actor Profile patch payload. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution cell and are forbidden on this generic profile write surface.",
+      "description": "Actor Profile patch payload. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution typed current result and are forbidden on this generic profile write surface.",
       "required": [
         "target_ref",
         "patch"
@@ -376,7 +376,7 @@
     },
     "agent_action_approve_payload": {
       "type": "object",
-      "description": "Controller-signed security command binding one complete pre-authored ordinary Event by content-derived EventId. The canonical Event bytes exist before approval, avoiding any digest or Seal self-reference. Confirmation atomically consumes the nonce and authorizes only that exact Event.",
+      "description": "Controller-signed security command binding one complete pre-authored ordinary Event by content-derived EventId. The canonical Event bytes exist before approval, avoiding any digest or RealmCommit self-reference. Confirmation atomically consumes the nonce and authorizes only that exact Event.",
       "required": [
         "approval_id",
         "agent_id",
@@ -621,7 +621,7 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle cell is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
+      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. The lifecycle typed current result is addressed only by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. At the accepted RealmCommit covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
       "required": [
         "transition",
         "previous_status",
@@ -819,7 +819,7 @@
         },
         "supersedes": {
           "type": "array",
-          "description": "Exact complete active authorization set at seal_basis and first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Omit exactly when the active set is empty, including after revoke. Each authorization Event identifies its registered add dot. Same-key reauthorization uses the same exact-set rule. Remove the observed old-key cells atomically and add the new authorization; never infer authority from historical row presence or map overwrite.",
+          "description": "Exact complete active authorization set at authority_revision and first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Omit exactly when the active set is empty, including after revoke. Each authorization Event identifies its registered add dot. Same-key reauthorization uses the same exact-set rule. Remove the observed old-key typed results atomically and add the new authorization; never infer authority from historical row presence or map overwrite.",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
@@ -883,7 +883,7 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring frontiers is the current authority-committed state; the payload carries no frontier field.",
+      "description": "Payload for ak.agent.key.revoke. The or_set typed current result subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted RealmCommit. The authoring frontiers is the current authority-committed state; the payload carries no frontier field.",
       "required": [
         "agent_id",
         "key_id",
@@ -1136,7 +1136,7 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.pause. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state; the reducer accepts the transition only under the accepted current control frontier.",
+      "description": "Payload for ak.self.agent.pause. The status typed current result is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject and moves from active to paused; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state; the reducer accepts the transition only under the accepted current control frontier.",
       "required": [
         "transition",
         "previous_status",
@@ -1160,7 +1160,7 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.resume. The status cell is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
+      "description": "Payload for ak.self.agent.resume. The status typed current result is keyed by the complete account ActorId in envelope.actor_id using the registered canonical composite subject; the Agent principal is derived from envelope.actor_id and the controller from envelope.executed_by, so the payload carries no agent or controller coordinate mirror. executed_by and its paired authorization_ref are mandatory for this kind under the registered event-kind admission rule. Authorization is evaluated against the current authority-committed state, and reducers re-check controller, agent, key, capability, Realm policy, and accountability grant against the accepted current control frontier before returning the agent to active. Sidecar desired membership is derived afterward and is not carried in this payload.",
       "required": [
         "transition",
         "previous_status",
@@ -1453,7 +1453,7 @@
     },
     "audit_accessed_payload": {
       "type": "object",
-      "description": "Strict payload for ak.audit.accessed. It binds the writer, logical target and any paired Event. The current governance Station evaluates the access against committed typed state; no Cell or caller-authored state-head digest is carried.",
+      "description": "Strict payload for ak.audit.accessed. It binds the writer, logical target and any paired Event. The current governance Station evaluates the access against committed typed state; no typed current result or caller-authored state-head digest is carried.",
       "required": [
         "access_kind",
         "writer_actor_id",
@@ -1620,7 +1620,7 @@
         },
         "activation_frontier_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Accepted Seal coverage digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this coverage point."
+          "description": "Accepted RealmCommit coverage digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this coverage point."
         },
         "first_auditable_epoch": {
           "type": "integer",
@@ -1650,7 +1650,7 @@
             "max_epoch_span": {
               "type": "integer",
               "minimum": 1,
-              "description": "Optional cap on the number of sealed historical epochs a single session/release may cover."
+              "description": "Optional cap on the number of committed historical epochs a single session/release may cover."
             },
             "allowed_target_kinds": {
               "type": "array",
@@ -1803,7 +1803,7 @@
     "audit_release_payload": {
       "$comment": "Reducer rejections for this payload carry registered sub-reasons: no active binding for the declared effective_scope is failed_precondition reason audit_release_binding_missing; effective_scope disagreeing with the active binding (or a Realm-scoped binding used to cover Circle history) is audit_release_scope_mismatch; a release without a valid prior ak.audit.session.notice for the same session/binding/scope is audit_release_notice_missing; targeting the current active MLS epoch is audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.1 / §4.4 / §5.2.",
       "type": "object",
-      "description": "Payload for ak.audit.release. The current governance Station validates the notice, policy and current authorization atomically; the Event does not carry a Seal or caller-selected safety basis.",
+      "description": "Payload for ak.audit.release. The current governance Station validates the notice, policy and current authorization atomically; the Event does not carry a RealmCommit or caller-selected safety basis.",
       "required": [
         "session_id",
         "binding_id",
@@ -2062,7 +2062,7 @@
     },
     "audit_session_contract": {
       "type": "object",
-      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; competing commands execute in the confirmed sequence; a stale relevant revision is durably rejected.",
+      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM typed current result ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; competing commands execute in the confirmed sequence; a stale relevant revision is durably rejected.",
       "required": [
         "binding_id",
         "realm_id",
@@ -2360,7 +2360,7 @@
             "recording",
             "transcript"
           ],
-          "description": "Whether this start event opens a recording or a transcription segment. REQUIRED: it selects the target capture cell family (ak.component.call.recording.v1 vs ak.component.call.transcript.v1) in the registered cell contract, so it MUST NOT be inferred from a missing-field default."
+          "description": "Whether this start event opens a recording or a transcription segment. REQUIRED: it selects the target capture typed current result family (ak.component.call.recording.v1 vs ak.component.call.transcript.v1) in the registered typed current result contract, so it MUST NOT be inferred from a missing-field default."
         },
         "mode": {
           "type": "string",
@@ -2375,7 +2375,7 @@
         },
         "result": {
           "type": "object",
-          "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result cell.",
+          "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result typed current result.",
           "required": [
             "retention"
           ],
@@ -2423,7 +2423,7 @@
     },
     "call_state_payload": {
       "type": "object",
-      "description": "Typed delta payload for ak.call.state. Every present field maps to one or two explicit registered cell effects; omitted axes produce no effect.",
+      "description": "Typed delta payload for ak.call.state. Every present field maps to one or two explicit registered typed current result effects; omitted axes produce no effect.",
       "required": [
         "call_id"
       ],
@@ -3345,7 +3345,7 @@
     },
     "circle_patch_payload": {
       "type": "object",
-      "description": "Payload class for ak.circle.update. Patch path MUST NOT contain realm_id, encryption_profile, content_scheme, mls_group_id, durability_policy, history_access, state, state_changed_at, created_by, or created_at; history_access changes use dedicated ak.circle.history_access. Reducer enforces create-locks and semantic policy checks.",
+      "description": "Payload class for ak.circle.update. Patch path MUST NOT contain realm_id, encryption_profile, content_scheme, mls_group_id, history_access, state, state_changed_at, created_by, or created_at; history_access changes use dedicated ak.circle.history_access. Reducer enforces create-locks and semantic policy checks.",
       "required": [
         "circle_id",
         "patch"
@@ -3409,7 +3409,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant evaluated in the holder's Principal Control Realm. The governance Station serializes changes; no Cell or OR-Set tag is exposed on wire.",
+      "description": "Holder-private consent grant evaluated in the holder's Principal Control Realm. The governance Station serializes changes; no typed current result or OR-Set tag is exposed on wire.",
       "required": [
         "consent_id",
         "peer",
@@ -3419,7 +3419,7 @@
         "consent_id": {
           "type": "string",
           "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Stable identifier; used as the cell_subject of the consent cell. ak.consent.revoke MUST reference the same consent_id."
+          "description": "Stable identifier; used as the result_selector of the consent typed current result. ak.consent.revoke MUST reference the same consent_id."
         },
         "peer": {
           "$ref": "#/$defs/consent_peer"
@@ -3986,7 +3986,7 @@
     },
     "cross_object_redaction_payload": {
       "type": "object",
-      "description": "Payload for the cross-object ak.redaction. Shares the ak.component.object.redaction.v1 cell family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:. target_ref is the single target carrier; its lexical space covers both object targets and ak:event: targets, so the cell subject is well defined without a coalesce.",
+      "description": "Payload for the cross-object ak.redaction. Shares the ak.component.object.redaction.v1 typed current result family with ak.message.redact but carries a target set that mechanically excludes Message: message_id is not a member and target_ref cannot spell ak:message:. target_ref is the single target carrier; its lexical space covers both object targets and ak:event: targets, so the typed current result subject is well defined without a coalesce.",
       "required": [
         "target_ref"
       ],
@@ -4034,7 +4034,7 @@
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Device HPKE public key used for secret/key envelope sealing. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it. For accepted_device pairing its authority is the target device_pairing_target_proof, which the approving device reads only after that attestation verifies."
+          "description": "Device HPKE public key used for secret/key envelope encryption. It is covered by the possession transcript and by the surrounding root anchor or accepted-device Event proof; services MUST NOT substitute it. For accepted_device pairing its authority is the target device_pairing_target_proof, which the approving device reads only after that attestation verifies."
         },
         "algorithms": {
           "$ref": "#/$defs/string_list",
@@ -4388,7 +4388,7 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted Seal covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
+      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted RealmCommit covering this Move. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no frontier or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
         "device_id",
         "revoked_by",
@@ -4491,7 +4491,7 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Participant endorsement of the settled Direct Conversation coordinates and the first exact-pair state in the scope's single immutable derived MLS group. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Written once and never retired. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
+      "description": "Participant endorsement of the settled Direct Conversation coordinates and the first exact-pair state in the scope's single immutable derived MLS group. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Immutable after the first accepted write. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
       "required": [
         "pair_key",
         "unordered_participant_ids",
@@ -4598,28 +4598,6 @@
             }
           },
           "additionalProperties": false
-        }
-      ]
-    },
-    "history_effective_scope": {
-      "description": "Effective scope admitted by v1 private history-key request/response, history-only backup and organization-recovery archive contracts. Sidecar is deliberately excluded: its profile fixes mls_rfc9420 and defines neither history_access nor a deliverable history_secret.",
-      "allOf": [
-        {
-          "$ref": "#/$defs/effective_scope"
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind"
-          ],
-          "properties": {
-            "kind": {
-              "enum": [
-                "realm",
-                "circle"
-              ]
-            }
-          }
         }
       ]
     },
@@ -4943,7 +4921,7 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite cell expires_at."
+          "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite typed current result expires_at."
         },
         "signature": {
           "$ref": "#/$defs/signature_material",
@@ -5448,7 +5426,7 @@
       ]
     },
     "join_policy_component": {
-      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 sequenced_state value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
+      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate typed current result family, and rides inside the ak.component.realm.policy_bundle.v1 sequenced_state value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/artifact_lint check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
         "gates",
@@ -5900,7 +5878,7 @@
           "items": {
             "$ref": "#/$defs/poll_response_head"
           },
-          "description": "Typed replacement for the retired generic causal_refs carrier. Each entry binds a poll to the exact response Event being superseded."
+          "description": "Each entry binds a poll to the exact response Event being superseded."
         }
       },
       "additionalProperties": false
@@ -6098,7 +6076,7 @@
     },
     "message_redact_payload": {
       "type": "object",
-      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2). message_id is the single target carrier, so the ak.component.object.redaction.v1 cell subject is always the Message typed ID.",
+      "description": "Payload for ak.message.redact, the object-scoped redact kind registered for Message. Message is the only object that enters state=redacted through its own kind rather than a cross-object ak.redaction, which is why message.schema.json materializes redaction_ref (models/common-fields.md 5.2). message_id is the single target carrier, so the ak.component.object.redaction.v1 typed current result subject is always the Message typed ID.",
       "required": [
         "message_id"
       ],
@@ -6194,7 +6172,7 @@
     },
     "mimi_room_binding_payload": {
       "type": "object",
-      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS key_access_revision gate.",
+      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 typed current result whose subject is payload.mimi_room_uri (see event-kind-registry.json result_selector). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS key_access_revision gate.",
       "required": [
         "profile",
         "mimi_room_uri",
@@ -6210,7 +6188,7 @@
         },
         "mimi_room_uri": {
           "$ref": "./mimi-interop.schema.json#/$defs/mimi_room_uri",
-          "description": "Canonical MIMI room URI and the cell subject source for ak.component.mimi.room_binding.v1 (registry cell_subject.kind = uri). The closed canonical form and the full percent-encoding that turns it into a CellRef subject are defined in zh/extensions/mimi-interop.md section 4 and zh/conformance/encoding.md section 4; a non-canonical spelling MUST be rejected with schema_violation rather than normalized."
+          "description": "Canonical MIMI room URI and the typed current result subject source for ak.component.mimi.room_binding.v1 (registry result_selector.kind = uri). The closed canonical form and the full percent-encoding that turns it into a TypedResultSelector subject are defined in zh/extensions/mimi-interop.md section 4 and zh/conformance/encoding.md section 4; a non-canonical spelling MUST be rejected with schema_violation rather than normalized."
         },
         "binding_scope": {
           "type": "object",
@@ -6435,7 +6413,7 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 cell, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref.",
+      "description": "Payload for ak.moderation.decision.lift. Writes an or_set remove effect on the same ak.component.moderation_state.v1 typed current result, removing exactly the dots enumerated in observed_dot_ids, which MUST belong to the decision identified by decision_ref.",
       "required": [
         "target_ref",
         "decision_ref",
@@ -6444,11 +6422,11 @@
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/object_ref",
-          "description": "The moderated target whose ak.component.moderation_state.v1 cell the lift mutates. Same cell subject as the original ak.moderation.decision."
+          "description": "The moderated target whose ak.component.moderation_state.v1 typed current result the lift mutates. Same typed current result subject as the original ak.moderation.decision."
         },
         "decision_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the prior ak.moderation.decision Event whose sealed tag is being removed."
+          "description": "Reference to the prior ak.moderation.decision Event whose committed tag is being removed."
         },
         "observed_dot_ids": {
           "type": "array",
@@ -6457,7 +6435,7 @@
           "items": {
             "$ref": "#/$defs/or_set_dot"
           },
-          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the complete EventId token of decision_ref, so a lift can only revoke that decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the cell. See zh/models/event-and-patch.md section 2.4.2."
+          "description": "Exact add dots being removed. Every dot's event_id segment MUST equal the complete EventId token of decision_ref, so a lift can only revoke that decision; adds from other issuers stay active and keep folding by hard_deny > quarantine > require_review. A lift is a partial revocation, so or_set_remove_observed is forbidden here - it would remove every surviving add on the typed current result. See zh/models/event-and-patch.md section 2.4.2."
         },
         "reason_code": {
           "type": "string",
@@ -6474,7 +6452,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision. A sealed moderation decision that writes an or_set add effect onto the ak.component.moderation_state.v1 cell whose subject is target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
+      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes an or_set add effect onto the ak.component.moderation_state.v1 typed current result whose subject is target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
       "required": [
         "target_ref",
         "decision",
@@ -6484,7 +6462,7 @@
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/object_ref",
-          "description": "The moderated target (event / object). Canonical string of this ref is the ak.component.moderation_state.v1 cell subject."
+          "description": "The moderated target (event / object). Canonical string of this ref is the ak.component.moderation_state.v1 typed current result subject."
         },
         "decision": {
           "type": "string",
@@ -6494,11 +6472,11 @@
             "require_review",
             "dismiss"
           ],
-          "description": "Sealed moderation-state decision verb. dismiss only resolves a report queue item and does not loosen the target content verdict. allow and soft_deny are out-of-band runtime outcomes."
+          "description": "committed moderation-state decision verb. dismiss only resolves a report queue item and does not loosen the target content verdict. allow and soft_deny are out-of-band runtime outcomes."
         },
         "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag."
+          "description": "Actor or service DID issuing the committed moderation decision. Reducers use it as part of the or_set add tag."
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/digest",
@@ -6819,11 +6797,11 @@
     "or_set_dot": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}:[0-9]+$",
-      "description": "Canonical OR-Set dot: \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry cell_writes[]. See zh/models/event-and-patch.md section 2.4.2."
+      "description": "Canonical OR-Set dot: \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry result_writes[]. See zh/models/event-and-patch.md section 2.4.2."
     },
     "organization_discovery_state_payload": {
       "type": "object",
-      "description": "State payload for an Organization discovery declaration. organization_id is the stable did_core_id cell subject.",
+      "description": "State payload for an Organization discovery declaration. organization_id is the stable did_core_id typed current result subject.",
       "required": [
         "organization_id",
         "value"
@@ -6875,7 +6853,7 @@
     },
     "organization_moderation_policy_state_payload": {
       "type": "object",
-      "description": "Closed Organization moderation-policy state. organization_id is the Organization did_core_id and the sole registered cell subject; value carries the sole v1 Organization moderation-policy family.",
+      "description": "Closed Organization moderation-policy state. organization_id is the Organization did_core_id and the sole registered typed current result subject; value carries the sole v1 Organization moderation-policy family.",
       "required": [
         "organization_id",
         "value"
@@ -7469,7 +7447,7 @@
     },
     "policy_rule_state_payload": {
       "type": "object",
-      "description": "Policy rule state payload. rule_id is the stable ak.component.policy.rule.v1 cell subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). The cell is an ordered_log, so each accepted event appends one revision rather than replacing the previous one.",
+      "description": "Policy rule state payload. rule_id is the stable ak.component.policy.rule.v1 typed current result subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). The typed current result is an ordered_log, so each accepted event appends one revision rather than replacing the previous one.",
       "required": [
         "rule_id",
         "value"
@@ -7494,7 +7472,7 @@
     },
     "policy_set_state_payload": {
       "type": "object",
-      "description": "Closed Policy definition state payload. policy_id is the stable policy cell subject. value.schema selects exactly one of the two v1 Policy document families directly in this schema; unknown families fail schema validation.",
+      "description": "Closed Policy definition state payload. policy_id is the stable policy typed current result subject. value.schema selects exactly one of the two v1 Policy document families directly in this schema; unknown families fail schema validation.",
       "required": [
         "policy_id",
         "value"
@@ -7680,7 +7658,7 @@
     },
     "profile_realm_override_payload": {
       "type": "object",
-      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution cell and are forbidden here for the same reason they are forbidden on the generic profile write surface; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
+      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution typed current result and are forbidden here for the same reason they are forbidden on the generic profile write surface; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "required": [
         "target_ref",
         "target_realm_id",
@@ -7718,7 +7696,7 @@
     },
     "reaction_payload": {
       "type": "object",
-      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The cell is a core OR-Set of reaction assertions and both kinds project one or_set_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
+      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The typed current result is a core OR-Set of reaction assertions and both kinds project one or_set_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
         "target_ref",
         "key"
@@ -7806,7 +7784,7 @@
       "additionalProperties": false
     },
     "realm_alias_payload": {
-      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm-genesis.schema.json and realm-profile.schema.json are closed and have no alias property, and ak.realm.create / ak.realm.profile payloads MUST NOT carry one.",
+      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the typed current result history. realm-genesis.schema.json and realm-profile.schema.json are closed and have no alias property, and ak.realm.create / ak.realm.profile payloads MUST NOT carry one.",
       "oneOf": [
         {
           "$ref": "#/$defs/realm_alias_declaration"
@@ -8016,7 +7994,7 @@
               "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
             }
           ],
-          "description": "Stable id of this organization statement. It is audit identity, not the reducer cell subject; the reducer cell subject is (organization_id, relationship)."
+          "description": "Stable id of this organization statement. It is audit identity, not the reducer typed current result subject; the reducer typed current result subject is (organization_id, relationship)."
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -8053,7 +8031,6 @@
               "official_badge",
               "realm_admin",
               "notary_control",
-              "durability_policy",
               "moderation_policy",
               "retention_policy",
               "directory_listing",
@@ -8191,7 +8168,7 @@
     },
     "realm_owner_transfer_payload": {
       "type": "object",
-      "description": "ak.realm.owner.transfer — rotate the controller binding of the Realm authority-root cell. It changes controller_actor_id and increments controller_epoch only: authority_generation, the cell ref and every existing grant are untouched, so the whole authority tree issued by the previous controller stays valid. This is not a reparent — the root never moves.",
+      "description": "ak.realm.owner.transfer — rotate the controller binding of the Realm authority-root typed current result. It changes controller_actor_id and increments controller_epoch only: authority_generation, the typed current result ref and every existing grant are untouched, so the whole authority tree issued by the previous controller stays valid. This is not a reparent — the root never moves.",
       "required": [
         "realm_id",
         "expected_state_digest",
@@ -8205,7 +8182,7 @@
         "expected_state_digest": {
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
-          "description": "JCS SHA-256 digest of the authority-root cell value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
+          "description": "JCS SHA-256 digest of the authority-root typed current result value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
         },
         "patch": {
           "type": "object",
@@ -8230,8 +8207,8 @@
     },
     "realm_policy_bundle_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
-      "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 sequenced_state cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and typed current result (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
+      "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 sequenced_state typed current result: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
       "required": [
         "policy_revision"
       ],
@@ -8335,20 +8312,8 @@
         "availability_policy": {
           "$ref": "./realm.schema.json#/properties/availability_policy"
         },
-        "proposal_intake_sla_ms": {
-          "$ref": "./realm.schema.json#/properties/proposal_intake_sla_ms"
-        },
-        "proposal_decision_window_ms": {
-          "$ref": "./realm.schema.json#/properties/proposal_decision_window_ms"
-        },
-        "proposal_absolute_deadline_ms": {
-          "$ref": "./realm.schema.json#/properties/proposal_absolute_deadline_ms"
-        },
-        "max_proposal_defers": {
-          "$ref": "./realm.schema.json#/properties/max_proposal_defers"
-        },
-        "seal_compaction_max_interval_ms": {
-          "$ref": "./realm.schema.json#/properties/seal_compaction_max_interval_ms"
+        "commit_compaction_max_interval_ms": {
+          "$ref": "./realm.schema.json#/properties/commit_compaction_max_interval_ms"
         },
         "max_authority_lifetime_ms": {
           "$ref": "./realm.schema.json#/properties/max_authority_lifetime_ms"
@@ -8364,7 +8329,7 @@
           "properties": {
             "consent_required": {
               "type": "boolean",
-              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm CBS precondition."
+              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm authority-commit precondition."
             }
           },
           "additionalProperties": false
@@ -8376,7 +8341,7 @@
           "items": {
             "$ref": "#/$defs/did_core_id"
           },
-          "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle cell on a fresh basis before accepting ak.invite.claim."
+          "description": "Complete current allow-set of service DIDs trusted to attest 3PID ownership for ak.invite.third_party / ak.invite.claim. The array is whole-value replacement state in this policy-bundle revision, not an incremental patch. Absence and [] both deny every third-party invite verification service. Removing a DID in a later policy_revision revokes it for every later claim re-check; no separate tombstone exists. Reducers MUST evaluate the current accepted bundle typed current result on a fresh basis before accepting ak.invite.claim."
         }
       },
       "additionalProperties": false
@@ -8452,7 +8417,7 @@
     },
     "realm_set_default_strand_payload": {
       "type": "object",
-      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a cell head_eq precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts head_eq null and is only valid while the cell is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
+      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a typed current result head_eq precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts head_eq null and is only valid while the typed current result is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
       "required": [
         "realm_id",
         "strand_id"
@@ -8514,14 +8479,14 @@
       "required": [
         "relation"
       ],
-      "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered effect_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable cell value."
+      "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered effect_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable typed current result value."
     },
     "relation_id": {
       "$ref": "./agent-operations.schema.json#/$defs/relation_id"
     },
     "relation_resolve_payload": {
       "type": "object",
-      "description": "Payload for ak.relation.resolve, the single registered carrier that settles one Relation primary conflict domain. conflict_domain names the whole group and is the entire cell subject; baseline is the frozen data-plane completeness commitment the receiver independently rebuilds; outcome retains exactly one still-valid candidate head or voids the covered set. The Realm comes from the envelope. There is no free-form resolved_value, no new endpoint and no per-relation patch here: later content edits stay on ak.relation.update, and ending one Relation stays on ak.relation.tombstone.",
+      "description": "Payload for ak.relation.resolve, the single registered carrier that settles one Relation primary conflict domain. conflict_domain names the whole group and is the entire typed current result subject; baseline is the frozen data-plane completeness commitment the receiver independently rebuilds; outcome retains exactly one still-valid candidate head or voids the covered set. The Realm comes from the envelope. There is no free-form resolved_value, no new endpoint and no per-relation patch here: later content edits stay on ak.relation.update, and ending one Relation stays on ak.relation.tombstone.",
       "required": [
         "conflict_domain",
         "baseline",
@@ -8605,7 +8570,7 @@
       "properties": {
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/cell, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
         },
         "patch": {
           "allOf": [
@@ -8777,7 +8742,7 @@
     },
     "rsvp_entry": {
       "type": "object",
-      "description": "Complete RSVP cell value. The whole entry is the causal_register set value, so the deterministic winner carries the schedule source the responder observed plus the response itself.",
+      "description": "Complete RSVP typed current result value. The whole entry is the causal_register set value, so the deterministic winner carries the schedule source the responder observed plus the response itself.",
       "required": [
         "schedule_basis_refs"
       ],
@@ -8790,7 +8755,7 @@
           "items": {
             "$ref": "#/$defs/digest"
           },
-          "description": "The unique schedule revision winner the responder actually observed, retained in the existing array wire shape as exactly one event_digest. It MUST also appear in the envelope causal_refs[]."
+          "description": "The unique schedule revision winner the responder actually observed, retained in the existing array wire shape as exactly one event_digest. It MUST also appear in the envelope domain_refs[]."
         },
         "response": {
           "$ref": "#/$defs/rsvp_response",
@@ -8887,7 +8852,7 @@
     },
     "schema_define_state_payload": {
       "type": "object",
-      "description": "Schema definition payload. value is a JSON Schema 2020-12 document validated by the executable ak.validator.json_schema_2020_12_definition.v1 profile; value.$id is the stable definition cell subject.",
+      "description": "Schema definition payload. value is a JSON Schema 2020-12 document validated by the executable ak.validator.json_schema_2020_12_definition.v1 profile; value.$id is the stable definition typed current result subject.",
       "required": [
         "value"
       ],
@@ -9293,7 +9258,7 @@
       "additionalProperties": false
     },
     "realm_media_service_payload": {
-      "$comment": "Payload for ak.realm.media_service. The media descriptor lives under payload.value (a state_payload envelope), never flattened onto payload. This def is closed on purpose: the descriptor is the trust root for media token issuance (service_id, ice_config_endpoint and every foci[].token_endpoint per zh/crypto-media/media-service-binding.md section 2.1), and it was previously typed only as the open state_payload, which let a deployment carry provider-specific token issuer configuration inside a signed Realm policy cell while a spec-shaped consumer read nothing at all. Issuer configuration -- signing key ids, token audiences, TTLs, backend API credentials -- is deployment configuration of the service named by foci[].token_endpoint. It MUST NOT be carried here: putting it in the cell would make an issuer key rotation require a Realm policy Event holding ak.realm.media_service or ak.policy.manage capability, and would publish issuer internals to every Realm member. See zh/crypto-media/media-service-binding.md section 2.",
+      "$comment": "Payload for ak.realm.media_service. The media descriptor lives under payload.value (a state_payload envelope), never flattened onto payload. This def is closed on purpose: the descriptor is the trust root for media token issuance (service_id, ice_config_endpoint and every foci[].token_endpoint per zh/crypto-media/media-service-binding.md section 2.1), and it was previously typed only as the open state_payload, which let a deployment carry provider-specific token issuer configuration inside a signed Realm policy typed current result while a spec-shaped consumer read nothing at all. Issuer configuration -- signing key ids, token audiences, TTLs, backend API credentials -- is deployment configuration of the service named by foci[].token_endpoint. It MUST NOT be carried here: putting it in the typed current result would make an issuer key rotation require a Realm policy Event holding ak.realm.media_service or ak.policy.manage capability, and would publish issuer internals to every Realm member. See zh/crypto-media/media-service-binding.md section 2.",
       "type": "object",
       "required": [
         "value"
@@ -9405,7 +9370,7 @@
         "token_endpoint": {
           "type": "string",
           "pattern": "^https://[^\\s]+$",
-          "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact cell value against the current confirmed Seal state before anchoring it."
+          "description": "Token exchange endpoint (section 3). Shared abstraction across every backend; only backend_token differs. Part of the section 2.1 trust root, so a client MUST verify the exact typed current result value against the current confirmed RealmCommit state before anchoring it."
         },
         "connect_url": {
           "type": "string",
@@ -9825,7 +9790,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the causal_register value as 'list_space_id' on the cell at ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ak.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the causal_register value as 'list_space_id' on the typed current result at ak:result:ak.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ak.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -9982,7 +9947,7 @@
     },
     "strand_watch_set_payload": {
       "type": "object",
-      "description": "Payload for ak.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ak.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event whose payload access_kind=watch_set_others identifies writer / target / cell / before-after heads. See models/strand-and-message.md §8.4.",
+      "description": "Payload for ak.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch typed current result. The new typed current result value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ak.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event whose payload access_kind=watch_set_others identifies writer / target / typed current result / before-after heads. See models/strand-and-message.md §8.4.",
       "required": [
         "strand_id",
         "watcher_actor_id",
@@ -10007,7 +9972,7 @@
             "muted",
             null
           ],
-          "description": "Watch level. Required. null clears the cell (equivalent to mentions_only / no record); in that case level_public MUST be omitted."
+          "description": "Watch level. Required. null clears the typed current result (equivalent to mentions_only / no record); in that case level_public MUST be omitted."
         },
         "level_public": {
           "type": "boolean",
@@ -10046,7 +10011,7 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "description": "level_public MUST be omitted when level is null (clearing a cell does not carry a public-level setting).",
+          "description": "level_public MUST be omitted when level is null (clearing a typed current result does not carry a public-level setting).",
           "if": {
             "properties": {
               "level": {
@@ -10109,7 +10074,7 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/cell, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
         },
         "object": {
           "allOf": [
@@ -10148,7 +10113,7 @@
     },
     "view_reconcile_payload": {
       "type": "object",
-      "description": "Payload for ak.view.reconcile. view_id is the ak.component.view.reconcile.v1 cell subject; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
+      "description": "Payload for ak.view.reconcile. view_id is the ak.component.view.reconcile.v1 typed current result subject; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
       "required": [
         "view_id",
         "definition"

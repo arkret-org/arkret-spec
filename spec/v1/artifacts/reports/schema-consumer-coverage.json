@@ -47,7 +47,7 @@
       "event_kind": 3,
       "inbound": 51,
       "outbound": 62,
-      "prose": 104,
+      "prose": 103,
       "prose_only": 2,
       "schema_reference": 154,
       "startup_compile": 216,
@@ -164,6 +164,7 @@
     "ak.schema.registration_did_evidence.v1",
     "ak.schema.resource_discovery_state.v1",
     "ak.schema.resource_selector.v1",
+    "ak.schema.result_projection.v1",
     "ak.schema.sdk_conformance_claim.v1",
     "ak.schema.security_rotation_local_commit.v1",
     "ak.schema.service_describe.v1",
@@ -171,8 +172,7 @@
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
     "ak.schema.string_profiles.v1",
-    "ak.schema.time.v1",
-    "ak.schema.typed_current_result.v1"
+    "ak.schema.time.v1"
   ],
   "unresolved_vector_disposition": [],
   "schemas": [
@@ -1310,6 +1310,7 @@
           "ak.schema.relation.v1",
           "ak.schema.resource_discovery_state.v1",
           "ak.schema.resource_selector.v1",
+          "ak.schema.result_projection.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.search_service.v1",
           "ak.schema.security_rotation_local_commit.v1",
@@ -1324,7 +1325,6 @@
           "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
-          "ak.schema.typed_current_result.v1",
           "ak.schema.view.v1",
           "ak.schema.websocket_authenticate_frame.v1",
           "ak.schema.websocket_challenge_frame.v1",
@@ -3412,7 +3412,7 @@
         "owners": [
           "ak.schema.event_payload.v1",
           "ak.schema.resource_discovery_state.v1",
-          "ak.schema.typed_current_result.v1"
+          "ak.schema.result_projection.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -3454,7 +3454,6 @@
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
       "file": "schemas/recovery-authority.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
@@ -3600,6 +3599,24 @@
         "owners": [
           "ak.schema.applet_widget_declaration.v1",
           "ak.schema.capability.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      }
+    },
+    {
+      "schema_id": "ak.schema.result_projection.v1",
+      "file": "schemas/typed-current-result.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.account_current_result.v1",
+          "ak.schema.consent_operations.v1",
+          "ak.schema.realm_state_snapshot.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -4108,6 +4125,7 @@
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
           "ak.schema.resource_discovery_state.v1",
+          "ak.schema.result_projection.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.security_rotation_local_commit.v1",
           "ak.schema.security_transaction.v1",
@@ -4120,7 +4138,6 @@
           "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
-          "ak.schema.typed_current_result.v1",
           "ak.schema.view.v1",
           "ak.schema.websocket_authenticate_frame.v1",
           "ak.schema.websocket_challenge_frame.v1",
@@ -4159,24 +4176,6 @@
         "kind": "standalone_schema_alias",
         "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
         "normative_ref": "zh/sync/transport-bindings.md#7"
-      }
-    },
-    {
-      "schema_id": "ak.schema.typed_current_result.v1",
-      "file": "schemas/typed-current-result.schema.json",
-      "consumers": {
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.account_current_result.v1",
-          "ak.schema.consent_operations.v1",
-          "ak.schema.realm_state_snapshot.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
     },
     {

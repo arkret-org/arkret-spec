@@ -292,7 +292,7 @@
         "recipient_hpke_public_key": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url X25519 HPKE public key the requesting device controls and the responder seals to. It MUST be byte-identical to the hpke_key registered for from_device in the current accepted device projection. A responder MUST fail closed on any mismatch and MUST NOT accept an ephemeral key merely because it appeared in some other transcript; a verification checkpoint binds the device signing key and the accepted hpke_key, never an unverified sealing key."
+          "description": "base64url X25519 HPKE public key the requesting device controls and the responder encrypts to. It MUST be byte-identical to the hpke_key registered for from_device in the current accepted device projection. A responder MUST fail closed on any mismatch and MUST NOT accept an ephemeral key merely because it appeared in some other transcript; a verification checkpoint binds the device signing key and the accepted hpke_key, never an unverified encryption key."
         }
       },
       "additionalProperties": true
@@ -339,7 +339,7 @@
     },
     "secret_send_content": {
       "type": "object",
-      "description": "ak.secret.send to-device content (device-lifecycle.md §10.2). The existing authorized device returns the requested secret HPKE-sealed to the requester's recipient_hpke_public_key. The plaintext is never visible to the queue service.",
+      "description": "ak.secret.send to-device content (device-lifecycle.md §10.2). The existing authorized device returns the requested secret HPKE-committed to the requester's recipient_hpke_public_key. The plaintext is never visible to the queue service.",
       "required": [
         "request_id",
         "secret_id",
@@ -351,12 +351,12 @@
       "properties": {
         "request_id": {
           "$ref": "#/$defs/transaction_id",
-          "description": "Correlates to the pending ak.secret.request; MUST equal the request_id authenticated inside the sealed plaintext and HPKE AAD. Receivers MUST drop sends that do not match a locally pending request_id."
+          "description": "Correlates to the pending ak.secret.request; MUST equal the request_id authenticated inside the committed plaintext and HPKE AAD. Receivers MUST drop sends that do not match a locally pending request_id."
         },
         "secret_id": {
           "type": "string",
           "pattern": "^[a-z0-9_]+$",
-          "description": "Opaque requested secret identifier; MUST equal the secret_id authenticated inside the sealed plaintext and HPKE AAD."
+          "description": "Opaque requested secret identifier; MUST equal the secret_id authenticated inside the committed plaintext and HPKE AAD."
         },
         "from_device_id": {
           "$ref": "#/$defs/device_id",
@@ -373,7 +373,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. For this human-device-only secret branch, the HPKE AAD is the RFC 8785 JCS canonical JSON of {device_message_id, kind, sender_account_id, sender_device_id, recipient_account_id, recipient_device_id, request_id, secret_id, expires_at}; both AccountId objects are covered in full. expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned device_message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. For this human-device-only secret branch, the HPKE AAD is the RFC 8785 JCS canonical JSON of {device_message_id, kind, sender_account_id, sender_device_id, recipient_account_id, recipient_device_id, request_id, secret_id, expires_at}; both AccountId objects are covered in full. expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned device_message_id plus the one-time request_id authenticated inside the committed plaintext and AAD."
         }
       },
       "additionalProperties": true

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.5",
+  "version": "2026-09-16.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T12:15:00+08:00",
+  "generated_at": "2026-09-16T18:00:00+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -9,8 +9,7 @@
       "distinct_preimage"
     ],
     "allowed_status": [
-      "active",
-      "retired"
+      "active"
     ],
     "prose_binding": "spec/v1/zh/conformance/encoding.md#401-content-addressed-typed-ref-唯一表示normative",
     "machine_gate": "tools/artifact_lint:content_addressed_ref_sibling_digests",
@@ -58,10 +57,10 @@
         "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
         "digest_field": "accepted_device_possession_proof_digest",
         "content_addressed_refs": [
-          "covering_seal_id"
+          "covering_commit_id"
         ]
       },
-      "preimage": "SHA-256 of the exact canonical AcceptedDevicePossessionProof; not the covering Seal",
+      "preimage": "SHA-256 of the exact canonical AcceptedDevicePossessionProof; not the covering RealmCommit",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
@@ -73,10 +72,10 @@
         "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
         "digest_field": "blocking_proposal_digest",
         "content_addressed_refs": [
-          "covering_seal_id"
+          "covering_commit_id"
         ]
       },
-      "preimage": "Lexicographically smallest surviving pending proposal_digest; not the covering Seal",
+      "preimage": "Lexicographically smallest surviving pending proposal_digest; not the covering RealmCommit",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
@@ -88,10 +87,10 @@
         "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
         "digest_field": "intent_digest",
         "content_addressed_refs": [
-          "covering_seal_id"
+          "covering_commit_id"
         ]
       },
-      "preimage": "Immutable caller intent digest of the gated action; not the covering Seal",
+      "preimage": "Immutable caller intent digest of the gated action; not the covering RealmCommit",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
@@ -118,10 +117,10 @@
         "json_path": "$.$defs.audit_release_payload.properties",
         "digest_field": "policy_version_digest",
         "content_addressed_refs": [
-          "seal_ref"
+          "commit_ref"
         ]
       },
-      "preimage": "Digest of the audit policy version in force; not the Seal",
+      "preimage": "Digest of the audit policy version in force; not the RealmCommit",
       "spec_anchor": "spec/v1/zh/crypto-media/audited-e2ee.md"
     },
     {
@@ -133,10 +132,10 @@
         "json_path": "$.$defs.frontier_ref.properties",
         "digest_field": "frontier_digest",
         "content_addressed_refs": [
-          "seal_ref"
+          "commit_ref"
         ]
       },
-      "preimage": "Digest of the accepted frontier antichain; not the Seal id",
+      "preimage": "Digest of the accepted frontier antichain; not the RealmCommit id",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
@@ -148,10 +147,10 @@
         "json_path": "$.properties.frontier_ref.properties",
         "digest_field": "frontier_digest",
         "content_addressed_refs": [
-          "seal_ref"
+          "commit_ref"
         ]
       },
-      "preimage": "Digest of the accepted frontier antichain; not the Seal id",
+      "preimage": "Digest of the accepted frontier antichain; not the RealmCommit id",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
@@ -183,21 +182,6 @@
       },
       "preimage": "Digest of the Organization DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt_claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_sealsubmitoutcome_post_state_root.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/service-operation-dtos.schema.json",
-        "json_path": "$.$defs.SealSubmitOutcome.properties",
-        "digest_field": "post_state_root",
-        "content_addressed_refs": [
-          "seal_id"
-        ]
-      },
-      "preimage": "The accepted Seal's state_root field value; not the Seal id",
-      "spec_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_serviceregistrationreceipt_control_key_digest.v1",

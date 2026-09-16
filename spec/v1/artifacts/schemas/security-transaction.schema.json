@@ -282,8 +282,7 @@
         "backup_kind": {
           "type": "string",
           "enum": [
-            "secret_storage",
-            "mls_history"
+            "secret_storage"
           ]
         },
         "previous_series_id": {
@@ -606,8 +605,8 @@
         },
         "unit_event_digests": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
+          "minItems": 1,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -860,13 +859,13 @@
         },
         "backup_rotations": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
+          "minItems": 1,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/backup_rotation_plan"
           },
-          "description": "The canonical secret_storage then mls_history entries; each nested binding is the sole source of its reserved series and object references."
+          "description": "The single secret_storage entry; its nested binding is the sole source of the reserved series and object references."
         },
         "erase_confirmation_digest": {
           "$ref": "#/$defs/digest",

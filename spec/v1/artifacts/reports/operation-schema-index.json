@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.4",
+  "version": "2026-09-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T11:30:00+08:00",
+  "generated_at": "2026-09-16T18:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5945,7 +5945,6 @@
           "encryption_profile",
           "content_scheme",
           "mls_group_id",
-          "durability_policy",
           "state",
           "viewer_membership",
           "member_ids",
@@ -6086,7 +6085,6 @@
           "encryption_profile",
           "content_scheme",
           "mls_group_id",
-          "durability_policy",
           "state",
           "viewer_membership",
           "member_ids",

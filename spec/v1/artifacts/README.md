@@ -29,7 +29,7 @@ updated: 2026-05-25
 - `artifacts/bindings/non-http-bindings.yaml`
   - gRPC / WS / SSE / MQ / libp2p 等 binding extension profile 概要。
 - `artifacts/fixtures/*.json`
-  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、CBS/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
+  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、authority-commit/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
 - `artifacts/deployment-probes.json`
   - 部署层机器探针，覆盖 TLS 握手、运维 posture 等不属于 object-model conformance vector 的可验收要求。
 - `artifacts/reports/*`
@@ -87,13 +87,13 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 - active Event.kind 不得写成 `.vN` 版本化名称；core 文档不得残留旧 Room-scope 术语；硬编码 operation count 与占位章节号会被拦截
 - 选定完整对象示例的 schema required-field drift（见 `tools/artifact_lint/core.py::FULL_MARKDOWN_EXAMPLE_SCHEMAS`）
 - Markdown fenced JSON 可以用 ````json schema=schemas/<name>.schema.json` 声明 schema；lint 会对该 JSON 块运行 JSON Schema validation
-- `artifacts/fixtures/*.json` 可声明 `schema_validation_cases[]`，对 EventEnvelope、Seal、Cursor、Invite、ServiceDescribe 等核心对象执行正/负 schema validation
+- `artifacts/fixtures/*.json` 可声明 `schema_validation_cases[]`，对 EventEnvelope、RealmCommit、Cursor、Invite、ServiceDescribe 等核心对象执行正/负 schema validation
 - fixture 中的 canonical input、canonical bytes、digest 与 signature MUST 由上述参考脚本单向重算并由 lint 比对；不得手工维护互不闭合的 input / expected bytes / digest / signature，也不得只在 prose 中声明不可复算值。
 - 只验证 JSON Schema 形态、而不验证密码学 transcript 的 fixture MUST 声明 `fixture_kind="schema_only"`，并在 description 中明确占位 nonce / ciphertext / signature 不构成 cryptographic conformance vector。`fixture_kind="schema_only"` 的占位值不得被 release 文案宣传为真实加密、签名或 digest 向量。
 
 ### 2.1 JSON Schema 校验边界
 
-JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同时通过 Event Envelope schema、event-kind registry、active profile requirements、payload class、capability resolution、reducer precondition/projection 和 Seal/Lattice state 校验后，才能被实现当作协议有效。实现 MUST NOT 把单独的 `schemas/*.schema.json` 通过结果当作 security-sensitive event 的接受条件；schema-only validator 只能用于早期格式拒绝和开发期诊断。
+JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同时通过 Event Envelope schema、event-kind registry、active profile requirements、payload class、capability resolution、reducer precondition/projection 和 RealmCommit/Lattice state 校验后，才能被实现当作协议有效。实现 MUST NOT 把单独的 `schemas/*.schema.json` 通过结果当作 security-sensitive event 的接受条件；schema-only validator 只能用于早期格式拒绝和开发期诊断。
 
 ## 3. CI 要求
 
@@ -102,8 +102,8 @@ JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同
 
 ### 3.1 下游同步约定（normative）
 
-下游仓库（SDK、soland、cotest 等）从本仓 artifact 同步时，MUST 保持与 §1.3 同源真源一致的 payload shape 与 cell state metadata：
+下游仓库（SDK、soland、cotest 等）从本仓 artifact 同步时，MUST 保持与 §1.3 同源真源一致的 payload shape 与 typed current result state metadata：
 
 - 同步的真源是 `artifacts/` 下的 canonical schemas + `contract-registry.json` 及其派生 registry view；下游不得引入自己的第二套 event kind / schema namespace。
 - **禁止生成 `round*.rs` 一类“轮次文件”**：下游不得把每一次 spec 同步落成 `round1.rs` / `round2.rs` / `round_*.rs` 之类按导入轮次累加的文件。同步必须收敛为按对象 / 模块组织的稳定生成产物（每个 schema 或 registry 对应一个稳定命名的生成单元），使重复同步是幂等替换而非追加。
-- cell state metadata（`event-kind-registry.json` 的 `execution`、`state_model`、`value_shape`、`bottom`、`cell_family`、`cell_subject`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。
+- typed current result state metadata（`event-kind-registry.json` 的 `execution`、`state_model`、`value_shape`、`bottom`、`result_family`、`result_selector`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。

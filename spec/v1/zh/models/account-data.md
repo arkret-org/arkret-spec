@@ -14,7 +14,7 @@ updated: 2026-07-29
 
 本文是 principal/actor-private Account Data 的存储、寻址、加密与 key 派生单一真相源。标准 data type 与产品语义仍由消费方文档定义，并登记在 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。
 
-账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 cell 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `server_revision_cas`，不得猜测字段级 merge。
+账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 typed current result 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `server_revision_cas`，不得猜测字段级 merge。
 
 ## 2. Namespace key 与不透明寻址（normative）
 
@@ -37,7 +37,7 @@ registry 中 `storage="encrypted_account_data"` 的 value MUST 使用 `ak.schema
 
 account secret 属于 `secret_storage`，MUST 进入 key-backup / recovery lifecycle；不同 principal 与不同 `account_data_key` 的派生 key MUST 域隔离。
 
-AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id`、`account_data_key`、`schema`、`version`。该对象即本 domain 在 [`../conformance/encoding.md` §10.2](../conformance/encoding.md) 意义上的 **pre-encryption immutable header**：四个字段全部在 AEAD seal 前确定。Envelope 不携 `aad_digest`（[`../conformance/encoding.md` §10](../conformance/encoding.md) 的同 carrier AEAD 镜像禁令），也不携 `ciphertext_digest`：后者只是对同一 envelope 内密文的无密钥本地重算值，不能增加 AEAD 或签名认证能力，这一项是本 domain 的裁决而非 §10 通则。Consumer MUST 在解密前验证闭合 schema、AAD 的四个字段绑定（`actor_id` 归属、`account_data_key` 命名空间、`schema` 与 `version`）、canonical Base64URL、24-byte nonce 与至少包含 16-byte tag 的 ciphertext，再以 `RFC8785_JCS(aad)` 执行 AEAD open；tag 失败必须 fail closed，且不得以失败结果覆盖本地已验证状态。Server MAY 验证这些 envelope metadata，但 MUST NOT 获得 account secret、派生 key、AEAD 结果或明文。
+AEAD AAD 是 envelope `aad` 的 canonical JSON，且 MUST 精确包含 `actor_id`、`account_data_key`、`schema`、`version`。该对象即本 domain 在 [`../conformance/encoding.md` §10.2](../conformance/encoding.md) 意义上的 **pre-encryption immutable header**：四个字段全部在 AEAD authority commit 前确定。Envelope 不携 `aad_digest`（[`../conformance/encoding.md` §10](../conformance/encoding.md) 的同 carrier AEAD 镜像禁令），也不携 `ciphertext_digest`：后者只是对同一 envelope 内密文的无密钥本地重算值，不能增加 AEAD 或签名认证能力，这一项是本 domain 的裁决而非 §10 通则。Consumer MUST 在解密前验证闭合 schema、AAD 的四个字段绑定（`actor_id` 归属、`account_data_key` 命名空间、`schema` 与 `version`）、canonical Base64URL、24-byte nonce 与至少包含 16-byte tag 的 ciphertext，再以 `RFC8785_JCS(aad)` 执行 AEAD open；tag 失败必须 fail closed，且不得以失败结果覆盖本地已验证状态。Server MAY 验证这些 envelope metadata，但 MUST NOT 获得 account secret、派生 key、AEAD 结果或明文。
 
 ## 4. 文档放置规则
 

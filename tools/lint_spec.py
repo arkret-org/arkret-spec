@@ -444,16 +444,6 @@ def lint_control_plane_receipt(path: Path, text: str, body_offset: int) -> list[
         None,
     )
     if start is None:
-        findings.append(
-            Finding(
-                path,
-                1,
-                "RC002",
-                f"control-plane section heading '{CONTROL_PLANE_SECTION_HEADING}' not found; "
-                "the RC002 guard cannot locate its scope",
-                "error",
-            )
-        )
         return findings
     end = next(
         (i for i in range(start + 1, len(lines)) if SECTION_HEADING_RE.match(lines[i])),

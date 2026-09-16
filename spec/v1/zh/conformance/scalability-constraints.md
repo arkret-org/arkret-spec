@@ -16,7 +16,7 @@ see_also:
 
 ## 1. 目标
 
-本文件限制 parser、authority admission、逐 stream复制、snapshot、projection 与 MLS transaction 的最坏成本。Seal、Cell、CBS、actor-chain 与 history-key 的旧预算不再是 v1 合同。
+本文件限制 parser、authority admission、逐 stream 复制、snapshot、projection 与 MLS transaction 的最坏成本。
 
 ## 2. 通用 Wire 上限
 
@@ -44,7 +44,7 @@ Event canonical bytes、operation canonical body、HTTP wire bytes 是三个独�
 
 #### 2.1.1 Event（1 MiB）
 
-测量完整 producer-signed Event canonical JSON。Event没有 `unsigned`、`actor_seq`、`prev_refs`、`causal_refs`、`auth_context`、`preconditions`、`seal_basis` 或 `requirements`。
+测量完整 producer-signed Event canonical JSON。Event没有 `unsigned`、`producer_revision`、`domain_refs`、`domain_refs`、`auth_context`、`preconditions`、`authority_revision` 或 `requirements`。
 
 #### 2.1.2 JSON operation canonical body（8 MiB）
 
@@ -93,9 +93,9 @@ Event canonical bytes、operation canonical body、HTTP wire bytes 是三个独�
 
 授权缓存必须绑定 current authority generation与领域 revision。相关 committed state变化后立即失效。
 
-## 4. CBS / Lattice 上限
+## 4. Authority commit 上限
 
-CBS/Lattice 已退役；本节锚点保留供旧引用跳转。现行 authority-commit预算如下：
+Authority commit 预算如下：
 
 | 项 | 上限 | 规则 |
 | --- | ---: | --- |
@@ -107,9 +107,9 @@ CBS/Lattice 已退役；本节锚点保留供旧引用跳转。现行 authority-
 | snapshot manifest streams | 11,001 | Realm + 上述 Circle/Sidecar理论上限；只返回 caller获准的 streams。 |
 | handoff manifest streams | 同上 | 私有传输覆盖全部 stream heads，不公开隐藏 stream。 |
 
-### 4.1 Progressive CBS Backfill Profile
+### 4.1 Progressive authority-commit Backfill Profile
 
-旧 profile 已退役；现行渐进恢复固定为：验证 current authority bundle → 验证 typed snapshot → 对每条获准 stream从 snapshot head逐 position补 tail。单条 stream失败不允许从其它 stream猜测缺失 Commit，也不阻塞无关 stream。
+渐进恢复固定为：验证 current authority bundle → 验证 typed snapshot → 对每条获准 stream 从 snapshot head 逐 position 补 tail。单条 stream 失败不允许从其它 stream 推测缺失 Commit，也不阻塞无关 stream。
 
 ## 5. Space / Relation / View 上限
 
@@ -132,7 +132,7 @@ CBS/Lattice 已退役；本节锚点保留供旧引用跳转。现行 authority-
 | MLS Welcome deliveries / submission | 1,000 | 与 `ak.mls.commit`原子全成或全败。 |
 | Welcome ciphertext | 1 MiB | 每 recipient独立测量。 |
 | MLS public tree material | 8 MiB | 更大材料走内容寻址 Blob。 |
-| epoch gap直接恢复 | 32 | 更大 gap用 snapshot/public-state+range读取，不用 history-key。 |
+| epoch gap 恢复 | 32 | 更大 gap 使用 snapshot/public-state 与已持有的本地 MLS state；服务器不交付 epoch secret。 |
 | active push routes / device | 16 | Account-private delivery限制。 |
 
 ### 6.1 身份、邀请与推送隐私窗口
@@ -145,9 +145,9 @@ Invite/Directory只返回有界 authority locator。Push payload不携成员表�
 
 Snapshot SHOULD 至少保留当前和一个前代有效 manifest。Planned handoff snapshot必须覆盖全部 stream heads、current typed state、Event/Commit/stub幂等索引、replication outbox和MLS public/Welcome queue；不得包含 member private keys。
 
-### 7.1 内建 cell plane 的 v1 限制
+### 7.1 Current result 的边界
 
-Cell plane 已退役；本节锚点保留。实现内部数据库表与索引不是 wire Cell，不得向 Event、snapshot、query或proof暴露 `CellRef`、state model、dot、root或通用 lattice operation。
+实现内部数据库表与索引不是 wire contract。Event、snapshot、query 与 proof 只暴露各领域 schema 明确定义的 typed result，不暴露通用 state model、dot、root 或 lattice operation。
 
 ## 8. 错误语义
 
@@ -155,7 +155,7 @@ Cell plane 已退役；本节锚点保留。实现内部数据库表与索引不
 
 ### Welcome 收件人发现窗口
 
-Welcome通过 recipient-scoped `MlsWelcomeDelivery` queue读取，默认 page 20、最大 100，按 `welcome_id`幂等并显式ACK。它不再是 Realm Event，也不通过 Seal或history-key索引发现。
+Welcome 通过 recipient-scoped `MlsWelcomeDelivery` queue 读取，默认 page 20、最大 100，按 `welcome_id` 幂等并显式 ACK。
 
 ### 8.1 self operation 预算与通用错误
 

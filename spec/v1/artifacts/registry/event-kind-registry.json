@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.2",
+  "version": "2026-09-16.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T09:00:00+08:00",
+  "generated_at": "2026-09-16T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -93,7 +93,7 @@
     "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry and resolve to exactly one closed payload schema.",
     "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm, Circle, or Sidecar stream.",
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
-    "Event has no actor sequence, predecessor, causal-reference, authorization-context, Seal basis, Cell write, CBS proof, or history-key field. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
+    "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams."
   ],
   "payload_schema_contract": {
@@ -201,7 +201,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent signing-key revocation. The current governance Station verifies the controller and active key, then commits the exact Event on its authority stream; the payload carries no Seal or authorization basis.",
+      "payload": "Agent signing-key revocation. The current governance Station verifies the controller and active key, then commits the exact Event on its authority stream; the payload carries no RealmCommit or authorization basis.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_revoke_payload",
       "id_source": "not_an_object_id"
     },
@@ -215,9 +215,9 @@
       "admission": "self_authored_proof",
       "admission_checks": [
         "payload.created_at equals envelope.created_at byte-for-byte; the accountability projection derives not_before from the envelope, so two signed times must not disagree",
-        "payload.accountability_scope normalizes to the same string set the cell subject digests, so this projection and a later ak.identity.accountability_grant address one cell"
+        "payload.accountability_scope normalizes to the same string set the typed current result subject digests, so this projection and a later ak.identity.accountability_grant address one typed current result"
       ],
-      "payload": "Controller-authored Agent Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim cells; no nested payload proof or partial two-Event state is valid. The declared Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
+      "payload": "Controller-authored Agent Agent provisioning fact. One Event proof binds the allocated Agent DID, the forward-declared Agent PCR realm id, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability, selector and realm-id-claim typed results; no nested payload proof or partial two-Event state is valid. The declared Agent PCR genesis arrives in a later separate submission whose admission reverse-looks-up this declaration.",
       "payload_schema_ref": "schemas/agent-provision.schema.json",
       "id_source": "reference"
     },
@@ -229,7 +229,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Controller-signed bind or explicit null-target unbind for one controller/agent_slug sequenced_state Cell in the controller PCR. A bound target is a complete AccountId. Unbind source_refs identify the exact confirmed bind/provision predecessor. Competing commands check relevant revisions in confirmed order; stale commands are rejected, never joined as ambiguous security heads.",
+      "payload": "Controller-signed bind or explicit null-target unbind for one controller/agent_slug sequenced_state typed current result in the controller PCR. A bound target is a complete AccountId. Unbind source_refs identify the exact confirmed bind/provision predecessor. Competing commands check relevant revisions in confirmed order; stale commands are rejected, never joined as ambiguous security heads.",
       "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
       "id_source": "not_an_object_id"
     },
@@ -380,12 +380,12 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Release and close execute in confirmed command order; confirmed close rejects a later release and an earlier release changes the log revision checked by close. A release targeting the current active MLS epoch MUST be rejected with reason audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.4 / §5.2.",
+      "payload": "committed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or committed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; committed epoch releases must reference sealed_by_commit_ref. Release and close execute in confirmed command order; confirmed close rejects a later release and an earlier release changes the log revision checked by close. A release targeting the current active MLS epoch MUST be rejected with reason audit_release_current_epoch_forbidden. See zh/crypto-media/audited-e2ee.md §4.4 / §5.2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_release_payload",
       "parameters": {
         "required_session_state": "notice",
         "ordered_close_vs_release": "confirmed_close_blocks_release_prior_release_stales_close",
-        "within_seal_order": "command_results_order"
+        "within_commit_order": "command_results_order"
       },
       "id_source": "event_derived",
       "id_kind": "audit_release",
@@ -561,7 +561,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5. A create that binds durability_policy.mode != none onto a scope whose content_scheme is not mls_exporter_aead_v1 MUST be rejected with failed_precondition reason=durability_scheme_incompatible. See zh/models/realm-and-space.md §2.3.1.",
+      "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes an independent MLS group and epoch-0 governance binding when encryption_profile=mls_rfc9420.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
       "id_source": "event_derived",
       "id_kind": "circle"
@@ -617,7 +617,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle metadata patch (ak.schema.patch.v1). history_access, realm_id, encryption_profile, content_scheme, durability_policy and MLS identity fields are forbidden; history_access uses ak.circle.history_access.",
+      "payload": "Circle metadata patch. history_access, realm_id, encryption_profile, content_scheme and MLS identity fields are create-locked.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
       "id_source": "reference"
     },
@@ -641,7 +641,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Revoke a previously granted consent (shares the ak.consent.grant cell; semantically a remove on the confirmed consent tagged set)",
+      "payload": "Revoke a previously granted consent (shares the ak.consent.grant typed current result; semantically a remove on the confirmed consent tagged set)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/consent_revoke_payload",
       "id_source": "not_an_object_id"
     },
@@ -773,7 +773,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "pcr_recovery",
-      "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact account-local lineage. It fences the old PCR generation against the complete accepted Seal frontier. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
+      "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact account-local lineage. It fences the old PCR generation against the complete accepted RealmCommit frontier. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
       "id_source": "not_an_object_id"
     },
@@ -798,7 +798,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Participant endorsement of settled Direct Conversation coordinates and the first exact-pair state of the one scope-derived MLS group. Written once and never retired; later group state advances only by ordinary Commit.",
+      "payload": "Participant endorsement of settled Direct Conversation coordinates and the first exact-pair state of the one scope-derived MLS group. Immutable after the first accepted write; later group state advances only by ordinary Commit.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
       "id_source": "not_an_object_id"
     },
@@ -838,7 +838,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one head_eq guard for ak:cell:ak.component.identity.resolution.v1:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
+      "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one head_eq guard for ak:result:ak.component.identity.resolution.v1:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
       "id_source": "not_an_object_id"
     },
@@ -860,7 +860,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite cancel. Directed invites only: the Move terminates the invite (rejected or revoked) and atomically releases the ak.component.invite.live_target.v1 slot keyed by canonical_json(payload.invitee_account_id), carrying that cell's head_eq precondition equal to the stored create_event_id.",
+      "payload": "Invite cancel. Directed invites only: the Move terminates the invite (rejected or revoked) and atomically releases the ak.component.invite.live_target.v1 slot keyed by canonical_json(payload.invitee_account_id), carrying that typed current result's head_eq precondition equal to the stored create_event_id.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_cancel_payload",
       "id_source": "reference"
     },
@@ -878,7 +878,7 @@
         "match pending ak.invite.third_party by invite_id and token_commitment",
         "re-check verification_id against current effective Realm allowlist",
         "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
-        "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
+        "transition invite typed current result pending -> claimed and materialize subject-bound membership proposal",
         "reject with expired_invite_token when expires_at <= claim Event.created_at without shared-state writes; expiration requires a separate authorized ak.invite.revoke Control Move"
       ],
       "conformance_vectors": [
@@ -895,7 +895,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Move atomically claims the Realm live-target slot ak.component.invite.live_target.v1 keyed by canonical_json(payload.invitee_account_id) and MUST carry that cell's head_eq null precondition; a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
+      "payload": "Invite create. Directed v1 genesis payloads carry the exact invitee_account_id, introduction_evidence_digest and expires_at; the Invite ID is derived from this Event. Delivery resolves invitee_account_id.station_id outside durable Realm state. Raw locator tokens, route material and invite_receive_policy state MUST NOT enter the durable Realm event. The Move atomically claims the Realm live-target slot ak.component.invite.live_target.v1 keyed by canonical_json(payload.invitee_account_id) and MUST carry that typed current result's head_eq null precondition; a second live directed invite for the same account is rejected with failed_precondition and reason_code invite_live_target_occupied, writes nothing and does not enter canonical history.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_create_payload",
       "id_source": "event_derived",
       "id_kind": "invite"
@@ -1068,7 +1068,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS commit The governance_binding MUST NOT change content_scheme after Genesis; such a Commit MUST be rejected with reason=mls_content_scheme_immutable. A Commit whose governance_binding drifts the create-fixed durability_policy onto a scope whose content_scheme is not mls_exporter_aead_v1 MUST be rejected with reason=durability_scheme_incompatible. See zh/models/realm-and-space.md §2.3.1.",
+      "payload": "MLS commit. governance_binding MUST keep the Genesis-fixed content_scheme and bind the current key_access_revision.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_payload",
       "id_source": "not_an_object_id"
     },
@@ -1090,7 +1090,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
+      "payload": "committed moderation decision (writes ak.component.moderation_state.v1 typed current result)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_payload",
       "id_source": "not_an_object_id"
     },
@@ -1101,7 +1101,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
+      "payload": "Lift a previously committed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_decision_lift_payload",
       "id_source": "not_an_object_id"
     },
@@ -1113,7 +1113,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "crypto_verifiable",
-      "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 cell subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
+      "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 typed current result subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
       "payload_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
       "id_source": "reference"
     },
@@ -1296,7 +1296,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution cell is the sole write authority for that materialized projection.",
+      "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution typed current result is the sole write authority for that materialized projection.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
       "id_source": "reference"
     },
@@ -1612,7 +1612,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enabled Realm policy components set, written wholesale into the sequenced_state cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
+      "payload": "Enabled Realm policy components set, written wholesale into the sequenced_state typed current result (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "id_source": "not_an_object_id"
     },
@@ -1745,12 +1745,12 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Single registered carrier that settles one Relation primary conflict domain. The ordinary causal repair Event retains exactly one still-valid candidate head of the covered group or voids the covered set after proving it observed the complete conflict domain; and ak.relation.update / ak.relation.tombstone each address one Relation and therefore cannot prove the author covered the complete head set. payload.conflict_domain is the whole cell subject, payload.baseline is the frozen data-plane completeness commitment the receiver rebuilds independently, and payload.outcome is closed to retain_candidate or void_all. The Event writes only the registered group ordinary causal cell; Relation content stays on its own data cells and the active-edge projection reads both.",
+      "payload": "Single registered carrier that settles one Relation primary conflict domain. The ordinary causal repair Event retains exactly one still-valid candidate head of the covered group or voids the covered set after proving it observed the complete conflict domain; and ak.relation.update / ak.relation.tombstone each address one Relation and therefore cannot prove the author covered the complete head set. payload.conflict_domain is the whole typed current result subject, payload.baseline is the frozen data-plane completeness commitment the receiver rebuilds independently, and payload.outcome is closed to retain_candidate or void_all. The Event writes only the registered group ordinary causal typed current result; Relation content stays on its own data typed results and the active-edge projection reads both.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_resolve_payload",
       "admission": "capability_gated",
       "admission_checks": [
         "conflict_domain resolves to a directly writable relation-kind-registry.json shape whose registered primary_conflict_domain equals conflict_domain.domain_kind; a derived_projection shape is rejected with schema_violation (reason=relation_kind_contains_derived or relation_kind_watches_derived)",
-        "the receiver rebuilds the complete active candidate head set of the domain from its own accepted Relation history under this Move's frozen predecessor view, recomputes the chained commitment of zh/models/relation.md section 6.3, and requires byte equality with payload.baseline.members_digest and payload.baseline.member_count; a missing member, a superseded head, a duplicate, a foreign-domain member or any later group change rejects the Move with failed_precondition reason=relation_conflict_baseline_stale and zero cell writes",
+        "the receiver rebuilds the complete active candidate head set of the domain from its own accepted Relation history under this Move's frozen predecessor view, recomputes the chained commitment of zh/models/relation.md section 6.3, and requires byte equality with payload.baseline.members_digest and payload.baseline.member_count; a missing member, a superseded head, a duplicate, a foreign-domain member or any later group change rejects the Move with failed_precondition reason=relation_conflict_baseline_stale and zero typed current result writes",
         "when payload.baseline.member_event_ids is present it MUST equal that rebuilt set element by element in canonical bytewise-ascending order; member_count above 64 omits the inline list and is proven by members_digest alone, and the ordinary 16-head diagnostic bound MUST NOT be applied to this evidence",
         "a retain_candidate outcome names a retained_event_id that belongs to this Move's own baseline; a name outside the covered set is rejected with failed_precondition reason=relation_conflict_baseline_stale",
         "the actor independently holds the registered ak.relation.resolve capability over every candidate in the covered group and its scope; holding ak.relation.update on one member never authorizes adjudicating the others",
@@ -2065,7 +2065,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Rank-only causal update of the same placement cell as ak.strand.move. The signed basis list_space_id must match the projected list_space_id; concurrent writes select the fixed causal-register (depth,EventId) winner while losing Events remain historical provenance. This ordinary placement never grants scope access.",
+      "payload": "Rank-only causal update of the same placement typed current result as ak.strand.move. The signed basis list_space_id must match the projected list_space_id; concurrent writes select the fixed causal-register (depth,EventId) winner while losing Events remain historical provenance. This ordinary placement never grants scope access.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_reorder_payload",
       "id_source": "reference"
     },
@@ -2120,7 +2120,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a causal_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a causal_register typed current result keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this typed current result, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_watch_set_payload",
       "id_source": "reference"
     },
@@ -2164,7 +2164,7 @@
       "server_revision_cas": "Whole-value compare-and-set on expected_revision; accepted revision increments by one and the revision high-water mark survives tombstone GC.",
       "causal_then_hlc_then_device": "Causal dominance wins; only causally incomparable positions compare HLC, and only equal HLC values compare device_id lexicographically."
     },
-    "cell_families": {
+    "result_families": {
       "ak.private.account.blocklist.v1": {
         "merge": "server_revision_cas",
         "tombstone": "value_tombstone"
@@ -2223,8 +2223,8 @@
     },
     "event_writes": {
       "ak.agent.draft.propose": {
-        "cell_family": "ak.private.agent.draft.v1",
-        "cell_subject": {
+        "result_family": "ak.private.agent.draft.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             "payload.agent_id",
@@ -2242,8 +2242,8 @@
         }
       },
       "ak.agent.action_request": {
-        "cell_family": "ak.private.agent.draft.v1",
-        "cell_subject": {
+        "result_family": "ak.private.agent.draft.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             "payload.agent_id",
@@ -2261,8 +2261,8 @@
         }
       },
       "ak.agent.action_reject": {
-        "cell_family": "ak.private.agent.draft.v1",
-        "cell_subject": {
+        "result_family": "ak.private.agent.draft.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             "payload.agent_id",
@@ -2280,8 +2280,8 @@
         }
       },
       "ak.account.blocklist": {
-        "cell_family": "ak.private.account.blocklist.v1",
-        "cell_subject": {
+        "result_family": "ak.private.account.blocklist.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             {
@@ -2298,8 +2298,8 @@
         }
       },
       "ak.account_data.set": {
-        "cell_family": "ak.private.account_data.v1",
-        "cell_subject": {
+        "result_family": "ak.private.account_data.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             {
@@ -2317,8 +2317,8 @@
         }
       },
       "ak.device.push_route": {
-        "cell_family": "ak.private.device.push_route.v1",
-        "cell_subject": {
+        "result_family": "ak.private.device.push_route.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             {
@@ -2337,8 +2337,8 @@
         }
       },
       "ak.read_cursor.advance": {
-        "cell_family": "ak.private.read_cursor.v1",
-        "cell_subject": {
+        "result_family": "ak.private.read_cursor.v1",
+        "result_selector": {
           "kind": "composite",
           "components": [
             {
@@ -2358,62 +2358,6 @@
       }
     }
   },
-  "history_admission_contract": {
-    "applies_to": "Every shared durable Event; private Events remain in their registered private surface.",
-    "consumer_contexts": [
-      "federation",
-      "backfill",
-      "shared_read",
-      "reducer_input"
-    ],
-    "default": "independent_receiver_verification",
-    "selection": "Select exactly one registered admission branch. A syntax match is not authorization. Validate the original producer signature and complete portable signer, authority and causal dependencies at every receiving Station. Missing dependencies remain pending.",
-    "required_evidence": [
-      "original_producer_proof",
-      "portable_signer_authorization",
-      "signed_authority_context",
-      "causal_dependencies"
-    ],
-    "ordinary_event": {
-      "finality": "local_durable_acceptance",
-      "requires_origin_signature": false,
-      "requires_new_seal": false,
-      "seal_age_expires_authority": false,
-      "history": "deterministic_authorization_closure"
-    },
-    "security_event": {
-      "finality": "unique_scoped_seal_decision",
-      "history": "confirmed_command_and_exact_frozen_dependencies"
-    },
-    "native_admission_classes": [
-      "registration_anchor",
-      "delegated_pcr_genesis",
-      "applet_managed_pcr_genesis",
-      "pcr_recovery",
-      "direct_conversation_genesis",
-      "direct_conversation_agent_genesis",
-      "self_authored_proof",
-      "sidecar_account_self_authored_proof",
-      "service_attested",
-      "crypto_verifiable"
-    ],
-    "receipt_authorizes_event": false,
-    "history_inputs": [
-      "verified_event_identity",
-      "verified_producer_authority",
-      "signed_causal_dependencies",
-      "confirmed_security_prefixes",
-      "applicable_closure_evidence"
-    ],
-    "history_forbidden_inputs": [
-      "receiver_arrival_order",
-      "receiver_current_wall_clock",
-      "storage_receipt_signer"
-    ],
-    "live_gate": "Receiver-known revocation and scope closure atomically serialize with new local admission. Unknown revocation has a propagation window; historical replay never triggers a new live side effect.",
-    "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_history_event",
-    "consumer_schema_bindings": []
-  },
   "bootstrap_event_kinds": [
     "ak.device.authorize",
     "ak.device.reanchor",
@@ -2427,5 +2371,36 @@
     "ak.realm.policy_bundle",
     "ak.realm.profile",
     "ak.strand.create"
-  ]
+  ],
+  "authority_commit_admission_contract": {
+    "applies_to": "Every shared durable Event accepted into a Realm, Circle, or Sidecar authority stream.",
+    "consumer_contexts": [
+      "backfill",
+      "shared_read",
+      "reducer_input"
+    ],
+    "selection": "The current governance Station selects exactly one registered admission branch and evaluates it at the target stream head.",
+    "required_evidence": [
+      "original_producer_proof",
+      "current_authority_generation",
+      "current_authorization_and_policy",
+      "typed_domain_invariants",
+      "matching_realm_commit"
+    ],
+    "native_admission_classes": [
+      "registration_anchor",
+      "delegated_pcr_genesis",
+      "applet_managed_pcr_genesis",
+      "pcr_recovery",
+      "direct_conversation_genesis",
+      "direct_conversation_agent_genesis",
+      "self_authored_proof",
+      "sidecar_account_self_authored_proof",
+      "service_attested",
+      "crypto_verifiable"
+    ],
+    "acceptance": "A consumer accepts the Event only with a valid RealmCommit in the derived stream and a continuous authority-generation chain.",
+    "schema_projection": "schemas/event-envelope.schema.json#/$defs/authority_committed_event",
+    "consumer_schema_bindings": []
+  }
 }

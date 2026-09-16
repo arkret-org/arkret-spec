@@ -20,11 +20,9 @@
     "ak.vector.scalability.read_unsigned_size_limit.v1",
     "ak.vector.scalability.http_header_limits.v1",
     "ak.vector.scalability.batch_page_limits.v1",
-    "ak.vector.scalability.sibling_fork_limits.v1",
     "ak.vector.scalability.object_control_limits.v1",
     "ak.vector.scalability.capability_limits.v1",
     "ak.vector.scalability.cursor_selector_limits.v1",
-    "ak.vector.scalability.mls_governance_proof_bounds.v1",
     "ak.vector.patch.path_grammar_bounds.v1"
   ],
   "cases": [
@@ -171,40 +169,6 @@
         "decision": "reject",
         "error_code": "schema_violation",
         "must_not_partially_accept": true
-      }
-    },
-    {
-      "name": "quarantine_single_bucket_sibling_fork_17",
-      "vector_id": "ak.vector.scalability.sibling_fork_limits.v1",
-      "given_state": {
-        "generator": {
-          "kind": "sibling_forks",
-          "same_prev_frontier_digest": true,
-          "count": 17
-        }
-      },
-      "expected": {
-        "decision": "quarantine",
-        "repair_required": true,
-        "effects_removed": true
-      }
-    },
-    {
-      "name": "quarantine_cross_bucket_sibling_fork_65",
-      "vector_id": "ak.vector.scalability.sibling_fork_limits.v1",
-      "given_state": {
-        "generator": {
-          "kind": "sibling_forks",
-          "same_actor_sequence": true,
-          "distinct_prev_frontier_digests": true,
-          "count": 65
-        }
-      },
-      "expected": {
-        "decision": "quarantine_entire_actor_sequence_height",
-        "repair_required": true,
-        "effects_removed": true,
-        "accepted_seal_finality_preserved": true
       }
     }
   ]

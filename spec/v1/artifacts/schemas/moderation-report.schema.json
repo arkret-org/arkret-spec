@@ -56,7 +56,7 @@
                   },
                   {
                     "required": [
-                      "seal_basis"
+                      "authority_revision"
                     ]
                   },
                   {
@@ -73,7 +73,7 @@
           ]
         }
       ],
-      "description": "Direct-holder signed ak.self.moderation.report Event. The current governance Station resolves current authorization and scope, then commits the exact Event or rejects it; the request carries no Seal, Cell, predecessor or caller-selected authorization basis."
+      "description": "Direct-holder signed ak.self.moderation.report Event. The current governance Station resolves current authorization and scope, then commits the exact Event or rejects it; the request carries no RealmCommit, typed current result, predecessor or caller-selected authorization basis."
     },
     "moderation_report_request_body": {
       "type": "object",

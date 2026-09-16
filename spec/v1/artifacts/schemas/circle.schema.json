@@ -119,14 +119,6 @@
       "pattern": "^[A-Za-z0-9_-]+$",
       "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId)). Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
     },
-    "durability_policy": {
-      "type": "string",
-      "enum": [
-        "none",
-        "organization_recovery_key"
-      ],
-      "description": "Create/Genesis-locked exporter durability policy. Required exactly for mls_exporter_aead_v1; absent otherwise."
-    },
     "state": {
       "type": "string",
       "enum": [
@@ -177,44 +169,6 @@
       "if": {
         "properties": {
           "encryption_profile": {
-            "const": "none"
-          }
-        },
-        "required": [
-          "encryption_profile"
-        ]
-      },
-      "then": {
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "content_scheme"
-              ]
-            },
-            {
-              "required": [
-                "mls_group_id"
-              ]
-            },
-            {
-              "required": [
-                "durability_policy"
-              ]
-            }
-          ]
-        },
-        "properties": {
-          "content_encryption_floor": {
-            "const": "allow_plaintext"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "encryption_profile": {
             "const": "mls_rfc9420"
           }
         },
@@ -225,47 +179,6 @@
       "then": {
         "required": [
           "content_scheme"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "content_scheme": {
-            "const": "mls_rfc9420"
-          }
-        },
-        "required": [
-          "content_scheme"
-        ]
-      },
-      "then": {
-        "properties": {
-          "history_access": {
-            "const": "since_join"
-          }
-        },
-        "not": {
-          "required": [
-            "durability_policy"
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "content_scheme": {
-            "const": "mls_exporter_aead_v1"
-          }
-        },
-        "required": [
-          "content_scheme"
-        ]
-      },
-      "then": {
-        "required": [
-          "durability_policy"
         ]
       }
     },
@@ -378,7 +291,7 @@
                 "diamond",
                 "flame",
                 "leaf",
-                "seal",
+                "authority commit",
                 "compass",
                 "atom",
                 "bolt",

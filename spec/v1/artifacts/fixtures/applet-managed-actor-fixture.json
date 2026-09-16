@@ -146,11 +146,11 @@
     {
       "name": "pcr_genesis_materializes_resolution_and_history_only",
       "mutation": "none",
-      "expect_cells": [
+      "expect_results": [
         "ak.component.identity.resolution.v1",
         "ak.component.realm.history_access.v1=since_join"
       ],
-      "forbid_cells": [
+      "forbid_results": [
         "ak.component.agent.status.v1"
       ]
     },
@@ -172,7 +172,7 @@
     {
       "name": "rotation_keeps_creation_anchor",
       "mutation": "accept ordinary resolution.update with exact PCR realm, head_eq successor and a separate active grant whose action/resource/registration epoch cover ak.identity.resolution.update",
-      "expect": "current_cell_changes_business_anchor_unchanged"
+      "expect": "current_result_changes_business_anchor_unchanged"
     },
     {
       "name": "rotation_cannot_reuse_creation_only_grant",
@@ -221,7 +221,7 @@
     },
     {
       "name": "delegated_device_authorize_requires_signer_resolution_evidence_ref",
-      "mutation": "omit proof.signer_resolution_evidence_ref and resolve the managed controller method through a unit-local candidate overlay instead of the accepted resolution cell",
+      "mutation": "omit proof.signer_resolution_evidence_ref and resolve the managed controller method through a unit-local candidate overlay instead of the accepted resolution typed current result",
       "expect": "schema_violation"
     },
     {

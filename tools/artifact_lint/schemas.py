@@ -4328,7 +4328,6 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         "principal_resolution_record",
         "service_resolution",
         "did_method_evidence",
-        "ephemeral_pairwise_mls_credential",
         "third_party_proof",
         "ordinary_identity_reference",
     }
@@ -4415,7 +4414,6 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     expected_types = {
         "ArkretService",
         "ArkretGovernanceService",
-        "ArkretRealmHistoryRecoveryKey",
         "ArkretManagedPrincipalController",
         "ArkretPrincipalControlRealm",
     }

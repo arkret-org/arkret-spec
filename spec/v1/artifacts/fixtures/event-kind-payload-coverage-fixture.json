@@ -38,7 +38,7 @@
       }
     },
     {
-      "name": "realm_discovery_rejects_retired_second_preview_policy",
+      "name": "realm_discovery_rejects_duplicate_preview_policy",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_discovery_payload",
       "expect_valid": false,
       "first_expected_error": "contains:preview",

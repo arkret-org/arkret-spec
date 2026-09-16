@@ -28,7 +28,7 @@
         "signature_algorithm": "Ed25519",
         "signature": "hLXwGU8ELBsXn2rFAUAyleImljqXJ1LFji71-xawSqnu8F9KKsQ8OFLQiwlYpIT4wbVcTChlzMQE7KuSaz5VBg"
       },
-      "removed_signature_carriers": [
+      "forbidden_signature_carriers": [
         "signature"
       ],
       "transcript": {
@@ -98,7 +98,7 @@
         "unlock_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "signature": "Pzl_tIhY5RS0tR7Uy3AbGyw9zuIY3ha1QrbB32WF3dNpqP0r99NPKuF7eejoob-i1vsmTAygUa-63jh7MeGQAw"
       },
-      "removed_signature_carriers": [
+      "forbidden_signature_carriers": [
         "signature",
         "unlock_commitment"
       ],
@@ -193,7 +193,7 @@
           }
         ]
       },
-      "removed_signature_carriers": [
+      "forbidden_signature_carriers": [
         "signatures/*/signature"
       ],
       "transcript": {
@@ -297,7 +297,7 @@
         "signature_algorithm": "Ed25519",
         "signature": "mwz2m7Avw13mvtcC3GYoE1rhUgr2eMytHj3rJiN6vT9YwPTUyMVKRZ30IOmlEP5mlDHGr0Emjy2e9-V3jy3vCA"
       },
-      "removed_signature_carriers": [
+      "forbidden_signature_carriers": [
         "signature"
       ],
       "transcript": {

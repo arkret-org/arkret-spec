@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-31.8",
+  "version": "2026-09-16.8",
   "source_of_truth": false,
-  "generated_at": "2026-08-31T18:30:02+08:00",
+  "generated_at": "2026-09-16T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -85,17 +85,6 @@
       "required_extension_members": [],
       "reverse_binding": true,
       "owner": "zh/identity/identity-did.md#8"
-    },
-    {
-      "type": "ArkretRealmHistoryRecoveryKey",
-      "subjects": [
-        "human",
-        "organization"
-      ],
-      "service_endpoint_shape": "closed_object:{verificationMethod:did_url,kem:hpke,domain:mls_history}",
-      "required_extension_members": [],
-      "reverse_binding": true,
-      "owner": "zh/identity/identity-did.md#8.3"
     },
     {
       "type": "ArkretManagedPrincipalController",

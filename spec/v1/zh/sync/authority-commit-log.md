@@ -35,7 +35,7 @@ Realm membership、policy 和 authority 变更只提交到 Realm stream。治理
 
 `event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, refs?, payload, proofs`。
 
-`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `actor_seq`、`hlc`、`prev_refs`、`causal_refs`、`preconditions`、`auth_context`、`data_basis`、`seal_basis`、`requirements` 或 `unsigned`。
+`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、`preconditions`、`auth_context`、`data_basis`、`authority_revision`、`requirements` 或 `unsigned`。
 
 Event 不指向“上一个 Event”。producer 可能离线签名，且多个 producer 会并发；让 Event 绑定 head 会导致合法排队请求因其它写先提交而重签，MLS 请求甚至需要重建密码材料。最终顺序只能由接纳方分配。
 
@@ -66,11 +66,11 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 - `rejected`：确定性拒绝；
 - `retryable_unavailable`：尚未产生共享事实，可用 exact Event 重试。
 
-协议没有共享 pending、Ack、defer、Seal prepare 或 closure 阶段。
+协议没有共享 pending、Ack、defer、RealmCommit prepare 或 closure 阶段。
 
 ## 5. Typed reducer 与并发
 
-共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 Cell key、通用 CRDT、Lattice、rank、dot、通用 predicate 或 state-root DSL。
+共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 typed current result key、通用 CRDT、Lattice、rank、dot、通用 predicate 或 state-root DSL。
 
 默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义 `expected_revision`，其值为该领域 current row 最后一个 Commit ID。比较失败时整个请求 rejected，不产生 Commit。
 
@@ -104,7 +104,7 @@ Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测
 
 ## 7. Snapshot 与 join bootstrap
 
-Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `authority_generation` 和调用方获准的全部 stream heads。它不含 Cell chunks、state root、Seal、reducer profile 或稀疏 Merkle proof。
+Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `authority_generation` 和调用方获准的全部 stream heads。它不含 typed current result chunks、state root、RealmCommit、reducer profile 或稀疏 Merkle proof。
 
 加入流程必须为：
 
@@ -133,7 +133,3 @@ Handoff 必须绑定：连续 generation、旧/新 service identity、change Eve
 每个 MLS effective scope 属于其对应 Realm、Circle 或 Sidecar stream。`key_access_revision` 在会改变新 epoch 密钥获得者的 membership、endpoint authorization 或相关 policy 变化时递增。encrypted application Event 的 epoch、group state ref 和 key-access revision 必须都等于 current，否则拒绝。
 
 Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-signed Welcome deliveries。治理 Station 在同一事务中提交 Commit、更新 public state、写 recipient queues 和 outbox；任一 Welcome 无效则零写入。Handoff 迁移 public tree、epoch、revision、claim 状态和 Welcome queues，但不迁移任何成员 private MLS state。
-
-## 10. 明确退役项
-
-下列对象和机制不属于本协议，也不得保留兼容 reader/writer、双写或 hidden fallback：Seal、SealConclusion、CBS proof bundle、Control Proposal Ack/defer、data publication/closure、CellRef、cell family/state/root/proof、通用 CRDT/Lattice、actor chain、fork-resolution Event、per-Realm reducer/digest 热切换、MLS governance proof/frontier digest、共享 Proposal/Welcome/KeyPackage/commit-failed Event、history exporter/share 和 organization recovery key。

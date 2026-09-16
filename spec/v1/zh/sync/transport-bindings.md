@@ -90,7 +90,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.events.command.submit.v1` | federation peer 推送 signed Event Envelope 批次。 |
 | `ak.peer.events.read.resolve.v1` | federation peer 按 event id / digest 补洞解析 Event。 |
 | `ak.peer.events.read.scan.v1` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
-| `ak.peer.events.read.sibling_positions.v1` | federation peer 对已裁决的精确 `(actor_id, actor_seq)` 位置取完整 canonical sibling 集，用于 fork-resolution per-peer alignment。 |
 | `ak.peer.events.read.frontier.v1` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
 | `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
@@ -116,7 +115,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | E2EE 设备密钥发布、查询与领取。 |
 | `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
-> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，ordinary Event / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，ordinary Event / Control Move（含 Move / Anchor）统一走该 committed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 

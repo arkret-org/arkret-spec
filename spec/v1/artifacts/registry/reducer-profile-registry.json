@@ -1,16 +1,16 @@
 {
-  "version": "2026-09-12.6",
-  "generated_at": "2026-09-12T09:51:32+08:00",
+  "version": "2026-09-16.7",
+  "generated_at": "2026-09-16T18:00:00+08:00",
   "source_of_truth": true,
-  "description": "Canonical Realm reducer profiles. A Realm selects exactly one profile through its reducer-profile singleton control cell.",
+  "description": "Canonical Realm reducer profiles. A Realm selects exactly one profile through its reducer-profile singleton control typed current result.",
   "registry_rules": [
     "profile_id MUST use the ak.reducer.*.vN namespace and is immutable once stable.",
-    "A receiver selects the profile from the Event's authenticated CBS governance basis. Ordinary Events and federation service bindings do not declare a reducer profile.",
-    "ak.realm.create supplies the genesis profile. ak.realm.upgrade is interpreted by the source profile and writes the target profile to the same singleton control cell.",
+    "A receiver selects the profile from the Event's authenticated authority-commit governance basis. Ordinary Events and federation service bindings do not declare a reducer profile.",
+    "ak.realm.create supplies the genesis profile. ak.realm.upgrade is interpreted by the source profile and writes the target profile to the same singleton control typed current result.",
     "An upgrade is valid only when the source profile declares the target in upgrade_edges and the declared deterministic state transition succeeds.",
     "The current v1 registry has no active upgrade edge. ak.realm.upgrade therefore fails with failed_precondition unless and until a successor profile and a source-to-target edge are published.",
     "A successor profile MUST NOT be published before an inbound upgrade edge and the edge's complete positive and negative conformance-vector bindings are published in the same release.",
-    "Every active profile requires conformance vectors for admission, cell projection, lattice join, state root, security frontier, and genesis. Every published upgrade edge additionally requires the complete upgrade-behavior vector bindings defined by upgrade_release_gate."
+    "Every active profile requires conformance vectors for admission, typed current result projection, lattice join, state root, key-access revision, and genesis. Every published upgrade edge additionally requires the complete upgrade-behavior vector bindings defined by upgrade_release_gate."
   ],
   "upgrade_release_gate": {
     "genesis_profile": "ak.reducer.core.v1",
@@ -36,7 +36,7 @@
       },
       "governs": [
         "event_admission",
-        "cell_projection",
+        "result_projection",
         "lattice_join",
         "state_root",
         "security_frontier"
@@ -52,7 +52,7 @@
         "ak.vector_group.event_envelope_negative.v1",
         "ak.vector_group.event_kind_lattice_dispatch.v1",
         "ak.vector_group.event_kind_payload_coverage.v1",
-        "ak.vector_group.cbs_lattice.v1"
+        "ak.vector_group.authority_commit_lattice.v1"
       ],
       "upgrade_edges": []
     }

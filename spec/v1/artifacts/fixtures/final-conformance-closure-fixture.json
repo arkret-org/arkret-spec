@@ -319,9 +319,9 @@
     {
       "vector_id": "ak.vector.mls.security_frontier_key_access_only.v1",
       "assertions": [
-        "commit_binds_rederived_security_frontier_digest",
+        "commit_binds_rederived_key_access_revision",
         "unrelated_governance_does_not_change_security_frontier",
-        "ordinary_event_has_no_seal_ref_and_security_frontier_is_independent",
+        "ordinary_event_has_no_commit_ref_and_security_frontier_is_independent",
         "active_leaf_revoke_pauses_sending_until_new_commit"
       ],
       "cases": [
@@ -330,13 +330,13 @@
           "security_frontier_matches_accepted_key_access_state": true,
           "expected": {
             "decision": "accept",
-            "mls_epoch_cell_advanced": true,
+            "mls_epoch_result_advanced": true,
             "active_epoch_advanced": true
           }
         },
         {
-          "name": "unrelated_governance_and_new_seal_ref",
-          "changed_cells": [
+          "name": "unrelated_governance_and_new_commit_ref",
+          "changed_results": [
             "ak.component.message.metadata.v1",
             "ak.component.capability.grant.v1"
           ],
@@ -347,7 +347,7 @@
         },
         {
           "name": "active_leaf_revoke_pauses_sending",
-          "changed_cells": [
+          "changed_results": [
             "ak.component.agent.key.v1"
           ],
           "expected": {
@@ -378,7 +378,7 @@
       "expected": {
         "decision": "reject",
         "reason": "epoch_update_required",
-        "mls_epoch_cell_advanced": false,
+        "mls_epoch_result_advanced": false,
         "active_epoch_advanced": false
       }
     },
@@ -511,7 +511,7 @@
         "durable_proof_event_and_optional_existence_anchor_verify",
         "evidence_package_does_not_release_governance_or_mls_secrets",
         "target_event_tamper_downgrades_proof",
-        "retired_mirror_or_plaintext_fields_rejected"
+        "unknown_or_plaintext_fields_rejected"
       ],
       "cases": [
         {
@@ -520,7 +520,7 @@
           "franking_signature_matches": true,
           "durable_proof_event_matches": true,
           "existence_anchor_valid": true,
-          "retired_proof_fields": [],
+          "unexpected_fields": [],
           "proof_contains_plaintext_body": false,
           "evidence_forbidden_secret_fields": [],
           "expected": {
@@ -534,7 +534,7 @@
           "franking_signature_matches": true,
           "durable_proof_event_matches": true,
           "existence_anchor_valid": true,
-          "retired_proof_fields": [],
+          "unexpected_fields": [],
           "proof_contains_plaintext_body": false,
           "expected": {
             "decision": "manual_clue_only",
@@ -542,16 +542,16 @@
           }
         },
         {
-          "name": "retired_mirror_violation",
+          "name": "unknown_field_violation",
           "target_event_content_commitment_matches": true,
           "franking_signature_matches": true,
           "durable_proof_event_matches": true,
           "existence_anchor_valid": true,
-          "retired_proof_fields": [
-            "retired_digest_mirror",
-            "retired_sender_mirror",
-            "retired_random_identity",
-            "retired_payload_discriminator"
+          "unexpected_fields": [
+            "unknown_digest_mirror",
+            "unknown_sender_mirror",
+            "unknown_random_identity",
+            "unknown_payload_discriminator"
           ],
           "proof_contains_plaintext_body": true,
           "expected": {
@@ -567,7 +567,7 @@
         "evidence_package_targets_only_reported_events",
         "recipient_public_key_binding_is_required",
         "reporter_signature_is_required",
-        "mls_epoch_and_history_secrets_are_rejected",
+        "mls_epoch_private_material_is_rejected",
         "unrelated_plaintext_messages_are_rejected"
       ],
       "cases": [
@@ -593,29 +593,6 @@
             "decision": "accept",
             "minimal_disclosure": true,
             "governance_key_released": false
-          }
-        },
-        {
-          "name": "history_key_release_rejected",
-          "target_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "plaintext_event_refs": [
-            "ak:event:Aeis2nCBZkzOQr3eAXbZhCpiA9NCLhE2Hs7ynEhmlDgg"
-          ],
-          "recipient_public_key_ref": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "encrypted_to": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
-          "reporter_signature_present": true,
-          "included_material": [
-            "encrypted_envelope",
-            "franking_proof"
-          ],
-          "forbidden_material": [
-            "mls_epoch_secret"
-          ],
-          "expected": {
-            "decision": "reject",
-            "reason": "schema_violation"
           }
         },
         {
@@ -809,7 +786,7 @@
       "vector_id": "ak.vector.mls.governance_epoch_binding.v1",
       "assertions": [
         "governance_binding fields must match the accepted key-access state and active epoch chain",
-        "security_frontier_digest must be the deterministic digest of the registered membership/leaf-key/MLS-membership/encryption-history frontier",
+        "key_access_revision must be the deterministic digest of the registered membership/leaf-key/MLS-membership/encryption-history frontier",
         "rejected_commit_does_not_advance_mls_epoch"
       ],
       "commit": {
@@ -818,14 +795,14 @@
         "governance_binding": {
           "previous_epoch": 41,
           "next_epoch": 42,
-          "security_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          "key_access_revision": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
         "other_checks_valid": true
       },
       "expected": {
         "decision": "reject",
         "reason": "governance_binding_mismatch",
-        "mls_epoch_cell_advanced": false,
+        "mls_epoch_result_advanced": false,
         "active_epoch_advanced": false
       }
     }

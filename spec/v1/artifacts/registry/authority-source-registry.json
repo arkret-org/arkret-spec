@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.4",
+  "version": "2026-09-16.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T09:00:00+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -22,8 +22,8 @@
         "ak.direct_conversation.bound",
         "ak.message.create",
         "ak.mls.commit",
-        "ak.mls.proposal",
-        "ak.mls.welcome"
+        "rfc9420.proposal",
+        "ak.delivery.mls_welcome"
       ],
       "activation_checks": [
         "accepted_exact_four_event_founding_unit",
@@ -56,8 +56,8 @@
         "ak.message.redact.own",
         "ak.message.revise.own",
         "ak.mls.commit",
-        "ak.mls.proposal",
-        "ak.mls.welcome.own_device",
+        "rfc9420.proposal",
+        "ak.delivery.mls_welcome.own_device",
         "ak.reaction.add",
         "ak.reaction.remove",
         "ak.read_cursor.advance",

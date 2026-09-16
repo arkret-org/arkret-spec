@@ -45,7 +45,7 @@ stream 的 snapshot section、head 和连续 tail。协议不存在 Realm 全局
 ## 4. MLS 历史
 
 v1 只保留 standard RFC 9420 密钥语义。新 member 或新 endpoint 只从其有效 Add/Welcome epoch 起取得
-解密能力。治理 Station 不持有、不导出、不补发加入前 MLS secrets；Realm 也不定义 history-key
+解密能力。治理 Station 不持有、不导出、不补发加入前 MLS secrets；历史 Event 的读取资格
 request/response、organization recovery key 或 exporter-based 历史分享。
 
 同 principal 的设备备份可以作为 account-private 功能迁移该 principal 本来已持有的本地 MLS state，但不得

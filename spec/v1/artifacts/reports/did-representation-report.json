@@ -4212,16 +4212,6 @@
       ]
     },
     {
-      "schema_path": "identity-link.schema.json#/properties/response_signing_verification_method",
-      "property_name": "response_signing_verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
       "schema_path": "identity-receipt.schema.json#/properties/registry_id",
       "property_name": "registry_id",
       "semantic_category": "responsibility_identity_material",

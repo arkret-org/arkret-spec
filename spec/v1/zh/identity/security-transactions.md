@@ -134,7 +134,7 @@ prepared plan binding 和 accepted-step ledger 的第二个公开完成入口。
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 保留为账号恢复的单一原子事务，但不再创建或携带 Seal。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权。
+RecoveryTransaction 保留为账号恢复的单一原子事务，但不再创建或携带 RealmCommit。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权。
 
 ### 2.1 create 同时完成专用 prepare，但不产生恢复效果
 
@@ -161,7 +161,7 @@ RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、prev
 
 ### 2.4 operation 与 grant 边界
 
-`RecoveryCompletionAttestation` 是 Account Authority 签发恢复后 Standard grant 的唯一离线完成证据。其签名投影包含 transaction/request/plan、account/session/receipt、`reanchor_event_ref`、`device_authorization_event_ref`、`result_model_generation_ref` 与 `completed_at`。不再存在 `first_generation_seal_id` 或 `terminal_commit_digest`；RealmCommitId 已绑定 authority-signed commit bytes，不能再叠加一个旧 terminal artifact digest 作为治理根。
+`RecoveryCompletionAttestation` 是 Account Authority 签发恢复后 Standard grant 的唯一离线完成证据。其签名投影包含 transaction/request/plan、account/session/receipt、`reanchor_event_ref`、`device_authorization_event_ref`、`result_model_generation_ref` 与 `completed_at`。不再存在 `reanchor_commit_id` 或 `terminal_commit_digest`；RealmCommitId 已绑定 authority-signed commit bytes，不能再叠加一个旧 terminal artifact digest 作为治理根。
 
 ### 2.5 幂等、竞争与失败终局
 
@@ -171,7 +171,6 @@ RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、prev
 
 固定绑定 revoke Event、新 secret commitment、按 `backup_kind` 闭合的两条
 `backup_rotations[]`、erase confirmation digest 与 local commit digest。数组必须按
-`secret_storage, mls_history` 顺序恰含两项；每项固定
 `previous_series_id`、`new_series_id`、完整 `new_backups[]`、`active_series_event_id` 与完整
 `old_backups[]`。两项或其任一 backup id/digest 在 create 后都不得替换。
 
@@ -211,7 +210,7 @@ terminal result，不能重新上传或重新 erase。
 `erase_old_material` 的唯一 wire operation 是
 `ak.self.keys.backup_series.command.erase.v1`。request 必须携带 transaction/request/plan digest、
 预留 `erase_confirmation_digest`、两条完整 binding、high-risk
-`AuthorizationLease(action=ak.self.keys.backup_series.command.erase.v1)` 与必要CBS bundle。服务端必须先验证：
+`AuthorizationLease(action=ak.self.keys.backup_series.command.erase.v1)` 与必要authority-commit bundle。服务端必须先验证：
 
 1. transaction当前next step确为`erase_old_material`；
 2. 两个new series及其各自`ak.key_backup.active_series` Event均已accepted且仍是authoritative；
@@ -240,7 +239,7 @@ transaction 和一组 reserved ids。
 `ak.vector.security_transaction.recovery_terminal_commit.v1`与
 `ak.vector_group.security_transaction.v1`固定；runner必须覆盖Recovery A/B与Rotation双
 backup-kind，并输出canonical结果digest供第二个独立实现对拍。Recovery 分支还必须证明提交前无任何权威结果可观察、
-提交后全部结果同时可观察，且不存在 completed 但未 Seal 或 pending 但已 verified 的中间状态。
+提交后全部结果同时可观察，且不存在 completed 但未 RealmCommit 或 pending 但已 verified 的中间状态。
 
 正例：pointer switch 已成功但响应丢失；重试查询同一 transaction，继续 erase。
 

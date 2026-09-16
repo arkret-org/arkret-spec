@@ -41,7 +41,7 @@ updated: 2026-07-02
 - `object_kinds`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`strand`、`message`、`morph`、`relation`、`view`。对象类型只在这里表达；不得用 `filters.field=type` 作为别名。`card` 是 View `item_render`，不是 canonical object type；Board/List 容器必须表达为 `object_kinds=["space"]` + `filters` 限制 Space `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_kinds=["strand"]` 并通过 `contains` relation 约束到目标 Space。
 - `morph_kinds`: OPTIONAL，当 `object_kinds` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
-- `context_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Strand context 的上下文对象引用；它指向业务上下文对象，不指向 Seal。
+- `context_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Strand context 的上下文对象引用；它指向业务上下文对象，不指向 RealmCommit。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
 - `order_by`: OPTIONAL，排序规则。
@@ -165,7 +165,7 @@ Projection 只减少返回字段，不提升权限。
 
 [`query.schema.json`](../../artifacts/schemas/query.schema.json) 只定义可复用的 query / search **请求**形状，不定义通用响应 envelope。每个 URL endpoint 的响应必须以 operation registry 的 `response_schema_ref` 与 OpenAPI binding 为准；v1 没有要求所有查询响应携带 `basis` / `grade`，也没有登记跨 operation 通用的 `key_view_ref` 字段。
 
-若某个 operation 需要 `frontier`、barrier cursor、Seal basis 或可验证 proof，必须在该 operation 的 response schema 中逐字段登记。实现不得把私有响应扩展描述成 v1 core 的通用响应契约。
+若某个 operation 需要 `frontier`、barrier cursor、RealmCommit basis 或可验证 proof，必须在该 operation 的 response schema 中逐字段登记。实现不得把私有响应扩展描述成 v1 core 的通用响应契约。
 
 ## 9. 安全规则
 

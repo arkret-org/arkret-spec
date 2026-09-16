@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.6",
+  "version": "2026-09-16.7",
   "source_of_truth": true,
-  "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a cell, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
+  "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
     "The effective forbidden set of an object kind is universal_forbidden_patch_paths, restricted to the paths its object schema actually declares, minus that object's universal_exemptions, plus its own forbidden_patch_paths. A path and every dotted descendant of it are forbidden together: banning `effective_scope` also bans `effective_scope.circle_id`.",
     "universal_forbidden_patch_paths is the general minimum set of zh/models/event-and-patch.md section 4.2.5 and MUST stay identical to the list that section spells out. Object-specific bans belong in the object's forbidden_patch_paths, never in the universal list.",
@@ -84,7 +84,7 @@
       "basis": "reducer_derived",
       "reason_code": "patch_path_reducer_managed",
       "owner_kind": "reducer",
-      "owner": "max(Event.created_at, min(covering accepted Seal.sealed_at)) as defined in zh/models/common-fields.md section 3.",
+      "owner": "max(Event.created_at, min(covering accepted RealmCommit.committed_at)) as defined in zh/models/common-fields.md section 3.",
       "description": "Timestamp of the most recent state transition. Reducer-derived on every object that carries it, including View."
     }
   ],
@@ -100,12 +100,12 @@
       "forbidden_patch_paths": [
         {
           "path": "resolution",
-          "basis": "cell_projection",
+          "basis": "result_projection",
           "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "cell_family",
+          "owner_kind": "result_family",
           "owner": "ak.component.identity.resolution.v1",
           "schema_enforced": true,
-          "description": "Read-only current principal did projection derived from the PCR identity resolution cell. The cell is the sole write authority, and the projection is not an authorization root."
+          "description": "Read-only current principal did projection derived from the PCR identity resolution typed current result. The typed current result is the sole write authority, and the projection is not an authorization root."
         }
       ]
     },
@@ -212,27 +212,27 @@
       "forbidden_patch_paths": [
         {
           "path": "child_scope_policy",
-          "basis": "cell_projection",
+          "basis": "result_projection",
           "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "cell_family",
+          "owner_kind": "result_family",
           "owner": "ak.component.space.child_scope_policy.v1",
           "schema_enforced": true,
           "description": "Security policy uses its dedicated registered top-level write, never an ordinary metadata patch."
         },
         {
           "path": "parent_space_id",
-          "basis": "cell_projection",
+          "basis": "result_projection",
           "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "cell_family",
+          "owner_kind": "result_family",
           "owner": "ak.component.space.parent.v1",
           "schema_enforced": true,
-          "description": "Parent placement is a separate causal Cell; generic metadata cannot overwrite it."
+          "description": "Parent placement is a separate causal typed current result; generic metadata cannot overwrite it."
         },
         {
           "path": "scope_circle_id",
           "basis": "create_locked",
           "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "cell_family",
+          "owner_kind": "result_family",
           "owner": "ak.component.space.metadata.v1",
           "schema_enforced": true,
           "description": "Privacy scope is fixed at creation; ordinary metadata edits cannot rebind it."

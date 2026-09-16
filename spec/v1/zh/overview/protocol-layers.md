@@ -30,7 +30,7 @@ Kernel 仅包含下列安全原语：
 
 1. Principal、Device、Service identity 与 proof；
 2. Realm 与 `realm | circle | sidecar` `scope_ref` 原生安全作用域，以及 create-only `realm_genesis` 例外；
-3. CBS Control Move、Seal、notary、state root 与闭集 lattice 词表；
+3. authority-commit Control Move、RealmCommit、notary、state root 与闭集 lattice 词表；
 4. signed durable ordinary Event；
 5. MLS scope/epoch binding；
 6. core to-device queue；
@@ -40,7 +40,7 @@ Kernel 仅包含下列安全原语：
 10. `RecoveryTransaction` 与 `SecurityRotationTransaction`。
 
 Kernel Event Envelope 不登记普通产品对象的寻址规则。新增应用 payload type MUST NOT 修改
-Kernel Event、CBS 或 federation schema。
+Kernel Event、authority-commit 或 federation schema。
 
 ### 1.2 Collaboration Base
 
@@ -77,7 +77,7 @@ state       = reduce(profile, prior_state, signed_fact)
 ```
 
 producer MUST NOT 携带 `effects[]`、`conflict_keys_digest`，也 MUST NOT 任意选择可从
-accepted governance basis 求出的 capability 引用。cell family、subject derivation、lattice、
+accepted governance basis 求出的 capability 引用。typed current result family、subject derivation、lattice、
 bottom 与 state projection 是 reducer contract 的内部声明，不是 wire 上的第二份事实。
 
 每个 reducer contract MUST 是由 schema-validated `kind + payload`、签名 envelope 字段、
@@ -107,7 +107,7 @@ bottom 与 state projection 是 reducer contract 的内部声明，不是 wire �
 `{"kind":"realm_genesis","realm_genesis_nonce":"..."}` 是 create-only 封闭例外，只允许对应的
 Realm genesis Event；它不是普通 durable scope，也不得用于后续 Realm、Circle 或 Sidecar Event。
 上述 closed union 以 `event-envelope.schema.json#/$defs/scope_ref` 为穷尽真源，正文集合必须由 lint 与其对齐。
-Sidecar 的领域 Event kinds 仍归 Extension；Kernel 只认识签名 Event Envelope、CBS/Seal、MLS/AAD、
+Sidecar 的领域 Event kinds 仍归 Extension；Kernel 只认识签名 Event Envelope、authority-commit/RealmCommit、MLS/AAD、
 delivery/query 所需的原生安全 scope 形状，不解释 Sidecar 领域 reducer，也不得把 Sidecar 实现为 Circle。
 
 字段名固定为 `scope_ref`。它是 signed producer fact，不是 reducer 盖章字段。reducer MUST
@@ -146,5 +146,5 @@ Event projection MAY 物化名为 `effective_scope` 的只读字段，但它 MUS
 Strand projection 派生 Circle scope 后发现不等，必须拒绝；server 不需要也不得解密
 `strand_id` 来替 sender 修正 scope。
 
-反例：扩展 manifest 声明任意 JSON path 并让 producer 选择 cell。该 manifest 必须被拒绝，
+反例：扩展 manifest 声明任意 JSON path 并让 producer 选择 typed current result。该 manifest 必须被拒绝，
 因为它重新引入 producer reducer DSL。

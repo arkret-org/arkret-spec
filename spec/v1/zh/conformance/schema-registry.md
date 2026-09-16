@@ -75,7 +75,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | client-local scheme id（不进 wire 互操作面） | `ak.secret_storage.v1`、secret storage 的 `ak.mls.v1` | device-lifecycle.md / key-management.md |
 | 信封 scheme 常量 | `ak.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ak.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
 | hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.invite.claim.binding_proof.v1`、`ak.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
-| feature id（`supported_features` / `supported_features` 值） | `ak.feature.identity.webvh_native_log.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，退役的 MLS governance proof feature 不得继续广告 |
+| feature id（`supported_features` / `supported_features` 值） | `ak.feature.identity.webvh_native_log.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值 |
 | DID Document / 外部生态 profile 值 | `ak.organization.governance.v1` | identity-did.md 示例上下文 |
 | E2EE MLS content type | `application/vnd.arkret.identity-link+json` | 定义文档（history-visibility.md）；其 plaintext schema（`ak.schema.identity_link.v1`）仍 MUST 注册，content type 本身不进 durable event registry |
 | Signal plaintext payload kind | `ak.presence`、`ak.typing`、`ak.receipt.read`、`ak.call.signal`、`ak.message.stream` | [`../sync/signal.md` §1.1](../sync/signal.md) 的封闭登记表；每个 kind 的 closed plaintext schema 仍 MUST 注册（`ak.schema.signal_presence.v1` / `ak.schema.signal_typing.v1` / `ak.schema.read_receipt.v1` / `ak.schema.call_signal_plaintext.v1` / `ak.schema.signal_message_stream.v1`），kind 本身位于 ciphertext、不进 event-kind registry，也不分配 `wire_scope` |
@@ -269,7 +269,7 @@ Schema evolution MUST：
 
 v1 canonical object（Event Envelope / RealmCommit / Operation / Snapshot / Grant / encrypted envelope）的 schema 是封闭的（`additionalProperties: false`）：schema 未声明的未知字段 MUST 被 schema validation 以 `schema_violation` 拒绝，**不存在**“接受并保留任意未知字段”的隐式路径。Event kind-bound payload 不允许 `{}` 空 schema：有限 family 必须由 payload schema直接以 `$ref` / `oneOf` 闭合。扩展只能使用该具体 payload显式声明的 `x_*`/extension member或新的 versioned kind/schema；Event顶层不再提供通用 `requirements` 或 `unsigned` 逃生口。`ak.schema.define.value` 的 wrapper仍 closed且 `value`必填，schema identity唯一取自 `value.$id`。receiver MUST执行 [`payload-validator-profile-registry.json`](../../artifacts/registry/payload-validator-profile-registry.json) 的定义校验 profile。对 schema允许但实现未识别的显式扩展内容，接收方必须在 canonical bytes、存储、转发和签名校验中原样保留。
 
-未知 critical feature MUST fail closed。能力协商只来自 ServiceDescribe、Realm current policy、kind/schema registry及具体 typed payload声明；不得把退役的 Event `requirements`、CBS basis或 reducer profile重新引入 wire。
+未知 critical feature MUST fail closed。能力协商只来自 ServiceDescribe、Realm current policy、kind/schema registry 及具体 typed payload 声明。
 
 OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical protocol object，内嵌对象 MUST 按 registry schema 解析，并按本节规则处理：未声明字段拒绝，显式扩展位内容保留。
 

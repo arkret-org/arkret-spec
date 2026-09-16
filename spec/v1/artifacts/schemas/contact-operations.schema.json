@@ -398,7 +398,7 @@
         },
         "route_assistance": {
           "$ref": "./identity-resolution.schema.json#/$defs/route_assistance",
-          "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member cell or authority state; they do not extend any token/receipt TTL or authorize delivery."
+          "description": "Optional transport-only hints for recovering the same recipient_id route during Contact delivery bootstrap. They are not part of the signed Contact Event, Contact projection, Realm member typed current result or authority state; they do not extend any token/receipt TTL or authorize delivery."
         }
       },
       "additionalProperties": false
@@ -633,7 +633,7 @@
     },
     "contact_current_proof": {
       "type": "object",
-      "description": "Existing source Station attestation of its confirmed directional Contact projection. Authorizing proofs are issued only after the exact source command is committed by the unique confirmed Seal; the peer verifies the independently derived Station's historical service authority and the original holder producer separately, without receiving private PCR history.",
+      "description": "Existing source Station attestation of its confirmed directional Contact projection. Authorizing proofs are issued only after the exact source command is committed by the unique confirmed RealmCommit; the peer verifies the independently derived Station's historical service authority and the original holder producer separately, without receiving private PCR history.",
       "required": [
         "contact_round_id",
         "issuer_id",
@@ -676,7 +676,7 @@
         "complete_through": {
           "type": "integer",
           "minimum": 1,
-          "description": "Last completely authenticated version of the direction identified by (contact_round_id, issuer_id, peer): initial normal accepted or implicit glare request head is 1, successors use their confirmed payload.version. Never PCR actor_seq, request slot_version, Seal height or receiver time. A counterpart terminal acknowledgement retains its local confirmed version, without copying the remote version or incrementing it."
+          "description": "Last completely authenticated version of the direction identified by (contact_round_id, issuer_id, peer): initial normal accepted or implicit glare request head is 1, successors use their confirmed payload.version. Never PCR producer_revision, request slot_version, RealmCommit height or receiver time. A counterpart terminal acknowledgement retains its local confirmed version, without copying the remote version or incrementing it."
         },
         "fresh_until": {
           "$ref": "#/$defs/timestamp",
@@ -2774,7 +2774,7 @@
       ]
     },
     "peer_contact_submit_request": {
-      "description": "Closed Contact-only peer carrier. Each Event branch carries existing source Station attestation of a truly Seal-committed Contact projection; pending admission cannot produce an authorizing receipt or receipted outbox. The original holder producer remains independently authenticated. No private PCR bootstrap, Seal or new confirmation field is carried.",
+      "description": "Closed Contact-only peer carrier. Each Event branch carries existing source Station attestation of a truly RealmCommit-committed Contact projection; pending admission cannot produce an authorizing receipt or receipted outbox. The original holder producer remains independently authenticated. No private PCR bootstrap, RealmCommit or new confirmation field is carried.",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.contact.accepted",
         "ak.contact.rejected",
@@ -3566,7 +3566,7 @@
     },
     "reject_acceptance_receipt": {
       "type": "object",
-      "description": "Source Station attestation of the committed Contact rejection Event, which is a successful terminal domain command. A Seal-rejected command or pending Event cannot produce this receipt.",
+      "description": "Source Station attestation of the committed Contact rejection Event, which is a successful terminal domain command. A RealmCommit-rejected command or pending Event cannot produce this receipt.",
       "required": [
         "request_receipt",
         "reject_event_ref",

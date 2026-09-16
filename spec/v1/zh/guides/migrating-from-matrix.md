@@ -71,7 +71,7 @@ Arkret 的身份与发布模型借鉴 atprotocol 的几个方向：
 - DID 是稳定身份根，handle 是可变入口。
 - handle 采用双向验证模型。
 - DID Document 用于服务发现和 key discovery。
-- 每个 actor 通过 `actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+- 每个 actor 通过 `actor_id`、`producer_revision` 和 `domain_refs` 形成可验证 event chain。
 - signed Event Envelope 是发布单元，服务器无法伪造 principal 写入。
 
 这不要求普通用户直接看见或管理 DID。客户端和服务端可以提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；持久 Event、grant 或 MLS membership 的权威主体仍是 principal DID。
@@ -119,7 +119,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | Matrix | Arkret | 说明 |
 | --- | --- | --- |
 | Megolm outbound session（per-sender ratchet） | MLS exporter / application key per epoch | Arkret 没有 per-sender Megolm session；群组密钥状态由 MLS group state、epoch、KeyPackage 演进。 |
-| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection | epoch 与 key-access frontier 由 MLS transcript 和 reducer projection 共同绑定。 |
+| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_result`、`key_schedule_result` 与 active security-frontier projection | epoch 与 key-access frontier 由 MLS transcript 和 reducer projection 共同绑定。 |
 | Megolm Ed25519 签名（per-message） | MLS application message 内嵌签名 + MLS transcript | 完整性来自 MLS 标准；不再额外维护 per-message Megolm 签名链。 |
 
 #### 4.5.4 设备授权与信任视图
@@ -133,7 +133,6 @@ Matrix 导入只能生成显式迁移 evidence，不能把旧的跨设备信任�
 | Matrix | Arkret | 说明 |
 | --- | --- | --- |
 | Secure Secret Storage（SSSS）统一保管账户密钥 / megolm backup 等 | `ak.secret_storage.v1`（**client-local only**）+ wire 上传走 `ak.schema.key_backup.v1` | Arkret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ak.schema.key_backup.v1` 与 `backup_kind` 分类。 |
-| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`secret_storage` / `mls_history` 两类 `backup_kind`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"；每类 envelope 使用独立 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
 | 一把 recovery key 解锁 SSSS | `recovery_policy` 的封闭四方法 | Arkret 把 recovery 表达为 `recovery_policy`，`methods` 封闭为 `did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service`，可声明每个 key 的有效期与顶层冷却。身份核验与人工审核由产品承担，协议只验证账号事先授权的签发方与本次受限授权；v1 没有 threshold、share holder 或 approval 条件。恢复控制权不自动授予读取内容或解密历史的能力。 |
 | (Matrix 未明确约束) | "能解密某段历史" 不单独作为账号所有权证明 | Arkret 把 DID 控制证明与解密能力分开，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
 
@@ -232,7 +231,7 @@ Arkret 的目标是协作图：任务依赖、对象引用、结构化 mention�
 
 ## 6. State Model 与 Writer Model 的明确偏离
 
-Matrix v1/v11 room state model 与 Arkret 的 **CBS · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
+Matrix v1/v11 room state model 与 Arkret 的 **authority-commit · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
 
 ### 6.1 没有 `state_key` 字段
 
@@ -240,12 +239,12 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 替代设计：
 
-- 协议事实由普通 Event 或 Control Move 的 `kind + payload` 表达；cell target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
-- `cell_id` 是显式 canonical cell，例如 `state-slot:ak.component.member.state.v1:<actor-did>`。
-- 每个 cell family 在 registry 中声明 `execution`、`state_model` 与 `value_shape`；普通 `causal_register` 以固定 `(depth,EventId)` 产生唯一 winner。`bottom` 只保留给另行登记的跨 Cell 领域不变量诊断，安全写入使用唯一确认顺序且不得把安全故障降格为 `bottom`。
-- Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit cell id 与 projected value。
+- 协议事实由普通 Event 或 Control Move 的 `kind + payload` 表达；typed current result target 与状态操作由注册 reducer contract 确定性派生，不是 wire 字段。
+- `result_id` 是显式 canonical typed current result，例如 `state-slot:ak.component.member.state.v1:<actor-did>`。
+- 每个 typed current result family 在 registry 中声明 `execution`、`state_model` 与 `value_shape`；普通 `causal_register` 以固定 `(depth,EventId)` 产生唯一 winner。`bottom` 只保留给另行登记的跨 typed current result 领域不变量诊断，安全写入使用唯一确认顺序且不得把安全故障降格为 `bottom`。
+- Subject 信息存在于 payload；receiver 按 registry 从具名 payload 路径派生 explicit typed current result id 与 projected value。
 
-**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 cell id 与注册状态合同；普通数据按声明的 CRDT 模型收敛，安全状态由 Seal 确认序列推进，轻客户端按各自承诺验证。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
+**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 typed current result id 与注册状态合同；普通数据按声明的 CRDT 模型收敛，安全状态由 RealmCommit 确认序列推进，轻客户端按各自承诺验证。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
 ### 6.2 没有 `ak.realm.policy.set` 这种聚合 kind
 
@@ -259,34 +258,34 @@ Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain d
 
 - 普通数据采用因果寄存器、OR-set、日志或分片计数器；接收站独立验证，未知撤销允许传播窗口。
 - 安全命令在每 Realm 唯一确认序列中执行，实际读取/写入 revision 与授权必须重验，竞争 CAS 至多一个成功。
-- Seal 只确认安全状态，不覆盖普通消息。每个 Realm 同阶段仅一个治理 Station 和唯一冻结 signer；不提供多节点容错。
-- 普通寄存器按固定因果全序选择唯一 current，有权因果后继可继续编辑；安全状态不做无序 join，也不存在任意 Cell reset。
+- RealmCommit 只确认安全状态，不覆盖普通消息。每个 Realm 同阶段仅一个治理 Station 和唯一冻结 signer；不提供多节点容错。
+- 普通寄存器按固定因果全序选择唯一 current，有权因果后继可继续编辑；安全状态不做无序 join，也不存在任意 typed current result reset。
 
 ### 6.4 Component Lattice
 
-Matrix state event 没有显式的 cell 代数。Arkret v1 的 registry / Realm schema 为 reducer-input kind 声明：
+Matrix state event 没有显式的 typed current result 代数。Arkret v1 的 registry / Realm schema 为 reducer-input kind 声明：
 
-- `cell_family`（稳定 `ak.component.*.v<n>` URI）
-- `cell_subject`（null、payload field 或 composite descriptor）
+- `result_family`（稳定 `ak.component.*.v<n>` URI）
+- `result_selector`（null、payload field 或 composite descriptor）
 - `state_model`（普通 `causal_register` / `or_set` / `counter` / `ordered_log`，安全 `sequenced_state`）
 - `bottom`（`reject` / `expose` / `inert`）
 
-Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通过 schema/profile 显式 opt-in（规范见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
+Receiver 不识别核心 lattice type 时 fail closed，扩展 typed current result family 通过 schema/profile 显式 opt-in（规范见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
 
 ### 6.5 E2EE Realm 的 MLS Governance Binding
 
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引入 **MLS Governance Binding**（profile `ak.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
-- **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把唯一 `security_frontier_digest` 哈希进 MLS transcript；digest 只覆盖会改变密钥访问资格的 closed state。
-- **Lattice 侧** —— MLS Commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection。E2EE message ordinary Event 的普通 `auth_context.authority_refs` 只用于 Event admission；MLS gate 独立检查消息 group/epoch 对应的 digest 是否仍等于当前 key-access frontier。
+- **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把唯一 `key_access_revision` 哈希进 MLS transcript；digest 只覆盖会改变密钥访问资格的 closed state。
+- **Lattice 侧** —— MLS Commit 是 Control Move，写入 `mls_epoch_result`、`key_schedule_result` 与 active security-frontier projection。E2EE message ordinary Event 的普通 `auth_context.authority_refs` 只用于 Event admission；MLS gate 独立检查消息 group/epoch 对应的 digest 是否仍等于当前 key-access frontier。
 
 **理由**：member/leaf remove、device revoke 和 key-access policy 收紧被新 MLS epoch 覆盖后才限制新消息密钥；普通 capability、metadata 或 moderation 变化没有改变谁持有 epoch key，不应机械阻塞发送。active projection 使 Commit 所覆盖的精确 digest 可确定性查询，governance / recovery Move 不依赖它，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `state-slot:ak.component.consent.grant.v1:<consent_id>` cell（sequenced_state，value_shape=set），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ak.consent.grant` / `ak.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `state-slot:ak.component.consent.grant.v1:<consent_id>` typed current result（sequenced_state，value_shape=set），作为 invite 与明确登记的非 Contact action 前置 gate；Contact/Personal DM只读取双方方向性 Contact heads，绝不读取 Consent。MIMI `request_consent` / `update_consent` 直接映射到这套独立机制。
 
-**理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
+**理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent typed current result 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 
 ## 7. Matrix 仍然更强的地方
 
@@ -300,11 +299,11 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 
 ## 8. 相关文档
 
-- [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — ordinary Event、Control Move、Seal、state model、ordinary causal conflict、E2EE MLS Move
-- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 与 current winning group-state projection
+- [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — ordinary Event、Control Move、RealmCommit、state model、ordinary causal conflict、E2EE MLS Move
+- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS key-access revision binding：`governance_binding.key_access_revision` 与 current winning group-state projection
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_kind` 域隔离，社交恢复
-- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（sequenced_state 安全集合）
+- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent typed current result（sequenced_state 安全集合）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
 - [`identity/identity-did.md`](../identity/identity-did.md)

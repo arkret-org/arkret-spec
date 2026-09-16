@@ -73,11 +73,11 @@ def selected_branches(row: dict) -> list[tuple[str, dict]]:
 
 def schema_definitions(registry: dict) -> dict:
     guards, durable = [], []
-    contract = registry["history_admission_contract"]
+    contract = registry["authority_commit_admission_contract"]
     native_classes = set(contract["native_admission_classes"])
     known_classes = set(registry["admission_class_definitions"])
     if not native_classes <= known_classes or native_classes & {"capability_gated", "conditional", "deny"}:
-        raise ValueError("history native exceptions must name explicit non-capability admission classes")
+        raise ValueError("authority admission exceptions must name explicit non-capability admission classes")
     for row in registry["event_kinds"]:
         if row.get("status") != "active" or row.get("wire_scope") != "durable_event":
             continue
@@ -93,7 +93,7 @@ def schema_definitions(registry: dict) -> dict:
             "$comment": "Generated from canonical event_kind_registry.admission_variants; do not hand-edit. Semantic authority verification is additional.",
             "allOf": guards,
         },
-        "shared_history_event": {
+        "authority_committed_event": {
             "$comment": "A complete producer Event from an authority-committed visibility stream. Consumers verify the producer proof and the matching RealmCommit plus authority chain.",
             "allOf": [
                 {"$ref": "#"},
@@ -120,17 +120,17 @@ def synchronize(root: Path, *, check: bool) -> None:
             if reference not in schema["allOf"]:
                 schema["allOf"].append(reference)
         path.write_text(json.dumps(schema, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-    for binding in registry["history_admission_contract"]["consumer_schema_bindings"]:
+    for binding in registry["authority_commit_admission_contract"]["consumer_schema_bindings"]:
         target_path = artifacts / binding["schema"]
         document = json.loads(target_path.read_text(encoding="utf-8"))
         tokens = [token.replace("~1", "/").replace("~0", "~") for token in binding["pointer"].strip("/").split("/")]
         target = document
         for token in tokens[:-1]:
             target = target[int(token)] if isinstance(target, list) else target[token]
-        shared_ref = "./event-envelope.schema.json#/$defs/shared_history_event"
+        shared_ref = "./event-envelope.schema.json#/$defs/authority_committed_event"
         if check:
             if target[tokens[-1]] != shared_ref:
-                raise ValueError(f"shared-history consumer drift: {binding}")
+                raise ValueError(f"authority-committed consumer drift: {binding}")
         elif target[tokens[-1]] != shared_ref:
             target[tokens[-1]] = shared_ref
             target_path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")

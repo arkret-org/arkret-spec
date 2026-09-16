@@ -247,7 +247,7 @@
       },
       "assertions": [
         "preview authority exposes only the registered stripped projection",
-        "preview never creates current membership or history-key eligibility",
+        "preview never creates current membership or committed-history eligibility",
         "unknown, expired and wrong-scope tokens are outwardly indistinguishable"
       ]
     }

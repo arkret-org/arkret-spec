@@ -71,7 +71,7 @@ Profile 不支持某个标准能力时的默认行为：
 - 写入接收方收到 active 标准 Event kind 时，若该 kind 不在本实现声明的 supported_event_kinds / profile 范围内，且该实现负责该 Realm 的 accepted history，MUST 返回 `unsupported_feature`、`unsupported_event_kind`、`schema_violation` 或 quarantine，不得把未知标准事件 accepted 后静默丢给 reducer。
 - 只读客户端或 projection 服务遇到未实现但已 accepted 的标准 Event kind，MAY 保留 raw event、显示 generic fallback 或把对应 projection 标记为 incomplete；不得声称已完整执行该 kind 的 reducer 语义。
 - 未知 Morph type、未知非 critical extension field 和未声明 renderer 可以保留并忽略，但不能影响授权、排序、状态机、redaction、E2EE、notification 或 state hash。
-- Event 的 `requirements.features[]`、`requirements.critical_extensions[]` 或 `requirements.schema[]` 出现不支持的标识时，接收方 MUST fail closed。Reducer profile 从该 Event 的 CBS governance basis 读取；本地未实现时返回 `unsupported_profile`。
+- Event 的 `requirements.features[]`、`requirements.critical_extensions[]` 或 `requirements.schema[]` 出现不支持的标识时，接收方 MUST fail closed。Reducer profile 从该 Event 的 authority-commit governance basis 读取；本地未实现时返回 `unsupported_profile`。
 - `rejected_event_kinds` 表示 profile 必须拒绝或不接收的 wire scope / kind。`optional_extensions` 表示可以不提供交互能力；它不授权实现静默接受依赖该 extension 的 critical Event。
 
 机器可读默认行为见 `artifacts/profiles/conformance-profiles.json.default_unsupported_behavior`。其中 `must_not_accept`、`must_fail_closed`、`allowed_results` 等字段用于 conformance lint / test，而不是自由文本提示。
@@ -117,7 +117,7 @@ Profile 正文中的 prose MUST 项必须能映射到 `artifacts/profiles/confor
 `feature_discovery.required[]` 的名字是 conformance runner 要检查的发现字段、行为断言或 UI/配置证据，不是
 ServiceDescribe feature identity，也不得被生成器合并进 `supported_features`。profile 的运行时 feature 前置只由顶层
 `required_features[]` 表达；其中每一项 MUST 是 `feature-registry.json` 登记的 exact `ak.feature.*.v1`。生成器不得把裸
-assertion 名补前缀、映射为 feature，或为缺失项生成兼容 alias。
+assertion 名补前缀、映射为 feature，或为缺失项生成未登记 alias。
 
 ### 2.1.2 可裁剪构建与 profile 声明对账（normative）
 
@@ -160,7 +160,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - MUST 支持 `ak.self.signal.command.send.v1`、`ak.self.signal.stream.subscribe.v1` 与 `ak.peer.signal.command.relay.v1`；
 - MUST 支持 `ak.schema.signal_envelope.v1`、`ak.schema.signal_relay.v1` 与 `signal-federation-fixture.json`；
-- MUST 使用 federation peer HTTP Message Signature、current joined-member ActorId routing projection、producer device proof、signed `scope_ref`、`seal_ref`、三值 `signal_class`、TTL 与 MLS/AAD binding；
+- MUST 使用 federation peer HTTP Message Signature、current joined-member ActorId routing projection、producer device proof、signed `scope_ref`、`commit_ref`、三值 `signal_class`、TTL 与 MLS/AAD binding；
 - MUST 原样转发 producer envelope，不重签、不改写、不解密重加密，不从 destination 再转发第三 peer；
 - request-level 成功只返回 `{"accepted":true}`，不得暴露 recipient/binding/capability/count/per-item outcome；
 - operation MUST 是 `idempotency_mechanism=none`、`retry_safe=false`、`uncertain_outcome.strategy=drop_unconfirmed`，不得携带 `Idempotency-Key`；
@@ -174,7 +174,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - 事件名必须符合 `ak.` 命名规则，且标准 `ak.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
 - Event Envelope MUST 先通过 `ak.schema.event.v1`，再按 `Event.kind` 通过 `ak.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
-- 事件/关系/对象/View 的 `created_at`、`realm_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；schema 依赖通过 `Event.requirements.schema[]` 表达，Reducer 版本由 Realm control state 决定。
+- 事件/关系/对象/View 的 `created_at`、`realm_id`、`proof`、`hlc`、`producer_revision`、`domain_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；schema 依赖通过 `Event.requirements.schema[]` 表达，Reducer 版本由 Realm control state 决定。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
@@ -201,7 +201,7 @@ MUST 支持：
 
 MAY 支持：
 
-- 本地内容显示、解密与离线编辑所需的 reducer；不包含治理授权、Seal 接纳或历史 root 重放
+- 本地内容显示、解密与离线编辑所需的 reducer；不包含治理授权、RealmCommit 接纳或历史 root 重放
 - E2EE 解密
 - 离线写入
 - push notification
@@ -241,22 +241,21 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - KeyPackage publish / fetch / verify
 - KeyPackage claim / consume / revoke lifecycle
 - Welcome / Commit / Proposal event
-- MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 的 GroupContext extension 验证 + 当前 winning MLS group-state projection
+- MLS key-access revision binding：`governance_binding.key_access_revision` 的 GroupContext extension 验证 + 当前 winning MLS group-state projection
 - minimal-metadata pseudonymous credential handling when profile is advertised
 - AAD visibility policy handling
 - epoch mismatch recovery
 - encrypted payload envelope
 - encrypted attachment envelope
-- encrypted key backup object and backup CRUD for `secret_storage` / `mls_history`
 - device revocation handling
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE ordinary Event 的普通 `auth_context.authority_refs` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。
+声明 `ak.profile.mls_governance_binding.full.v1` 的服务器 MUST 从 accepted state 计算并验证会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE ordinary Event 的普通 `auth_context.authority_refs` 与 MLS frontier 正交；服务端不得要求同一 RealmCommit 覆盖自身。
 
 E2EE 客户端消费自己 Account Station 确认的 exact scope/group/epoch/security-frontier 结果，核对本地 MLS leaves、待签 intent 与 GroupContext extension 的对应关系，执行 MLS Commit/Welcome 密码学处理；MUST NOT 收集治理闭包、验证历史 authority 或自行重建治理 frontier。没有所需服务器结果时，仅相关 scope 保持 pending。该服务器 policy profile 的 proof bundle 与完整 verify/materialize mutation/limit runner 属于服务器或独立审计角色，不是普通 full/e2ee 客户端的继承要求；SDK 是共享代码位置，不代表客户端角色。客户端 conformance 覆盖已确认结果消费、错账号/Realm/scope/group/epoch/basis 绑定、pending 与端到端篡改拒绝。
 
-声明 `ak.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ak.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ak.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
+声明 `ak.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、committed `ak.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ak.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
 MUST NOT：
 
@@ -370,7 +369,7 @@ Station 的 Account Authority capability MUST NOT 把成功的 OIDC / SSO / pass
 
 部署内部认证组件只可用 issuer key 签自己的 JWT、introspection/status 与 issuer receipt。它 MUST NOT 持有或
 请求 principal/root/device/notary private key，MUST NOT author SessionGrant genesis/lifecycle Event、查询
-subject PCR authoring frontier 或依赖 grant Event/cell。客户端 DPoP
+subject PCR authoring frontier 或依赖 grant Event/typed current result。客户端 DPoP
 签 holder/request proof；真正的 principal Event 必须由当前获授权客户端 signer 签署，S2S transport proof
 不能替代内层 Event proof。
 
@@ -657,8 +656,7 @@ SHOULD 支持：
 `ak.profile.agent_provisioning.v1` 注册 controller-面的 Agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/cell。controller 把该承诺写入本地冻结的 Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim cells；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
-- controller-owned `backup_kind=mls_history` 只可保存 exporter history-secret ranges；不得保存 Agent PCR active MLS state、leaf signer、ratchet、proposal、sender counter 或 pending Welcome。fresh endpoint 必须通过标准 KeyPackage/Add/Welcome 重新加入唯一 derived group，backup 状态不得投影成 pairing readiness。
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision.v1`) 使用闭合的两段 DID bootstrap。controller 先可恢复地保存 WebVH update key，签署并发布不含 PCR binding 的 entry 0；prepare 接收 caller-supplied `did`，验证其 accepted entry 0 与 managed-controller delegation，创建 private durable reservation 并返回 exact `initial_resolution`、controller PCR、delegation、scope digest 及 service-signed opaque `allocation_handle`，但**不**生成 Agent DID/私钥、分配 Agent PCR id 或发布 canonical Event/typed current result。controller 把该承诺写入本地冻结的 Agent PCR `ak.realm.create`，自算 `event_id` 并取 `principal_control_realm_id = retype(event_id)`，由唯一 controller-signed `ak.agent.provision` 前向声明。commit 只接受 byte-identical reserved bytes，并在一个 reducer transaction 原子派生四个分别闭合且最小的 provision/accountability/selector/realm-id-claim typed results；第二条声明同一 realm id 的 provision 必须拒绝。commit 返回 `awaiting_pcr_genesis`。genesis 必须另一次提交；两条 create admission 路径都必须把其 `initial_resolution` 与 provisioning durable 保存值逐字段比较，再反查 controller PCR 中声明了 `retype(create.event_id)` 的 accepted provision。genesis accepted 后只推进到 `awaiting_did_binding`，Agent、pairing 及 list/get 仍不可见。controller 随后以 entry 0 预承诺 key 签署连续 entry 1，加入 exact create-locked `ArkretPrincipalControlRealm.serviceEndpoint`；只有 entry 1 accepted 后才条件写 Agent active 状态、创建 pairing handle 并返回 `complete`。provision 不物化 Realm grant；Station 不得生成 Agent PCR MLS private state。放弃未提交 genesis 的 reservation 必须走显式 abandonment operation，不得靠过期或垃圾回收静默释放。
 - `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key.v1`) 校验 current controller/Agent authority、pairing handle、requested-scope disclosure、proof-of-possession 与 accepted control frontier，不得以 history-only backup 为前置。agent 已有 active key 时(runtime replacement re-pairing)必须提交不同 raw signing key，并以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization；同 key 续权不属于 replacement。
 - Agent 通用 list/get projection 恰好暴露 lifecycle、readiness、presence 三轴；generic readiness 只含主体级 durable blockers，例如 `runtime_key_missing`、`pairing_open`，不得出现 `session_missing`、backup 状态、KP 库存、target Realm grant/membership 或 MLS blocker。`key_state` 只承载 key/handle/authorization，不得重复产品状态或备份状态。pairing poll 的 closed `runtime_state` 仅返回该 handle 的 pairing mode、expiry 和当前步骤所需 refs，不披露其它 Agent/handle/requested scope/grant/PCR history/session。SDK 必须区分 controller、pairing-handle runtime、authorized-key/no-session runtime、authenticated runtime 四种角色；authorized-key/no-session runtime 凭 active authorization 与 PoP 申请 session，不依赖 controller 在线或 generic list/get
 - Pairing expiry 关闭并省略 open-handle fields、重算 readiness；尚未首次配对的 Agent 保持 `not_ready` + `runtime_key_missing`，replacement handle 过期则清除 `pairing_open` 且不改变既有 key/grant/lifecycle。上述两者均不得创建、撤销或改写 Realm grant
@@ -693,13 +691,13 @@ MUST 支持:
 - key proof 绑定 `challenge` / `audience_id` / `request_canonical_digest` / agent principal（由 `principal_id` + `proof.verification_method` 一致性 enforced）/ `issued_at` / `expires_at`。Wire 不引入独立 `nonce`；challenge 是唯一随机请求标识。首次验证的 300 秒时窗、签名 transcript、冻结 body 与新鲜 HTTP DPoP 分离，遵循 key-management §3.6.1。相同 challenge 不得重复签发，但符合 §6.2 的 completed exact retry 必须返回原凭证；不同 intent 或 holder 的重放必须拒绝。
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
-- capability 只能由 accepted immutable provision `requested_scope.actions[]` 按 registry 的 exact-any `activation_operations` 选择；key/session、内容 action、runtime attestation、grant/participation 与产品 preset 都不得重新选择或取消。interactive 的五项 activation 任一出现即要求三层覆盖完整 `interactive_chat.mandatory_operations`，包括互不替代的 Event frontier 与 Seal frontier；KeyPackage upload/consume/revoke 任一出现即要求三层覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层按 provision→key→session 的最高缺失层依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`；server 不得自动补 operation，也不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
+- capability 只能由 accepted immutable provision `requested_scope.actions[]` 按 registry 的 exact-any `activation_operations` 选择；key/session、内容 action、runtime attestation、grant/participation 与产品 preset 都不得重新选择或取消。interactive 的五项 activation 任一出现即要求三层覆盖完整 `interactive_chat.mandatory_operations`，包括互不替代的 Event frontier 与 RealmCommit frontier；KeyPackage upload/consume/revoke 任一出现即要求三层覆盖 `e2ee.mandatory_operations` 的 KeyPackage upload。延迟/离线发布和在线 presence 分别叠加 registry 中对应 feature operation。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。三层按 provision→key→session 的最高缺失层依次使用 `agent_provision_scope_migration_required`、`agent_key_scope_reauthorization_required`、`agent_session_scope_refresh_required`；server 不得自动补 operation，也不得由 re-pairing 或 session issuance 静默扩大上层 ceiling。
 - 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
 - Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
 MUST NOT:
 - 把 `agent_key_proof` 降级走 password / OIDC / passkey validator fallback
-- 在 session grant 中授予 E2EE history key、secret storage 或长期 device 权限
+- 在 session grant 中授予 MLS private state、secret storage 或长期 device 权限
 - 把 controller 进入 `deactivated` / `suspended` 后的 agent session 视为有效
 
 ### 18.3 Agent Delegation Policy
@@ -730,7 +728,7 @@ MUST 支持：
 - `POST /_arkret/self/agent-sidecars:ensure` 的 closed prepare/commit/attach 三阶段；prepare 固定 exact Event
   drafts，new 分支返回 create + context attach，existing 分支只返回 attach；同 operation/key/exact bytes 幂等。
 - singleton key `(realm_id,controller_account_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
-- native `{kind:"sidecar",realm_id,sidecar_id}` scope 进入 Event digest、AAD、query/delivery 与 Seal 验证。
+- native `{kind:"sidecar",realm_id,sidecar_id}` scope 进入 Event digest、AAD、query/delivery 与 RealmCommit 验证。
 - `ak.sidecar.context.attach` 只登记一个已存在的 source Strand/Relation context，不创建 Strand 或 Relation。
 - read surface 返回只读 `desired_agent_ids` 与 `effective_agent_ids`；前者从 ownership、Agent lifecycle/
   runtime-key authorization 与 exact Realm active membership frontier 派生，不可由 operation 写入；后者是其中已完成当前 Sidecar
@@ -852,7 +850,7 @@ MUST 支持：
 
 - 在接收 E2EE Event Envelope 时签发七字段 `ak.moderation.franking_proof` 事件，绑定 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce` 与 `signature`；不得携带派生 digest、sender claim、proof id 或 payload `kind`。
 - franking proof `signature` 由 service DID 在 `received_at` 有效的 verification method 签发，覆盖 `ak.franking_proof.signature.v1` 唯一 canonical transcript。
-- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺，验证 proof Event 的 producer proof、authority refs 与历史 service/Realm binding。若声明期限内存在，还必须取得 byte-identical durable proof Event、确认安全 Seal 的确切 `existence_anchor` 与完整 frontier 祖先；普通 Event 不进入 Seal.delta，且普通发送与验证不得等待该可选证据。仅本地命中不能替代所声明的存在证明。
+- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺，验证 proof Event 的 producer proof、authority refs 与历史 service/Realm binding。若声明期限内存在，还必须取得 byte-identical durable proof Event、确认安全 RealmCommit 的确切 `existence_anchor` 与完整 frontier 祖先；普通 Event 不进入 RealmCommit.delta，且普通发送与验证不得等待该可选证据。仅本地命中不能替代所声明的存在证明。
 - 接收 reporter 提交的 `ak.self.moderation.command.report.v1` 时，把 exact durable franking proof Event 与 report Event 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 
@@ -866,7 +864,7 @@ MUST NOT：
 SHOULD 支持：
 
 - franking proof batch endpoint（一次 fetch 多条 franking proof）以减少 audit traffic。
-- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Seal state_root 独立，因为 franking proof 不进入 Realm seal frontier（franking proof 是 service-side audit material，不改变协作状态）。
+- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 RealmCommit state_root 独立，因为 franking proof 不进入 Realm authority commit frontier（franking proof 是 service-side audit material，不改变协作状态）。
 - 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
 
 ## 19b. Realtime Media Services
@@ -905,8 +903,8 @@ SHOULD 支持：
 - schema validation tests
 - signature verification tests
 - idempotency tests
-- reducer convergence tests（含 CBS/Lattice 向量）
-- CBS/Lattice vectors（见 `conformance-vectors.md`）
+- reducer convergence tests（含 authority-commit/Lattice 向量）
+- authority-commit/Lattice vectors（见 `conformance-vectors.md`）
 - Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json`）
 - redaction vectors（见 `conformance-vectors.md`）
 - capability vectors（见 `conformance-vectors.md`）
@@ -925,7 +923,7 @@ E2EE profile MUST 额外提供：
 
 - KeyPackage verification vector
 - KeyPackage claim single-use vector
-- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配对应 confirmed Seal state）
+- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配对应 confirmed RealmCommit state）
 - minimal-metadata identity link vector
 - AAD visibility vector
 - MLS epoch transition vector
@@ -1042,13 +1040,13 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
 | <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.envelope.negative_admission.v1` / `event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
-| <a id="ak-sdk-002"></a>2 | `proof`、`hlc`、`actor_seq`、`prev_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
+| <a id="ak-sdk-002"></a>2 | `proof`、`hlc`、`producer_revision`、`domain_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
-| <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.cbs_lattice.*` 并发撤销 fail closed 向量） |
+| <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.authority_commit_lattice.*` 并发撤销 fail closed 向量） |
 | <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
 | <a id="ak-sdk-006"></a>6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
 | <a id="ak-sdk-007"></a>7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
-| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `prev_refs`、`refs[role=authorized_by]`、`actor_seq` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
+| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `domain_refs`、`refs[role=authorized_by]`、`producer_revision` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
 | <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.1 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 ordinary Event，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |

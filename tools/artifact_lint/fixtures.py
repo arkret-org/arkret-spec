@@ -1486,9 +1486,9 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
         for case in data.get("cases", [])
         if isinstance(case, dict) and isinstance(case.get("name"), str)
     }
-    case = cases.get("mls_exporter_aead_seal_open_transcript")
+    case = cases.get("mls_exporter_aead_encrypt_decrypt_transcript")
     if not isinstance(case, dict):
-        lint.fail(path, "exporter AEAD seal/open transcript is missing")
+        lint.fail(path, "exporter AEAD encrypt/decrypt transcript is missing")
         return
     inputs = case.get("input")
     expected = case.get("expected")

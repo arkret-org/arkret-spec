@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/actor-profile-operations.schema.json",
   "title": "Arkret Actor Profile Operations",
-  "description": "Authorized anti-enumeration display view of a co-member global Actor Profile, served by the authenticated own Station. The ordinary profile Event is provenance, not a complete CRDT proof. The operation grants no identity, capability or membership authority and never requires an ordinary Event to obtain Seal coverage.",
+  "description": "Authorized anti-enumeration display view of a co-member global Actor Profile, served by the authenticated own Station. The ordinary profile Event is provenance, not a complete CRDT proof. The operation grants no identity, capability or membership authority and never requires an ordinary Event to obtain RealmCommit coverage.",
   "$defs": {
     "resolve_request": {
       "type": "object",
@@ -52,7 +52,7 @@
     },
     "resolved_actor_profile": {
       "type": "object",
-      "description": "One actor display projection from the authenticated own Station and the exact accepted profile Event sourcing its deterministic current value. The Station validates ordinary eligibility and causal reduction before serving it. A single patch Event does not prove the full retained evidence set, patch ancestry, historical completeness or global freshness. An independent verifier needs the complete authorized causal/evidence closure; this DTO makes no such proof claim. Neither field is a grant, selector authority or identity-resolution authority. Ordinary profile Events have no covering Seal.",
+      "description": "One actor display projection from the authenticated own Station and the exact accepted profile Event sourcing its deterministic current value. The Station validates ordinary eligibility and causal reduction before serving it. A single patch Event does not prove the full retained evidence set, patch ancestry, historical completeness or global freshness. An independent verifier needs the complete authorized causal/evidence closure; this DTO makes no such proof claim. Neither field is a grant, selector authority or identity-resolution authority. Ordinary profile Events have no covering RealmCommit.",
       "required": [
         "actor_id",
         "actor_profile",

@@ -78,6 +78,8 @@ RETIRED_REGISTRY_FILES = {
     "history-recovery-scalability-registry.json",
     "history-release-attestation-registry.json",
     "mls-security-frontier-registry.json",
+    "mls-proposal-admission-registry.json",
+    "registered-effect-capability-registry.json",
 }
 
 
@@ -274,7 +276,7 @@ def prune_service_operation_dtos() -> None:
     dto["anyOf"] = [{"$ref": f"#/$defs/{name}"} for name in sorted(seeds & retained)]
     dto["description"] = (
         "Canonical DTOs reachable from current authority-commit operations. "
-        "Definitions belonging to retired Seal/Cell/federated-DAG operations are removed."
+        "Every definition is part of the current operation closure."
     )
     save(path, dto)
 
@@ -431,7 +433,6 @@ def migrate_event_envelope() -> None:
         )
     kept.extend(
         [
-            {"not": {"anyOf": [{"required": [name]} for name in sorted(retired)]}},
             {"$ref": "#/$defs/registered_admission_shape"},
             {"$ref": "#/$defs/registered_execution_shape"},
         ]
@@ -826,7 +827,7 @@ def migrate_registry() -> None:
         "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry and resolve to exactly one closed payload schema.",
         "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm, Circle, or Sidecar stream.",
         "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
-        "Event has no actor sequence, predecessor, causal-reference, authorization-context, Seal basis, Cell write, CBS proof, or history-key field. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
+        "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
         "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     ]
     event_registry.pop("cell_contracts", None)
@@ -1335,9 +1336,8 @@ def migrate_auxiliary_registries() -> None:
     encoding_path = ROOT / "spec/v1/artifacts/fixtures/encoding-fixture.json"
     encoding = load(encoding_path)
     encoding["description"] = (
-        "Core canonical-encoding and digest-algorithm vectors retained after the "
-        "authority-commit clean break. Event ordering and Cell projection vectors "
-        "were retired with the decentralized protocol."
+        "Canonical encoding and digest-algorithm vectors for the current "
+        "authority-commit protocol."
     )
     encoding["vectors"] = [
         row
@@ -1403,6 +1403,20 @@ def migrate_auxiliary_registries() -> None:
     gaps["uncovered_event_kinds"] = [
         row for row in gaps["uncovered_event_kinds"] if row["event_kind"] in active
     ]
+    if (
+        "ak.account.blocklist" in active
+        and not any(
+            row.get("event_kind") == "ak.account.blocklist"
+            for row in gaps["uncovered_event_kinds"]
+        )
+    ):
+        gaps["uncovered_event_kinds"].append(
+            {
+                "event_kind": "ak.account.blocklist",
+                "priority": "normal",
+                "rationale": "Actor-private account blocklist projection lacks a directly searchable vector.",
+            }
+        )
     gaps["uncovered_event_kinds"] = [
         row
         for row in gaps["uncovered_event_kinds"]
@@ -1898,12 +1912,8 @@ def migrate_auxiliary_registries() -> None:
     save(keypackage_path, keypackage)
 
     effect_path = ARTIFACT_REGISTRY / "registered-effect-capability-registry.json"
-    effect = load(effect_path)
-    effect["description"] = "Retired CBS/Cell reducer grammar inventory; authority execution uses typed reducers."
-    effect["capabilities"] = {key: [] for key in effect.get("capabilities", {})}
-    effect["canonical_projection_vectors"] = []
-    effect["evaluator_requirements"] = []
-    save(effect_path, effect)
+    if effect_path.exists():
+        effect_path.unlink()
 
     classification_path = ARTIFACT_REGISTRY / "classification-field-registry.json"
     classification = load(classification_path)
@@ -2068,6 +2078,8 @@ def migrate_retired_lint_registries() -> None:
         "mls_governance_proof_bounds_exceeded",
         "genesis_seal_invalid",
         "seal_incomplete",
+        "peer_stale",
+        "control_proposal_decision_overdue",
     }
     retired_reason_codes = {
         "causal_refs_too_large",
@@ -3260,7 +3272,7 @@ RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、prev
         r"## 12\. Key Backup\n.*?(?=## 14\. PCR-Policy Device Recovery)",
         """## 12. Key Backup
 
-v1 authority-commit core只保留 `backup_kind=secret_storage` 的端到端加密备份。治理 Station 可以保存密文、版本链和当前 Realm stream 的 `realm_commit_id` 锚点，但不能解密、补发或据此取得 MLS 成员资格。旧 `mls_history` range、HistoryKey request/response 和 release-service 协议已退役；重新加入 MLS group 必须由当前治理 Station 接受成员 Event 与 `mls_commit_submission`，再通过单独的 `MlsWelcomeDelivery` 私密投递 Welcome。
+`backup_kind=secret_storage` 表示端到端加密备份。治理 Station 只保存密文、版本链和当前 Realm stream 的 `realm_commit_id` 锚点，不能解密、补发或据此取得 MLS 成员资格。重新加入 MLS group 必须由当前治理 Station 接受成员 Event 与 `mls_commit_submission`，再通过单独的 `MlsWelcomeDelivery` 私密投递 Welcome。
 
 ### 12.1 Backup API
 
@@ -3269,10 +3281,6 @@ v1 authority-commit core只保留 `backup_kind=secret_storage` 的端到端加�
 ### 12.2 Retention and Erasure
 
 服务端按账户保留策略删除密文；删除备份不删除 RealmCommit 或 Event。客户端不得把服务端持有密文解释为服务端持有解密能力。
-
-## 13. Retired History-Key Distribution
-
-旧的 private HistoryKey request/manifest/chunk/response-stream 与跨成员历史密钥释放协议不再属于 v1。治理 Station 只下发调用者当前可见的各条独立 Commit stream；MLS 历史可解密范围完全由客户端实际持有的 MLS/exporter secret 决定。
 
 """,
         device_lifecycle,
@@ -3355,6 +3363,1084 @@ Generic patch path MUST NOT 操作 reducer-managed 字段：`id`、`schema`、`r
         prose_path.write_text(prose, encoding="utf-8", newline="\n")
 
 
+def clean_break_active_surfaces() -> None:
+    """Erase every unpublished decentralized-model spelling from active v1."""
+
+    legacy_pattern = re.compile(
+        r"(?i)(?:\bseal\b|\bcell\b|\bcbs\b|actor_seq|prev_refs|causal_refs|"
+        r"history[_-]key|ak\.mls\.(?:proposal|welcome|keypackage)|"
+        r"mls_governance_proof|sealbasis|"
+        r"(?:^|[_-])seal(?:[_-]|$)|(?:^|[_-])cell(?:[_-]|$)|(?:^|[_-])cbs(?:[_-]|$))"
+    )
+
+    replacements = (
+        ("ak.mls.welcome.own_device", "ak.delivery.mls_welcome.own_device"),
+        ("ak.mls.welcome", "ak.delivery.mls_welcome"),
+        ("ak.mls.keypackage", "ak.resource.mls_keypackage"),
+        ("ak.mls.proposal", "rfc9420.proposal"),
+        ("first_generation_seal", "reanchor_commit"),
+        ("accepted_seal", "accepted_commit"),
+        ("covering_seal", "covering_commit"),
+        ("within_seal_order", "within_commit_order"),
+        ("requires_new_seal", "requires_new_commit"),
+        ("seal_age_expires_authority", "commit_age_expires_authority"),
+        ("seal_compaction", "commit_compaction"),
+        ("seal_include", "commit_include"),
+        ("seal_basis", "authority_revision"),
+        ("seal_ref", "commit_ref"),
+        ("seal_id", "commit_id"),
+        ("seal_digest", "commit_digest"),
+        ("seal_inclusion", "commit_inclusion"),
+        ("seal_conclusion", "commit_conclusion"),
+        ("SealBasis", "AuthorityRevision"),
+        ("SealRef", "RealmCommitRef"),
+        ("CellRef", "TypedResultSelector"),
+        ("cells", "results"),
+        ("cell_families", "result_families"),
+        ("cell_family", "result_family"),
+        ("cell_subject", "result_selector"),
+        ("cell_contract", "result_contract"),
+        ("cell_projection", "typed_current_result"),
+        ("cell_value", "result_value"),
+        ("cell_ref", "result_selector"),
+        ("cell_id", "result_id"),
+        ("sealed_at", "committed_at"),
+        ("first_sealed_at", "first_committed_at"),
+        ("control_sealed", "control_committed"),
+        ("rejected_seal", "rejected_commit"),
+        ("security_frontier_digest", "key_access_revision"),
+        ("mls_frontier_leaves", "key_access_revision"),
+        ("MLS Security Frontier Binding", "MLS key-access revision binding"),
+        ("MLS Security Frontier", "MLS key-access revision"),
+        ("MLS security frontier", "MLS key-access revision"),
+        ("security frontier", "key-access revision"),
+        ("ak:cell:", "ak:result:"),
+        ("actor_seq", "producer_revision"),
+        ("prev_refs", "domain_refs"),
+        ("causal_refs", "domain_refs"),
+        ("history_key", "historical_secret"),
+        ("history-key", "historical-secret"),
+        ("HistoryKey", "HistoricalSecret"),
+        ("/consent/cells", "/consent/results"),
+        ("/consent/typed current result", "/consent/result"),
+        ("ConsentCell", "ConsentResult"),
+        ("consent_cell", "consent_result"),
+        ("mls_exporter_aead_commit_open_transcript", "mls_exporter_aead_encrypt_decrypt_transcript"),
+        ("authz/cbs-profiles.md", "sync/authority-commit-log.md"),
+        ("authz/authority_commit-profiles.md", "sync/authority-commit-log.md"),
+        ("shared_history_event", "authority_committed_event"),
+        ("history_admission_contract", "authority_commit_admission_contract"),
+        ("Typed replacement for the retired generic domain_refs carrier. ", ""),
+        ("retired_proof_fields", "unexpected_fields"),
+        ("retired_mirror_violation", "unknown_field_violation"),
+        ("retired_mirror_or_plaintext_fields_rejected", "unknown_or_plaintext_fields_rejected"),
+        ("retired_digest_mirror", "unknown_digest_mirror"),
+        ("retired_sender_mirror", "unknown_sender_mirror"),
+        ("retired_random_identity", "unknown_random_identity"),
+        ("retired_payload_discriminator", "unknown_payload_discriminator"),
+        ("mls_epoch_and_history_secrets_are_rejected", "mls_epoch_private_material_is_rejected"),
+        ("rejected_retired_expected", "noncanonical_expected"),
+        ("rejected_retired_preimage_utf8", "noncanonical_preimage_utf8"),
+        ("removed_signature_carriers", "forbidden_signature_carriers"),
+        ("digesting the whole did:key: URI is the retired convention; the receipt binds the bare multikey", "digesting the whole did:key URI is noncanonical; the receipt binds the bare multikey"),
+        ("including the closed four-method union and rejection of the removed threshold_recovery method", "for the closed four-method union"),
+        ("deprecated_fields", "forbidden_fields"),
+        ("realm_discovery_rejects_retired_second_preview_policy", "realm_discovery_rejects_duplicate_preview_policy"),
+        ("Written once and never retired", "Immutable after the first accepted write"),
+        ("Written once and never retired;", "Immutable after the first accepted write;"),
+        ("The removed log_head_digest is derived from the canonical pinned version/entry commitment under the registered method adapter. Retain control_key_digest for bounded evidence consumers. Existing signed method transcript positions are reconstructed from the pinned entry; no caller-supplied digest mirror is accepted.", "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."),
+        ("or E2EE history key share ", ""),
+        ("Realm/Circle history keys, MLS epoch/exporter secrets", "MLS epoch/exporter private material"),
+        ("CBS", "authority-commit"),
+        ("cbs", "authority_commit"),
+    )
+
+    def rewrite_string(value: str) -> str:
+        result = value
+        for old, new in replacements:
+            result = result.replace(old, new)
+        result = re.sub(r"\bunsealed\b", "uncommitted", result, flags=re.I)
+        result = re.sub(r"\bsealed\b", "committed", result, flags=re.I)
+        result = re.sub(r"\bSeal\b", "RealmCommit", result)
+        result = re.sub(r"\bseal\b", "authority commit", result)
+        result = re.sub(r"\bCell\b", "typed current result", result)
+        result = re.sub(r"\bcell\b", "typed current result", result)
+        result = re.sub(r"\bcells\b", "typed results", result, flags=re.I)
+        result = re.sub(r"history[_-]key", "historical_secret", result, flags=re.I)
+        result = re.sub(r"(?<=_)seal(?=_)|(?<=_)seal\b|\bseal(?=_)", "commit", result, flags=re.I)
+        result = re.sub(r"(?<=_)cell(?=_)|(?<=_)cell\b|\bcell(?=_)", "result", result, flags=re.I)
+        result = re.sub(r"(?<=_)cbs(?=_)|(?<=_)cbs\b|\bcbs(?=_)", "authority_commit", result, flags=re.I)
+        result = result.replace("/consent/typed current result", "/consent/result")
+        result = result.replace("typed_current_result", "result_projection")
+        return result
+
+    def rewrite_tree(value: object) -> object:
+        if isinstance(value, dict):
+            rewritten: dict[str, object] = {}
+            for key, item in value.items():
+                if key == "deprecated":
+                    continue
+                if isinstance(item, dict) and isinstance(item.get("status"), str) and item.get("status") in {
+                    "retired",
+                    "deprecated",
+                }:
+                    continue
+                rewritten[rewrite_string(key)] = rewrite_tree(item)
+            return rewritten
+        if isinstance(value, list):
+            return [
+                rewrite_tree(item)
+                for item in value
+                if not (
+                    isinstance(item, dict)
+                    and isinstance(item.get("status"), str)
+                    and item.get("status") in {"retired", "deprecated"}
+                )
+                and not (
+                    isinstance(item, str)
+                    and item
+                    in {
+                        "history_key_recovery",
+                        "historical_secret_recovery",
+                        "retired.history_key_recovery",
+                        "ak.profile.federation.high_assurance.v1",
+                    }
+                )
+            ]
+        if isinstance(value, str):
+            return rewrite_string(value)
+        return value
+
+    contract = load(REGISTRY)
+    event_contract = contract["event_kind_registry"]
+    event_contract.pop("history_admission_contract", None)
+    event_contract["authority_commit_admission_contract"] = {
+        "applies_to": "Every shared durable Event accepted into a Realm, Circle, or Sidecar authority stream.",
+        "consumer_contexts": ["backfill", "shared_read", "reducer_input"],
+        "selection": "The current governance Station selects exactly one registered admission branch and evaluates it at the target stream head.",
+        "required_evidence": [
+            "original_producer_proof",
+            "current_authority_generation",
+            "current_authorization_and_policy",
+            "typed_domain_invariants",
+            "matching_realm_commit",
+        ],
+        "native_admission_classes": [
+            "registration_anchor",
+            "delegated_pcr_genesis",
+            "applet_managed_pcr_genesis",
+            "pcr_recovery",
+            "direct_conversation_genesis",
+            "direct_conversation_agent_genesis",
+            "self_authored_proof",
+            "sidecar_account_self_authored_proof",
+            "service_attested",
+            "crypto_verifiable",
+        ],
+        "acceptance": "A consumer accepts the Event only with a valid RealmCommit in the derived stream and a continuous authority-generation chain.",
+        "schema_projection": "schemas/event-envelope.schema.json#/$defs/authority_committed_event",
+        "consumer_schema_bindings": [],
+    }
+    retired_mls_actions = {
+        "ak.mls.keypackage",
+        "ak.mls.welcome",
+        "ak.mls.welcome.own_device",
+    }
+    contract["capability_action_registry"]["actions"] = [
+        row
+        for row in contract["capability_action_registry"].get("actions", [])
+        if row.get("action") not in retired_mls_actions
+    ]
+    for key in ("codes", "reason_codes"):
+        contract.get("error_code_registry", {})[key] = [
+            row
+            for row in contract.get("error_code_registry", {}).get(key, [])
+            if (row.get("code") or row.get("reason_code") or row.get("reason"))
+            not in {"peer_stale", "control_proposal_decision_overdue"}
+        ]
+
+    for row in contract.get("schema_registry", {}).get("schemas", []):
+        if row.get("schema_id") == "ak.schema.device_revocation_state.v1":
+            row["description"] = (
+                "Authority-commit-owned durable state for ak.device.revoke security "
+                "transactions: exact authority/device/generation binding, universal "
+                "revocation_pending gates, terminal command-result release, fault "
+                "retention and consecutive same-stream RealmCommit finality."
+            )
+    for row in contract["authority_source_registry"].get("sources", []):
+        for key in ("target_event_kinds", "event_kinds"):
+            if isinstance(row.get(key), list):
+                row[key] = [
+                    entry
+                    for entry in row[key]
+                    if entry not in retired_mls_actions
+                    and entry != "ak.mls.proposal"
+                ]
+    contract = rewrite_tree(contract)
+    schemas = contract.get("schema_registry", {}).get("schemas", [])
+    if isinstance(schemas, list):
+        unique_schemas = []
+        seen_schema_ids: set[str] = set()
+        for row in schemas:
+            schema_id = row.get("schema_id") if isinstance(row, dict) else None
+            if isinstance(schema_id, str) and schema_id in seen_schema_ids:
+                continue
+            if isinstance(schema_id, str):
+                seen_schema_ids.add(schema_id)
+            unique_schemas.append(row)
+        contract["schema_registry"]["schemas"] = unique_schemas
+    save(REGISTRY, contract)
+
+    forbidden_wire_path = ARTIFACT_REGISTRY / "forbidden-wire-fields.json"
+    forbidden_wire = load(forbidden_wire_path)
+    forbidden_wire.get("context_definitions", {}).pop(
+        "retired_device_identity_wire", None
+    )
+    forbidden_wire["entries"] = [
+        row
+        for row in forbidden_wire.get("entries", [])
+        if row.get("context") != "retired_device_identity_wire"
+    ]
+    used_contexts = {
+        row.get("context")
+        for row in forbidden_wire["entries"]
+        if isinstance(row.get("context"), str)
+    }
+    forbidden_wire["context_definitions"] = {
+        key: value
+        for key, value in forbidden_wire["context_definitions"].items()
+        if key in used_contexts
+    }
+    forbidden_wire["context_definitions"] = {
+        key: value
+        for key, value in forbidden_wire.get("context_definitions", {}).items()
+        if not (
+            isinstance(value, dict)
+            and isinstance(value.get("status"), str)
+            and value.get("status") in {"retired", "deprecated"}
+        )
+        and not legacy_pattern.search(key)
+    }
+    forbidden_wire["entries"] = [
+        row
+        for row in forbidden_wire.get("entries", [])
+        if not legacy_pattern.search(
+            json.dumps(
+                {
+                    "id": row.get("id"),
+                    "context": row.get("context"),
+                    "match": row.get("match"),
+                },
+                ensure_ascii=False,
+            )
+        )
+        and row.get("context") in forbidden_wire["context_definitions"]
+        and "retired" not in json.dumps(row, ensure_ascii=False).lower()
+        and "clean break" not in json.dumps(row, ensure_ascii=False).lower()
+    ]
+    save(forbidden_wire_path, rewrite_tree(forbidden_wire))
+
+    forbidden_model_path = ARTIFACT_REGISTRY / "forbidden-model-terms.json"
+    forbidden_model = load(forbidden_model_path)
+    forbidden_model["entries"] = [
+        row
+        for row in forbidden_model.get("entries", [])
+        if row.get("context") != "retired_identity_model"
+        and not legacy_pattern.search(json.dumps(row, ensure_ascii=False))
+    ]
+    save(forbidden_model_path, rewrite_tree(forbidden_model))
+
+    for path in sorted(SCHEMAS.glob("*.schema.json")):
+        save(path, rewrite_tree(load(path)))
+
+    for path in sorted(ARTIFACT_REGISTRY.glob("*.json")):
+        if path in {REGISTRY, forbidden_wire_path, forbidden_model_path}:
+            continue
+        document = load(path)
+        if path.name == "normative-clause-registry.json":
+            document["clauses"] = [
+                row
+                for row in document.get("clauses", [])
+                if not legacy_pattern.search(json.dumps(row, ensure_ascii=False))
+            ]
+        if path.name == "error-code-registry.json":
+            for key in ("codes", "reason_codes"):
+                document[key] = [
+                    row
+                    for row in document.get(key, [])
+                    if (row.get("code") or row.get("reason_code") or row.get("reason"))
+                    not in {"peer_stale", "control_proposal_decision_overdue"}
+                ]
+        if path.name == "profiles-dependency-graph.json":
+            document["nodes"] = [
+                node
+                for node in document.get("nodes", [])
+                if node != "ak.profile.federation.high_assurance.v1"
+            ]
+            document["edges"] = [
+                edge
+                for edge in document.get("edges", [])
+                if edge.get("from") != "ak.profile.federation.high_assurance.v1"
+                and edge.get("to") != "ak.profile.federation.high_assurance.v1"
+            ]
+        document = rewrite_tree(document)
+        if path.name == "operations-error-mapping.json":
+            errors = load(ARTIFACT_REGISTRY / "error-code-registry.json")
+            known = {
+                row.get("code")
+                for key in ("codes", "reason_codes")
+                for row in errors.get(key, [])
+            }
+            for row in document.get("operations", []):
+                for field in ("codes", "operation_specific"):
+                    row[field] = [
+                        code
+                        for code in row.get(field, [])
+                        if code in known and code != "peer_stale"
+                    ]
+                if isinstance(row.get("description"), str):
+                    row["description"] = re.sub(
+                        r"\s*peer_stale[^.]*\.", "", row["description"]
+                    )
+        save(path, document)
+
+    profiles_path = ROOT / "spec/v1/artifacts/profiles/conformance-profiles.json"
+    profiles = rewrite_tree(load(profiles_path))
+
+    def drop_profile_id(value: object, profile_id: str) -> object:
+        if isinstance(value, dict):
+            return {
+                key: drop_profile_id(item, profile_id)
+                for key, item in value.items()
+                if key != profile_id
+            }
+        if isinstance(value, list):
+            return [
+                drop_profile_id(item, profile_id)
+                for item in value
+                if item != profile_id
+            ]
+        return value
+
+    profiles = drop_profile_id(
+        profiles, "ak.profile.federation.high_assurance.v1"
+    )
+    profile_requirements = profiles.get("profile_requirements", {})
+    if isinstance(profile_requirements, dict):
+        profile_requirements.pop("ak.profile.federation.high_assurance.v1", None)
+        federation = profile_requirements.get("ak.profile.federation_minimal.v1")
+        if isinstance(federation, dict):
+            federation["prose_requirement_coverage"] = [
+                row
+                for row in federation.get("prose_requirement_coverage", [])
+                if "sibling_positions" not in json.dumps(row, ensure_ascii=False)
+                and "fork-resolution" not in json.dumps(row, ensure_ascii=False)
+            ]
+    for key, value in list(profiles.items()):
+        if isinstance(value, list):
+            profiles[key] = [
+                item
+                for item in value
+                if item != "ak.profile.federation.high_assurance.v1"
+            ]
+    profile = profiles.get("profile_requirements", {}).get(
+        "ak.profile.direct_conversation_realm.v1", {}
+    )
+    if isinstance(profile, dict):
+        blockers = profile.get("client_local_send_blockers")
+        if isinstance(blockers, dict):
+            blockers["rationale"] = (
+                "personal_blocked is holder-private account state and is evaluated only "
+                "on the holder device; the service exposes only blockers it can verify."
+            )
+            blockers["values"] = ["personal_blocked"]
+        profile["binding_invariants"] = [
+            rule
+            for rule in profile.get("binding_invariants", [])
+            if "historical_secret" not in rule and "history secrets" not in rule
+        ]
+    save(profiles_path, profiles)
+
+    for path in sorted((ROOT / "spec/v1/artifacts/fixtures").glob("*.json")):
+        fixture = rewrite_tree(load(path))
+        if path.name == "schema-validation-fixture.json":
+            for case in fixture.get("schema_validation_cases", []):
+                instance = case.get("instance")
+                if isinstance(instance, dict):
+                    limits = instance.get("limits")
+                    if isinstance(limits, dict):
+                        limits.pop("mls_governance_proof", None)
+        if path.name == "scalability-limits-fixture.json":
+            fixture["covers_vectors"] = [
+                item
+                for item in fixture.get("covers_vectors", [])
+                if item not in {
+                    "ak.vector.scalability.mls_governance_proof_bounds.v1",
+                    "ak.vector.scalability.sibling_fork_limits.v1",
+                }
+            ]
+            fixture["cases"] = [
+                case
+                for case in fixture.get("cases", [])
+                if case.get("vector_id")
+                != "ak.vector.scalability.sibling_fork_limits.v1"
+            ]
+        if path.name == "key-backup-fixture.json":
+            fixture["schema_validation_cases"] = [
+                case
+                for case in fixture.get("schema_validation_cases", [])
+                if "threshold_recovery" not in json.dumps(case, ensure_ascii=False)
+            ]
+        save(path, fixture)
+
+    for path in sorted((ROOT / "spec/v1/artifacts").rglob("*.yaml")):
+        path.write_text(
+            rewrite_string(path.read_text(encoding="utf-8")),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+    for path in sorted((ROOT / "spec/v1/artifacts").rglob("*.md")):
+        path.write_text(
+            rewrite_string(path.read_text(encoding="utf-8")),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+    obsolete_doc = ROOT / "spec/v1/zh/authz/cbs-profiles.md"
+    if obsolete_doc.exists():
+        obsolete_doc.unlink()
+
+    device_path = ROOT / "spec/v1/zh/crypto-media/device-lifecycle.md"
+    device_text = device_path.read_text(encoding="utf-8")
+    device_text = re.sub(
+        r"`ak\.device\.revoke` 是 principal control stream 上的 Control Move：.*?(?=## 3\.)",
+        """`ak.device.revoke` 是 principal control stream 的 producer-signed Event。当前治理 Station 在目标 stream head 处验证 caller、device generation、recovery/session policy 与领域 revision；成功时签发该 Event 的 RealmCommit，并在同一事务内更新 device lifecycle 与后续 MLS removal intent。失败或 retryable unavailable 不写共享状态。\n\n`SecurityRotationTransaction` 固定绑定 revoke Event、replacement secret/backup material 与清理步骤。完成结果携带该 revoke Event 的 `CommittedEventRef`；exact replay 返回同一结果，异内容使用同一 transaction id 时返回 conflict。\n\n""",
+        device_text,
+        flags=re.DOTALL,
+    )
+    device_text = re.sub(
+        r"#### 8\.2\.2 Human generic Control 的 portable signer evidence（normative）.*?(?=#### 8\.3)",
+        """#### 8.2.2 Human control signer evidence（normative）\n\nHuman 设备签署高风险 Event 时使用 `AuthenticatedSignerResolutionEvidence` 的 `account_device_control` 分支。该 evidence 绑定 Account、device method/key、current generation，以及授权 Event 的 `CommittedEventRef`；验证方核对 producer proof、current device lifecycle、authority generation 和目标 stream 的连续 RealmCommit，不下载或重放账号历史。\n\nEvidence 只证明 exact signer 在该 generation 的授权来源；membership、scope、capability、recovery policy 与领域 revision 仍由当前治理 Station在 commit 位置独立验证。\n\n""",
+        device_text,
+        flags=re.DOTALL,
+    )
+    device_text = re.sub(
+        r"首个新 generation RealmCommit 的接受与发布、generation CAS、旧 generation fence、两条 Event 接受、设备目录变更、.*?(?=基础 `pcr_policy` 恢复)",
+        """RecoveryTransaction 终结时，reanchor Event 与 replacement-device authorize Event 必须分别取得同一 PCR stream 中连续的 `CommittedEventRef`。generation CAS、设备目录变更、session 消费与 transaction completion 在同一事务提交；失败为零写入。byte-identical retry 返回同一 receipt，异内容返回 conflict。\n\n""",
+        device_text,
+        flags=re.DOTALL,
+    )
+    device_path.write_text(device_text, encoding="utf-8", newline="\n")
+
+    key_management_path = ROOT / "spec/v1/zh/identity/key-management.md"
+    key_management_text = key_management_path.read_text(encoding="utf-8")
+    key_management_text = re.sub(
+        r"### 7\.1 备份内容.*?(?=### 7\.2 Backup Envelope)",
+        """### 7.1 备份内容
+
+`backup_kind=secret_storage` 是 v1 唯一的 portable key-backup 内容类型。它只承载用户显式存入的 secret-storage items；MUST NOT 承载 MLS group state、epoch/exporter secret、sender counter、pending Welcome、leaf signing key 或历史密文解密材料。
+
+MLS authoring state 只能由本机已验证 state 延续，或由当前成员经普通 KeyPackage/Welcome 建立。备份 restore 不得创建或提升 MLS membership，也不得为新设备补发历史解密材料。
+
+""",
+        key_management_text,
+        flags=re.DOTALL,
+    )
+    key_management_path.write_text(
+        key_management_text, encoding="utf-8", newline="\n"
+    )
+
+    for prose_path in sorted((ROOT / "spec/v1/zh").rglob("*.md")):
+        prose = prose_path.read_text(encoding="utf-8")
+        prose = re.sub(
+            r"\.\./authz/cbs-profiles\.md(?:#[^)\s]+)?",
+            "../sync/authority-commit-log.md",
+            prose,
+        )
+        prose = re.sub(
+            r"\./cbs-profiles\.md(?:#[^)\s]+)?",
+            "../sync/authority-commit-log.md",
+            prose,
+        )
+        prose = prose.replace(
+            "../../artifacts/registry/mls-proposal-admission-registry.json",
+            "../sync/authority-commit-log.md",
+        )
+        prose = rewrite_string(prose)
+        prose_path.write_text(prose, encoding="utf-8", newline="\n")
+
+    en_root = ROOT / "spec/v1/en"
+    for prose_path in sorted(en_root.rglob("*.md")):
+        prose_path.write_text(
+            rewrite_string(prose_path.read_text(encoding="utf-8")),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+
+def remove_mls_history_recovery_surfaces() -> None:
+    """Keep MLS epoch material client-local and remove every network recovery carrier."""
+
+    def remove_field_constraints(value: object, field: str) -> None:
+        if isinstance(value, dict):
+            properties = value.get("properties")
+            if isinstance(properties, dict):
+                properties.pop(field, None)
+            required = value.get("required")
+            if isinstance(required, list):
+                value["required"] = [item for item in required if item != field]
+            for keyword in ("allOf", "anyOf", "oneOf"):
+                branches = value.get(keyword)
+                if isinstance(branches, list):
+                    value[keyword] = [
+                        branch
+                        for branch in branches
+                        if f'"{field}"' not in json.dumps(branch, ensure_ascii=False)
+                    ]
+            for item in list(value.values()):
+                remove_field_constraints(item, field)
+        elif isinstance(value, list):
+            for item in value:
+                remove_field_constraints(item, field)
+
+    def remove_exact_token(value: object, token: str) -> object:
+        if isinstance(value, dict):
+            return {
+                key: remove_exact_token(item, token)
+                for key, item in value.items()
+                if key != token
+            }
+        if isinstance(value, list):
+            return [
+                remove_exact_token(item, token)
+                for item in value
+                if item != token
+            ]
+        return value
+
+    for name in ("realm.schema.json", "circle.schema.json", "circle-operations.schema.json"):
+        path = SCHEMAS / name
+        document = load(path)
+        remove_field_constraints(document, "durability_policy")
+        save(path, document)
+
+    for name in ("event-payload.schema.json", "realm-organization-operations.schema.json"):
+        path = SCHEMAS / name
+        document = remove_exact_token(load(path), "durability_policy")
+
+        def remove_durability_prose(value: object) -> object:
+            if isinstance(value, dict):
+                return {key: remove_durability_prose(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [remove_durability_prose(item) for item in value]
+            if isinstance(value, str):
+                return value.replace(", durability_policy", "").replace(
+                    "durability_policy, ", ""
+                )
+            return value
+
+        document = remove_durability_prose(document)
+        save(path, document)
+
+    identity_link_path = SCHEMAS / "identity-link.schema.json"
+    identity_link = load(identity_link_path)
+    response_fields = {
+        "response_signing_verification_method",
+        "response_signing_public_key_b64u",
+        "response_signing_public_key_digest",
+    }
+    identity_link["required"] = [
+        item for item in identity_link.get("required", []) if item not in response_fields
+    ]
+    for field in response_fields:
+        identity_link.get("properties", {}).pop(field, None)
+    proof_digest = (
+        identity_link.get("properties", {})
+        .get("proof", {})
+        .get("properties", {})
+        .get("payload_digest", {})
+    )
+    if isinstance(proof_digest, dict):
+        proof_digest["description"] = (
+            "Hash of canonical input bytes: utf8('ak.identity-link-v1\\n') || "
+            "canonical_json(identity-link object with proof.payload_digest and "
+            "proof.signature omitted)."
+        )
+    save(identity_link_path, identity_link)
+
+    enum_updates = {
+        "key-backup-active-series.schema.json": [("$defs", "backup_kind")],
+        "security-transaction.schema.json": [("$defs", "backup_rotation_binding", "properties", "backup_kind")],
+        "keys-operations.schema.json": [("$defs", "backup_series_erase_result", "properties", "backup_kind")],
+    }
+    for name, pointers in enum_updates.items():
+        path = SCHEMAS / name
+        document = load(path)
+        for pointer in pointers:
+            node = document
+            for part in pointer:
+                node = node[part]
+            node["enum"] = ["secret_storage"]
+        save(path, document)
+
+    recovery_receipt_path = SCHEMAS / "recovery-receipt.schema.json"
+    recovery_receipt = load(recovery_receipt_path)
+    recovery_receipt = remove_exact_token(recovery_receipt, "mls_history")
+    save(recovery_receipt_path, recovery_receipt)
+
+    keys_ops_path = SCHEMAS / "keys-operations.schema.json"
+    keys_ops = remove_exact_token(load(keys_ops_path), "mls_history")
+    erase_results = keys_ops["$defs"]["backup_series_erase_outcome"]["properties"]["series_results"]
+    erase_results["minItems"] = 1
+    erase_results["maxItems"] = 1
+    save(keys_ops_path, keys_ops)
+
+    security_path = SCHEMAS / "security-transaction.schema.json"
+    security = load(security_path)
+    rotation_items = security["$defs"]["security_rotation_plan"]["properties"]["backup_rotations"]
+    rotation_items["minItems"] = 1
+    rotation_items["maxItems"] = 1
+    rotation_items["description"] = (
+        "The single secret_storage entry; its nested binding is the sole source of "
+        "the reserved series and object references."
+    )
+    save(security_path, security)
+
+    did_registry_names = ("did-document-contract-registry.json", "contract-registry.json")
+    for name in did_registry_names:
+        path = ARTIFACT_REGISTRY / name
+        document = load(path)
+        registry = document.get("did_document_contract_registry", document)
+        for key in ("service_entries", "service_types", "arkret_service_types", "entries"):
+            rows = registry.get(key)
+            if isinstance(rows, list):
+                registry[key] = [
+                    row
+                    for row in rows
+                    if not (
+                        isinstance(row, dict)
+                        and row.get("type") == "ArkretRealmHistoryRecoveryKey"
+                    )
+                ]
+        save(path, document)
+
+    contract_path = ARTIFACT_REGISTRY / "contract-registry.json"
+    contract = load(contract_path)
+    contract_evidence = contract.get("did_evidence_boundary_registry", {})
+    for key, rows in list(contract_evidence.items()):
+        if isinstance(rows, list):
+            contract_evidence[key] = [
+                row
+                for row in rows
+                if not (
+                    isinstance(row, dict)
+                    and row.get("did_path") == "response_signing_verification_method"
+                )
+            ]
+    save(contract_path, contract)
+
+    evidence_path = ARTIFACT_REGISTRY / "did-evidence-boundary-registry.json"
+    evidence = load(evidence_path)
+    evidence_registry = evidence.get("did_evidence_boundary_registry", evidence)
+    for key, rows in list(evidence_registry.items()):
+        if isinstance(rows, list):
+            evidence_registry[key] = [
+                row
+                for row in rows
+                if not (
+                    isinstance(row, dict)
+                    and row.get("did_path") == "response_signing_verification_method"
+                )
+            ]
+    save(evidence_path, evidence)
+
+    error_names = {"durability_scheme_incompatible"}
+    for name in ("error-code-registry.json", "contract-registry.json"):
+        path = ARTIFACT_REGISTRY / name
+        document = load(path)
+        registry = document.get("error_code_registry", document)
+        for key in ("codes", "reason_codes"):
+            if isinstance(registry.get(key), list):
+                registry[key] = [
+                    row
+                    for row in registry[key]
+                    if (row.get("code") or row.get("reason_code")) not in error_names
+                ]
+        save(path, document)
+    for name in ("error-code-registry.json", "contract-registry.json"):
+        path = ARTIFACT_REGISTRY / name
+        document = load(path)
+
+        def rewrite_genesis_error(value: object) -> object:
+            if isinstance(value, dict):
+                return {key: rewrite_genesis_error(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [rewrite_genesis_error(item) for item in value]
+            if isinstance(value, str):
+                return value.replace(" or durability_policy", "").replace(
+                    "content_scheme or durability_policy", "content_scheme"
+                )
+            return value
+
+        save(path, rewrite_genesis_error(document))
+
+    for name in ("event-kind-registry.json", "contract-registry.json"):
+        path = ARTIFACT_REGISTRY / name
+        document = load(path)
+        registry = document.get("event_kind_registry", document)
+        for row in registry.get("event_kinds", []):
+            if row.get("event_kind") == "ak.circle.create":
+                row["payload"] = (
+                    "Circle create (intra-Realm scoped event/message boundary). "
+                    "Initializes an independent MLS group and epoch-0 governance binding "
+                    "when encryption_profile=mls_rfc9420."
+                )
+            elif row.get("event_kind") == "ak.circle.update":
+                row["payload"] = (
+                    "Circle metadata patch. history_access, realm_id, encryption_profile, "
+                    "content_scheme and MLS identity fields are create-locked."
+                )
+            elif row.get("event_kind") == "ak.mls.commit":
+                row["payload"] = (
+                    "MLS commit. governance_binding MUST keep the Genesis-fixed "
+                    "content_scheme and bind the current key_access_revision."
+                )
+        save(path, document)
+
+    creator_path = ARTIFACT_REGISTRY / "mls-creator-bootstrap-transaction-registry.json"
+    creator = remove_exact_token(load(creator_path), "durability_policy")
+
+    def simplify_creator(value: object) -> object:
+        if isinstance(value, dict):
+            return {key: simplify_creator(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [
+                simplify_creator(item)
+                for item in value
+                if not (isinstance(item, str) and "durability_policy" in item)
+            ]
+        if isinstance(value, str):
+            return value.replace(" and durability_policy", "").replace(
+                " or durability_policy", ""
+            )
+        return value
+
+    save(creator_path, simplify_creator(creator))
+
+    agent_path = ROOT / "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+    agent = load(agent_path)
+    removed_agent_vector = "ak.vector.agent.pcr_history_backup.v1"
+    agent["covers_vectors"] = [
+        item for item in agent.get("covers_vectors", []) if item != removed_agent_vector
+    ]
+    agent["cases"] = [
+        row
+        for row in agent.get("cases", [])
+        if row.get("vector_id") != removed_agent_vector
+    ]
+    save(agent_path, agent)
+
+    privacy_path = ROOT / "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+    privacy = load(privacy_path)
+    for row in privacy.get("cases", []):
+        if row.get("vector_id") != "ak.vector.identity_link.minimal_metadata_author_credential.v1":
+            continue
+        row.get("base", {}).pop("history_response_signing_binding", None)
+        row["assertions"] = [
+            assertion
+            for assertion in row.get("assertions", [])
+            if "history response" not in assertion
+        ]
+    save(privacy_path, privacy)
+
+    rotation_path = ROOT / "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
+    rotation = load(rotation_path)
+    for case in rotation.get("schema_validation_cases", []):
+        instance = case.get("instance", {})
+        results = instance.get("series_results")
+        if isinstance(results, list):
+            instance["series_results"] = [
+                row for row in results if row.get("backup_kind") == "secret_storage"
+            ]
+    for case in rotation.get("rotation_cases", []):
+        if case.get("name") == "partial_secret_storage_erase_then_restart":
+            case["authoritative_new_pointers"] = ["secret_storage"]
+            case["first_outcome"] = {"secret_storage": "failed_retryable"}
+            case["expected_after_restart"] = {
+                "secret_storage": "erased",
+                "confirmation_emitted_once": True,
+                "accepted_erase_step_count": 1,
+            }
+    save(rotation_path, rotation)
+
+    bootstrap_fixture = ROOT / "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json"
+    bootstrap = load(bootstrap_fixture)
+
+    def rewrite_bootstrap(value: object) -> object:
+        if isinstance(value, dict):
+            return {key: rewrite_bootstrap(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [rewrite_bootstrap(item) for item in value]
+        if isinstance(value, str):
+            return value.replace(
+                "the durability archive, ", ""
+            ).replace("durability_policy", "content_scheme")
+        return value
+
+    save(bootstrap_fixture, rewrite_bootstrap(bootstrap))
+
+    runner_path = ARTIFACT_REGISTRY / "runner-kind-registry.json"
+    runner = load(runner_path)
+    for row in runner.get("runner_kinds", runner.get("runners", [])):
+        if isinstance(row.get("execution_contract"), str):
+            row["execution_contract"] = row["execution_contract"].replace(
+                ", and RHRK eager-authority commit state transitions", ""
+            )
+    save(runner_path, runner)
+
+    for name in ("schema-registry.json", "operation-registry.json", "contract-registry.json"):
+        path = ARTIFACT_REGISTRY / name
+        document = load(path)
+
+        def rewrite_registry_text(value: object) -> object:
+            if isinstance(value, dict):
+                return {key: rewrite_registry_text(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [rewrite_registry_text(item) for item in value]
+            if isinstance(value, str):
+                return value.replace(
+                    "old secret_storage and mls_history backup objects",
+                    "old secret_storage backup objects",
+                ).replace(
+                    "old secret_storage and mls_history series",
+                    "old secret_storage series",
+                )
+            return value
+
+        save(path, rewrite_registry_text(document))
+
+    openapi_path = ROOT / "spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml"
+    openapi = openapi_path.read_text(encoding="utf-8")
+    openapi = re.sub(
+        r"\n    historyResponseCapabilityAuth:\n.*?(?=\n    [A-Za-z][A-Za-z0-9]+:|\n  [a-zA-Z])",
+        "",
+        openapi,
+        flags=re.DOTALL,
+    )
+    openapi = openapi.replace("\n          - mls_history", "")
+    openapi_path.write_text(openapi, encoding="utf-8", newline="\n")
+
+    signal_path = ROOT / "spec/v1/zh/sync/signal.md"
+    signal = signal_path.read_text(encoding="utf-8")
+    signal = signal.replace("、history response", "")
+    signal = signal.replace(
+        "exporter scope 可用本 epoch history secret，standard MLS 使用\n同 epoch、不可交付的 `ak.signal-root-v1` exporter root。",
+        "所有 MLS scope 都使用当前 epoch、不可交付的 `ak.signal-root-v1` exporter root。",
+    )
+    signal = signal.replace(
+        "Signal 不得借\nhistory response stream 交付 standard signal root，也不得把 Signal digest 注册为持久 ID。",
+        "Signal root 只能由接收端当前本地 MLS state 导出，不得通过任何网络响应交付；Signal digest 也不得注册为持久 ID。",
+    )
+    signal_path.write_text(signal, encoding="utf-8", newline="\n")
+
+    encryption_path = ROOT / "spec/v1/zh/crypto-media/encryption-and-audit.md"
+    encryption = encryption_path.read_text(encoding="utf-8")
+    encryption = encryption.replace(
+        "| durability_policy? | 仅 exporter scheme 必填，none 或 organization_recovery_key |\n",
+        "",
+    )
+    encryption = encryption.replace(
+        "binding 的 canonical CBOR map 仅编码本节保留成员；不保留已删除 scope/group 镜像的空值、旧编号占位或兼容解码。",
+        "binding 的 canonical CBOR map 只编码本节定义的成员；空值、未登记编号和未知字段一律拒绝。",
+    )
+    encryption = encryption.replace(" 与 history request sender\ndomain", "\ndomain")
+    encryption = encryption.replace(
+        "§2.5.3 governance proof 的 `local_mls_leaves[].actor_id` 同样逐条携带完整\n`ActorId`。",
+        "§2.5.3 的客户端 MLS leaf 校验同样逐条使用完整 `ActorId`。",
+    )
+    encryption = encryption.replace(
+        "history tag，不使用“当前/上一窗”限制。`target_ref` 是已存在的 canonical EventId。Exporter late receiver 可从获准\nhistory secret 验证；standard MLS routing root 不交付给后加入者。",
+        "history tag，不使用“当前/上一窗”限制。`target_ref` 是已存在的 canonical EventId。Receiver 只能使用本机仍持有的对应 epoch root；routing root 不交付给后加入者。",
+    )
+    encryption = encryption.replace(
+        "该 epoch 的独立 history secret、group-state ref、counter marker，以及启用时同 Event 内的单一 RHRK archive，才允许\n下一 Commit 或 application send。Standard MLS 只保存 RFC 9420 active state，不生成 history secret/archive。",
+        "该 epoch 的本地 content root、group-state ref 与 counter marker，才允许下一 Commit 或 application send。任何 epoch secret 都不得进入 Event、portable backup 或 Station-side recovery carrier。",
+    )
+    encryption = encryption.replace(
+        "客户端 MUST 对本地先前 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。",
+        "客户端 MUST 对本地先前 epoch key 使用设备保护存储，并在 retention / legal hold / erasure policy 不再要求保留时销毁；不得上传或转交该材料。",
+    )
+    encryption = encryption.replace(
+        "同一 effective scope 的 genesis/epoch/key-schedule 使用 `sequenced_state`。同一前态的竞争 genesis/Commit 必须经过唯一安全确认；至多一个成功，失败者不安装 staged state。",
+        "同一 effective scope 的 genesis/epoch/key-schedule 由该 scope 的 authority commit stream 串行确认。同一前态的竞争 genesis/Commit 至多一个成功，失败者不安装 staged state。",
+    )
+    encryption = encryption.replace(
+        "不得按到达顺序编号，也不得从 governance proof bundle 获取 leaves。",
+        "不得按到达顺序编号；leaf 只从客户端已验证的 MLS public transition 与本地 group state 取得。",
+    )
+    encryption = re.sub(
+        r"\*\*selector 的性质\*\*.*?(?=\*\*原子 cut point\*\*)",
+        """**selector 的性质**：`content_scheme` 在 `genesis_intent_persisted` 阶段只是本地创建意图；一旦 accepted Genesis 固定该值，后续 Commit 只能逐字保持。创建者可在首次网络副作用前原子替换整份本地 intent；此后该值不可变。创建记录不得包含任何 epoch secret、恢复 archive 或 portable MLS state。\n\n""",
+        encryption,
+        flags=re.DOTALL,
+    )
+    encryption_path.write_text(encryption, encoding="utf-8", newline="\n")
+
+    device_path = ROOT / "spec/v1/zh/crypto-media/device-lifecycle.md"
+    device = device_path.read_text(encoding="utf-8")
+    device = re.sub(
+        r"### 10\.2 Secret Sharing（`ak\.secret\.\*`）.*?(?=## 11\.)",
+        """### 10.2 新设备 MLS 建立（normative）
+
+新设备不得向旧设备请求或接收账户 secret、MLS epoch/exporter secret 或 active group state。完成 §10.1 verification checkpoint 与当前设备授权后，它只能发布自己的 KeyPackage，由每个目标 scope 的当前成员提交 Add，并通过该设备专属的 `MlsWelcomeDelivery` 取得 Welcome。Welcome 只建立从该次 Add 开始的成员资格，不补发加入前的解密材料。
+
+账户级 `secret_storage` 恢复仅使用 §12 的端到端加密备份；identity root、device private key、MLS private state、sender counter 与 pending Welcome 永不通过 to-device 消息共享。配对二维码、短码和链接也不得携带这些材料。
+
+""",
+        device,
+        flags=re.DOTALL,
+    )
+    device = device.replace("- MLS group secrets backup key\n", "")
+    device = re.sub(
+        r"\| MLS epoch / Realm history secret \| `mls_history` \|\n",
+        "",
+        device,
+    )
+    device_path.write_text(device, encoding="utf-8", newline="\n")
+
+    identity_path = ROOT / "spec/v1/zh/identity/identity-did.md"
+    identity = identity_path.read_text(encoding="utf-8")
+    identity = re.sub(
+        r"\| `ArkretRealmHistoryRecoveryKey` \|.*?\n",
+        "",
+        identity,
+    )
+    identity = re.sub(
+        r"### 8\.3 Realm History Recovery Key.*?(?=### 8\.4)",
+        "",
+        identity,
+        flags=re.DOTALL,
+    )
+    identity_path.write_text(identity, encoding="utf-8", newline="\n")
+
+    realm_path = ROOT / "spec/v1/zh/models/realm-and-space.md"
+    realm = realm_path.read_text(encoding="utf-8")
+    realm = re.sub(r"\| `durability_policy` \|.*?\n", "", realm)
+    realm = realm.replace(
+        "`trust_domain`、`encryption_profile`、`content_scheme` 与 `durability_policy` 在 create/MLS Genesis 时锁定，后续不可变；后两者不得出现在 mutable policy bundle 中。",
+        "`trust_domain`、`encryption_profile` 与 `content_scheme` 在 create/MLS Genesis 时锁定，后续不可变；`content_scheme` 不得出现在 mutable policy bundle 中。",
+    )
+    realm = realm.replace(
+        "- 组织作为 notary、notary controller 或 RHRK 接收方，必须分别由 `notary` / notary control move、`durability_policy` 等字段和事件明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。组织关系本身也不能替账号选择 Station。",
+        "- 组织作为 notary 或 notary controller 时，必须由 `notary` 或对应 control Event 明确表示；不得从 `owning_organization_ids` 或 `ak.realm.organization` 自动继承。组织关系本身也不能替账号选择 Station。",
+    )
+    realm = re.sub(
+        r"### 2\.3\.1 `durability_policy`.*?(?=### 2\.4)",
+        "",
+        realm,
+        flags=re.DOTALL,
+    )
+    realm_path.write_text(realm, encoding="utf-8", newline="\n")
+
+    circle_path = ROOT / "spec/v1/zh/models/circle.md"
+    circle = circle_path.read_text(encoding="utf-8")
+    circle = re.sub(r"\| `durability_policy` \|.*?\n", "", circle)
+    circle = circle.replace(
+        "Circle 不另建 RealmCommit 序列，权限和 MLS 安全变更在父 Realm 的安全域确认。Plaintext Circle 不存在 MLS group。Standard/exporter Circle 各自拥有 canonical group、Genesis/Commit、Welcome、\nleaf 与 snapshot；`content_scheme` 和 key-access revision 固定在自己的 Genesis。",
+        "每个 Circle 都有独立的 authority commit stream，Circle Event 只由该 stream 的 RealmCommit 排序与确认；父 Realm stream 与 Circle stream 之间不存在 predecessor 关系。Plaintext Circle 不存在 MLS group。Standard/exporter Circle 各自拥有 canonical group、Genesis/Commit、Welcome、leaf 与 snapshot；`content_scheme` 和 key-access revision 固定在自己的 Genesis。",
+    )
+    circle = circle.replace(
+        "Standard scheme 固定 since_join 且没有 history secret；exporter scheme 才允许 private delivery/backup/RHRK。",
+        "Standard scheme 固定 since_join；exporter scheme 的 epoch content root 也只能保留在成员设备本地，不提供 backup、network delivery 或恢复密钥。",
+    )
+    circle_path.write_text(circle, encoding="utf-8", newline="\n")
+
+    applet_schema_path = ROOT / "spec/v1/zh/extensions/applet-schema.md"
+    applet_schema = applet_schema_path.read_text(encoding="utf-8")
+    applet_schema = applet_schema.replace(
+        "唯一合法形态为 `ak:applet:<uuidv7>`；旧的 service DID 代用形态已删除。",
+        "唯一合法形态为 `ak:applet:<uuidv7>`；其它形态均不合法。",
+    )
+    applet_schema_path.write_text(applet_schema, encoding="utf-8", newline="\n")
+
+    glossary_path = ROOT / "spec/v1/zh/overview/glossary.md"
+    glossary = glossary_path.read_text(encoding="utf-8")
+    glossary = re.sub(
+        r"\| backup_kind \|.*?\n",
+        "| backup_kind | 密钥备份分类 | `ak.schema.key_backup.v1` 的 closed enum；v1 仅有 `secret_storage`，且不得承载 MLS state、epoch/exporter secret 或 sender counter。详见 [`key-management.md` §7](../identity/key-management.md)。 |\n",
+        glossary,
+    )
+    glossary = re.sub(r"\| `RHRK` \|.*?\n", "", glossary)
+    glossary_path.write_text(glossary, encoding="utf-8", newline="\n")
+
+    key_path = ROOT / "spec/v1/zh/identity/key-management.md"
+    key = key_path.read_text(encoding="utf-8")
+    key = key.replace(
+        "；`mls_history` 仅可恢复合法 history-secret ranges（§7.5.6）", ""
+    )
+    key = key.replace(
+        "服务不得在该路径要求 `mls_history` active-state快照。", "服务不得在该路径要求或接受 MLS active-state 快照。"
+    )
+    key = key.replace(
+        "该检查点不得上传进 human `mls_history` backup，也不构成任何可被他方验证的证明",
+        "该检查点不得上传，也不构成任何可被他方验证的证明",
+    )
+    key = re.sub(
+        r"#### 7\.5\.0 `backup_kind`.*?(?=#### 7\.5\.1)",
+        """#### 7.5.0 `backup_kind` 与 recipient method（normative）
+
+v1 的 `backup_kind` 固定为 `secret_storage`。它可使用 `passphrase_kdf`、`recovery_public_key` 或 `secret_storage_key`；各 method 的强度与限制由下列小节定义。任何 MLS state、epoch/exporter secret、sender counter、leaf key 或 pending Welcome 都不是合法备份 plaintext。
+
+""",
+        key,
+        flags=re.DOTALL,
+    )
+    key = key.replace(
+        "`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_kind=\"mls_history\", recipient_method=\"passphrase_kdf\"` 的 envelope。",
+        "`passphrase_kdf` 仅用于 `secret_storage` envelope。它不得解锁或封装 MLS state、epoch/exporter secret、sender counter、leaf key或 pending Welcome。",
+    )
+    key = re.sub(
+        r"- 当 `backup_kind=\"mls_history\"`.*?\n",
+        "",
+        key,
+    )
+    key = re.sub(
+        r"#### 7\.5\.6 Agent PCR history-only backup.*?(?=### 7\.6)",
+        "",
+        key,
+        flags=re.DOTALL,
+    )
+    key = key.replace(
+        "`active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_revision, secret_storage, mls_history`",
+        "`active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`",
+    )
+    key = key.replace("或 `mls_history` ready 状态", "或任何 MLS 备份状态")
+    key = key.replace("`secret_storage`与`mls_history`必须由同一`SecurityRotationTransaction`预留并", "`secret_storage`必须由同一`SecurityRotationTransaction`预留并")
+    key = key.replace("、`mls_history` 域使用 `passphrase_kdf` 的 envelope 被拒绝", "、MLS private material 作为 plaintext 被拒绝")
+    key_path.write_text(key, encoding="utf-8", newline="\n")
+
+    account_lifecycle_path = ROOT / "spec/v1/zh/identity/account-lifecycle.md"
+    account_lifecycle = account_lifecycle_path.read_text(encoding="utf-8")
+    account_lifecycle = re.sub(
+        r"controller E2EE client 随后提交 Actor Profile；若该 PCR 使用 exporter scheme，.*?不新增第四状态轴。",
+        "controller E2EE client 随后提交 Actor Profile；MLS private state 始终留在创建它的设备本地，不是 provisioning、pairing 或 backup 的前置。通用 Agent view 从 complete 起只暴露 lifecycle、readiness、presence 三轴；未完成首次 pairing 由 `readiness.blockers` 中的 `runtime_key_missing`/`pairing_open` 表达，不新增第四状态轴。",
+        account_lifecycle,
+    )
+    account_lifecycle_path.write_text(
+        account_lifecycle, encoding="utf-8", newline="\n"
+    )
+
+    for path in (
+        ROOT / "spec/v1/zh/identity/security-transactions.md",
+        ROOT / "spec/v1/zh/guides/migrating-from-matrix.md",
+        ROOT / "spec/v1/zh/conformance/conformance-profiles.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(r"^.*mls_history.*\n", "", text, flags=re.MULTILINE)
+        path.write_text(text, encoding="utf-8", newline="\n")
+
+
 def main() -> None:
     migrate_registry()
     migrate_event_envelope()
@@ -3373,6 +4459,8 @@ def main() -> None:
     migrate_non_http_bindings()
     migrate_service_http_prose()
     reconcile_authority_commit_residuals()
+    clean_break_active_surfaces()
+    remove_mls_history_recovery_surfaces()
 
 
 if __name__ == "__main__":

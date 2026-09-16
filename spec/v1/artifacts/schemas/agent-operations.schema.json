@@ -425,7 +425,7 @@
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Realm that owns the capability grant cell and therefore the required ak.capability.revoke write surface."
+          "description": "Realm that owns the capability grant typed current result and therefore the required ak.capability.revoke write surface."
         },
         "grant_digest": {
           "$ref": "#/$defs/digest"
@@ -645,7 +645,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "One controller approval command bound to the frozen candidate and handle. The signed authorization Event supplies Agent, key, method, scope, expiry and exact supersedes. Verifiers load possession proof and candidate from the authoritative confidential record, never caller echoes. Accepted Seal processing automatically advances the durable command; exact retries only observe or recover it."
+      "description": "One controller approval command bound to the frozen candidate and handle. The signed authorization Event supplies Agent, key, method, scope, expiry and exact supersedes. Verifiers load possession proof and candidate from the authoritative confidential record, never caller echoes. Accepted RealmCommit processing automatically advances the durable command; exact retries only observe or recover it."
     },
     "agent_key_pair_outcome": {
       "type": "object",
@@ -661,7 +661,7 @@
             "active",
             "cancelled"
           ],
-          "description": "Durable command state. awaiting_accepted_frontier waits for the exact authorization Event covering Seal; accepted Seal processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command."
+          "description": "Durable command state. awaiting_accepted_frontier waits for the exact authorization Event covering RealmCommit; accepted RealmCommit processing activates automatically without another pair command. active preserves lifecycle intent and does not itself issue a session. cancelled is terminal after handle invalidation, expiry, changed authority or failed activation fence. Replays never revive a cancelled command."
         },
         "authorize_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -799,7 +799,7 @@
     },
     "agent_runtime_approval_status_outcome": {
       "type": "object",
-      "description": "Operation-local status for the exact handle/candidate. Authorization and signer-evidence fields are present only after durable Seal activation. The runtime checks its own method/raw-key digest, validates the complete current_signer_evidence closure, independently rebuilds its authenticated root and signer_resolution_evidence_ref with the SDK canonical helper, then persists both for offline ordinary Event authoring; authorized_event_ref is provenance and MUST NOT be used as the signer evidence ref. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
+      "description": "Operation-local status for the exact handle/candidate. Authorization and signer-evidence fields are present only after durable RealmCommit activation. The runtime checks its own method/raw-key digest, validates the complete current_signer_evidence closure, independently rebuilds its authenticated root and signer_resolution_evidence_ref with the SDK canonical helper, then persists both for offline ordinary Event authoring; authorized_event_ref is provenance and MUST NOT be used as the signer evidence ref. Expired, unknown or invalidated handles use uniform anti-enumeration behavior. Status never authorizes a key by itself.",
       "required": [
         "lifecycle",
         "runtime_state",

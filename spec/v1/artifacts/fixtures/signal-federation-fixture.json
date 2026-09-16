@@ -42,7 +42,7 @@
           "accepted": true
         },
         "durable_event_written": false,
-        "actor_seq_advanced": false,
+        "producer_revision_advanced": false,
         "realm_frontier_advanced": false,
         "envelope_rewritten": false
       }
@@ -204,11 +204,11 @@
       "name": "device_authorization_domain",
       "vector_id": "ak.vector.signal.device_authorization_domain.v1",
       "assertions": [
-        "seal_ref selects Realm and scope authorization only; source and recipient authenticate current exact-account device authority independently",
+        "commit_ref selects Realm and scope authorization only; source and recipient authenticate current exact-account device authority independently",
         "the verification_method bare DID projects to the signing principal component of sender_actor_id and its fragment equals sender_device_id; current authorization independently binds the complete ActorId including Station",
         "missing current directory key or trust anchor fails closed at source and recipient, not at a destination performing only authenticated peer and outer-envelope admission",
         "destination must not query a remote device directory, use a same-principal local account, verify producer signatures, replay remote PCR, or maintain an MLS public tree as a relay prerequisite",
-        "currently revoked, fenced, or conflicted devices are rejected by source and recipient even if active at seal_ref and the MLS leaf has not yet been removed",
+        "currently revoked, fenced, or conflicted devices are rejected by source and recipient even if active at commit_ref and the MLS leaf has not yet been removed",
         "recipient requires current exact-account device key and authorization Event to match the active MLS leaf transition binding; successful AEAD does not establish sender identity",
         "queued source dispatch revalidates current device authority, membership, scope, class action, TTL and MLS outer basis",
         "Agent uses the absent-sender_device_id branch only after accepted Agent classification and current key/lifecycle/controller authority verification; minimal-metadata endpoints cannot use it",

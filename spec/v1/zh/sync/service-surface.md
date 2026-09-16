@@ -36,7 +36,7 @@ DID method state 用于解析稳定 `did_core_id`、service identity、verificat
 - 消费 Station验证 producer proof、authority chain、commit signature 与逐 stream 连续性；
 - Directory、invite、cache 和 mirror 只提供 locator，不能产生或替代 authority。
 
-治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 CBS、Seal、Cell root、actor chain 或 reducer profile。
+治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 authority-commit、RealmCommit、typed current result root、actor chain 或 reducer profile。
 
 ### 2.3 接口必须天然支持幂等重试
 
@@ -44,7 +44,7 @@ DID method state 用于解析稳定 `did_core_id`、service identity、verificat
 
 ### 2.4 服务必须公布自己的实现 profile
 
-`ServiceDescribe` 公布 `protocol_version`、supported operation bundles、features、schema profiles、limits 与 transport。固定 v1 reducer/digest 语义不是 Realm 可选择 profile；服务不得继续广告退役的 Seal/Cell/CBS/history-key/MLS-governance-proof operation。
+`ServiceDescribe` 公布 `protocol_version`、supported operation bundles、features、schema profiles、limits 与 transport。固定 v1 reducer/digest 语义不是 Realm 可选择 profile；服务只能广告 operation registry 中当前存在的操作。
 
 ### 2.5 核心角色、Station capability 与可选服务
 
@@ -148,11 +148,11 @@ viewer、profile、account subscribe 与 cursor revoke 只作用于已认证账�
 
 ### 5.2 snapshot 入口
 
-`ak.self.realm_state_snapshot.read.manifest_head.v1` 返回 current governance Station签署的 typed snapshot manifest。Snapshot 包含 typed sections、每条获准 stream head、history floor 和 chunk digests，不包含 Cell、state root 或 reducer replay program。客户端从当前 authority取得 snapshot，再从各自 head 继续拉获准 tail。
+`ak.self.realm_state_snapshot.read.manifest_head.v1` 返回 current governance Station签署的 typed snapshot manifest。Snapshot 包含 typed sections、每条获准 stream head、history floor 和 chunk digests，不包含 typed current result、state root 或 reducer replay program。客户端从当前 authority取得 snapshot，再从各自 head 继续拉获准 tail。
 
-### 5.3 Event / Seal 状态与确定性 current
+### 5.3 Event / RealmCommit 状态与确定性 current
 
-Seal 已退役。本节锚点保留供旧引用跳转；现行规则如下：Event 状态只区分本地 queued/forwarding 与 authority 的 committed/rejected。Typed current result由治理 Station按 commit 顺序执行领域 reducer产生，并带来源 `commit_id`、`stream_ref`、`stream_position` 和领域 revision。客户端不得从 timeline 最后一个同 kind Event猜 current。
+Event 状态只区分本地 queued/forwarding 与 authority 的 committed/rejected。领域 current result 由治理 Station 按 commit 顺序执行对应 typed reducer 产生，并带来源 `commit_id`、`stream_ref`、`stream_position` 和领域 revision。客户端不得从 timeline 最后一个同 kind Event 推测 current result。
 
 ### 5.4 明文与服务信任
 
@@ -272,4 +272,4 @@ v1 选择单治理 Station、逐 Realm/Circle/Sidecar 独立 authority stream，
 
 ## 17. 线级互操作要求
 
-实现 MUST 验证 Event/Commit/authority chain；逐 stream 检查 position/predecessor；拒绝跨 stream predecessor；不暴露隐藏 stream gap；不广告退役 operation；并在 snapshot、scan、resolve、handoff 与 MLS transaction 上保持同一 committed 坐标。
+实现 MUST 验证 Event/Commit/authority chain；逐 stream 检查 position/predecessor；拒绝跨 stream predecessor；不暴露隐藏 stream gap；只广告 operation registry 的 active operation；并在 snapshot、scan、resolve、handoff 与 MLS transaction 上保持同一 committed 坐标。

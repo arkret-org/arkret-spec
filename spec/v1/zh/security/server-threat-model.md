@@ -63,7 +63,7 @@ sidebar:
     污染 DID resolver、registry、witness 可信链，或 `did:web` / `did:webvh` 的域绑定与 `did.jsonl` 托管，错误承认身份控制权。**默认 method 是 `did:webvh`**，其 hosting 方 split-view 与历史截断只被部分缓解，见 §2.1a。
 
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
-    利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence、actor over-fork 或竞争确认凭证制造普通状态错误、错误 CBS query basis 或安全域停摆。合法普通 sibling 由固定 `(depth,EventId)` 选出单值，落选不等于 quarantine；仍获权作者可用长分支或同深度身份试探影响结果，这是需限速、审计和最终撤权的数据完整性/资源残余风险。两个互不可达 confirmed Seal 是共识安全故障，不能作为普通可合并冲突；接收方必须按安全域故障停摆。
+    利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence、actor over-fork 或竞争确认凭证制造普通状态错误、错误 authority-commit query basis 或安全域停摆。合法普通 sibling 由固定 `(depth,EventId)` 选出单值，落选不等于 quarantine；仍获权作者可用长分支或同深度身份试探影响结果，这是需限速、审计和最终撤权的数据完整性/资源残余风险。两个互不可达 confirmed RealmCommit 是共识安全故障，不能作为普通可合并冲突；接收方必须按安全域故障停摆。
 
 15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。
@@ -76,7 +76,7 @@ sidebar:
 
 18. **会话成员与设备凭证滥用（Session/Device Credential Abuse）**
     复用未及时撤销的 device/session/gateway token 继续提交高敏操作、join、invite 或读取。
-    **授权 revoke proposer 的 pending DoS**：持有 `ak.device.revoke` authority 的主体可提交一条合法 proposal，使 exact device generation 在 covering Seal 前立即进入 `revocation_pending`，统一阻断 session grant、KeyPackage claim、to-device write、Event write 与 普通 live 提交。该可用性影响是 revoke authority 的显式组成部分，不是可由 profile 关闭的副作用。缓解边界是：(a) 未获 authority 的 caller 在读取 device-private state 前即不可区分地拒绝且零写入；(b) accepted Event、canonical Ack、exact authority/device/generation 与 pending index 原子持久化；(c) 只有唯一已确认 Seal 的 exact rejected command result 可解除该 proposal 的 pending，overdue/timeout/admin flag/cache eviction 都不可；(d) 多个 proposal 独立计数，reject 一条不清另一条；(e) governance health / recovery 告警暴露 overdue。协议不能同时授予即时 revoke 能力又消除恶意合法 authority 的阻断能力；部署必须用 独立恢复授权、审计与 signer rotation 管理该残余风险。
+    **授权 revoke proposer 的 pending DoS**：持有 `ak.device.revoke` authority 的主体可提交一条合法 revoke Event，使 exact device generation 在 authority transaction 完成前进入 `revocation_pending`，统一阻断 session grant、KeyPackage claim、to-device write、Event write 与普通 live 提交。该可用性影响是 revoke authority 的显式组成部分。缓解边界是：(a) 未获 authority 的 caller 在读取 device-private state 前即不可区分地拒绝且零写入；(b) accepted Event、exact authority/device/generation 与 pending index 原子持久化；(c) 只有该 transaction 的 terminal rejected result 可解除 pending；(d) 多个 transaction 独立计数，reject 一条不清另一条；(e) governance health / recovery 告警暴露长期积压。部署必须用独立恢复授权、审计与 signer rotation 管理该残余风险。
 
 19. **加密状态回退与伪造（MLS Epoch Abuse）**
     通过 epoch 回退、非法 commit 顺序、已移除成员持有先前密钥继续参与解密相关流程。
@@ -124,14 +124,14 @@ sidebar:
 §2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解。本节是 conditional 项的索引，缓解手段与 normative 约束（含「未声明 profile 时 MUST NOT 把 E2EE 误表述为隐藏 federation traffic metadata」）以被索引条目正文为权威，不在此重述：
 
 - **#23 联邦流量模式旁观** —— 详见 §2.1 #23 正文；profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)（`ak.profile.traffic_metadata_hardened.v1`）。
-- **Sender 元数据对承载服务可见（acknowledged residual exposure，informative）** —— v1 baseline 接受 Event Envelope 顶层 `actor_id` 对承载它的 Station / Station sync surface **始终明文可见**（见 [`sync/operations-sync.md` §14](../sync/operations-sync.md) 字段可见性分级把 `actor_id` 列为路由 / 签名归属元数据）。即"谁在何时给谁发"对受托承载服务可观测，base v1 不提供 sender-anonymity 通道。这是 acknowledged residual exposure，与 #23 联邦流量旁观同属"承载服务可见的元数据面"；未来加固方向（sealed-sender 风格的对中转服务隐藏 `actor_id` 通道、OHTTP / oblivious relay 提升为 event-submit / push / directory 的可选元数据隐私基线）列为未来 profile，不在 v1 core。实现 MUST NOT 把 E2EE 正文加密误表述为隐藏 sender 元数据。
+- **Sender 元数据对承载服务可见（acknowledged residual exposure，informative）** —— v1 baseline 接受 Event Envelope 顶层 `actor_id` 对承载它的 Station / Station sync surface **始终明文可见**（见 [`sync/operations-sync.md` §14](../sync/operations-sync.md) 字段可见性分级把 `actor_id` 列为路由 / 签名归属元数据）。即"谁在何时给谁发"对受托承载服务可观测，base v1 不提供 sender-anonymity 通道。这是 acknowledged residual exposure，与 #23 联邦流量旁观同属"承载服务可见的元数据面"；未来加固方向（committed-sender 风格的对中转服务隐藏 `actor_id` 通道、OHTTP / oblivious relay 提升为 event-submit / push / directory 的可选元数据隐私基线）列为未来 profile，不在 v1 core。实现 MUST NOT 把 E2EE 正文加密误表述为隐藏 sender 元数据。
 
 - **Last-resort 私钥事后泄露** —— 已捕获 Welcome 在包到期后仍可被匹配私钥解密；expires_at 只限制新分发，不能撤销历史密文。未来 epoch 的恢复依赖攻击者未知的新秘密和 MLS 恢复条件；更新不恢复旧明文保密性。高安全 / sovereign profile 禁用该回退，Realm affinity 保持强制。见 [encryption-and-audit §2.6.2](../crypto-media/encryption-and-audit.md)。
 
 - **认证组件局部失陷** —— Account Authority 是 Station 认证 TCB 内部职责，不是独立 wire role。认证 TCB 内按事实 owner 分责：事实 owner 对冻结输入完成完整验证，内部消费者通过已认证且完整性受保护的通道承接该 exact 结果，并仍逐次检查本次完整 AccountId、audience、operation、intent、状态版本、有效期与自身业务权限；状态变化后的 current gate（撤销、fence、expiry、设备与成员准入）继续执行，它不是对同一冻结输入的重复验签。分析 MUST 明确未失陷方，不能把下列能力合并：
   - IdP 失陷但 Authority/Station 诚实时，攻击者可冒用受该 IdP 管理且映射到本站的 subject；绑定账号只可取得 holder-bound 受限恢复会话及 pre-proof 闭包，不能跳过 accepted-device proof 或恢复 policy。策略可见性限于该账号，不等于枚举任意本站用户；首次抢先绑定只适用于尚未绑定的 service account，不能覆盖既有 principal/PCR。见 [account-lifecycle §2.1.2](../identity/account-lifecycle.md)。
   - 仅 issuer signing key 泄露但 ledger 与认证内省仍诚实时，伪造 JWT 签名不等于创建 active ledger record：唯一权威是 issuer ledger 中与提交 token 绑定的 exact credential record，没有 active 的该 exact record MUST 拒绝。资源服务器消费该 exact 内省结果，不重建 signed claims 或派生 ID，并继续验证 audience、holder DPoP 与 current gate；改写 holder/scope/audience 后重新签名的 token 不是账本内的完整凭据，按 jti 命中或本地验签成功都 MUST NOT 放行。因此「仅 issuer key 泄露」仍被挡在 active 会话之外。若攻击者还控制被接受的 status，则已越过此假设，属于下一项。见 [key-management §6](../identity/key-management.md#6-session-grant)。
-  - Authority/ledger/status authority 被控制但 Station 业务准入仍诚实时，会话签发、账号状态和认证新鲜度失去可信性；攻击者可能建立指向其 holder 的账号会话，访问各 operation 与当前业务授权允许的数据或滥用恢复 pre-proof 面。此半径不是所有非 E2EE 数据，也不自动批准 Agent pairing：后者仍须 controller producer 签名、合法 Seal 与 durable activation。恢复 policy 的任一方法必须另获对应授权，服务身份不提供该授权。
+  - Authority/ledger/status authority 被控制但 Station 业务准入仍诚实时，会话签发、账号状态和认证新鲜度失去可信性；攻击者可能建立指向其 holder 的账号会话，访问各 operation 与当前业务授权允许的数据或滥用恢复 pre-proof 面。此半径不是所有非 E2EE 数据，也不自动批准 Agent pairing：后者仍须 controller producer 签名、合法 RealmCommit 与 durable activation。恢复 policy 的任一方法必须另获对应授权，服务身份不提供该授权。
   - 以上各项不产生攻击者未持有的用户/root/device 签名或既有 E2EE/backup 解密密钥；也不保证错误认证/治理结果无法诱导未来错误授权。整个 Station 被控制时适用下项，不能继续假设其准入验证诚实。
 - **首次接入与认证权威替换** —— 普通客户端按 [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative) 从明确选择/独立预配 origin 接入并持久比较身份和认证配置。选错 origin、预配渠道或受信 WebPKI/origin 失陷是残余暴露；正常证书验证仍防御仅控制网络的主动攻击者。首次 pin 不能追溯证明初始选择正确，describe 自洽不能成为独立身份背书。部署内 Account Authority 的首次接纳同样以明确配置的 exact Station origin 为网络信任起点，但不要求另行预配 service ID：只有 TLS/egress policy 与完整 WebVH history、`AuthenticatedServiceResolution`、role/core/endpoint/freshness 验证全部成立，才能原子耐久 pin 身份与 history floor。public Describe 或 shared secret 单独不能建立身份；并发冲突、不同 core/genesis、history rollback、endpoint continuity 验证失败、`stations[]` 首个元素、redirect 或网络错误都不得替换已有 binding。依赖不可达或返回 503 时业务面 fail closed 并可重试完整验证，不得退化为自报信任或用首个候选顶替目标；身份替换只能走具名、审计的显式高风险恢复操作。
 - **治理方、受托恢复方与 runtime 宿主失陷** —— [architecture §6.0](../overview/architecture.md#60-参与方关系矩阵) 分别界定其权限。唯一治理方失陷可产生错误结论，不保证都以可检测分叉表现；合法恢复服务可滥用既有整账号恢复授权，但不自动取得历史密钥；runtime 宿主影响其实际持有的全部 Agent key/秘密，不保证仅单 Agent 受损。
@@ -155,7 +155,7 @@ sidebar:
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
-- **验证角色分工**：首次接纳外部材料、治理 Station和独立审计者按其领域合同验证 snapshot、resolver、frontier、policy 与 DID 状态；治理结果消费 Station按 [cbs-profiles §9](../authz/cbs-profiles.md#9-治理结果证明normative) 认证 exact 治理结果证明，不被要求重放无关历史。普通客户端按 [server-trusted-results §1–§3](../sync/server-trusted-results.md) 核对请求、意图、已知身份与 E2EE，不执行泛化二次治理验证。
+- **验证角色分工**：首次接纳外部材料、治理 Station和独立审计者按其领域合同验证 snapshot、resolver、frontier、policy 与 DID 状态；治理结果消费 Station按 [authority_commit-profiles §9](../sync/authority-commit-log.md) 认证 exact 治理结果证明，不被要求重放无关历史。普通客户端按 [server-trusted-results §1–§3](../sync/server-trusted-results.md) 核对请求、意图、已知身份与 E2EE，不执行泛化二次治理验证。
 - **隔离与缓冲**：异常源先走 `quarantine` 与 `review` 决策，再决定 `allow`、`deny` 或 `reject`。
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
 - **故障收敛策略**：`rate_limited`、`soft_failed`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。

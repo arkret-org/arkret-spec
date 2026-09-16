@@ -1,13 +1,13 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T08:00:00+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "risk_tier_definitions": {
     "low": "Read, projection, discovery, ack, and account-private affordances. Freshness fail-closed treats unknown / stale as local-pending allowed (capabilities.md §18).",
-    "medium": "Ordinary authoring and object changes follow registered data execution with verified cached authority. Risk tier does not impose Seal age, online origin or periodic freshness on ordinary publication.",
+    "medium": "Ordinary authoring and object changes follow registered data execution with verified cached authority. Risk tier does not impose RealmCommit age, online origin or periodic freshness on ordinary publication.",
     "high": "Registered high-risk approvals and explicit validity constraints are enforced. Security writes revalidate exact authority and preconditions in the unique confirmation sequence; risk labels do not override execution classification."
   },
   "registry_rules": [
@@ -20,7 +20,7 @@
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
     "grant_authority_actions lists the action ids an issuer holding this action MAY sign a grant for (capabilities.md section 3.2 issuer upper bound). It is a separate namespace from target_event_kinds, which only expresses direct Event admission: several actions can map to one event kind, so an event-kind subset MUST NOT be used to satisfy an action-level grant authority question.",
     "coverage_rule and grant_authority_rule declare how target_event_kinds and grant_authority_actions are derived from the other rows. When a rule is present the materialized list is a cached projection: tools/artifact_pipeline.py generate rewrites it and check rejects any hand edit on either this registry or the generated view.",
-    "root_control_only=true marks an action that only the current controller of the Realm authority-root cell may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable."
+    "root_control_only=true marks an action that only the current controller of the Realm authority-root typed current result may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable."
   ],
   "reserved_actions": [],
   "actions": [
@@ -785,38 +785,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.mls.keypackage",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.mls.welcome",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.mls.welcome.own_device",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "welcome_recipient_is_active_device_of_same_participant",
-        "mls_group_matches_current_active_direct_conversation_generation"
-      ],
-      "target_event_kinds": [],
-      "profile": "ak.profile.direct_conversation_realm.v1",
-      "event_mapping_kind": "non_event_surface",
-      "notes": "Narrow Direct Conversation participant authority for welcoming another currently authorized device of the same stable participant. It cannot add a third principal or a device of the other participant."
-    },
-    {
       "action": "ak.moderation.decision",
       "category": "management",
       "risk_tier": "high",
@@ -1201,7 +1169,7 @@
       ],
       "profile": null,
       "root_control_only": true,
-      "notes": "Terminal Realm lifecycle. Authored only by the current controller of the Realm authority-root cell with an independent destructive confirmation; it MUST NOT be granted to anyone, so it is excluded from every derived owner authority set.",
+      "notes": "Terminal Realm lifecycle. Authored only by the current controller of the Realm authority-root typed current result with an independent destructive confirmation; it MUST NOT be granted to anyone, so it is excluded from every derived owner authority set.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -1403,8 +1371,6 @@
         "ak.message.revise.own",
         "ak.mls.commit",
         "ak.mls.genesis",
-        "ak.mls.keypackage",
-        "ak.mls.welcome",
         "ak.moderation.decision",
         "ak.moderation.decision.lift",
         "ak.morph.archive",
@@ -1471,7 +1437,7 @@
         "ak.view.update"
       ],
       "profile": null,
-      "notes": "Highest explicit authority inside one Realm. Held either by the current controller of the ak.component.realm.authority_root.v1 cell (root authority, not a grant) or by an ordinary revocable co-owner grant. Both derived sets are rule-generated; hand edits are rejected by tools/artifact_pipeline.py check.",
+      "notes": "Highest explicit authority inside one Realm. Held either by the current controller of the ak.component.realm.authority_root.v1 typed current result (root authority, not a grant) or by an ordinary revocable co-owner grant. Both derived sets are rule-generated; hand edits are rejected by tools/artifact_pipeline.py check.",
       "coverage_rule": {
         "exclude_self": true,
         "require_profile_null": true,
@@ -1525,7 +1491,7 @@
       ],
       "profile": null,
       "root_control_only": true,
-      "notes": "Rotates the controller binding of the Realm authority-root cell. Authored only by the current controller with successor acceptance; it MUST NOT be granted, so it is excluded from every derived owner authority set.",
+      "notes": "Rotates the controller binding of the Realm authority-root typed current result. Authored only by the current controller with successor acceptance; it MUST NOT be granted, so it is excluded from every derived owner authority set.",
       "event_mapping_kind": "same_name"
     },
     {

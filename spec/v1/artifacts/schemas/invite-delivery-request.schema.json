@@ -165,7 +165,7 @@
           "pattern": "^(?!ak:)",
           "minLength": 1,
           "maxLength": 256,
-          "description": "Optional consent cell id locating the holder consent cell, to speed up receiver verification of the active grant dot."
+          "description": "Optional consent typed current result id locating the holder consent typed current result, to speed up receiver verification of the active grant dot."
         }
       },
       "additionalProperties": false

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/authenticated-signer-resolution-evidence.schema.json",
   "title": "Arkret Authenticated Signer Resolution Evidence",
-  "description": "Compact historical signer-key evidence. Cell and Seal witnesses are retired; a governance Station binds the resolved key to one committed stream revision.",
+  "description": "Compact signer-key evidence binding a resolved key to one authority-committed stream revision.",
   "oneOf": [
     {
       "$ref": "#/$defs/principal_signer_evidence"

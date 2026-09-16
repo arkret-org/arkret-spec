@@ -145,7 +145,7 @@
               "authority_generation": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "The governance Station generation at issuance. It is checked against the committed authority history rather than a mutable Cell."
+                "description": "The governance Station generation at issuance. It is checked against the committed authority history rather than a mutable typed current result."
               }
             },
             "additionalProperties": false,
@@ -198,7 +198,7 @@
   },
   "allOf": [
     {
-      "$comment": "Lint condition (2) from capabilities.md §18.1: grants whose actions[] include moderator-role actions MUST carry a constraint with depends_on_moderation_state=true. Conditions (1) and (3) (subject condition selector referencing moderation state, constraints referencing moderation queue/cell) are reducer-side lint and not enforced here.",
+      "$comment": "Lint condition (2) from capabilities.md §18.1: grants whose actions[] include moderator-role actions MUST carry a constraint with depends_on_moderation_state=true. Conditions (1) and (3) (subject condition selector referencing moderation state, constraints referencing moderation queue/typed current result) are reducer-side lint and not enforced here.",
       "if": {
         "properties": {
           "actions": {

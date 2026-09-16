@@ -196,7 +196,7 @@
     },
     "device_projection_attestation_core": {
       "type": "object",
-      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted Seal, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted RealmCommit, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
       "required": [
         "account_id",
         "device_id",
@@ -1170,8 +1170,7 @@
         "backup_kind": {
           "type": "string",
           "enum": [
-            "secret_storage",
-            "mls_history"
+            "secret_storage"
           ]
         },
         "previous_series_id": {
@@ -1269,8 +1268,8 @@
         },
         "series_results": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
+          "minItems": 1,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/backup_series_erase_result"
@@ -1351,8 +1350,7 @@
         "account_id",
         "control_realm_id",
         "authority_commit_id",
-        "secret_storage",
-        "mls_history"
+        "secret_storage"
       ],
       "properties": {
         "account_id": {
@@ -1365,9 +1363,6 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
         "secret_storage": {
-          "$ref": "#/$defs/backup_active_series_pointer"
-        },
-        "mls_history": {
           "$ref": "#/$defs/backup_active_series_pointer"
         }
       },

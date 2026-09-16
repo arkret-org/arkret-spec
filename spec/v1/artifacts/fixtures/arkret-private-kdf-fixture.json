@@ -7,7 +7,7 @@
   "version": "2026-08-23",
   "covers_vectors": [
     "ak.vector.mls_exporter_aead.content_key_derivation.v1",
-    "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
+    "ak.vector.mls_exporter_aead.commit_open_transcript.v1",
     "ak.vector.signal.exporter_key_kat.v1",
     "ak.vector.aead.full_width_counter_nonce.v1",
     "ak.vector.reaction.routing_hmac_kat.v1"
@@ -66,8 +66,8 @@
       "note": "The context is the UTF-8 bytes of canonical Event.actor_id = ak:did_core:key:<canonical-multibase-id>. The exact active LeafNode BasicCredential identity MUST be byte-identical. The producer proof verification_method is a did:key DID URL whose adapter projection equals this actor id; DID URL bytes never enter this KDF context."
     },
     {
-      "name": "mls_exporter_aead_seal_open_transcript",
-      "vector_id": "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
+      "name": "mls_exporter_aead_encrypt_decrypt_transcript",
+      "vector_id": "ak.vector.mls_exporter_aead.commit_open_transcript.v1",
       "input": {
         "history_secret_hex": "4242424242424242424242424242424242424242424242424242424242424242",
         "content_key_hex": "b74b39b53e608d91a401df23d4bda0d3",

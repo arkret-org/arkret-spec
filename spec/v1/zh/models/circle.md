@@ -47,7 +47,6 @@ Schema id: `ak.schema.circle.v1`
 | `history_access` | Circle 自有的单向治理 ratchet；不动态继承父 Realm |
 | `encryption_profile` | create-required/create-locked，`none|mls_rfc9420` |
 | `content_scheme` | MLS-backed 时 create-required/create-locked；plaintext 时 absent |
-| `durability_policy` | exporter 时 create/Genesis-required 且 create-locked，值为 `none|organization_recovery_key`；其它 absent |
 | `mls_group_id` | 仅 materialized MLS Circle；reducer 派生，create payload 禁止 |
 | `id` | 仅 materialized；由 create EventId retype |
 | `state` | materialized lifecycle，初始为 `active` |
@@ -89,10 +88,10 @@ self-surface 的 `circle_view`（[`circle-operations.schema.json#/$defs/circle_v
 | `ak.circle.tombstone` | yes | object_lifecycle_payload | terminal；触发 §8 cascade。 |
 | `ak.circle.member.state` | yes | `{circle_id, member_id, membership: join\|knock\|leave\|ban, ...}` | 与 `ak.member.state` 复用同一 `membership_state` 四态枚举(`join / knock / leave / ban`)，仅 scope 限定到 Circle；Invite 是独立 pending workflow，不是 membership state。reducer 先校验完整 `member_id: ActorId` 已是父 Realm `join` 成员；`knock` 仅在 `join_rule=knock` 下允许(见 §9.1)。 |
 
-**Cell 归属与 subject 语义（normative）**：
+**typed current result 归属与 subject 语义（normative）**：
 
-- `ak.component.circle.create.v1`（`ordered_log`，`cell_subject=null`）是**本 Realm 的 Circle 创建日志**：一个 Realm 内每创建一个 Circle 追加一条 entry，cell 本身由 Event envelope 的 `realm_id` 定位。它**不是** per-Circle 的 genesis singleton，因此 MUST NOT 把 `circle_id` 编进 cell subject；null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)。`ordered_log` 的合并不产生冲突值，本 family 也不定义额外的领域冲突语义；`ordered_log` 不声明 Bottom policy（[`../authz/event-auth-state-resolution.md` §7](../authz/event-auth-state-resolution.md)）；Circle 身份唯一性由 `circle_id` 的 typed-id 唯一性与 §3 的 create 校验在 admission 阶段保证，不由状态模型冲突表达。
-- `ak.component.circle.tombstone.v1`（`sequenced_state`）是 **per-Circle** 终态槽位，`cell_subject={"type":"coalesce","fields":["payload.circle_id","payload.target_ref"]}`，与 `ak.circle.archive` / `ak.circle.restore` 写入的 `ak.component.circle.lifecycle.v1` 采用同一 subject 形态。coalesce 的第二项是必需的：三个 Circle lifecycle kind 的 payload class 是 `object_lifecycle_payload`（§5 表），它以 `target_ref` 作为目标对象的**唯一来源**、不携带 `circle_id`，因此只声明 `payload.circle_id` 的 subject 在该 payload 上不可派生。这与 `ak.morph.*` / `ak.space.*` / `ak.strand.*` / `ak.relation.tombstone` 已登记的 `coalesce[payload.<kind>_id, payload.target_ref]` 形态一致。它 MUST NOT 使用 null subject——per-Realm 单例槽位只能容纳一个 Circle 的 tombstone，第二个 Circle 会错误复用第一个的安全槽位，导致错误的前置拒绝或覆盖归属。
+- `ak.component.circle.create.v1`（`ordered_log`，`result_selector=null`）是**本 Realm 的 Circle 创建日志**：一个 Realm 内每创建一个 Circle 追加一条 entry，typed current result 本身由 Event envelope 的 `realm_id` 定位。它**不是** per-Circle 的 genesis singleton，因此 MUST NOT 把 `circle_id` 编进 typed current result subject；null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)。`ordered_log` 的合并不产生冲突值，本 family 也不定义额外的领域冲突语义；`ordered_log` 不声明 Bottom policy（[`../authz/event-auth-state-resolution.md` §7](../authz/event-auth-state-resolution.md)）；Circle 身份唯一性由 `circle_id` 的 typed-id 唯一性与 §3 的 create 校验在 admission 阶段保证，不由状态模型冲突表达。
+- `ak.component.circle.tombstone.v1`（`sequenced_state`）是 **per-Circle** 终态槽位，`result_selector={"type":"coalesce","fields":["payload.circle_id","payload.target_ref"]}`，与 `ak.circle.archive` / `ak.circle.restore` 写入的 `ak.component.circle.lifecycle.v1` 采用同一 subject 形态。coalesce 的第二项是必需的：三个 Circle lifecycle kind 的 payload class 是 `object_lifecycle_payload`（§5 表），它以 `target_ref` 作为目标对象的**唯一来源**、不携带 `circle_id`，因此只声明 `payload.circle_id` 的 subject 在该 payload 上不可派生。这与 `ak.morph.*` / `ak.space.*` / `ak.strand.*` / `ak.relation.tombstone` 已登记的 `coalesce[payload.<kind>_id, payload.target_ref]` 形态一致。它 MUST NOT 使用 null subject——per-Realm 单例槽位只能容纳一个 Circle 的 tombstone，第二个 Circle 会错误复用第一个的安全槽位，导致错误的前置拒绝或覆盖归属。
 
 ## 6. 对象 scope 表达
 
@@ -121,12 +120,12 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 - Message 与 Relation 的 read projection MAY 物化顶层 `effective_scope`，但它必须逐字段等于创建 Event 的 `scope_ref`。该 projection 不是可写真相源。
 - Effective history access 恰等于 Circle 当前 `history_access`。父 Realm history facet 不进入该值；父 Realm 当前 membership intersection 与 content/metadata encryption floor 仍独立生效。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
-- Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。
+- Structural Relation / position typed current result 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position typed current result 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。
 - 当参与端点分别落在同一 Realm 的两个不同 Circle，且没有 Realm-default 端点可作为共同公开侧时，这两个 scope 在 v1 中是**不可比较的并列 scope**。Reducer MUST NOT 选择任一 Circle 作为"更窄者"，MUST NOT 取并集，也 MUST NOT 自动把关系提升到 Realm-default。Structural Relation、position、parent、cascade 或任何会产生 target-side reverse projection 的事实 MUST `failed_precondition`(`reason=scope_incomparable`)。弱语义 reference 若 profile 显式允许，producer MUST 选择单一 source-side `scope_circle_id`，且 projection 对该 scope 外 caller 返回 `locked` / none，不得创建目标侧反向边或可枚举空洞。
 
-**Circle lifecycle 求值基线（normative）**：普通 Event 从已签 `auth_context.authority_refs` 验证 Circle 身份、active 授权实例和 scope，允许未知撤销的传播窗口。安全命令从 `seal_basis` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 Cell。不得合并多个同 Realm Seal 为权限 view。
+**Circle lifecycle 求值基线（normative）**：普通 Event 从已签 `auth_context.authority_refs` 验证 Circle 身份、active 授权实例和 scope，允许未知撤销的传播窗口。安全命令从 `authority_revision` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 typed current result。不得合并多个同 Realm RealmCommit 为权限 view。
 
-普通消息不推进 Seal。分区站尚未知道 archive/tombstone 时可暂时接纳；获知后立即阻止受影响的新 live 提交，并按关闭证明重算全部历史资格。缺必要依赖 pending，不以到达时间或旧收据保留永久资格。restore 产生新的授权 generation，不能复活旧 generation 中被关闭排除的 Event；作者必须绑定新授权重新签发后继。
+普通消息不推进 RealmCommit。分区站尚未知道 archive/tombstone 时可暂时接纳；获知后立即阻止受影响的新 live 提交，并按关闭证明重算全部历史资格。缺必要依赖 pending，不以到达时间或旧收据保留永久资格。restore 产生新的授权 generation，不能复活旧 generation 中被关闭排除的 Event；作者必须绑定新授权重新签发后继。
 
 对应 conformance vector 是 `ak.vector.circle.lifecycle_admission_barrier.v1`。
 
@@ -165,7 +164,7 @@ Circle scope Event：
 Reducer 校验顺序(MUST):
 
 1. schema 校验 Event 必有 `scope_ref`，且 `scope_ref.realm_id == realm_id`。
-2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 ordinary Event `auth_context.authority_refs` / Control Move `seal_basis` CBS 基线中解析对应 Circle，校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
+2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 ordinary Event `auth_context.authority_refs` / Control Move `authority_revision` authority-commit 基线中解析对应 Circle，校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
 3. 从 payload/accepted target projection 派生预期 scope，与签名 `scope_ref` 逐字段比较。
 4. authorization、fanout、history 与 E2EE 只使用已验证的签名 `scope_ref`；对象 projection 可复制该值但不得反向覆盖 Event。
 
@@ -211,7 +210,7 @@ Reducer MUST 在 `ak.strand.create`、`ak.strand.move`、`ak.space.parent`、str
 需要"公开锚 + 私密讨论"组合时，MUST 用 **两个 Strand + Relation** 表达；Strand 永远单一 scope，不存在 per-track 安全边界:
 
 ```
-Strand F_public  (scope_circle_id = null)              ← 公开 seal Strand，承载 metadata.title / metadata.summary / stage / metadata.fields
+Strand F_public  (scope_circle_id = null)              ← 公开 authority commit Strand，承载 metadata.title / metadata.summary / stage / metadata.fields
 Strand F_private (scope_circle_id = ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI; short_name=HR-Conf) ← Circle 内 Strand，承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
@@ -219,10 +218,10 @@ F_private --confidential_discussion_of--> F_public
 客户端 UI MAY 把这两个 Strand 在视觉上"组合显示"(同卡片标题区 + 切换 tab)，但协议层它们是**两个独立对象**，各自有独立的:
 - 时间线、消息历史
 - 成员、history visibility、投递 / 查询裁剪；若对应 scope 为 MLS-backed，则各自使用对应 MLS group(F_public 用 Realm-default,F_private 用 Circle MLS)
-- watch cell、stage、生命周期
+- watch typed current result、stage、生命周期
 - 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public，看不到 F_private 的存在或活动元数据，符合 §9.1 投递不变量)
 
-`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md))，关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public seal；非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
+`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md))，关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public authority commit；非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
 
 ## 8. Capability 与授权评估
 
@@ -248,7 +247,7 @@ authorized(actor, action, object) ⇔
 
 其中 `effective_scope(object)` 对 durable Event 使用 immutable signed `scope_ref`，对 materialized object 使用创建 Event scope 或当前 `scope_circle_id` 的规范派生。capability 决定能否执行，Circle membership 决定作用域资格；任一不满足都拒绝。
 
-Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector，或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `ak.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ak.circle.audit` + `ak.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key，除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
+Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector，或由 Circle 自身的 admin typed current result 派生；不得把无约束的 Realm-wide `ak.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ak.circle.audit` + `ak.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key，除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
 
 **Realm 管理权交接与 Circle 隔离（normative）**：Realm ownership / admin capability transfer 只转移 Realm 治理能力，MUST NOT 隐式创建任何 `ak.circle.member.state`、MUST NOT 把接手管理员加入既有 Circle、MUST NOT 赋予既有 Circle 的历史读取 / 解密资格，也不是交接前必须完成的前置条件。若产品希望新管理员继续创建新的 Circle，应在交接 bundle 中显式授予 `ak.circle.create`（或等价的产品管理员角色中显式包含该 action）；这不影响任何既有 Circle。若需要新管理员接管某个既有 Circle 的 lifecycle / membership 管理，必须对该 Circle 显式签发带 `allowed_circle_ids` 的 `ak.circle.manage` / `ak.circle.member.manage` grant；若需要其参与内容讨论，则必须按 §9.1 写入明确的 Circle membership transition。实现 MAY 在交接向导中提示“可选移交哪些 Circle 的管理/成员资格”，但 MUST NOT 要求“把目标管理员加入所有 Circle”作为 Realm admin transfer 的协议条件。
 
@@ -261,9 +260,9 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 1. `Circle.members ⊆ Realm.members`。reducer 在 `ak.circle.member.state -> join` 时，若 target actor 的父 Realm `ak.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `ak.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 
-   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭按 CBS §5 的 member_join 坐标精确绑定原成员授权实例、generation、scope、actions 和保留历史 frontier；circle_active 与父 Realm lifecycle 坐标独立。已知关闭的接收站立即阻止新 live 投递；未见关闭的分区站允许临时按缓存聊天。后来补齐证明后统一重算历史，接纳先后不是永久保留依据。
+   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭按 authority-commit §5 的 member_join 坐标精确绑定原成员授权实例、generation、scope、actions 和保留历史 frontier；circle_active 与父 Realm lifecycle 坐标独立。已知关闭的接收站立即阻止新 live 投递；未见关闭的分区站允许临时按缓存聊天。后来补齐证明后统一重算历史，接纳先后不是永久保留依据。
 
-Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM，完整 `member_id: ActorId` 是 cell key。申请正文 MUST NOT 进入 member-state Move；部署若需附加私密材料，必须通过独立的加密扩展通道传输。
+Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM，完整 `member_id: ActorId` 是 typed current result key。申请正文 MUST NOT 进入 member-state Move；部署若需附加私密材料，必须通过独立的加密扩展通道传输。
 
 Circle 与 Realm 共用 `$defs/membership_state` 单一枚举真源和同一 transition graph；差异只由 scope guard 表达，不再维护第二张转换表。`join -> join` 与其余 same-state transition 一样非法。membership 与物理 lifecycle state 正交，不受 [`common-fields.md` §5.1](./common-fields.md) 的 lifecycle same-state 规则覆盖。需要幂等重试的 producer MUST 基于当前 membership state 重新提交合法 transition，而非重放 same-state 写入。
 
@@ -272,7 +271,7 @@ Circle 与 Realm 共用 `$defs/membership_state` 单一枚举真源和同一 tra
 
 - **省略**：不施加 CAS。合法性完全由本节 FSM transition guard 判定。这与
   [`strand-and-message.md` §2](./strand-and-message.md) 的 `expected_default_strand_id` 不同——
-  那里的 cell 是无 FSM guard 的 `causal_register`，省略必须归一为 `head_eq null`；这里的非法转移
+  那里的 typed current result 是无 FSM guard 的 `causal_register`，省略必须归一为 `head_eq null`；这里的非法转移
   已由 guard 拒绝，因此省略不会导致无条件覆盖。
 - **显式 `null`**：断言该 actor 当前在本 Circle **没有任何 membership 记录**，即这是首次写入。
   已存在任意 membership 时 reducer MUST `failed_precondition`。
@@ -290,7 +289,7 @@ Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `fre
 
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
-| 父 Realm tombstone / destroy | 按 Realm lifecycle 停止 | Circle 的 canonical lifecycle cell 保持原值，但 effective lifecycle 由父 Realm terminal Event 派生为 `realm_terminal`；不得合成 `ak.circle.tombstone` 或未登记的 Circle cell write。Circle 与其对象停止，后续写入统一拒绝 `realm_terminal_state`；tombstone 到 successor Realm 时不会自动迁移 Circle membership / MLS key / history grant |
+| 父 Realm tombstone / destroy | 按 Realm lifecycle 停止 | Circle 的 canonical lifecycle typed current result 保持原值，但 effective lifecycle 由父 Realm terminal Event 派生为 `realm_terminal`；不得合成 `ak.circle.tombstone` 或未登记的 Circle typed current result write。Circle 与其对象停止，后续写入统一拒绝 `realm_terminal_state`；tombstone 到 successor Realm 时不会自动迁移 Circle membership / MLS key / history grant |
 | 父 Realm freeze | 所有非豁免新写入按 Realm §2.6.0 拒绝 `realm_frozen` | Circle-scoped 新写入同样按 `realm_frozen` 拒绝；Circle 本身不定义独立 freeze，也不得用 Circle capability 绕过父 Realm freeze |
 | 父 Realm archive | 按 Realm 默认隐藏 / 只读投影，可由 Realm restore 恢复 | Circle 与其对象遵循父 Realm archive 的默认隐藏 / 只读投影；不额外 tombstone、不改 membership / MLS eligibility，Realm restore 后恢复到 Circle 自身 lifecycle 决定的状态 |
 | Circle archive | 不受影响 | receiver 获知 archive 关闭后，新写入 MUST fail closed（`failed_precondition`, `reason=circle_not_active`），**含新建以该 archived Circle 为 `scope_circle_id` 的对象**；此前暂时接纳的 Event 按关闭集合重算历史资格。既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
@@ -321,13 +320,12 @@ tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiv
 - `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、`member_ids`、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ak.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ak.circle.audit` / `ak.audit.accessed` 配对的 audit reader。
 
-## 10. 加密 / Seal 集成
+## 10. 加密 / RealmCommit 集成
 
-Circle 不另建 Seal 序列，权限和 MLS 安全变更在父 Realm 的安全域确认。Plaintext Circle 不存在 MLS group。Standard/exporter Circle 各自拥有 canonical group、Genesis/Commit、Welcome、
-leaf 与 snapshot；`content_scheme` 和 security frontier 固定在自己的 Genesis。`history_access` 只可由专用
+每个 Circle 都有独立的 authority commit stream，Circle Event 只由该 stream 的 RealmCommit 排序与确认；父 Realm stream 与 Circle stream 之间不存在 predecessor 关系。Plaintext Circle 不存在 MLS group。Standard/exporter Circle 各自拥有 canonical group、Genesis/Commit、Welcome、leaf 与 snapshot；`content_scheme` 和 key-access revision 固定在自己的 Genesis。`history_access` 只可由专用
 `ak.circle.history_access` Move 从 `all_history_for_current_members` 单向收紧到 `since_join`，立即作用于历史交付，
-且不进入 MLS security frontier；不存在 epoch ceiling 或 activation-time policy snapshot。
-Standard scheme 固定 since_join 且没有 history secret；exporter scheme 才允许 private delivery/backup/RHRK。
+且不进入 MLS key-access revision；不存在 epoch ceiling 或 activation-time policy snapshot。
+Standard scheme 固定 since_join；exporter scheme 的 epoch content root 也只能保留在成员设备本地，不提供 backup、network delivery 或恢复密钥。
 
 ## 11. Scope-identity UX safety invariants
 
@@ -346,7 +344,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 3. 跨 Circle 导航或同一 surface 内切换不同 scope 时，客户端 MUST 让用户感知这是跨 scope 转场；不得表现成同一 Strand 内的普通滚动或普通 tab 内容切换。
 4. Mention / invite / add-recipient 等候选交互 MUST 区分 Circle member 与非 member；不得暗示非成员会收到 Circle-scoped 内容。
 5. 跨 Circle 引用必须标识为“另一 Circle / 另一协作圈 / 另一作用域”或等价语义，**不得**使用“信任圈”措辞，且不得预览调用者无权访问的内容。
-6. "宽 seal Strand + 窄 discussion Strand" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Strand 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Strand 内不同视图。
+6. "宽 authority commit Strand + 窄 discussion Strand" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Strand 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Strand 内不同视图。
 
 ### 11.1 Agent Sidecar 与 Circle 的强制分离
 
@@ -380,4 +378,4 @@ delivery 边界流动。
 
 ### Circle lifecycle 合同入口
 
-`circle` 的 lifecycle 以 contract registry 中对应 cell family 的 `transition_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `circle_not_active` / `circle_not_archived`；终态操作对已终态对象返回 `circle_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+`circle` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `effect_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `circle_not_active` / `circle_not_archived`；终态操作对已终态对象返回 `circle_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。

@@ -15,7 +15,7 @@ see_also:
 规范关键字按[规范语言](../conformance/normative-language.md)解释。
 
 Arkret v1 不再让多个 Station 独立接纳同一 Realm 的共享 Event，也不通过 causal frontier、sibling set、
-Seal closure 或 CRDT/Lattice 合并 accepted 结果。每个 Realm 在某一 authority generation 只有一个 current governance
+RealmCommit closure 或 CRDT/Lattice 合并 accepted 结果。每个 Realm 在某一 authority generation 只有一个 current governance
 Station。
 
 ## 1. 信任边界

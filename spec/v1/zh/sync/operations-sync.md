@@ -20,13 +20,13 @@ see_also:
 
 ## 2. 事件类型与 wire 边界
 
-### 2.1 ordinary Event
+### 2.1 Realm Event
 
-旧ordinary分类已取消。所有共享持久Realm Event都使用同一producer-signed envelope和authority commit路径。
+所有共享持久 Realm Event 都使用同一 producer-signed envelope 和 authority commit 路径。
 
-### 2.2 Control Move
+### 2.2 敏感 Event
 
-旧Control Move分类已取消。敏感操作通过typed payload、required signer、current authz和可选`expected_revision`表达，不携Seal basis或通用precondition DSL。
+敏感操作通过 typed payload、required signer、current authz 和可选 `expected_revision` 表达。
 
 ### 2.3 actor-private 与 ephemeral 边界
 
@@ -36,47 +36,39 @@ Account-private数据、DeviceMessage、Signal、draft和recipient delivery不�
 
 Account Station先验证session、Event canonical ID和producer proof，再定位current governance Station并转发exact bytes。只有current authority执行最终admission。
 
-### 3.1 ordinary Event 验证
+### 3.1 Event 验证
 
 现行统一验证包括closed schema、Event ID、producer proof、target stream派生、current capability/policy、typed domain invariants和idempotency。
 
-### 3.2 Control Move 验证
+### 3.2 敏感 Event 验证
 
-本锚点保留。敏感typed Event还验证required controller/device/recovery signer和target revision；无单独控制面。
+敏感 typed Event 还验证 required controller/device/recovery signer 和 target revision。Realm genesis 是 position 0 的单个 closed create Event 与对应 RealmCommit。
 
-#### 3.2.1 Anchor Unit 验证
+### 3.3 RealmCommit 验证
 
-Anchor Unit已退役。Realm genesis是position 0的单个closed create Event + RealmCommit。
-
-### 3.3 Seal 验证
-
-Seal已退役。消费方验证RealmCommit authority generation、signature、stream_ref、position、previous_commit_ref、event_id和Event digest/proof。
+消费方验证 RealmCommit 的 authority generation、signature、stream_ref、position、previous_commit_ref、event_id 和 Event digest/proof。
 
 ## 4. Event-first 发布模型
 
 客户端离线生成producer-signed draft；own Station排队并转发；current authority在实际commit位置求值。排队不冻结旧授权，撤销在先时旧draft可以被拒绝。
 
-## 5. 批量提交与 partial accept
+## 5. MLS 原子提交
 
-通用Event batch原子提交已删除。每个Event单独获得结果。MLS是唯一专用原子请求：一个`ak.mls.commit`与全部新增recipient Welcome deliveries全成或全败。
+每个普通 Event 单独获得结果。MLS 使用专用原子请求：一个 `ak.mls.commit` 与全部新增 recipient Welcome deliveries 全成或全败。
 
 ## 6. Receipt、可用性与完整性证明
 
 RealmCommit是唯一accepted receipt；transport/queue receipt只能说明已收到或已排队。
 
-### 6.1 Event Batch Receipt
-
-不再用于Realm accepted语义；旧schema/operation必须退役。
-
-### 6.2 AvailabilityReceipt
+### 6.1 AvailabilityReceipt
 
 不构成Realm finality或censorship proof。
 
-### 6.3 Audit RYW Receipt
+### 6.2 Audit RYW Receipt
 
 客户端read-your-writes以返回Commit和own Station barrier/cursor实现；cursor不是authority proof。
 
-### 6.4 历史完整性边界（normative）
+### 6.3 历史完整性边界（normative）
 
 同一获准stream的position必须连续且predecessor唯一。History/retention floor之前的裁剪不是gap；之后无法解释的跳跃必须停止该stream并重取snapshot/authority bundle。
 

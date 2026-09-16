@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.4",
+  "version": "2026-09-16.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T11:30:00+08:00",
+  "generated_at": "2026-09-16T18:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -179,7 +179,7 @@
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
       "section_digest": "sha256:205811a61b7c8ca82823a0558c5f4b29ad95ed7bd31203472b282b46963aa272",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id, its independently verifiable unique producer proof and signer evidence, and a destination-signed claim receipt without separate PCR/device/Agent history sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the security frontier for its accepted key-access state, while a governance-result consumer may verify an authenticated scope-authorized single-authority conclusion under the same explicit governance trust boundary without replaying unrelated private control history; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis. Realm/Circle Proposal/Commit wire inputs are complete PublicMessage MLSMessages; the governance Station check public signatures/tree transitions and persist exact consumed-proposal leaf provenance without member MAC secrets. Remove+Add always creates new provenance even when the leaf tuple is unchanged; minimal identities remain pairwise and Sidecar keeps its separate contract. Ordinary clients obtain exact historical Agent signing keys from their own Station instead of replaying public governance; they still verify the actual producer signature and historical MLS binding. Current self signing-key results serve only their requesting validation/in-flight identical query and cannot be reused for future Signals or operations. Message prepare distinguishes local plaintext intent from the encrypted wire request: the client freezes AAD inputs and encrypts locally, checks returned ciphertext/metadata and bindings byte-for-byte, and exact retry never consumes another sender counter. Plaintext is rejected under e2ee_required; the two-request path assumes send readiness and local MLS state. An Applet-managed Bot or Ghost joins through the ordinary device branch rather than a fourth recipient endpoint: its restricted delegated device resolves through an accepted applet_managed_delegation ak.device.authorize, and every KeyPackage publication, Welcome admission and MLS durable receipt from it MUST be ANDed with the revoke fence of the exact Applet install named by that authorize payload applet_id, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire; Welcome and KeyPackage binding is verified byte-exactly; every peer claim binds the accepted authorization Event id, its independently verifiable unique producer proof and signer evidence, and a destination-signed claim receipt without separate PCR/device/Agent history sidecars; encryption floors MUST NOT be downgraded; every encrypted envelope uses only the minimal encryption_context wire and reconstructs the exact closed pre-encryption header from the outer signed Event, verified producer domain, scope-derived group id and exact winning group state; MLS leaf ownership and Proposal targets preserve complete ActorId including Station and never collapse to the signing principal, and a minimal-metadata Realm-local pairwise actor is no exception: its Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer, KeyPackage claim) use (realm_id, principal_id), which its did:key principal already pins; every MLS epoch binds the key-access revision for its accepted key-access state, while a governance-result consumer may verify an authenticated scope-authorized single-authority conclusion under the same explicit governance trust boundary without replaying unrelated private control history; and epoch-0 leaf indices are recovered only from digest-verified RFC 9420 GroupInfo/ratchet-tree bytes committed by the accepted genesis. Realm/Circle Proposal/Commit wire inputs are complete PublicMessage MLSMessages; the governance Station check public signatures/tree transitions and persist exact consumed-proposal leaf provenance without member MAC secrets. Remove+Add always creates new provenance even when the leaf tuple is unchanged; minimal identities remain pairwise and Sidecar keeps its separate contract. Ordinary clients obtain exact historical Agent signing keys from their own Station instead of replaying public governance; they still verify the actual producer signature and historical MLS binding. Current self signing-key results serve only their requesting validation/in-flight identical query and cannot be reused for future Signals or operations. Message prepare distinguishes local plaintext intent from the encrypted wire request: the client freezes AAD inputs and encrypts locally, checks returned ciphertext/metadata and bindings byte-for-byte, and exact retry never consumes another sender counter. Plaintext is rejected under e2ee_required; the two-request path assumes send readiness and local MLS state. An Applet-managed Bot or Ghost joins through the ordinary device branch rather than a fourth recipient endpoint: its restricted delegated device resolves through an accepted applet_managed_delegation ak.device.authorize, and every KeyPackage publication, Welcome admission and MLS durable receipt from it MUST be ANDed with the revoke fence of the exact Applet install named by that authorize payload applet_id, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.encrypted_envelope_digest.v1",
@@ -210,42 +210,6 @@
       ]
     },
     {
-      "clause_id": "AK-NC-014",
-      "status": "deprecated",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#1-权威来源与执行模型",
-      "section_digest": "sha256:716362d076bba7d26a7714a3a9b7ab745976b973cc7cd114b071aaafa45ce724",
-      "requirement": "Execution is derived from all effective registered writes. Any security write makes the whole Event atomic and confirmation-dependent. Closed bootstrap units activate only as complete registered units; ordinary subsequent data is independently admitted under a signed open data_basis and later identity publication does not turn it into a security command.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.cbs_lattice.control_move_requires_seal_basis_and_seal.v1",
-        "ak.vector.direct_conversation.founding_unit.v1",
-        "ak.vector.cbs_lattice.same_batch_does_not_advance_authorization_basis.v1",
-        "ak.vector.cbs_lattice.auth_context_signer_evidence_binding.v1",
-        "ak.vector.identity.root_anchor_exclusivity.v1",
-        "ak.vector.identity.device_reanchor.v1",
-        "ak.vector.agent.pcr_separation.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-015",
-      "status": "deprecated",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#11-安全状态根与序列化",
-      "section_digest": "sha256:cd6af7a99b3cf7b2b2a53a05e5174e04f118eb7a3df65f19e6f27d9779ecfd92",
-      "requirement": "Seal identity hashes its exact unsigned body; the sole commit transcript is {context,seal_digest}. Configuration, position, predecessor and results are transitively bound through that digest. Security state roots retain exact revisions including written null. The governance Station validates complete execution; consumers verify the configured signature and exact authorized facts. No Byzantine fault tolerance or automatic leader election is promised.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.cbs_lattice.seal_canonical_no_self_reference.v1",
-        "ak.vector.cbs_lattice.seal_delta_excludes_ordinary_event_digest.v1",
-        "ak.vector.cbs_lattice.confirmed_prefix_compaction.v1",
-        "ak.vector.cbs_lattice.notary_fault_equivocation_quarantine.v1",
-        "ak.vector.federation.reducer_profile_resolution.v1",
-        "ak.vector.cbs_lattice.sealed_control_move_full_digest_collision.v1",
-        "ak.vector.hash_transition.dual_root_recompute.v1"
-      ]
-    },
-    {
       "clause_id": "AK-NC-016",
       "status": "active",
       "category": "authorization",
@@ -256,7 +220,7 @@
       "evidence_refs": [
         "ak.vector.capability.authority_chain.v1",
         "ak.vector.capability.authority_cycle.v1",
-        "ak.vector.capability.authority_expiry_seal.v1",
+        "ak.vector.capability.authority_expiry_commit.v1",
         "ak.vector.capability.issuer_authority_bound.v1",
         "ak.vector.capability.authority_audit.v1"
       ]
@@ -272,25 +236,6 @@
       "evidence_refs": [
         "ak.vector.capability.revoke_rollback.v1",
         "ak.vector.capability.revoke_downstream_recheck.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-018",
-      "status": "deprecated",
-      "category": "reducer",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-因果寄存器",
-      "section_digest": "sha256:9de1bee747494013275e64bdde7d33f642c4abd37b657ac0ef320d72212f90fc",
-      "requirement": "Ordinary causal_register preserves coverage and every eligible Event identity, fixes each write depth from authenticated same-Cell parents, and selects the maximum (depth, canonical EventId bytes) as its sole current value. Join is idempotent, commutative and associative only within the same eligibility context. Apply authorization closure before selecting a winner, retain values needed for reclassification, and merge raw evidence before recomputing across contexts. Security sequenced_state has no unordered join; transition tables and CAS remain validation predicates.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.state_model.sequenced_revision_guard.v1",
-        "ak.vector.lattice.causal_register_supersession.v1",
-        "ak.vector.lattice.counter_join.v1",
-        "ak.vector.state_model.causal_transition_heads.v1",
-        "ak.vector.state_model.causal_transition_validation.v1",
-        "ak.vector.lattice.causal_register_join.v1",
-        "ak.vector.lattice.ordered_log_gap.v1",
-        "ak.vector.lattice.ordered_log_join.v1"
       ]
     },
     {
@@ -311,20 +256,6 @@
       ]
     },
     {
-      "clause_id": "AK-NC-020",
-      "status": "active",
-      "category": "reducer",
-      "source_anchor": "spec/v1/zh/models/event-and-patch.md#6-reducer-总则",
-      "section_digest": "sha256:f43e3ba049bdd77e421e0bd793ce268d8b60173a069a4d444ede8ed20c88dee6",
-      "requirement": "Every reducer-input event kind declares a closed cell contract (cell family, subject, state model and effect projection); an unregistered projection MUST NOT be improvised.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.event_kind.cell_contract_closure.v1",
-        "ak.vector.event_kind.null_cell_subject_wire_form.v1",
-        "ak.vector.state_root.incremental.v1"
-      ]
-    },
-    {
       "clause_id": "AK-NC-021",
       "status": "active",
       "category": "state_machine",
@@ -338,22 +269,6 @@
         "ak.vector.call_state.replay_same_state_noop.v1",
         "ak.vector.call_state.ordered_competing_transitions.v1",
         "ak.vector.call_state.participant_binding_invalid.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-022",
-      "status": "active",
-      "category": "state_machine",
-      "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:f935584f76d0a4cf99393be364e59bf2077465b4ab00d22b29c1716f8da643cd",
-      "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the claimed lifecycle transition is atomic with its subject-bound membership proposal; only invite acceptance writes member state. Directed invite live uniqueness is carried by the registered ak.component.invite.live_target.v1 slot: create claims it under a head_eq null precondition, an unwritten cell reading null rather than a sentinel, every transition leaving the live set releases it under a head_eq create_event_id precondition, send_failed keeps it claimed, and a duplicate create is rejected with failed_precondition and invite_live_target_occupied at zero writes.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.invite.claim_reducer_state_machine.v1",
-        "ak.vector.invite.consumed_token_resubject_rejected.v1",
-        "ak.vector.invite.claim_expiry_canonical_time.v1",
-        "ak.vector.invite.membership_transition_atomicity.v1",
-        "ak.vector.invite.live_target_uniqueness.v1"
       ]
     },
     {
@@ -394,43 +309,6 @@
       ]
     },
     {
-      "clause_id": "AK-NC-027",
-      "status": "deprecated",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#2-独立接收站准入",
-      "section_digest": "sha256:13732d9ef6896866d618eb998afa29c90457aeeb7c3ba4c76c6c87287f6035de",
-      "requirement": "Any eligible receiving Station independently verifies the original producer and portable authority evidence. Ordinary publication requires neither origin countersignature nor a new Seal nor a cache freshness lease. Known revocation serializes with the local live gate; unknown revocation has a propagation window. Historical eligibility is recomputed from exact closures, while confirmed security outcomes retain their frozen dependencies. AuthContext contains only signed authority_refs. The producer proof authenticates exact historical signer evidence, whose actual authorization instance must match those references; changing proof bytes cannot relabel an existing Event identity.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.cbs_lattice.auth_context_signer_evidence_binding.v1",
-        "ak.vector.identity.independent_admission.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-028",
-      "status": "active",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/models/actor.md#331-accountable_principal_ids-的可验证性normative",
-      "section_digest": "sha256:c8129977260718cae0fd7a61153521c83f15bf868a89a0d2857e8ebcb0e49b1a",
-      "requirement": "Every accountable principal on an Actor Event must have an active matching accountability grant; any missing grant rejects the whole Event without a stripped projection. One accountability record has two registered sources -- the standalone grant and the atomic projection an agent provision writes in its controller PCR -- and a verifier must accept both rather than searching only the general kind. Both key the cell by issuer principal, subject principal and the normalized scope set, and both project the same closed value of issuer, subject, normalized scope, not_before, optional expires_at and grant_status; a provision derives not_before from the envelope creation time it also has to match in its payload, omits expires_at rather than writing null, and is active. Neither source may put its event reference or inner proof into the value, because two endorsements that mean the same thing would then differ only by origin and collide on a reject cell.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.actor.accountability_grant_required.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-029",
-      "status": "active",
-      "category": "state_machine",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
-      "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.cbs.proposal_window_configuration.v1"
-      ]
-    },
-    {
       "clause_id": "AK-NC-030",
       "status": "active",
       "category": "wire",
@@ -439,16 +317,6 @@
       "requirement": "Optional nullable fields normalize absent and null unless a conditional branch requires the field or x-arkret-presence-semantics=distinct explicitly assigns three business states.",
       "testability_grade": "audit",
       "test_plan": "tools/gen_property_presence_manifest.py must classify every tristate audit target with zero unresolved dispositions; the Rust SDK draft202012_runtime and Circle payload tests pin the sole distinct target and its Missing/Null/Value round-trip."
-    },
-    {
-      "clause_id": "AK-NC-031",
-      "status": "deprecated",
-      "category": "state_machine",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
-      "requirement": "Proposal admission atomically records the original Event, mandatory Ack and pending unit. The unique confirmed Seal atomically commits each unit outcome, successful effects and head; rejected units have no effects and all their members stop being pending. No independent signed rejection or arrival-order terminal race exists. Exact retry preserves the original result; a new deferral cannot follow a terminal outcome.",
-      "testability_grade": "audit",
-      "test_plan": "Run shared ordered-unit and atomic MemoryStore regressions, PostgreSQL rejected multi-member unit commit with injected failure and restart, exact replay and post-terminal deferral rejection. Verify missing dependencies remain pending. Check all proposal consumers resolve the exact Seal unit outcome before reporting business success. The human self-principal Ack-less exception omits only the Ack, never the durable unit/result."
     },
     {
       "clause_id": "AK-NC-032",
@@ -463,70 +331,16 @@
       ]
     },
     {
-      "clause_id": "AK-NC-033",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#254-sealbasis-信任来源normative",
-      "section_digest": "sha256:de0a5d4760bc611c60ae1b82cf8c744e71751325beed1ce47c0718ec58ccaa7c",
-      "requirement": "A server admitting foreign governance MUST independently validate its accepted basis: an event-derived Realm genesis binds the derived create Event and its genesis notary; a PCR genesis binds the verified principal inception and critical root anchor. A foreign service report, proof self-report or error suggestion cannot substitute that validation. Successor acceptance verifies the exact complete antichain and atomically persists accepted state. Ordinary authenticated clients instead consume their own Account Station result without local governance history replay.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.mls.governance_proof.verifier.v1"
-      ]
-    },
-    {
       "clause_id": "AK-NC-034",
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/event-and-patch.md#4241-redaction-对象投影",
       "section_digest": "sha256:c1676d0e57ee337811e02e7b87be5335146a86aa31175f4c18bb2d99a1fdba8e",
-      "requirement": "A cross-object ak.redaction whose target_ref uses the ak:event: form only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; an object enters state=redacted only through the object typed-id form of target_ref (Message still goes exclusively through ak.message.redact). The two spellings of one 33-octet token land in two distinct ak.component.object.redaction.v1 cells that are independent and never merge; a reducer MUST NOT canonicalize the ak:event: spelling into the derived object typed id.",
+      "requirement": "A cross-object ak.redaction whose target_ref uses the ak:event: form only trims that Event's fields per preserve[] and MUST NOT change any object's state, including the event-derived object minted from a targeted create Event; an object enters state=redacted only through the object typed-id form of target_ref (Message still goes exclusively through ak.message.redact). The two spellings of one 33-octet token land in two distinct ak.component.object.redaction.v1 typed results that are independent and never merge; a reducer MUST NOT canonicalize the ak:event: spelling into the derived object typed id.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.redaction.event_target_does_not_drive_object_state.v1"
       ]
-    },
-    {
-      "clause_id": "AK-NC-035",
-      "status": "deprecated",
-      "category": "reducer",
-      "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:6bc6f5d1dab9b3dd74d482b9078db611db69dd9e25be048414456458d11de91f",
-      "requirement": "Snapshot items contain registered full Cell state with explicit state_model and authenticated eligibility context. Snapshot digest hashes {cell,state_model,state}, independently of the Seal security root. Restore verifies retained original events, coverage and closure evidence; byte-level digest agreement alone is insufficient. Wrong family/model, missing required evidence and context mismatches cannot restore an eligible state.",
-      "testability_grade": "audit",
-      "test_plan": "Review model-specific carrier and replay validation, run snapshot digest KAT, then require SDK restore tests for closure reclassification and missing membership. The digest KAT does not prove a complete authenticated restore."
-    },
-    {
-      "clause_id": "AK-NC-036",
-      "status": "deprecated",
-      "category": "reducer",
-      "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#4-state-hash",
-      "section_digest": "sha256:df5d0fc512b490fa371f93214ab2b4c3b50f8c4d259195e1a4d0a8da99d2335c",
-      "requirement": "state_digest is the RFC 6962 root over complete registered snapshot Cell states. Each leaf is H(0x00 || JCS({cell:item.id,state_model:item.state_model,state:item.state})); nodes use H(0x01 || left || right), odd tails are promoted, and leaves follow CellRef code-point order across indexed chunks. The empty root hashes empty bytes. These leaves are distinct from Seal security-only leaves; missing state_model, lost causal coverage, double wrapping or absent domain separation must fail the root check.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.realm_state_snapshot.state_digest_recompute.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-037",
-      "status": "deprecated",
-      "category": "distributed_write",
-      "source_anchor": "spec/v1/zh/conformance/realm-state-snapshot-schema.md#3-chunk-descriptor",
-      "section_digest": "sha256:6bc6f5d1dab9b3dd74d482b9078db611db69dd9e25be048414456458d11de91f",
-      "requirement": "Causal coverage is keyed by CellRef, exact eligibility_context and EventId. Restoring a Cell requires verified covered_event_ids plus the fixed-depth deterministic winner, or equivalent authenticated replay at that context. A proof of global event-set membership establishes original input presence only and cannot grant eligibility or prove per-Cell coverage. Missing necessary evidence remains pending; never infer a negative membership result, discard explicit null or truncate retained coverage in a way that changes the winner.",
-      "testability_grade": "audit",
-      "test_plan": "Run the existing global membership vector for its limited input-set claim. Separately verify per-Cell coverage, signed target derivation, absent versus explicit null, changed eligibility contexts, closure reclassification and authenticated replay; global inclusion alone must never satisfy the Cell coverage check."
-    },
-    {
-      "clause_id": "AK-NC-038",
-      "status": "deprecated",
-      "category": "state_machine",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
-      "requirement": "Historical deadline faults remain auditable but are not embedded in current frontier health. An incomplete bounded pending sample explicitly carries pending_proposals_complete=false and cannot prove absence of a safety gate; it does not invalidate an independently verified Seal basis.",
-      "testability_grade": "audit",
-      "test_plan": "Exercise 129 and 1000 late accepted obligations, verify current health and complete paginated retained history; exercise 129 pending obligations and validate explicit incompleteness without deletion. Verify target revoke gates independently of the diagnostic sample."
     },
     {
       "clause_id": "AK-NC-039",
@@ -547,16 +361,6 @@
       "requirement": "Forbidden-wire contexts and matchers are registered and resolved before matching; root fields do not apply to arbitrary descendants or another owning schema. Message.track_name is forbidden while the message-create signed payload retains it.",
       "testability_grade": "audit",
       "test_plan": "Run vocabulary mutation gates plus shared SDK and cotest scanner positives and negatives covering Message versus Event payload, real create object wrappers, nested KDF pointers, literal aggregate matchers and patch descendants."
-    },
-    {
-      "clause_id": "AK-NC-041",
-      "status": "deprecated",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/governance/history-visibility.md#6-private-history-key-delivery",
-      "section_digest": "sha256:a2c1b1d5870e0f77ec9310e72033472a59fdce2f2361cda4c801fa7fa9be0e70",
-      "requirement": "Origin/release services verify exact AccountDevice evidence, origin-Station signer closure, signed-time validity and full AccountId/device binding; first enqueue rechecks current authorization and generation. The Account Station selects and retains the history cut; ordinary requester/signing-input/receipt contain no client trust-anchor fields. Clients retain message/HPKE/signature and recipient binding checks, not governance replay. Device evidence cannot authorize Control Events, notary or organization recovery. The capability-bound Account Station supplies exact historical source-key results, deduplicated by evidence ref, and the accepted group suite. Minimal-metadata receivers retain actual encrypted IdentityLink/LeafNode and source-proof checks; public signer authority and winning-lineage range coverage are server responsibilities. Complete byte-bounded pages and ACKs never skip unresolved sequence slots.",
-      "testability_grade": "audit",
-      "test_plan": "Check old request/receipt trust-anchor fields are rejected and server-selected cut is frozen across exact retries. Run server device-history evidence negatives for missing refs, actor/device/Station substitution, altered authorization, revocation and invalid time. Exercise source relay generation changes before enqueue and historical replay after expiry. Run two-account request/manifest/chunk delivery with client cryptographic checks and zero client governance replay. Check missing/duplicate/surplus signer results fail before ACK, same Principal across Account Stations does not collapse per-record authority, and minimal local tree mismatches still fail. Cover registered suite/range byte-length checks, actual source signatures, singleton page admission, byte-prefix cursors, reserved sequence holes and completion after restart. Verify durable record/result installation before ACK without a client checkpoint."
     },
     {
       "clause_id": "AK-NC-042",
@@ -587,38 +391,6 @@
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
-    },
-    {
-      "clause_id": "AK-NC-045",
-      "status": "deprecated",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#14-控制面-control-proposal-ack-与-inclusion-obligation",
-      "section_digest": "sha256:fe5e82eb0c80d0f6963e2e7da5ef9d967ec8ea023c9bb5b592ece92356da836e",
-      "requirement": "A Control Proposal Ack intake request explicitly selects online or delayed publication. Online forbids an AuthorizationLease and re-evaluates current accepted authority; delayed requires an independently valid Event-bound lease. A malformed, invalid or expired delayed request never downgrades to online, and neither branch turns the Ack into a lease or a Seal.",
-      "testability_grade": "audit",
-      "test_plan": "Validate schema and shared SDK positive cases for online without a lease and delayed with a matching lease; reject online with a lease, delayed without one, invalid or expired leases, mode replacement, Event substitution and cross-actor or cross-scope lease reuse. Verify exact retry preserves the first durable Ack and deadline."
-    },
-    {
-      "clause_id": "AK-NC-046",
-      "status": "active",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#521-proposal-producer-与-sender-支持矩阵normative",
-      "section_digest": "sha256:66ffcf4e4274631518f369a9b20176a12c4d3c18183b6fdb903be95e2fb9dc66",
-      "requirement": "A v1 Realm or Circle durable ak.mls.proposal is authored only by a Member sender whose leaf is occupied in the exact accepted base and whose leaf credential and signature key equal the verified Event producer executed_by ?? actor_id. ExternalSender, NewMemberProposal, NewMemberCommit, external_init and any app_custom codepoint without an active application registry row fail closed with unsupported_feature and are never reported as schema_violation; standard Member proposal types keep their existing rules.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.mls.proposal_producer_binding.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-047",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/authz/cbs-profiles.md#9-治理结果证明normative",
-      "section_digest": "sha256:f7070aa9f386ecc5215318e314e79d93f52cdb1b4abdfba4c768ef35da9f36b7",
-      "requirement": "Result-consuming Stations authenticate exact single-authority governance conclusions without unrelated private replay. Only the configured signer may attest facts. Context, Realm/configuration, query scope and target are bound; absence differs from written null. Execution, current authorization and end-to-end cryptography remain separate.",
-      "testability_grade": "audit",
-      "test_plan": "tools/test_seal_conclusions.py runs schema and real Ed25519 consumer vectors for the sole signer and rejection of signature arrays, wrong configuration/context/target, selector omission, absence/null, interval bounds, bootstrap and resolve carriers. It does not prove production single-writer signing, handoff durability, live revocation or complete join/history execution; those remain in arkret-work 2247/1636/1701."
     },
     {
       "clause_id": "AK-NC-048",
@@ -669,28 +441,6 @@
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The closed delegated producer branch carries delegated_actor_did exactly for legal Agent controller-device Events with executed_by; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. Production acceptance must include a first stranger controller-device Agent Contact with no cached Agent locator and no private PCR disclosure."
-    },
-    {
-      "clause_id": "AK-NC-054",
-      "status": "deprecated",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#822-human-generic-control-的-portable-signer-evidencenormative",
-      "section_digest": "sha256:65afc68d459d9707741ba4c9540a8ff46a2a888aa7a8722c59a486c9a4159329",
-      "requirement": "A human device authorizes Realm bootstrap and later generic Control only through the content-addressed account_device_control root, its closed WebVH-only principal_registration_anchor and its complete minimal PCR prefix through the first successful confirming Seal. v1 admits only anchor_kind=webvh_registration; every other human registration method or anchor kind, including did:key and did:web, fails closed with unsupported_did_method. The verifier re-derives the DID, method history head, version id, normalized document and root verification method/key from the anchor alone, requires them to equal the PCR genesis coordinates and root producer material byte-for-byte, and independently checks every exact Event/Seal, historical signature/notary transition, Account, device, method/key, generation and authorization window. Missing or substituted dependencies, a receipt or current resolver result standing in for the anchor, a later confirmation, a non-canonical prefix, or use for Data/native-unit and other excluded lanes fails closed without account_device or principal fallback.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.identity.human_control_signer_evidence.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-055",
-      "status": "deprecated",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#52-已知-mls-artifact-的接纳结果",
-      "section_digest": "sha256:2fd5c456fd599dafecb15242b6175bfc3bc3ad7f040e9d605fbae8ebc4708360",
-      "requirement": "An accepted MLS artifact carries a complete ordered mls_leaf_authorizations association keyed by the exact occupied leaf indices of its transition. Device, Agent and pairwise branches are closed, forbid nulls and redundant identity/key fields, and retain exact historical authorization without altering frontier/removal digests. Missing provenance is unavailable, never current-directory or claim substitution. The client binds the exact artifact/session and actual RFC tree before atomic installation; current access remains independently checked.",
-      "testability_grade": "api_shape",
-      "test_plan": "Run tools/test_mls_accepted_leaf_authorization_schema.py and SDK accepted-artifact/real cold-Welcome tests for closed branches, missing/duplicate/wrong indices, nulls, unchanged frontier digest and durable historical bindings. PostgreSQL verifies exact retry and withdrawal behavior. These checks do not establish complete Add/Agent/cross-Station origin production or Seal publication: those remain explicitly owned by arkret-work 0714 and require real revocation/re-authorization, cold recovery and process-failure acceptance. Never mark candidate storage as a confirmed origin or use current authority to reconstruct missing historical sources."
     },
     {
       "clause_id": "AK-NC-056",

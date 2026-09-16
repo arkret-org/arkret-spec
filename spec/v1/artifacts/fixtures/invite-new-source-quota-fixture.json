@@ -375,9 +375,9 @@
         ]
       },
       "invariants": [
-        "the source over the short-window ceiling is absent from the quarantine cell",
-        "a denied contact performs zero ledger writes and zero cell writes",
-        "an already-charged source still enters the cell while the short window is full, which is what separates a seen-source ledger from a plain per-holder counter",
+        "the source over the short-window ceiling is absent from the quarantine typed current result",
+        "a denied contact performs zero ledger writes and zero typed current result writes",
+        "an already-charged source still enters the typed current result while the short window is full, which is what separates a seen-source ledger from a plain per-holder counter",
         "the requester-visible outcome is unchanged across all four contacts",
         "this timeline starts from an empty ledger inside one short window, so a live deployment can replay it without controlling the clock"
       ]
@@ -596,7 +596,7 @@
       "invariants": [
         "prune runs first and both ignores and physically removes the over-age row",
         "after prune the ledger size is bounded by max_new_sources_per_retention",
-        "pruning anti-abuse ledger rows never removes quarantine cell entries; the two lifetimes are separate"
+        "pruning anti-abuse ledger rows never removes quarantine typed current result entries; the two lifetimes are separate"
       ]
     },
     {
@@ -801,7 +801,7 @@
       },
       "invariants": [
         "a delivery deduplicated by request_digest or idempotency_key_digest never reaches quota evaluation",
-        "the deduplicated replay adds no cell entry and no ledger row"
+        "the deduplicated replay adds no typed current result entry and no ledger row"
       ]
     }
   ],
@@ -875,8 +875,8 @@
       "ak.peer.contacts.command.submit.v1",
       "ak.self.consent.command.request.v1"
     ],
-    "evaluated_exactly_once_before_cell_cas_write": true,
-    "reevaluated_inside_cell_cas_retry_loop": false,
+    "evaluated_exactly_once_before_result_cas_write": true,
+    "reevaluated_inside_result_cas_retry_loop": false,
     "cas_retry_exhaustion_refunds_the_charge": false,
     "substitutable_by_generic_endpoint_rate_limit": false,
     "substitutable_by_directory_psi_device_quota": false,
@@ -909,7 +909,7 @@
     ],
     "source_id_participates_in_identity_key": false,
     "wire_readable": false,
-    "is_account_data_cell": false,
+    "is_account_data_result": false,
     "holder_observable_surface": "ak.account.holder_quarantine",
     "source_column_storage": "server_private_keyed_digest",
     "retention_seconds_is_both_ledger_lifetime_and_long_window": true,

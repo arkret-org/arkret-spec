@@ -59,11 +59,11 @@ operation/rail id。resource limits 只能使用 Kernel schema 定义的 byte/it
 
 manifest 不得包含：
 
-- 任意 JSON path/cell subject 表达式；
-- producer 选择的 cell write / state projection；
+- 任意 JSON path/typed current result subject 表达式；
+- producer 选择的 typed current result write / state projection；
 - 可执行条件、脚本、Wasm 或通用 policy DSL；
 - server-visible 的业务 target selector；
-- 修改 Kernel Event、Seal、CBS 或 federation schema 的指令；
+- 修改 Kernel Event、RealmCommit、authority-commit 或 federation schema 的指令；
 - 与 reducer contract 并列的第二份状态映射。
 
 ## 3. 装载算法

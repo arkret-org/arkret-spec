@@ -202,7 +202,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 | 协作图整体结构 / 标准对象一览 | 本文 §2-§3 |
 | 公共字段、lifecycle、reducer 总则 | [common-fields.md](./common-fields.md) |
 | Realm 边界、看板 / 列 / 容器、位置语义 | [realm-and-space.md](./realm-and-space.md) |
-| Circle 子事件 / 子消息边界、成员范围、独立 MLS 与 sub-seal | [circle.md](./circle.md) |
+| Circle 子事件 / 子消息边界、成员范围、独立 MLS 与 sub-authority commit | [circle.md](./circle.md) |
 | Agent Sidecar 独立对象、派生 access、backing scope 与 private context | [sidecar.md](./sidecar.md) |
 | Strand / track / discussion / Message | [strand-and-message.md](./strand-and-message.md) |
 | Morph 类型、facets、扩展 | [morph.md](./morph.md) |
@@ -222,4 +222,4 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
 - Reducer conformance vector 见 `../conformance/conformance-vectors.md`。
 - Schema evolution 测试见 `../conformance/conformance-profiles.md`。
-- CBS / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。
+- authority-commit / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。

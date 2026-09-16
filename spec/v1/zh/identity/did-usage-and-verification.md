@@ -123,7 +123,7 @@ Document 解析、history 验证或网络请求：
   不能升级成 authority path。
 
 接纳服务器对普通签名对象仍 MUST 验证签名、canonical transcript、nonce / sequence、scope 与 authorization；客户端只对端到端密码学对象及自己待签意图执行相应检查。
-该验证应使用相应 Seal / auth-state / device authorization / agent signer evidence 中已经接受的
+该验证应使用相应 RealmCommit / auth-state / device authorization / agent signer evidence 中已经接受的
 公钥绑定。**验证签名不等于重新验证 DID**；实现不得仅因签名对象含 `actor_id` 或
 `verification_method` 就对 resolver 发起请求。
 
@@ -135,8 +135,8 @@ DID freshness 是正交维度；高风险只要求其**实际授权根**新鲜�
 | 证据类别 | 封闭触发场景 | 必须验证的内容 | freshness |
 | --- | --- | --- | --- |
 | `registration_control` | human principal 注册、把已发布 DID 首次绑定到新建 PCR | 注册时 current `did` control proof、adapter 投影、bootstrap trust、method head/version、control-key digest、PCR genesis receipt | 注册 challenge 窗口内同步验证；accepted 后冻结为历史证据。 |
-| `accepted_at_history` | 首次重放 PCR genesis、历史 device/Agent/service authorization 或历史 receipt，且本地没有其 pinned evidence | 证据所钉 accepted-at position 的 DID/core 投影、key、method evidence 与 receipt/Seal lineage | 以被钉时点为准；不得要求 current head 或 current controller。 |
-| `pcr_authority` | 已登记 carrier 直接验证 PCR accepted authority，而不读取 current DID | PCR genesis / Seal / accepted authorization lineage 与其 pinned signer evidence | 以 carrier 固定的 accepted frontier 为准；不创建 current-DID refresh。 |
+| `accepted_at_history` | 首次重放 PCR genesis、历史 device/Agent/service authorization 或历史 receipt，且本地没有其 pinned evidence | 证据所钉 accepted-at position 的 DID/core 投影、key、method evidence 与 receipt/RealmCommit lineage | 以被钉时点为准；不得要求 current head 或 current controller。 |
+| `pcr_authority` | 已登记 carrier 直接验证 PCR accepted authority，而不读取 current DID | PCR genesis / RealmCommit / accepted authorization lineage 与其 pinned signer evidence | 以 carrier 固定的 accepted frontier 为准；不创建 current-DID refresh。 |
 | `current_external_claim` | 当前外部身份 badge/claim、当前 DID delegation/controller 声明 | 最新 method state、current controller/delegation、deactivation 与调用点 policy | 调用点登记的 current profile。失败只使该 claim stale/unavailable。 |
 | `method_successor` | `ak.identity.resolution.update`、webvh relocation、DID rotation/deactivation publication | 从 PCR accepted resolution head 到候选 head 的 method-native successor、same-core projection、current PCR author 与 CAS | 同步刷新或 fail closed；PCR author 与 method successor 缺一不可。 |
 | `optional_did_root_recovery` | 账号的 accepted recovery policy 明确启用了 DID-root factor，且该 factor 正在被使用 | policy opt-in、current DID root/history、pre-rotation、recovery session、PCR generation CAS | 同步刷新或 fail closed；未启用时 current root proof 必须拒绝。 |
@@ -351,7 +351,7 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
   identifier 长期保留为无类型 `String` 后靠前缀猜测。
 - Resolver / verifier 层负责 §4–§5；业务 reducer、projection、query、UI 与 routing 代码只消费
   verified binding 或 accepted auth-state，不直接持有通用网络 resolver。
-- Event ingress MUST 对每个签名做密码学验证，但 SHOULD 从 Event 所引用的 Seal / auth-state、
+- Event ingress MUST 对每个签名做密码学验证，但 SHOULD 从 Event 所引用的 RealmCommit / auth-state、
   device authorization、agent signer evidence 或 pinned historical binding 取得 key。只有缺少
   该绑定且 §4 允许建立新信任时才进入 DID 权威验证；否则 fail closed。
 - Service endpoint 发现与 DID 控制权验证是两件事。完整 AccountId/ActorId 固定目标服务身份，service resolution 携带

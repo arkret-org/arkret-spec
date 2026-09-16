@@ -67,7 +67,7 @@
     },
     "retained_stub_digest": {
       "$ref": "#/$defs/digest",
-      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub verifies typed-reference structure, redundant digest consistency, receipt/stub binding, and linkage to retained external proof, Seal, redaction-authorization, and legal-hold evidence. It does not independently verify erased canonical Event bytes."
+      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub verifies typed-reference structure, redundant digest consistency, receipt/stub binding, and linkage to retained external proof, RealmCommit, redaction-authorization, and legal-hold evidence. It does not independently verify erased canonical Event bytes."
     },
     "retained_stub": {
       "$ref": "./erasure-verification-stub.schema.json",

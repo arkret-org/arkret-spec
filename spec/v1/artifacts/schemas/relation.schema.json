@@ -26,7 +26,7 @@
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For confidential_discussion_of it points to the private Strand's Circle. For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1). Sidecar context mappings are native sidecar.context cells, not Relation objects."
+      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For confidential_discussion_of it points to the private Strand's Circle. For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1). Sidecar context mappings are native sidecar.context typed results, not Relation objects."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
@@ -232,7 +232,7 @@
     },
     "relation_conflict_baseline": {
       "type": "object",
-      "description": "The frozen data-plane candidate baseline a Relation conflict resolution is signed against. seal_basis freezes governance state only, so it never proves that every Relation ordinary Event in the group was observed; this object is the separate data-plane commitment. members_digest is the chained commitment defined in zh/models/relation.md §6.3 and binds realm, domain, member_count, the canonical member ordering and every member. A root, a count or a handful of inclusion proofs on their own do not prove the absence of an omitted member.",
+      "description": "The frozen data-plane candidate baseline a Relation conflict resolution is signed against. authority_revision freezes governance state only, so it never proves that every Relation ordinary Event in the group was observed; this object is the separate data-plane commitment. members_digest is the chained commitment defined in zh/models/relation.md §6.3 and binds realm, domain, member_count, the canonical member ordering and every member. A root, a count or a handful of inclusion proofs on their own do not prove the absence of an omitted member.",
       "required": [
         "member_count",
         "members_digest"

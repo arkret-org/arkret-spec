@@ -6,7 +6,7 @@
   "$defs": {
     "evidence_package": {
       "type": "object",
-      "description": "Canonical encrypted moderation evidence-package descriptor. target_refs names exactly the report target at admission; recipient_public_key_ref and encrypted_to MUST be byte-identical and resolve to an authorized moderator key for the report's exact effective scope. reporter_signature covers the descriptor and referenced ciphertext. The encrypted material MUST contain only reporter-visible evidence for target_refs and MUST NOT contain Realm/Circle history keys, MLS epoch/exporter secrets or unrelated plaintext.",
+      "description": "Canonical encrypted moderation evidence-package descriptor. target_refs names exactly the report target at admission; recipient_public_key_ref and encrypted_to MUST be byte-identical and resolve to an authorized moderator key for the report's exact effective scope. reporter_signature covers the descriptor and referenced ciphertext. The encrypted material MUST contain only reporter-visible evidence for target_refs and MUST NOT contain MLS epoch/exporter private material or unrelated plaintext.",
       "required": [
         "target_refs",
         "encryption",
@@ -98,7 +98,7 @@
       },
       "additionalProperties": false
     },
-    "franking_seal_observation_request": {
+    "franking_commit_observation_request": {
       "type": "object",
       "required": [
         "realm_id",
@@ -118,7 +118,7 @@
       },
       "additionalProperties": false
     },
-    "franking_seal_observation_outcome": {
+    "franking_commit_observation_outcome": {
       "type": "object",
       "required": [
         "proof_event",
@@ -147,7 +147,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Optional security evidence that a franking-proof ordinary Event existed within a bounded interval. Independently verify the anchor Seal quorum, the exact existence_anchor frontier, original Event producer proof and authority refs, service signer key validity over the full interval, and the exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is never required to send, accept or replicate ordinary messages. The Event does not enter Seal.delta and no data observation root exists."
+      "description": "Optional security evidence that a franking-proof ordinary Event existed within a bounded interval. Independently verify the anchor RealmCommit quorum, the exact existence_anchor frontier, original Event producer proof and authority refs, service signer key validity over the full interval, and the exact target. The anchor interval must start no earlier than proof.received_at. This does not prove receiver-claimed delivery time exactly and is never required to send, accept or replicate ordinary messages. The Event does not enter RealmCommit.delta and no data observation root exists."
     },
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"

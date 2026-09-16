@@ -302,19 +302,6 @@ components:
         management APIs outside the Arkret protocol namespace.
 
         '
-    historyResponseCapabilityAuth:
-      type: apiKey
-      in: header
-      name: Authorization
-      description: 'Opaque history response capability using the exact wire form
-
-        `Authorization: Arkret-History-Capability <response_capability_b64u>`. The service
-
-        stores only its commitment. Unknown, expired, garbage-collected and unauthorized
-
-        capabilities are the same-shape not_found result.
-
-        '
   headers:
     XArkretRequestId:
       description: Stable request identifier.
@@ -498,16 +485,16 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
-    ConsentCellList:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_list
-    ConsentCellView:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_view
     ConsentGrantRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_grant_request_body
     ConsentRequestOutcome:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_outcome
     ConsentRequestRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
+    ConsentResultList:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_list
+    ConsentResultView:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_view
     ConsentRevokeRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body
     ContactContinuityCheckpointOutcome:
@@ -2739,7 +2726,7 @@ paths:
 
         seconds. Idempotency-Key is forbidden; uncertain outcomes are dropped.
 
-        This operation never creates a durable Event, receipt, Seal, actor_seq
+        This operation never creates a durable Event, receipt, RealmCommit, producer_revision
 
         or Realm frontier update, and the destination cannot forward a received
 
@@ -2814,7 +2801,7 @@ paths:
 
         never persists the envelope as a durable Event and never advances
 
-        actor_seq, Seal state, or Realm frontier. Point-to-point device
+        producer_revision, RealmCommit state, or Realm frontier. Point-to-point device
 
         verification and secret distribution use the to-device queue instead.
 
@@ -2962,7 +2949,7 @@ paths:
 
             `mls_governance_binding_stale` — current MLS epoch policy_root
 
-            does not cover the `ak.realm.media_service` cell; or
+            does not cover the `ak.realm.media_service` typed current result; or
 
             `media_plaintext_service_not_authorised` for SFUs negotiating
 
@@ -3157,7 +3144,7 @@ paths:
 
         through ordinary admission without authoring, rebuilding, co-signing, choosing
 
-        an ID, or adding a concurrency guard. Until accepted Seal coverage is available
+        an ID, or adding a concurrency guard. Until accepted RealmCommit coverage is available
 
         it returns frontier_unavailable; exact retry then returns the stored outcome
 
@@ -3426,7 +3413,7 @@ paths:
       summary: Tombstone the holder's side of a contact relation.
       description: 'Writes the holder-signed terminal successor for one issuer-local
 
-        Contact lineage. It does not update or revoke Private Consent cells.
+        Contact lineage. It does not update or revoke Private Consent typed results.
 
         '
       requestBody:
@@ -3502,7 +3489,7 @@ paths:
 
         version and predecessor are mandatory successors and no Private Consent
 
-        cell is an authority source.
+        typed current result is an authority source.
 
         '
       requestBody:
@@ -5003,7 +4990,7 @@ paths:
 
         and each returned actor; realm_id MUST NOT be a Principal Control Realm.
 
-        Each row returns the exact signed profile Event and the accepted Seal
+        Each row returns the exact signed profile Event and the accepted RealmCommit
 
         covering that one event_digest, never another Event of that Realm.
 
@@ -5195,7 +5182,8 @@ paths:
               $ref: '#/components/schemas/RealmJoinSelfApplicationStatusRequestBody'
       responses:
         '200':
-          description: Origin forwarding fact, receiving-Realm state and the accepted covering Seal reference for that application.
+          description: Origin forwarding fact, receiving-Realm state and the accepted covering RealmCommit reference for that
+            application.
           content:
             application/json:
               schema:
@@ -5247,7 +5235,7 @@ paths:
 
         receipt, current and bounded predecessor resolution Events, and the accepted
 
-        Seal covering the current Event. Authorization is the current holder session
+        RealmCommit covering the current Event. Authorization is the current holder session
 
         bound to the exact account_id. Recovery actors first complete the
 
@@ -5664,7 +5652,6 @@ paths:
           type: string
           enum:
           - secret_storage
-          - mls_history
       - in: query
         name: cursor
         required: false
@@ -5734,7 +5721,7 @@ paths:
 
         It carries no Principal Control Realm id, genesis Event, genesis receipt,
 
-        resolution Event or accepted Seal: that account-internal audit material
+        resolution Event or accepted RealmCommit: that account-internal audit material
 
         is served only by ak.self.identity.read.resolution_audit.v1 under exact
 
@@ -5974,7 +5961,7 @@ paths:
 
         member-for-member equality against the frozen provisioning record, recomputes
 
-        invite_digest from the attested cell, then atomically persists the unique
+        invite_digest from the attested typed current result, then atomically persists the unique
 
         binding and the delivery intent. One provisioning record binds to one invite
 
@@ -6063,7 +6050,7 @@ paths:
 
         service and the named provisioning record. The caller supplies no governance
 
-        material and receives no governance closure, Seal ancestry or membership
+        material and receives no governance closure, RealmCommit ancestry or membership
 
         listing. Not visible, not authored by the caller and not pending all return the
 
@@ -7809,7 +7796,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmExport'
-  /_arkret/self/consent/cells:
+  /_arkret/self/consent/results:
     get:
       operationId: ak.self.consent.read.list
       parameters:
@@ -7823,21 +7810,21 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: List consent cells where the caller is holder or peer.
+      summary: List consent typed results where the caller is holder or peer.
       responses:
         '200':
-          description: Consent cells.
+          description: Consent typed results.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsentCellList'
-  /_arkret/self/consent/cell:
+                $ref: '#/components/schemas/ConsentResultList'
+  /_arkret/self/consent/result:
     get:
       operationId: ak.self.consent.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Read one holder-private consent cell.
+      summary: Read one holder-private consent result.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7865,12 +7852,12 @@ paths:
           - any
       responses:
         '200':
-          description: Consent cell.
+          description: Consent result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsentCellView'
-  /_arkret/self/consent/cells/grant:
+                $ref: '#/components/schemas/ConsentResultView'
+  /_arkret/self/consent/results/grant:
     post:
       operationId: ak.self.consent.command.grant
       security:
@@ -7897,8 +7884,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsentCellView'
-  /_arkret/self/consent/cells/revoke:
+                $ref: '#/components/schemas/ConsentResultView'
+  /_arkret/self/consent/results/revoke:
     post:
       operationId: ak.self.consent.command.revoke
       security:
@@ -7925,7 +7912,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsentCellView'
+                $ref: '#/components/schemas/ConsentResultView'
   /_arkret/self/consent/request:
     post:
       operationId: ak.self.consent.command.request

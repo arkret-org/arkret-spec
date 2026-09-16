@@ -8,7 +8,7 @@ sidebar:
   label: Audited E2EE
 ---
 
-> **状态：可选 hardening profile**。本文档定义 Arkret v1 中面向政府 / 企业合规的 **Audit Applet Binding + sealed release session** 审计模型。v1 core 互操作 **不要求** 实现本 profile；只有 Realm 或 Circle 显式存在 active `ak.audit.applet_binding.create/state` 投影时才启用。基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
+> **状态：可选 hardening profile**。本文档定义 Arkret v1 中面向政府 / 企业合规的 **Audit Applet Binding + committed release session** 审计模型。v1 core 互操作 **不要求** 实现本 profile；只有 Realm 或 Circle 显式存在 active `ak.audit.applet_binding.create/state` 投影时才启用。基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
 >
 > 本 profile 不定义常驻审计成员。审计 applet **不是** MLS 成员，**不是**实时 sync 订阅者，**不会**因为被绑定就持续收到所有聊天信息或历史密钥。
 
@@ -55,7 +55,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | `allowed_release_modes` | yes | 允许的 release mode；默认 SHOULD 仅含 `targeted_evidence_release`。 |
 | `audit_assurance_class` | yes | `attested_hardware` 或 `disclosed_policy`。 |
 | `notice_policy` | yes | session notice 的 audience、delay、是否要求成员通知或公告。 |
-| `activation_frontier_digest` | yes | Binding 公告 / policy revision 被 accepted Seal 覆盖时的控制面 coverage digest。该 coverage point 是审计资格的下界。 |
+| `activation_frontier_digest` | yes | Binding 公告 / policy revision 被 accepted RealmCommit 覆盖时的控制面 coverage digest。该 coverage point 是审计资格的下界。 |
 | `first_auditable_epoch` | yes | 第一个可以被该 binding 审计的 MLS epoch；MUST 是覆盖 `activation_frontier_digest` 的 `ak.mls.commit` 之后的 epoch。 |
 | `release_window_policy` | yes | 最大审计窗口和 release 限制。`retroactive_release` MUST 固定为 `forbidden`；可选 `max_lookback_ms` / `max_epoch_span` 只能收窄未来 release。 |
 | `policy_version_digest` | yes | Realm-bound policy hash，覆盖 binding、scope、purpose、notice、approver 与 release-mode policy。 |
@@ -64,9 +64,9 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 ### 3.1 Binding FSM（normative）
 
-每个 `binding_id` 对应两个 `sequenced_state` 安全 cell：`ak.component.audit.binding.v1` 保存 write-once 配置，`ak.component.audit.binding_state.v1` 保存领域生命周期。初始 active；允许 active → suspended/revoked、suspended → active/revoked；revoked 为不可逆终态。两者共享 create Event 派生的 AuditBindingId。相同前置 revision 的竞争命令按唯一确认顺序至多一个成功，exact Event 重试不重复生效；不得无序合并权限或通过恢复命令复活 revoked binding。
+每个 `binding_id` 对应两个 `sequenced_state` 安全 typed current result：`ak.component.audit.binding.v1` 保存 write-once 配置，`ak.component.audit.binding_state.v1` 保存领域生命周期。初始 active；允许 active → suspended/revoked、suspended → active/revoked；revoked 为不可逆终态。两者共享 create Event 派生的 AuditBindingId。相同前置 revision 的竞争命令按唯一确认顺序至多一个成功，exact Event 重试不重复生效；不得无序合并权限或通过恢复命令复活 revoked binding。
 
-Create Event 作为 Control Move 以 `from=null,to=active` 初始化 cell。后续 `ak.audit.applet_binding.state` payload 只允许 `{binding_id,from,to}`，不得携带或修改范围与策略字段。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。范围、purpose、assurance、notice 或 release policy 变更 MUST 新建另一个 Binding，不得把同一 ID 重解释成新策略。
+Create Event 作为 Control Move 以 `from=null,to=active` 初始化 typed current result。后续 `ak.audit.applet_binding.state` payload 只允许 `{binding_id,from,to}`，不得携带或修改范围与策略字段。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。范围、purpose、assurance、notice 或 release policy 变更 MUST 新建另一个 Binding，不得把同一 ID 重解释成新策略。
 
 ### 3.2 Activation Frontier 与不可追溯性
 
@@ -104,9 +104,9 @@ Binding policy 的后续变更通过新的 create Event 表达，并遵守同一
 4. `ak.audit.release`
 5. `ak.audit.session.close`
 
-每个 `session_id` 唯一对应 control-plane cell `ak.component.audit.session.v1/<session_id>`；request payload MUST 省略 `session_id`，receiver 从 request Event 的 `event_id` 重标得到 `ak:audit_session:<同一44字符token>`，authorize / notice / close payload 再引用该值。payload `session_state` 是目标状态（wire 字段名分别以 `event-payload.schema.json` 的 `audit_session_request_payload` / `audit_session_authorize_payload` / `audit_session_notice_payload` / `audit_session_close_payload` 为准）。该 cell 使用 `sequenced_state`，以已登记领域转移表验证，初始状态只能是 `request`，主路径为 `request -> authorize -> notice -> close`。为关闭失败或被撤回的流程，也允许 `request -> close` 与 `authorize -> close`；`close` 是 terminal。同一完整 Event 的 exact retry 返回原结果；不同 Event 即使 payload 相同也不是重放。重复状态、未登记跳转、terminal 后追加及过期 revision 均得到持久拒绝结果，不产生安全多头。四类 session Event 都必须作为 Control Move 写入同一 cell；`binding_id`、`realm_id` 与 `effective_scope` 必须从 request 起逐字节保持一致，后三类 payload 的 `session_id` 必须等于 request-derived ID。
+每个 `session_id` 唯一对应 control-plane typed current result `ak.component.audit.session.v1/<session_id>`；request payload MUST 省略 `session_id`，receiver 从 request Event 的 `event_id` 重标得到 `ak:audit_session:<同一44字符token>`，authorize / notice / close payload 再引用该值。payload `session_state` 是目标状态（wire 字段名分别以 `event-payload.schema.json` 的 `audit_session_request_payload` / `audit_session_authorize_payload` / `audit_session_notice_payload` / `audit_session_close_payload` 为准）。该 typed current result 使用 `sequenced_state`，以已登记领域转移表验证，初始状态只能是 `request`，主路径为 `request -> authorize -> notice -> close`。为关闭失败或被撤回的流程，也允许 `request -> close` 与 `authorize -> close`；`close` 是 terminal。同一完整 Event 的 exact retry 返回原结果；不同 Event 即使 payload 相同也不是重放。重复状态、未登记跳转、terminal 后追加及过期 revision 均得到持久拒绝结果，不产生安全多头。四类 session Event 都必须作为 Control Move 写入同一 typed current result；`binding_id`、`realm_id` 与 `effective_scope` 必须从 request 起逐字节保持一致，后三类 payload 的 `session_id` 必须等于 request-derived ID。
 
-`ak.audit.release` 不改变 session FSM head，而是向 control-plane `ordered_log` cell `ak.component.audit.release.v1/<session_id>` 追加一条记录。payload MUST 省略 `release_id`，receiver 从该 release Event 的 `event_id` 重标得到 `ak:audit_release:<同一44字符token>`。只有 accepted current session head 为 `notice` 时才可追加；日志按接受它的 Seal coverage 顺序排列，同一 Seal 内按 `event_digest` 字节序排列。不一致的 request/authorize/notice 引用或已 close 的 session必须拒绝；同一个 Event-derived `release_id` 对 exact Event replay 只允许幂等处理。
+`ak.audit.release` 不改变 session FSM head，而是向 control-plane `ordered_log` typed current result `ak.component.audit.release.v1/<session_id>` 追加一条记录。payload MUST 省略 `release_id`，receiver 从该 release Event 的 `event_id` 重标得到 `ak:audit_release:<同一44字符token>`。只有 accepted current session head 为 `notice` 时才可追加；日志按接受它的 RealmCommit coverage 顺序排列，同一 RealmCommit 内按 `event_digest` 字节序排列。不一致的 request/authorize/notice 引用或已 close 的 session必须拒绝；同一个 Event-derived `release_id` 对 exact Event replay 只允许幂等处理。
 
 ### 4.1 Request
 
@@ -162,7 +162,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `release_mode` | yes | `targeted_evidence_release` 或 `sealed_epoch_key_release`。 |
 | `sealed_epoch_range` | conditional | release 覆盖 epoch 时必填；不得包含当前 active epoch。 |
 | `target_refs` | conditional | target-based release 时必填。 |
-| `seal_ref` | yes | release 所依赖的 accepted history Seal；canonical wire 形态只能是 `ak:realm_commit:<suite>:<hex>`，不得使用 EventId。suite 与完整 digest 已由 ref 无损携带，不得再复制 `seal_digest`。 |
+| `commit_ref` | yes | release 所依赖的 accepted history RealmCommit；canonical wire 形态只能是 `ak:realm_commit:<suite>:<hex>`，不得使用 EventId。suite 与完整 digest 已由 ref 无损携带，不得再复制 `commit_digest`。 |
 | `approver_actor_id` | yes | 授权者。 |
 | `notice_ref` | yes | 对应 `ak.audit.session.notice`。 |
 | `purpose_kind` / `legal_basis_ref` | yes | 目的与依据。 |
@@ -178,9 +178,9 @@ Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_pr
 
 ### 4.5 Close
 
-`ak.audit.session.close` 关闭 session，记录 `occurred_at`、`closer_actor_id`、`close_reason`、最终 `release_refs[]` 和任何未完成原因。`release_refs[]` MUST 与该 close 的 `seal_basis` 所见 `ak.component.audit.release.v1/<session_id>` accepted ordered log 完全一致，顺序也必须一致；缺失、增加或重排均以 `audit_release_manifest_invalid` 拒绝。
+`ak.audit.session.close` 关闭 session，记录 `occurred_at`、`closer_actor_id`、`close_reason`、最终 `release_refs[]` 和任何未完成原因。`release_refs[]` MUST 与该 close 的 `authority_revision` 所见 `ak.component.audit.release.v1/<session_id>` accepted ordered log 完全一致，顺序也必须一致；缺失、增加或重排均以 `audit_release_manifest_invalid` 拒绝。
 
-Session close 后不得追加新的 `ak.audit.release`；需要更多材料必须发起新 session。release 是 `sequenced_state` 安全日志写入，进入 Realm 确认序列。close 与 release 按 Seal.command_results 的确认顺序执行：close 先确认则后续 release 拒绝；release 先确认则先前构造的 close 因实际读取的 release log revision 变化而拒绝，必须重新冻结完整 release_refs 后签署新 close。不能追溯撤回已经确认并放行的 release，也不能用 event_digest 或接收顺序改写命令顺序。
+Session close 后不得追加新的 `ak.audit.release`；需要更多材料必须发起新 session。release 是 `sequenced_state` 安全日志写入，进入 Realm 确认序列。close 与 release 按 RealmCommit.command_results 的确认顺序执行：close 先确认则后续 release 拒绝；release 先确认则先前构造的 close 因实际读取的 release log revision 变化而拒绝，必须重新冻结完整 release_refs 后签署新 close。不能追溯撤回已经确认并放行的 release，也不能用 event_digest 或接收顺序改写命令顺序。
 
 ## 5. Release Mode
 
@@ -198,7 +198,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 
 实现和 UI MUST 把该模式标为高风险合规 release，不得把它用于普通用户举报、moderation queue 或 Circle 日常治理。
 
-**与 `mls_exporter_aead_v1` per-epoch `history_secret` 的交叉约束（normative）**：在采用 [`encryption-and-audit.md` §2.10](./encryption-and-audit.md) `mls_exporter_aead_v1` 内容 scheme 的 Realm 上，`sealed_epoch_key_release` 释放的 sealed-epoch material 与该 epoch 的 `history_secret[N]` 是**同一把根**（`sealed_epoch_key_release` 释放的即是对该 epoch 内容解密所需的 epoch root）。两条治理门（§2.10 的历史共享门 与本 profile 的 audit binding release 门）因此 MUST 交叉约束，不得各自独立放行而互相绕过：
+**与 `mls_exporter_aead_v1` per-epoch content root 的交叉约束（normative）**：在采用 [`encryption-and-audit.md` §2.10](./encryption-and-audit.md) `mls_exporter_aead_v1` 内容 scheme 的 Realm 上，`sealed_epoch_key_release` 释放的 committed-epoch material 是该 epoch 的 content root。普通 Arkret 同步、Event、backup 与成员加入均不得交付该材料；只有本 profile 的显式 audit binding release 门可以产生一次性审计释放：
 
 ## 6. RYW Receipt 与 Attestation
 
@@ -234,4 +234,4 @@ Realm / Circle 内部治理依赖管理员和 moderator。用户发现垃圾信�
 - 治理举报：由成员触发，路由给 Realm / Circle 管理员，目标是 moderation decision。
 - 合规审计：由绑定的 audit applet 触发，必须有 active binding、session、notice、release manifest 和 RYW receipt，目标是历史窗口 release。
 
-实现 MUST NOT 把普通举报自动升级为 `ak.audit.session.request`，也 MUST NOT 以 moderation 权限绕过本 profile 的 binding / notice / sealed release 要求。
+实现 MUST NOT 把普通举报自动升级为 `ak.audit.session.request`，也 MUST NOT 以 moderation 权限绕过本 profile 的 binding / notice / committed release 要求。

@@ -20,7 +20,7 @@
     "kind": {
       "type": "string",
       "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard ak.* Event kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by the registered pure reducer over kind + payload; producers do not submit cell writes."
+      "description": "Standard ak.* Event kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by the registered pure reducer over kind + payload; producers do not submit typed current result writes."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -31,7 +31,7 @@
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
-      "description": "Complete identity of the principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. Account variants carry their Station namespace inside actor_id; a service variant carries the directly authoring service identity. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
+      "description": "Complete identity of the principal whose Realm/typed current result state the Event mutates and to whom the durable fact is attributed. Account variants carry their Station namespace inside actor_id; a service variant carries the directly authoring service identity. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
     },
     "executed_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
@@ -3295,62 +3295,6 @@
       }
     },
     {
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "actor_seq"
-            ]
-          },
-          {
-            "required": [
-              "auth_context"
-            ]
-          },
-          {
-            "required": [
-              "causal_refs"
-            ]
-          },
-          {
-            "required": [
-              "data_basis"
-            ]
-          },
-          {
-            "required": [
-              "hlc"
-            ]
-          },
-          {
-            "required": [
-              "preconditions"
-            ]
-          },
-          {
-            "required": [
-              "prev_refs"
-            ]
-          },
-          {
-            "required": [
-              "requirements"
-            ]
-          },
-          {
-            "required": [
-              "seal_basis"
-            ]
-          },
-          {
-            "required": [
-              "unsigned"
-            ]
-          }
-        ]
-      }
-    },
-    {
       "$ref": "#/$defs/registered_admission_shape"
     },
     {
@@ -3505,7 +3449,7 @@
     "event_ref": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-      "description": "Complete Event reference carrying the suite wire_code and all 32 digest octets. It is suitable for authorization, equality, deduplication, Seal coverage, and exact replay after normal recomputation and acceptance checks."
+      "description": "Complete Event reference carrying the suite wire_code and all 32 digest octets. It is suitable for authorization, equality, deduplication, RealmCommit coverage, and exact replay after normal recomputation and acceptance checks."
     },
     "grant_ref": {
       "$ref": "./agent-operations.schema.json#/$defs/grant_id"
@@ -3713,7 +3657,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Producer signature over canonical Event bytes. The current governance Station resolves and validates the signing key at admission; its RealmCommit attests that decision, so no Cell/Seal signer witness is carried by the Event."
+      "description": "Producer signature over canonical Event bytes. The current governance Station resolves and validates the signing key at admission; its RealmCommit attests that decision, so no typed current result/RealmCommit signer witness is carried by the Event."
     },
     "event_proof": {
       "$ref": "#/$defs/producer_event_proof"
@@ -6629,7 +6573,7 @@
         }
       ]
     },
-    "shared_history_event": {
+    "authority_committed_event": {
       "$comment": "A complete producer Event from an authority-committed visibility stream. Consumers verify the producer proof and the matching RealmCommit plus authority chain.",
       "allOf": [
         {
@@ -6965,7 +6909,6 @@
     },
     "rank": {
       "type": "object",
-      "deprecated": true,
       "required": [
         "depth",
         "event_id"

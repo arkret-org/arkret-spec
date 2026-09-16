@@ -143,7 +143,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - `nonce`；
    - `purpose = "blob-attachment"`、`aead_profile`；
    - `media_type`；
-   - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（§3.3.1 的段数只从它与 `segment_bytes` 派生），在 seal 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
+   - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（§3.3.1 的段数只从它与 `segment_bytes` 派生），在 authority commit 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
    - 任何 profile 声明的 content policy digest（该 digest 必须在加密前已确定）。
 
    分块形态的逐段 AAD 见 §3.3.3。**content-addressed `blob_ref` MUST NOT 进入 AAD**：其内嵌 digest 覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（encoding §10.2）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 ref 或其 digest 塞回 AEAD AAD。
@@ -223,7 +223,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 `segment_index`、`last_segment_flag` 已进入 nonce，本节要求其同时进入 AAD，使重排、截断与末段伪造在 AEAD 层即被拒绝（tag 校验失败）。
 
-上述字段全部在 AEAD seal 前确定，构成 encoding [§10.2](../conformance/encoding.md) 意义上的 pre-encryption immutable header。**逐段 AAD MUST NOT 包含 `blob_ref` 或其内嵌 digest**（§3.3.5 的整体 digest 覆盖每段的 tag，进入 AAD 会形成循环）、也 MUST NOT 包含任何其它 post-encryption 值。整体 commitment 的认证归属见 §3.1 第 2 条与 §3.3.5。
+上述字段全部在 AEAD authority commit 前确定，构成 encoding [§10.2](../conformance/encoding.md) 意义上的 pre-encryption immutable header。**逐段 AAD MUST NOT 包含 `blob_ref` 或其内嵌 digest**（§3.3.5 的整体 digest 覆盖每段的 tag，进入 AAD 会形成循环）、也 MUST NOT 包含任何其它 post-encryption 值。整体 commitment 的认证归属见 §3.1 第 2 条与 §3.3.5。
 
 #### 3.3.4 Content key 与 thumbnail
 
@@ -639,12 +639,12 @@ Cache-Control: public, immutable, max-age=31536000
 规则：
 
 - 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ak.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
-- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `ak.component.realm.asset_privacy_policy.v1` 安全 cell 在当前已确认状态中已设置且字段逐字为 true，才允许继续评估 presign。policy 缺失、未确认、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
+- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `ak.component.realm.asset_privacy_policy.v1` 安全 typed current result 在当前已确认状态中已设置且字段逐字为 true，才允许继续评估 presign。policy 缺失、未确认、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
 - `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ak.self.blob.command.presign.v1` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `ak.component.realm.asset_privacy_policy.v1` cell，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/CBS/Seal admission 保护；它本身不改变 MLS key 持有人，必须排除在 `security_frontier_digest` 外。
+- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `ak.component.realm.asset_privacy_policy.v1` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。该 metadata/下载策略由普通 Event/authority-commit/RealmCommit admission 保护；它本身不改变 MLS key 持有人，必须排除在 `key_access_revision` 外。
 
 ## 7. Safety
 

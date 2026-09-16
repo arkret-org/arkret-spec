@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 330,
+  "audited_occurrence_count": 316,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -339,7 +339,7 @@
     {
       "file": "contract-registry.json",
       "key": "route_evidence",
-      "occurrences": 9,
+      "occurrences": 8,
       "disposition": "registry_contract",
       "reason": "Names the already-authenticated carrier or route coordinate required before a stable core may enter a registered resolution boundary; it carries no evidence instance."
     },
@@ -375,7 +375,7 @@
     {
       "file": "did-evidence-boundary-registry.json",
       "key": "route_evidence",
-      "occurrences": 9,
+      "occurrences": 8,
       "disposition": "registry_contract",
       "reason": "Generated view of the closed route-coordinate requirement for each DID evidence boundary; it carries no evidence instance."
     },
@@ -751,7 +751,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 33,
+      "occurrences": 21,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },

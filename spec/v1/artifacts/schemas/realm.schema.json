@@ -35,7 +35,7 @@
         "required": [
           "plaintext_visible_services"
         ],
-        "$comment": "forbidden Realm policy field; the only carrier is the ak.realm.plaintext_visible_services facet cell. See zh/sync/service-surface.md."
+        "$comment": "forbidden Realm policy field; the only carrier is the ak.realm.plaintext_visible_services facet typed current result. See zh/sync/service-surface.md."
       }
     ]
   },
@@ -169,7 +169,7 @@
     "reducer_profile": {
       "type": "string",
       "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$",
-      "description": "Materialized value of the Realm reducer-profile singleton control cell. ak.realm.create supplies its genesis value; only ak.realm.upgrade may change it."
+      "description": "Materialized value of the Realm reducer-profile singleton control typed current result. ak.realm.create supplies its genesis value; only ak.realm.upgrade may change it."
     },
     "encryption_profile": {
       "type": "string",
@@ -216,14 +216,6 @@
       },
       "additionalProperties": false
     },
-    "durability_policy": {
-      "type": "string",
-      "description": "Exporter durability policy frozen by the accepted group Genesis. Required exactly when content_scheme=mls_exporter_aead_v1; otherwise absent. Allowed values are none and organization_recovery_key. It is never mutable policy state.",
-      "enum": [
-        "none",
-        "organization_recovery_key"
-      ]
-    },
     "federation_policy": {
       "type": "string",
       "enum": [
@@ -235,7 +227,7 @@
     },
     "availability_policy": {
       "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from routing service IDs projected from effective joined-member ActorIds frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['seal_include'],minimum_retention_ms:86400000}.",
+      "description": "Realm policy component governing independently signed byte-availability receipts before RealmCommit inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from routing service IDs projected from effective joined-member ActorIds frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['commit_include'],minimum_retention_ms:86400000}.",
       "required": [
         "min_holders",
         "applies_to"
@@ -253,7 +245,7 @@
           "items": {
             "type": "string",
             "enum": [
-              "seal_include",
+              "commit_include",
               "snapshot",
               "backfill"
             ]
@@ -274,49 +266,18 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Digest suite (canonicalization x hash tuple) used for ordinary Event ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed ordinary Events retain the suite of their signed authority context. Transition uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §13."
+      "description": "Digest suite (canonicalization x hash tuple) used for ordinary Event ids, Control Move ids, RealmCommit ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed ordinary Events retain the suite of their signed authority context. Transition uses the control-plane transition Move and dual-root RealmCommit defined by event-auth-state-resolution.md §13."
     },
     "notary": {
       "$ref": "#/$defs/notary_configuration",
       "description": "Closed notary configuration. Every signer slot freezes actor, DID URL and exact public key. Successor changes are authorized by predecessor-state frozen descriptors before replacement is installed; current DID resolution is never substituted."
     },
-    "proposal_intake_sla_ms": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 86400000,
-      "default": 86400000,
-      "description": "Realm-level deadline within which a submitted control-plane Control Move MUST receive a signed Control Proposal Ack or signed ingress rejection (authz/event-auth-state-resolution.md section 7.2). This acknowledgement phase is separate from the Control Proposal Ack's bounded decision window. Silent omission past this SLA is governance-health evidence."
-    },
-    "proposal_decision_window_ms": {
-      "type": "integer",
-      "minimum": 1,
-      "default": 30000,
-      "maximum": 86400000,
-      "description": "Realm-level default first decision window for an acknowledged Control Move. A Control Proposal Ack commits decision_due_at = received_at + an effective window no greater than this value and the protocol hard ceiling of 24 hours. The deadline requires a verifiable decision (include in an accepted Seal, confirmed rejected command result, or bounded signed defer); it is not an acceptance or finality SLA.",
-      "$comment": "Reducer/conformance validation MUST enforce proposal_decision_window_ms <= proposal_absolute_deadline_ms. If max_proposal_defers > 0, the inequality MUST be strict so at least one strictly later decision_due_at remains representable. JSON Schema cannot compare sibling numeric properties."
-    },
-    "proposal_absolute_deadline_ms": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 259200000,
-      "default": 90000,
-      "description": "Realm-level absolute proposal decision horizon measured from the Control Proposal Ack's signed received_at. absolute_due_at MUST equal received_at plus an effective value no greater than this field and the protocol hard ceiling of 72 hours. Signed defers MUST preserve absolute_due_at and cannot extend this horizon.",
-      "$comment": "Reducer/conformance validation owns the sibling-field ordering rule documented on proposal_decision_window_ms."
-    },
-    "max_proposal_defers": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 2,
-      "default": 2,
-      "description": "Maximum cumulative number of signed defers for one acknowledged Control Move. The protocol hard ceiling is two. Every defer carries a closed reason code, increments defer_count by exactly one, advances decision_due_at without exceeding absolute_due_at, and preserves the Control Proposal Ack's absolute_due_at.",
-      "$comment": "When proposal_decision_window_ms equals proposal_absolute_deadline_ms this field MUST be 0; otherwise the declared defer count is not realizable."
-    },
-    "seal_compaction_max_interval_ms": {
+    "commit_compaction_max_interval_ms": {
       "type": "integer",
       "minimum": 300000,
       "maximum": 604800000,
       "default": 86400000,
-      "description": "Optional operational reminder for compacting an actively advancing safety log. It never requires an idle Seal, expires an accepted authority reference, or gates ordinary data. Existing verified snapshots and proofs remain reusable while signers are offline."
+      "description": "Optional operational reminder for compacting an actively advancing safety log. It never requires an idle RealmCommit, expires an accepted authority reference, or gates ordinary data. Existing verified snapshots and proofs remain reusable while signers are offline."
     },
     "max_authority_lifetime_ms": {
       "type": "integer",
@@ -612,94 +573,6 @@
           "fields"
         ]
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "encryption_profile": {
-            "const": "mls_rfc9420"
-          }
-        },
-        "required": [
-          "encryption_profile"
-        ]
-      },
-      "then": {
-        "required": [
-          "content_scheme"
-        ]
-      },
-      "else": {
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "content_scheme"
-              ]
-            },
-            {
-              "required": [
-                "durability_policy"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "content_scheme": {
-            "const": "mls_rfc9420"
-          }
-        },
-        "required": [
-          "content_scheme"
-        ]
-      },
-      "then": {
-        "properties": {
-          "history_access": {
-            "const": "since_join"
-          }
-        },
-        "not": {
-          "required": [
-            "durability_policy"
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "durability_policy"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content_scheme": {
-            "const": "mls_exporter_aead_v1"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "content_scheme": {
-            "const": "mls_exporter_aead_v1"
-          }
-        },
-        "required": [
-          "content_scheme"
-        ]
-      },
-      "then": {
-        "required": [
-          "durability_policy"
-        ]
-      }
     }
   ],
   "$defs": {
@@ -764,7 +637,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Historical Seal signing authority. The verification method controller projects to actor_id. Canonical key bytes are decoded from frozen_public_key_b64u according to key_kind and jose_algorithm; any local digest is SHA-256 of those bytes and is not transmitted. User/controller authority and Station execution authority remain distinct."
+      "description": "Historical RealmCommit signing authority. The verification method controller projects to actor_id. Canonical key bytes are decoded from frozen_public_key_b64u according to key_kind and jose_algorithm; any local digest is SHA-256 of those bytes and is not transmitted. User/controller authority and Station execution authority remain distinct."
     },
     "notary_configuration": {
       "type": "object",
@@ -783,7 +656,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "One frozen Seal signing authority and one durable governance executor per Realm. No quorum, threshold, leader election or view-change configuration exists. Identity-control signing authority remains fixed by the accepted user/controller rules; a Station never acquires those private keys. Authorized replacement requires the previous authority to close its write position and the successor to inherit the complete accepted prefix."
+      "description": "One frozen RealmCommit signing authority and one durable governance executor per Realm. No quorum, threshold, leader election or view-change configuration exists. Identity-control signing authority remains fixed by the accepted user/controller rules; a Station never acquires those private keys. Authorized replacement requires the previous authority to close its write position and the successor to inherit the complete accepted prefix."
     },
     "did_core_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id"

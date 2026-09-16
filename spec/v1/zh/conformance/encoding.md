@@ -35,7 +35,7 @@ suite 的摘要不能比较为相等。Event、RealmCommit、handoff 与 snapsho
 
 ### 3.3 State Root 与 Commit Hash 编码
 
-v1 不再定义通用 Cell state root 或 Seal hash。每条 Realm、Circle 或 Sidecar stream 通过
+v1 不再定义通用 typed current result state root 或 RealmCommit hash。每条 Realm、Circle 或 Sidecar stream 通过
 `RealmCommit.previous_commit_ref` 和 `stream_position` 独立链接。Commit ID 覆盖完整 Commit body（不含其
 自身 ID），因此同时承诺 Event ID、stream、位置、前驱、authority generation 与治理 Station proof。
 
@@ -85,12 +85,12 @@ cursor 用于另一个 stream。Cursor 不是 authority、Commit 或 snapshot �
 
 ## 9. Collection 与复合键
 
-Typed current 的业务主键由对应 reducer schema 明确定义。v1 不再提供通用 Cell subject、通用复合键 hash
+Typed current 的业务主键由对应 reducer schema 明确定义。v1 不再提供通用 typed current result subject、通用复合键 hash
 或 caller 选择的组件名。
 
 ### 9.5.1 通用规则
 
-旧 Cell subject 的 envelope 来源白名单已随 Cell 模型退役；typed reducer 直接读取其 kind 对应的封闭 Event payload 和 envelope，不再维护 `envelope.actor_id` / `envelope.event_id` 之类的通用 subject 路径集合。
+Typed reducer 直接读取 kind 对应的封闭 Event payload 和 envelope；subject 来源由该 kind 的 payload schema 明确定义。
 
 需要多字段业务键时，schema 必须列出固定字段、顺序与正规化方法；实现按 typed reducer 构造数据库唯一
 键。该数据库键不是 wire ID，也不得作为跨实现授权材料。
@@ -101,10 +101,9 @@ Typed current 的业务主键由对应 reducer schema 明确定义。v1 不再�
 未知 suite、ID 重算不符、proof projection 不完整均 fail closed，并且不得创建 Event、Commit、typed current
 或 outbox 的部分写入。
 
-## 11. 稳定引用锚点
+## 11. 编码细则索引
 
-本节保留其他领域规范已发布的章节号链接。这些锚点都引用本页上述固定编码、typed ID、逐 stream 链接和
-detached signature 规则，不恢复已退役的 HLC、Cell root 或 Seal transcript。
+下列小节汇总固定编码、typed ID、逐 stream 链接和 detached signature 规则。
 
 ### 2.2 String profile 与 Unicode
 
@@ -160,11 +159,11 @@ Cursor 必须绑定单个 Realm/Circle/Sidecar stream 与调用者授权范围�
 
 ### 8.6 Resource selector 投影
 
-Selector 先经闭合 grammar 解析，再由 typed reducer 映射到领域主键；不对外暴露 Cell key。
+Selector 先经闭合 grammar 解析，再由 typed reducer 映射到领域主键；不对外暴露 typed current result key。
 
 #### 9.5.2 复合键编码
 
-复合业务键的成员、顺序和正规化由具体 schema 封闭定义，不使用通用 Cell subject hash。
+复合业务键的成员、顺序和正规化由具体 schema 封闭定义，不使用通用 typed current result subject hash。
 
 ### 10.1 JSON 字节限制
 

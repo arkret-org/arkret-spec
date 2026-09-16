@@ -356,10 +356,10 @@ GUARD_PATTERN_RE = re.compile(r"^\^([a-z][a-z0-9_]*)\(\?:\\\.\|\$\)$")
 GENERIC_PATCH_REF = "#/$defs/patch"
 
 REDUCER_MANAGED_BASES = frozenset(
-    {"create_locked", "reducer_derived", "dedicated_event_owned", "cell_projection"}
+    {"create_locked", "reducer_derived", "dedicated_event_owned", "result_projection"}
 )
 
-OWNER_KINDS = frozenset({"reducer", "event_kind", "cell_family"})
+OWNER_KINDS = frozenset({"reducer", "event_kind", "result_family"})
 
 UNIVERSAL_ROW_FIELDS = ("path", "basis", "reason_code", "owner_kind", "owner", "description")
 
@@ -864,7 +864,7 @@ def _check_owner(
         return
     if owner_kind == "event_kind" and active_event_kinds and owner not in active_event_kinds:
         lint.fail(path, f"{label}.owner references unknown or inactive event kind: {owner!r}")
-    if owner_kind == "cell_family" and cell_families and owner not in cell_families:
+    if owner_kind == "result_family" and cell_families and owner not in cell_families:
         lint.fail(path, f"{label}.owner references unregistered cell family: {owner!r}")
 
 

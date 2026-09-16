@@ -47,24 +47,24 @@ sequenceDiagram
 
     Alice->>Station sync surface: Submit `ak.mls.commit` (Group state update)
     Station sync surface-->>Alice: Commit accepted / duplicate
-    Alice->>Station sync surface: Submit exact bound `ak.mls.welcome` (Encrypted for Bob)
+    Alice->>Station sync surface: Submit exact bound `ak.delivery.mls_welcome` (Encrypted for Bob)
 
     Station sync surface->>BobClient: Push Notification & Sync
 
-    BobClient->>Station sync surface: Fetch `ak.mls.welcome`
+    BobClient->>Station sync surface: Fetch `ak.delivery.mls_welcome`
     note over BobClient: Decrypts Welcome using InitKey
     note over BobClient: Derives Group Epoch Secret
 ```
 
 - **`ak.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `ak.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
-- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。完整 Welcome bytes MUST 以 canonical unpadded base64url `ciphertext` 内联在 durable `ak.mls.welcome` Event 中，并保留至被消费、撤销或过期；解码必须成功、不得含 padding，重新编码必须与 wire 字符串逐字节一致。Station sync surface 的 Signal Extension 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
-- **投递不得降维**：Delivery / Station sync surface 把 accepted `ak.mls.welcome` 投影为 endpoint delivery 时，MUST 原样保留其规范 payload，至少包括 closed recipient endpoint（ordinary `recipient_principal_id + recipient_device_id`、Agent identity/method/authorization，或 minimal-metadata pairwise actor/method）、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 inline `ciphertext`；group 与 epoch 必须从同一 `governance_binding.effective_scope / next_epoch` 派生，不在 Welcome payload 重复。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须在解密和入组前验证 `claim_envelope.welcome_digest` 精确等于 `sha256:` 加解码后 Welcome bytes 的 lowercase hex SHA-256、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 Seal 证明逐字段比较。
+- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。完整 Welcome bytes MUST 以 canonical unpadded base64url `ciphertext` 内联在 durable `ak.delivery.mls_welcome` Event 中，并保留至被消费、撤销或过期；解码必须成功、不得含 padding，重新编码必须与 wire 字符串逐字节一致。Station sync surface 的 Signal Extension 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
+- **投递不得降维**：Delivery / Station sync surface 把 accepted `ak.delivery.mls_welcome` 投影为 endpoint delivery 时，MUST 原样保留其规范 payload，至少包括 closed recipient endpoint（ordinary `recipient_principal_id + recipient_device_id`、Agent identity/method/authorization，或 minimal-metadata pairwise actor/method）、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 inline `ciphertext`；group 与 epoch 必须从同一 `governance_binding.effective_scope / next_epoch` 派生，不在 Welcome payload 重复。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须在解密和入组前验证 `claim_envelope.welcome_digest` 精确等于 `sha256:` 加解码后 Welcome bytes 的 lowercase hex SHA-256、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 RealmCommit 证明逐字段比较。
 
-**发送方 admission saga（normative）**：一次 Add admission 的 Commit、面向全部目标设备的 Welcome、以及 Commit 后本地 MLS group state 是同一不可拆分的恢复单元。发送客户端在完成必要的 KeyPackage claim、构造出该 admission 后，MUST 在首次 Commit / Welcome 网络写入前，把以下材料原子写入 crash-recoverable outbound state：精确签名后的 `ak.mls.commit` Event、每条精确签名后的 `ak.mls.welcome` Event，以及仅在投递完成后安装的 post-Commit group state。网络时序 MUST 是 Commit accepted / duplicate 后才投递与其 `commit_ref` 绑定的 Welcome；不得先投递 Welcome，也不得在 Commit 未被接受时安装 post-Commit group state。
+**发送方 admission saga（normative）**：一次 Add admission 的 Commit、面向全部目标设备的 Welcome、以及 Commit 后本地 MLS group state 是同一不可拆分的恢复单元。发送客户端在完成必要的 KeyPackage claim、构造出该 admission 后，MUST 在首次 Commit / Welcome 网络写入前，把以下材料原子写入 crash-recoverable outbound state：精确签名后的 `ak.mls.commit` Event、每条精确签名后的 `ak.delivery.mls_welcome` Event，以及仅在投递完成后安装的 post-Commit group state。网络时序 MUST 是 Commit accepted / duplicate 后才投递与其 `commit_ref` 绑定的 Welcome；不得先投递 Welcome，也不得在 Commit 未被接受时安装 post-Commit group state。
 
-在提交含 Add 的 Commit 前，producer 已持有每个目标的完整 Welcome bytes，因而 MUST 先预构造每个候选 `ak.mls.welcome` 的完整 canonical accepted Event Envelope（包含全部 proof 与 reducer 将写入的字段），并按 1,048,576-byte Event 上限逐个检查。任一候选为 1,048,577 bytes 或更大时，producer MUST 在发送 Commit 前以 `payload_too_large` 终止该 generation，且不得安装 post-Commit state；随后只能重新生成满足上限的新 Add/Commit/Welcome 单元。恰好 1,048,576 bytes 在其它约束成立时可接受。该 inline-only 合同构成 v1 的隐含群规模上界；突破它必须另行定义完整的 blob 或受权 group-state material 协议，不能恢复无解析语义的 Welcome ref。
+在提交含 Add 的 Commit 前，producer 已持有每个目标的完整 Welcome bytes，因而 MUST 先预构造每个候选 `ak.delivery.mls_welcome` 的完整 canonical accepted Event Envelope（包含全部 proof 与 reducer 将写入的字段），并按 1,048,576-byte Event 上限逐个检查。任一候选为 1,048,577 bytes 或更大时，producer MUST 在发送 Commit 前以 `payload_too_large` 终止该 generation，且不得安装 post-Commit state；随后只能重新生成满足上限的新 Add/Commit/Welcome 单元。恰好 1,048,576 bytes 在其它约束成立时可接受。该 inline-only 合同构成 v1 的隐含群规模上界；突破它必须另行定义完整的 blob 或受权 group-state material 协议，不能恢复无解析语义的 Welcome ref。
 
-Commit 一旦 accepted / duplicate，发送方 MUST 持续重试**同一 event id、同一签名 bytes、同一 ciphertext** 的每条 Welcome，直到该 Welcome accepted / duplicate，或新的 accepted membership/repair Commit 已明确移除该接收方并使旧 Welcome 失效。单纯达到本地 TTL / policy expiry 不足以把已接受 Commit 对应的 Welcome 标为完成；实现必须同时进入明确的 repair/removal 流程。进程退出、页面关闭、网络错误和普通 deterministic service error 均不得让实现丢弃该 durable item、重新 claim KeyPackage、用新随机数重签 Welcome，或回退到旧 epoch 继续发送。无法自动恢复的响应 MUST 进入可诊断的 quarantined / repair-required 状态并保留原材料；修复路径 MAY 产生新的授权 Commit，但不得静默把已接受 Commit 对应的 Welcome 标为完成。只有全部 Welcome 完成 durable 提交后，发送方才能安装该 admission 的 staged post-Commit group state；若旧 Welcome 已被 accepted repair 取代，则 MUST 丢弃旧 staged state 并安装经验证的 repair 后 current state。两条路径都必须在收敛后才能解除本地 admission transition；接收客户端仍独立校验 Welcome 与本地 MLS transcript/leaf/epoch 绑定；Seal、membership 和治理 frontier 由自己的 Station 验证，客户端核对其结果与该 transition 一致。
+Commit 一旦 accepted / duplicate，发送方 MUST 持续重试**同一 event id、同一签名 bytes、同一 ciphertext** 的每条 Welcome，直到该 Welcome accepted / duplicate，或新的 accepted membership/repair Commit 已明确移除该接收方并使旧 Welcome 失效。单纯达到本地 TTL / policy expiry 不足以把已接受 Commit 对应的 Welcome 标为完成；实现必须同时进入明确的 repair/removal 流程。进程退出、页面关闭、网络错误和普通 deterministic service error 均不得让实现丢弃该 durable item、重新 claim KeyPackage、用新随机数重签 Welcome，或回退到旧 epoch 继续发送。无法自动恢复的响应 MUST 进入可诊断的 quarantined / repair-required 状态并保留原材料；修复路径 MAY 产生新的授权 Commit，但不得静默把已接受 Commit 对应的 Welcome 标为完成。只有全部 Welcome 完成 durable 提交后，发送方才能安装该 admission 的 staged post-Commit group state；若旧 Welcome 已被 accepted repair 取代，则 MUST 丢弃旧 staged state 并安装经验证的 repair 后 current state。两条路径都必须在收敛后才能解除本地 admission transition；接收客户端仍独立校验 Welcome 与本地 MLS transcript/leaf/epoch 绑定；RealmCommit、membership 和治理 frontier 由自己的 Station 验证，客户端核对其结果与该 transition 一致。
 
 **Welcome 大小侧信道（acknowledged side channel）**：MLS Welcome / GroupInfo 的 ciphertext 长度会与 leaf 数量、ratchet tree 形态、path secret 数量和近期 churn 有相关性。Arkret v1 不声称第三方观察者无法从 Welcome 大小推断粗粒度成员变化。需要该防护的服务部署 SHOULD 在 ServiceDescribe 声明支持 `ak.profile.traffic_metadata_hardened.v1`，并按部署配置对其承载的所有适用 Welcome / GroupInfo bytes 使用该 profile 的 padding bucket（默认 4KiB / 16KiB / 64KiB）。该 profile 是 service/deployment conformance claim，不是 Realm `schema_refs` 或私有 active-profile carrier。`welcome_padding_bucket` 表示取整粒度，不是 64 KiB 的 Welcome 最大长度；padding 后仍执行完整 Event 1 MiB preflight。
 
@@ -72,11 +72,11 @@ Commit 一旦 accepted / duplicate，发送方 MUST 持续重试**同一 event i
 
 MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Arkret v1 按当前 accepted auth state 确定管理集合：
 
-- Realm-scoped MLS group 的默认 admin set 来自 `ak.realm.create.payload.object.initial_creators` / `created_by`，以及当前有效的 `ak.realm.admin`、`ak.mls.commit`、`ak.mls.welcome` 或 Realm policy 声明的等价 E2EE admin capability。
-- Realm 内的 [Circle](../models/circle.md)（`Strand.scope_circle_id` 指向的子事件边界）只有在 `encryption_profile=mls_rfc9420` 时才拥有 Circle MLS group；其 MLS group admin set 由该 Circle 的 `ak.circle.create` / `ak.circle.member.state` / `ak.mls.commit` / `ak.mls.welcome` 等事件按 Circle 自身的 capability 与 membership 体系收敛，与 Realm-default MLS group admin set 独立；Circle key MUST NOT 从 Realm-default key 派生。
-- Admin capability 可以通过普通 capability grant / revoke Control Move 转移或收回；转移生效点由 Seal finality、Lattice value 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
+- Realm-scoped MLS group 的默认 admin set 来自 `ak.realm.create.payload.object.initial_creators` / `created_by`，以及当前有效的 `ak.realm.admin`、`ak.mls.commit`、`ak.delivery.mls_welcome` 或 Realm policy 声明的等价 E2EE admin capability。
+- Realm 内的 [Circle](../models/circle.md)（`Strand.scope_circle_id` 指向的子事件边界）只有在 `encryption_profile=mls_rfc9420` 时才拥有 Circle MLS group；其 MLS group admin set 由该 Circle 的 `ak.circle.create` / `ak.circle.member.state` / `ak.mls.commit` / `ak.delivery.mls_welcome` 等事件按 Circle 自身的 capability 与 membership 体系收敛，与 Realm-default MLS group admin set 独立；Circle key MUST NOT 从 Realm-default key 派生。
+- Admin capability 可以通过普通 capability grant / revoke Control Move 转移或收回；转移生效点由 RealmCommit finality、Lattice value 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
 
-发送 `ak.mls.proposal`、`ak.mls.commit` 或 `ak.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
+发送 `rfc9420.proposal`、`ak.mls.commit` 或 `ak.delivery.mls_welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
 
 ### 2.3 载荷加密与 closed pre-encryption header
 
@@ -119,7 +119,7 @@ counter 是 exporter 的结构分支；receiver MUST 与 exact `group_state_ref`
 `effective_scope/event_kind/sender_domain/group/epoch/group_state_ref` MUST 与外层已签 Event 和 exact
 historical active leaf 逐字节相符；unknown kind、额外字段、inner/outer routing 不一致或陈旧 current history frontier
 均拒绝。当前 EventId、由当前 ciphertext/payload 派生的任何 digest、算法名、purpose/profile 的顶层重复副本均不得进入
-AAD 或 envelope。构造顺序固定为“冻结 header → seal ciphertext → 组装 Event → 计算 EventId → 外层 proof”。
+AAD 或 envelope。构造顺序固定为“冻结 header → authority commit ciphertext → 组装 Event → 计算 EventId → 外层 proof”。
 
 只有 registry 标记为 reaction 的外层 Event kind 才 MUST 在 wire 携带
 `routing_context={target_ref,routing_tag}`；其它 kind MUST 省略。`kind="reaction"` 与
@@ -158,11 +158,11 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 - 客户端缺少 epoch 时 MUST 标记 `decryption_pending`，不得静默丢弃或重排事件。
 - standard MLS 只允许 endpoint 从自身 initial Add/Welcome admission 起顺序应用 winning Commit，不得为历史 backfill 获取
   foreign active MLS state。Exporter scope 的 late receiver 缺历史正文时，按每个 epoch 的 T0 `history_access` ceiling 与
-  chunk 首次耐久入队时的 T1 current gate 使用 private history-key manifest/chunk；不得把 snapshot、leaf signer、ratchet、
+  chunk 首次耐久入队时的 T1 current gate 使用 current membership、history access 与 join floor；不得把 snapshot、leaf signer、ratchet、
   proposal 或 sender counter 当作恢复材料。
 - 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
 - `history_access` 只授予历史范围资格，不自动授予旧 epoch key。Exporter 交付必须执行
-  [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 的 receipt-bound 认证事实消费（cbs-profiles §9），核验每个 winning transition、current 单向收紧 history_access 与 current incarnation/join floor，并执行首次入队 T1 gate；v1 不存在
+  [`../governance/history-visibility.md`](../governance/history-visibility.md) §4 的 receipt-bound 认证事实消费（authority_commit-profiles §9），核验每个 winning transition、current 单向收紧 history_access 与 current incarnation/join floor，并执行首次入队 T1 gate；v1 不存在
   第二套 key-sharing policy 或公开 share/withheld Event。
 
 服务端和 Station sync surface 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
@@ -171,7 +171,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-  **明文发送豁免（normative）**：send-pause 只约束需要 MLS-backed 密文的发送。当某 scope 的 effective `content_encryption_floor=allow_plaintext` 且该消息以明文发送时，不受 MLS epoch / `security_frontier_digest` gating——明文消息的 ban / revoke 由 membership cell 即时生效，不依赖 epoch 推进。这使 “`encryption_profile=mls_rfc9420` + `allow_plaintext`” 的可升级默认形态在明文期间无需为每次成员变更推进 MLS epoch；一旦 effective floor 抬到 `e2ee_required`（或该消息以密文发送），完整 §2.5 governance-binding send-pause 立即恢复，首条密文发送 MUST 等待覆盖当前 membership frontier 的 epoch。`encryption_profile=none` 的 scope 不拥有 MLS group，本规则不适用。
+  **明文发送豁免（normative）**：send-pause 只约束需要 MLS-backed 密文的发送。当某 scope 的 effective `content_encryption_floor=allow_plaintext` 且该消息以明文发送时，不受 MLS epoch / `key_access_revision` gating——明文消息的 ban / revoke 由 membership typed current result 即时生效，不依赖 epoch 推进。这使 “`encryption_profile=mls_rfc9420` + `allow_plaintext`” 的可升级默认形态在明文期间无需为每次成员变更推进 MLS epoch；一旦 effective floor 抬到 `e2ee_required`（或该消息以密文发送），完整 §2.5 governance-binding send-pause 立即恢复，首条密文发送 MUST 等待覆盖当前 membership frontier 的 epoch。`encryption_profile=none` 的 scope 不拥有 MLS group，本规则不适用。
 
   **`mls_send_pause="advisory"` 降级规则**：把上述 MUST 暂停降级为 SHOULD 的能力**仅在显式 degraded profile** `ak.profile.e2ee_relaxed.v1` 下允许声明，不得在默认 `ak.profile.mls_governance_binding.full.v1` profile 或任何声称 “完整 MLS Governance Binding” 的部署中使用。该字段在符合资格的部署中也 MUST：
 
@@ -185,7 +185,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
   **降级声明义务（normative）**：effective `mls_send_pause="advisory"` **当且仅当** `effective_e2ee_relaxed=true`；它由 active `ak.realm.policy_bundle` 唯一承载，不写入 Realm `schema_refs`，也不读取 generic profile list。服务端 ServiceDescribe 仍须声明实现支持 `ak.feature.e2ee_relaxed.v1`；该 Realm 后续每个 MLS `governance_binding.binding_profile` 必须等于 policy 派生结果：relaxed 时为 `ak.profile.e2ee_relaxed.v1`，否则为 `ak.profile.mls_governance_binding.full.v1`。active Audit Applet Binding 与 advisory policy 互斥。sync metadata、snapshot、backup/export 与 interop mapping receipt 必须保留派生的 `e2ee_relaxed` 与窗口。任一等式、Audit Binding 或 ServiceDescribe 支持面不一致均 fail closed；不得从私有配置、UI 标签或 genesis profile 猜测。
 
-  **联邦互操作下界（normative）**：跨 deployment 的 MLS-backed Realm 以 `ak.profile.mls_governance_binding.full.v1` 为 E2EE 互操作下界。`ak.profile.e2ee_relaxed.v1` 是低于该下界的显式降级，只能在 `federation_policy="closed"` 或满足上方 restricted federation guard 的 `restricted` Realm 中出现；open / quarantine federation MUST reject。联邦 peer 未在 describe 中声明所需 profile/feature、未公开满足窗口的 fanout SLA、或 MLS commit / ordinary Event 的 `binding_profile`、`reducer_profile`、`security_frontier_digest` 无法验证时，接收方 MUST reject 或 quarantine，不得把该 peer 的 push 用于推进本地 Realm frontier。
+  **联邦互操作下界（normative）**：跨 deployment 的 MLS-backed Realm 以 `ak.profile.mls_governance_binding.full.v1` 为 E2EE 互操作下界。`ak.profile.e2ee_relaxed.v1` 是低于该下界的显式降级，只能在 `federation_policy="closed"` 或满足上方 restricted federation guard 的 `restricted` Realm 中出现；open / quarantine federation MUST reject。联邦 peer 未在 describe 中声明所需 profile/feature、未公开满足窗口的 fanout SLA、或 MLS commit / ordinary Event 的 `binding_profile`、`reducer_profile`、`key_access_revision` 无法验证时，接收方 MUST reject 或 quarantine，不得把该 peer 的 push 用于推进本地 Realm frontier。
 
   声明 advisory 但未声明 `ak.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
 - Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`，**默认 30,000 ms**；profile MAY 覆盖（交互式 profile SHOULD be no greater than 30,000 ms，高延迟 / 批量 profile MAY 声明更大值）。客户端在 commit 滞后超过该 effective 值后 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
@@ -206,8 +206,8 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 | 维度 | 默认 (`mls_governance_binding.full.v1`) | 降级 (`e2ee_relaxed.v1`) |
 | --- | --- | --- |
-| `mls_send_pause` 默认 | MUST 暂停直到 security frontier 被当前 Commit 覆盖 | 允许声明 `"advisory"`,降为 SHOULD |
-| `security_frontier_digest` 匹配 | reducer/客户端 MUST enforce | 仍然写入并验证，但 send-side 可按声明窗口延迟阻塞 |
+| `mls_send_pause` 默认 | MUST 暂停直到 key-access revision 被当前 Commit 覆盖 | 允许声明 `"advisory"`,降为 SHOULD |
+| `key_access_revision` 匹配 | reducer/客户端 MUST enforce | 仍然写入并验证，但 send-side 可按声明窗口延迟阻塞 |
 | 被踢者继续解密窗口 | ≤ MLS commit roundtrip(密码学保证) | ≤ `relaxed_window_max_ms`(默认 30s,部署声明) |
 | 接收端 verified timeline 检查 | epoch 不匹配 → 拒绝 | epoch 不匹配且超出 `relaxed_window_max_ms` → 拒绝 |
 | UI 警示 | 无 | **MUST 显示 banner-level 警示**，并明确披露：该 Realm 使用降级 E2EE；踢出 / ban 不具备密码学即时生效保证；旧成员可能在声明窗口内继续解密最近消息。 |
@@ -230,7 +230,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 ### 2.5 MLS authority binding
 
-Arkret v1 把 MLS epoch 绑定到该 effective scope 当前 authority-committed 的密钥访问修订号。当前治理 Station 在提交 `ak.mls.genesis` / `ak.mls.commit` 前验证成员、设备密钥、scope policy 与 MLS public transition，并把接受结果写入该 Realm 或 Circle 自己的 authority commit stream。MLS 不携带 CBS、Seal、Cell 或治理证明包。
+Arkret v1 把 MLS epoch 绑定到该 effective scope 当前 authority-committed 的密钥访问修订号。当前治理 Station 在提交 `ak.mls.genesis` / `ak.mls.commit` 前验证成员、设备密钥、scope policy 与 MLS public transition，并把接受结果写入该 Realm 或 Circle 自己的 authority commit stream。MLS 不携带 authority-commit、RealmCommit、typed current result 或治理证明包。
 
 每个 MLS scope 投影唯一 current state：
 
@@ -251,7 +251,7 @@ Arkret v1 把 MLS epoch 绑定到该 effective scope 当前 authority-committed 
 producer 不提交任意 Event、Commit 或状态引用清单来定义 revision。它提交预期 revision；治理 Station 将其与提交事务看到的 current result 精确比较。未知或无法闭合的密钥访问变化 fail closed。
 #### 2.5.1 Security binding payload
 
-ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与 MLS proposal 使用同一 mls_governance_binding closed object。必需字段是：
+ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.delivery.mls_welcome 与 MLS proposal 使用同一 mls_governance_binding closed object。必需字段是：
 
 | 字段 | 约束 |
 | --- | --- |
@@ -261,13 +261,12 @@ ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与
 | previous_epoch / next_epoch | genesis 为 0/0；Commit 必须 next=previous+1 |
 | key_access_revision | 与当前 authority-committed 密钥访问修订号精确相等 |
 | content_scheme | mls_rfc9420 或 mls_exporter_aead_v1，与 accepted Genesis 一致 |
-| durability_policy? | 仅 exporter scheme 必填，none 或 organization_recovery_key |
 | sidecar_binding? | 仅 sidecar scope 必填，绑定 exact participant authority |
 | binding_profile / reducer_profile | 显式解释 profile；缺失或不支持 fail closed |
 
-membership_frontier、covered_seal_refs、security_frontier_digest、policy_root、capability_root 与 discussion_metadata_digest 均不是 wire 字段。它们把同一治理判断重复拆成 producer-supplied commitments。receiver 只比较 authority-committed `key_access_revision`、scope、group 与 epoch。
+membership_frontier、covered_commit_refs、key_access_revision、policy_root、capability_root 与 discussion_metadata_digest 均不是 wire 字段。它们把同一治理判断重复拆成 producer-supplied commitments。receiver 只比较 authority-committed `key_access_revision`、scope、group 与 epoch。
 
-每个 ak.mls.commit MUST 携带 base_epoch_ref、proposal_refs、完整 commit_bytes_b64 与唯一 governance_binding；可选 `commit_message_ref` 若存在必须是 content-addressed Blob ref，其内嵌 digest 必须匹配解码后的完整 Commit bytes。receiver 先验证包含该 payload 的 Event，并在 ref 存在时校验其 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 security frontier。只提供 digest 或 object ref 不合规，payload 不携 sibling `commit_digest`。
+每个 ak.mls.commit MUST 携带 base_epoch_ref、proposal_refs、完整 commit_bytes_b64 与唯一 governance_binding；可选 `commit_message_ref` 若存在必须是 content-addressed Blob ref，其内嵌 digest 必须匹配解码后的完整 Commit bytes。receiver 先验证包含该 payload 的 Event，并在 ref 存在时校验其 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 key-access revision。只提供 digest 或 object ref 不合规，payload 不携 sibling `commit_digest`。
 
 **Realm/Circle 公开握手（normative）**：effective scope 为 Realm 或 Circle 时，`proposal_bytes_b64` 与
 `commit_bytes_b64` MUST 分别编码完整 RFC 9420 MLSMessage 的 `PublicMessage` Proposal 与 Commit，
@@ -294,8 +293,8 @@ Commit 应用，错误 Commit 不得进入本地 MLS state。自己 Station 计�
 Realm/Circle 只披露其既有 pairwise Actor/method/credential 公开材料，MUST NOT 为公开跟踪另加真实
 Principal、Account、Device、Realm 外定位信息或解匿名目录；服务端使用该 profile 的既有授权规则。
 
-ak.mls.welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Station sync surface 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
-binding 的 canonical CBOR map 仅编码本节保留成员；不保留已删除 scope/group 镜像的空值、旧编号占位或兼容解码。GroupContext extension `0xF1C0`、Event JSON 与 accepted-artifact outcome MUST 使用同一 closed binding。GroupContext 的 group_id MUST 等于 §5.1 的 canonical scope bytes，epoch 与 previous/next transition 必须逐字匹配；此密码学检查不因外层字段删除而省略。accepted-artifact 的 transition_head 仅保留 `transition_ref, transition_event_digest, mls_transition_digest`，scope、group、epoch、content scheme 从同一 outcome 的 governance_binding 取得。
+ak.delivery.mls_welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Station sync surface 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
+binding 的 canonical CBOR map 只编码本节定义的成员；空值、未登记编号和未知字段一律拒绝。GroupContext extension `0xF1C0`、Event JSON 与 accepted-artifact outcome MUST 使用同一 closed binding。GroupContext 的 group_id MUST 等于 §5.1 的 canonical scope bytes，epoch 与 previous/next transition 必须逐字匹配；此密码学检查不因外层字段删除而省略。accepted-artifact 的 transition_head 仅保留 `transition_ref, transition_event_digest, mls_transition_digest`，scope、group、epoch、content scheme 从同一 outcome 的 governance_binding 取得。
 
 #### 2.5.2 Send gate 与 self-heal
 
@@ -318,7 +317,7 @@ confirmed_transcript_hash。canonical map 只包含 §2.5.1 的字段；禁止 i
 
 普通客户端从自己的 Station 读取 typed `mls_group` current result，核对 `effective_scope`、`mls_group_id`、`epoch`、`key_access_revision`、来源 stream 与 commit position，并自行执行完整 RFC 9420 密码学。治理服务器不得索取或返回 MLS 私钥、path secret 或成员 secret。
 
-跨 Station 验证不使用 MLS governance proof API。接收 Station 通过 authority bundle 找到该 Realm 的 current governance Station，按对应 Realm/Circle stream 拉取并验证 `RealmCommit` 单链，再从已提交 Event 确定性派生相同 current result。缺少 commit 前缀或 public MLS transition material 时返回依赖缺失/暂不可用，不得接受 producer 提供的摘要替代。
+跨 Station 验证时，接收 Station 通过 authority bundle 找到该 Realm 的 current governance Station，按对应 Realm/Circle stream 拉取并验证 `RealmCommit` 单链，再从已提交 Event 确定性派生相同 current result。缺少 commit 前缀或 public MLS transition material 时返回依赖缺失/暂不可用，不得接受 producer 提供的摘要替代。
 
 #### 2.5.4 Authority current result 信任来源（normative）
 
@@ -344,14 +343,14 @@ credential 标识 leaf endpoint，Leaf key证明该 endpoint，accepted transiti
 principal 编入 credential，不接受 `principal_id + "#" + device_id` 或双格式 fallback；v1 也不存在独立 ordinary MLS
 leaf signer。每个 accepted transition MUST 物化并持久保存 group-local
 `leaf_index -> {principal_id, endpoint identity, endpoint_authorization_ref?, membership_incarnation, leaf_signature_key}` binding。Genesis 从 accepted
-creator Event 的 `actor_id`、唯一 producer proof 与 signer leaf 建立。Add 必须从 winning Commit 的 `proposal_refs[]` 解析每个 accepted durable `ak.mls.proposal(add)` Event，再把其 target principal、membership incarnation、signed KeyPackage credential/Leaf key、对应 accepted membership Event 与 post-Commit RFC 9420 tree 联合验证；receipt、claim record 与 committer 私有 journal 只用于短命编排，MUST NOT 成为成员重建 binding 的输入。ordinary/Agent 的 exact endpoint authorization ref 由自己的 Station 在 accepted authority 中派生并随有界 accepted-artifact 的 public leaf binding 返回；receiver 只核对实际 MLS leaf 与该结果，不重放治理历史，不复制进 Add。Update 继承同一 binding；device/Agent key或其 authorization改变必须走
+creator Event 的 `actor_id`、唯一 producer proof 与 signer leaf 建立。Add 必须从 winning Commit 的 `proposal_refs[]` 解析每个 accepted durable `rfc9420.proposal(add)` Event，再把其 target principal、membership incarnation、signed KeyPackage credential/Leaf key、对应 accepted membership Event 与 post-Commit RFC 9420 tree 联合验证；receipt、claim record 与 committer 私有 journal 只用于短命编排，MUST NOT 成为成员重建 binding 的输入。ordinary/Agent 的 exact endpoint authorization ref 由自己的 Station 在 accepted authority 中派生并随有界 accepted-artifact 的 public leaf binding 返回；receiver 只核对实际 MLS leaf 与该结果，不重放治理历史，不复制进 Add。Update 继承同一 binding；device/Agent key或其 authorization改变必须走
 replacement/remove+add；Remove 与本地 MLS 接收状态保留 transition 当时的必要 leaf binding。current admission 只接受 current authority，
 历史 replay 使用对应 epoch 已钉住的 historical binding。裸 RFC 9420 public tree 只能给出 endpoint leaves；没有 accepted
 transition provenance 时不得把它解释为 principal roster，也不得查询 current directory补全。
 accepted-artifact 的历史授权载体正式采用 [server-trusted-results §5.2](../sync/server-trusted-results.md#52-已知-mls-artifact-的接纳结果)
-所定义的 `mls_leaf_authorizations`；它与原 `mls_frontier_leaves` 按 exact leaf_index 完整关联，不改变共享 frontier 摘要。
+所定义的 `mls_leaf_authorizations`；它与原 `key_access_revision` 按 exact leaf_index 完整关联，不改变共享 frontier 摘要。
 
-同一 Commit 中，实际消费的 Add proposal、Commit `proposal_refs[]` 与 post-Commit 新 occupied leaves MUST 构成 every-and-only 双射：每个 referenced accepted Add 恰产生一个新 leaf，每个新 leaf恰由一个 referenced Add解释。inline/unreferenced Add、零匹配、多匹配、重复 credential/key、proposal set 不一致均拒绝；不得按到达顺序或“第一个空 leaf index”猜位置。同一 DeviceId最多一个 active leaf，同一 principal的不同 device可各占一个 leaf。自己的 Station 返回 winning transition/security frontier 治理结果；客户端验证与 exact accepted-artifact/真实 MLS 输入的绑定、应用 Commit，并把本地 RFC group state、必要 public leaf bindings 与 accepted transition ref 按 §2.5.4 同一耐久边界原子保存。重启直接恢复这份本地 MLS 状态，不重建治理 checkpoint 或扫描历史 Event/Proposal/Commit；不得另建一套客户端治理 leaf-directory。
+同一 Commit 中，实际消费的 Add proposal、Commit `proposal_refs[]` 与 post-Commit 新 occupied leaves MUST 构成 every-and-only 双射：每个 referenced accepted Add 恰产生一个新 leaf，每个新 leaf恰由一个 referenced Add解释。inline/unreferenced Add、零匹配、多匹配、重复 credential/key、proposal set 不一致均拒绝；不得按到达顺序或“第一个空 leaf index”猜位置。同一 DeviceId最多一个 active leaf，同一 principal的不同 device可各占一个 leaf。自己的 Station 返回 winning transition/key-access revision 治理结果；客户端验证与 exact accepted-artifact/真实 MLS 输入的绑定、应用 Commit，并把本地 RFC group state、必要 public leaf bindings 与 accepted transition ref 按 §2.5.4 同一耐久边界原子保存。重启直接恢复这份本地 MLS 状态，不重建治理 checkpoint 或扫描历史 Event/Proposal/Commit；不得另建一套客户端治理 leaf-directory。
 
 Realm/Circle 的 retained/new/removed 叶集合 MUST 从 §2.5.1 的确切 PublicMessage、所消费 Proposal
 与 RFC 9420 staged public transition 得出，不能仅比较前后 public tree。普通 Update proposal 或
@@ -377,7 +376,7 @@ published -> claimed -> consumed
 
 ```json
 {
-  "kind": "ak.mls.keypackage",
+  "kind": "ak.resource.mls_keypackage",
   "keypackage_id": "ak:mls:kp:01964137-0000-7000-8000-000000000001",
   "principal_id": "ak:did_core:key:z6MkPairwise...",
   "endpoint_verification_method": "did:key:z6MkPairwise...#z6MkPairwise...",
@@ -442,7 +441,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 - last-resort 包**不走** §2.6 的单次 `consume` 路径：服务端 MUST NOT 因一次 Welcome 消费而把它转入 `consumed` 或从池中移除。`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` 的调用 MUST 被服务端识别为幂等（返回成功但不改变 `published` 状态），不得返回 `keypackage_already_consumed`。
 - §2.6 / §2.6.1 的其余校验（从 claim record 完整 bytes/capabilities 重算 digest 并与 Welcome claim_ref / published digest 匹配、current authorization ref、`claim_envelope` 签名、Realm 反向 resolve）对 last-resort 包**仍然全部适用**；放宽的只有"单次性"。
 
-**消费审计（normative）**：每次 last-resort 包被 claim / 用于 Welcome，MUST 进入 §2.6 既有审计链。实现 MUST 为每次消费追加一条独立 `keypackage_claim_record` 审计记录，至少携带 `keypackage_ref`、完整 `keypackage` bytes 与 capabilities（供重算 digest）、`claim_id`、`last_resort=true`、消费的 `intended_realm_id`（见下文 Realm affinity）与时间戳。该记录不是第二条 `ak.mls.keypackage` 状态 Event，也不得触发 KeyPackage FSM transition；KeyPackage 本身保持 `published`。审计链 MUST 保留每次消费的独立记录（append-only，不得覆盖前次），使审计员能枚举"该 last-resort 包被哪些 Realm / requester 在哪些时点使用"。
+**消费审计（normative）**：每次 last-resort 包被 claim / 用于 Welcome，MUST 进入 §2.6 既有审计链。实现 MUST 为每次消费追加一条独立 `keypackage_claim_record` 审计记录，至少携带 `keypackage_ref`、完整 `keypackage` bytes 与 capabilities（供重算 digest）、`claim_id`、`last_resort=true`、消费的 `intended_realm_id`（见下文 Realm affinity）与时间戳。该记录不是第二条 `ak.resource.mls_keypackage` 状态 Event，也不得触发 KeyPackage FSM transition；KeyPackage 本身保持 `published`。审计链 MUST 保留每次消费的独立记录（append-only，不得覆盖前次），使审计员能枚举"该 last-resort 包被哪些 Realm / requester 在哪些时点使用"。
 
 **强制轮换时点（normative）**：
 
@@ -475,15 +474,14 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 Minimal-metadata 的 author/authorization subject 是 Realm-local pairwise endpoint actor。每个
 `(Realm, endpoint incarnation)` MUST 使用唯一 canonical `ak:did_core:key:<canonical-multibase-id>` principal 分量与 signature key。同一 Realm 的不同 endpoint
 不得复用，同一 endpoint MAY 在该 Realm-default group 与该 Realm 的 Circles 中复用。它在 Event actor、exact active
-Leaf BasicCredential identity、Event `actor_id`、content KDF/counter sender domain 与 history request sender
+Leaf BasicCredential identity、Event `actor_id`、content KDF/counter sender domain
 domain 中用于密码学分域的 principal 必须是该 canonical did_core_id 的同一组 UTF-8 bytes。proof `verification_method` 是完整 did:key DID URL；其 controller/base 必须经 registered adapter 投影到该 ActorId 的 principal 分量，且其 key 必须等于 exact leaf signature key。
 
 **wire 载体与外部匹配键的分工（normative）**：pairwise endpoint 在 wire 上作者 Event 时，envelope
 `actor_id` 仍是完整 account `ActorId`——其 `station_id` 分量是**当次的 hosting Station**，只承担 wire 路由与
 作者身份，由 accepted membership 与 authorization evidence 验证。**Realm 内的一切状态仍按完整 `ActorId`
-定址**：`ak.component.member.state.v1` 的 cell subject 就是 `canonical_json(payload.member_id)`，
-`member_id` 是完整 `ActorId`；§2.5.3 governance proof 的 `local_mls_leaves[].actor_id` 同样逐条携带完整
-`ActorId`。同一 principal 不可能在本 profile 下出现两个并存 endpoint：本节已要求同一 Realm 内一个
+定址**：`ak.component.member.state.v1` 的 typed current result subject 就是 `canonical_json(payload.member_id)`，
+`member_id` 是完整 `ActorId`；§2.5.3 的客户端 MLS leaf 校验同样逐条使用完整 `ActorId`。同一 principal 不可能在本 profile 下出现两个并存 endpoint：本节已要求同一 Realm 内一个
 `ak:did_core:key:` principal 恰对应一个 endpoint incarnation，重复 credential 在 MLS 层即被拒绝。
 
 **例外是封闭列举的两处**：当一个**外部于该 Realm 的持有方**需要把这个 pairwise actor 当作匹配键时，
@@ -508,7 +506,7 @@ Station 分量不提供任何额外安全性。**普通 Account / Agent / servic
 
 pairwise endpoint 发布 KeyPackage 时只携 `principal_id`（即上述 Realm-local actor）、exact
 `pairwise_verification_method` 与 `intended_realm_id`，不得携 account/device/Agent carrier。upload、durable
-`ak.mls.keypackage`、claim record、Welcome recipient/claim envelope、durable receipt 与 consume 必须保持同一 closed
+`ak.resource.mls_keypackage`、claim record、Welcome recipient/claim envelope、durable receipt 与 consume 必须保持同一 closed
 第三分支。接受端必须解析 KeyPackage LeafNode，要求 BasicCredential identity 等于 `principal_id` UTF-8、LeafNode
 signature key 等于 `did:key` raw key，并用同一 key 验证唯一 required batch `endpoint_signature`；只验证外层签名而
 不验证 KeyPackage 内部 leaf 是不合规的。Welcome 的 durable private index 以
@@ -585,7 +583,7 @@ nonce = I2OSP(durable_sender_counter, AEAD.Nn)
 content_aad = JCS(reconstruct_pre_encryption_header(outer_signed_event, exact_group_state, encryption_context))
 ```
 
-`sender_domain` 不上 wire，只取 producer 在 seal 前冻结的最终 producer proof verification method / signer，并与 exact active
+`sender_domain` 不上 wire，只取 producer 在 authority commit 前冻结的最终 producer proof verification method / signer，并与 exact active
 Leaf BasicCredential identity 交叉验证：ordinary 从 verification-method fragment 投影 canonical DeviceId；Agent 与 minimal
 从 verified signer/actor 投影 canonical ActorId。存储回执不参与。Producer proof 自身后生成且不进入 EventId
 preimage；若最终 proof method 与冻结值不同，admission 必须先拒绝，receiver 重构 AAD 也必然 open 失败。Producer 以原子 CAS 在
@@ -594,21 +592,13 @@ counter 耗尽或状态无法证明时必须先推进 epoch。Nonce 不上 wire�
 Standard MLS 分支把同一 `content_aad` 作为 RFC 9420 authenticated_data，不使用 Arkret counter、K_content 或 exporter nonce；
 exporter 分支才使用 per-sender K_content 与 `I2OSP(counter,AEAD.Nn)`。
 
-本机从 verified MLS state 直接导出的 secret 是 `local_authoritative`。history response、RHRK open 与其它 received secret 永远只是
-candidate；v1 不定义远端 epoch promotion。Receiver 先验证外层 proof、scope/group/epoch、sender domain、AAD、schema 与
-replay，再逐 candidate 尝试。AEAD 成功只把 exact `(EventId,event_digest,sender_domain)` 耐久绑定到该 candidate digest，失败也只记录
-该 Event attribution；binding 只保存 digest/attribution、不得 pin secret bytes，也不得因此立即淘汰或升级 epoch 候选。后续配额驱逐
-可以只删除 candidate bytes 并保留有界 attribution/tombstone 以供 refetch。恶意作者的 fake secret/fake ciphertext 只影响其自身签名 Event。配额、digest
-去重、确定性 eviction 与 backup 限制见 history-visibility §7。
+本机从 verified MLS state 直接导出的 epoch content root 是唯一权威来源。协议不提供远端 secret response、跨设备 epoch material promotion 或历史解密材料恢复。Receiver 必须先验证外层 proof、scope/group/epoch、sender domain、AAD、schema 与 replay，再使用本机对应 epoch state 解密；缺失本地材料时保持不可解密，不得接受 producer、治理 Station 或其它成员提供的摘要/secret 替代。
 
 Receiver 先按 EventId 折叠完全相同 Event，再执行 durable replay gate：
 `(mls_group_id,epoch,sender_domain,counter) -> exact EventId/ciphertext digest`。同 tuple 的不同 Event/digest
 即使 AEAD 可开也拒绝。ordinary DeviceId 历史上不得重分配给另一 endpoint/principal。
 
-`history_secret[N]` 是 epoch 最小授权单元，不能执行 per-Event audience；各 epoch secret 必须独立，禁止正向或反向
-互推。交付授权、per-request response stream、proof、backup、RHRK 与 multi-candidate store 的唯一合同见
-[`history-visibility.md`](../governance/history-visibility.md)。Standard `mls_rfc9420` 没有可交付 secret，固定
-`history_access=since_join`。
+`history_secret[N]` 是 exporter scheme 的本地 epoch content root；各 epoch root 必须独立，禁止正向或反向互推，且不得进入任何 Event、operation request/response、portable backup 或 Station-side recovery carrier。`history_access` 只裁决可同步的 committed Event 范围，不授予解密能力。Standard `mls_rfc9420` 同样只依赖客户端持有的 MLS state。
 
 
 ### 2.11 Ordinary Agent Event 的 authorization + MLS 双绑定（normative）
@@ -643,7 +633,7 @@ Arkret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制。审计
 或暗示二者等价的措辞都不符合本规范——禁止措辞清单与 join warning canonical 文案见
 [`audited-e2ee.md` §7 与 §3.3](./audited-e2ee.md)。
 
-v1 core 互操作 **不要求** 实现这两个 profile；只有在 Realm / Circle 显式存在 active Audit Applet Binding 且对应 activation frontier 已被 MLS commit 覆盖后才启用。需要审计 / 合规能力的部署可以按所在 audit profile 声明 RYW receipt、release service attestation、阶段性通知和 sealed historical release。普通 E2EE Realm 不进入该 profile 时，不得产生 `ak.audit.applet_binding`、`ak.audit.session.*` 或 `ak.audit.release`；进入 profile 前已经加密的消息也不得被后续 binding 追溯 release。
+v1 core 互操作 **不要求** 实现这两个 profile；只有在 Realm / Circle 显式存在 active Audit Applet Binding 且对应 activation frontier 已被 MLS commit 覆盖后才启用。需要审计 / 合规能力的部署可以按所在 audit profile 声明 RYW receipt、release service attestation、阶段性通知和 committed historical release。普通 E2EE Realm 不进入该 profile 时，不得产生 `ak.audit.applet_binding`、`ak.audit.session.*` 或 `ak.audit.release`；进入 profile 前已经加密的消息也不得被后续 binding 追溯 release。
 
 下面继续描述与 audit profile 正交的核心 E2EE 机制。
 
@@ -723,12 +713,12 @@ producer、Station 与 receiver MUST 复算比较。普通 Realm/Circle/Sidecar 
 
 Genesis 接受规则：
 
-3. 同一 effective scope 的 genesis/epoch/key-schedule 使用 `sequenced_state`。同一前态的竞争 genesis/Commit 必须经过唯一安全确认；至多一个成功，失败者不安装 staged state。不同 group id 不能绕过同一 scope 的唯一槽位。
+3. 同一 effective scope 的 genesis/epoch/key-schedule 由该 scope 的 authority commit stream 串行确认。同一前态的竞争 genesis/Commit 至多一个成功，失败者不安装 staged state。不同 group id 不能绕过同一 scope 的唯一槽位。
 
 **创建者客户端自举与恢复（normative）**：加密 Realm 的 bootstrap unit 已 accepted 后，创建者客户端
 MUST 把 Realm-default scope 从“Realm 已接受”推进到“epoch-0 MLS 可写”，不得依赖一次性的 UI task、页面存活
 或后台 effect 恰好执行完成。初始 leaf 的创建者不会收到发给自己的 Welcome；因此 Welcome 缺失、Welcome 查询的
-`frontier_unavailable`，以及账号 current 投影暂未包含 authority-root cell，均不得被解释为“创建者需要等待
+`frontier_unavailable`，以及账号 current 投影暂未包含 authority-root typed current result，均不得被解释为“创建者需要等待
 Welcome”或“自举已经完成”。客户端 MUST 按以下规则收敛：
 
 1. 客户端 MUST 先从自己 Station 的 exact accepted 结果判断该 scope 是否已有 `ak.mls.genesis`。
@@ -738,7 +728,7 @@ Welcome”或“自举已经完成”。客户端 MUST 按以下规则收敛：
 2. 只有尚无 accepted Genesis 时，客户端才可依据 exact accepted Realm authority-root 与当前授权决定
    是否启动首次 Genesis；未知／暂不可用不得解释为不存在。已有本机 epoch-0 transaction 时重入该事务；
    Genesis 存在但本机私有状态缺失时转恢复，不得以“等待自身 Welcome”困住初始 leaf。
-   分支判断不授予 Genesis 权限；authoring 与 admission 始终使用 §2.5 的 accepted security frontier。
+   分支判断不授予 Genesis 权限；authoring 与 admission 始终使用 §2.5 的 accepted key-access revision。
 3. 客户端 MUST 在产生不可重建的 epoch-0 私有状态后耐久保存该状态，以及恢复 exact signed Genesis 所需的
    transaction material；网络失败、页面卸载或进程崩溃后必须重入同一事务。byte-identical retry 必须复用同一
    Event；若 Station 已接受 Genesis，则客户端必须解析并收敛到该 accepted Event，不得生成第二个 Genesis。
@@ -787,7 +777,7 @@ typed binding。request 必须逐字携带 accepted genesis 的 Realm/scope/grou
 HTTP caller MUST 使用 §3 的 service-to-service authentication，并且是该 Realm 当前授权的 federation peer 或
 被 Realm policy 显式授权读取 MLS public group state 的服务；同进程 tracker 也必须执行完全相同的 Event acceptance、visibility、digest 与 RFC 9420
 校验。consumer 只能从验证后的 ratchet tree 的实际 occupied leaves 恢复 RFC leaf index；不得枚举 KeyPackage
-记录猜测 tree position、不得按到达顺序编号，也不得从 governance proof bundle 获取 leaves。
+记录猜测 tree position、不得按到达顺序编号；leaf 只从客户端已验证的 MLS public transition 与本地 group state 取得。
 
 #### 5.1.2 创建者 bootstrap transaction（normative）
 
@@ -827,26 +817,7 @@ MUST NOT 被解释为授权任何 peer、Station 或 federation 对端采信另�
 被锁定的 selector 以及 scope 是否可写，一律只从 exact accepted Event 判定；对该记录的任何声明、导出或回显都不具有
 协议效力，receiver MUST NOT 据此放宽 §2.5.2 的 send gate 或本节的 Genesis 判定。
 
-**selector 的性质**：`content_scheme` 与条件必填的 `durability_policy` 在 `genesis_intent_persisted` 阶段只是**本地
-创建意图**，不是 Realm create 已锁定的事实；只有记录进入 `genesis_accepted` 之后，它们才成为该 group 的协议 immutable
-值（§2.10、[`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）。Realm create closed payload、
-`ak.realm.profile`、`ak.realm.history_access` facet 与任何 current/UI projection MUST NOT 复制这两个 selector，也
-MUST NOT 被用来反推它们。v1 不登记任何从 facet、projection 或旧 UI 组合窄推断 selector 的兼容分支；缺正式记录的
-旧本地数据按已有 accepted Genesis 收敛、明确无 Genesis 时显式废弃重建、accepted 状态未知时保持不可写。
-
-**selector 的就地修改**：创建者 MAY 在 `genesis_intent_persisted` 状态内改变该选择，且**仅限该状态**；机读真源是
-registry 的 `selector_amendment` 与各 state 的 `amendment_rule`，箭头是自环 transition
-`genesis_intent_persisted_to_genesis_intent_persisted`。修改 MUST 是整份 closed intent（`content_scheme`、
-`durability_policy` 与由其派生的 `proposed_group_genesis_binding`）在同一 logical key 下的**一次原子耐久替换**，
-MUST NOT 是只改其中一个 selector 的部分 patch；替换同样 MUST 先于 0→0 governance query 与任何依赖该 selector 的
-随机材料。logical key、immutable 的 creator device 与 signer method、已冻结的 exact signed Realm-create unit 及由其
-派生的 create Event id MUST 保持不变，因此这不是第二次 attempt，也不开第二条 active 记录。之所以此时可改：
-`content_scheme` 与 `durability_policy` 按构造**不在** Realm create payload 内（本节与
-[`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md) 明令禁止携带），替换它们不会使已签名或在途的
-create unit 失效；而依赖这两个 selector 的随机材料与 governance pin 都发生在 `realm_accepted` 之后，因此在
-`genesis_intent_persisted` 内创建者尚未选定任何外部可观察的事实。进入 `realm_accepted` 及其后的任何状态（含全部终态）
-后，closed intent 即 immutable：MUST NOT 就地修改，只能走完本次 attempt，或进入终态后按 `rejected` 规则开启新的
-attempt generation——而新 generation 的 selector 仍继承原 durable intent。
+**selector 的性质**：`content_scheme` 在 `genesis_intent_persisted` 阶段只是本地创建意图；一旦 accepted Genesis 固定该值，后续 Commit 只能逐字保持。创建者可在首次网络副作用前原子替换整份本地 intent；此后该值不可变。创建记录不得包含任何 epoch secret、恢复 archive 或 portable MLS state。
 
 **原子 cut point**：registry `atomic_cut_points[]` 逐条登记，判定要点为：
 
@@ -882,12 +853,12 @@ terminal attempt”的防重建 tombstone。
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：
-1. **意图上链 (Proposal)**：exact base 中的 Member 发出 `ak.mls.proposal`（例如移除某成员的意图）；producer 类、sender 绑定与不受支持分支的错误按 §5.2.1 判定。payload MUST 同时携带未填充 base64url 编码的完整 RFC 9420 Proposal message `proposal_bytes_b64`，以及其解码后字节的 SHA-256 `proposal_digest`；receiver MUST 在写入 durable Event store 之前逐字验证 digest、MLS group id、base epoch 与 proposal type，并在处理 by-reference Commit 前从该 final Proposal Event 恢复 bytes 写入 MLS proposal store。v1 不存在 `proposal_message_ref` 或 digest-only 分支。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
-2. **正式生效 (Commit)**：MUST 有成员针对上述 Proposal 构造并广播 `ak.mls.commit`。一旦 Commit 被 accepted Seal 覆盖，epoch 推进，ratchet tree 据此更新，新 group secret 仅分发给剩余成员（不含被移除成员）；自该 epoch 起，被移除成员无法解密后续 application message。
+1. **意图上链 (Proposal)**：exact base 中的 Member 发出 `rfc9420.proposal`（例如移除某成员的意图）；producer 类、sender 绑定与不受支持分支的错误按 §5.2.1 判定。payload MUST 同时携带未填充 base64url 编码的完整 RFC 9420 Proposal message `proposal_bytes_b64`，以及其解码后字节的 SHA-256 `proposal_digest`；receiver MUST 在写入 durable Event store 之前逐字验证 digest、MLS group id、base epoch 与 proposal type，并在处理 by-reference Commit 前从该 final Proposal Event 恢复 bytes 写入 MLS proposal store。v1 不存在 `proposal_message_ref` 或 digest-only 分支。此阶段 group epoch 尚未推进，先前密钥仍有效，被提议移除的成员仍在 group 内。
+2. **正式生效 (Commit)**：MUST 有成员针对上述 Proposal 构造并广播 `ak.mls.commit`。一旦 Commit 被 accepted RealmCommit 覆盖，epoch 推进，ratchet tree 据此更新，新 group secret 仅分发给剩余成员（不含被移除成员）；自该 epoch 起，被移除成员无法解密后续 application message。
 
 #### 5.2.1 Proposal producer 与 sender 支持矩阵（normative）
 
-v1 的 Realm / Circle durable `ak.mls.proposal` 只有一个 producer 类：exact base 中的 **Member sender**。机器可读支持矩阵是 [`mls-proposal-admission-registry.json`](../../artifacts/registry/mls-proposal-admission-registry.json)，本节与该 registry 逐行对应。实现 MUST NOT 从 RFC 9420 的可解析性、底层 MLS 库的能力或 GroupContext 的既有配置推出第二个 producer 类。
+v1 的 Realm / Circle durable `rfc9420.proposal` 只有一个 producer 类：exact base 中的 **Member sender**。机器可读支持矩阵是 [`mls-proposal-admission-registry.json`](../sync/authority-commit-log.md)，本节与该 registry 逐行对应。实现 MUST NOT 从 RFC 9420 的可解析性、底层 MLS 库的能力或 GroupContext 的既有配置推出第二个 producer 类。
 
 **Member sender 绑定**：Proposal 的 RFC 9420 `Sender` MUST 是 `member`，其 `leaf_index` MUST 指向由 `payload.base_epoch` 与 `governance_binding.previous_epoch` 唯一选定的 exact accepted base group state 中已占用的叶。该叶的 LeafNode BasicCredential identity 与 signature key MUST 逐字节等于该 Event 已验证的真实 producer `executed_by ?? actor_id`（[`../models/event-and-patch.md` §3.1](../models/event-and-patch.md)）。三种 regime 的 credential identity 取值按 §2.7 的封闭规则确定：ordinary human 为 canonical DeviceId 的 UTF-8 bytes，Agent 为 canonical Agent ActorId 的 UTF-8 bytes，minimal-metadata 为该 Realm-local pairwise `principal_id` 的 UTF-8 bytes。零匹配、多匹配、credential 或 signing-key mismatch 与 directory fallback 一律拒绝。
 
@@ -912,31 +883,31 @@ RFC 9420 GroupContext extension `external_senders`（`0x0004`）在 v1 是 unsup
 6. 解码 Proposal 类型与声明的 `proposal_type` 不一致为 `schema_violation`。
 7. Member sender 绑定失败：叶不在 exact base 为 `failed_precondition`，credential 或 signature key 与已验证 producer 不一致为 `signature_invalid`。
 
-第 4 步与第 5 步先于第 6 步，因此一个结构合法但 v1 不支持的 producer 或 Proposal 类型 MUST NOT 被误报为 `schema_violation`，也 MUST NOT 被报成 `unsupported_event_kind`（`ak.mls.proposal` 是 active 标准 kind）、`capability_denied` 或 `signature_invalid`。反向同样成立：第 7 步的失败是授权与绑定失败，不是不受支持的特性，MUST NOT 用 `unsupported_feature` 掩盖。per-Event 拒绝以 `rejections[].reason_code` 承载，服务级失败按 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 的 HTTP 映射。
+第 4 步与第 5 步先于第 6 步，因此一个结构合法但 v1 不支持的 producer 或 Proposal 类型 MUST NOT 被误报为 `schema_violation`，也 MUST NOT 被报成 `unsupported_event_kind`（`rfc9420.proposal` 是 active 标准 kind）、`capability_denied` 或 `signature_invalid`。反向同样成立：第 7 步的失败是授权与绑定失败，不是不受支持的特性，MUST NOT 用 `unsupported_feature` 掩盖。per-Event 拒绝以 `rejections[].reason_code` 承载，服务级失败按 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 的 HTTP 映射。
 
 **与既有禁令的衔接**：§2.6 的「v1 不允许 external join 或由 external Commit 添加成员」是 KeyPackage 能力下界一节的入群禁令，本节是 durable Proposal 的 producer 边界。两者互不替代、互不削弱：即便某部署已把外部签名者写进 GroupContext，本节仍 MUST 拒绝其 durable Proposal。`effective_scope.kind="sidecar"` 保持 §2.5.1 的独立握手 profile，本节 sender 矩阵不改变 Sidecar 合同。
 
 本节的可执行证据是 [`../conformance/conformance-vectors.md` §2.5.7](../conformance/conformance-vectors.md) 的 `ak.vector.mls.proposal_producer_binding.v1`。
 
 ### 5.3 Committer 失联与 Commit 接管 (Takeover)
-单一 committer 失联 MUST NOT 永久锁定 epoch 推进：任一持有相应 commit 权限的成员 MAY 在 observe 到 pending `ak.mls.proposal` 后构造并广播 `ak.mls.commit` 接管该 proposal；commit 被 accepted Seal 覆盖后，被移除成员 MUST 失去后续 epoch 的解密能力。
+单一 committer 失联 MUST NOT 永久锁定 epoch 推进：任一持有相应 commit 权限的成员 MAY 在 observe 到 pending `rfc9420.proposal` 后构造并广播 `ak.mls.commit` 接管该 proposal；commit 被 accepted RealmCommit 覆盖后，被移除成员 MUST 失去后续 epoch 的解密能力。
 
-- **挂起态的可用性**：在对应 Commit 被 accepted Seal 覆盖前，scope 保持当前 epoch 与 group secret；尚未被移除的成员 MAY 继续使用当前 epoch 密钥收发 application message。
+- **挂起态的可用性**：在对应 Commit 被 accepted RealmCommit 覆盖前，scope 保持当前 epoch 与 group secret；尚未被移除的成员 MAY 继续使用当前 epoch 密钥收发 application message。
 - **Churn 合并**：committer SHOULD 在不超过 `max_mls_commit_delay_ms` 的前提下，把同一 `(scope, mls_group_id, base_epoch)` 上已可见且仍满足授权 / membership / policy freshness 的 pending membership proposals 合并进单个 Commit；实现不得为每个 join/leave 机械地产生独立 Commit。高隐私或大群 profile MAY 声明更严格的 epoch 推进速率上限，但 ban / revoke / device revoke 不得因此超过 §2.4.1 的发送暂停窗口。
-- **Commit 接管 (Takeover)**：任一持有相应 commit 权限的成员在 observe 到未消费的 Proposal 后，MAY 构造消费该 proposal 的 `ak.mls.commit` 并广播。该 commit 被 accepted Seal 覆盖后，epoch 推进，被移除成员自该 epoch 起 MUST 无法解密后续 application message。
+- **Commit 接管 (Takeover)**：任一持有相应 commit 权限的成员在 observe 到未消费的 Proposal 后，MAY 构造消费该 proposal 的 `ak.mls.commit` 并广播。该 commit 被 accepted RealmCommit 覆盖后，epoch 推进，被移除成员自该 epoch 起 MUST 无法解密后续 application message。
 
 #### 5.3.1 Direct Conversation participant MLS authority
 
 在 `ak.profile.direct_conversation_realm.v1` 中，canonical pair 双方通过
-`ak.authority.direct_conversation_participant.v1` 对等取得 `ak.mls.proposal` 与 `ak.mls.commit`，所以
+`ak.authority.direct_conversation_participant.v1` 对等取得 `rfc9420.proposal` 与 `ak.mls.commit`，所以
 epoch 活性不得依赖 creator/root controller 在线。求值仍必须逐字段验证唯一 immutable binding 的
 `realm_id`、`main_strand_id`、`mls_group_id`、双方 active membership 与当前 MLS governance binding；仅有
 membership、相同 group id 或 root owner 均不足。
 
 同一 stable participant 增加其 active authorized device 时只可使用 profile action
-`ak.mls.welcome.own_device`：Welcome recipient device 必须在该 participant 的当前 device authorization 中，
+`ak.delivery.mls_welcome.own_device`：Welcome recipient device 必须在该 participant 的当前 device authorization 中，
 KeyPackage/claim/nonce/commit/MLS group 必须与 active binding 和当前 epoch 精确匹配。该 action不得加入第三
-principal、对方的 device 或未知 device；这些情况也不能回退到宽 `ak.mls.welcome`。Agent
+principal、对方的 device 或未知 device；这些情况也不能回退到宽 `ak.delivery.mls_welcome`。Agent
 participant 还必须同时满足 immutable provision、runtime key、独立 capability 及当前 participation
 selection/policy gate。
 
@@ -945,30 +916,30 @@ MLS authoring authority 立即停止，同一 binding 投影为 `suspended`，�
 新 Realm/main Strand、successor/predecessor binding 或历史 segment；resolver 返回同一 `pair_key` 与永久坐标，
 并只在同一 scope-derived group 内用普通 Commit/rejoin 单调推进 epoch，绝不创建第二 group 或重置 epoch。若
 所有成员都丢失该 group 的私有状态时，旧 encrypted scope 永久不可继续，同一 stable participant pair + trust domain 的 resolver 保持 `suspended`，本地唯一 slot 不得回到可创建态。只有实际不同的 stable participant pair 或不同 trust domain 才会自然得到新的 `pair_key` 并走普通建联；它不是旧 lineage 的 successor，也不继承旧历史、keys、proof、receipt 或 epoch namespace。
-旧 epoch 的历史解密仍逐次按 receipt-bound direct Seal replay、current 单向收紧 history_access、incarnation/join floor、首次入队 current gate 与本地 key availability 判定，
+旧 epoch 的历史解密仍逐次按 receipt-bound direct RealmCommit replay、current 单向收紧 history_access、incarnation/join floor、首次入队 current gate 与本地 key availability 判定，
 恢复不得自动补发旧 epoch key。
 
 - 并发 Commit 只允许唯一安全确认结果生效。客户端持久保留 exact outbound bytes 与 staged state，超时查询同一命令结果；确认失败才销毁暂存并从当前状态重建。epoch 数字不能选 fork winner，不存在通过通用冲突恢复随意合并 MLS 密钥状态的路径。
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
-- `proposal_bytes_b64` / `proposal_digest` 属于每条被引用 `ak.mls.proposal`，分别是完整 RFC 9420 Proposal message 的未填充 base64url 和其解码后字节的 SHA-256。Committer、重启后的 receiver 与离线追赶 receiver 都必须从 durable Proposal Event 恢复 exact bytes；不得依赖同批 HTTP body、进程内 OpenMLS proposal store、发送端 outbox 或私有 blob route。
-- `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref；epoch 由 effective commit 机械派生，协议不定义独立的 `ak.mls.epoch` seal event。
-- `proposal_refs`：被该 Commit 消费的 `ak.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
+- `proposal_bytes_b64` / `proposal_digest` 属于每条被引用 `rfc9420.proposal`，分别是完整 RFC 9420 Proposal message 的未填充 base64url 和其解码后字节的 SHA-256。Committer、重启后的 receiver 与离线追赶 receiver 都必须从 durable Proposal Event 恢复 exact bytes；不得依赖同批 HTTP body、进程内 OpenMLS proposal store、发送端 outbox 或私有 blob route。
+- `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref；epoch 由 effective commit 机械派生，协议不定义独立的 `ak.mls.epoch` authority commit event。
+- `proposal_refs`：被该 Commit 消费的 `rfc9420.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - Add proposal 必须携 `target_authorization_incarnation`，逐字绑定要加入的 exact current Realm 或 Realm+Circle membership incarnation；非 Add proposal 禁带。消费该 Add 的 winning Commit 的 `next_epoch` 是该 incarnation 的唯一 `join_epoch`，不得用 wall clock 或服务本地接收顺序派生。
 - `commit_bytes_b64`：未填充 base64url 编码的完整 RFC 9420 MLS Commit 消息，MUST 内联携带，使离线成员仅依赖 durable Event history 即可按序追上 epoch；只携带摘要不能满足 §6 的离线恢复义务。
 - `commit_message_ref`：可选的 content-addressed Blob 引用，只用于归档、去重或传输优化；内嵌 suite/digest 必须匹配 `commit_bytes_b64` 解码后的 exact bytes，是这些 bytes 的唯一独立 wire digest carrier。payload 不携 `commit_digest`；ref 不得替代 `commit_bytes_b64`，也不得成为应用 winning Commit 的额外可用性依赖。
 - `governance_binding`：见第 2.5 节。
 
-同一 `(effective_scope, derived_group_id, base_epoch)` 上的多个 `ak.mls.commit` 候选由 Realm 安全序列按 `command_results` 顺序执行；首个满足 revision、授权和 MLS transition 的命令可提交，后续基于旧 revision 的候选必须留下 durable rejection，不能并存为多个有效 epoch，也不产生可接受的 `⊥`。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 confirmed Seal state 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
+同一 `(effective_scope, derived_group_id, base_epoch)` 上的多个 `ak.mls.commit` 候选由 Realm 安全序列按 `command_results` 顺序执行；首个满足 revision、授权和 MLS transition 的命令可提交，后续基于旧 revision 的候选必须留下 durable rejection，不能并存为多个有效 epoch，也不产生可接受的 `⊥`。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 confirmed RealmCommit state 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
 
-每个 group 的当前 epoch 由 effective `ak.mls.commit` Control Move 的 `governance_binding.next_epoch` 字段直接表达；projection seal 是 Lattice / snapshot 派生视图，不进入 wire history。
+每个 group 的当前 epoch 由 effective `ak.mls.commit` Control Move 的 `governance_binding.next_epoch` 字段直接表达；projection authority commit 是 Lattice / snapshot 派生视图，不进入 wire history。
 
-当网络分区导致节点尚未取得同一 confirmed Seal head、只看见不同未决 Commit 候选时，客户端 MUST 把依赖未知 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到确认序列、backfill 或 snapshot-assisted verification 补齐。服务端不得通过本地接收顺序指定 MLS epoch；发现两个互不可达 confirmed Seal 时必须停止该安全域。可选 designated committer / key service 只能由 Realm policy 授权为普通 actor 或 service capability，不能替代 CBS 验证。
+当网络分区导致节点尚未取得同一 confirmed RealmCommit head、只看见不同未决 Commit 候选时，客户端 MUST 把依赖未知 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到确认序列、backfill 或 snapshot-assisted verification 补齐。服务端不得通过本地接收顺序指定 MLS epoch；发现两个互不可达 confirmed RealmCommit 时必须停止该安全域。可选 designated committer / key service 只能由 Realm policy 授权为普通 actor 或 service capability，不能替代 authority-commit 验证。
 
 ### 5.5 Commit / Welcome 处理失败报告
 
-客户端本地处理 winning `ak.mls.commit`、`ak.mls.welcome` 或其 `governance_binding` 失败时，MAY 发布 已退役的 MLS 本地诊断 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
+客户端本地处理 winning `ak.mls.commit`、`ak.delivery.mls_welcome` 或其 `governance_binding` 失败时，MAY 记录仅本地可见的诊断。该诊断用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不进入共享 Event stream，不回滚 accepted commit，也不推进 epoch。
 
 `ak.mls.commit_failed.payload` MUST 至少包含：
 
@@ -981,21 +952,20 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 - 事件的 `actor_id` MUST 是报告失败的 principal 或其授权设备 / service actor；reporter device MUST 从唯一 producer proof 的 verification_method fragment 投影并按对应 actor/device 授权验证。
 - `payload` MUST NOT 包含 MLS secret、明文、Welcome 明文、私钥、passphrase、完整 ratchet tree 或可用于离线攻击的调试 dump。
-- `refs[]` SHOULD 包含失败的 `commit_ref`（`role="parent_event"` 或 `role="attestation"`）、相关 `ak.mls.welcome` 引用、当前 membership / policy frontier 或可验证 snapshot reference（`role="state_witness"`）。
-- 收到该事件的客户端 MAY 将相关消息保持 `decryption_pending`，并提示重新同步；服务端或管理员 MAY 重发 Welcome 或提交修复 Commit Control Move，但必须重新走普通授权、Control Move precondition 和 Seal finalization。
+- `refs[]` SHOULD 包含失败的 `commit_ref`（`role="parent_event"` 或 `role="attestation"`）、相关 `ak.delivery.mls_welcome` 引用、当前 membership / policy frontier 或可验证 snapshot reference（`role="state_witness"`）。
+- 收到该事件的客户端 MAY 将相关消息保持 `decryption_pending`，并提示重新同步；服务端或管理员 MAY 重发 Welcome 或提交修复 Commit Control Move，但必须重新走普通授权、Control Move precondition 和 RealmCommit finalization。
 
 ### 5.6 Epoch 自保推进
 
 Epoch 推进只由 MLS forward secrecy、message-count、membership/security-frontier 变化或部署固定运维上限触发。
-Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted Event/Seal 后 MUST 先原子耐久保存 post-state、
-该 epoch 的独立 history secret、group-state ref、counter marker，以及启用时同 Event 内的单一 RHRK archive，才允许
-下一 Commit 或 application send。Standard MLS 只保存 RFC 9420 active state，不生成 history secret/archive。
+Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted Event/RealmCommit 后 MUST 先原子耐久保存 post-state、
+该 epoch 的本地 content root、group-state ref 与 counter marker，才允许下一 Commit 或 application send。任何 epoch secret 都不得进入 Event、portable backup 或 Station-side recovery carrier。
 
 
 ## 6. 离线支持与消息延迟到达
-- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ak.mls.commit` 操作中强制内联的 `commit_bytes_b64` 按 accepted Seal 顺序跟上 Epoch 的演进，并解密积压在 Station sync surface 中的加密事件。实现不得假设发送者仍在线，也不得把可选 `commit_message_ref` 对应 blob 的可用性作为恢复前提。
+- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ak.mls.commit` 操作中强制内联的 `commit_bytes_b64` 按 accepted RealmCommit 顺序跟上 Epoch 的演进，并解密积压在 Station sync surface 中的加密事件。实现不得假设发送者仍在线，也不得把可选 `commit_message_ref` 对应 blob 的可用性作为恢复前提。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
-- 这种前驱 Epoch 保留是有界的恢复缓存，不是为后加入成员历史共享而无限期保存先前 secret。客户端 MUST 对本地先前 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。
+- 这种前驱 Epoch 保留是有界的恢复缓存，不是为后加入成员历史共享而无限期保存先前 secret。客户端 MUST 对本地先前 epoch key 使用设备保护存储，并在 retention / legal hold / erasure policy 不再要求保留时销毁；不得上传或转交该材料。
 
 ## 7. v1 集成要求
 
@@ -1005,7 +975,7 @@ Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted
 
 > **PQ 覆盖边界（informative，防误读）**：v1 的后量子覆盖分为三层：签名层（`ML-DSA-65`，[`../conformance/encoding.md` §6.1](../conformance/encoding.md)）与传输层（TLS `X25519MLKEM768`，[`../sync/federation.md` §3.2](../sync/federation.md)）已有 PQ 选项；应用层内容机密性由 MLS ciphersuite registry 与非-MLS HPKE suite registry 分别控制。读者 MUST NOT 把传输层 TLS PQ 误读为已覆盖 E2EE 正文：Harvest-Now-Decrypt-Later 攻击者收割的是落盘 / 转发的 E2EE 密文，其机密性取决于 MLS / HPKE 的 KEM 而非 TLS（TLS 只保护单次传输跳）。
 >
-> **非-MLS HPKE hybrid gate（informative）**：静态密文备份、to-device sealed material、member-application reviewer envelope 与 file-transfer key envelope 的 KEM agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 承载。该 registry 已登记 `ak.hpke_xwing_aead_chacha20poly1305.v1`（status=`reserved`，gate `ak.profile.kem.hybrid_xwing.v1`），用于 X-Wing（X25519+ML-KEM-768）hybrid KEM。reserved row 钉定 wire id、profile gate 与 activation requirements；在 row 翻为 active 且 conformance vectors 发布前，receiver 收到该 suite id MUST fail closed（`unsupported_hpke_suite`），不得自行组合 KEM/KDF/AEAD。
+> **非-MLS HPKE hybrid gate（informative）**：静态密文备份、to-device committed material、member-application reviewer envelope 与 file-transfer key envelope 的 KEM agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 承载。该 registry 已登记 `ak.hpke_xwing_aead_chacha20poly1305.v1`（status=`reserved`，gate `ak.profile.kem.hybrid_xwing.v1`），用于 X-Wing（X25519+ML-KEM-768）hybrid KEM。reserved row 钉定 wire id、profile gate 与 activation requirements；在 row 翻为 active 且 conformance vectors 发布前，receiver 收到该 suite id MUST fail closed（`unsupported_hpke_suite`），不得自行组合 KEM/KDF/AEAD。
 >
 > **MLS 内容 KEM 边界（normative scoping）**：v1 core MLS active set 仍是 `MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519`；本文件不定义 PQ-MLS negotiation 或 hybrid KeyPackage ciphersuite。MLS group KEM 的新增 suite 只能通过 `mls-ciphersuite-registry.json` 的 active row 与显式 profile gate 加法引入；未登记或 reserved 状态的 MLS suite MUST fail closed。与 HPKE registry 的 PQ 预注册纪律对齐，该 registry 已按 MLS WG `draft-ietf-mls-pq-ciphersuites-06` 登记 `MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519`（status=`reserved`，gate `ak.profile.kem.hybrid_xwing.v1`），并固定 KEM `0x647A`、KDF `0x0001`（HKDF-SHA256）、AEAD `0x0001`、SHA256 与 Ed25519 的 suite mapping。MLS 的 ratchet tree、key schedule 与 secret tree 使用两段式 Extract/Expand，而 `draft-ietf-hpke-pq` 未为 SHAKE 这类 single-stage KDF 定义这两个函数，因此 MLS KDF MUST 使用 HKDF 系列，MUST NOT 使用 HPKE PQ 的 SHAKE256 KDF `0x0011`。`draft-ietf-hpke-pq-05` / CFRG concrete-hybrid-kems 是 KEM 的主标准化路径；X-Wing individual draft 只作为同构造的补充参考。reserved row 在取得 IANA MLS code point、逐字节 conformance vectors 且全部 activation requirements 完成前不得出现在 wire 上，不改变本节 fail-closed 语义。
 >
@@ -1016,11 +986,11 @@ Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted
 控制服务恢复签发与 MLS scope 恢复收发是不同条件。恢复 MUST 先核实 accepted winning Commit
 链及 durable outcome，再从现行 outbound saga 保存的 exact Commit、Welcome 和 staged state
 续办；结果不明时不得重消耗 KeyPackage 或另造 Commit 身份。Proposal、Welcome、commit_failed
-继续遵守现有 plane、Seal、签名授权与依赖合同；本节不改变 §2.2 的 staged state 安装门槛。
+继续遵守现有 plane、RealmCommit、签名授权与依赖合同；本节不改变 §2.2 的 staged state 安装门槛。
 
 服务恢复、治理资格终止或 epoch 数字改变，都不能替代可用 MLS 私有状态。相关撤销/退出后的
 真实 key-access 缺口仍阻断该 scope 的发送，完成合法移除与换钥后才能解除；无依赖 scope
-按既有授权规则继续工作。notary 不持有群私钥，不能靠修改 epoch cell 恢复群秘密。
+按既有授权规则继续工作。notary 不持有群私钥，不能靠修改 epoch typed current result 恢复群秘密。
 
 声明端到端恢复完成前，MUST 验证既有成员在恢复后实际发送并由另一合法成员解密，受邀 endpoint
 使用绑定 accepted Commit 的有效 Welcome 完成入组，已移除成员不获得移除后 epoch 新密钥。
@@ -1028,8 +998,8 @@ Routing metadata 不得要求每小时 Commit。Exporter transition 在 accepted
 必要私钥或交付材料永久丢失、没有可用恢复权威等情况必须明确报告，不能宣称无损恢复旧密文。
 
 
-治理结果消费 Station的治理判定统一遵循 [cbs-profiles §9](../authz/cbs-profiles.md#9-治理结果证明normative)：
-可消费已确认 winning transition、成员实例与 every-and-only frontier Cell/range 结论，不重复重放无关控制历史。
-生产者、治理执行者仍验证公开 staged tree、consumed proposals、mls_frontier_leaves 和 security_frontier_digest。
+治理结果消费 Station的治理判定统一遵循 [authority_commit-profiles §9](../sync/authority-commit-log.md)：
+可消费已确认 winning transition、成员实例与 every-and-only frontier typed current result/range 结论，不重复重放无关控制历史。
+生产者、治理执行者仍验证公开 staged tree、consumed proposals、key_access_revision 和 key_access_revision。
 端点仍按 RFC MLS 顺序应用真实 Commit，核对 credential/Leaf key、Welcome、transcript、MAC/AEAD；
 治理 Station 不持有成员秘密，不能代替这些端到端检查。普通未确认 MLS 提交不能借一个旧的治理结论跳过公开输入校验。

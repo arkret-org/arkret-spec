@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-12.6",
+  "version": "2026-09-16.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-12T09:51:32+08:00",
+  "generated_at": "2026-09-16T16:30:00+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -92,7 +92,7 @@
         "ak.account_data.set"
       ],
       "deletion_mode": "physical_delete",
-      "description": "Actor-private View definition. The encrypted value validates as ak.schema.view.v1 with visibility=private; it never enters a shared Realm View cell.",
+      "description": "Actor-private View definition. The encrypted value validates as ak.schema.view.v1 with visibility=private; it never enters a shared Realm View typed current result.",
       "source_refs": [
         "spec/v1/zh/discovery/client-preferences.md",
         "spec/v1/zh/models/views.md"

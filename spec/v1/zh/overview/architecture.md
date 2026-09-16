@@ -87,7 +87,7 @@ Realm 则是协作数据边界。它定义 membership、capability scope、schem
 
 ### 2.2 Per-Actor Event Chain
 
-Arkret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+Arkret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`producer_revision` 和 `domain_refs` 形成可验证 event chain。
 
 它承担：
 
@@ -107,7 +107,7 @@ Event chain 可以由以下形态承载：
 
 Event 的实际存储形态由实现决定：可以是数据库表、对象存储中的 Event blob、文件系统 append-only log、Merkle log、content-addressed block store，或这些形式的组合。协议只要求它能稳定输出 canonical Event bytes、hash、签名、frontier、cursor 和 proof material。
 
-Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`actor_seq` 路径递增约束、`prev_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Station。Station 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
+Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`producer_revision` 路径递增约束、`domain_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Station。Station 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
 ### 2.3 Station
 
@@ -482,10 +482,10 @@ Arkret 固定以下架构取向：
 | 同一用户的不同设备 | PCR 中已接受且 current generation 为 active 的设备授权，只证明该设备当前可代表相应 Account 执行已授予动作；用户完成带外验证后，客户端可另行记录设备信任。 | 每台设备证明私钥持有；新设备按授权链与 generation 接纳；设备密钥变化、撤销、fence 和带外验证状态分别处理；端到端秘密只经已登记的配对、加密 to-device、backup 或 recovery 流程传递。 | 同属一个 principal 或 Account 不等于设备彼此可信，不允许自动复制私钥、MLS state 或“已验证”标记。一个被攻陷的已授权设备可在其 capability 内作恶，吊销不能追回其已经看见的明文或旧 epoch 密钥。权威规则见 [`crypto-media/device-lifecycle.md` §5–§10](../crypto-media/device-lifecycle.md#5-device-authorization-chain)。 |
 | 同一 Station 的不同用户 | 各用户分别信任该 Station 对自己已认证 Account 会话给出的 scoped 结果；Station 可执行本地接纳、投递和授权检查。 | 用户之间仍按完整 ActorId、Event proof、capability、membership、MLS sender 与内容认证互相验证；服务端必须执行账号和 Realm 隔离。 | 共用 Station 不建立用户间信任、联系人关系、membership、读取权或设备信任。Station 被攻陷可能同时影响多个本地账号的可用性、元数据和服务器结果；未加密或 policy 明确委托的明文也在其可见边界内。 |
 | 同一 principal 在不同 Station 的 Account | 每个完整 AccountId 都是独立账号与信任上下文；只有显式、已验证的绑定或协议事件才能建立它们之间的关系。 | 分别认证 Station、会话、设备 generation、ActorId 与 operation scope；跨站引用不得丢弃 `station_id` 或只按 principal DID 合并。 | 相同 principal 分量不证明两个 Account、设备集合、消息队列、push target、权限或历史相同，也不授权一个 Station 代表另一 Station。 |
-| 跨 Station 用户 | 用户可依赖自己的 Station 已验证并按本次 operation 返回的远端治理、设备或 signer 结果；共享事实仍以签名 Event、Seal、membership/capability 和端到端密码学为准。 | 客户端核对完整双方 AccountId/ActorId、Realm/scope、实际 producer 签名、MLS/内容绑定和 freshness；远端取材由自己 Station 走 peer 面完成，客户端不向远端 Station 交付自己的 SessionGrant/DPoP。 | 用户不因 federation、同 Realm 或对方 Station 的自报 verified 状态而直接信任对方。远端 Station 的已签 attestation 提供归责，不在密码学上阻止其为自己的账号发布虚假服务器断言；恶意源还可 withholding、选择性转发或提供不完整观察。 |
-| Station ↔ Station | 没有默认互信。接收 Station 只在本地 peer policy、Realm 业务授权和请求级认证全部通过后，接受某个有界 federation transaction。 | 接收方独立验证 service DID/method evidence、delegation/endpoint、HTTP message signature、双方 service/trust-domain、body digest、replay/freshness、Event proof、capability、Seal/basis 和目标绑定。 | allowlist、TLS、可解析 DID、有效服务签名或已知 peer 只证明相应层的身份/准入，不证明业务授权、内容真实、历史完整或对方善意。current-v1 不证明从未观察到的 Event 不存在，也不阻止 source withholding；见 [`sync/federation.md` §2–§3](../sync/federation.md#2-设计原则)。 |
+| 跨 Station 用户 | 用户可依赖自己的 Station 已验证并按本次 operation 返回的远端治理、设备或 signer 结果；共享事实仍以签名 Event、RealmCommit、membership/capability 和端到端密码学为准。 | 客户端核对完整双方 AccountId/ActorId、Realm/scope、实际 producer 签名、MLS/内容绑定和 freshness；远端取材由自己 Station 走 peer 面完成，客户端不向远端 Station 交付自己的 SessionGrant/DPoP。 | 用户不因 federation、同 Realm 或对方 Station 的自报 verified 状态而直接信任对方。远端 Station 的已签 attestation 提供归责，不在密码学上阻止其为自己的账号发布虚假服务器断言；恶意源还可 withholding、选择性转发或提供不完整观察。 |
+| Station ↔ Station | 没有默认互信。接收 Station 只在本地 peer policy、Realm 业务授权和请求级认证全部通过后，接受某个有界 federation transaction。 | 接收方独立验证 service DID/method evidence、delegation/endpoint、HTTP message signature、双方 service/trust-domain、body digest、replay/freshness、Event proof、capability、RealmCommit/basis 和目标绑定。 | allowlist、TLS、可解析 DID、有效服务签名或已知 peer 只证明相应层的身份/准入，不证明业务授权、内容真实、历史完整或对方善意。current-v1 不证明从未观察到的 Event 不存在，也不阻止 source withholding；见 [`sync/federation.md` §2–§3](../sync/federation.md#2-设计原则)。 |
 | 同一 Realm/Circle 的用户或 Agent | accepted membership 与 capability 只证明主体可在相应 effective scope 内执行特定动作；MLS membership 证明相应 epoch 的密码学参与资格。 | 每个接收方继续验证 Event、授权状态、scope、MLS epoch/sender、内容 schema，并把不可信内容当作潜在恶意输入。 | 共处 Realm/Circle 不建立人际信任、设备信任或内容真实性的额外保证。E2EE 防止未持钥服务读取正文，不阻止合法成员泄露已解密内容、提交恶意内容或观察其有权看到的元数据。 |
-| 治理结果消费 Station ↔ 治理 Station | 唯一冻结 signer 认证该 Realm 的 Seal（治理确认记录）与精确治理结果证明；普通客户端经自己 Station 消费 scoped 结果。 | 消费站验证独立信任起点、连续轮换、唯一签名、target/selectors、所需结果及已知撤销；治理 Station 完整执行验证，用户持钥授权与 E2EE 保留。 | 唯一治理方可谎报、分叉或阻断安全变更和冷查询；不承诺 Byzantine 容错，也不能生成未持有的用户签名或 MLS 秘密。见 [cbs-profiles §1、§9](../authz/cbs-profiles.md)。 |
+| 治理结果消费 Station ↔ 治理 Station | 唯一冻结 signer 认证该 Realm 的 RealmCommit（治理确认记录）与精确治理结果证明；普通客户端经自己 Station 消费 scoped 结果。 | 消费站验证独立信任起点、连续轮换、唯一签名、target/selectors、所需结果及已知撤销；治理 Station 完整执行验证，用户持钥授权与 E2EE 保留。 | 唯一治理方可谎报、分叉或阻断安全变更和冷查询；不承诺 Byzantine 容错，也不能生成未持有的用户签名或 MLS 秘密。见 [authority_commit-profiles §1、§9](../sync/authority-commit-log.md)。 |
 | 账号 ↔ trusted_recovery_service | 账号事先在 accepted policy 精确登记的单服务可作为 OR 方法授权本次整个账号控制权恢复。 | 接收者按 [key-management §8–§8.2](../identity/key-management.md#8-recovery-policy) 验 exact account、replacement key、session/challenge、policy、有效期、设备 PoP 与原子消费；policy 发布/撤销仍由该节已有合法授权者执行。 | 被登记服务失陷可滥用其恢复权，但 reanchor/unlock 不自动解密历史、授予任意业务写入或删除 active backup。显式 policy revoke 使未完成授权失效；普通 rotate 的 frozen session 与已 accepted reanchor 不追溯回滚按 §8.1 处理。 |
 | 用户 / native actor ↔ delegated Applet 或 Agent | 已接受 delegation/grant 可允许 executor 用自己的 key 代表 actor 写入；不是冒充 actor 私钥。 | 核对 actor、executed_by、authorization_ref、实际签名与 scope；Applet 另按 [applet-integration §11](../extensions/applet-integration.md#11-masquerading-与-delegated-agent) 验 exact resources、registration_epoch 与安装主体。UI 展示 actor 与 executor 双身份。 | 双身份归责不等于每条 Event 要求两份密码学签名。受托 executor 可在授权内作恶；Applet 不是唯一代表签署路径，Agent 亦按 §7 处理。 |
 | Controller ↔ Agent ↔ runtime 宿主 | 默认独立 Agent 模型只依赖显式 grant、approval、控制通道、审计与授权副本。 | 按 [encryption-and-audit §4](../crypto-media/encryption-and-audit.md) 分离 Controller/Agent 密钥域；分别核对 Agent 的业务授权与宿主可接触的 key、MLS state、明文和 tool credential。 | 第三方托管形成端点受托边界，宿主失陷影响其实际可访问的所有 Agent/凭据，只有有效隔离才限制为单 Agent。kill switch 不迫使恶意宿主服从或追回旧秘密；controller 身份不自动取得 Agent key/全部明文。同 principal 托管设备及本地 HD 例外按该节处理。 |
@@ -500,7 +500,7 @@ Arkret 固定以下架构取向：
 Event chain 能证明：
 
 - 哪个 principal 发布了哪些 Event
-- Event 的签名、`actor_seq` 和 `prev_refs` 是否成立
+- Event 的签名、`producer_revision` 和 `domain_refs` 是否成立
 - 顺序与签名是否成立
 
 Event chain 不能单方面定义共享 realm 的最终当前态。
@@ -553,7 +553,7 @@ Realm 构成了协作图的硬性隔离边界：
 
 1. **主体与角色**：谁产生事实、谁传输、谁接纳、谁消费、谁独立审计；程序部署在同一进程不合并逻辑角色。
 2. **精确身份与上下文**：使用完整 AccountId/ActorId、service DID、Realm/effective scope、operation、对象、audience、basis/epoch/generation 中哪些字段绑定结论；不得用裸 principal、URL、域名或显示名补足缺失身份。
-3. **信任依据与验证者**：结论来自用户/设备签名、service attestation、DID method evidence、capability/Seal、MLS/AEAD、Realm policy 还是本地 operator policy；在哪个边界首次验证，后续复用如何证明来源未变。
+3. **信任依据与验证者**：结论来自用户/设备签名、service attestation、DID method evidence、capability/RealmCommit、MLS/AEAD、Realm policy 还是本地 operator policy；在哪个边界首次验证，后续复用如何证明来源未变。
 4. **时间与状态**：freshness、expiry、replay、幂等、撤销、key rotation、leave/rejoin、fork/recovery 和缓存失效如何处理；历史有效不能自动推导当前授权。
 5. **数据暴露**：各方可见正文、密钥、身份、关系图和流量元数据中的哪些部分；最小披露、不可枚举失败和日志/审计保留如何约束。
 6. **失败语义**：不存在、不可见、未验证、依赖不可用、pending、conflict 与有效空结果是否可区分且不会被错误降级；网络成功、服务器接纳、治理 finality、业务完成和端到端可解密不得合并成一个“成功”。

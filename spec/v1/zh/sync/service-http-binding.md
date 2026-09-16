@@ -71,7 +71,7 @@ Typed current operation 只接受封闭 selector union。响应中的 revision �
 ### 3.2 Snapshot + tail
 
 首次 join、新设备和缓存修复使用 authority-signed typed snapshot，再从 snapshot 内每条获准
-stream head 的下一 position 拉取 tail。Snapshot 不包含 Cell chunk、通用 state root 或隐藏 stream
+stream head 的下一 position 拉取 tail。Snapshot 不包含 typed current result chunk、通用 state root 或隐藏 stream
 的 position。历史可见性仍由 join/history/retention policy 决定，不默认拉全历史。
 
 #### 3.3.1.1 Discovery 投影
@@ -319,11 +319,11 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 | `ak.self.circle.member.resource.delete.v1` | `DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}` | - | - | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_membership_outcome |
 | `ak.self.circle.read.list.v1` | `GET /_arkret/self/circles` | - | - | response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_list |
 | `ak.self.circle.resource.get.v1` | `GET /_arkret/self/circles/{circle_id}` | - | - | response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_view |
-| `ak.self.consent.command.grant.v1` | `POST /_arkret/self/consent/cells/grant` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_grant_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
+| `ak.self.consent.command.grant.v1` | `POST /_arkret/self/consent/results/grant` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_grant_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
 | `ak.self.consent.command.request.v1` | `POST /_arkret/self/consent/request` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_request_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_request_outcome |
-| `ak.self.consent.command.revoke.v1` | `POST /_arkret/self/consent/cells/revoke` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
-| `ak.self.consent.read.list.v1` | `GET /_arkret/self/consent/cells` | - | - | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_list |
-| `ak.self.consent.resource.get.v1` | `GET /_arkret/self/consent/cell` | - | - | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
+| `ak.self.consent.command.revoke.v1` | `POST /_arkret/self/consent/results/revoke` | - | - | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_revoke_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
+| `ak.self.consent.read.list.v1` | `GET /_arkret/self/consent/results` | - | - | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_list |
+| `ak.self.consent.resource.get.v1` | `GET /_arkret/self/consent/result` | - | - | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_view |
 | `ak.self.contact.command.checkpoint.v1` | `POST /_arkret/self/contacts/continuity-checkpoint` | - | - | request_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_request_body; response_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_continuity_checkpoint_outcome |
 | `ak.self.contact.command.reject.v1` | `POST /_arkret/self/contacts/reject` | - | - | request_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_reject_request; response_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_reject_outcome |
 | `ak.self.contact.command.request.v1` | `POST /_arkret/self/contacts/request` | - | - | request_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_operation_request; response_schema_ref=schemas/contact-operations.schema.json#/$defs/contact_request_outcome |

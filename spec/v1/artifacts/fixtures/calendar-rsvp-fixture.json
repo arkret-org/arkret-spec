@@ -1238,32 +1238,32 @@
     {
       "name": "rsvp_reducer_projection_missing_write_rejected",
       "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
-      "precondition": "registry declares exactly one cell write for ak.rsvp.set",
-      "action": "mutate the reducer implementation so it omits the registered RSVP cell write",
+      "precondition": "registry declares exactly one typed current result write for ak.rsvp.set",
+      "action": "mutate the reducer implementation so it omits the registered RSVP typed current result write",
       "semantic_outcome": "reject",
       "expected_reason_code": "reducer_projection_failed"
     },
     {
       "name": "rsvp_reducer_projection_extra_target_rejected",
       "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
-      "precondition": "registry declares exactly one RSVP cell target for ak.rsvp.set",
-      "action": "mutate the reducer implementation so it also projects an unregistered cell write",
+      "precondition": "registry declares exactly one RSVP typed current result target for ak.rsvp.set",
+      "action": "mutate the reducer implementation so it also projects an unregistered typed current result write",
       "semantic_outcome": "reject",
       "expected_reason_code": "reducer_projection_failed"
     },
     {
       "name": "rsvp_effective_projection_instance_overrides_series",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
-      "precondition": "same responder has a series-cell winner and an instance-cell winner for the same occurrence",
+      "precondition": "same responder has a series-typed current result winner and an instance-typed current result winner for the same occurrence",
       "action": "compute the effective response",
       "semantic_outcome": "accept",
-      "expected_projection": "the instance winner is used; the series winner is only a fallback and the two cells are never unioned"
+      "expected_projection": "the instance winner is used; the series winner is only a fallback and the two typed results are never unioned"
     },
     {
       "name": "rsvp_effective_projection_causal_successor_dominates",
       "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
       "precondition": "the same responder rewrites an earlier RSVP while observing it",
-      "action": "join the causal_register cell in either arrival order",
+      "action": "join the causal_register typed current result in either arrival order",
       "semantic_outcome": "accept",
       "expected_projection": "the causal successor is the unique winner and the result is independent of arrival order, HLC and created_at"
     },
@@ -1309,9 +1309,9 @@
       "expected_projection": "refusal is client-side because status needs schedule plaintext; historical RSVP projection is retained and a late winner is shown as a response to a cancelled event"
     },
     {
-      "name": "rsvp_admission_basis_outside_causal_refs_rejected",
+      "name": "rsvp_admission_basis_outside_domain_refs_rejected",
       "vector_id": "ak.vector.calendar.rsvp_admission.v1",
-      "precondition": "entry.schedule_basis_refs contains a digest absent from causal_refs[] (shape admission, decidable without resolving anything)",
+      "precondition": "entry.schedule_basis_refs contains a digest absent from domain_refs[] (shape admission, decidable without resolving anything)",
       "action": "submit ak.rsvp.set",
       "semantic_outcome": "reject",
       "expected_reason_code": "rsvp_basis_not_causal"
@@ -1384,7 +1384,7 @@
     {
       "name": "rsvp_admission_basis_out_of_order_rejected",
       "vector_id": "ak.vector.calendar.rsvp_admission.v1",
-      "precondition": "entry.schedule_basis_refs holds two distinct digests that are a genuine subset of causal_refs[], non-empty and deduplicated, but listed in descending byte order",
+      "precondition": "entry.schedule_basis_refs holds two distinct digests that are a genuine subset of domain_refs[], non-empty and deduplicated, but listed in descending byte order",
       "action": "submit ak.rsvp.set carrying [sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
       "semantic_outcome": "reject",
       "expected_reason_code": "rsvp_basis_not_causal",
@@ -1405,7 +1405,7 @@
       "action": "submit ak.rsvp.set",
       "semantic_outcome": "reject",
       "expected_reason_code": "rsvp_occurrence_not_canonical",
-      "expected_projection": "the receiver parses and validates the signed date component during shape admission; it MUST NOT create a cell address for a nonexistent date or defer the check until schedule decryption"
+      "expected_projection": "the receiver parses and validates the signed date component during shape admission; it MUST NOT create a typed current result address for a nonexistent date or defer the check until schedule decryption"
     },
     {
       "name": "rsvp_privacy_plaintext_branch_requires_dual_authorization",

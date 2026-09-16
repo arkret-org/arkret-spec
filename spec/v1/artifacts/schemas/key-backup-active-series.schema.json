@@ -98,8 +98,7 @@
     "backup_kind": {
       "type": "string",
       "enum": [
-        "secret_storage",
-        "mls_history"
+        "secret_storage"
       ]
     },
     "backup_series_id": {

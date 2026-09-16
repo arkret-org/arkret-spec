@@ -3,7 +3,7 @@
   "fixture_kind": "schema_only",
   "profile": "ak.profile.key_backup.memory_hard.v1",
   "version": "2026-09-11.1",
-  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, Agent PCR binding across public/plaintext/AAD views, derived whole-object signature projections, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases including the closed four-method union and rejection of the removed threshold_recovery method. Per identity/key-management.md §7.5.6 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
+  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, Agent PCR binding across public/plaintext/AAD views, derived whole-object signature projections, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases for the closed four-method union. Per identity/key-management.md §7.5.6 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
   "runner": {
     "kind": "json_schema_validation_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -48,57 +48,6 @@
           }
         ]
       }
-    },
-    {
-      "name": "recovery_policy_threshold_recovery_method_rejected",
-      "schema_ref": "schemas/recovery-policy.schema.json",
-      "expect_valid": false,
-      "instance": {
-        "schema": "ak.schema.recovery_policy.v1",
-        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000005",
-        "account_id": {
-          "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
-          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-        },
-        "version": 1,
-        "supersedes_id": null,
-        "trust_domain": "ak:trust_domain:did.webvh.example",
-        "issued_at": "2026-04-26T00:00:00.000Z",
-        "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
-          "signature_algorithm": "Ed25519",
-          "signature": "signature-base64url-placeholder"
-        },
-        "methods": [
-          {
-            "kind": "threshold_recovery",
-            "k": 2,
-            "shares": [
-              {
-                "share_id": "s1",
-                "holder_kind": "personal_principal",
-                "holder_principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
-                "transport": "hpke_x25519",
-                "share_commitment": {
-                  "algorithm": "feldman_vss_sha256",
-                  "commitment_b64u": "commitment1"
-                }
-              },
-              {
-                "share_id": "s2",
-                "holder_kind": "custodial_service",
-                "holder_service_id": "ak:did_core:webvh:z6mkfixturecarolexample",
-                "transport": "hpke_x25519",
-                "share_commitment": {
-                  "algorithm": "feldman_vss_sha256",
-                  "commitment_b64u": "commitment2"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "first_expected_error": "contains:'kind': 'threshold_recovery'"
     },
     {
       "name": "recovery_policy_successor_missing_supersedes_id_rejected",

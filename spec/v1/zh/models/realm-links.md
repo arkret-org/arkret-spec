@@ -86,9 +86,9 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 - `rejected`
 - `tombstoned`
 
-`ak.realm.link` 写入 `ak.component.realm.link.v1` cell。cell subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`state_model=causal_register`、`execution=data`；并发 status 按固定 `(depth,EventId)` 选择唯一 current，导航只从该 winner 投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+`ak.realm.link` 写入 `ak.component.realm.link.v1` typed current result。typed current result subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`state_model=causal_register`、`execution=data`；并发 status 按固定 `(depth,EventId)` 选择唯一 current，导航只从该 winner 投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
 
-允许的状态迁移如下；`absent` 只表示尚无 cell，不是 wire 状态：
+允许的状态迁移如下；`absent` 只表示尚无 typed current result，不是 wire 状态：
 
 | from | to | 说明 |
 | --- | --- | --- |
@@ -129,7 +129,7 @@ Projection MAY 派生：
 若 Realm 需要从另一个 Realm 派生 capability 或 policy，必须使用目标 Realm 内的显式 policy：
 
 - `ak.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
-- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in，承载 Event 的 `seal_basis` 固定有效 causal frontier。payload 只携带完整的派生 `grant` 与逐字相等的 `grant_id`，不得复制 policy 或 frontier sidecar 字段。
+- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in，承载 Event 的 `authority_revision` 固定有效 causal frontier。payload 只携带完整的派生 `grant` 与逐字相等的 `grant_id`，不得复制 policy 或 frontier sidecar 字段。
 
 继承规则：
 

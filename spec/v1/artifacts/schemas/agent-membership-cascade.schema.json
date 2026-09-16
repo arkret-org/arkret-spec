@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-membership-cascade.schema.json",
   "title": "Arkret Agent Membership Cascade",
-  "description": "Closed binding and durable cleanup state for Agent Realm membership. Effective membership is the AND of the Agent member cell, the exact controller membership generation, Agent lifecycle and provision/accountability validity. Canonical Agent leave transitions are always caller-signed; a service never synthesizes them.",
+  "description": "Closed binding and durable cleanup state for Agent Realm membership. Effective membership is the AND of the Agent member typed current result, the exact controller membership generation, Agent lifecycle and provision/accountability validity. Canonical Agent leave transitions are always caller-signed; a service never synthesizes them.",
   "oneOf": [
     {
       "$ref": "#/$defs/agent_controller_membership_binding"

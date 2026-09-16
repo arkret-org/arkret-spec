@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14.2",
+  "version": "2026-09-16.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-14T15:37:05+08:00",
+  "generated_at": "2026-09-16T11:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -13,13 +13,13 @@
     "No adapter exposes expand or core_to_did. Even when a method-specific suffix appears reversible, an isolated did_core_id cannot create resolution authority; the required did or did_url arrives through did-evidence-boundary-registry.json.",
     "A did is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
     "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
-    "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:cell:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current cell; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
+    "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact head_eq precondition guards ak:result:ak.component.identity.resolution.v1:null. The guarded whole resolution_projection MUST equal the accepted current typed current result; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
     "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered, given PCR genesis and later replayed from a portable account_device_control root only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist."
   ],
   "principal_resolution_contract": {
     "version": "2026-08-30.1",
-    "cell_ref": "ak:cell:ak.component.identity.resolution.v1:null",
-    "cell_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+    "result_selector": "ak:result:ak.component.identity.resolution.v1:null",
+    "result_value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
     "profile_write_policy": {
       "create_forbidden_members": [
         "id",
@@ -41,7 +41,7 @@
       ],
       "principal_rule": "event.actor_id == project(payload.object.initial_resolution.did)",
       "realm_rule": "derive_identity_control_realm(event) == evidence.principal_control_realm_id",
-      "projection_rule": "cell_value = payload.object.initial_resolution + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
+      "projection_rule": "result_value = payload.object.initial_resolution + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
     },
     "update_successor": {
       "event_kind": "ak.identity.resolution.update",
@@ -51,7 +51,7 @@
       },
       "required_realm_rule": "event.realm_id == derive_identity_control_realm(event.actor_id)",
       "required_precondition": {
-        "cell": "ak:cell:ak.component.identity.resolution.v1:null",
+        "typed current result": "ak:result:ak.component.identity.resolution.v1:null",
         "op": "head_eq",
         "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
         "cardinality": 1
@@ -61,12 +61,12 @@
         "payload.next is a method-valid successor of precondition.value.method_history_head",
         "project(payload.next.did) == event.actor_id"
       ],
-      "projection_rule": "cell_value = payload.next + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
+      "projection_rule": "result_value = payload.next + {resolution_event_ref:event.event_id, updated_at:event.created_at}"
     },
     "public_projection_evaluator": {
       "schema_ref": "schemas/identity-resolution.schema.json#/$defs/public_principal_resolution",
       "checks": [
-        "the response carries none of principal_control_realm_id, principal_genesis_event, principal_genesis_receipt, current_resolution_event, predecessor_resolution_events or accepted_seal; any such member is a schema violation on this surface",
+        "the response carries none of principal_control_realm_id, principal_genesis_event, principal_genesis_receipt, current_resolution_event, predecessor_resolution_events or accepted_commit; any such member is a schema violation on this surface",
         "projection_attestation.attestation.principal_id == principal_id and projection_attestation.attestation.station_id == station_id",
         "projection_attestation.attestation.resolution_projection equals resolution_projection field for field",
         "projection_attestation.attestation.method_history_evidence_digest == sha256 over RFC 8785 JCS of method_history_evidence",
@@ -87,9 +87,9 @@
         "derive_identity_control_realm(principal_genesis_event) == principal_control_realm_id",
         "every post-genesis event is ak.identity.resolution.update with actor_id == principal_id and realm_id == principal_control_realm_id",
         "if current_resolution_event is principal_genesis_event then predecessor_resolution_events is empty; otherwise predecessor_resolution_events[0] is the current Event's guarded immediate predecessor when history_depth is nonzero",
-        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-cell values; the segment never exceeds request history_depth items and never skips an intermediate Event",
+        "the supplied resolution events form a contiguous immediate-predecessor segment backward from current_resolution_event under the exact guarded whole-typed current result values; the segment never exceeds request history_depth items and never skips an intermediate Event",
         "history_complete is true exactly when the segment terminates at principal_genesis_event or at the exclusive request after_resolution_event_ref ancestor; otherwise history_complete is false, next_audit_cursor equals value.resolution_event_ref in the exact head_eq precondition of the oldest supplied Event (its guarded immediate predecessor), and omitted history is never treated as absent",
-        "accepted_seal.realm_id == principal_control_realm_id and accepted_seal recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
+        "accepted_commit.realm_id == principal_control_realm_id and accepted_commit recursively covers both principal_genesis_event.event_digest and current_resolution_event.event_digest",
         "the registered resolution reducer applied to current_resolution_event yields the response's current resolution projection and project(did) == principal_id",
         "method_history_evidence boundary and currentness validate under the adapter selected by that current resolution projection's did"
       ],

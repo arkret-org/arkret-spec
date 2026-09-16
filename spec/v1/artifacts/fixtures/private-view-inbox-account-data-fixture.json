@@ -183,7 +183,7 @@
         "shared_view_query_visibility": [
           "shared"
         ],
-        "private_definition_in_shared_realm_cell": false
+        "private_definition_in_shared_realm_result": false
       }
     },
     {

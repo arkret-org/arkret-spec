@@ -19,18 +19,18 @@ sidebar:
 
 机器真相源为 [current-result-registry](../../artifacts/registry/current-result-registry.json) 与
 [account-current-result schema](../../artifacts/schemas/account-current-result.schema.json)。每个标准非日志
-cell family 必须登记明确交付策略；普通 current family 有精确 value schema、lattice 和 target 推导规则；value 是完整结果，不是 patch、reducer op
+typed current result family 必须登记明确交付策略；普通 current family 有精确 value schema、lattice 和 target 推导规则；value 是完整结果，不是 patch、reducer op
 或任意 JSON。生成器校验与所有已注册非日志 writer 的覆盖，不允许静默漏掉新增 writer。
 device.list_update 是历史通知断言，只通过既有 device_lists 通道与设备当前查询交付，不进入普通 current
 coverage，也不得把全历史 changed/left payload 数组伪装成设备当前值。
-ordered_log 不进入完整当前 cell 集，继续使用 timeline 或专门的服务器当前投影，例如成员 identity roster。
+ordered_log 不进入完整当前 typed current result 集，继续使用 timeline 或专门的服务器当前投影，例如成员 identity roster。
 扩展 family 在注册完整当前值类型前不得伪装成标准 value；只能明确 unavailable，不得用空值代替。
 
 ## 2. 选择器、类型与唯一字段归属
 
 每条 `CurrentResultEntry` 为 closed `{selector, target, revision, result}`。
-`selector {scope_ref, cell_id}` 是唯一安装键；scope 只能是该外层 Realm 自身或它拥有的合法 Circle，
-cell_id 是原有完整 CellRef。不同 scope 的同 CellRef 不相等。
+`selector {scope_ref, result_id}` 是唯一安装键；scope 只能是该外层 Realm 自身或它拥有的合法 Circle，
+result_id 是原有完整 TypedResultSelector。不同 scope 的同 TypedResultSelector 不相等。
 
 `target` 是 closed `realm | strand {strand_id} | member {actor_id} | event {event_id}` 的兴趣归属：
 
@@ -47,18 +47,18 @@ target 不另建状态键，不是 caller 提供的权限声明。服务器必�
 accepted source 对象的关联；客户端按 registry 检查可检查的 scope/ID/target 绑定，不重放 source history。
 tuple/hash subject 不可逆，服务器必须在接纳 writer 时同事务保存其真实目标关联，不能从 hash 猜测目标。
 客户端不为补关联下载 source history；只核对可检查的单 ID、结果内对象 ID 与 scope，信任自己 Station 的已裁决关联。
-同 selector 的 target 不能随更新或分页任意改变。Realm target 不扩大 Circle 可见性；即使 cell 属于 realm
+同 selector 的 target 不能随更新或分页任意改变。Realm target 不扩大 Circle 可见性；即使 typed current result 属于 realm
 目标，Circle 内的内容仍须同时满足冻结窗口与当前 Circle 读取资格。
 
 `result` 的唯一分支：
 
 - `status=value, value, source?`：sequenced_state 的已确认值、OR-set 完整已 join 的元素值集合，或
   causal_register 的确定性唯一当前值。causal_register 的已写入值 MUST 同时携带
-  `source={event_id,depth}`；`depth` 为同 Cell 已验证因果深度，`event_id` 为该完整值的写入身份。
+  `source={event_id,depth}`；`depth` 为同 typed current result 已验证因果深度，`event_id` 为该完整值的写入身份。
   其它 state model MUST 省略 source。空集合与显式
   null 依 family 类型表示真实结果，不表示缺响应；不携 dots，不要求客户端 join。
-  从未写入的 sequenced_state cell 可由服务器确认 null，OR-set 可确认空数组，不得为补基线伪造 Genesis Event。
-  register 形态的 causal_register 单例 cell 同样可由服务器确认 null。该已确认空值没有写入身份，
+  从未写入的 sequenced_state typed current result 可由服务器确认 null，OR-set 可确认空数组，不得为补基线伪造 Genesis Event。
+  register 形态的 causal_register 单例 typed current result 同样可由服务器确认 null。该已确认空值没有写入身份，
   MUST 省略 `source`；写过 null 的值仍 MUST 携带 `source`，两者因此在 wire 上可区分，满足
   [事件授权与状态判定 §6](../authz/event-auth-state-resolution.md) 对“写过的 null 与未写入 MUST 可区分”的要求。
   `source` 只存在于 `status=value`；`removed` 与 `unavailable` 不含该字段，也不得被用来表示已确认空值。
@@ -68,19 +68,19 @@ tuple/hash subject 不可逆，服务器必须在接纳 writer 时同事务保�
   不可用不是空值或删除。causal_register rank 依赖缺失时不得安装猜测值；安全状态缺确认材料时同样 fail closed。
 
 Strand/Space/Morph/Relation/Profile/Circle 的当前对象值使用注册的具体对象 schema 派生完整当前值类型，
-保留 create-derived id 和本 cell 全部已物化字段；registry 明确排除由独立 lifecycle、stage、parent、
-resolution 或 history-access cell 拥有的字段。客户端只在展示层组合不同已安装结果，不能把组合对象
-反写为单个 head 或使一个 cell 的替代删除其它 cell。View.state 由 View 自身持有时保留。
+保留 create-derived id 和本 typed current result 全部已物化字段；registry 明确排除由独立 lifecycle、stage、parent、
+resolution 或 history-access typed current result 拥有的字段。客户端只在展示层组合不同已安装结果，不能把组合对象
+反写为单个 head 或使一个 typed current result 的替代删除其它 typed current result。View.state 由 View 自身持有时保留。
 
 Realm genesis 当前值保留原有具体 genesis schema，为 purpose、security_class、encryption_profile 等
 create-locked 属性提供完整来源。genesis 中的初始 notary/reducer/digest 坐标只表示创建时配置，当前值
-分别由 notary、realm.reducer_profile、realm.digest_suite cell 决定，禁止用旧初始值覆盖它们。
-MLS epoch cell 复用唯一 MlsEpochHead；Genesis 仅允许 `(0,0)`，普通推进必须 `n→n+1`，无 nullable 第二类型。
+分别由 notary、realm.reducer_profile、realm.digest_suite typed current result 决定，禁止用旧初始值覆盖它们。
+MLS epoch typed current result 复用唯一 MlsEpochHead；Genesis 仅允许 `(0,0)`，普通推进必须 `n→n+1`，无 nullable 第二类型。
 
 ### 2.1 集合领域当前投影
 
 remove_observed/remove_dots 是服务器操作，绝不进入 current 值。某些领域把 remove 作为 add 断言保留在
-审计 cell；它们不能作为活跃条目发送给客户端再求领域默认视图。registry 的 domain_current 分支明确为：
+审计 typed current result；它们不能作为活跃条目发送给客户端再求领域默认视图。registry 的 domain_current 分支明确为：
 
 - agent.key：服务器执行 key-management 的完整有效授权 fold，active 结果返回精确 method、public-key
   digest、accountability、scope/audience 交集、最早有限 expiry 和全部活跃 authorization Event refs。
@@ -98,7 +98,7 @@ capability/grant/derived、consent 和 invite proposal 的 joined 值只表示�
 当前可行动邀请或成员资格。有效授权复用 self.authz 的 effective/check 当前结果，邀请复用当前邀请 list；
 consent revoke 的精确 active dots 继续由 consent authoring 查询提供，本载体不替代这些专门输入。
 
-这些是服务器当前读投影，不改动原核心 lattice、审计 cell 或 signed Event。时间到期、父 lifecycle 和
+这些是服务器当前读投影，不改动原核心 lattice、审计 typed current result 或 signed Event。时间到期、父 lifecycle 和
 范围可见性变化同样触发持久 current revision/失效，不能仅等下一条用户 Event 才撤销旧 active 结果。
 
 ## 3. 版本与失效
@@ -114,7 +114,7 @@ revision 使用与账号 Realm 摘要、`realm_invalidations.revision` 相同的
 
 客户端按 selector 原子安装完整 result 与 target：较大 revision 替代，较小 revision 忽略；相同 revision
 必须是 canonical-byte 相同的 result 和 target。相同版本不同内容或归属属于协议冲突，必须拒绝该帧、
-停止推进 cursor 并重新查询 Station，不能任择覆盖。一个 Event 影响多个 cell 时，每个 selector 独立安装。
+停止推进 cursor 并重新查询 Station，不能任择覆盖。一个 Event 影响多个 typed current result 时，每个 selector 独立安装。
 
 失效到达时暂停受影响操作，废止该 Realm 旧 baseline generation；旧段和旧 complete 不能清除 pending。
 即使 filter 未变化，也必须重新建立目标当前结果基线。新基线 cut_revision 必须不早于已知失效 revision。
@@ -159,7 +159,7 @@ authz/current-result 接口取得；不可要求客户端从 grant Events 求权
 不能解释为默认值。服务器优先交付这些有界必要目标；不能要求等待 Realm 全对象、all members、所有 Realm
 或旧消息才能呈现首屏。MLS authoring/accepted-artifact 查询仍使用各自正式 exact result，不借本基线替代 E2E。
 
-`cell_contracts` 中 `cell_subject: null` 表示单例，不能误读为动态 subject。对于上述尚未写入的单例，
+`result_contracts` 中 `result_selector: null` 表示单例，不能误读为动态 subject。对于上述尚未写入的单例，
 publisher 必须在验证完整 accepted 状态后发布已确认空值；数据库中缺少结果行本身不是空值证明。
 派生 publication 标为 ready 但缺少必要基线条目时，读取方必须使其失效并通过既有 accepted frontier
 重建路径修复，不能永久重试同一不完整 publication，也不能由客户端补默认值或发出新的治理 Event。

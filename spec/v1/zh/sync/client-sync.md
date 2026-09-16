@@ -85,7 +85,7 @@ Timeline 是 committed Event 的展示序列；current 是 own Station返回的 
 
 ### 5.1 服务器当前结果
 
-Typed current result至少绑定 selector、value/status、领域 revision，以及来源 `{commit_id, stream_ref, stream_position}`。客户端核对 request/account/Realm/selector 后安装结果，不执行 CBS/Lattice/Cell reducer。
+Typed current result至少绑定 selector、value/status、领域 revision，以及来源 `{commit_id, stream_ref, stream_position}`。客户端核对 request/account/Realm/selector 后安装结果，不执行 authority-commit/Lattice/typed current result reducer。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
@@ -177,7 +177,7 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 #### 12.3.2 `frontier_stale`（旧 cursor 仍有效，可继续 backfill）
 
-该历史错误名只表示服务仍能从已有 cursor补拉更早的获准内容；它不是 actor/Seal frontier。客户端按响应 continuation继续。
+该历史错误名只表示服务仍能从已有 cursor补拉更早的获准内容；它不是 actor/RealmCommit frontier。客户端按响应 continuation继续。
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
@@ -205,11 +205,11 @@ MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内�
 
 ### 14.1 解密缓存与历史密钥的本地静态加密 (normative)
 
-本地 MLS private state、解密缓存和同主体备份必须静态加密并绑定账号/设备。v1 不定义 Realm history-key request/response，也不向新 member/endpoint补发加入前 epoch secrets。
+本地 MLS private state、解密缓存和同主体备份必须静态加密并绑定账号/设备。新 member/endpoint 从其有效 Add/Welcome 起获得后续 epoch state。
 
 ### 14.2 History-only multi-candidate store（normative）
 
-该旧锚点保留。现行实现 MAY 本地保留多个已验证历史 MLS states以解密自己本来有权读取的旧消息，但不得通过网络候选合并、exporter share或治理 Station恢复扩大访问范围。
+实现 MAY 本地保留多个已验证历史 MLS states 以解密自己本来有权读取的旧消息，但不得通过网络候选合并或治理 Station 扩大访问范围。
 
 ## 15. E2EE and MLS Sync Performance
 

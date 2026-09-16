@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 50,
+  "version": 53,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-16T08:30:00+08:00",
+  "generated_at": "2026-09-16T18:30:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -78,11 +78,6 @@
           "match_scope": "root"
         }
       ]
-    },
-    "agent.audit_binding": {
-      "status": "retired",
-      "selectors": [],
-      "retirement_reason": "This historical object has no active v1 owning schema. No current wire instance may claim this context. The historical entry is retained only to explain the removed spelling; current closed schemas and active context guards remain authoritative."
     },
     "agent_key_authorize_runtime_attestation": {
       "selectors": [
@@ -326,11 +321,6 @@
         }
       ]
     },
-    "directory_query_policy": {
-      "status": "retired",
-      "selectors": [],
-      "retirement_reason": "This historical object has no active v1 owning schema. No current wire instance may claim this context. The historical entry is retained only to explain the removed spelling; current closed schemas and active context guards remain authoritative."
-    },
     "directory_search_request": {
       "selectors": [
         {
@@ -459,16 +449,6 @@
         }
       ]
     },
-    "generic_proof": {
-      "selectors": [
-        {
-          "document_kind": "proof",
-          "schema_ref": "*",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "grant_constraint": {
       "selectors": [
         {
@@ -566,22 +546,6 @@
           "schema_ref": "media-metadata.schema.json",
           "instance_pointer": "",
           "match_scope": "root"
-        }
-      ]
-    },
-    "media_response_backend_token_roster_binding_sfu_answer_exporter_context_error_code_or_vector_id": {
-      "selectors": [
-        {
-          "document_kind": "wire",
-          "schema_ref": "*",
-          "instance_pointer": "",
-          "match_scope": "descendants"
-        },
-        {
-          "document_kind": "executable_artifact",
-          "schema_ref": "*",
-          "instance_pointer": "",
-          "match_scope": "descendants"
         }
       ]
     },
@@ -899,21 +863,6 @@
         }
       ]
     },
-    "retired_device_identity_wire": {
-      "selectors": [
-        {
-          "document_kind": "wire",
-          "schema_ref": "*",
-          "instance_pointer": "",
-          "match_scope": "descendants"
-        }
-      ]
-    },
-    "reviewer_quorum": {
-      "status": "retired",
-      "selectors": [],
-      "retirement_reason": "This historical object has no active v1 owning schema. No current wire instance may claim this context. The historical entry is retained only to explain the removed spelling; current closed schemas and active context guards remain authoritative."
-    },
     "schema_id": {
       "selectors": [
         {
@@ -1179,24 +1128,6 @@
         "negative_test"
       ],
       "notes": "MIMI consent update request body bare `actor` renamed to actor_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_update_consent_request_body context (mimi-operations.schema.json); the bare token `actor` remains a legitimate enum value and prose noun elsewhere — literal scanners MUST NOT flag every `actor` token.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "actor"
-        ]
-      }
-    },
-    {
-      "id": "actor",
-      "context": "agent.audit_binding",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "actor_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Agent audit binding subject is a protocol actor DID-as-id.",
       "match": {
         "kind": "field",
         "values": [
@@ -2126,42 +2057,6 @@
       }
     },
     {
-      "id": "blocked_principal_services",
-      "context": "directory_query_policy",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "denied_principal_services",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Denylist collections use the closed `denied_` prefix.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "blocked_principal_services"
-        ]
-      }
-    },
-    {
-      "id": "blocked_subjects",
-      "context": "directory_query_policy",
-      "since_revision": "2026-07-26",
-      "rejection_level": "hard_reject",
-      "replacement": "denied_subjects",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Denylist collections use the closed `denied_` prefix.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "blocked_subjects"
-        ]
-      }
-    },
-    {
       "id": "blocks",
       "context": "content_block_composite",
       "since_revision": "2026-05-23",
@@ -2176,24 +2071,6 @@
         "kind": "field",
         "values": [
           "blocks"
-        ]
-      }
-    },
-    {
-      "id": "bootstrap_binding",
-      "context": "retired_device_identity_wire",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "holder_binding",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "bootstrap_binding"
         ]
       }
     },
@@ -2450,42 +2327,6 @@
       }
     },
     {
-      "id": "cowrite_policy",
-      "context": "realm_object_or_realm_lifecycle_payload",
-      "since_revision": "2026-07-31",
-      "rejection_level": "hard_reject",
-      "replacement": null,
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete notary admission and reducer rules and cannot appear as a bare optional field.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "cowrite_policy"
-        ]
-      }
-    },
-    {
-      "id": "cross_signing_binding",
-      "context": "retired_device_identity_wire",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "authorization_binding_kind + PCR evidence",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "cross_signing_binding"
-        ]
-      }
-    },
-    {
       "id": "data_type",
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
@@ -2698,24 +2539,6 @@
         "kind": "field",
         "values": [
           "endpoint_signature"
-        ]
-      }
-    },
-    {
-      "id": "enrollment_authority_binding",
-      "context": "retired_device_identity_wire",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "root_anchored or accepted_device authorization",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "enrollment_authority_binding"
         ]
       }
     },
@@ -3832,24 +3655,6 @@
       }
     },
     {
-      "id": "of",
-      "context": "reviewer_quorum",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "reviewers",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "The {threshold, of} reviewer quorum object names the DID list reviewers (mirrors the approvers list). The two-letter of is not a valid wire field name.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "of"
-        ]
-      }
-    },
-    {
       "id": "official_organizations",
       "context": "directory_projection",
       "since_revision": "2026-05-24",
@@ -3990,24 +3795,6 @@
         "kind": "field",
         "values": [
           "parent_space_refs"
-        ]
-      }
-    },
-    {
-      "id": "participant_identity",
-      "context": "media_response_backend_token_roster_binding_sfu_answer_exporter_context_error_code_or_vector_id",
-      "since_revision": "2026-09-01",
-      "rejection_level": "hard_reject",
-      "replacement": "participant_id",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Media participant wire objects, signature transcripts and ak.rtc-frame-key/v1 exporter Context use participant_id. The retired participant_identity spelling is not an alias; accepting it would change canonical JSON/signature or exporter bytes. The old participant_identity_unrecognised error and vector identifiers are retired with the same clean break.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "participant_identity"
         ]
       }
     },
@@ -4222,24 +4009,6 @@
         "negative_test"
       ],
       "notes": "Event proofs MUST bind canonical Event bytes with event_digest. Generic non-Event detached proofs now use payload_digest. payload_hash is forbidden in all wire contexts.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "payload_hash"
-        ]
-      }
-    },
-    {
-      "id": "payload_hash",
-      "context": "generic_proof",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "payload_digest",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Generic detached-JWS proofs over current non-Event canonical payloads (Seal signature, identity-link, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix. Cross-core DID continuity proofs are not a current v1 proof family.",
       "match": {
         "kind": "field",
         "values": [
@@ -4496,24 +4265,6 @@
         "kind": "field",
         "values": [
           "type"
-        ]
-      }
-    },
-    {
-      "id": "recovery_authority_ticket",
-      "context": "retired_device_identity_wire",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "PCR-policy re-anchor unit",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "recovery_authority_ticket"
         ]
       }
     },
@@ -5349,24 +5100,6 @@
       }
     },
     {
-      "id": "ssk_generation",
-      "context": "retired_device_identity_wire",
-      "since_revision": "2026-08-09",
-      "rejection_level": "hard_reject",
-      "replacement": "authorized_generation_ref/device_generation_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Removed from current v1 by the PCR genesis clean cut.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "ssk_generation"
-        ]
-      }
-    },
-    {
       "id": "stage",
       "context": "pending_sidecar_access_reconciliation_item",
       "since_revision": "2026-07-26",
@@ -5721,6 +5454,24 @@
         "kind": "path",
         "values": [
           "webhook_auth.type"
+        ]
+      }
+    },
+    {
+      "id": "cowrite_policy",
+      "context": "realm_object_or_realm_lifecycle_payload",
+      "since_revision": "2026-07-31",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Both cowrite_policy and co_write_policy are forbidden. Which typed current result families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry result_writes contracts and registered atomic units. v1 defines no Realm-configurable co-write whitelist. Any future per-Realm co-write constraint requires complete notary admission and reducer rules and cannot appear as a bare optional field.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "cowrite_policy"
         ]
       }
     }

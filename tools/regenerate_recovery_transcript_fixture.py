@@ -165,7 +165,7 @@ def main() -> None:
                     else "schemas/recovery-session.schema.json#/$defs/generic_recovery_transcript"
                 ),
                 "source_proof": proof,
-                "removed_signature_carriers": removed,
+                "forbidden_signature_carriers": removed,
                 "transcript": transcript,
                 "transcript_jcs": jcs,
                 "transcript_digest": "sha256:" + hashlib.sha256(jcs.encode("utf-8")).hexdigest(),

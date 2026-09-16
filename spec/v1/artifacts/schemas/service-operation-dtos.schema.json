@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json",
   "title": "Arkret Service Operation DTOs",
-  "description": "Canonical DTOs reachable from current authority-commit operations. Definitions belonging to retired Seal/Cell/federated-DAG operations are removed.",
+  "description": "Canonical DTOs reachable from current authority-commit operations. Every definition is part of the current operation closure.",
   "anyOf": [
     {
       "$ref": "#/$defs/AcceptedDevicePossessionProof"
@@ -1241,7 +1241,7 @@
     },
     "EventInitialSubmission": {
       "type": "object",
-      "description": "One exact producer-signed Event submitted to the current governance Station. There are no Seal, Cell, offline-lease or proof-bundle sidecars.",
+      "description": "One exact producer-signed Event submitted to the current governance Station. There are no RealmCommit, typed current result, offline-lease or proof-bundle sidecars.",
       "required": [
         "event"
       ],
@@ -1256,7 +1256,7 @@
       "description": "A readable event item. Complete EventEnvelope is the only reducer input shape. RedactedEventView and ReferenceLockedEventStub are projection/completeness evidence for callers that may know the source event exists but may not receive its full canonical payload bytes.",
       "oneOf": [
         {
-          "$ref": "./event-envelope.schema.json#/$defs/shared_history_event"
+          "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
         },
         {
           "$ref": "#/$defs/RedactedEventView"
@@ -2609,7 +2609,7 @@
         },
         "inclusion_proof": {
           "type": "object",
-          "description": "Optional proof that the suite-bearing digest decoded from event_id is included in an Event set or Seal root visible to the caller; it does not prove historical completeness."
+          "description": "Optional proof that the suite-bearing digest decoded from event_id is included in an Event set or RealmCommit root visible to the caller; it does not prove historical completeness."
         },
         "reducer_input": {
           "const": false,

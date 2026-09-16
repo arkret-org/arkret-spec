@@ -55,20 +55,6 @@
               }
             ],
             "remaining_backups": []
-          },
-          {
-            "backup_kind": "mls_history",
-            "previous_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000011",
-            "new_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000012",
-            "status": "failed_retryable",
-            "erased_backups": [],
-            "remaining_backups": [
-              {
-                "backup_id": "ak:backup:019a7400-0000-7000-8000-000000000015",
-                "ciphertext_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-              }
-            ],
-            "reason_code": "storage_temporarily_unavailable"
           }
         ]
       }
@@ -103,11 +89,11 @@
     "coordinator_owned_prefix_is_advanced_only_by_the_durable_worker",
     "continue_accepts_only_a_terminal_ready_client_attestation",
     "device_attestation_readiness_is_derived_from_canonical_next_step",
-    "recovery_create_freezes_one_unsigned_seal_body_with_no_recovery_effect",
+    "recovery_create_freezes_one_unsigned_commit_body_with_no_recovery_effect",
     "recovery_authoritative_results_are_all_invisible_before_the_commit_and_all_visible_after",
-    "recovery_first_generation_seal_enters_only_through_commit_recovery_unit",
+    "recovery_reanchor_commit_enters_only_through_commit_recovery_unit",
     "recovery_stored_outcome_is_checked_before_consumed_session_refusal",
-    "only_the_atomic_generation_cas_winner_commits_a_first_generation_seal",
+    "only_the_atomic_generation_cas_winner_commits_a_reanchor_commit",
     "pointer_switch_precedes_every_old_series_erase",
     "erased_series_never_becomes_active_again",
     "public_store_log_telemetry_and_crash_artifact_contain_no_secret_material"
@@ -116,16 +102,13 @@
     {
       "name": "partial_secret_storage_erase_then_restart",
       "authoritative_new_pointers": [
-        "secret_storage",
-        "mls_history"
+        "secret_storage"
       ],
       "first_outcome": {
-        "secret_storage": "erased",
-        "mls_history": "failed_retryable"
+        "secret_storage": "failed_retryable"
       },
       "expected_after_restart": {
         "secret_storage": "erased",
-        "mls_history": "erased",
         "confirmation_emitted_once": true,
         "accepted_erase_step_count": 1
       }
@@ -202,15 +185,15 @@
   ],
   "recovery_terminal_commit_cases": [
     {
-      "name": "create_freezes_the_only_signable_seal_body",
+      "name": "create_freezes_the_only_signable_commit_body",
       "phase": "create",
       "expected": "freeze_prepared_plan",
       "frozen_plan_members": [
         "binding.reanchor_batch_receipt_id",
-        "binding.first_generation_seal_id",
+        "binding.reanchor_commit_id",
         "binding.terminal_receipt_id",
-        "first_generation_seal_intent",
-        "first_generation_seal_body"
+        "reanchor_commit_intent",
+        "reanchor_commit_body"
       ],
       "committed_command_result_unit_event_digests": [
         "reanchor_digest",
@@ -226,8 +209,8 @@
         "request_digest",
         "prepared_plan",
         "prepared_plan_digest",
-        "binding.first_generation_seal_id",
-        "first_generation_seal_body"
+        "binding.reanchor_commit_id",
+        "reanchor_commit_body"
       ]
     },
     {
@@ -245,7 +228,7 @@
         "predecessor_ref"
       ],
       "expected": "reject_without_side_effect",
-      "expected_reason_code": "seal_signer_slot_fenced"
+      "expected_reason_code": "commit_signer_slot_fenced"
     },
     {
       "name": "terminal_commit_is_one_atomic_commit",
@@ -254,7 +237,7 @@
       "invisible_before_commit": [
         "accepted_reanchor_event",
         "accepted_authorize_event",
-        "committed_first_generation_seal",
+        "committed_reanchor_commit",
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
@@ -263,7 +246,7 @@
       "visible_after_commit": [
         "accepted_reanchor_event",
         "accepted_authorize_event",
-        "committed_first_generation_seal",
+        "committed_reanchor_commit",
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
@@ -273,13 +256,13 @@
       ]
     },
     {
-      "name": "seal_body_differs_from_the_frozen_body",
+      "name": "commit_body_differs_from_the_frozen_body",
       "phase": "commit_recovery_unit",
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
     },
     {
-      "name": "receipt_omits_or_rebinds_first_generation_seal_id",
+      "name": "receipt_omits_or_rebinds_reanchor_commit_id",
       "phase": "commit_recovery_unit",
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
@@ -293,7 +276,7 @@
       "zero_effects": [
         "accepted_reanchor_event",
         "accepted_authorize_event",
-        "committed_first_generation_seal",
+        "committed_reanchor_commit",
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
@@ -305,20 +288,10 @@
       "retry_with_different_bytes_for_a_frozen_step_outcome": "duplicate_conflict"
     },
     {
-      "name": "ordinary_seal_prepare_or_submit_under_a_recovery_grant",
-      "phase": "commit_recovery_unit",
-      "attempted_operations": [
-        "ak.self.seals.command.prepare.v1",
-        "ak.self.seals.command.submit.v1"
-      ],
-      "expected": "reject_without_side_effect",
-      "reason_code": "capability_denied"
-    },
-    {
-      "name": "raw_recovery_seal_without_a_completed_transaction",
+      "name": "raw_recovery_commit_without_a_completed_transaction",
       "phase": "post_commit",
       "attempted_paths": [
-        "ordinary_seal_submit",
+        "ordinary_commit_submit",
         "federation",
         "history_replay"
       ],

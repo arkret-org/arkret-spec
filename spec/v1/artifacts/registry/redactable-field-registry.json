@@ -1,11 +1,11 @@
 {
-  "version": "2026-08-18",
+  "version": "2026-09-16.6",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the redactable content-carrier slots listed in zh/models/event-and-patch.md section 4.2.4. One row registers one slot path on one object kind. An ak.schema.patch.v1 $op=\"unset\" that addresses a registered path MUST be rejected with schema_violation reason=patch_unset_redactable_field; $op=\"set\" on the same path is ordinary authoring and MUST be accepted, including when the new value carries an empty body. Realm-defined fields marked redactable: true are governed by the same rule and are declared by their own Realm schema, never by this registry.",
   "registry_rules": [
     "A redactable content-carrier slot is a field that carries an object's authored body. Its absence on the materialized object is reserved for exactly two causes: the body was never authored, or it was cleared by redaction. message.schema.json already encodes that reservation (state=active requires exactly one of content / encrypted_content, state=redacted forbids both), so an ordinary ak.<kind>.update MUST NOT create a third cause and $op=\"unset\" on a registered path is rejected.",
     "The plaintext and encrypted forms of one slot are registered as two rows bound by paired_path, and the binding MUST be symmetric. Both rows carry the same decision, so whether a body can be removed never depends on whether the Realm is end-to-end encrypted.",
-    "This registry is not a capability boundary and MUST NOT be read as one. Redaction is whole-object, terminal, audit-sealed, and additionally invalidates history, search indexes, local caches and Blob access; no patch op can produce that effect, so no patch op can escape it. A $op=\"set\" that overwrites a registered slot with an empty body is ordinary authoring, not an unaudited redaction.",
+    "This registry is not a capability boundary and MUST NOT be read as one. Redaction is whole-object, terminal, audit-committed, and additionally invalidates history, search indexes, local caches and Blob access; no patch op can produce that effect, so no patch op can escape it. A $op=\"set\" that overwrites a registered slot with an empty body is ordinary authoring, not an unaudited redaction.",
     "Every row MUST declare a non_terminal_clear_op other than unset plus the terminal_clear_event_kinds that remove the slot entirely. Registering a slot therefore can never turn a field into a write-once field: there is always a documented way to empty it while the object stays active.",
     "Fields that are not content-carrier slots MUST NOT be registered here. metadata, encrypted_metadata, metadata.title, metadata.summary and every path under metadata.fields are ordinary optional members whose non-terminal clear path is $op=\"unset\", subject only to post-state object schema validation."
   ],
@@ -28,7 +28,7 @@
       "path": "encrypted_content",
       "paired_path": "content",
       "non_terminal_clear_op": "set",
-      "non_terminal_clear_contract": "Re-seal a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present and the Message stays state=active.",
+      "non_terminal_clear_contract": "Re-authority commit a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present and the Message stays state=active.",
       "terminal_clear_event_kinds": [
         "ak.message.redact"
       ],
@@ -52,7 +52,7 @@
       "path": "encrypted_content",
       "paired_path": "content",
       "non_terminal_clear_op": "set",
-      "non_terminal_clear_contract": "Re-seal a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present and the Strand stays state=active.",
+      "non_terminal_clear_contract": "Re-authority commit a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present and the Strand stays state=active.",
       "terminal_clear_event_kinds": [
         "ak.redaction"
       ],
@@ -76,7 +76,7 @@
       "path": "tracks.synthesis.encrypted_content",
       "paired_path": "tracks.synthesis.content",
       "non_terminal_clear_op": "set",
-      "non_terminal_clear_contract": "Re-seal a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present, the Strand stays state=active, and tracks.synthesis must remain active.",
+      "non_terminal_clear_contract": "Re-authority commit a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present, the Strand stays state=active, and tracks.synthesis must remain active.",
       "terminal_clear_event_kinds": [
         "ak.redaction"
       ],
@@ -100,7 +100,7 @@
       "path": "encrypted_content",
       "paired_path": "content",
       "non_terminal_clear_op": "set",
-      "non_terminal_clear_contract": "Re-seal a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present and the Morph stays state=active.",
+      "non_terminal_clear_contract": "Re-authority commit a ContentBlock whose body is empty and set the resulting EncryptedPayload on the slot. The slot stays present and the Morph stays state=active.",
       "terminal_clear_event_kinds": [
         "ak.redaction"
       ],

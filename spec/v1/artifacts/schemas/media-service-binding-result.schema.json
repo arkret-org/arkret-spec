@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/media-service-binding-result.schema.json",
   "title": "Arkret Media Service Binding Result",
-  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 cell. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
+  "description": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted ak.component.realm.media_service.v1 typed current result. It resolves service identity, purpose and route only; it releases no media key, no backend token and no plaintext-visibility authorization.",
   "$defs": {
     "service_signing_key": {
       "type": "object",
@@ -25,7 +25,7 @@
     },
     "media_service_binding_request_body": {
       "type": "object",
-      "description": "Authenticated member request for one joined Realm. The media service identity is taken from that Realm current accepted cell; caller-supplied service ids, DIDs, base URLs, candidate origins and method evidence are not accepted.",
+      "description": "Authenticated member request for one joined Realm. The media service identity is taken from that Realm current accepted typed current result; caller-supplied service ids, DIDs, base URLs, candidate origins and method evidence are not accepted.",
       "required": [
         "request_id",
         "realm_id"
@@ -61,7 +61,7 @@
         },
         "route": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_route_projection",
-          "description": "Verified route projection of the anchored media service; service_id equals the accepted cell service_id and service_kind is media_service."
+          "description": "Verified route projection of the anchored media service; service_id equals the accepted typed current result service_id and service_kind is media_service."
         },
         "signing_keys": {
           "type": "array",

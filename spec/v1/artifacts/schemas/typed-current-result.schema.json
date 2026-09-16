@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/typed-current-result.schema.json",
   "title": "Arkret Typed Realm Current Result",
-  "description": "Closed domain result selected without protocol Cell IDs. Every result names the last authority commit that affected the typed target.",
+  "description": "Closed domain result selected without protocol typed current result IDs. Every result names the last authority commit that affected the typed target.",
   "oneOf": [
     {
       "$ref": "#/$defs/realm_profile_result"

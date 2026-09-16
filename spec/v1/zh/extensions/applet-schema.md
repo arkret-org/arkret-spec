@@ -105,7 +105,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | --- | --- | --- |
 | `schema` | yes | 固定 `ak.schema.applet_package.v1`。 |
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
-| `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；旧的 service DID 代用形态已删除。 |
+| `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；其它形态均不合法。 |
 | `service_id` | yes | Applet runtime 的稳定 service `did_core_id`。 |
 | `controller_principal_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `did` 必须经 adapter 投影到该值。 |
 | `base_url` | yes | Applet API base URL。 |
@@ -162,9 +162,9 @@ wire schema。payload 必须携完整 `actor_id: ActorId`；Applet managed actor
 `actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
 `method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
 did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携
-`external_ref`，Bot 禁止携该字段。contract registry 的 provision cell subject 是 pair 的复合键，不能仅按
+`external_ref`，Bot 禁止携该字段。contract registry 的 provision typed current result subject 是 pair 的复合键，不能仅按
 core id 做 CAS。Package/registration/Ghost durable record 只保存 accepted provision Event 与 PCR genesis
-anchor；current resolution ref 不属于这些对象。provision cell subject 是 `JCS(actor_id)`，不得以裸
+anchor；current resolution ref 不属于这些对象。provision typed current result subject 是 `JCS(actor_id)`，不得以裸
 `principal_id` 或平行 server sidecar 建立第二套 CAS 键。
 
 ## 1b. Applet Install Operation Objects

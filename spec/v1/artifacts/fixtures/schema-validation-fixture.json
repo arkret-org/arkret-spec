@@ -52,11 +52,7 @@
             "did_http_signature"
           ]
         },
-        "limits": {
-          "mls_governance_proof": {
-            "max_exact_response_bytes": 1048576
-          }
-        },
+        "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
         "verified_profiles": [],

@@ -44,7 +44,7 @@ Schema id: `ak.schema.read_cursor.v1`
 
 ### 2.3 行为规则
 
-- Read Cursor **不是可原地更新的对象**：它没有 revision / compare-and-set（对照 [account-data.md §5](./account-data.md) 的可变 cell），一次「更新」就是 author 并提交一条新的 `ak.read_cursor.advance`。因此本对象 MUST NOT 携带 `updated_at`：该次更新的时间就是那条 Event 信封的 `created_at`，在 payload 里重述一遍只会制造第二份同源时间且不受签名约束。需要更新时间的派生视图（`read_marker_outcome`、跨设备 actor-private read cursor 更新）MUST 取胜出 advance 的信封 `created_at`。
+- Read Cursor **不是可原地更新的对象**：它没有 revision / compare-and-set（对照 [account-data.md §5](./account-data.md) 的可变 typed current result），一次「更新」就是 author 并提交一条新的 `ak.read_cursor.advance`。因此本对象 MUST NOT 携带 `updated_at`：该次更新的时间就是那条 Event 信封的 `created_at`，在 payload 里重述一遍只会制造第二份同源时间且不受签名约束。需要更新时间的派生视图（`read_marker_outcome`、跨设备 actor-private read cursor 更新）MUST 取胜出 advance 的信封 `created_at`。
 - 本对象**没有 typed ID**。身份是 `(actor_id, realm_id, read_scope)` 三元组；`ak.read_cursor.advance` 在 event-kind-registry 中登记为 `id_source=not_an_object_id`，id-kind-registry 中不存在 `read_cursor` typed ID kind，也不存在任何按 id 寻址的读面（[`../authz/resource-selector-grammar.md` §3.1](../authz/resource-selector-grammar.md) 的 selector 只接受 `read_cursor:<realm>:*`）。携带 `id` 的 payload MUST 以 `schema_violation` 拒绝。
 - 跨设备下发的 `ak.read_cursor.update` device message 的 content 是 `ak.schema.read_cursor_update.v1`（[`device-message.schema.json#/$defs/read_cursor_update_content`](../../artifacts/schemas/device-message.schema.json)）：它是当前胜出 advance 的**派生投影**，携带派生的 `updated_at`，MUST NOT 声明自己是 `ak.schema.read_cursor.v1`。
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [strand-and-message.md §9.6](./strand-and-message.md)）。
@@ -174,7 +174,7 @@ closed `{target_scope, selection, version}`，`selection` 五位恰为
 
 针对上述 agent-attributed private state:
 
-- 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane Seal history。
+- 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane RealmCommit history。
 - 目标 Realm 的 `ak.self.events.stream.subscribe.v1` / `ak.self.events.read.scan.v1` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft、Sidecar view state 或本地 exchange cache 内容。
 - `ak.self.account.stream.subscribe.v1` 只能把 controller-owned approval draft / Sidecar view state 返回给 controller principal 的授权 session。Agent runtime MUST NOT 接收上述 controller-owned encrypted account data：其 value 以 controller account secret 派生密钥加密（[`account-data.md`](./account-data.md) §3），不同 principal 的 account secret 强制隔离，不存在也不得新增向 Agent runtime 分发该 secret 的机制。Agent runtime 所需的 Sidecar exchange identity 只经 Event 内的 exchange binding 传递（runtime 从 `role=request` binding 取得 `exchange_id`，不存在 Account Data projection 读写路径），判据见 [`../conformance/conformance-vectors.md` §11.10.3](../conformance/conformance-vectors.md)。
 - 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。

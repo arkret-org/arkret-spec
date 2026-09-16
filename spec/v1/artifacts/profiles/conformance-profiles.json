@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.4",
-  "generated_at": "2026-09-16T11:30:00+08:00",
+  "version": "2026-09-16.7",
+  "generated_at": "2026-09-16T18:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -407,7 +407,6 @@
     "ak.profile.federation_minimal.v1",
     "ak.profile.signal_peer_relay.v1",
     "ak.profile.signal_message_stream.v1",
-    "ak.profile.federation.high_assurance.v1",
     "ak.profile.identity_registry.v1",
     "ak.profile.blob_node.v1",
     "ak.profile.push_gateway.v1",
@@ -460,7 +459,6 @@
       "ak.profile.directory_service.v1",
       "ak.profile.federation_minimal.v1",
       "ak.profile.signal_peer_relay.v1",
-      "ak.profile.federation.high_assurance.v1",
       "ak.profile.identity_registry.v1",
       "ak.profile.blob_node.v1",
       "ak.profile.push_gateway.v1",
@@ -568,7 +566,6 @@
     "ak.profile.federation_minimal.v1": "server",
     "ak.profile.signal_peer_relay.v1": "server",
     "ak.profile.signal_message_stream.v1": "client",
-    "ak.profile.federation.high_assurance.v1": "server",
     "ak.profile.binding.websocket.v1": "interop",
     "ak.profile.identity_registry.v1": "directory",
     "ak.profile.public_network_identity.v1": "directory",
@@ -1060,10 +1057,9 @@
         "metadata_encryption_floor": "e2ee_required"
       },
       "client_local_send_blockers": {
-        "rationale": "The Direct Conversation resolver may only report send blockers it can prove from accepted authoritative state. Two facts are structurally outside that boundary. ak.account.blocklist is holder-private account data that a synchronizing service is required to hold encrypted to holder devices only, so a service that evaluated personal_blocked would have to break that encryption invariant; and whether a given historical MLS secret was ever installed is device-private key state, so a client self-report of history_key_unavailable is a claim, not authority. Both values are therefore removed from the closed wire enum direct_conversation_send_blocker rather than merely annotated there: after removal a service that returns one produces a machine-detectable schema_violation, whereas an annotation would eventually be violated silently. They are carried instead by this closed client-local set, which is evaluated only on the holder's own device from state only that device holds. presence_offline and keypackage_empty stay on the wire because the service does hold provable facts for them, but they are visible only to an existing exact-pair participant of that pair, so they cannot serve as an enumeration oracle. The consequence is deliberate and MUST be documented by implementers: after a block, the fact that sending is refused is known only to the blocking client - not to its own service and not to the peer - and neither of them is entitled to know it. Implementations that habitually ask the server for send state will find the resolver returning found with an empty send_blockers[] and MUST still refuse the send locally. The normative conformance vector for this clause is ak.vector.direct_conversation.send_blocker_authority.v1.",
+        "rationale": "personal_blocked is holder-private account state and is evaluated only on the holder device; the service exposes only blockers it can verify.",
         "values": [
-          "personal_blocked",
-          "history_key_unavailable"
+          "personal_blocked"
         ],
         "rules": [
           "These values MUST NOT appear on any wire surface: not in direct_conversation_send_blocker, not in any operation request or response, not in any Event payload, and not on the peer carrier or federation surface.",
@@ -1082,13 +1078,11 @@
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
         "Cross-Station founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
-        "The unit's Genesis Seal MUST cover all four Events, every required founding write of an ordinary Realm create, and the create-locked baseline projection of join_rule=closed, content_scheme=mls_exporter_aead_v1 and both e2ee_required floors together with the initial current history_access=since_join facet. Sealing any strict prefix and appending either membership Event or the Strand afterwards MUST be rejected, and a same-batch facet Event that repeats or overrides a baseline value MUST be rejected.",
+        "The four founding Events MUST be accepted in order and each MUST receive its own consecutive RealmCommit in the same Realm stream. The create-locked baseline is join_rule=closed, content_scheme=mls_exporter_aead_v1 and both e2ee_required floors together with the initial current history_access=since_join facet. A Station MUST reject a missing prefix, an interleaved unrelated Event, or a same-transaction facet Event that repeats or overrides a baseline value.",
         "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
-        "Leave, ban, block, either directional Contact terminal and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Consent changes never affect Personal DM authority. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
-        "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source.",
-        "The two client-local send blockers of client_local_send_blockers MUST NOT appear on any wire surface, and the resolver MUST NOT return suspended because one of them applies; the resolver reports only server-verifiable blockers, and personal_blocked or history_key_unavailable on the wire is a schema_violation."
+        "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source."
       ],
       "participant_authority": {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
@@ -1103,7 +1097,7 @@
           "ak.message.redact.own",
           "ak.message.revise.own",
           "ak.mls.commit",
-          "ak.mls.welcome.own_device",
+          "ak.delivery.mls_welcome.own_device",
           "ak.reaction.add",
           "ak.reaction.remove",
           "ak.read_cursor.advance",
@@ -1346,7 +1340,7 @@
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs, or applet_managed_control for Applet-managed Bot/Ghost PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in all three cases.",
-        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
+        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or RealmCommit processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
         "history_access MUST equal since_join. A standard-MLS PCR has no deliverable history secret; a new same-principal endpoint starts at its own initial Add/Welcome admission, while durable device-list and normalized principal views provide the control baseline without restoring foreign active MLS state.",
@@ -1356,7 +1350,7 @@
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md 6.0.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "An applet_managed_control PCR genesis carries no FoundingDeviceDescriptor and its accepted genesis unit holds exactly one ak.realm.create, so the principal owns no device at genesis. Its delegated device MUST be authorized by an ordinary post-genesis successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact install that provisioned the principal. That Event MUST carry signer_resolution_evidence_ref and MUST NOT use a unit-local candidate overlay or join any atomic native unit: its signer is the already accepted managed-actor controller method, so the two named encoding.md omission exceptions stay exactly two. The device MUST stop being an effective signer as soon as that install is fenced, with applet_revoked and without waiting for a separate ak.device.revoke.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
-        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 cell, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
+        "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked ak.component.identity.resolution.v1 typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]
     },
     "ak.profile.core_event_store.v1": {
@@ -1495,7 +1489,7 @@
           "requirement": "reaction OR-Set",
           "coverage": [
             "reaction-fixture.json",
-            "cbs-lattice-fixture.json"
+            "authority_commit-lattice-fixture.json"
           ]
         },
         {
@@ -1888,7 +1882,7 @@
         "ak.feature.e2ee_relaxed.v1"
       ],
       "required_constraint_kinds": [],
-      "required_cell_namespaces": [],
+      "required_result_namespaces": [],
       "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2349,13 +2343,6 @@
           ]
         },
         {
-          "requirement": "bounded exact-scope sibling disclosure for fork-resolution alignment",
-          "coverage": [
-            "ak.peer.events.read.sibling_positions.v1",
-            "cbs-lattice-fixture.json"
-          ]
-        },
-        {
           "requirement": "duplicate conflict quarantine",
           "coverage": [
             "event-envelope-negative-fixture.json"
@@ -2384,7 +2371,7 @@
       },
       "e2ee_mls_interop_floor": {
         "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
-        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.mls.welcome, MLS-backed E2EE ordinary Events, or active MLS security-frontier state.",
+        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.delivery.mls_welcome, MLS-backed E2EE ordinary Events, or active MLS security-frontier state.",
         "required_artifacts": [
           "governance_binding.binding_profile",
           "governance_binding.reducer_profile",
@@ -2524,42 +2511,12 @@
       "additional_requirements": {
         "encrypted_only_must": "Every relayed item MUST be ak.schema.signal_envelope.v1; plaintext or unencrypted ephemeral inputs fail closed with signal_plaintext_forbidden.",
         "source_authority_must": "Source MUST authenticate exact-account current device authority and producer signature at local ingress and freshly before queued outbound dispatch, together with current scope/membership/action/TTL and MLS basis.",
-        "destination_admission_must": "Destination MUST authenticate peer source/body, sender routing projection, closed proof transcript/digest and outer scope/Seal/current membership/action/TTL/MLS basis; it MUST NOT require a remote device directory, producer signature verification, remote PCR replay or an MLS public-tree tracker to relay.",
+        "destination_admission_must": "Destination MUST authenticate peer source/body, sender routing projection, closed proof transcript/digest and outer scope/RealmCommit/current membership/action/TTL/MLS basis; it MUST NOT require a remote device directory, producer signature verification, remote PCR replay or an MLS public-tree tracker to relay.",
         "recipient_authentication_must": "Relay acceptance is not device authentication. Recipient MUST independently verify current exact-account device trust, producer signature, winning MLS state and active-leaf actor/device/key/authorization binding, AAD/AEAD, plaintext schema and replay before display or effects; known revoked authority fails even before leaf Remove.",
         "single_hop_must": "A destination MUST NOT relay a peer-received SignalEnvelope to a third service. The original sender-side service performs one direct request per eligible destination service.",
         "no_kind_advertisement_must": "Describe MUST advertise only this profile and operation support; exact product signal kind and target remain encrypted and MUST NOT appear in supported-kinds or routing metadata.",
         "opaque_outcome_must": "A valid authenticated request returns only {accepted:true}; no recipient, binding, capability, count or per-item outcome is exposed.",
         "retry_must": "The operation forbids Idempotency-Key, is retry_safe=false and uses uncertain_outcome.strategy=drop_unconfirmed. A lost response MUST NOT cause automatic request replay."
-      }
-    },
-    "ak.profile.federation.high_assurance.v1": {
-      "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ak.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
-      "enforcement_phases": [
-        "conformance",
-        "startup_claim_guard"
-      ],
-      "operation_requirements": [],
-      "inherits": [
-        "ak.profile.federation_minimal.v1"
-      ],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "optional_extensions": [
-        "frontier_witness_attestation"
-      ],
-      "feature_discovery": {
-        "required": [
-          "frontier_probe_endpoint",
-          "peer_stale_threshold"
-        ],
-        "unsupported_optional": "reject claim of ak.profile.federation.high_assurance.v1 if the capability-gated frontier diagnostic endpoint or peer_stale fail-state is not implemented"
-      },
-      "additional_requirements": {
-        "frontier_probe_capability_must": "Peer MUST expose the capability-gated scope-relative frontier diagnostic endpoint per federation.md §4.5.1. A deployment MUST NOT advertise a periodic low-cost probe SLO unless fixed publication buckets and incremental or persistent indexing avoid full accepted-history reads and clones.",
-        "fail_state_must": "Three actual remote probe failures (peer unreachable, HTTP, signature, authorization or schema failure) MUST mark the peer as 'peer_stale' for that Realm. A raw frontier_root or heads difference is only an issuer-to-requester diagnostic hint: it MUST first drive durable-outbox and known-ID or known-digest dependency checks and MUST NOT require routine full-history scanning. Any remaining difference becomes reconciliation_incomplete; exact-ActorId cursor scan is only a small-history or operator-triggered best-effort fallback. Cursor expiry, snapshot stale, scheduling delay and local page, byte, memory or wall-clock budget exhaustion MUST stop or restart local work without counting peer failure or producing quarantine. Independently verified full-hash collision evidence, an over-limit sibling set or a profile-declared non-joinable sibling conflict MUST immediately mark peer_stale, quarantine the affected evidence scope and alarm on the first confirmed occurrence; legal sibling union remains accepted. Recompute every Event ID before side effects; a carried-ID mismatch is event_id_digest_mismatch without local quarantine. Root equality ends only the observation round and MUST NOT assert replica-set equality, retention or historical completeness. Ordinary success MUST NOT clear unresolved confirmed evidence.",
-        "peer_stale_behavior_must": "While a peer is in 'peer_stale' state: MUST quarantine its push payloads for the affected evidence scope (no local frontier advancement from that scope); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status caused by confirmed evidence MUST clear only after the disputed event id/digest or over-fork/non-joinable sibling bucket has an authorized canonical resolution and the peer matches that canonical sibling set. Scope-different peers MUST NOT be required to have globally identical heads."
       }
     },
     "ak.profile.identity_registry.v1": {
@@ -4086,7 +4043,7 @@
       },
       "additional_requirements": {
         "token_ttl_must": "Token issuer MUST cap backend_token / participant_binding expires_at at 600s after issuance; SHOULD use ≤ 300s.",
-        "issuer_did_sealing_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ak.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
+        "issuer_did_binding_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ak.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
         "session_focus_must": "ak.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "ak.call.state.roster_delta join participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_id_unrecognised (client).",
         "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Arkret MLS-Exporter with label ak.rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_id, device_id}), KDF.Nh=32 bytes), where participant_id/device_id come from the verified call roster participant value and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
@@ -4597,7 +4554,7 @@
       }
     },
     "ak.profile.mls_governance_binding.full.v1": {
-      "description": "MLS GroupContext binding for an independently authority-committed Realm or Circle stream. Each Genesis or Commit binds the canonical effective scope, derived MLS group id, epoch transition, and monotonic key_access_revision. Governance authorization is decided by the current governance Station before the Event is committed; MLS carries no CBS or governance-proof bundle.",
+      "description": "MLS GroupContext binding for an independently authority-committed Realm or Circle stream. Each Genesis or Commit binds the canonical effective scope, derived MLS group id, epoch transition, and monotonic key_access_revision. Governance authorization is decided by the current governance Station before the Event is committed; MLS carries no authority-commit or governance-proof bundle.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -5045,7 +5002,7 @@
           "passphrase_kdf_nonce_recompute",
           "mixed_secret_storage_policy",
           "key_backup_series_chain_verification",
-          "key_backup_freshness_seal",
+          "key_backup_freshness_commit",
           "key_backup_recipient_method_profiles",
           "key_backup_server_rate_limit",
           "recovery_policy_binding",
@@ -5653,7 +5610,7 @@
       }
     },
     "ak.profile.hash_transition.v1": {
-      "description": "Digest-suite Transition Seal interoperability gate.",
+      "description": "Digest-suite Transition RealmCommit interoperability gate.",
       "enforcement_phases": [
         "conformance",
         "peer_eligibility"

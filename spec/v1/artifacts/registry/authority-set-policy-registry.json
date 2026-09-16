@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-11.1",
+  "version": "2026-09-16.6",
   "source_of_truth": true,
-  "description": "Canonical registry of authority-set policy symbols and deterministic projections from accepted CBS control state. Registry rows are templates, not authority: each lease carries the concrete AuthoritySetPolicy and its digest, and verifiers rederive it from basis_ref plus CBS closure.",
+  "description": "Canonical registry of authority-set policy symbols and deterministic projections from accepted authority-commit control state. Registry rows are templates, not authority: each lease carries the concrete AuthoritySetPolicy and its digest, and verifiers rederive it from basis_ref plus authority-commit closure.",
   "registry_rules": [
     "authority_set_id values MUST be unique and MUST match the concrete AuthoritySetPolicy.authority_set_id",
     "A concrete policy MUST use the registered policy_kind and source_kind, then project authorization_rules exactly from fixed_rules or rules_source",
