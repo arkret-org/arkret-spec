@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-16.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-17T02:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -67,6 +67,20 @@
       "file": "schemas/actor-profile-operations.schema.json",
       "status": "active",
       "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
+    },
+    {
+      "schema_id": "ak.schema.agent_authority_state_attestation.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/agent_authority_state_attestation",
+      "status": "active",
+      "description": "The single Agent Authority state signature under ak.agent_authority_state_evidence.v1, binding authority, verification method, state digest and observation window."
+    },
+    {
+      "schema_id": "ak.schema.agent_authority_state_evidence.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/agent_authority_state_evidence",
+      "status": "active",
+      "description": "Portable Agent Authority state evidence: one exact confirmed RealmCommit state, its JCS SHA-256 digest and the single Agent Authority attestation over that digest."
     },
     {
       "schema_id": "ak.schema.agent_membership_cascade.v1",
@@ -407,6 +421,27 @@
         "selector": "content block type poll or poll_response",
         "normative_ref": "zh/conformance/schema-registry.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation",
+      "status": "active",
+      "description": "Account Authority controller-account eligibility gate signed under ak.controller_account_gate.v1; privacy minimised and valid for at most 300 seconds."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
+      "status": "active",
+      "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_request_body",
+      "status": "active",
+      "description": "Deployment-authenticated controller gate issuance request; carries no service resolution carrier."
     },
     {
       "schema_id": "ak.schema.current_principal_outcome.v1",
@@ -1057,6 +1092,13 @@
       "file": "schemas/realm-authority-handoff.schema.json",
       "status": "active",
       "description": "Dual-signed planned authority generation transfer."
+    },
+    {
+      "schema_id": "ak.schema.realm_authority_root_value.v1",
+      "file": "schemas/typed-current-result.schema.json",
+      "fragment": "#/$defs/realm_authority_root_value",
+      "status": "active",
+      "description": "Closed value of the lifetime-stable Realm authority root: current root controller, controller epoch and authority generation, all derived by the registered ak.realm.create value_projection."
     },
     {
       "schema_id": "ak.schema.realm_commit.v1",

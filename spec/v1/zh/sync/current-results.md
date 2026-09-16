@@ -35,7 +35,10 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `member_state`：以完整 `actor_id` 选择成员状态；
 - `strand`：以 `strand_id` 选择 Strand；
 - `message_reactions`：以目标 `event_id` 选择 reaction 集合；
-- `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group。
+- `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group；
+- `realm_authority_root`：singleton，值为 closed `ak.schema.realm_authority_root_value.v1`（见 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；
+- `agent_key`：以 `(agent_id, agent_key_id)` 选择一把 Agent 签名 key 的 registered authorization 投影；
+- `agent_status`：以 `agent_id` 选择该 Agent 的 lifecycle 值。
 
 selector 的身份字段来自已接纳 Event 的 typed payload，不得由调用方另行声明或由服务端按显示名称猜测。新增领域结果
 必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。

@@ -527,6 +527,10 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_outcome
     ContactTombstoneRequestBody:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request
+    ControllerAccountGateAttestationIssueOutcome:
+      $ref: ../schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome
+    ControllerAccountGateAttestationIssueRequestBody:
+      $ref: ../schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body
     CurrentPrincipalOutcome:
       $ref: ../schemas/identity-resolution.schema.json#/$defs/current_principal_outcome
     CurrentPrincipalRequestBody:
@@ -9042,6 +9046,87 @@ paths:
       variables:
         host:
           default: localhost
+    post:
+      operationId: ak.gate.account.command.issue_controller_gate_attestation
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.gate.account.command.issue_controller_gate_attestation.v1
+      security:
+      - bearerAuth: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_bound_authorization: false
+        notes: Deployment-internal authentication only. The credential is a pre-configured deployment relationship that
+          the Account Authority resolves to one configured caller identity; nothing in the request body, and no
+          Source-Service-ID header, self-asserted DID, URL or public key, is an identity source. The authenticated
+          caller MUST equal agent_authority_id and the Station of the controller's complete AccountId.
+      summary: Issue the Account Authority controller-account eligibility gate for one Agent Authority.
+      description: 'An Agent Authority cannot synthesize Account Authority evidence. When it
+
+        needs current-query semantics and holds no unexpired gate matching the
+
+        controller principal, it calls this operation with a closed
+
+        {request_id, principal_id, agent_authority_id} body.
+
+
+        The Account Authority reads status and binding from its own authoritative
+
+        records and never accepts a caller-asserted account-active value. An unknown
+
+        principal, a wrong authority or an unauthorized caller all return the same
+
+        unenumerable not_found.
+
+
+        The response is not weakened by the request being internally authenticated:
+
+        it enters an external Agent evidence chain, so the attestation signature, the
+
+        public DID assertion authorization of its verification method, the TTL and
+
+        exact replay all remain. Positive validity MUST NOT exceed 300 seconds.
+
+
+        Replaying the same request_id with the same canonical intent returns the
+
+        original bytes; a different intent under that request_id is a
+
+        duplicate_conflict with zero issuance.
+
+        '
+      responses:
+        '200':
+          description: Signed controller-account gate attestation for the requested principal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControllerAccountGateAttestationIssueOutcome'
+        '404':
+          description: Unknown principal, wrong authority or unauthorized caller, reported without enumeration.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: The same request_id was already used with a different canonical intent; nothing was issued.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ControllerAccountGateAttestationIssueRequestBody'
   /_arkret/gate/account/logout:
     servers:
     - url: https://{host}

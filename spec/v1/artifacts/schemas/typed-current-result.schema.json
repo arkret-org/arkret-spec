@@ -5,6 +5,9 @@
   "description": "Closed domain result selected without protocol typed current result IDs. Every result names the last authority commit that affected the typed target.",
   "oneOf": [
     {
+      "$ref": "#/$defs/realm_authority_root_result"
+    },
+    {
       "$ref": "#/$defs/realm_profile_result"
     },
     {
@@ -21,6 +24,12 @@
     },
     {
       "$ref": "#/$defs/mls_group_result"
+    },
+    {
+      "$ref": "#/$defs/agent_key_result"
+    },
+    {
+      "$ref": "#/$defs/agent_status_result"
     }
   ],
   "$defs": {
@@ -37,6 +46,62 @@
         "stream_position": {
           "type": "integer",
           "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_authority_root_value": {
+      "type": "object",
+      "description": "Closed value of the lifetime-stable Realm authority root. Every member is derived by the registered ak.realm.create value_projection from the signed envelope and create payload; an author-supplied member is a realm_authority_root_conflict, never an accepted write.",
+      "required": [
+        "controller_actor_id",
+        "controller_epoch",
+        "authority_generation"
+      ],
+      "properties": {
+        "controller_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Current root controller. At genesis it is exactly the create envelope actor_id."
+        },
+        "controller_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Increments only on a root controller rotation. Genesis is 0."
+        },
+        "authority_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Increments only on a planned governance Station handoff. Genesis is 0."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_authority_root_result": {
+      "type": "object",
+      "description": "Singleton authority-root typed current result. The selector carries no component beyond its kind, so (realm_id, selector) is the Realm's lifetime-stable authority root identity.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_authority_root"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_authority_root_value"
         }
       },
       "additionalProperties": false
@@ -303,6 +368,132 @@
         },
         "public_tree_ref": {
           "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "canonical_event_dot": {
+      "type": "string",
+      "pattern": "^ak:event:[A-Za-z0-9_-]{44}:(0|[1-9][0-9]{0,2})$",
+      "description": "Stable tag of one registered reducer write: the canonical <event_id>:<write_index> dot of zh/models/event-and-patch.md section 2.4.2. A bare event_id is never a valid tag."
+    },
+    "agent_key_authorization_entry": {
+      "type": "object",
+      "description": "One tagged entry of the agent_key typed current result. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete authorize or revoke payload of that Event.",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/agent_key_authorize_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_result": {
+      "type": "object",
+      "description": "Registered reducer projection of one Agent signing key. It is the single state source a portable state witness may quote; a service-private key table is not an alternative.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "description": "Composite subject derived from (agent_id, agent_key_id). Producers MUST NOT spell it by string concatenation.",
+          "required": [
+            "kind",
+            "agent_id",
+            "agent_key_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_key"
+            },
+            "agent_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "agent_key_id": {
+              "$ref": "./event-payload.schema.json#/$defs/agent_key_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_key_current"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_status_result": {
+      "type": "object",
+      "description": "Registered Agent lifecycle projection. The first active value has exactly one provenance: the delegated PCR genesis ak.realm.create conditional write of zh/models/realm-and-space.md section 2.5.1.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "agent_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_status"
+            },
+            "agent_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "uninitialized",
+            "active",
+            "paused",
+            "deactivated"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_current": {
+      "type": "object",
+      "description": "Closed value of the agent_key typed current result.",
+      "required": [
+        "authorizations"
+      ],
+      "properties": {
+        "authorizations": {
+          "type": "array",
+          "description": "Canonically sorted active tagged-set entries. A revoke entry is a witnessed revocation boundary marker, never an active authorization.",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/agent_key_authorization_entry"
+          }
         }
       },
       "additionalProperties": false

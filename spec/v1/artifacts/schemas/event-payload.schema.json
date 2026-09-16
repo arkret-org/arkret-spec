@@ -7443,7 +7443,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "x-arkret-signature-domain": "ak.realm.organization.statement.v1"
         }
       },
       "additionalProperties": false,
@@ -8032,9 +8033,9 @@
           "maxItems": 1,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/digest"
+            "$ref": "#/$defs/event_ref"
           },
-          "description": "The unique schedule revision winner the responder actually observed, retained in the existing array wire shape as exactly one event_digest. It MUST also appear in the envelope domain_refs[]."
+          "description": "The unique schedule revision the responder actually observed, retained in the existing array wire shape as exactly one ak:event: typed id. It is the sole carrier of that association: the payload holds exactly one entry, so no envelope mirror is required and none is defined. Shape admission is decidable from this field alone, without resolving the referenced Event."
         },
         "response": {
           "$ref": "#/$defs/rsvp_response",

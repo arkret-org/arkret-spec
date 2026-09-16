@@ -174,7 +174,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - 事件名必须符合 `ak.` 命名规则，且标准 `ak.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
 - Event Envelope MUST 先通过 `ak.schema.event.v1`，再按 `Event.kind` 通过 `ak.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
-- 事件/关系/对象/View 的 `created_at`、`realm_id`、`proof`、`hlc`、`producer_revision`、`domain_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；schema 依赖通过 `Event.requirements.schema[]` 表达，Reducer 版本由 Realm control state 决定。
+- 事件/关系/对象/View 的 `created_at`、`realm_id`、`proofs`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过。Event 不携带 `hlc`、`producer_revision`、`domain_refs` 或 `requirements`（封闭禁用集合见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md)），因此 SDK MUST NOT 为它们保留读取或校验入口；每个 Event kind 绑定的封闭 typed reducer 由 `event-kind-registry.json` 唯一决定。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State / snapshot / projection 进度和 wait-for token MUST 以 `CommittedEventRef`、stream ref 与 RealmCommit position 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
@@ -1040,7 +1040,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
 | <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`schema-validation-fixture.json`）；"先于消费"的内部顺序为 U |
-| <a id="ak-sdk-002"></a>2 | `proof`、`hlc`、`producer_revision`、`domain_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
+| <a id="ak-sdk-002"></a>2 | `proofs`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
 | <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |

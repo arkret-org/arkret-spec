@@ -124,6 +124,10 @@
       "new": "ak.gate.account.command.introspect_session_grant.v1"
     },
     {
+      "old": "ak.gate.account.command.issue_controller_gate_attestation",
+      "new": "ak.gate.account.command.issue_controller_gate_attestation.v1"
+    },
+    {
       "old": "ak.gate.account.command.issue_did_binding_challenge",
       "new": "ak.gate.account.command.issue_did_binding_challenge.v1"
     },

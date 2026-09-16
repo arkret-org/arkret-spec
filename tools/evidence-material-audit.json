@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 317,
+  "audited_occurrence_count": 318,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -69,6 +69,19 @@
       "occurrences": 2,
       "disposition": "qualifier",
       "reason": "Method-native did:webvh witness / freshness evidence digest for an externally hosted DID. It is public log-derived material, carries no secret, and only pins which witnessed history state the Account Authority resolved."
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "agent_authority_state_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment",
+        "transcript"
+      ],
+      "reason": "Carries one exact confirmed RealmCommit state transcript, its JCS state commitment, the Agent Authority attestation over that commitment and the producer proofs of the Events inside the state."
     },
     {
       "file": "agent-operations.schema.json",

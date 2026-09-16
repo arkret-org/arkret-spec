@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.17",
+  "version": "2026-09-16.18",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T01:10:00+08:00",
+  "generated_at": "2026-09-17T02:00:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -19,7 +19,8 @@
     "A shared-proof use point whose enclosing top-level $defs entry is reached by $ref from more than one other top-level $defs entry of the same file is a packed leaf. Unless every covering row declares its own consumer_operation, each object family MUST hold its own proof node and its own row; one row MUST NOT stand for several request/outcome families",
     "domain_separations rows MUST have unique domain and object_family values, MUST NOT reuse a label or object_family already registered in contexts[], and MUST declare a primitive from the closed set canonical_json_sha256, merkle_leaf_sha256, merkle_node_sha256, merkle_root_sha256, detached_signature, http_message_signature, hpke_info, replay_cache_namespace",
     "Every contexts[].context and domain_separations[].domain MUST match ak.<dot-separated snake_case symbol path>.v1. A dot separates naming levels, an underscore joins words inside one level, and a label MUST occur in exactly one array; the array and primitive, not delimiter spelling, determine its semantics. The ak.<kebab-case>-proof-v1 spelling is invalid and is not an alias",
-    "A replay_cache_namespace row MUST declare defined_in, and the normative document it names MUST contain the domain literal. Every fixture field named replay_cache_namespace MUST carry a registered replay_cache_namespace domain, and every fixture field named proof_context MUST carry a registered proof context"
+    "A replay_cache_namespace row MUST declare defined_in, and the normative document it names MUST contain the domain literal. Every fixture field named replay_cache_namespace MUST carry a registered replay_cache_namespace domain, and every fixture field named proof_context MUST carry a registered proof context",
+    "Every contexts[] row, and every domain_separations[] row whose primitive is detached_signature, names an object_family that some producer signs and some receiver verifies as a wire object, so it MUST resolve to a registered schema: the row declares schema_ref or a non-empty transcript_schema_refs, every referenced file is an active row of registry/schema-registry.json, every reference resolves to a real schema object, and that node is covered by a registered ak.schema.*.v1 id. Primitives that bind bytes assembled from an enclosing carrier (merkle_*, hpke_info, replay_cache_namespace, canonical_json_sha256, http_message_signature) are outside this rule by construction. machine gate: tools/artifact_lint:proof_context_object_family_schemas"
   ],
   "contexts": [
     {
@@ -1072,7 +1073,9 @@
         "verification_method",
         "issued_at",
         "expires_at"
-      ]
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation"
     },
     {
       "domain": "ak.device_authorize_possession_proof.v1",
@@ -1355,17 +1358,6 @@
       ]
     },
     {
-      "domain": "ak.federation.verify_actor.signature.v1",
-      "object_family": "federation_verify_actor",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "actor_id",
-        "did",
-        "evidence_digest",
-        "audience"
-      ]
-    },
-    {
       "domain": "ak.franking_proof.signature.v1",
       "object_family": "moderation_franking_proof",
       "primitive": "detached_signature",
@@ -1424,6 +1416,14 @@
       "primitive": "detached_signature",
       "binding_fields": [
         "policy_without_auth_data"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "injected_fields": [
+        {
+          "field": "policy_without_auth_data",
+          "source": "pure function: the RFC 8785 JCS bytes of this policy object with auth_data removed"
+        }
       ]
     },
     {
@@ -1463,6 +1463,14 @@
       "primitive": "detached_signature",
       "binding_fields": [
         "receipt_without_auth_data"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "injected_fields": [
+        {
+          "field": "receipt_without_auth_data",
+          "source": "pure function: the RFC 8785 JCS bytes of this receipt object with auth_data removed"
+        }
       ]
     },
     {
@@ -1478,7 +1486,9 @@
         "source_id",
         "destination_id",
         "terminal_at"
-      ]
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_terminal_receipt"
     },
     {
       "domain": "ak.keypackage.consume_receipt.v1",
@@ -1490,7 +1500,9 @@
         "claim_id",
         "recipient_durable_receipt",
         "consumed_at"
-      ]
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_consume_receipt"
     },
     {
       "domain": "ak.mimi_reporter_authority_proof.v1",
@@ -1547,7 +1559,9 @@
         "welcome_digest",
         "durable_at",
         "device_verification_method"
-      ]
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/recipient_mls_durable_receipt"
     },
     {
       "domain": "ak.peer.events.command.submit.v1.service_binding.v1",
@@ -1571,8 +1585,10 @@
         "result_digest",
         "recipient_id",
         "received_at",
-        "issuer"
-      ]
+        "issuer_id"
+      ],
+      "defined_in": "zh/sync/service-http-binding.md",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_control_receipt"
     },
     {
       "domain": "ak.peer_contact.mirror_receipt.v1",
@@ -1582,22 +1598,36 @@
         "domain",
         "request_digest",
         "signed_event_ref",
-        "signed_event_digest",
         "outcome",
         "recipient_id",
         "received_at",
-        "issuer"
-      ]
+        "issuer_id"
+      ],
+      "defined_in": "zh/sync/service-http-binding.md",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/peer_contact_mirror_receipt"
     },
     {
       "domain": "ak.realm.organization.statement.v1",
       "object_family": "realm_organization_statement",
       "primitive": "detached_signature",
       "binding_fields": [
-        "organization_id",
+        "statement_id",
         "realm_id",
-        "statement",
+        "organization_id",
+        "relationship",
+        "status",
+        "control_scopes",
+        "issued_at",
+        "not_before?",
+        "expires_at?",
+        "supersedes_statement_id?",
+        "revokes_statement_id?",
         "signed_at"
+      ],
+      "defined_in": "zh/models/realm-and-space.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload/properties/authorization",
+      "transcript_schema_refs": [
+        "schemas/event-payload.schema.json#/$defs/realm_organization_payload"
       ]
     },
     {
@@ -1620,6 +1650,20 @@
         "jti"
       ],
       "defined_in": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
+    },
+    {
+      "domain": "ak.agent_authority_state_evidence.v1",
+      "object_family": "agent_authority_state_evidence",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "authority_id",
+        "verification_method",
+        "state_digest",
+        "issued_at",
+        "expires_at"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/agent_authority_state_attestation"
     }
   ]
 }

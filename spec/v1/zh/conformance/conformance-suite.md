@@ -108,7 +108,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
   - 期望 reducer 输出：本地接受、可投影、无需被 RealmCommit 覆盖。
 - `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1`
   - 输入带有效 `expected_revision` 的 state-changing Event 及缺失/错误 basis 的负向样例。
-  - 期望输出：state-changing Event 先 pending，只有取得该 stream 上有效的 RealmCommit 后进入 `committed`；v1 没有 `state_root`，判据是 Commit 本身，不是重算出来的状态根。
+  - 期望输出：state-changing Event 先 pending，只有取得该 stream 上有效的 RealmCommit 后进入 `committed`。判据是该 Commit 本身：验证方重算 Commit ID 并校验 `previous_commit_ref` 与 `stream_position` 链接，除此之外没有可供申诉的第二判据，因此缺少覆盖它的 Commit 时 MUST 保持 pending 而不是自行判定已生效。
 - `ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1`
   - 输入同一 ordered submit batch 内相互依赖的 state-changing Event。
   - 期望输出：同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 RealmCommit。

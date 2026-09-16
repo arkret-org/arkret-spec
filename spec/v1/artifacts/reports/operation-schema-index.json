@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.18",
+  "version": "2026-09-16.26",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T01:40:00+08:00",
+  "generated_at": "2026-09-17T02:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1184,6 +1184,38 @@
           "proof_required",
           "one_time_use_consumed",
           "grant"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "principal_id",
+          "agent_authority_id"
+        ],
+        "properties": [
+          "request_id",
+          "principal_id",
+          "agent_authority_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "controller_account_gate_attestation"
+        ],
+        "properties": [
+          "request_id",
+          "controller_account_gate_attestation"
         ],
         "closed": true
       }

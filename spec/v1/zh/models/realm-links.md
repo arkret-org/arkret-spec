@@ -86,7 +86,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 - `rejected`
 - `tombstoned`
 
-`ak.realm.link` 写入 `realm_link` typed current result。typed current result subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`domain reducer=current-value projection`、`execution=data`；并发 status 按固定 `(depth,EventId)` 选择唯一 current，导航只从该 winner 投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+`ak.realm.link` 写入 `realm_link` typed current result。typed current result subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`domain reducer=current-value projection`、`execution=data`；当前 status 是该 stream 上最后一个被接受的写入，次序只由 `stream_position` 给出；导航只从该当前值投影。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
 
 允许的状态迁移如下；`absent` 只表示尚无 typed current result，不是 wire 状态：
 
@@ -97,7 +97,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 | `rejected` | `rejected` / `active` / `tombstoned` | 本侧可在新的已授权 state-changing Event 中重新接受。 |
 | `tombstoned` | `tombstoned` | 终态；仅允许字节等价的幂等重放。 |
 
-未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是普通 `current-value projection`：每条写入按其冻结业务前态验证迁移，合法并发写按固定 `(depth,EventId)` 选择唯一 current，不产生 `⊥`，不得按时间戳或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与并发 winner 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
+未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。该 family 是普通 `current-value projection`：每条写入按其声明的业务前态验证迁移，合法并发写由 Station 在该 stream 上串行化，当前值是最后一个被接受的写入，不产生 `⊥`，不得按时间戳、深度或接收顺序挑选。机器可执行 transition matrix、tombstone 终态、幂等重放与并发 winner 行为由 `ak.vector.realm_link.transition_matrix.v1` 固化。
 
 Projection MAY 派生：
 

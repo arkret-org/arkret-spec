@@ -97,17 +97,17 @@ v1 recurrence 是 RFC 8984 JSCalendar `RecurrenceRule` 的 snake_case 子集：`
 
 ## 6. Schedule revision 与 occurrence 身份
 
-创建携带 Calendar 子树的 Strand，或显式写入该子树（含其祖先路径 `metadata`、`metadata.fields` 的替换／删除）的 Event，构成该 Strand 的 **schedule revision DAG**。写入与原值相同仍是一次显式 revision；是否需要 RSVP 重新确认则按下文 significant-change 表比较日程值，不能把“新 revision”直接等同于“日程已改变”。仅写入 `metadata.title` 等不包含 Calendar 子树的路径不产生新的 schedule revision。此定义按签名写入意图与因果关系求值，不依赖 receiver 的到达顺序。
+创建携带 Calendar 子树的 Strand，或显式写入该子树（含其祖先路径 `metadata`、`metadata.fields` 的替换／删除）的 Event，构成该 Strand 的 **schedule revision 序列**。写入与原值相同仍是一次显式 revision；是否需要 RSVP 重新确认则按下文 significant-change 表比较日程值，不能把“新 revision”直接等同于“日程已改变”。仅写入 `metadata.title` 等不包含 Calendar 子树的路径不产生新的 schedule revision。此定义按签名写入意图求值；序列的次序由治理 Station 在该 stream 上给出的 `stream_position` 决定，不依赖 receiver 的到达顺序。
 
-schedule revision winner 是对象 source DAG 中全部 eligible schedule revision 按普通 `current-value projection` 固定 `(depth,EventId)` 顺序选出的唯一最大项。Event A 是 Calendar Event C 的业务因果前驱，当且仅当 A 是 C 的同 typed current result `domain_refs[]` 传递祖先；中间可以有任意非 Calendar 更新，但它们不抬高 schedule typed current result 的 depth。MUST 从 accepted source 因果关系计算，禁止用 HLC、墙钟或接收顺序选值。相同 accepted Event 集合的所有拓扑到达顺序必须给出相同 winner。
+当前 schedule revision 是**该 Strand 所属 stream 上最后一个被接受的 eligible schedule revision**。次序只由治理 Station 在该 stream 上给出的 `stream_position` 决定：位置更大的已接纳写入取代位置更小的。中间任意不写 Calendar 子树的更新既不产生 schedule revision，也不影响该次序。实现 MUST NOT 用 HLC、`created_at`、墙钟或本地接收顺序选值；同一段已提交前缀在任何重放顺序下 MUST 给出同一个当前 revision。
 Calendar patch 与标题／正文 patch 使用同一对象基线规则，不添加额外 schedule base。
 
 Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` 与 `schedule_resolution_state`：
 
 - `available`：唯一 winner 的 Calendar schedule 已解密并通过 schema；只有此状态 MAY 展开 occurrence、发送 RSVP 或派生精确 schedule notification。
-- `encrypted_unresolved`：winner 无法解密或校验；不得从落选值、方便投影或本地缓存制造替代 schedule。
+- `encrypted_unresolved`：当前 revision 无法解密或校验；不得从被取代的旧值、方便投影或本地缓存制造替代 schedule。
 
-并发 schedule 写无需人工解决，按普通寄存器固定顺序得到 winner；用户后续 `ak.strand.update` 引用当前 winner 即可产生更高 depth 的正常后继。历史落选 Event 仍保留 provenance，但不进入 current schedule 候选列表。
+并发 schedule 写由 Station 在该 stream 上串行化，无需人工解决；用户后续 `ak.strand.update` 在当前 revision 之上正常后继。被取代的历史 Event 仍保留 provenance，但不进入 current schedule 候选列表。
 
 **`calendar_schedule_unavailable` 是 authoring 侧与投影侧的错误，MUST NOT 成为服务端 admission 条件**：判定可读性需要读取 Calendar 子树明文，E2EE 部署的服务端做不到。authoring client 在本地无法读取 winner 时 MUST 拒绝构造 RSVP；若某个 client 仍然发出，服务端按 §8.4 照常接受（它只看得到 shape 与 envelope），由授权投影把该 winner 归入 §9 的相应类别。这条与 §8.1 第三层同一原则：**任何需要 schedule 明文的判定都不得进入 admission**，否则 plaintext Realm 会比 E2EE Realm 多拒绝一批 Event，两者 accepted set 分叉。
 
@@ -128,7 +128,7 @@ Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` �
 
 `start`、`timezone`、`all_day`、`recurrence` 四行是 **identity-affecting fields**：它们改变 occurrence key 本身，因此旧 instance RSVP MUST 保留审计并标记 `stale_orphaned`，MUST NOT 自动迁移到新 key；series RSVP 的 subject 不含 occurrence，故不 orphan，只需重新确认。
 
-投影 MUST 暴露 current schedule source、每个 RSVP winner 的 entry basis、逐 ref 因果关系与 stale / reconfirmation 原因，MUST NOT 把旧回应静默显示为新 occurrence 的当前回应。
+投影 MUST 暴露 current schedule source、每个 RSVP 当前值的 entry basis、逐 ref 的解析结果与 stale / reconfirmation 原因，MUST NOT 把旧回应静默显示为新 occurrence 的当前回应。
 
 ## 7. Attendees
 
@@ -149,17 +149,21 @@ RSVP 通过 `ak.rsvp.set` 写入，payload 是 `{event_ref, occurrence, entry}`�
 
 ### 8.1 schedule_basis_refs
 
-`entry.schedule_basis_refs[]` 精确列出 responder 实际观察到的唯一 schedule revision winner，series 与 instance RSVP **均必填且长度固定为 1**。保留数组 wire 形状是既有 payload 合同，不表示多头；其 item 是 `event_digest`，与 envelope `domain_refs[]` 同型：
+`entry.schedule_basis_refs[]` 精确列出 responder 实际观察到的唯一 schedule revision，series 与 instance RSVP
+**均必填且长度固定为 1**。保留数组 wire 形状是既有 payload 合同，不表示多头；其 item 是 `ak:event:` typed id：
 
-- 非空、去重、按 digest canonical UTF-8 byte order 升序排列；
-- MUST 是 envelope `domain_refs[]` 的**子集**——这是纯 byte 级集合包含判定，无需解析目标 Event，因此服务端在 E2EE 下同样 MUST 执行；不满足时以 `rsvp_basis_not_causal` 拒绝，MUST NOT 进入 pending；
-- schema 将 `minItems=maxItems=1` 固定为单来源；空数组或多项都以 `schema_violation` 拒绝。客户端不得把落选 schedule Event 填入 basis。
+- schema 将 `minItems=maxItems=1` 固定为单来源；空数组、多项或重复项都以 `rsvp_basis_malformed` 拒绝；
+- item MUST 是格式合法的 `ak:event:` typed id；不满足时以 `rsvp_basis_malformed` 拒绝，MUST NOT 进入 pending。
+  该判定只看本 Event 自身的这一个字段，是**纯 byte 级判定，无需解析被引用的 Event**，因此服务端在 E2EE 下
+  同样 MUST 执行；
+- 客户端不得把已被取代的 schedule Event 填入 basis。该字段是这条关联的**唯一载体**：`ak.rsvp.set` 的 payload
+  恰好携带一个 `entry`，因此不存在需要 envelope 侧镜像来区分的逐项关联，协议也不定义这样的镜像。
 
 **判定分层（normative）**：basis 的校验严格分成三层，且每层的可判定材料在 E2EE 与 plaintext Realm 中**完全相同**，因此两类部署 MUST 得到同一个 canonical accepted set：
 
 | 层 | 判定材料 | 未通过时 |
 | --- | --- | --- |
-| shape admission | 只看本 Event 自身（恰好一项 / ⊆ `domain_refs`） | `rsvp_basis_not_causal` 或 `schema_violation` 拒绝，MUST NOT pending |
+| shape admission | 只看本 Event 自身的 `schedule_basis_refs`（恰好一项、格式合法的 `ak:event:` typed id） | `rsvp_basis_malformed` 或 `schema_violation` 拒绝，MUST NOT pending |
 | target admission | 被引用 Event 的**明文 envelope**：`realm_id`、`kind`、target ref | 引用 Event 尚未到达时按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 的 `dependency_missing` 保持 pending；已到达但 Realm / kind / target 不符时拒绝 |
 | basis 有效性 | 需要读取 Calendar 子树明文：唯一引用来源是否构成目标 schedule revision、是否等于 authoring 时实际观察的 winner | **不是** admission 条件，只在授权投影中判定，见 §9 的 `unresolved_basis` / `stale_orphaned` |
 
@@ -187,7 +191,7 @@ RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `curr
 
 registry 为该 typed current result write 登记 `result_projection = set(payload.entry)`：**整个 entry** 是 projection set value，因此 winner 独立携带 basis 与 response。receiver MUST 从 Event payload 重算 reducer projection；无法唯一投影、写目标数量错误或投影值与 payload entry 不一致，MUST 以 `reducer_projection_failed` 拒绝整个 Event。Event wire 不携带 reducer write。
 
-同一 responder 的因果后继 RSVP 以更高 depth 支配旧值；真正并发且 entry 不同的 RSVP 按固定 `(depth,EventId)` 选择唯一 winner。MUST NOT 由 HLC、`created_at` 或到达顺序选边，也不得因为解密后的 plaintext 相同而折叠不同 Event 身份。用户下一次基于当前 winner 回应会自然产生更高 depth，不存在 RSVP 专用冲突修复流程。
+同一 responder 的 RSVP 当前值是该 stream 上最后一个被接受的 `ak.rsvp.set`，次序只由 `stream_position` 决定；并发提交因此被 Station 串行化，不存在两个同时生效的回应。MUST NOT 由 HLC、`created_at`、深度或到达顺序选边，也不得因为解密后的 plaintext 相同而折叠不同 Event 身份。用户下一次回应正常取代当前值，不存在 RSVP 专用冲突修复流程。
 
 `ak.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。
 
@@ -222,10 +226,10 @@ registry 为该 typed current result write 登记 `result_projection = set(paylo
 
 | 轴 | 取值 | 参加 effective response |
 | --- | --- | --- |
-| basis 轴（沿 schedule revision DAG / winner 判定） | `current` | 是 |
+| basis 轴（沿 schedule revision 序列判定） | `current` | 是 |
 | | `effective_needs_reconfirmation` | 是，但 MUST 标注需重新确认 |
 | | `stale_orphaned`（identity-affecting 修改后的旧 instance winner） | 否 |
-| | `unresolved_basis`（任一 ref 不可解析、不可见、或不在目标 Strand 的 schedule revision DAG 上） | 否 |
+| | `unresolved_basis`（任一 ref 不可解析、不可见、或不在目标 Strand 的 schedule revision 序列中） | 否 |
 | response 轴（按 §8.2 分支取值后校验） | `resolved` | 是 |
 | | `response_invalid`（解密认证失败，或 plaintext 不满足 `rsvp_response`） | 否 |
 | | `encrypted_unresolved`（缺 key） | 否，且 MUST NOT 伪造 status |

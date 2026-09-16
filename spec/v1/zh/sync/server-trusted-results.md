@@ -70,7 +70,37 @@ Account Station 只对 session、本地可见性与缓存负责，不产生 Real
 
 ### 1.2 普通客户端的 Station 接入（normative）
 
-Realm finality 信任锨是 genesis + handoff chain 确定的 current governance Station。
+Realm finality 的信任锚是 genesis + handoff chain 确定的 current governance Station。本节是普通客户端首次
+登录、恢复连接与重新接入自己 Station 的唯一合同：它**不要求**客户端实现 DID method-native 的历史 verifier，
+也**不授权**客户端把任意外部服务当作自己的 Station。
+
+1. **独立起点**：客户端 MUST 从用户明确选择的 Station HTTPS base URL，或部署独立预配的 base URL 与预期
+   身份/认证绑定开始。搜索结果、邀请、二维码与 redirect 只提供候选，MUST NOT 自动替换该选择。TLS MUST
+   验证被选择 origin 的证书；已预配的 `service_id`、`trust_domain` 或认证绑定存在时，服务自报 MUST 与之
+   逐字匹配，MUST NOT 覆盖它。
+2. **公开发现**：在发送任何既有账号凭据**之前**，从该 base 读取 `GET /_arkret/describe`。该请求 MUST 不带
+   凭据、MUST 不跟随自动 redirect，并执行
+   [`service-http-binding.md` §2.3](./service-http-binding.md) 的大小、压缩与超时限制。客户端 MUST 检查
+   `protocol_version`、`service_kind="station"`、唯一 canonical HTTP JSON base 与实际选择一致，以及合法的
+   `service_id`、`trust_domain` 与 `auth_metadata`。describe 自洽不证明该 origin 是某个人或组织的真实服务。
+3. **认证绑定**：全部 account 操作 MUST 从 `auth_metadata.account_authority.gate_account_base_url` 派生，并
+   校验其 origin 与 `account_authority.origin` 一致；MUST NOT 按 operation 猜地址，也 MUST NOT 在 base 缺失时
+   回退。Station、Authority 与 IdP 可以分处不同 origin。
+4. **持久接纳**：客户端 MUST 在开始认证或重用凭据**之前**，耐久保存并逐项比较所选 base URL、`service_id`、
+   `trust_domain`、Authority origin/base 与认证方法配置。集合顺序、可忽略的 `x_*`、动态 limits/features 以及
+   未改变上述绑定的常规签名 key rotation 都**不**构成认证权威替换。该持久状态 MUST NOT 随登出、进程重启、
+   账号切换或缓存淘汰自动丢弃；并发首次安装 MUST 比较既有绑定，MUST NOT 后写覆盖。保存或读取失败 MUST
+   阻止后续凭据发送，MUST NOT 降级为"首次接入"。
+5. **变更与重新接入**：恢复连接 MUST 先重新取得公开 describe 并与持久绑定比较。失配时 MUST 停止认证、
+   refresh 与既有凭据发送，并保留旧绑定与账号材料；只有用户显式重新选择并确认新绑定，或独立受信的部署
+   管理渠道授权更新之后，才可安装新绑定并**重新认证**。MUST NOT 向新权威转交旧 handoff、authorization
+   code、refresh token 或 SessionGrant，MUST NOT 以"重试""重新连接"或清缓存代替重新接入。
+6. **独立验证不被替代**：客户端不重放 DID 历史，并不免除服务端的独立验证义务——Station、registry、联邦
+   接收方与独立审计者各自的原生验证职责不变。不能验证的候选 MUST NOT 被标记 verified，也 MUST NOT 作为
+   隐式账号接入依据。
+
+首次 origin 选错、独立预配渠道失陷或受信 WebPKI/origin 失陷属于残余暴露；持久绑定只能延续已经作出的选择，
+不能追溯证明首次选择正确。
 
 ### 5.2 已知 MLS artifact 的接纳结果
 
@@ -82,7 +112,34 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 
 ### 5.6 按次 current 与精确历史签名公钥
 
-授权结果绑定 exact selector、authority generation、current revision 与 caller audience。
+授权结果绑定 exact selector、authority generation、current revision 与 caller audience。机读合同是
+[`signer-key-operations.schema.json`](../../artifacts/schemas/signer-key-operations.schema.json)。
+
+**结果不镜像身份（normative）**：current 结果的 key 使用封闭 `query_signing_key`，只含 `public_key_b64u` 与
+`authorization_ref`。`actor` 与 `verification_method` **只从 enclosing selector 取得**，key MUST NOT 重复
+携带这两个字段。历史普通设备结果的 key 是封闭 `historical_device_signing_key`，只含 `public_key_b64u`。
+SDK MAY 在本地由 selector 与 key 组装完整缓存类型，但 MUST NOT 把该身份镜像写回 self wire result。
+
+**关联只靠完整 selector（normative）**：每个请求 selector 恰好对应一个结果，不省略、不重复、不额外添加。
+结果关联 MUST 使用**完整 selector 的相等性**——`verification_mode`、`sender_kind`、完整 AccountId、
+`device_id`（适用时）、`verification_method` 与历史 `event_id`（适用时）——MUST NOT 使用数组下标。乱序不影响
+关联；重复、缺失或多余的 selector MUST 拒绝整份结果。
+
+**调用语境不可丢（normative）**：`recipient_account_id` MUST 逐字等于已认证 SessionGrant 的完整账号，其
+Station MUST 是服务本请求的自己 Station；结果 context MUST 逐字回显请求。current 结果只供**本次冻结的操作**
+消费：同批或完全相同且已在途的查询 MAY 合并，但已完成的结果 MUST NOT 供未来操作或重连使用。稳定公钥
+bytes MAY 缓存，但 `(actor, method, key)` MUST NOT 替代 exact authorization Event 实例——同一 key 的重新授权
+必须按独立授权实例核对。
+
+**`authorization_ref` 是必填（normative）**：current 普通设备与 Agent 两个分支的 `query_signing_key` MUST
+携带真实适用的 accepted 授权 Event 引用；历史 Agent 结果同样保留真实 `authorization_ref`，供端到端历史 MLS
+leaf 绑定使用。缺失或无法取得时 MUST 返回同形的 `unavailable`，MUST NOT 把裸缓存公钥当作成功，也 MUST NOT
+用细分 reason 泄漏隐藏状态。
+
+**不改动的两条边界（normative）**：Signal frame 没有 enclosing selector，继续使用完整
+`station_signing_key {actor, verification_method, public_key_b64u, authorization_ref}` 的独立身份形态；
+peer portable evidence 保持自己的独立来源合同，MUST 绑定本地接收方，其独立接纳时间 MUST NOT 混同原
+producer 的 admission 时间。本节的收窄只作用于 self 查询结果，MUST NOT 被读作对这两者的放宽。
 
 ### 5.8 DID result
 

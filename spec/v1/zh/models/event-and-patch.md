@@ -74,7 +74,27 @@ predecessor/position、Commit signature、Event ID 和 producer proof。消费�
 - Strand: `content`、`encrypted_content`、`tracks.synthesis.content`、`tracks.synthesis.encrypted_content`
 - Morph: `content`、`encrypted_content`
 
-普通更新只能用 `set` 写入空内容；清除这些 slot 必须走登记的 terminal redaction Event。
+上述逐对象清单的机读投影是
+[`redactable-field-registry.json`](../../artifacts/registry/redactable-field-registry.json)；本节与该 registry
+MUST 同批更新，reducer、SDK 与 conformance MUST 从 registry 取值，MUST NOT 各自解析本节散文。
+
+普通更新只能用 `set` 写入空内容；清除这些 slot 必须走登记的 terminal redaction Event。理由是**槽存在性
+语义**：每个内容槽是明文 / 密文二选一的一对字段，其在物化对象上的缺席只允许表达两件事——从未撰写，或
+已按 redaction policy 清除。普通 `ak.<kind>.update` MUST NOT 制造第三种缺席来源。
+
+**Event-targeted redaction 不驱动对象 state（normative）**：cross-object `ak.redaction` 的 `target_ref` 是
+唯一目标载体，其词法空间同时覆盖对象 typed id 与 `ak:event:` 目标；对 `id_source=event_derived` 的对象，
+同一个 33-octet token 有 `ak:event:<T>` 与 `ak:<对象种类>:<T>` 两种合法拼写。两者是**两件不同的断言**：
+
+- `target_ref` 为 `ak:event:` 形态时，语义仅是按 `preserve[]` 对该 Event 自身做字段级裁剪。它 MUST NOT
+  改变任何对象的 `state`，**包括由被指向的 create Event 铸出的 event-derived 对象**。
+- 对象进入 `state=redacted` 只能由 `ak:<对象种类>:` 形态的 `target_ref` 驱动。Message 仍然只走专属
+  `ak.message.redact`，cross-object `ak.redaction` 的 schema 已机械排除 `ak:message:` 目标。
+
+两种拼写落进 `object_redaction` 家族的**两个**独立 typed current result：它们互不影响、永不合并，reducer
+MUST NOT 把 `ak:event:` 拼写 canonicalize 成派生对象的 typed id。因此回答"这条内容还在不在"必须同时读两处
+投影：对象拼写决定对象 `state`，event 拼写决定该 Event 的字段级裁剪；UI 与审计视图 MUST 合并两者，不得只
+查其一。判据由 `ak.vector.redaction.event_target_does_not_drive_object_state.v1` 固化。
 
 #### 4.2.5 Typed-reducer managed paths (normative)
 
@@ -104,6 +124,8 @@ SDK 必须在签名和发送前构造 immutable、schema-valid Event；服务不
 
 每个 durable Event kind 绑定一个封闭 typed reducer；producer 不能选择 reducer、state key 或通用 operation。
 
+一条 Event 的 registered writes 按 registry 顺序编号，`write_index` 从 0 起。tagged-set 元素的稳定 tag 是**canonical Event dot** `<event_id>:<write_index>`，MUST NOT 退化为裸 `event_id`：同一条 Event 的多个 write 必须可分辨。
+
 ### 2.6 关系与业务前驱
 
 业务关系使用 typed payload 或封闭 `refs` role；排序前驱只使用 RealmCommit。
@@ -127,3 +149,26 @@ Message、Strand、Calendar 等对象的 create/update 字段由各自 payload s
 #### 4.3.1 Patch 冲突
 
 Patch 不使用 causal rank；默认按同 stream Commit 顺序应用，并在具体 payload 要求时使用 `expected_revision`。
+
+**原子性与声明的 pre-state（normative）**：同一个 `payload.patch` map 中的所有 path 变更属于该 Event 的
+**单次原子写入**。reducer MUST 先取得该 Event 声明的 pre-state，再验证全部 path grammar、schema transition、
+capability field constraint、redactable slot 限制与 reducer-managed path 限制，最后整体应用。任一检查失败时
+整个 patch MUST fail closed，MUST NOT 部分应用已经通过的 path。
+
+pre-state 的求值必须唯一且有界：携带 `expected_revision` 的 payload 以该 typed row 的最后 Commit 修订为准，
+不一致时以 `failed_precondition` 拒绝；pre-state 无法唯一绑定——目标行不存在、解析出多于一个候选，或实现
+只能依据到达顺序、本地 current 快照、墙钟或 HLC 猜测——时 MUST 以 `schema_violation`、
+`reason_code=reducer_projection_failed` 拒绝，MUST NOT 落在一个未绑定的基线上应用。
+
+同时写入父子路径、同一路径重复写入，或一条操作会改变另一条操作的目标解析结果时，producer MUST 拆分为
+多个语义边界明确的 Event；receiver 无法按 canonical path order 得到唯一结果时 MUST `schema_violation`，
+`reason="patch_atomic_conflict"`。canonical path order 只用于签名与诊断，MUST NOT 被实现当作"先应用 A 再
+应用 B"的业务语义逃逸路径。
+
+**与 redactable slot / reducer-managed path 的交互（normative）**：patch path 命中 §4.2.4 登记的内容槽且
+`$op="unset"` 时 MUST 拒绝为 `schema_violation`、`reason=patch_unset_redactable_field`；同一槽上的
+`$op="set"`（含空正文）是普通编辑，MUST 被接受；`metadata`、`metadata.title`、`metadata.summary` 与
+`metadata.fields.*` 不是内容槽，其上的 `$op="unset"` MUST 被接受。patch path MUST NOT 指向目标对象 kind 的
+reducer-managed 字段；逐对象封闭禁集、其通用最小集与唯一一条具名 View `state` 例外，都只从
+[`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 读取，
+MUST NOT 从散文重新推导。

@@ -308,5 +308,6 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     }
-  }
+  },
+  "x-arkret-signature-domain": "ak.identity.recovery_receipt.signature.v1"
 }

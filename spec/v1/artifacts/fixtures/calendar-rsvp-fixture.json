@@ -670,7 +670,7 @@
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "encrypted_response": {
             "version": "1.0",
@@ -694,7 +694,7 @@
         "occurrence": "2026-06-22T09:00:00[America/Los_Angeles]",
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "response": {
             "status": "accepted",
@@ -715,7 +715,7 @@
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "response": {
             "status": "accepted"
@@ -737,7 +737,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
       "expect_valid": false,
       "semantic_outcome": "reject",
-      "expected_reason_code": "rsvp_basis_not_causal",
+      "expected_reason_code": "rsvp_basis_malformed",
       "first_expected_error": "contains:schedule_basis_refs",
       "instance": {
         "event_ref": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
@@ -755,15 +755,15 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
       "expect_valid": false,
       "semantic_outcome": "reject",
-      "expected_reason_code": "rsvp_basis_not_causal",
+      "expected_reason_code": "rsvp_basis_malformed",
       "first_expected_error": "contains:schedule_basis_refs",
       "instance": {
         "event_ref": "ak:strand:AT0qp3NTTWtVZNVOgsvsAncs9xRV-c5HXCz7uzXd7NQS",
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "response": {
             "status": "accepted"
@@ -783,7 +783,7 @@
         "occurrence": "2026-06-22T16:00:00.000Z",
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "response": {
             "status": "accepted"
@@ -803,7 +803,7 @@
         "occurrence": "2026-02-30",
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "response": {
             "status": "accepted"
@@ -823,7 +823,7 @@
         "occurrence": "series",
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "response": {
             "status": "accepted"
@@ -888,135 +888,135 @@
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000001",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000002",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000003",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000004",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000005",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000006",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000007",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000008",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000009",
-            "sha256:000000000000000000000000000000000000000000000000000000000000000a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000000b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000000c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000000d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000000e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000000f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000010",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000011",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000012",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000013",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000014",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000015",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000016",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000017",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000018",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000019",
-            "sha256:000000000000000000000000000000000000000000000000000000000000001a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000001b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000001c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000001d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000001e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000001f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000020",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000021",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000022",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000023",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000024",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000025",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000026",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000027",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000028",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000029",
-            "sha256:000000000000000000000000000000000000000000000000000000000000002a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000002b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000002c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000002d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000002e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000002f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000030",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000031",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000032",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000033",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000034",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000035",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000036",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000037",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000038",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000039",
-            "sha256:000000000000000000000000000000000000000000000000000000000000003a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000003b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000003c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000003d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000003e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000003f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000040",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000041",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000042",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000043",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000044",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000045",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000046",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000047",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000048",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000049",
-            "sha256:000000000000000000000000000000000000000000000000000000000000004a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000004b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000004c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000004d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000004e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000004f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000050",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000051",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000052",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000053",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000054",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000055",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000056",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000057",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000058",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000059",
-            "sha256:000000000000000000000000000000000000000000000000000000000000005a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000005b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000005c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000005d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000005e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000005f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000060",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000061",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000062",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000063",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000064",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000065",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000066",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000067",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000068",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000069",
-            "sha256:000000000000000000000000000000000000000000000000000000000000006a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000006b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000006c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000006d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000006e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000006f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000070",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000071",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000072",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000073",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000074",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000075",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000076",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000077",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000078",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000079",
-            "sha256:000000000000000000000000000000000000000000000000000000000000007a",
-            "sha256:000000000000000000000000000000000000000000000000000000000000007b",
-            "sha256:000000000000000000000000000000000000000000000000000000000000007c",
-            "sha256:000000000000000000000000000000000000000000000000000000000000007d",
-            "sha256:000000000000000000000000000000000000000000000000000000000000007e",
-            "sha256:000000000000000000000000000000000000000000000000000000000000007f",
-            "sha256:0000000000000000000000000000000000000000000000000000000000000080"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAB",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAC",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAD",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAE",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAF",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAG",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAH",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAI",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAJ",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAK",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAL",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAM",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAN",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAO",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAP",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAQ",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAR",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAS",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAT",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAU",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAV",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAW",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAX",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAY",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAZ",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAa",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAb",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAc",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAd",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAe",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAf",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAg",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAh",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAi",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAj",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAk",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAl",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAm",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAn",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAo",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAp",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAq",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAr",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAs",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAt",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAu",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAv",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAw",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAx",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAy",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAz",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA0",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA1",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA2",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA3",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA4",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA5",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA6",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA7",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA8",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA9",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA-",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrA_",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBA",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBB",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBC",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBD",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBE",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBF",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBG",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBH",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBI",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBJ",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBK",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBL",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBM",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBN",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBO",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBP",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBQ",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBR",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBS",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBT",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBU",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBV",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBW",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBX",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBY",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBZ",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBa",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBb",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBc",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBd",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBe",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBf",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBg",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBh",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBi",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBj",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBk",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBl",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBm",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBn",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBo",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBp",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBq",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBr",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBs",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBt",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBu",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBv",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBw",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBx",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBy",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrBz",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB0",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB1",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB2",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB3",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB4",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB5",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB6",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB7",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB8",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB9",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB-",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrB_",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrCA",
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrCB"
           ],
           "response": {
             "status": "accepted"
@@ -1037,7 +1037,7 @@
         "occurrence": "2026-06-22T09:00:00",
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAB"
           ],
           "response": {
             "status": "accepted"
@@ -1057,7 +1057,7 @@
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAB"
           ]
         }
       }
@@ -1074,7 +1074,7 @@
         "occurrence": null,
         "entry": {
           "schedule_basis_refs": [
-            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrAA"
           ],
           "encrypted_response": {
             "version": "1.0",
@@ -1309,12 +1309,12 @@
       "expected_projection": "refusal is client-side because status needs schedule plaintext; historical RSVP projection is retained and a late winner is shown as a response to a cancelled event"
     },
     {
-      "name": "rsvp_admission_basis_outside_domain_refs_rejected",
+      "name": "rsvp_admission_basis_not_typed_event_id_rejected",
       "vector_id": "ak.vector.calendar.rsvp_admission.v1",
-      "precondition": "entry.schedule_basis_refs contains a digest absent from domain_refs[] (shape admission, decidable without resolving anything)",
+      "precondition": "entry.schedule_basis_refs holds one item that is not a well-formed ak:event: typed id (shape admission, decidable without resolving anything)",
       "action": "submit ak.rsvp.set",
       "semantic_outcome": "reject",
-      "expected_reason_code": "rsvp_basis_not_causal"
+      "expected_reason_code": "rsvp_basis_malformed"
     },
     {
       "name": "rsvp_admission_basis_pending_dependency",
@@ -1382,13 +1382,13 @@
       "expected_projection": "both Realms accept the identical canonical set; the discrepancy surfaces only in the authorized projection as unresolved_basis or stale, so a server that happens to read plaintext MUST NOT reject what an e2ee server accepts"
     },
     {
-      "name": "rsvp_admission_basis_out_of_order_rejected",
+      "name": "rsvp_admission_basis_multiple_refs_rejected",
       "vector_id": "ak.vector.calendar.rsvp_admission.v1",
-      "precondition": "entry.schedule_basis_refs holds two distinct digests that are a genuine subset of domain_refs[], non-empty and deduplicated, but listed in descending byte order",
-      "action": "submit ak.rsvp.set carrying [sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+      "precondition": "entry.schedule_basis_refs holds two distinct well-formed ak:event: typed ids where the contract fixes exactly one",
+      "action": "submit ak.rsvp.set carrying two schedule_basis_refs items",
       "semantic_outcome": "reject",
-      "expected_reason_code": "rsvp_basis_not_causal",
-      "expected_projection": "JSON Schema can only express non-empty, unique and the 128 bound, so canonical ascending byte order MUST be enforced by the reducer shape admission; accepting an unsorted basis would fork both the accepted set and the signed canonical bytes across implementations"
+      "expected_reason_code": "rsvp_basis_malformed",
+      "expected_projection": "Exactly one observed schedule revision is the whole contract, so a second item is rejected at shape admission rather than silently truncated; accepting it would fork both the accepted set and the signed canonical bytes across implementations"
     },
     {
       "name": "rsvp_admission_basis_sorted_ascending_accepted",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.18",
+  "version": "2026-09-16.20",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T01:40:00+08:00",
+  "generated_at": "2026-09-17T02:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -100,7 +100,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "",
+      "description": "Act-on-behalf requires an authorization_ref, live participation, matching grant scope and a single-use controller approval; approval replay fails with approval_already_consumed and unauthorised Sidecar creation fails with sidecar_create_denied.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
@@ -112,7 +112,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "",
+      "description": "Agent lifecycle is active/paused/deactivated with deactivated terminal: resume fails agent_deactivated, pause-while-paused fails agent_paused, one lifecycle Event carries deactivation without client-authored key or grant bundles, and deactivation becomes a mandatory AND gate over every runtime key, session, pairing handle, grant, KeyPackage and presence path within sixty seconds.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
@@ -136,7 +136,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "",
+      "description": "Agent key authorizations and accountability grants without expires_at stay valid until revoked; same-key re-authorization atomically replaces every observed authorization dot, concurrent re-authorizations fold to the intersection of scope and audience with the earliest finite expiry, and pause fails new sessions closed and invalidates issued ones inside a freshness window of at most sixty seconds.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
@@ -160,7 +160,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "",
+      "description": "Agent mention selectors resolve through selector_claim.subject_account_id: ambiguous or unavailable selectors fail closed, a slug change keeps the historical target, the same principal on another Station is a different account, and retargeted stations, proof reuse and expected_actor_id hints are rejected rather than used to break ambiguity.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -185,7 +185,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "",
+      "description": "Agent key pairing pins ak.gate.account.command.pair_agent_key.v1 and its failure set: expired pairing requests fail pairing_request_expired, and DID mismatch, invalid proof and deactivated agent each map to their own stable code.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
@@ -197,7 +197,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "",
+      "description": "Circle and Strand participation ceilings may only drop bits from their parent: a child enabling act_on_behalf under a disabled parent bit, or a Strand re-enabling a Circle-disabled third-party mention bit, is rejected with agent_participation_ceiling_widen.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -209,7 +209,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "",
+      "description": "Effective Agent participation is the bitwise meet of the current governance/deployment ceiling and the controller selection; the five selection bits are independent of requested scope, participation is an additional action gate rather than a grant, and an unknown source yields the empty set.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -221,7 +221,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "",
+      "description": "The Account Authority stores the full controller participation selection under compare-and-set versioning without turning it into authority: enforcement intersects the stored selection with current governance, and a capped bit grants no action and creates no capability grant.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -233,7 +233,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "",
+      "description": "Session scope_details.participation entries are isomorphic to agent_participation_entry and are a behavior contract, not an authorization boundary: a runtime operation without the backing capability grant still fails with failed_precondition.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -245,7 +245,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "",
+      "description": "With accept_third_party_mention false, non-controller mentions fan out to no agent notification, inbox entry, push or subscribe projection while the controller's own mention still delivers; enabling the bit later is non-retroactive.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -294,7 +294,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "",
+      "description": "Agent re-pairing keeps an active or paused agent intact until pairing completes, issues one fresh handle that makes every previous handle permanently unresolvable, and applies one controller-signed authorize Event whose exact supersedes set atomically replaces every prior active authorization dot; stale, partial, extra or wrong supersedes sets fail closed without changing any key.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
@@ -331,7 +331,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "",
+      "description": "Agent session issuance pins ak.gate.account.command.issue_session_grant.v1: exact replay with a fresh matching-holder DPoP returns the original grant while reused DPoP, conflicting intent, audience mismatch and bad signatures fail closed, and a missing accountability grant is pinned as accountability_grant_missing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]
@@ -442,7 +442,7 @@
       "applies_to_fixtures": [
         "auth-session-proof-fixture.json"
       ],
-      "description": "",
+      "description": "The accepted-device possession proof binds request_id, account subject, handoff digest, complete account_id, device_id, audience, holder jkt, verification method, session intent and a window of at most 300 seconds; audience mismatch fails audience_mismatch and a broken binding fails proof_invalid with issuer-fixed TTL.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
         "spec/v1/zh/conformance/conformance-profiles.md"
@@ -715,7 +715,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "RSVP admission is capability-based rather than attendee-based, refuses cancelled events, and layers basis checks so that e2ee and plaintext Realms accept the identical canonical set: shape admission requires exactly one causally carried schedule winner without resolving it, target admission reads only the referenced Event plaintext envelope and pends on dependency_missing, and basis validity is projection-only. Missing, invisible, cross-Realm and non-calendar targets remain externally indistinguishable.",
+      "description": "RSVP admission is capability-based rather than attendee-based, refuses cancelled events, and layers basis checks so that e2ee and plaintext Realms accept the identical canonical set: shape admission requires exactly one well-formed ak:event: typed id in entry.schedule_basis_refs and is decidable from that field alone without resolving it, target admission reads only the referenced Event plaintext envelope and pends on dependency_missing, and basis validity is projection-only. Missing, invisible, cross-Realm and non-calendar targets remain externally indistinguishable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json"
       ]
@@ -871,7 +871,7 @@
       "applies_to_fixtures": [
         "call-state-core-fixture.json"
       ],
-      "description": "",
+      "description": "Every defective participant_binding maps to the single participant_binding_invalid code at reducer admission - unanchored issuer, tuple mismatch, expiry and signature failure alike - while a fully valid binding control is accepted.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
@@ -968,7 +968,7 @@
       "applies_to_profiles": [
         "ak.profile.constraint.approval_workflow.v1"
       ],
-      "description": "",
+      "description": "An unmet approval constraint blocks direct execution even for a high-privilege grant: a reproducible proposal/review lifecycle is required, and approval produces a verifiable completion Event that a separate action Event then consumes.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md"
       ]
@@ -1094,7 +1094,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "",
+      "description": "After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -1106,7 +1106,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "",
+      "description": "An accepted revoke makes Events depending on that grant rejected or soft-failed over the registered historical range, and rolling the revoke back restores the same Events to authorized on recomputation; the rollback produces independently auditable evidence and never rewrites a historical event_id.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md"
       ]
@@ -1143,7 +1143,7 @@
       "applies_to_fixtures": [
         "visibility-policy-fixture.json"
       ],
-      "description": "",
+      "description": "Under directory_visibility=members a Realm member outside the Circle receives exactly the locked stub an absent Circle returns - the same fixed key set and timing bucket - while a Circle member sees full metadata without changing the non-member shape.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
         "spec/v1/zh/models/circle.md"
@@ -1182,7 +1182,7 @@
       "applies_to_fixtures": [
         "circle-scope-fixture.json"
       ],
-      "description": "",
+      "description": "Signed Event scope_ref, projected effective_scope and Circle lifecycle admission: the producer signs the matching scope_ref, the reducer verifies it and materializes effective_scope only in read projections, and source-Station serializable ordering, archive and tombstone barriers, restore re-signing, expected_revision checks and rebind transitions all hold together with their negatives.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
       ]
@@ -1194,7 +1194,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "",
+      "description": "Revoking consent immediately invalidates the cached private contact discovery result, invite capability gate and PSI index: directory lookup stops returning the peer, the next invite submission fails its precondition and re-evaluates the gate, an any-scope revoke clears every scope cache, and the next PSI rotation excludes the peer.",
       "source_refs": [
         "spec/v1/artifacts/registry/error-code-registry.json"
       ]
@@ -1256,7 +1256,7 @@
       "applies_to_fixtures": [
         "long-text-content-fixture.json"
       ],
-      "description": "",
+      "description": "Inline and long-text selection is decided on measured UTF-8 bytes without splitting a Unicode scalar: at or below the inline limit the block stays ak.content.text, above it becomes ak.content.long_text, and a fallback body over its limit is rejected with payload_too_large.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json"
       ]
@@ -1268,7 +1268,7 @@
       "applies_to_fixtures": [
         "long-text-content-fixture.json"
       ],
-      "description": "",
+      "description": "E2EE long text uses the ak.blob.stream_aead.v1 scheme with a _stream algorithm suffix and max(1,ceil(size/segment)) segments; the content counts as complete only after every segment tag and the digest verify, and whole-file scheme, non-stream algorithm, digest mismatch, reordered or truncated segments and bad media types are all rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json"
       ]
@@ -1280,7 +1280,7 @@
       "applies_to_fixtures": [
         "long-text-content-fixture.json"
       ],
-      "description": "",
+      "description": "Redaction, expiry and blob-access revocation invalidate every message-derived view including the partial search index and cache, blob garbage collection runs on reference tracking, push providers never receive the full text, and mention handling never requires a server-side blob scan.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json"
       ]
@@ -1292,7 +1292,7 @@
       "applies_to_fixtures": [
         "long-text-content-fixture.json"
       ],
-      "description": "",
+      "description": "Producers normalize CRLF and bare CR to LF before digesting, BOM and forbidden control characters are rejected, Unicode normalization of the body is forbidden, and line count is zero for empty text and lf_count+1 unless a trailing LF is present.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/long-text-content-fixture.json"
       ]
@@ -1507,7 +1507,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "A resource outside the declared Directory accept_policy is rejected with accept_policy_denied and produces no entry, no partial state and no information about other resources.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1520,7 +1520,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Directory ingest rejects an announce whose governance signature does not verify, before any entry, TTL or policy_revision is established.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1533,7 +1533,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Directory ingest requires bidirectional opt-in: the resource must opt in to the Directory and the Directory must accept the resource; a one-sided announce establishes no entry.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1546,7 +1546,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An announce from a service that is not an authorized Directory writer is rejected with directory_unauthorized without revealing whether the target resource exists.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1559,7 +1559,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An announce whose governance signature is valid but stale relative to the accepted source_refs checkpoint is rejected with signature_stale rather than silently refreshing the entry.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1585,7 +1585,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Missing, hidden and invite-only-without-proof Realm resolutions return the same 404 not_found status, body shape and timing bucket, and never leak realm_id, title, join_rule, discoverability, member_ids or service endpoints.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1598,7 +1598,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An operator takedown records an auditable decision, blocks the entry from further external exposure, and gives external callers a blinded response indistinguishable from absence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1611,7 +1611,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An organization badge is shown only from independently verified evidence bound to the organization DID control state; unverified or expired evidence yields no badge rather than a weaker claim.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1624,7 +1624,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Organization search returns only entries whose discoverability admits keyword search, and every result carries the common as_of, source_refs and policy_revision fields.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1637,7 +1637,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "The Directory never holds or returns pairwise or private persona DIDs: they are excluded from ingest, from query results and from any derived index.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1650,7 +1650,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An announce whose as_of predates the stored entry, or whose policy_revision derives from a checkpoint already superseded, is rejected with policy_revision_rollback; the digest itself is never compared lexicographically.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1663,7 +1663,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Public and listed Realms are returned by keyword search with the common freshness fields, while unlisted, invite_only and secret Realms never appear in search results.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1676,7 +1676,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Re-announcing the same resource state is idempotent: it refreshes the effective TTL within max_ttl_seconds without creating a second entry or advancing policy_revision on unchanged input.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1715,7 +1715,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Resolving a hidden target is indistinguishable from resolving a target that does not exist, in status, body shape and timing bucket.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1728,7 +1728,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "A restricted handle or claim is returned only when the caller satisfies the registered presentation and policy gate; otherwise the account_id and claim contents are withheld rather than partially disclosed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1741,7 +1741,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Every Directory result carries as_of and policy_revision, and carries a non-empty sorted duplicate-free CommittedEventRef[] source_refs whenever it has an Event source, omitting the field entirely when it has none.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1754,7 +1754,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "A result past its TTL or contradicting the verified source_refs checkpoint is marked stale or removed, and consumers reject it instead of treating it as current.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1767,7 +1767,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Re-announcing a resource under an in-force takedown is rejected with takedown_in_force and the external response stays blinded.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1780,7 +1780,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An entry whose TTL expires without renewal is marked stale or removed, and never keeps answering queries as a current entry.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1793,7 +1793,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "An unlisted resource stays out of keyword search but, where policy allows, resolves by exact id, alias, signed invite or source Realm edge, and a disallowed attempt fails indistinguishably from absence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1806,7 +1806,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "After withdrawal the entry stops answering queries and external callers receive the same blinded not_found response as for a resource that never existed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1854,7 +1854,7 @@
       "status": "active",
       "domain": "encoding",
       "scope": "universal",
-      "description": "",
+      "description": "Canonical presentation order over unordered candidate Events sorts on decoded digest octets in unsigned lexicographic order with the canonical suite id as the second key, includes a case where wire-string order contradicts octet order, keeps every candidate with no winner, and never lets the order decide authorization, admission, finality, stream_position or previous_commit_ref.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -1878,7 +1878,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Nested canonical JSON sorts object keys by UTF-16 code unit at every level, preserves array order exactly as given, and never rewrites string values as a side effect of key sorting.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -1915,7 +1915,7 @@
       "applies_to_fixtures": [
         "crypto-signature-fixture.json"
       ],
-      "description": "",
+      "description": "Ed25519 detached JWS over the canonical proof binding object: verification succeeds on the golden vector and fails when the event digest changes, the binding is not canonical JSON, the detached payload segment is non-empty, or the verification method is absent from the DID document.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/crypto-signature-fixture.json"
       ]
@@ -1964,7 +1964,7 @@
         "cursor-negative-fixture.json",
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "A cursor is an opaque server-issued token: clients round-trip it verbatim without parsing its decoded payload to derive a position, and the paired negative fixture rejects every schema-valid-looking token before any server-side state advances.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
@@ -1990,7 +1990,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "The encrypted envelope digest is taken over exactly {version, content_type, encryption_context}: scope, kind, group id, scheme and sender domain are reconstructed and never duplicated on the wire, the context is cross-checked against the exact group-state scheme, and implementations never hash the plaintext payload.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/models/sidecar.md"
@@ -2013,7 +2013,7 @@
       "status": "active",
       "domain": "encoding",
       "scope": "universal",
-      "description": "",
+      "description": "The event digest preimage is the canonical Event Envelope with event_id, proofs and unsigned removed; event_id is derived forward from that digest as 33 octets of suite code plus full digest in unpadded base64url, and transport envelopes, HTTP headers, sync metadata and local receive time never enter it, so every read surface yields the same digest.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -2023,7 +2023,7 @@
       "status": "active",
       "domain": "encoding",
       "scope": "universal",
-      "description": "",
+      "description": "Schema-declared x_* slots and unrecognised critical_extensions[].parameters survive decode, encode, storage, federation forwarding and backfill byte for byte, and keep participating in canonical bytes.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-profiles.md"
       ]
@@ -2035,7 +2035,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "At logical counter ffff within one millisecond a producer either waits for unix_ms to advance and restarts at 0000 or fails locally with hlc_logical_overflow before canonical bytes exist; wrapping the counter, forging wall-clock skew, or accepting wrapped values into accepted history are all failures.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2047,7 +2047,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "HLC sorts by the (unix_ms, logical, node_id_hash) tuple; raw wall-clock string comparison is only admissible where fixed-width lowercase hex makes string order equal tuple order.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2059,7 +2059,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Golden base58btc multibase vectors for Ed25519 public keys with the 0xed01 multicodec prefix and the resulting did:key identifiers, verified round-trip in both encode and decode directions.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2071,7 +2071,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "An unknown value from an open registry never fails deserialization of its container, survives decode and encode as the exact original string, and is dispositioned semantically only after parsing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-profiles.md"
@@ -2120,7 +2120,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Duplicate JSON object keys at the same level are rejected before canonicalisation, never silently collapsed by parser default.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2132,7 +2132,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "U+FEFF and UTF-8 BOM injection inside canonical JSON input is rejected rather than stripped or normalised away.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2144,7 +2144,7 @@
       "applies_to_fixtures": [
         "cursor-negative-fixture.json"
       ],
-      "description": "",
+      "description": "Every schema-valid-looking ak:cursor: negative case - oversized, malformed, expired, cross-purpose and cross-binding tokens - is rejected with its stable reason code before any server-side state advances.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cursor-negative-fixture.json"
       ]
@@ -2156,7 +2156,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Malformed HLC strings are rejected instead of being leniently parsed or normalised into a valid tuple.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2168,7 +2168,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Overlong UTF-8, truncated sequences, lone and reversed surrogate escapes and in-string BOM are rejected as invalid_encoding or invalid_canonical_json; malformed strings are never replaced with U+FFFD before signing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2180,7 +2180,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Non-NFC string input is rejected before signature verification, never normalised into NFC first.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2192,7 +2192,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "NaN, Infinity, -0 and every fractional or exponent spelling are rejected rather than canonicalised, v1 signed JSON numbers are integers, and signature verification runs only after canonicalisation succeeds.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2226,7 +2226,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "The base proof binding object binds event_digest, actor DID, verification_method and created_at, with the matching Ed25519 detached JWS pinned in the crypto signature fixture.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2238,7 +2238,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "The audience-constrained binding adds a single audience DID to the base fields; an absent optional field is omitted from the canonical binding object entirely, because a null placeholder changes the canonical bytes.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2250,7 +2250,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "The cross-domain binding adds the target service domain to the base fields and canonical sorting places it between created_at and event_digest; absent optional fields are omitted rather than nulled.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2262,7 +2262,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "",
+      "description": "Domain and audience may be combined, an audience array preserves its order verbatim in the canonical bytes, and absent optional fields stay omitted rather than written as null.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
@@ -2406,7 +2406,7 @@
       "applies_to_profiles": [
         "ak.profile.federation_minimal.v1"
       ],
-      "description": "",
+      "description": "Replaying an accepted peer batch after the origin service key is revoked returns historical_only instead of a new authorized write, returns capability_denied once Realm policy removed the origin binding, and forces a full re-authorization whenever origin_key_state_digest or the authorization basis differs from the cached entry.",
       "source_refs": [
         "spec/v1/artifacts/registry/error-code-registry.json"
       ]
@@ -2466,7 +2466,7 @@
       "applies_to_fixtures": [
         "visibility-policy-fixture.json"
       ],
-      "description": "",
+      "description": "history_access=since_join rejects history epochs before the exact winning membership activation epoch with history_not_visible, keeps epochs at or after the join floor readable for current members, and stops non-members from reaching private history by guessing event ids.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -2530,7 +2530,7 @@
         "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
-      "description": "Complete recovery units freeze one canonical millisecond authoring checkpoint shared byte-for-byte by both Event created_at values and both producer-proof created_at values; mismatch, non-canonical time, missing pre-signing floor, or a checkpoint outside the applicable window is rejected before writes. Valid units advance device generation only through Committed results in the unique lawful PCR Seal sequence. Pending/rejected rivals never quarantine confirmed generations; actual same-position signed Seal equivocation remains a separate CBS lineage failure.",
+      "description": "Complete recovery units freeze one canonical millisecond authoring checkpoint shared byte-for-byte by both Event created_at values and both producer-proof created_at values; mismatch, non-canonical time, a missing pre-signing floor, or a checkpoint outside the applicable window is rejected before any write. Valid units advance the device generation only through Committed results on the unique lawful PCR Realm stream.",
       "source_refs": [
         "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/zh/identity/key-management.md"
@@ -2543,7 +2543,7 @@
       "applies_to_fixtures": [
         "did-webvh-v1-fixture.json"
       ],
-      "description": "",
+      "description": "The did:webvh 1.0 adapter accepts the exact method version, rejects unknown method versions with unsupported_did_method, and refuses relocation when the accepted predecessor declares no portable parameter.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
         "spec/v1/zh/identity/identity-did.md"
@@ -2608,7 +2608,7 @@
       "applies_to_fixtures": [
         "key-transparency-fixture.json"
       ],
-      "description": "",
+      "description": "Key transparency proof objects validate against their schema and their semantic outcome, so an inclusion or consistency proof that parses but does not verify is rejected with its registered reason code.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/key-transparency-fixture.json"
       ]
@@ -2681,7 +2681,7 @@
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "The unauthenticated principal-resolution response contains only a service-attested current projection and method-history evidence; every PCR id, Event, receipt, Seal and history field is forbidden.",
+      "description": "The unauthenticated principal-resolution response contains only a service-attested current projection and method-history evidence; every PCR id, Event, receipt, RealmCommit and history field is forbidden.",
       "source_refs": [
         "spec/v1/zh/identity/identity-did.md"
       ]
@@ -2693,7 +2693,7 @@
       "applies_to_fixtures": [
         "identity-recovery-kdf-fixture.json"
       ],
-      "description": "",
+      "description": "Known-answer tests for the recovery KDF chain: BIP-39 mnemonic plus passphrase produces the pinned recovery secret, PRK, indexed root seeds and recovery proof seed byte for byte.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
         "spec/v1/zh/identity/key-management.md"
@@ -2708,7 +2708,7 @@
         "ak.profile.full_client.v1",
         "ak.profile.station.v1"
       ],
-      "description": "",
+      "description": "Recovery policy separates roles inline: every recovery-proof signing entry carries its own backup_hpke entry with a policy-unique key_agreement_ref, proof verification uses only the signing entry, and dangling or duplicate refs, revoked or expired entries, reused signing/HPKE material, suite mismatch and DID-document-only declarations are all rejected.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
@@ -2735,7 +2735,7 @@
         "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
-      "description": "",
+      "description": "Without a pre-existing independent authority an in-place same-DID handoff after secret compromise is refused and the DID must be re-minted; with one, only a two-entry staged handoff with durable checkpoints is accepted, and the old policy key is revoked last, after re-anchor, new policy, re-wrapped backup envelopes and pointer advance, with idempotent resume from any crash point.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
@@ -2771,7 +2771,7 @@
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "",
+      "description": "A ban, leave or remove membership transition, or a capability revoke that drops the link below its visibility gate, immediately invalidates the directory, sync cache, invite cache and local profile projection; later lookups never return the stale link and existing sessions and device claims fail or degrade to minimal disclosure at the next authorization check.",
       "source_refs": [
         "spec/v1/artifacts/registry/error-code-registry.json"
       ]
@@ -2795,7 +2795,7 @@
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "",
+      "description": "Tightening disclosure policy, historical visibility, minimal-metadata mode, linked Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
       "source_refs": [
         "spec/v1/artifacts/registry/error-code-registry.json"
       ]
@@ -2807,7 +2807,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "",
+      "description": "Invite claim expiry compares the signed claim Event created_at against the invite expires_at and never receiver-local now: every clock variant and backfill replay yields the identical outcome and typed current value, the rejected claim writes no shared effect, and pending to expired only comes from a separate accepted ak.invite.revoke.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -2831,7 +2831,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "",
+      "description": "A third-party invite token consumed with a subject-bound binding_proof cannot be reissued to a different subject: only a request binding the same (invite_id, claim_nonce, subject_id, binding_proof_digest) replays the existing proof idempotently, a re-subjected ak.invite.claim is rejected with duplicate_conflict, and the external failure stays indistinguishable from not_found.",
       "source_refs": [
         "spec/v1/zh/sync/third-party-invites.md"
       ]
@@ -2856,7 +2856,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "",
+      "description": "Directed invite liveness has one truth source, the invite_live_target typed current result keyed by canonical_json(payload.invitee_account_id) without realm_id: a second directed create for the same account fails with invite_live_target_occupied while pending and send_failed count as live.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -2868,7 +2868,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "",
+      "description": "Invite create atomically writes the lifecycle row and the live_target slot and accept atomically writes lifecycle, member.state join and the slot release; the membership FSM has no invite state, acceptance uses the registered leave-to-join edge, and a rejected, revoked or expired invite touches only the lifecycle row.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -2880,7 +2880,7 @@
       "applies_to_fixtures": [
         "invite-new-source-quota-fixture.json"
       ],
-      "description": "",
+      "description": "The new-source invite quota resolves to effective bounds from the registered deployment and Realm policy inputs, so the enforced ceiling is computed rather than taken from any single self-declared value.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json"
       ]
@@ -2892,7 +2892,7 @@
       "applies_to_fixtures": [
         "invite-new-source-quota-fixture.json"
       ],
-      "description": "",
+      "description": "New-source invite admission is charged against the holder quota at admission time, and an over-quota introduction is refused without disclosing the holder state to the sender.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json"
       ]
@@ -2904,7 +2904,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "",
+      "description": "An out-of-band invite code below the production entropy floor is rejected by the reducer or verification service, and a lookup form exceeding the policy validity window or claim count is invalidated before it can become a pending invite or accepted membership.",
       "source_refs": [
         "spec/v1/zh/sync/third-party-invites.md"
       ]
@@ -2928,7 +2928,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "",
+      "description": "All five holder-quarantine variants return a byte-identical body and status within a 50ms timing class, the response never carries a quarantined outcome because that value is not in the enum, and high-trust introduction evidence does not widen disclosure because the secret is consent state rather than existence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -2940,7 +2940,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "",
+      "description": "Principal admission and cooldown are evaluated under every default_join_rule, invite create and accept fail at the hard gate before any lifecycle or member.state write with external code gate_check_failed, closed blocks only applicant-initiated entry, and the DM bootstrap batch reaches exactly two active members with a third rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -2977,7 +2977,7 @@
       "applies_to_fixtures": [
         "key-backup-hardening-fixture.json"
       ],
-      "description": "",
+      "description": "Passphrase key backup pins the Argon2id and PBKDF2 floors with known-answer encryption cases: parameters at the floor are accepted and anything below it is rejected, with the key commitment verified rather than inferred.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
       ]
@@ -3001,7 +3001,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "",
+      "description": "KeyPackage exhaustion emits one bounded deficit batch from the local inventory ledger without a remote probe, claims above five per requester/target tuple in sixty seconds fail without enumerating targets and are audited as keypackage_claim_rate_limited, and expired claimed packages become revoked with late consume rejected as keypackage_unknown.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
@@ -3109,7 +3109,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "SFrame frame keys derive from the ak.rtc-frame-key/v1 exporter label over the canonical six-field context, any context change changes the derived key, and backend cloud key escrow is rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3122,7 +3122,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "Focus selection deterministically prefers the oldest member, and a token request against a different focus fails closed with focus_mismatch.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3135,7 +3135,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "A media participant_binding carries all nine required tuple fields with an Ed25519 signature over the canonical seven-field signing input, and any scheme mismatch fails validation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3148,7 +3148,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "Backend-signalled participant identities must match the effective call_roster authority-ordered keyed set, and an unknown rtc_participant identity fails closed with participant_id_unrecognised.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3161,7 +3161,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "Recording egress must land on an Arkret blob endpoint; direct S3, GCS or arbitrary HTTP recording endpoints fail closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3174,7 +3174,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "Recording artifacts use the ak.rtc-recording-key/v1 exporter label over a context binding realm_id, call_id, focus_id, recording_id, media_service_id and recording_start_event_id; SFrame and transcript labels are rejected for recording encryption.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/bindings/livekit.md",
@@ -3188,7 +3188,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "session_focus is write-once for the call lifecycle: the second focus writer receives session_focus_already_committed and an unavailable local focus surfaces focus_unavailable_for_client instead of electing a second focus.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3201,7 +3201,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "Media token exchange pins ak.self.call.media.exchange.issue_token.v1 and the ak.media.participant_binding.v1 scheme, with a positive TTL no greater than 600 seconds.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3214,7 +3214,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "A media token issuer kid must be anchored to ak.realm.media_service.service_id; a rogue issuer kid fails closed with token_issuer_unauthorised.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3227,7 +3227,7 @@
       "applies_to_fixtures": [
         "media-binding-fixture.json"
       ],
-      "description": "",
+      "description": "Known media backend type labels are accepted and an unknown label fails closed with unknown_focus_type rather than being treated as a generic backend.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/media-binding-fixture.json",
         "spec/v1/zh/crypto-media/media-service-binding.md"
@@ -3300,7 +3300,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "",
+      "description": "The governance binding epochs must equal the Commit payload base and next epoch, and a rejected Commit advances neither the MLS epoch result nor the active epoch, failing with epoch_update_required.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
       ]
@@ -3447,7 +3447,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "",
+      "description": "Field patches apply atomically against the declared pre-state: a partially applied patch or an unbound pre-state is rejected and the target object is left completely unchanged.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -3495,7 +3495,7 @@
       "applies_to_fixtures": [
         "visibility-policy-fixture.json"
       ],
-      "description": "",
+      "description": "Preview authority exposes only the registered stripped projection with no history events and no exporter secrets, never creates current membership or committed-history eligibility, and makes unknown, expired and wrong-scope tokens outwardly indistinguishable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
@@ -3527,7 +3527,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Private contact discovery returns set membership only: it never exposes reachability, provider routing, presence or any other metadata about the queried identifiers.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -3540,7 +3540,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Private contact discovery keeps the fixed two-round blind/match OPRF shape bound to the advertised key epoch, and a request that collapses or reorders the rounds is refused rather than answered.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -3553,7 +3553,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "The wire batch cardinality equals the advertised batch_item_count rather than the real identifier count, evaluated elements and derived prefixes keep the same length and order as the blinded input, a single batched DLEQ proof verifies under the described public key, and the result count never reveals the match count.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -3566,7 +3566,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "",
+      "description": "Quota exhaustion in the blind phase returns 429 psi_quota_exhausted as a padded Class-B problem whose maximal string projection is fixed, so the denial reveals neither the real batch contents nor which phase-specific condition fired.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -3579,7 +3579,7 @@
       "applies_to_fixtures": [
         "push-rule-core-fixture.json"
       ],
-      "description": "",
+      "description": "An authorized broadcast mention delivers under the mentions_only watch level with reason_code watch_allows, and a plain directed mention needs no blind wakeup once local evaluation has run.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
       ]
@@ -3630,7 +3630,7 @@
       "applies_to_fixtures": [
         "push-rule-core-fixture.json"
       ],
-      "description": "",
+      "description": "Strand-engaged here-style updates map to receiver-side mention semantics, deliver under the mentions_only watch level, and keep the shared core reason_code watch_allows.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
       ]
@@ -3642,7 +3642,7 @@
       "applies_to_profiles": [
         "ak.profile.chat_mvp.v1"
       ],
-      "description": "",
+      "description": "Concurrent reaction add and remove converge on remove, a reaction never revives after redaction, a reaction across MLS epochs stays bound to its target Event and scope, and after a capability revoke new reactions from that actor fail closed while existing ones remain as historical facts.",
       "source_refs": [
         "spec/v1/zh/models/strand-and-message.md"
       ]
@@ -3690,7 +3690,7 @@
       "applies_to_fixtures": [
         "realm-organization-fixture.json"
       ],
-      "description": "",
+      "description": "The ak.realm.organization payload validates against its closed schema and its two independent authorization layers: Realm-side acceptance by an admin writer or an allowed create-bootstrap batch, and Organization-side consent whose proof verifies to the organization DID control state, a threshold quorum or a registered delegation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
       ]
@@ -3714,7 +3714,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "",
+      "description": "Hard erasure produces a signed receipt and a conforming stub that carries no plaintext fingerprint, and an active legal hold blocks the erasure instead of producing a receipt.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
@@ -3726,7 +3726,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "Message reaches state=redacted only through the object-scoped ak.message.redact. The cross-object ak.redaction payload class excludes Message mechanically: message_id is not a member and target_ref removes the ak:message: branch, so both spellings fail schema validation before any cell write, while a non-Message object target and the ak.message.redact positive both validate.",
+      "description": "Message reaches state=redacted only through the object-scoped ak.message.redact. The cross-object ak.redaction payload class excludes Message mechanically: message_id is not a member and target_ref removes the ak:message: branch, so both spellings fail schema validation before any typed current result write, while a non-Message object target and the ak.message.redact positive both validate.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
@@ -3738,7 +3738,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "",
+      "description": "Policy-scoped redaction strips content while retaining the timeline position and the quarantine fingerprint, so the gap remains verifiable without recovering the removed content.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
@@ -3751,7 +3751,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "",
+      "description": "Only the fields named in preserve[] survive a redaction; every other field of the target is removed, and a preserve entry outside the target's schema is rejected rather than ignored.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
@@ -3764,7 +3764,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "",
+      "description": "Snapshot pruning and backfill keep the verification stub for redacted material, so a consumer can still verify continuity without the removed content being recoverable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
@@ -3776,7 +3776,7 @@
       "applies_to_fixtures": [
         "redaction-fixture.json"
       ],
-      "description": "",
+      "description": "The redaction payload schema accepts an ak:space: target_ref and rejects malformed target spellings, so Space redaction targets are validated structurally rather than by string matching.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
@@ -3824,7 +3824,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "",
+      "description": "A locked existing cross-Realm target and a nonexistent target produce identical caller shapes with no forbidden target metadata, raw backfill and federation views are redacted equally, p95 timing stays within the 50ms bucket, and auditor-level access never changes the shape the ordinary caller sees.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/models/relation.md"
@@ -3837,7 +3837,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Batch count and canonical byte limits are conjunctive: a request at both limits is accepted when every item is individually valid, byte overflow returns payload_too_large, count overflow returns schema_violation, and partial acceptance is forbidden.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3849,7 +3849,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "A self events batch above the registered item limit is rejected with schema_violation as a whole and never partially accepted.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3861,7 +3861,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Capability constraint cardinality stays within the schema-defined default of 64 and an unknown critical constraint fails closed rather than being ignored as an unrecognised extension.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
@@ -3874,7 +3874,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "A Realm above 1000 active Circles rejects the next create with failed_precondition and reason_code circle_count_exceeded, leaving state unchanged.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3886,7 +3886,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Every non_streaming_json operation rejects a request or response carrying Content-Encoding with HTTP 415 unsupported_content_encoding, before the body is read or decompressed, and never reuses param_invalid for it.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3910,7 +3910,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "A complete producer-signed Event whose canonical JSON exceeds 1 MiB is rejected with payload_too_large, measured on canonical bytes rather than on transport framing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3922,7 +3922,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Event refs[role=authorized_by] stays within its limit of 64 entries and the overall refs[] within 128, and an over-limit Event is rejected whole rather than truncated to fit.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3934,7 +3934,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Size limits are enforced while the body streams in: header bounds, body-free authentication, Content-Encoding rejection, Content-Length precheck and incremental wire-byte counting all run before JSON parsing, so an oversized body is never fully buffered or parsed first.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3946,7 +3946,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "A single header value above 8 KiB or an aggregate header block above 32 KiB is rejected at the header boundary, before any body is read and before body-dependent authentication.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3958,7 +3958,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Registered per-object control cardinality limits are enforced at admission, and an over-limit control payload is rejected whole with its registered code instead of being clipped.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3970,7 +3970,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "A canonical operation body above 8 MiB is rejected with payload_too_large, independently of the 16 MiB HTTP message content bound and the 1 MiB single-Event bound.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -3982,7 +3982,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "Generated boundary and injected-clock cases for Seal, device message, push, lifecycle and propagation limits.",
+      "description": "Generated boundary and injected-clock cases for the registered protocol windows: invite locator TTL and active count, authority commit predecessor_ref, compaction commit covered digests, device message expiry, push routes, contact request pending TTL, erasure and deactivation propagation windows, MLS deactivation grace, call empty timeout, push target mapping retention and third-party invite replay TTL.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
@@ -3994,7 +3994,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Unsigned read-projection material is bounded by its own registered ceiling, so a large derived projection is refused or paged rather than allowed to exceed the operation body limit.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -4006,7 +4006,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "",
+      "description": "Event refs[] is capped at 128 typed business references and an over-limit Event is rejected as a whole; there are no predecessor or actor-chain refs to spill into.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -4066,7 +4066,7 @@
       "applies_to_fixtures": [
         "sdk-conformance-claim-fixture.json"
       ],
-      "description": "",
+      "description": "An SDK conformance claim validates against its schema and its semantic outcome, so a claim that parses but overstates the verified surface is rejected with its registered reason code.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
         "spec/v1/zh/conformance/conformance-profiles.md"
@@ -4118,7 +4118,7 @@
       "applies_to_fixtures": [
         "security-transaction-resilience-fixture.json"
       ],
-      "description": "RecoveryTransaction create freezes the exact unsigned first-generation Seal without any recovery effect, and the single client-attested commit_recovery_unit step accepts the closed RecoveryTerminalCommit so that both Events, the Seal, the generation advance, the replacement device projection, the consumed session and the completed terminal result become observable in one atomic commit. Covers byte-identical create replay, duplicate_conflict, signing-slot fence non-release, forged Seal or receipt, capability_denied for ordinary seal prepare/submit under a recovery grant, generation CAS winner/loser semantics, stored-outcome precedence over live-state refusal, and zero accepted finality for a raw recovery Seal without a completed transaction. Also covers the deterministic recovery_receipt_completed_at_after_commit rejection of a receipt whose completed_at is later than the Station's linearized commit time, and the f=0 derivation that fixes the first Seal's commit transcript view at 0 without any wire field.",
+      "description": "RecoveryTransaction create freezes the exact unsigned first-generation recovery unit without any recovery effect, and the single client-attested commit_recovery_unit step accepts the closed RecoveryTerminalCommit - whose wire content is only the replacement-device-signed recovery_receipt, with no RealmCommit, authority signature or precomputed commit id - so that both recovery Events, their two RealmCommits at consecutive positions of the same PCR Realm stream, the generation advance, the replacement device projection, the consumed session and the completed terminal result all become observable in one atomic commit.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
         "spec/v1/zh/identity/security-transactions.md"
@@ -4255,7 +4255,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "An owned Agent without a published KeyPackage is in desired_agent_ids but outside effective access with access_readiness=key_material_pending and no plaintext branch; it gains only post-join epoch keys through the Sidecar Welcome, and once deactivated or out of the Realm it leaves the derived desired set, addressing and delivery stop immediately, a durable MLS removal obligation is created, and its later proofs, writes and queries fail closed.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4267,7 +4267,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "Concurrent prepare and create for one (realm_id, controller_account_id) converge on a single Sidecar whose sidecar_id is the winning create event_id retyped, callers may not supply or overwrite it, a mutated draft conflicts with zero writes while the exact draft replays idempotently, and context attach only projects the (sidecar_id, source_context_ref) mapping without creating a Circle, membership, Strand or Relation.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4303,7 +4303,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Event-fold and local-cache recovery: rebuild from accepted private history, causal folded-frontier validation, no Account Data merge, controller control ordering/sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants.",
+      "description": "Event-fold and local-cache recovery: rebuild from accepted private history, fold validation, no Account Data merge, controller-controlled ordering and sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4315,7 +4315,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "To a caller who is neither the controller nor one of its owned Agents, the account Event stream yields zero Events referencing the Sidecar native scope, no protocol Relation enumerates Sidecars or their source-context mappings, the Realm directory has no hit for sidecar_id or controller mapping, Sidecar Events raise no notification for source Strand participants, and they appear in Realm commit metadata only as opaque commitments.",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/zh/models/sidecar.md"
@@ -4340,7 +4340,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "Context attach establishes only the source-context mapping and rejects extra track or message fields under the closed schema; the local echo projection rebuilds without duplicating requests or Agent executions, orders after the last seen shared position by stable key, keeps the main Strand title, breadcrumb and track tabs visible in both modes, shows an empty state instead of falling back to shared read/write, and admits only requests and explicit user-facing responses into the echo.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4364,7 +4364,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "The Sidecar participant set is exactly the controller plus the current Realm-scoped desired_agent_ids with a sorted deduplicated authority transcript digest equal to participant_authority_digest; exactly one genesis wins through Station admission and compare-and-set, the server generates no MLS private state, forges no GroupInfo or ratchet-tree digest and offers no bootstrap endpoint bypassing Event proof, and every binding mutation fails closed.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4376,7 +4376,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "Desired membership, a delivered Welcome and a claimed KeyPackage are each insufficient alone and any incomplete combination stays pending; only an accepted Add Commit, a matching accepted Welcome referencing it, and that device consuming the same claim on an authenticated session together make the device effective, and other devices of the same principal gain nothing automatically.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4388,7 +4388,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "",
+      "description": "When an Agent publishes, actor_id and executed_by are a single Agent DID with no group-style composite attribution; publishing content covered only by another Agent's grant, or without a fresh approval, fails closed, while its own grant lets it publish independently under its single DID.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4473,7 +4473,7 @@
       "applies_to_fixtures": [
         "signal-federation-fixture.json"
       ],
-      "description": "",
+      "description": "A single-hop encrypted Signal relay is accepted without writing a durable Event, without advancing any producer revision or Realm stream head, and without rewriting the relayed envelope.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json"
       ]
@@ -4498,7 +4498,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "",
+      "description": "One ak.strand.tracks.update patches tracks atomically: switching the primary within a single Event never exposes an intermediate projection with two or zero is_primary=true, enable/disable and profile updates land in the same typed current update, a violating Event is rejected with schema_violation leaving tracks unchanged, and unregistered TrackNames are rejected rather than created from regex shape.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -4585,7 +4585,7 @@
       "applies_to_profiles": [
         "ak.profile.webrtc_media.v1"
       ],
-      "description": "",
+      "description": "Joining a decrypting conference is refused and no media key is published when Realm policy has not authorized media-service decryption, when the SFU service DID is absent from plaintext_visible_services, or when the required plaintext warning was not shown; the first two fail with media_plaintext_service_not_authorised and the third with an equivalent stable code.",
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md"
       ]

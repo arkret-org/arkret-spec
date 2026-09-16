@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.18",
+  "version": "2026-09-16.26",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T01:40:00+08:00",
+  "generated_at": "2026-09-17T02:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -447,7 +447,8 @@
       "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm, Circle, or Sidecar stream.",
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
-      "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams."
+      "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 3 of the 139 reducer_input kinds declare it (ak.call.state, ak.capability.grant, ak.realm.create); the remaining 136 still have no machine-readable reducer contract, so their registered writes exist only in prose. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -732,6 +733,187 @@
         "reducer_input": true,
         "payload": "Call state",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload",
+        "result_writes": [
+          {
+            "result_family": "call_state",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.state_transition"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.state_transition"
+              }
+            }
+          },
+          {
+            "result_family": "call_focus",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.focus"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.focus"
+              }
+            }
+          },
+          {
+            "result_family": "call_recording",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id",
+                "payload.recording_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.recording_transition.to",
+              "const": "stopped"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.recording_transition.to"
+              }
+            },
+            "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide."
+          },
+          {
+            "result_family": "call_recording_result",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id",
+                "payload.recording_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.recording_transition.result"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.recording_transition.result"
+              }
+            },
+            "notes": "ready/failed outcome published from stopped. It grants no capture, key or read authority."
+          },
+          {
+            "result_family": "call_transcript",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id",
+                "payload.recording_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.transcript_transition.to",
+              "const": "stopped"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.transcript_transition.to"
+              }
+            }
+          },
+          {
+            "result_family": "call_transcript_result",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id",
+                "payload.recording_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.transcript_transition.result"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.transcript_transition.result"
+              }
+            }
+          },
+          {
+            "result_family": "call_moderation",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.moderation_delta"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.moderation_delta"
+              }
+            }
+          },
+          {
+            "result_family": "call_roster",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.roster_delta"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.roster_delta"
+              }
+            }
+          },
+          {
+            "result_family": "call_mute_override",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.call_id"
+              ]
+            },
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.mute_override"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.mute_override"
+              }
+            }
+          }
+        ],
         "id_source": "reference"
       },
       {
@@ -766,6 +948,32 @@
         "reducer_input": true,
         "payload": "Capability Grant genesis. grant.id is omitted; GrantId is derived by retyping this Event's event_id and inserted only in the reducer projection.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_grant_payload",
+        "result_writes": [
+          {
+            "result_family": "capability_grant",
+            "result_selector": {
+              "kind": "id:grant"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.grant"
+              }
+            },
+            "derived_members": [
+              {
+                "name": "capability_authority_depth",
+                "derivation": "capability_authority_depth"
+              },
+              {
+                "name": "capability_authority_root_refs",
+                "derivation": "capability_authority_root_refs"
+              }
+            ],
+            "value_schema_ref": "schemas/capability-grant.schema.json",
+            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The initial revision is 0 and status is active. authority_depth and authority_root_refs are reducer-materialised and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
+          }
+        ],
         "id_source": "event_derived",
         "id_kind": "grant"
       },
@@ -1708,6 +1916,142 @@
         ],
         "payload": "Realm create",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_create_payload",
+        "result_writes": [
+          {
+            "result_family": "realm_genesis",
+            "result_selector": null,
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.object"
+              }
+            },
+            "value_schema_ref": "schemas/realm-genesis.schema.json",
+            "notes": "Unconditional. payload.object is already the closed ak.schema.realm_genesis.v1 object, so the projection is the identity on it; this typed current result is the single authority for the create-locked identity/security core."
+          },
+          {
+            "result_family": "realm_authority_root",
+            "result_selector": null,
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "controller_actor_id",
+                    "envelope_field": "actor_id"
+                  },
+                  {
+                    "name": "controller_epoch",
+                    "literal": 0
+                  },
+                  {
+                    "name": "authority_generation",
+                    "literal": 0
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
+            "notes": "Unconditional. Every member is derived here; an author-supplied member, a non-zero genesis epoch or generation, or any member outside the closed three-field shape MUST fail the whole bootstrap unit with realm_authority_root_conflict."
+          },
+          {
+            "result_family": "identity_resolution",
+            "result_selector": null,
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.object.initial_resolution"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.object.initial_resolution"
+              }
+            },
+            "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_commitment"
+          },
+          {
+            "result_family": "agent_status",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.actor_id"
+                }
+              ]
+            },
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "agent_control"
+            },
+            "result_projection": {
+              "kind": "transition",
+              "from": {
+                "const": "uninitialized"
+              },
+              "to": {
+                "const": "active"
+              }
+            },
+            "notes": "The subject is derived from the complete Agent account ActorId and MUST be reused by ak.self.agent.command.pause / resume / deactivate; the lifecycle payload carries no agent_id mirror."
+          },
+          {
+            "result_family": "realm_history_access",
+            "result_selector": null,
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "direct_conversation"
+            },
+            "result_projection": {
+              "kind": "transition",
+              "from": {
+                "const": null
+              },
+              "to": {
+                "const": "since_join"
+              }
+            }
+          },
+          {
+            "result_family": "realm_history_access",
+            "result_selector": null,
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "principal_control"
+            },
+            "result_projection": {
+              "kind": "transition",
+              "from": {
+                "const": null
+              },
+              "to": {
+                "const": "since_join"
+              }
+            }
+          },
+          {
+            "result_family": "realm_history_access",
+            "result_selector": null,
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "agent_control"
+            },
+            "result_projection": {
+              "kind": "transition",
+              "from": {
+                "const": null
+              },
+              "to": {
+                "const": "since_join"
+              }
+            }
+          }
+        ],
         "id_source": "event_derived",
         "id_kind": "realm"
       },
@@ -2607,8 +2951,8 @@
         }
       }
     },
-    "version": "2026-09-16.10",
-    "generated_at": "2026-09-16T21:30:00+08:00",
+    "version": "2026-09-16.12",
+    "generated_at": "2026-09-17T02:30:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -2733,6 +3077,20 @@
         "file": "schemas/actor-profile-operations.schema.json",
         "status": "active",
         "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
+      },
+      {
+        "schema_id": "ak.schema.agent_authority_state_attestation.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/agent_authority_state_attestation",
+        "status": "active",
+        "description": "The single Agent Authority state signature under ak.agent_authority_state_evidence.v1, binding authority, verification method, state digest and observation window."
+      },
+      {
+        "schema_id": "ak.schema.agent_authority_state_evidence.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/agent_authority_state_evidence",
+        "status": "active",
+        "description": "Portable Agent Authority state evidence: one exact confirmed RealmCommit state, its JCS SHA-256 digest and the single Agent Authority attestation over that digest."
       },
       {
         "schema_id": "ak.schema.agent_membership_cascade.v1",
@@ -3073,6 +3431,27 @@
           "selector": "content block type poll or poll_response",
           "normative_ref": "zh/conformance/schema-registry.md"
         }
+      },
+      {
+        "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation",
+        "status": "active",
+        "description": "Account Authority controller-account eligibility gate signed under ak.controller_account_gate.v1; privacy minimised and valid for at most 300 seconds."
+      },
+      {
+        "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome",
+        "status": "active",
+        "description": "Byte-stable controller gate issuance outcome; an exact replay returns the original bytes."
+      },
+      {
+        "schema_id": "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/controller_account_gate_attestation_issue_request_body",
+        "status": "active",
+        "description": "Deployment-authenticated controller gate issuance request; carries no service resolution carrier."
       },
       {
         "schema_id": "ak.schema.current_principal_outcome.v1",
@@ -3725,6 +4104,13 @@
         "description": "Dual-signed planned authority generation transfer."
       },
       {
+        "schema_id": "ak.schema.realm_authority_root_value.v1",
+        "file": "schemas/typed-current-result.schema.json",
+        "fragment": "#/$defs/realm_authority_root_value",
+        "status": "active",
+        "description": "Closed value of the lifetime-stable Realm authority root: current root controller, controller epoch and authority generation, all derived by the registered ak.realm.create value_projection."
+      },
+      {
         "schema_id": "ak.schema.realm_commit.v1",
         "file": "schemas/realm-commit.schema.json",
         "status": "active",
@@ -4227,8 +4613,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-16.10",
-    "generated_at": "2026-09-16T21:30:00+08:00"
+    "version": "2026-09-16.12",
+    "generated_at": "2026-09-17T02:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -5600,7 +5986,8 @@
           "ak.gate.account.command.introspect_session_grant.v1",
           "ak.gate.account.command.logout.v1",
           "ak.gate.account.command.request_erasure.v1",
-          "ak.gate.account.command.revoke_session.v1"
+          "ak.gate.account.command.revoke_session.v1",
+          "ak.gate.account.command.issue_controller_gate_attestation.v1"
         ],
         "surface_class": "deployment_local"
       },
@@ -6115,6 +6502,22 @@
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
+      },
+      {
+        "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/controller-gate-attestations",
+        "notes": "Account Authority-owned controller lifecycle gate an Agent Authority cannot synthesize for itself. Authentication is the deployment-internal contract: it binds the configured caller, the target Station, the trust domain and the allowed operation, and the Account Authority takes the caller identity only from that authenticated relationship. The authenticated source, agent_authority_id and the Station of the controller's complete AccountId MUST be equal and MUST match the authority the principal's current binding names; status and binding values come from the authority's own records, never from a caller-asserted active flag. An unknown principal, a wrong authority or an unauthorized caller all return an unenumerable not_found. The response side is not weakened by the request side being internally authenticated: the attestation signature, the public DID assertion authorization of its verification method, the TTL and exact replay all remain, because the response enters an external Agent evidence chain that the SDK and foreign Stations verify independently. Positive validity MUST NOT exceed 300 seconds.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body",
+        "response_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "records_only_a_service_local_replay_ledger_row_so_the_same_request_id_and_canonical_intent_returns_the_original_bytes_no_event_is_authored"
         }
       },
       {
@@ -9187,8 +9590,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-16.10",
-    "generated_at": "2026-09-16T21:30:00+08:00",
+    "version": "2026-09-16.12",
+    "generated_at": "2026-09-17T02:30:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -13336,6 +13739,10 @@
     "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
     "result_kinds": [
       {
+        "result_kind": "realm_authority_root",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_result"
+      },
+      {
         "result_kind": "realm_profile",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_profile_result"
       },
@@ -13358,9 +13765,17 @@
       {
         "result_kind": "mls_group",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_result"
+      },
+      {
+        "result_kind": "agent_key",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_result"
+      },
+      {
+        "result_kind": "agent_status",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_status_result"
       }
     ],
-    "version": "2026-09-16.10",
+    "version": "2026-09-16.11",
     "generated_at": "2026-09-16T21:30:00+08:00"
   }
 }

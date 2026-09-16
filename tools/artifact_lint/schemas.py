@@ -3776,62 +3776,6 @@ def check_circle_membership_enum_single_source(lint: Lint) -> None:
             )
 
 
-
-def check_null_cell_subject_wire_form(lint: Lint) -> None:
-    """Pin the wire form of every cell family declared with `cell_subject: null`.
-
-    encoding.md section 4 fixes that subject segment to the literal ASCII string
-    `null`. The segment is both the state_root leaf preimage content and the leaf
-    sort key, so any other spelling (realm id, Realm role classification, empty
-    segment) forks state_root across implementations.
-    """
-    contract_registry = load_json(
-        lint, ARTIFACTS / "registry" / "contract-registry.json"
-    )
-    if not isinstance(contract_registry, dict):
-        return
-    registry = contract_registry.get("event_kind_registry")
-    if not isinstance(registry, dict):
-        return
-
-    null_families: set[str] = set()
-    for contract in (registry.get("cell_contracts") or {}).values():
-        if not isinstance(contract, dict):
-            continue
-        for write in contract.get("cell_writes", []) or []:
-            if not isinstance(write, dict):
-                continue
-            family = write.get("cell_family")
-            if isinstance(family, str) and family and write.get("cell_subject") is None:
-                null_families.add(family)
-    if not null_families:
-        return
-
-    scan_paths = sorted((ARTIFACTS / "fixtures").rglob("*.json"))
-    scan_paths.extend(markdown_files())
-    for path in scan_paths:
-        try:
-            text = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        for family in sorted(null_families):
-            if family not in text:
-                continue
-            pattern = re.compile(
-                r"ak:cell:" + re.escape(family) + r":([A-Za-z0-9._~=%-]*)"
-            )
-            for match in pattern.finditer(text):
-                subject = match.group(1)
-                if subject != "null":
-                    lint.fail(
-                        path,
-                        f"ak:cell:{family} declares cell_subject: null; its wire subject "
-                        f"segment MUST be the literal 'null', found {subject!r} "
-                        "(encoding.md section 4)",
-                    )
-
-
-
 def check_classification_context_paths(lint: Lint) -> None:
     """Every closed-class context MUST resolve to a real node in a real artifact.
 

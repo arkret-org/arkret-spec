@@ -1,0 +1,528 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-authority-evidence.schema.json",
+  "title": "Arkret Agent Authority Portable Evidence",
+  "description": "Portable Agent signer evidence carried to a Station or peer verifier: the Agent Authority state evidence over one exact confirmed RealmCommit state, and the Account Authority controller gate. Both objects anchor their own local detached signature under their own registered domain separation; neither reuses the shared Event proof leaf. Agent and controller private keys, MLS private state, service-local account_id and raw account typed current results never appear here.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/agent_authority_state_evidence"
+    },
+    {
+      "$ref": "#/$defs/controller_account_gate_attestation"
+    },
+    {
+      "$ref": "#/$defs/controller_account_gate_attestation_issue_request_body"
+    },
+    {
+      "$ref": "#/$defs/controller_account_gate_attestation_issue_outcome"
+    }
+  ],
+  "$defs": {
+    "detached_jws": {
+      "type": "object",
+      "description": "Local detached signature leaf of this file. The signing bytes are the registered domain separation label, a newline, then the JCS bytes of the enclosing object with this member jws removed; kind stays covered like every other closed member.",
+      "required": [
+        "kind",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "jws": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Compact detached JWS. Its verification method is the enclosing object verification_method, resolved through the published DID document of the signer at the signing instant."
+        }
+      },
+      "additionalProperties": false
+    },
+    "controller_account_gate_basis": {
+      "description": "Which authority-owned projection basis_digest commits to. account_binding_default means the private binding of the authority carries no stricter accepted status head yet; account_status_event binds a real status Event and its checkpoint digest.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "binding_version",
+            "binding_receipt_digest"
+          ],
+          "properties": {
+            "kind": {
+              "const": "account_binding_default"
+            },
+            "binding_version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "binding_receipt_digest": {
+              "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "status_event_id",
+            "status_checkpoint_digest"
+          ],
+          "properties": {
+            "kind": {
+              "const": "account_status_event"
+            },
+            "status_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            "status_checkpoint_digest": {
+              "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "controller_account_gate_attestation": {
+      "type": "object",
+      "description": "Account Authority answer to one question: is the controller principal behind an Agent key authorization still eligible? Signed under ak.controller_account_gate.v1. Member order is byte-for-byte the binding_fields order of that domain_separations row; proof follows as the detached signature over exactly those bound members. It is privacy minimised by construction: a service-local account_id, a raw account typed current result or a caller-asserted active boolean is a schema violation, not an optional member.",
+      "required": [
+        "schema",
+        "principal_id",
+        "eligibility",
+        "status",
+        "basis",
+        "basis_digest",
+        "authority_id",
+        "verification_method",
+        "issued_at",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.controller_account_gate_attestation.v1"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Controller principal did_core_id. The consumer independently derives the complete controller AccountId from the key authorization Event and MUST reject a gate whose principal does not match it."
+        },
+        "eligibility": {
+          "type": "string",
+          "enum": [
+            "active",
+            "inactive"
+          ],
+          "description": "The only decision a consumer acts on. It is active if and only if status is active."
+        },
+        "status": {
+          "$ref": "./account-operations.schema.json#/$defs/account_state"
+        },
+        "basis": {
+          "$ref": "#/$defs/controller_account_gate_basis"
+        },
+        "basis_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Owning Station of the Account Authority. The consumer derives the expected Station from the complete Agent AccountId; a self-asserted authority is not a source."
+        },
+        "verification_method": {
+          "$ref": "./account-operations.schema.json#/$defs/did_url"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Positive validity window bound: expires_at is strictly after issued_at and at most 300 seconds after it."
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "active"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "eligibility": {
+                "const": "active"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "eligibility": {
+                "const": "inactive"
+              }
+            }
+          },
+          "description": "status active holds exactly when eligibility is active; every other status is inactive."
+        }
+      ],
+      "x-arkret-max-canonical-bytes": 16384,
+      "x-arkret-signature-domain": "ak.controller_account_gate.v1"
+    },
+    "commit_lineage": {
+      "type": "object",
+      "description": "Complete, duplicate-free predecessor closure connecting one witness RealmCommit to source_commit_id inside the same stream. An unknown, forked, cross-Realm or unsigned predecessor, or a missing link, rejects the whole evidence.",
+      "required": [
+        "witness_commit_id",
+        "predecessor_commit_ids"
+      ],
+      "properties": {
+        "witness_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "predecessor_commit_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+          },
+          "description": "Ordered predecessor chain from witness_commit_id up to and including source_commit_id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_authorization": {
+      "type": "object",
+      "description": "Projection of the key authenticated by one complete ak.agent.key.authorize Event. It is never a second wire certificate and never an authority source: the consumer separately verifies the Event producer proof and the authority-signed RealmCommit that covers it.",
+      "required": [
+        "agent_id",
+        "agent_key_id",
+        "verification_method",
+        "public_key",
+        "public_key_digest",
+        "controller_principal_id",
+        "accepted_commit_id",
+        "accepted_at",
+        "issued_at"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "agent_key_id": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_key_id"
+        },
+        "verification_method": {
+          "$ref": "./account-operations.schema.json#/$defs/did_url"
+        },
+        "public_key": {
+          "$ref": "./agent-operations.schema.json#/$defs/agent_runtime_public_key",
+          "description": "Closed Ed25519 profile. kid MUST equal verification_method and key MUST decode to exactly 32 octets."
+        },
+        "public_key_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA-256 over the decoded 32 raw Ed25519 octets. It is never a hash of the PublicKey DTO, a JWK, a multibase form or a hex string."
+        },
+        "controller_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "accepted_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "MUST equal key_state_witness.commit_id and the id of key_state_witness.commit."
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Instant the authorization took effect through accepted_commit_id. MUST equal key_state_witness.commit.committed_at; the storage time of a receiving service creates no runtime key authority."
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_key_state_witness": {
+      "type": "object",
+      "description": "Signed RealmCommit plus the closed agent_key typed current result it covers. v1 has no state_root, leaf digest, index, count or Merkle inclusion proof: the Commit itself is the commitment.",
+      "required": [
+        "commit_id",
+        "commit",
+        "result"
+      ],
+      "properties": {
+        "commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "result": {
+          "$ref": "./typed-current-result.schema.json#/$defs/agent_key_result"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_lifecycle_provenance": {
+      "description": "Closed provenance branch of the witnessed lifecycle value. Each branch carries only the accepted status Event ID of its own transition; a provision Event ID or a predecessor lifecycle pointer has no independent proof carrier and MUST NOT appear.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_create_event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "genesis"
+            },
+            "realm_create_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "pause_event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "pause"
+            },
+            "pause_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "resume_event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "resume"
+            },
+            "resume_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "deactivate_event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "deactivate"
+            },
+            "deactivate_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "agent_lifecycle_witness": {
+      "type": "object",
+      "description": "Signed RealmCommit, the closed agent_status typed current result it covers, the accepted status Event and its closed provenance branch. The receiver recomputes the lifecycle result and its transition from the signed Event before trusting any of them.",
+      "required": [
+        "commit_id",
+        "commit",
+        "result",
+        "accepted_status_event",
+        "provenance"
+      ],
+      "properties": {
+        "commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "result": {
+          "$ref": "./typed-current-result.schema.json#/$defs/agent_status_result"
+        },
+        "accepted_status_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "provenance": {
+          "$ref": "#/$defs/agent_lifecycle_provenance"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_authority_state": {
+      "type": "object",
+      "description": "One exact confirmed RealmCommit state of the Agent Principal Control Realm, carrying the complete PCR genesis Event, key authorization Event, key authorization, key state witness and Agent lifecycle witness together.",
+      "required": [
+        "authority_id",
+        "agent_id",
+        "source_commit_id",
+        "pcr_genesis_event",
+        "key_authorization_event",
+        "authorization",
+        "key_state_witness",
+        "agent_lifecycle_witness",
+        "commit_lineages"
+      ],
+      "properties": {
+        "authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Governance Station of the Agent PCR. The consumer derives the expected Station from the AccountId.station_id of the complete Agent ActorId and MUST NOT take a self-reported authority as the expected one."
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "source_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "The exact confirmed RealmCommit this state is read at. Every witness lineage terminates here."
+        },
+        "pcr_genesis_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "key_authorization_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "authorization": {
+          "$ref": "#/$defs/agent_key_authorization"
+        },
+        "key_state_witness": {
+          "$ref": "#/$defs/agent_key_state_witness"
+        },
+        "agent_lifecycle_witness": {
+          "$ref": "#/$defs/agent_lifecycle_witness"
+        },
+        "commit_lineages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/commit_lineage"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "agent_authority_state_attestation": {
+      "type": "object",
+      "description": "The single Agent Authority state signature, made under ak.agent_authority_state_evidence.v1 by the authoritative service DID of that PCR. It binds the exact authority, verification method, state digest and observation window verbatim; the controller proof, the Account Authority gate and the RealmCommit signatures each stay separate.",
+      "required": [
+        "authority_id",
+        "verification_method",
+        "state_digest",
+        "issued_at",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "$ref": "./account-operations.schema.json#/$defs/did_url"
+        },
+        "state_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "The real instant the authoritative state was read. Forwarding, re-wrapping, reconnecting, disk recovery or re-signing an old observation MUST NOT restart this clock."
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Strictly after issued_at and at most 300 seconds after it."
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_jws"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.agent_authority_state_evidence.v1"
+    },
+    "agent_authority_state_evidence": {
+      "type": "object",
+      "description": "Portable Agent Authority state evidence. state_digest is the RFC 8785 JCS SHA-256 of state alone, so a compact transport root MAY omit state when the receiver already holds that exact digest fully verified; the receiver MUST restore the complete state before recomputing any digest or verifying any signature.",
+      "required": [
+        "schema",
+        "state_digest",
+        "attestation"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_authority_state_evidence.v1"
+        },
+        "state": {
+          "$ref": "#/$defs/agent_authority_state"
+        },
+        "state_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "attestation": {
+          "$ref": "#/$defs/agent_authority_state_attestation"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "controller_account_gate_attestation_issue_request_body": {
+      "type": "object",
+      "description": "Deployment-authenticated request an Agent Authority sends to obtain the Account Authority-owned controller gate. Caller identity comes only from the authenticated deployment relationship: the body carries no service resolution carrier, and a self-asserted DID, URL, bearer subject, public key or account-active boolean is a schema violation rather than an identity source.",
+      "required": [
+        "request_id",
+        "principal_id",
+        "agent_authority_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Controller principal whose eligibility is asked about."
+        },
+        "agent_authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Agent Authority the gate is issued for. It MUST equal the authenticated caller and the Station of the controller's complete AccountId; a mismatch is an unenumerable not_found."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 4096
+    },
+    "controller_account_gate_attestation_issue_outcome": {
+      "type": "object",
+      "description": "Byte-stable issuance result. A replay of the same request_id and canonical intent returns these original bytes; a different intent under the same request_id is a duplicate_conflict with zero issuance.",
+      "required": [
+        "request_id",
+        "controller_account_gate_attestation"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./account-operations.schema.json#/$defs/request_id"
+        },
+        "controller_account_gate_attestation": {
+          "$ref": "#/$defs/controller_account_gate_attestation"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
+    }
+  }
+}

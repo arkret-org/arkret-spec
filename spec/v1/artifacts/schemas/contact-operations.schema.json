@@ -2221,7 +2221,8 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh, glare_finalize or continuity_checkpoint and cannot stand in for a signed Event mirror receipt."
+      "description": "The recipient signs every field except signature. This receipt is only for proof_refresh, glare_finalize or continuity_checkpoint and cannot stand in for a signed Event mirror receipt.",
+      "x-arkret-signature-domain": "ak.peer_contact.control_receipt.v1"
     },
     "peer_contact_event_submit_outcome": {
       "type": "object",
@@ -2448,7 +2449,8 @@
           "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.peer_contact.mirror_receipt.v1"
     },
     "peer_contact_submit_outcome": {
       "oneOf": [

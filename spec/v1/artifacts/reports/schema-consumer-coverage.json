@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 214,
+    "total_schemas": 220,
     "by_consumer": {
       "declared_wire": 54,
-      "event_kind": 3,
-      "inbound": 51,
-      "outbound": 62,
-      "prose": 101,
+      "event_kind": 4,
+      "inbound": 52,
+      "outbound": 63,
+      "prose": 103,
       "prose_only": 2,
-      "schema_reference": 153,
-      "startup_compile": 214,
+      "schema_reference": 159,
+      "startup_compile": 220,
       "vectors": 108
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 106,
+    "without_vector_coverage": 112,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -74,6 +74,8 @@
     "ak.schema.account_operations.v1",
     "ak.schema.accountability_grant.v1",
     "ak.schema.actor_profile_operations.v1",
+    "ak.schema.agent_authority_state_attestation.v1",
+    "ak.schema.agent_authority_state_evidence.v1",
     "ak.schema.agent_membership_cascade.v1",
     "ak.schema.agent_operations.v1",
     "ak.schema.agent_pairing_bootstrap.v1",
@@ -102,6 +104,9 @@
     "ak.schema.contact_remark.v1",
     "ak.schema.contact_scope_update.v1",
     "ak.schema.content_block_poll.v1",
+    "ak.schema.controller_account_gate_attestation.v1",
+    "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+    "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
     "ak.schema.current_principal_outcome.v1",
     "ak.schema.current_principal_request.v1",
     "ak.schema.detached_object_signature.v1",
@@ -145,6 +150,7 @@
     "ak.schema.read_cursor_operations.v1",
     "ak.schema.read_cursor_update.v1",
     "ak.schema.read_receipt.v1",
+    "ak.schema.realm_authority_root_value.v1",
     "ak.schema.realm_join_bootstrap_outcome.v1",
     "ak.schema.realm_join_bootstrap_request.v1",
     "ak.schema.realm_join_candidate.v1",
@@ -343,6 +349,47 @@
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
+    },
+    {
+      "schema_id": "ak.schema.agent_authority_state_attestation.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.agent_authority_state_evidence.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      },
+      "fragment": "#/$defs/agent_authority_state_attestation"
+    },
+    {
+      "schema_id": "ak.schema.agent_authority_state_evidence.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      },
+      "fragment": "#/$defs/agent_authority_state_evidence"
     },
     {
       "schema_id": "ak.schema.agent_membership_cascade.v1",
@@ -1130,6 +1177,8 @@
           "ak.schema.accountability_grant.v1",
           "ak.schema.actor_profile.v1",
           "ak.schema.actor_profile_operations.v1",
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.agent_authority_state_evidence.v1",
           "ak.schema.agent_membership_cascade.v1",
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
@@ -1172,6 +1221,9 @@
           "ak.schema.contact_remark.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.content_block_poll.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
           "ak.schema.current_principal_outcome.v1",
           "ak.schema.current_principal_request.v1",
           "ak.schema.device_message.v1",
@@ -1242,6 +1294,7 @@
           "ak.schema.realm.v1",
           "ak.schema.realm_authority_bundle.v1",
           "ak.schema.realm_authority_handoff.v1",
+          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.realm_commit.v1",
           "ak.schema.realm_genesis.v1",
           "ak.schema.realm_join_bootstrap_outcome.v1",
@@ -1417,6 +1470,63 @@
       }
     },
     {
+      "schema_id": "ak.schema.controller_account_gate_attestation.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.agent_authority_state_evidence.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      },
+      "fragment": "#/$defs/controller_account_gate_attestation"
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.gate.account.command.issue_controller_gate_attestation.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome"
+    },
+    {
+      "schema_id": "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.gate.account.command.issue_controller_gate_attestation.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/controller_account_gate_attestation_issue_request_body"
+    },
+    {
       "schema_id": "ak.schema.current_principal_outcome.v1",
       "file": "schemas/identity-resolution.schema.json",
       "consumers": {
@@ -1476,7 +1586,6 @@
       "schema_id": "ak.schema.detached_object_signature.v1",
       "file": "schemas/detached-object-signature.schema.json",
       "consumers": {
-        "prose": "normative_text",
         "schema_reference": "fragment",
         "startup_compile": "exact"
       },
@@ -3069,6 +3178,24 @@
       }
     },
     {
+      "schema_id": "ak.schema.realm_authority_root_value.v1",
+      "file": "schemas/typed-current-result.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.result_projection.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+      },
+      "fragment": "#/$defs/realm_authority_root_value"
+    },
+    {
       "schema_id": "ak.schema.realm_commit.v1",
       "file": "schemas/realm-commit.schema.json",
       "consumers": {
@@ -3086,6 +3213,7 @@
       "schema_id": "ak.schema.realm_genesis.v1",
       "file": "schemas/realm-genesis.schema.json",
       "consumers": {
+        "event_kind": "registered",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
@@ -3376,6 +3504,7 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.event_payload.v1",
+          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.resource_discovery_state.v1",
           "ak.schema.result_projection.v1"
         ],
@@ -3580,7 +3709,12 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.account_current_result.v1",
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.agent_authority_state_evidence.v1",
           "ak.schema.consent_operations.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
           "ak.schema.realm_state_snapshot.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -3983,6 +4117,8 @@
           "ak.schema.account_subscribe_frame.v1",
           "ak.schema.accountability_grant.v1",
           "ak.schema.actor_profile.v1",
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.agent_authority_state_evidence.v1",
           "ak.schema.agent_membership_cascade.v1",
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
@@ -4011,6 +4147,9 @@
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_remark.v1",
           "ak.schema.contact_scope_update.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
           "ak.schema.current_principal_outcome.v1",
           "ak.schema.current_principal_request.v1",
           "ak.schema.cursor.v1",
@@ -4074,6 +4213,7 @@
           "ak.schema.read_cursor_update.v1",
           "ak.schema.realm.v1",
           "ak.schema.realm_authority_bundle.v1",
+          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.realm_commit.v1",
           "ak.schema.realm_join_candidate.v1",
           "ak.schema.realm_link_operations.v1",

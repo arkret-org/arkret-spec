@@ -44,7 +44,7 @@
     },
     "rank": {
       "$ref": "#/$defs/rank",
-      "description": "Top-level rank string for ordered relations (e.g. contains-list-strand position). Encoding follows conformance/encoding.md §9. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
+      "description": "Top-level rank string for ordered relations (e.g. contains-list-strand position). Encoding follows the ak.rank.lexofractional.v1 grammar in zh/conformance/encoding.md section 9.1. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
     },
     "fields": {
       "type": "object",

@@ -368,7 +368,7 @@
       "expected_digest": "sha256:8fa15f456452e132ecda28f4ba94ba12f8bf93e7f56a0d110e0ba130f4a219a6",
       "rules": [
         "payload_metadata is exactly {version,content_type,encryption_context}; scope, kind, group id, scheme and sender domain are reconstructed and never duplicated on wire",
-        "standard MLS encryption_context omits counter; exporter encryption_context requires the full-width counter and is cross-checked against the exact group-state scheme",
+        "encryption_context is closed to epoch, group_state_ref and registered routing context only; a counter, scheme, algorithm, scope, group id or AAD digest member makes the envelope invalid rather than selecting another content scheme",
         "implementations MUST NOT hash plaintext payload"
       ]
     },

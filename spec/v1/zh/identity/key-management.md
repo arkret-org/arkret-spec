@@ -251,13 +251,18 @@ raw-key索引与显示只允许 SDK唯一 `agent_signing_public_key_digest` 对d
 
 `agent_key` 的 registered reducer projection 是 portable state witness 的唯一状态来源，不能只把 key Event 写入历史。typed current result subject MUST 使用 SDK `composite_subject([agent_id, key_id])`，不得用字符串拼接或 diagnostic subject。每个 `ak.agent.key.authorize` 的 reducer MUST 先对 `payload.supersedes[]` 逐项在对应旧 key typed current result 投影 `remove(tag=authorized_event_ref 对应的 observed canonical Event dot)`，再在当前 key typed current result 投影 `add(tag=canonical_event_dot(event_id, write_index), value=完整 authorize payload)`；authorization 元素的稳定 tag 是 [`event-and-patch.md` §2.4.2](../models/event-and-patch.md) 定义的 `<event_id>:<write_index>`，绝不是裸 `event_id`。`ak.agent.key.revoke` MUST 在 `expected_revision` 观察到的对应 key typed current result 中移除全部 active authorize dot，并加入 `add(tag=canonical_event_dot(event_id, write_index), value=完整 revoke payload)` 的 transition marker；marker 只保留可见证的撤销边界，不是 active authorization。Station MUST 在接受前从 `kind + payload` 重建并逐项校验这些 canonical writes；write 缺失、多余、typed current result/tag/value/顺序不一致均须 `reducer_projection_failed`。这样 authorize、same-key re-authorization、replacement supersede 与 explicit revoke 都能从签名 RealmCommit 的 resolved typed current result 独立证明，不依赖服务端私有投影。
 
-`ak.schema.detached_object_signature.v1` 是 structural XOR：顶层只能是 `verification_mode=current_admission` 或
-`verification_mode=historical_event` 两种 closed object 之一，二者字段集合不同，不能通过改 tag 或增删一个
-checkpoint 互换。共享 `admission_evidence` 只含 `agent_authority_state_evidence`、隐私最小化的
-`controller_account_gate_attestation` 及无自引用的 `admission_evidence_digest`。raw public key不是秘密；Agent/controller
-private key、MLS private state、服务本地 `account_id` 与 raw account typed current result 永不进入 portable evidence。
+signer-key 查询面（[`signer-key-operations.schema.json`](../../artifacts/schemas/signer-key-operations.schema.json)）
+的 selector 是 structural XOR：每个 selector 只能是 `verification_mode=current_admission` 或
+`verification_mode=historical_event` 两种 closed object 之一，二者字段集合不同——historical 分支额外要求
+exact `event_id`——因此不能通过改 tag 或增删一个字段互换。
 
-`agent_authority_state_evidence.state` 在 Agent Principal Control Realm 的一个 exact confirmed RealmCommit state 中同时承载完整
+Agent 的 portable evidence 由两个各自独立签名的对象承载：Agent Authority 对某一条 exact confirmed RealmCommit
+状态的 state evidence，以及 Account Authority 的隐私最小化 controller gate attestation。两者各自在自己登记的
+domain separation 下做本地 detached signature，都不复用共享的 Event proof leaf。raw public key 不是秘密；
+Agent / controller private key、MLS private state、服务本地 `account_id` 与 raw account typed current result
+永不进入 portable evidence。
+
+`agent_authority_state_evidence` 的机读合同是 `ak.schema.agent_authority_state_evidence.v1`（[`agent-authority-evidence.schema.json`](../../artifacts/schemas/agent-authority-evidence.schema.json) 的 `agent_authority_state_evidence`）。它的 `state` 在 Agent Principal Control Realm 的一个 exact confirmed RealmCommit state 中同时承载完整
 pcr_genesis_event、key_authorization_event、key authorization、key state witness 和 Agent lifecycle witness。`state_digest` 只对 state
 做 RFC 8785/JCS SHA-256；`attestation` 由该 PCR 的权威 service DID 在独立 domain
 `ak.agent_authority_state_evidence.v1` 下签名并逐字绑定 authority、verification method、state digest 与时窗。
@@ -267,7 +272,7 @@ predecessor closure；unknown、fork、跨 Realm、缺 predecessor 或签名无�
 authorization.accepted_at 是 key authorization 经 accepted_commit_id 生效的时点，MUST 等于 key_state_witness.authority commit.committed_at；accepted_commit_id、key_state_witness.commit_id 与 RealmCommit.id 必须相等。原 Event 的 producer proof 独立验证其 signer evidence；接收服务的存储时间不创造 runtime key 权限，covering RealmCommit 前不得把 key 当作已生效。
 
 key `result_selector` MUST 精确等于 SDK 从 `(agent_id, agent_key_id)` 派生的 `agent_key` composite
-subject；`result_value` 是 closed、canonical sorted active tagged-set entry array，每项 tag 必须解析为 accepted Event 的 canonical
+subject（registry 族 `agent_key`，见 [current-results.md §2](../sync/current-results.md)）；`result_value` 是 closed、canonical sorted active tagged-set entry array，每项 tag 必须解析为 accepted Event 的 canonical
 `<event_id>:<write_index>` dot，value 必须是 schema-valid authorize/revoke payload。Agent lifecycle `result_selector` MUST
 由 `agent_id` 派生，`result_value` 是 closed lifecycle 值；`accepted_status_event`、provenance、registered reducer write、
 RealmCommit delta/lineage 和 state leaf 必须互相重算一致。首次 active 的唯一 provenance 是 Agent delegated PCR
@@ -287,10 +292,13 @@ controller device 状态解析历史签名。随后 MUST 按 registry 从签名 
 
 每个 state witness 都必须携带完整 signed RealmCommit 与 closed `result_value`。receiver 验证 RealmCommit id、
 governance-Station signature、Realm 与 lineage，并把 `result_value` 与该 Commit 覆盖的 typed current result 逐字比较。
-v1 没有 `state_root`，也没有 leaf digest/index/count 或 Merkle inclusion proof：Commit 本身就是承诺。
-缺 signed RealmCommit/value，或 typed current result/subject/actor/controller 错配，均 fail closed。
+signed RealmCommit 本身就是该 typed current result 的完整承诺：receiver 重算 Commit ID、验证治理 Station
+signature 与 stream 链接，再把 `result_value` 与该 Commit 覆盖的 typed current result 逐字比较即告完成。
+witness **MUST NOT** 携带或要求任何附加的聚合摘要、leaf digest/index/count 或 Merkle inclusion proof；
+携带这类成员的 witness MUST 被拒绝，缺 signed RealmCommit/value 或 typed current result/subject/actor/controller
+错配同样 fail closed。
 
-`controller_account_gate_attestation` 由 Account Authority 在 domain `ak.controller_account_gate.v1` 下签名，只公开
+`controller_account_gate_attestation` 的机读合同是 `ak.schema.controller_account_gate_attestation.v1`（同一 schema 文件的 `controller_account_gate_attestation`），`schema` 成员 MUST 逐字携带该 id。它由 Account Authority 在 domain `ak.controller_account_gate.v1` 下签名，只公开
 controller principal `did_core_id`、closed active/inactive eligibility、六值 account status、`basis.kind` 对应的最小
 binding/status digest 与时窗。`account_binding_default` 表示权威私有 binding 上尚无更严格 accepted status head；
 `account_status_event` 绑定真实 status Event/checkpoint digest。`status=active` 当且仅当 `eligibility=active`；其它状态

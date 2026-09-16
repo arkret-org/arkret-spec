@@ -148,7 +148,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 typed current result family** `view`（`current-value projection`、固定 `(depth,EventId)` 单值 current）。
+三个 kind 写**同一个 typed current result family** `view`（`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出）。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
 update / reconcile 用 `payload.view_id`，两者归一到同一个 typed current result。
 
@@ -161,7 +161,7 @@ update / reconcile 用 `payload.view_id`，两者归一到同一个 typed curren
 **为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
 它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
 权威状态链——那样 `ak.view.update` 的 `apply_patch` 会打在一个**从未被写过**的 typed current result 上，
-而 因果寄存器合同禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
+而 typed current 当前值合同禁止用 registered `initial_value` 补这个洞：基值只能来自注册的 create / genesis 写入。
 
 由此产生三条约束：
 
@@ -411,9 +411,10 @@ Graph projection 可展开 Strand、Morph、Message、Board 等对象之间的 R
 
 1. 明确 Relation rank 优先。
 2. 无 rank 时使用对象字段排序。
-3. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_event_id`、对象 id。
-
-   其中 `rank_source_event_hlc` / `rank_source_actor_id` / `rank_source_event_id` 是 projection 派生量，分别取自决定该条目当前排序位次的来源 Event 的 `hlc`、`actor_id` 与 event id（见 [`event-and-patch.md`](./event-and-patch.md) §2.2 Event Envelope），并非对象上的独立 wire 字段。
+3. 同一排序键完全相同时，tie-break MUST 使用对象 id 的 canonical bytewise 升序。该 tie-break 与
+   [`../conformance/encoding.md` §9.1](../conformance/encoding.md) 的同 rank 规则一致，**只用于展示序**，
+   MUST NOT 进入 canonical state，也 MUST NOT 参与授权判断。实现 MUST NOT 引入 HLC、`created_at`、
+   来源 Event 的深度或本地接收顺序作为附加排序键。
 
 计数规则：
 

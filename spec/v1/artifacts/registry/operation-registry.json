@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.18",
+  "version": "2026-09-16.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T01:40:00+08:00",
+  "generated_at": "2026-09-17T02:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -448,7 +448,8 @@
         "ak.gate.account.command.introspect_session_grant.v1",
         "ak.gate.account.command.logout.v1",
         "ak.gate.account.command.request_erasure.v1",
-        "ak.gate.account.command.revoke_session.v1"
+        "ak.gate.account.command.revoke_session.v1",
+        "ak.gate.account.command.issue_controller_gate_attestation.v1"
       ],
       "surface_class": "deployment_local"
     },
@@ -963,6 +964,22 @@
       "durable_effect": {
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
+      "http_only_variant": true,
+      "http": "POST /_arkret/gate/account/controller-gate-attestations",
+      "notes": "Account Authority-owned controller lifecycle gate an Agent Authority cannot synthesize for itself. Authentication is the deployment-internal contract: it binds the configured caller, the target Station, the trust domain and the allowed operation, and the Account Authority takes the caller identity only from that authenticated relationship. The authenticated source, agent_authority_id and the Station of the controller's complete AccountId MUST be equal and MUST match the authority the principal's current binding names; status and binding values come from the authority's own records, never from a caller-asserted active flag. An unknown principal, a wrong authority or an unauthorized caller all return an unenumerable not_found. The response side is not weakened by the request side being internally authenticated: the attestation signature, the public DID assertion authorization of its verification method, the TTL and exact replay all remain, because the response enters an external Agent evidence chain that the SDK and foreign Stations verify independently. Positive validity MUST NOT exceed 300 seconds.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body",
+      "response_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "records_only_a_service_local_replay_ledger_row_so_the_same_request_id_and_canonical_intent_returns_the_original_bytes_no_event_is_authored"
       }
     },
     {

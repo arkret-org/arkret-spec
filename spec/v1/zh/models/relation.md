@@ -38,7 +38,7 @@ Schema id: `ak.schema.relation.v1`
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
 | `from_ref` | yes | `RelationEndpoint` | MUST 是合法 typed object-reference string 或完整 ActorId object。 | 起点对象/Actor/Realm 引用。 |
 | `to_ref` | yes | `RelationEndpoint` | MUST 是合法 typed object-reference string 或完整 ActorId object。 | 终点对象/Actor/Realm 引用。 |
-| `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
+| `rank` | no | `string` | 见 [`../conformance/encoding.md` §9.1](../conformance/encoding.md) 的 `ak.rank.lexofractional.v1` 语法。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；若操作提供原因，原因保存在对应 `ak.relation.tombstone` / `ak.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -74,10 +74,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
   "relation_kind": "contains",
   "from_ref": "ak:space:AdkL35R2W53p6Pt8Wi0dJHZhmP2mvu01sM1lM1wB1lb-",
   "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
-  "rank": {
-    "depth": 1,
-    "event_id": "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv"
-  },
+  "rank": "U",
   "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
   "created_at": "2026-04-26T00:00:00.000Z"
 }
@@ -106,8 +103,8 @@ confidential_discussion_of
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 的 parent `current-value projection` 固定选出一个 current winner，只有 winner 且未形成跨 typed current result 环时才投影 active Board parent；环属于领域 `unresolved`，不得反向重选寄存器值。**Truth source 是 typed current result `space_parent:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 typed current result 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Event，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
-| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 的 position typed current result 固定选择一个 `(depth,EventId)` winner，且只向该 winner 指向的 active List 投影。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 current-value projection typed current result `strand_position:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Event**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 的 parent `current-value projection` 的当前值就是该 stream 上最后一个被接受的 `ak.space.parent` 写入，只有该当前值且未形成跨 typed current result 环时才投影 active Board parent；环属于领域 `unresolved`，不得反向改写该当前值。**Truth source 是 typed current result `space_parent:<list_space_id>`；`ak.space.create` 的 canonical `object.parent_space_id` 是该 typed current result 的 genesis 写入，后续唯一写入路径是 `ak.space.parent` Event，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`；详见 [realm-and-space.md §3.5](./realm-and-space.md)）。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 create genesis 或后续 `ak.space.parent`。 |
+| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 的 position typed current result 的当前值由该 stream 上最后一个被接受的位置写入给出，且只向该当前值指向的 active List 投影。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 current-value projection typed current result `strand_position:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Event**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`（reason=`relation_kind_contains_derived`，与 `watches` derived Relation 同模式）。 |
 | `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` | 按完整 tuple 去重；普通包含记录不自动引入额外数量限制或级联规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
@@ -198,11 +195,11 @@ v1 不提供 Realm 级关系数量限制配置或注册机制。标准关系按 
 结果，核对账号、Realm/scope、目标、basis 与待签意图，不为认证该结果重放治理历史或执行完整性挑战。
 服务器仍须验证外部输入，projection diagnostic 本身不能替代接纳证据或授权。
 
-Relation conflict 的处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。并发重复或标准规则下互斥的候选按 `require_review` 处理；不同 Actor 的 `assigned_to` 记录不是互斥候选。
+Relation conflict 的处理为：候选先通过格式、签名、授权与时钟窗口检查。一个候选只被**同一 Relation 上、该 stream 更后位置被接受的 `ak.relation.update` / `ak.relation.tombstone`** 取代；除此之外的两个候选同时是活跃 head，按 `require_review` 处理。实现 MUST NOT 用 HLC、`created_at`、actor id、本地接收顺序、数据库 ID 或服务端插入顺序在互斥候选之间自动选边。不同 Actor 的 `assigned_to` 记录不是互斥候选。
 
-- `require_review` MUST 输出包含全部 heads 的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。后续 resolution Event / state-changing Event MUST 在 causal basis 中覆盖它要解决的完整 current head set；漏掉任一 current head 时仍保持 `require_review`。
+- `require_review` MUST 输出包含全部 heads 的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。后续 resolution Event MUST 在 §6.3 的冻结 baseline 中覆盖它要解决的完整 current head set；漏掉任一 current head 时仍保持 `require_review`。
 
-**conflict head 集合上限（normative）**：分组单位始终是下文「唯一主冲突域」（`tuple` 形态即完整去重 key，`from` 形态是包含它的更大互斥组）；同一主冲突域下并发候选总数上限为 **16**，数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`）；归一只能由后续基于最新 authority-commit query basis、覆盖完整 current head set 的修复 Event 产生。上限以内全部 heads 都保留，不存在 winner/loser 分类。
+**conflict head 集合上限（normative）**：分组单位始终是下文「唯一主冲突域」（`tuple` 形态即完整去重 key，`from` 形态是包含它的更大互斥组）；同一主冲突域下并发候选总数上限为 **16**，数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`）；归一只能由后续读取最新已提交候选材料、覆盖完整 current head set 的修复 Event 产生。上限以内全部 heads 都保留，不存在 winner/loser 分类。
 
 **唯一主冲突域（normative）**：`relation-kind-registry.json` 的每个可直接写 shape 登记
 `primary_conflict_domain`。`tuple` 使用完整 `(realm_id, relation_kind, from_ref, to_ref)`；
@@ -230,13 +227,13 @@ Circle 只参与读取和操作授权，不属于冲突 key；不同 Circle 下�
 - **封闭结果**：`payload.outcome` 只有两支。`retain_candidate` 的 `retained_event_id` MUST 是本 Event 自身 baseline 内的成员，保留的 Relation 采用该 head 对应的确定状态与**原 RelationId**；本合同不接受任意 `resolved_value`、新端点或混拼字段，后续内容编辑仍走 `ak.relation.update`。`void_all` 只使**本次明确覆盖**的候选不再产生 active edge，保留其事实与裁决供审计；它不复活已 tombstone / redaction 的对象、不改变任何 capability，也不禁止将来在同一域下合法创建新的 Relation。
 - **目标形状**：`conflict_domain.domain_kind` MUST 与 [`relation-kind-registry.json`](../../artifacts/registry/relation-kind-registry.json) 中匹配 shape 登记的 `primary_conflict_domain` 一致（`tuple` 携 `to_ref`，`from` MUST NOT 携 `to_ref`）。`truth_source` shape（派生 `contains`、`watches` 等）没有可直接写的 Relation，因此没有可裁决的域，MUST 以 `schema_violation`（`relation_kind_contains_derived` / `relation_kind_watches_derived`）拒绝；这些边只能由其原来源 typed current result 的正式操作处理，MUST NOT 借本 Event 增加第二真相源。不同 Actor 的 `assigned_to` 属于不同 tuple，本来就不是互斥候选。
 
-**授权与最小披露（normative）**：本 Event 由已登记 capability action `ak.relation.resolve` 授权。Reducer MUST 按签名授权上下文及完整因果 basis验证该授权覆盖**整组受影响关系及其作用域**；只持有其中一条 Relation 的 `ak.relation.update` / `ak.relation.tombstone` 权限 MUST NOT 被当作裁决其它候选的依据。完整名单的读取仍受 Realm / Circle 与目标引用披露规则约束：调用方看不到完整组时 MUST NOT 伪造完整名单，Station MUST 以 `failed_precondition`（`relation_conflict_group_not_visible`）拒绝，MUST NOT 返回删减后的名单、MUST NOT 把 Circle 纳入冲突 key 以隐藏本应参与的候选，也 MUST NOT 为凑齐名单扩大调用方 scope 或向无权调用方泄露隐藏关系。
+**授权与最小披露（normative）**：本 Event 由已登记 capability action `ak.relation.resolve` 授权。Reducer MUST 按签名授权上下文与 §6.3 的完整候选 baseline 验证该授权覆盖**整组受影响关系及其作用域**；只持有其中一条 Relation 的 `ak.relation.update` / `ak.relation.tombstone` 权限 MUST NOT 被当作裁决其它候选的依据。完整名单的读取仍受 Realm / Circle 与目标引用披露规则约束：调用方看不到完整组时 MUST NOT 伪造完整名单，Station MUST 以 `failed_precondition`（`relation_conflict_group_not_visible`）拒绝，MUST NOT 返回删减后的名单、MUST NOT 把 Circle 纳入冲突 key 以隐藏本应参与的候选，也 MUST NOT 为凑齐名单扩大调用方 scope 或向无权调用方泄露隐藏关系。
 
 ### 6.3 冻结基线与修复材料（normative）
 
 **控制面授权基线与数据面候选完整性是两件事。** 治理 Station 在接纳时解析的 current authorization 冻结的是授权依据，它 MUST NOT 被当作"全部 Relation Event 已被观察"的证明；逐 Event inclusion proof、`ak.relation.update` 的 `expected_state_digest` 与 projection diagnostic 同样都不是完整组证明。因此 `payload.baseline` 是独立登记的**数据面完整集合承诺**：
 
-- 成员是该域在本基线下的**全部活跃候选 head**：每个未 tombstone 的目标 Relation 的每个活跃 head EventId。`create` 贡献它自己的 EventId；`update` 按正式 patch base 与已验证业务因果取代同一 Relation 的被覆盖版本，其**新 EventId MUST 进入候选集**，MUST NOT 永远用 create EventId 代替；`tombstone` 按自身 committed lifecycle 合同结束目标 Relation，该 Relation 退出候选集，但它 MUST NOT 被解释为已对其它分支作出整体裁决。内容版本、生命周期与组裁决三者的已验证贡献分别参与派生，MUST NOT 被压成一个按通用可达性消边的集合。
+- 成员是该域在本基线下的**全部活跃候选 head**：每个未 tombstone 的目标 Relation 的每个活跃 head EventId。`create` 贡献它自己的 EventId；`update` 按其 `expected_revision` 取代同一 Relation 的被覆盖版本，其**新 EventId MUST 进入候选集**，MUST NOT 永远用 create EventId 代替；`tombstone` 按自身 committed lifecycle 合同结束目标 Relation，该 Relation 退出候选集，但它 MUST NOT 被解释为已对其它分支作出整体裁决。内容版本、生命周期与组裁决三者的已验证贡献分别参与派生，MUST NOT 被压成一个按通用可达性消边的集合。
 - 成员的 canonical 顺序是完整 `ak:event:` token 的 **bytewise UTF-8 升序**，去重后唯一。顺序只用于 canonical 编码与分页，MUST NOT 提供胜者。
 - 每 256 个成员构成一页，最后一页可以不足 256；256 是 v1 固定的材料分页上限（单页工作量约束）。
 - 页按 hash 链承诺，`H` 为该 Realm 当前声明的 digest algorithm，结果保留算法前缀：
@@ -265,26 +262,35 @@ members_digest = H( UTF8("ak-relation-conflict-members-v1\u0000") || JCS({
 - **材料可用性**：Station MUST 为处于 `require_review` 或 `relation_conflict_fanout_exceeded` 的域保留完整候选材料。无法完整提供时 MUST 以 `failed_precondition`（`relation_conflict_material_unavailable`）fail closed，MUST NOT 返回截断名单、重算子集或无法逐成员兑现的 `members_digest`。
 - **总工作量约束**：一个主冲突域进入 `relation_conflict_fanout_exceeded` 之后，在写入方自己的签名 basis 下该域再新增 `ak.relation.create` MUST 以 `failed_precondition`（`relation_conflict_fanout_exceeded`）拒绝。这条与"保留第 17 条及之后的候选"不冲突：全部已保留候选一律保留、一律不产生 active edge，被拒绝的只是**在已知拥堵域上继续新增**的写入，从而使修复材料被已收敛集合界定。该判定同样是收敛后候选集的纯函数，pre-convergence 的瞬态接受在补齐候选后按同一规则重判。
 
-### 6.4 准入、因果覆盖与重放（normative）
+### 6.4 准入、基线覆盖与重放（normative）
 
-Receiver MUST 在本 Event 的冻结 predecessor view 下，从自己已接纳的 Relation 历史独立重建该域的完整活跃候选集合，按 §6.3 复算承诺，并要求与 `payload.baseline.member_count`、`members_digest` 逐字节相等；`member_event_ids` 存在时还要求与重建集合逐 EventId、逐顺序相等。缺项、多带已被取代的旧 head、重复项、混入其它域的成员，或 `retain_candidate` 指向名单外的 EventId，MUST 以 `failed_precondition`（`relation_conflict_baseline_stale`）拒绝**整条 Event 且零 typed current result 写入**。提交前若发现当前可验证组已变化，author MUST 重新 query、重新签发；MUST NOT 先应用再补验，也 MUST NOT 用 receiver 当前数据库快照替代签名基线。
+Receiver MUST 在本 Event 被接纳位置**之前**的该 stream 已提交前缀上，从自己已接纳的 Relation 历史独立重建该域的完整活跃候选集合，按 §6.3 复算承诺，并要求与 `payload.baseline.member_count`、`members_digest` 逐字节相等；`member_event_ids` 存在时还要求与重建集合逐 EventId、逐顺序相等。缺项、多带已被取代的旧 head、重复项、混入其它域的成员，或 `retain_candidate` 指向名单外的 EventId，MUST 以 `failed_precondition`（`relation_conflict_baseline_stale`）拒绝**整条 Event 且零 typed current result 写入**。提交前若发现当前可验证组已变化，author MUST 重新 query、重新签发；MUST NOT 先应用再补验，也 MUST NOT 用 receiver 当前数据库快照替代签名基线。
 
-所谓 current 是**这份可验证基线下的 current**：本合同 MUST NOT 被解释为声称知道整个网络尚未送达的事件。已验证的历史裁决只对其冻结覆盖集产生效果；后来发现的、未被覆盖的并发分支改变当前投影并重新触发 `require_review`，MUST NOT 重写旧裁决的历史含义；已被覆盖的旧分支重复到达 MUST NOT 复活它。重放、增量处理与分片合并在相同有效事实与证据下 MUST 得到相同领域候选集合、相同 resolution winner 与相同结果。
+所谓 current 是**这份可验证基线下的 current**：本合同 MUST NOT 被解释为声称知道整个网络尚未送达的事件。已验证的历史裁决只对其冻结覆盖集产生效果；后来发现的、未被覆盖的并发分支改变当前投影并重新触发 `require_review`，MUST NOT 重写旧裁决的历史含义；已被覆盖的旧分支重复到达 MUST NOT 复活它。重放、增量处理与分片合并在相同已提交前缀下 MUST 得到相同领域候选集合、相同当前 resolution 与相同结果。
 
-同一 canonical Event 的 exact replay 按 EventId 幂等（[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)）：它已生效后重传 MUST NOT 因为它自己的效果改变了当前 heads 就被判成一次新的 stale 提交，也 MUST NOT 报 `relation_conflict_baseline_stale`。新的 EventId 则必须按本节重新验证。
+同一 canonical Event 的 exact replay 按 EventId 幂等：它已生效后重传 MUST NOT 因为它自己的效果改变了当前 heads 就被判成一次新的 stale 提交，也 MUST NOT 报 `relation_conflict_baseline_stale`。新的 EventId 则必须按本节重新验证。
 
 ### 6.5 并发裁决与再解决（normative）
 
-组裁决数据状态按因果寄存器（`current-value projection`）登记，合并规则见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)：
+组裁决数据状态登记为 `current-value projection` typed current result，当前值规则见
+[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)：
 
-- 结果相同或不同的并发 resolution 都保留各自 Event 身份，并按固定 `(depth,EventId)` 选择唯一 resolution winner；不得按接收顺序、HLC 或结果内容选边。
-- 每条 resolution 仍必须独立覆盖完整、冻结的 Relation 领域候选集合；固定 winner 只决定多个合法裁决中哪个当前生效，不放宽 baseline 完整性。
-- 后续 `ak.relation.resolve` 引用当前 resolution winner，产生更高 depth 并自然取代它；payload MUST NOT 另设一份"被取代的历史裁决列表"形成第二真相源。
-- 新发现且不在 winner 冻结 baseline 中的 Relation 领域候选仍会重新触发 `require_review`；这是跨 typed current result 的领域完整性检查。
+- 该域的当前裁决是**该 relation 所属 stream 上最后一个被接受的 `ak.relation.resolve` 所产出的 typed current
+  结果**。次序只由治理 Station 在该 stream 上给出的 `stream_position` 决定，MUST NOT 由任何客户端可见的
+  因果深度、HLC、接收顺序或结果内容决定。
+- 并发提交靠 `expected_revision` compare-and-set 收敛：提交者带上它读到的 `CurrentRevision`，Station 在接纳
+  位置比较该值，不匹配即以 `failed_precondition` 拒绝且零 typed current result 写入；客户端重读当前裁决与
+  当前候选集合后重新签发再试。因此不存在两条同时生效的裁决，也不需要在多个合法裁决之间挑选胜者。
+- 每条 resolution 仍必须独立覆盖完整、冻结的 Relation 领域候选集合；CAS 只决定谁写得进去，MUST NOT 放宽
+  §6.3 的 baseline 完整性。
+- 后续 `ak.relation.resolve` 以当前裁决的 `CurrentRevision` 为 `expected_revision`，接纳后自然取代它；
+  payload MUST NOT 另设一份"被取代的历史裁决列表"形成第二真相源。
+- 新发现且不在当前裁决冻结 baseline 中的 Relation 领域候选仍会重新触发 `require_review`；这是跨 typed
+  current result 的领域完整性检查。
 
 **17-head 恢复（normative）**：超过普通诊断上限的域按同一 carrier 修复。author 通过 `ak.self.relation_conflicts.read.candidates.v1` 取得 17 条（或更多）成员的完整材料，按 §6.3 复算 `members_digest`，内联名单（`member_count ≤ 64`）或仅携承诺（`≥ 65`），再提交一条 `ak.relation.resolve`。实现 MUST NOT 因为普通 fanout 上限先拒绝所有修复材料，也 MUST NOT 把 16 复制成修复证据的上限。
 
-§6.2–§6.5 的保留／全部作废、基线承诺、缺项与异组成员拒绝、17-head 恢复、大集合分页链、exact replay，以及同值／异值并发裁决的固定 winner 由 `ak.vector.relation.conflict_resolution.v1` 固化。
+§6.2–§6.5 的保留／全部作废、基线承诺、缺项与异组成员拒绝、17-head 恢复、大集合分页链、exact replay，以及并发裁决被 `expected_revision` 串行化的结果由 `ak.vector.relation.conflict_resolution.v1` 固化。
 
 ## 7. 常见关系（按对象）
 

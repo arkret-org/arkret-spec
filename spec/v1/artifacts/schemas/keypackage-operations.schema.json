@@ -1249,7 +1249,8 @@
         }
       ],
       "additionalProperties": false,
-      "description": "The KeyPackage owner service signs an immutable terminal ledger fact. never_claimed is issued only after the request can no longer succeed; expired/revoked identify every formerly claimed ordinary KeyPackage. This is the portable cleanup authority for a failed Direct Conversation attempt."
+      "description": "The KeyPackage owner service signs an immutable terminal ledger fact. never_claimed is issued only after the request can no longer succeed; expired/revoked identify every formerly claimed ordinary KeyPackage. This is the portable cleanup authority for a failed Direct Conversation attempt.",
+      "x-arkret-signature-domain": "ak.keypackage.claim_terminal_receipt.v1"
     },
     "keypackages_claim_outcome": {
       "type": "object",
@@ -1658,7 +1659,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device carries recipient_account_id plus device evidence; Agent carries recipient_agent_id plus current authorization; Realm-local minimal-metadata pairwise carries only its exact did:key method, from which the actor is projected. No branch carries a parallel principal mirror."
+      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device carries recipient_account_id plus device evidence; Agent carries recipient_agent_id plus current authorization; Realm-local minimal-metadata pairwise carries only its exact did:key method, from which the actor is projected. No branch carries a parallel principal mirror.",
+      "x-arkret-signature-domain": "ak.mls.recipient_durable_receipt.v1"
     },
     "keypackage_consume_receipt": {
       "type": "object",
@@ -1698,7 +1700,8 @@
         }
       },
       "additionalProperties": false,
-      "description": "Recipient Station signed durable consume acknowledgement. recipient_durable_receipt is the sole carrier of claim request, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service coordinates. The service-generated request_digest, claim_id, and consumed_at plus the complete nested durable receipt are covered by signature. For an ordinary KeyPackage it is issued only after the exact single-use claim transitions to consumed. For a reusable last-resort KeyPackage it terminally acknowledges only that exact claim audit while the KeyPackage row remains published. Same exact consume replays this receipt; any claim, coordinate, signer-branch or evidence mismatch conflicts."
+      "description": "Recipient Station signed durable consume acknowledgement. recipient_durable_receipt is the sole carrier of claim request, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service coordinates. The service-generated request_digest, claim_id, and consumed_at plus the complete nested durable receipt are covered by signature. For an ordinary KeyPackage it is issued only after the exact single-use claim transitions to consumed. For a reusable last-resort KeyPackage it terminally acknowledges only that exact claim audit while the KeyPackage row remains published. Same exact consume replays this receipt; any claim, coordinate, signer-branch or evidence mismatch conflicts.",
+      "x-arkret-signature-domain": "ak.keypackage.consume_receipt.v1"
     },
     "keypackages_consume_request_body": {
       "type": "object",

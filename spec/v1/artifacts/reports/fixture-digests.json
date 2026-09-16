@@ -66,7 +66,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
-      "sha256": "039a5f9249bc4443bd9f708eb5ac473388129148c6297f54fda0d95fba49ad18"
+      "sha256": "63b3f0838b2a1ffcfe35ec0da87f4aed910e92f0a36618606e704771cc71e4bd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
@@ -122,7 +122,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "3baae76e6357d6a9062b73064385daebef82d6e9879180e3138935d596c87efd"
+      "sha256": "ff8c8f1a4c2aa8fc8c3767d0cb95985d594dd372df68fa5b47f885e800a46b0f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",

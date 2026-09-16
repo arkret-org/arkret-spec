@@ -1,0 +1,351 @@
+"""Proof-context object families must own a registered schema.
+
+``proof-context-registry.json`` is the closed inventory of signing surfaces: a
+``contexts[]`` row anchors a terminal use point of the shared Event detached-proof
+leaf, and a ``domain_separations[]`` row with primitive ``detached_signature``
+anchors a locally declared signature leaf. Either way the row names an
+``object_family`` -- a real wire object that some producer signs and some
+receiver verifies.
+
+Before this gate a row could name an object family that no schema described.
+``controller_account_gate_attestation`` sat in ``domain_separations[]`` with ten
+``binding_fields`` and no ``schema_ref`` at all, so the registry promised a
+signed object whose members, types and closure existed only in prose; a
+downstream implementation had to guess them, and a ``schema`` member spelling an
+unregistered ``ak.schema.*.v1`` id could not be caught anywhere. The existing
+``check_proof_context_registry`` closes the shared-proof surface in both
+directions but treats ``domain_separations[].schema_ref`` as optional, so this
+hole was invisible to it.
+
+The rule, per in-scope row:
+
+* the row MUST declare ``schema_ref`` or a non-empty ``transcript_schema_refs``;
+* every referenced file MUST be an ``active`` row of ``schema-registry.json``,
+  so the object family is covered by a registered ``ak.schema.*.v1`` id;
+* every reference MUST resolve to a real schema object inside that file.
+
+Primitives that are transcripts or namespaces rather than standalone wire
+objects (``merkle_*``, ``hpke_info``, ``replay_cache_namespace``,
+``canonical_json_sha256``, ``http_message_signature``) are out of scope by
+construction: they bind bytes assembled from an enclosing carrier, not an object
+family of their own.
+
+``check_result_write_contracts`` is in the same module for the same reason: a
+``result_writes[]`` contract that no gate reads is the same failure mode one
+level down.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from typing import Any
+
+from .core import ARTIFACTS, Lint, load_json, resolve_json_pointer
+
+PROOF_CONTEXT_REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
+SCHEMA_REGISTRY = ARTIFACTS / "registry" / "schema-registry.json"
+EVENT_KIND_REGISTRY = ARTIFACTS / "registry" / "event-kind-registry.json"
+
+# Only these primitives describe a standalone signed wire object. Everything else
+# in DOMAIN_SEPARATION_PRIMITIVES binds bytes gathered from an enclosing carrier.
+OBJECT_BEARING_PRIMITIVES = frozenset({"detached_signature"})
+
+
+def _registered_schema_files(lint: Lint) -> tuple[set[str], dict[str, str]] | None:
+    registry = load_json(lint, SCHEMA_REGISTRY)
+    rows = registry.get("schemas") if isinstance(registry, dict) else None
+    if not isinstance(rows, list) or not rows:
+        lint.fail(SCHEMA_REGISTRY, "schemas[] must be a non-empty array")
+        return None
+    files: set[str] = set()
+    effective: dict[str, str] = {}
+    for row in rows:
+        if not isinstance(row, dict) or row.get("status", "active") != "active":
+            continue
+        file_ref = row.get("file")
+        schema_id = row.get("schema_id")
+        if not isinstance(file_ref, str) or not isinstance(schema_id, str):
+            continue
+        files.add(file_ref)
+        fragment = row.get("fragment")
+        effective[file_ref + (fragment if isinstance(fragment, str) else "")] = schema_id
+    return files, effective
+
+
+def _covering_schema_id(effective: dict[str, str], file_ref: str, fragment: str) -> str | None:
+    """The registered id whose effective reference best covers ``file_ref#fragment``."""
+    best: tuple[int, str] | None = None
+    for reference, schema_id in effective.items():
+        ref_file, _, ref_fragment = reference.partition("#")
+        if ref_file != file_ref:
+            continue
+        ref_pointer = f"#{ref_fragment}" if ref_fragment else ""
+        if ref_pointer and not (fragment == ref_pointer or fragment.startswith(ref_pointer + "/")):
+            continue
+        if best is None or len(ref_pointer) > best[0]:
+            best = (len(ref_pointer), schema_id)
+    return None if best is None else best[1]
+
+
+def _in_scope_rows(data: dict[str, Any]) -> list[tuple[str, int, dict[str, Any]]]:
+    rows: list[tuple[str, int, dict[str, Any]]] = []
+    for index, row in enumerate(data.get("contexts") or []):
+        if isinstance(row, dict):
+            rows.append(("contexts", index, row))
+    for index, row in enumerate(data.get("domain_separations") or []):
+        if isinstance(row, dict) and row.get("primitive") in OBJECT_BEARING_PRIMITIVES:
+            rows.append(("domain_separations", index, row))
+    return rows
+
+
+def check_proof_context_object_family_schemas(lint: Lint) -> None:
+    """Every signing object family must resolve to a registered schema."""
+    data = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    if not isinstance(data, dict):
+        lint.fail(PROOF_CONTEXT_REGISTRY, "proof context registry must be an object")
+        return
+    registered = _registered_schema_files(lint)
+    if registered is None:
+        return
+    files, effective = registered
+
+    documents: dict[str, Any] = {}
+
+    def document(file_ref: str) -> Any:
+        if file_ref not in documents:
+            path = ARTIFACTS / file_ref
+            documents[file_ref] = load_json(lint, path) if path.is_file() else None
+        return documents[file_ref]
+
+    for array_name, index, row in _in_scope_rows(data):
+        where = f"{array_name}[{index}]"
+        family = row.get("object_family")
+        label = family if isinstance(family, str) and family else where
+        references: list[str] = []
+        schema_ref = row.get("schema_ref")
+        if isinstance(schema_ref, str) and schema_ref:
+            references.append(schema_ref)
+        transcript_refs = row.get("transcript_schema_refs")
+        if isinstance(transcript_refs, list):
+            references.extend(item for item in transcript_refs if isinstance(item, str) and item)
+        if not references:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where} object_family {label!r} signs a wire object but names no schema; "
+                "declare schema_ref (or transcript_schema_refs) pointing at a schema registered "
+                "in registry/schema-registry.json",
+            )
+            continue
+        for reference in references:
+            file_ref, separator, fragment_body = reference.partition("#")
+            fragment = f"#{fragment_body}" if separator else ""
+            if file_ref not in files:
+                lint.fail(
+                    PROOF_CONTEXT_REGISTRY,
+                    f"{where} object_family {label!r} points at {file_ref}, which is not an "
+                    "active row of registry/schema-registry.json",
+                )
+                continue
+            node = document(file_ref)
+            if node is None:
+                lint.fail(
+                    PROOF_CONTEXT_REGISTRY,
+                    f"{where} object_family {label!r} points at {file_ref}, which does not exist",
+                )
+                continue
+            try:
+                resolved = resolve_json_pointer(node, fragment)
+            except (KeyError, IndexError, ValueError):
+                resolved = None
+            if not isinstance(resolved, dict):
+                lint.fail(
+                    PROOF_CONTEXT_REGISTRY,
+                    f"{where} object_family {label!r} reference {reference} does not resolve to a "
+                    "schema object",
+                )
+                continue
+            if _covering_schema_id(effective, file_ref, fragment) is None:
+                lint.fail(
+                    PROOF_CONTEXT_REGISTRY,
+                    f"{where} object_family {label!r} reference {reference} is not covered by any "
+                    "registered schema id",
+                )
+
+
+_RESULT_PROJECTION_KINDS = frozenset({"set", "merge", "transition"})
+RESULT_FAMILY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def _check_result_selector(lint: Lint, ref: str, selector: Any) -> None:
+    """A singleton is JSON null; anything else is a closed subject descriptor."""
+    from .foundation import is_registered_cell_subject_kind
+
+    if selector is None:
+        return
+    if not isinstance(selector, dict):
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref} must be JSON null or an object")
+        return
+    kind = selector.get("kind")
+    if not isinstance(kind, str) or not is_registered_cell_subject_kind(kind):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref}.kind is not in the encoding.md section 4.1 closed subject table: {kind!r}",
+        )
+        return
+    if kind == "composite":
+        components = selector.get("components")
+        if not isinstance(components, list) or not components:
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must be a non-empty array")
+        elif len(components) != len({json.dumps(part, sort_keys=True) for part in components}):
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must not repeat a component")
+
+
+def check_result_write_contracts(lint: Lint) -> None:
+    """Validate the registered shared-state ``result_writes[]`` of each Event kind.
+
+    ``zh/models/realm-and-space.md`` section 2.5.1 makes ``contract-registry.json``
+    the machine source for which typed current results an Event kind writes. A
+    registry array nobody validates is how the previous ``cell_writes[]`` promise
+    stayed a promise, so the grammar is closed here from the start.
+    """
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(EVENT_KIND_REGISTRY, "event_kinds[] must be an array")
+        return
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        writes = row.get("result_writes")
+        if writes is None:
+            continue
+        kind = row.get("event_kind")
+        if not isinstance(writes, list) or not writes:
+            lint.fail(EVENT_KIND_REGISTRY, f"{kind}.result_writes must be a non-empty array")
+            continue
+        if row.get("reducer_input") is not True:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{kind} declares result_writes but is not a reducer_input Event kind",
+            )
+        for index, write in enumerate(writes):
+            where = f"{kind}.result_writes[{index}]"
+            if not isinstance(write, dict):
+                lint.fail(EVENT_KIND_REGISTRY, f"{where} must be an object")
+                continue
+            unknown = set(write) - {
+                "result_family",
+                "result_selector",
+                "condition",
+                "result_projection",
+                "derived_members",
+                "value_schema_ref",
+                "notes",
+            }
+            if unknown:
+                lint.fail(EVENT_KIND_REGISTRY, f"{where} has unknown member(s) {sorted(unknown)}")
+            family = write.get("result_family")
+            if not isinstance(family, str) or not RESULT_FAMILY_RE.fullmatch(family):
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_family must be a snake_case typed current result family name",
+                )
+            if "result_selector" not in write:
+                lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_selector is required (JSON null for a singleton)")
+            else:
+                _check_result_selector(lint, f"{where}.result_selector", write["result_selector"])
+            derived_members = write.get("derived_members")
+            if derived_members is not None:
+                from .foundation import lint_derived_members
+
+                lint_derived_members(
+                    lint, EVENT_KIND_REGISTRY, f"{where}.derived_members", derived_members
+                )
+            projection = write.get("result_projection")
+            if not isinstance(projection, dict) or projection.get("kind") not in _RESULT_PROJECTION_KINDS:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_projection.kind must be one of {sorted(_RESULT_PROJECTION_KINDS)}",
+                )
+                continue
+            if projection["kind"] == "transition":
+                for member in ("from", "to"):
+                    if not isinstance(projection.get(member), dict) or "const" not in projection[member]:
+                        lint.fail(
+                            EVENT_KIND_REGISTRY,
+                            f"{where}.result_projection.{member} must declare a const state",
+                        )
+            elif "value" not in projection and "value_projection" not in projection:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_projection must declare value or value_projection",
+                )
+            condition = write.get("condition")
+            if condition is not None:
+                from .foundation import lint_cell_write_condition
+
+                lint_cell_write_condition(lint, EVENT_KIND_REGISTRY, f"{where}.condition", condition)
+            value_projection = projection.get("value_projection")
+            if value_projection is not None:
+                from .foundation import lint_value_projection
+
+                lint_value_projection(
+                    lint,
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_projection.value_projection",
+                    value_projection,
+                )
+            value_schema_ref = write.get("value_schema_ref")
+            if value_schema_ref is not None:
+                if not isinstance(value_schema_ref, str) or not value_schema_ref.startswith("schemas/"):
+                    lint.fail(EVENT_KIND_REGISTRY, f"{where}.value_schema_ref must point into artifacts/schemas")
+                    continue
+                file_ref, separator, fragment_body = value_schema_ref.partition("#")
+                path = ARTIFACTS / file_ref
+                document = load_json(lint, path) if path.is_file() else None
+                if document is None:
+                    lint.fail(EVENT_KIND_REGISTRY, f"{where}.value_schema_ref does not resolve: {value_schema_ref}")
+                    continue
+                try:
+                    node = resolve_json_pointer(document, f"#{fragment_body}" if separator else "")
+                except (KeyError, IndexError, ValueError):
+                    node = None
+                if not isinstance(node, dict):
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where}.value_schema_ref does not resolve to a schema object: {value_schema_ref}",
+                    )
+
+    _check_prose_result_write_citations(lint, rows)
+
+
+_PROSE_RESULT_WRITE_CITATION_RE = re.compile(r"(ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)\.result_writes")
+
+
+def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
+    """Normative prose may cite `<kind>.result_writes[]` only for a kind that declares it.
+
+    Coverage is partial on purpose (see the event_kind_registry rule), so the
+    dangerous direction is prose promising a machine contract that the registry
+    does not carry. That is exactly how `ak.realm.create.result_writes[]` and
+    `ak.capability.grant.result_writes[].derived_members[]` sat dangling.
+    """
+    declared = {
+        row.get("event_kind")
+        for row in rows
+        if isinstance(row, dict) and "result_writes" in row
+    }
+    prose_root = ARTIFACTS.parent / "zh"
+    if not prose_root.is_dir():
+        return
+    for path in sorted(prose_root.rglob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        for match in _PROSE_RESULT_WRITE_CITATION_RE.finditer(text):
+            kind = match.group(1)
+            if kind not in declared:
+                lint.fail(
+                    path,
+                    f"cites {kind}.result_writes[] but that Event kind declares no result_writes "
+                    "in contract-registry.json; register the contract or stop citing it",
+                )

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-16.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-17T02:00:00+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -43,7 +43,7 @@
       "kind": "mls_creator_bootstrap_transaction_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical closed state machine for the client-local durable transaction that carries one encrypted effective scope from the creator's MLS content-scheme selection to MLS write-ready; it constrains what a conforming client persists and never authorizes a peer to trust local state."
+      "description": "Canonical closed state machine for the client-local durable transaction that carries one encrypted effective scope from the creator's genesis intent to MLS write-ready; it constrains what a conforming client persists and never authorizes a peer to trust local state."
     },
     {
       "name": "keypackage_capabilities",

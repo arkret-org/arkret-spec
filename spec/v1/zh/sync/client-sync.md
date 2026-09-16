@@ -129,7 +129,16 @@ Account-private 状态不进入 RealmCommit，包括 UI preference、DND、local
 
 ## 10. To-Device Delivery
 
-DeviceMessage 与 `MlsWelcomeDelivery` 是 recipient-scoped delivery，不是共享 Event。它们按 delivery ID去重并由接收设备显式 ACK。
+DeviceMessage 与 `MlsWelcomeDelivery` 是 recipient-scoped delivery，不是共享 Event。它们按 delivery ID 去重
+并由接收设备显式 ACK。
+
+**恰好一次的 durable handler 副作用（normative）**：重投递是正常路径——新建订阅、补拉、cursor 重置或
+服务端重试都会把未确认的 delivery 再次交给客户端，并**原样保留** `device_message_id`。客户端 MUST 在执行
+handler 副作用**之前**查询 durable 去重记录，去重键是**封闭的发送端点加 `device_message_id`**：human device
+用 `(sender_account_id, sender_device_id, device_message_id)`，Agent 用 `(sender_agent_id, device_message_id)`，
+Station service 用 `(sender_id, device_message_id)`。命中且已成功持久化的 delivery 只恢复完成位点，MUST NOT
+再次执行 handler。kind 专属的 `transaction_id` / `request_id` 只关联该业务 transcript，MUST NOT 充当通用去重键。
+`device_message_id` 相同而 envelope canonical 内容不同视为协议冲突，MUST fail closed，MUST NOT 覆盖既有去重记录。
 
 ### 10.0 主接收路径与补拉路径 (normative)
 
@@ -137,7 +146,12 @@ DeviceMessage 与 `MlsWelcomeDelivery` 是 recipient-scoped delivery，不是共
 
 ### 10.1 显式投递确认 (normative)
 
-只有 durable processing 后才能 ACK。Account stream cursor推进不删除 delivery；cursor失效也不使已签发 ACK token失效。
+只有 durable processing 后才能 ACK。队列删除**只**由显式 ACK 驱动：account stream cursor 推进 MUST NOT 删除
+任何 delivery，补拉路径的 `after=` 读取位置同样只读。ACK 是累计且单调的——服务端删除该 token 覆盖位置（含）
+之前的全部已投递 delivery；ACK 一个早于当前确认位置的 token 是合法 no-op，MUST NOT 回退确认位置。并行
+dispatcher MUST 维护"最高已连续持久化位点"，MUST NOT ACK 覆盖位置晚于任何尚未持久化的 delivery。cursor
+失效、`dropped` 或 resync 都不使已签发的 ACK token 失效；服务端 MUST 仍按其 `(account_id, device_id)` 绑定
+校验并执行累计删除。
 
 ### 10.2 队列分页
 

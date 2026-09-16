@@ -49,7 +49,6 @@
     "grant_revoked_before_event_checkpoint",
     "grant_revoked_upstream",
     "handle_holder_acceptance_missing",
-    "history_traversal_anchor_unreachable",
     "identity_link_no_longer_visible",
     "identity_link_policy_tightened",
     "inclusion_proof_failed",
@@ -59,7 +58,6 @@
     "invite_event_unaccepted",
     "invite_kind_requires_revoke",
     "invite_oob_entropy_too_low",
-    "late_recovery_rejected_membership",
     "media_plaintext_warning_required",
     "message_already_terminal",
     "mimi_draft_unsupported",
@@ -70,7 +68,6 @@
     "partial_auth_state",
     "patch_atomic_conflict",
     "pin_target_not_pinned",
-    "plane_cross_write",
     "policy_revision_gap",
     "primary_track_required",
     "proof_binding_missing",
@@ -82,7 +79,6 @@
     "realm_alias_taken",
     "realm_already_exists",
     "realm_authority_controller_mismatch",
-    "realm_authority_root_conflict",
     "realm_authority_root_missing",
     "realm_state_snapshot_issuer_revoked",
     "realm_terminal_state",
@@ -92,7 +88,6 @@
     "recovery_required",
     "refs_too_large",
     "relation_already_terminal",
-    "revoke_undo_invalid_signature",
     "scope_incomparable",
     "scope_unavailable",
     "segment_aead_failed",
@@ -114,10 +109,16 @@
   ],
   "removed_reason_codes": [
     {
-      "code": "invalid_task_fsm_transition",
-      "ruling": "2026-09-04-1752 workflow profile stage transition",
-      "registry_version": "2026-09-04.2",
-      "why": "Described a Realm-profile-declared task/workflow fsm cell that v1 cannot carry: event kinds, cell families and transition_contracts are frozen at registration time and no registered producer can write a Realm-declared extension family. zh/models/common-fields.md 5.3.4 rules that v1 has no workflow profile carrier."
+      "code": "abuse_cluster",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 举报队列两态，明文禁止中间态（content-moderation.md:209-220）；“clustered”语义由 require_review 承载。"
+    },
+    {
+      "code": "attestation_missing",
+      "ruling": "0032 product-owned account recovery minimal protocol",
+      "registry_version": "2026-09-11.1",
+      "why": "Named recipient_method=hardware_wrapped_key, which is not a v1 enum value, and trusted_recovery_service.attestation_required, which ruling 0032 deleted together with the hardware attestation framework. No v1 carrier can raise it."
     },
     {
       "code": "audit_agent_attestation_mismatch",
@@ -162,16 +163,22 @@
       "why": "v1 封闭 defer 集合（dependency_missing/quorum_unreachable/temporarily_unavailable，event-auth-state-resolution.md §:617-618）明文排除；条件由已登记 dependency_missing 承载。"
     },
     {
+      "code": "cardinality_violation",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "标准关系冲突由 require_review 收敛；并发候选上限由 relation_conflict_fanout_exceeded 承载。协议不提供关系数量限制配置。"
+    },
+    {
       "code": "claim_rate_limited",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
       "why": "同一条件由已登记且已接线的 keypackage_claim_rate_limited 承载（device-lifecycle.md:783 + fixture + soland）。"
     },
     {
-      "code": "not_provisioned",
+      "code": "counter_bound_exceeded",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "“认得但不托管”分流在 v1 不存在；由 not_found（反枚举统一桶）与 route-miss pending 语义承载（conformance-vectors.md §35/§36）。"
+      "why": "v1 有无界 `counter` 状态模型，但未定义 parameters.max/min 或 escrow 配额；因此不存在 counter_bound_exceeded，发行者重复/分叉操作由 Event 身份冲突与普通因果收敛规则处理。"
     },
     {
       "code": "cross_space_structural_relation",
@@ -180,10 +187,28 @@
       "why": "校验不存在且正文主动排除（relation.md:171）；跨 Realm 情形由已登记 cross_realm_structural_relation 承载。"
     },
     {
-      "code": "abuse_cluster",
+      "code": "executed_by_missing",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "v1 举报队列两态，明文禁止中间态（content-moderation.md:209-220）；“clustered”语义由 require_review 承载。"
+      "why": "校验存在但正文钉给 schema_violation（applet-integration.md:926 normative MUST）；无路径产出此 reason code，产出反违反 §11。"
+    },
+    {
+      "code": "genesis_created_at_too_old",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "“genesis submit window” 概念在任何 registry/schema/正文不存在；created_at 过去向漂移按设计不校验。"
+    },
+    {
+      "code": "history_traversal_anchor_unreachable",
+      "ruling": "2026-09-16 authority-commit clean-break orphan reason-code adjudication",
+      "registry_version": "2026-09-16.11",
+      "why": "Its whole precondition is gone: AuthorityRevision, trusted_history_base_basis, trusted_current_basis and the direct-traversal retention target were deleted with the authority-commit clean break. No spec/v1 file outside this registry names any of them, so no producer can reach this branch and none can be written without reintroducing the deleted revision model."
+    },
+    {
+      "code": "invalid_task_fsm_transition",
+      "ruling": "2026-09-04-1752 workflow profile stage transition",
+      "registry_version": "2026-09-04.2",
+      "why": "Described a Realm-profile-declared task/workflow fsm cell that v1 cannot carry: event kinds, cell families and transition_contracts are frozen at registration time and no registered producer can write a Realm-declared extension family. zh/models/common-fields.md 5.3.4 rules that v1 has no workflow profile carrier."
     },
     {
       "code": "join_authorisation_invalid",
@@ -198,6 +223,18 @@
       "why": "v1 无收紧触发的隐式终结边（common-fields.md:486-498 逐字禁止隐式边）；后续 join 拒绝由 gate_check_failed 承载。"
     },
     {
+      "code": "late_recovery_rejected_membership",
+      "ruling": "2026-09-16 authority-commit clean-break orphan reason-code adjudication",
+      "registry_version": "2026-09-16.11",
+      "why": "It guards the decryption_failed to late_recovered upgrade. late_recovered exists in no spec/v1 file, and zh/crypto-media/encryption-and-audit.md section 6 now defines late arrival purely as applying missing Commits and recipient deliveries in order, with no retroactive plaintext upgrade state to reject. decryption_failed stays; its upgrade path does not exist to guard."
+    },
+    {
+      "code": "lite_profile_writes_disallowed_event_kind",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "条件由已接线顶层 code unsupported_event_kind/unsupported_feature 承载（conformance-profiles.md:71, api-conventions.md:408）。"
+    },
+    {
       "code": "moderation_control_lifted",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
@@ -210,58 +247,22 @@
       "why": "跨 peer moderation 只许 sealed 承载（content-moderation.md:80），fast-path quarantine 信号构造不存在。"
     },
     {
-      "code": "executed_by_missing",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "校验存在但正文钉给 schema_violation（applet-integration.md:926 normative MUST）；无路径产出此 reason code，产出反违反 §11。"
-    },
-    {
-      "code": "cardinality_violation",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "标准关系冲突由 require_review 收敛；并发候选上限由 relation_conflict_fanout_exceeded 承载。协议不提供关系数量限制配置。"
-    },
-    {
-      "code": "counter_bound_exceeded",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "v1 有无界 `counter` 状态模型，但未定义 parameters.max/min 或 escrow 配额；因此不存在 counter_bound_exceeded，发行者重复/分叉操作由 Event 身份冲突与普通因果收敛规则处理。"
-    },
-    {
-      "code": "genesis_created_at_too_old",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "“genesis submit window” 概念在任何 registry/schema/正文不存在；created_at 过去向漂移按设计不校验。"
-    },
-    {
-      "code": "lite_profile_writes_disallowed_event_kind",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "条件由已接线顶层 code unsupported_event_kind/unsupported_feature 承载（conformance-profiles.md:71, api-conventions.md:408）。"
-    },
-    {
-      "code": "revoke_order_unknown_requires_backfill_or_review",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "grant/revoke 顺序由 or_set observed-remove 与 joined control view 确定性裁决，“不可确定”态按构造不存在。"
-    },
-    {
-      "code": "scope_expansion_forbidden",
-      "ruling": "2026-09-04-2130",
-      "registry_version": "2026-09-04.3",
-      "why": "§10.1 收窄违规由已登记且正文已点名的 grant_exceeds_issuer_authority 承载（capabilities.md:165 + soland apply_capability.rs:1046/1105）。"
-    },
-    {
       "code": "naming_convention_violation",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
       "why": "lint 发现不是 wire reason code（按构造无 wire 路径）；且描述前提与正文矛盾（api-conventions.md:636/index.md:39 规定版本由 event kind 后缀承载）。"
     },
     {
-      "code": "unsupported_operation_binding",
+      "code": "not_provisioned",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "v1 未定义服务端发射路径（客户端 describe 交集纪律 api-conventions.md:423,638 使请求根本不会发出），交集失败是客户端本地判定，不在 wire 上；codes[] 顶层条目（422/type_uri）一并删除。"
+      "why": "“认得但不托管”分流在 v1 不存在；由 not_found（反枚举统一桶）与 route-miss pending 语义承载（conformance-vectors.md §35/§36）。"
+    },
+    {
+      "code": "plane_cross_write",
+      "ruling": "2026-09-16 authority-commit clean-break orphan reason-code adjudication",
+      "registry_version": "2026-09-16.11",
+      "why": "It encodes the CBS data-plane / control-plane effect split. That split was deleted with CBS; zh/authz/event-auth-state-resolution.md section 4, which the description cites as its source, no longer contains a plane rule, and no typed current result family is classified by plane anywhere. A reducer projection that targets the wrong family now fails as reducer_projection_failed against the registered result contract."
     },
     {
       "code": "recovery_session_terminal",
@@ -282,16 +283,34 @@
       "why": "关系数量限制配置不属于协议目标，删除配置及其专属拒绝原因。"
     },
     {
-      "code": "attestation_missing",
-      "ruling": "0032 product-owned account recovery minimal protocol",
-      "registry_version": "2026-09-11.1",
-      "why": "Named recipient_method=hardware_wrapped_key, which is not a v1 enum value, and trusted_recovery_service.attestation_required, which ruling 0032 deleted together with the hardware attestation framework. No v1 carrier can raise it."
+      "code": "revoke_order_unknown_requires_backfill_or_review",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "grant/revoke 顺序由 or_set observed-remove 与 joined control view 确定性裁决，“不可确定”态按构造不存在。"
+    },
+    {
+      "code": "revoke_undo_invalid_signature",
+      "ruling": "2026-09-16 authority-commit clean-break orphan reason-code adjudication",
+      "registry_version": "2026-09-16.11",
+      "why": "Capability revoke-undo (rollback) is not defined anywhere in v1: revoke_undo appears in no prose, schema, registry or fixture, and zh/authz/capabilities.md defines no undo of an accepted revoke. A revoke whose signature does not verify is rejected at admission like any other Event; there is no undo object to attach this reason to."
+    },
+    {
+      "code": "scope_expansion_forbidden",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "§10.1 收窄违规由已登记且正文已点名的 grant_exceeds_issuer_authority 承载（capabilities.md:165 + soland apply_capability.rs:1046/1105）。"
     },
     {
       "code": "share_commitment_mismatch",
       "ruling": "0032 product-owned account recovery minimal protocol",
       "registry_version": "2026-09-11.1",
       "why": "Only reachable during threshold_recovery share reconstruction. Ruling 0032 deleted the threshold_recovery method, its shares[] and share_commitment from the closed recovery policy, so the check has no wire object to run against."
+    },
+    {
+      "code": "unsupported_operation_binding",
+      "ruling": "2026-09-04-2130",
+      "registry_version": "2026-09-04.3",
+      "why": "v1 未定义服务端发射路径（客户端 describe 交集纪律 api-conventions.md:423,638 使请求根本不会发出），交集失败是客户端本地判定，不在 wire 上；codes[] 顶层条目（422/type_uri）一并删除。"
     }
   ]
 }

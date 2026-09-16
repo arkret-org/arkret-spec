@@ -76,6 +76,29 @@ Realm authority 还必须验证 genesis 的 generation-0 service、连续 old→
 
 描述信息分为协议固定能力、部署声明能力和运行时可用性。Describe 不能证明某服务是某 Realm 的 current authority；authority 身份只能由 `RealmAuthorityBundle` 证明。
 
+响应形状由 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json) 封闭定义，
+其中三个字段承载**不同强度**的断言，实现与下游 MUST 明确区分，MUST NOT 互相替代：
+
+- `supported_operation_bundles` 只表示 **wire 可达性**：展开后的 `(operation_id, binding_kind)` union 是唯一
+  可达性真源。它不构成任何 profile claim。
+- `supported_features` 表示服务**有实现代码**，但不一定通过 conformance verification。构建 conformance
+  matrix 的工具 MUST 把它视为严格弱于 `supported_profiles`。
+- `supported_profiles` 是**当前构建与本角色 endpoint 唯一的完整 profile 自声明集合**。每一项 MUST 满足该
+  profile 的全部适用要求；只实现了一部分时 MUST 只在 `supported_features` 中声明。profile activation、前置
+  依赖与自声明 badge MUST 只从此集合求值。
+
+`verified_profiles` 只**补充独立验证证据**，不单独激活任何 profile：其每个 `profile_id` MUST 唯一，且 MUST
+属于 `supported_profiles`；不满足时接收方 MUST 拒绝该 Describe。每项 MUST 携带独立验证证据（verification
+run 标识、artifact digest 与获取位置、verifier identity、签名与时间戳）。缺少验证证据 MUST NOT 被解读为
+"部分实现"，实现也 MUST NOT 保留一份平行的 claimed 数组。`service_kind` 只选择 role overlay，**不**自动
+产生任何 profile claim。
+
+**日历 profile 的可执行前提（normative）**：服务声明 `ak.profile.calendar_event.v1` 或
+`ak.profile.calendar_notification_dispatch.v1` 中任一项时，describe 的 `calendar_tzdb_versions` MUST 非空，
+且其每一项 MUST 是已登记的 IANA TZDB release tag，代表该服务**确实能执行**的 release。签名 schedule 的
+`tzdb_version` 不在该集合中时，服务 MUST 以 `calendar_tzdb_mismatch` fail closed 或把该 instant 投影为
+unresolved，MUST NOT 回退到相邻或更新的 release。空集合或无法执行的 tag 使该 profile 声明非法。
+
 #### 3.0.1 Bundle 展开与 transport 求交
 
 实现先展开 canonical operation bundle，再与调用方和服务共同支持的 transport 求交。求交为空即不支持，不得静默替换另一个 operation。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.18",
+  "version": "2026-09-16.26",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T01:40:00+08:00",
+  "generated_at": "2026-09-17T02:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,17 +18,17 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 219,
+    "total_operations": 220,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 217
+      "typed_schema": 218
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "typed_schema": 44
       },
       "deployment_local": {
-        "typed_schema": 17
+        "typed_schema": 18
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -447,6 +447,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/SessionGrantIntrospectRequestBody",
         "response": "#/components/schemas/SessionGrantIntrospectOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
+      "surface_class": "deployment_local",
+      "http": "POST /_arkret/gate/account/controller-gate-attestations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body",
+      "response_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ControllerAccountGateAttestationIssueRequestBody",
+        "response": "#/components/schemas/ControllerAccountGateAttestationIssueOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

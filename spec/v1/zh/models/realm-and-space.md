@@ -255,13 +255,12 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 
 **Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID` 与唯一 critical `did_inception` root anchor 时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条 proof 必须省略 `signer_resolution_evidence_ref`：root key 只从同一提交冻结的 registration DID/root-control evidence 解析，founding device key 只从 root-signed descriptor、authorize payload 与 unit-local candidate overlay 解析。两条通过 `ak.peer.principal_genesis.command.submit.v1` 原子接受，均免 `expected_revision`；descriptor 与 authorize payload 必须逐字段/digest 相等。任一 Event 脱离完整 unit/receipt closure 均不可接纳或复验，省略规则不得用于其它 create/authorize。Agent PCR 的 controller-authorized分支 MUST 使用 `purpose="agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
-以下五项是所有 purpose 共有的无条件 registered writes；另有五条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle 与三个互斥 purpose 的 history-access 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
+以下两项是所有 purpose 共有的无条件 registered writes；另有五条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle 与三个互斥 purpose 的 history-access 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
 
 `ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.result_writes[]` 中登记；wire 不重复携带：
 
-1. **写入 `realm_genesis` singleton**：值为 closed `ak.schema.realm_genesis.v1` object；该 typed current result 是 create-locked identity/security core 的唯一权威。
-2. **写入 `realm_create` ordered log**：记录 accepted create 用于审计/backfill；同一 Realm 的不同 create 以 `realm_already_exists` 或 collision quarantine 拒绝，不由 projection 选择 winner。
-3. **写入 `realm_authority_root` typed current result**（`result_selector=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
+1. **写入 `realm_genesis` singleton**：值为 closed `ak.schema.realm_genesis.v1` object；该 typed current result 是 create-locked identity/security core 的唯一权威。accepted create 本身由 genesis RealmCommit 记录，不再另投影一份 create 日志；同一 Realm 的不同 create 以 `realm_already_exists` 或 collision quarantine 拒绝，不由 projection 选择 winner。
+2. **写入 `realm_authority_root` typed current result**（`result_selector=null`），值由注册 `value_projection` 从 signed envelope 与 create payload 确定性派生：
 
    ```text
    {
@@ -271,15 +270,17 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
    }
    ```
 
-   `(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 随 root controller 轮换递增，`authority_generation` 只随 planned governance Station handoff 递增。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 typed current result。author 不得自行提供这些派生字段。
+   该值是 closed `ak.schema.realm_authority_root_value.v1`（[`typed-current-result.schema.json`](../../artifacts/schemas/typed-current-result.schema.json) 的 `realm_authority_root_value`）。`(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 随 root controller 轮换递增，`authority_generation` 只随 planned governance Station handoff 递增。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 typed current result。author 不得自行提供这些派生字段。
 
-6. **条件写入 `identity_resolution` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
-7. **条件写入 `agent_status` typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
-8. **条件写入 `realm_history_access` FSM typed current result**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
-9. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
-10. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
+3. **条件写入 `identity_resolution` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
+4. **条件写入 `agent_status` typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
+5. **条件写入 `realm_history_access` FSM typed current result**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
+6. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
+7. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
 
-以上五条无条件写入加五条条件 row 构成 create 的完整 projection；第 8 至 10 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis RealmCommit/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
+以上两条无条件写入加五条条件 row 构成 create 的完整 projection；第 5 至 7 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis RealmCommit/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
+
+**result_writes[] 的覆盖度（normative）**：`result_writes[]` 是「某个 Event kind 写哪些 typed current result、顺序如何、条件是什么」的唯一机读合同，由 `tools/artifact_lint:result_write_contracts` 校验。**当前它只在部分 Event kind 上登记**（见 `contract-registry.json` 的 `event_kind_registry.registry_rules`，其中记录了确切的已覆盖 / 未覆盖计数）；其余 reducer-input kind 的 registered writes 目前只存在于正文。规范正文 **MUST NOT** 对尚未登记的 kind 引用其 `result_writes[]`——引用一个不存在的登记项，正是这个数组被引入来消除的缺陷。扩大覆盖面时同时收缩该注记，**MUST NOT** 把规则改写成看起来已经完整。
 
 **root authority 的语义边界（normative）**：authority-root typed current result 的 current controller 在给定 RealmCommit basis 下凭该 typed current result 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、committed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
 
@@ -557,15 +558,15 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 `space_parent` 以 SpaceId 为 subject，使用普通 `current-value projection`，值为 `parent_space_id | null`。`ak.space.create` 从签名 `object.parent_space_id` 产生初始写，省略时显式写 null；metadata 投影排除该字段。后续父边只由 `ak.space.parent` 修改，通用 metadata patch 禁止改它。普通父边变更不需要新 RealmCommit。
 
-`expected_parent_space_id` / 已登记 precondition 只校验签名因果基底，不是全局 CAS。写入在该基底内验证存在性、同 Realm、可读 scope、自指及无环；缺证明 pending，不以本地当前图替换基底。不可读 parent 对外返回既有 `space_parent_unreadable`，已验证跨 Realm 返回 `space_realm_mismatch`。
+`expected_parent_space_id` / 已登记 precondition 是**可选的显式 compare-and-set**：存在时 MUST 与该 Space 当前 parent 值严格相等，不等即 `failed_precondition` 且零写入；缺席时该次写入不做并发保护，实现 MUST NOT 把缺席补成隐式 CAS。写入在该基底内验证存在性、同 Realm、可读 scope、自指及无环；缺证明 pending，不以本地当前图替换基底。不可读 parent 对外返回既有 `space_parent_unreadable`，已验证跨 Realm 返回 `space_realm_mismatch`。
 
-合流后先按固定 `(depth,EventId)` 求每个 Space 的唯一 current parent；再将有向环内的所有 current parent 边标记为领域 `unresolved`。该环诊断不得反向重选寄存器值，不得伪装 root，也不得产生有效 contains。后续有权写引用各自 current source 后可修复。指向不可见、终态或不兼容 scope 的目标不产生 live navigation，但保留原始因果事实。
+先取每个 Space 的当前 parent——该 stream 上最后一个被接受的 parent 写入，次序只由 `stream_position` 给出；再将有向环内的所有 current parent 边标记为领域 `unresolved`。该环诊断不得反向重选寄存器值，不得伪装 root，也不得产生有效 contains。后续有权写引用各自 current source 后可修复。指向不可见、终态或不兼容 scope 的目标不产生 live navigation，但保留原始因果事实。
 
 parent 只是导航关系，不授予读取权，不修改 `scope_circle_id`、Realm、creator 或安全 policy。普通对象 archive/restore 的写权限来自独立安全授权；restore 不能要求对象先 active。terminal 仍不可逆，不能通过 reparent 复活。
 
 ### 3.6 Strand 位置
 
-Strand 在 board/list 类 Space 中的位置由普通因果寄存器维护：
+Strand 在 board/list 类 Space 中的位置由普通 typed current 当前值维护：
 
 ```text
 result_id     := strand_position:<board_space_id>:<strand_id>
@@ -580,7 +581,7 @@ canonical wire 编码，不适用 `tuple/composite` 的 SHA-256 subject；produc
 publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 typed current result id。解析时必须同时
 验证 Board 与 Strand 两个 typed-ID 分量，不能只截取末尾 Strand，也不能接受 hash subject。
 
-`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据，不携带 `expected_revision`。`expected_position` 与 `from_space_id` 只校验签名因果基底，不能把离线并发变成唯一成功的 CAS。多个并发位置写均可被接受，但该 position typed current result 始终按普通 `current-value projection` 的固定 `(depth,EventId)` rank 产生唯一 current winner；只有 winner 产生 effective placement/contains，落选 Event 仅保留历史与 provenance，不进入第二个 UI “冲突列”。后继引用当前 winner 即产生更高 depth 的正常移动，无需观察或人工修复全部落选分支。WIP 在各自签名基底校验；合流后由同一固定 winner 计算当前占用，不得按到达顺序撤销某一合法写来伪装硬容量保证。
+`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据。`expected_position` 是**可选的显式 compare-and-set 前置**：存在时 MUST 与该 position typed current result 的当前值逐字节相等，不等即 `failed_precondition` 且零写入；缺席时该次移动不做并发保护，MUST NOT 被实现补成隐式 CAS。该 position typed current result 的当前值就是**该 stream 上最后一个被接受的位置写入**，次序只由治理 Station 给出的 `stream_position` 决定；实现 MUST NOT 依据任何客户端可见的深度、HLC、`created_at` 或到达顺序另选 winner。多个并发位置写因此被 Station 串行化为该 stream 上的一串位置，不产生需要人工合并的第二个 UI “冲突列”；被 CAS 拒绝的写没有任何业务效果，客户端重读当前值后重新签发再试。WIP 容量在同一当前值上计算，不得按到达顺序撤销某一已接受的合法写来伪装硬容量保证。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 
@@ -588,12 +589,12 @@ publisher 与 selector validator MUST 从同一 registry row 得到完全相同�
 | --- | --- | --- | --- |
 | `board_space_id` | yes | `id:space`（Board） | position edge 的所属 Board；与 `strand_id` 共同构成去重 key。 |
 | `strand_id` | yes | `id:strand` | 被移动的 Strand。 |
-| `from_space_id` | no | `id:space`（List） | 源 List；省略时 reducer 从签名因果基底的唯一有效 edge 推导。 |
+| `from_space_id` | no | `id:space`（List） | 源 List；省略时 reducer 从该 position typed current result 的当前值推导。 |
 | `target_space_id` | yes | `id:space`（List） | 移动后的目标 List；payload 不得另带 `list_space_id`。 |
 | `rank` | yes | `string` | 目标 List 内 canonical rank。 |
 | `expected_position` | no | `object{space_id?: id:space, rank?: string, relation_id?: id:relation}` | 可选 CAS 诊断前像；字段集封闭。 |
 
-Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Event 的 position typed current result 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Event 使用相同的独立授权、因果基底与 WIP 后像判定。create 成功而 Event 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Event，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position typed current result 投影，不得合成 canonical Relation Event。
+Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Event 的 position typed current result 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Event 使用相同的独立授权、可选 CAS 前置与 WIP 后像判定。create 成功而 Event 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Event，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position typed current result 投影，不得合成 canonical Relation Event。
 
 Board、List 与 Strand 的实际 `realm_id` MUST 相同；创建、首次 move、后续 move 和 reorder 均无 profile 例外。已可验证的跨 Realm placement MUST `failed_precondition / space_realm_mismatch`；普通 move / reparent MUST NOT 修改 Realm。 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 

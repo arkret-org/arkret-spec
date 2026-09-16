@@ -27,6 +27,14 @@ claim 是单次使用的 durable reservation，绑定 recipient actor、device �
 package digest、有效期与 requester。Station 在 claim 时验证 endpoint current authorization、ciphersuite 与 package
 signature；失败只返回不泄露库存细节的 `claim_failed`。
 
+只有 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 登记且处于 active 的 MLS ciphersuite 才能
+进入 wire。publish、claim 与 Commit submission MUST 各自拒绝未登记或已停用的 ciphersuite，实现 MUST NOT 依次
+尝试多个 suite 后择一通过，也 MUST NOT 在本地把外部 suite 标识改写成登记值。
+
+recipient endpoint 与 KeyPackage 的持有者身份是**完整 ActorId**：account 分支携带包含 `station_id` 的
+AccountId，service 分支携带 `service_id`。claim、Welcome delivery 与 leaf credential MUST 逐字保留该完整身份，
+MUST NOT 折叠为签名 principal、裸 DID 或 handle。
+
 ### 2.2 Commit 与 Welcome
 
 `ak.mls.commit` 是 producer-signed、authority-committed 共享 Event。Welcome 是
@@ -62,6 +70,12 @@ recipient actor 与 endpoint、`keypackage_claim_ref`、canonical ciphertext 和
 Realm 与 Circle 的 committer 权限来自 current capability、membership 与 policy。管理权限不由 leaf index、首个 sender、
 设备在线状态或 UI role 推导。Circle 的 group 与 Realm group 独立；一个 scope 的 committer 权限不扩张到另一个 scope。
 
+MLS leaf 的归属与 Proposal 的 target MUST 使用完整 ActorId。两者 MUST NOT collapse 到签名 principal：同一
+principal 在不同 Station 上的 Account 是不同 Actor，remove/update 的目标因此 MUST 按完整 ActorId 匹配。
+minimal-metadata Realm 的 Realm-local pairwise actor 不是例外：它在 Realm 内的状态同样以完整 ActorId 为键，
+只有两处封闭的 Realm 外匹配点（consent peer 与 KeyPackage claim）使用 `(realm_id, principal_id)`，因为该分支
+的 `did:key` principal 已经把这一对固定下来。
+
 ### 2.3 应用载荷加密
 
 effective scope 在没有 accepted `ak.mls.genesis` 时只允许该 Event kind 的明文 payload；Genesis accepted 后 MLS
@@ -72,6 +86,18 @@ Realm 与每个 Circle 分别激活，父 scope 不隐式激活子 scope。
 `encryption_context` 只含 `epoch`、`group_state_ref` 与已登记 routing context。AAD 从 outer signed Event、
 effective scope、Event kind、current public group result 与 sender leaf 唯一重建。wire 不复制 scope、group id、
 scheme、algorithm 或 AAD digest。
+
+**Closed pre-encryption header（normative）**：加密前，发送方 MUST 先把上述来源装配成一个封闭的
+pre-encryption header，并在加密之后视其为不可变量。该 header 是 AAD transcript 的唯一原像：成员、顺序与
+canonical 编码固定，缺字段、多字段、`null` 占位或重新排序都产生不同 AAD，因此都 MUST 被拒绝。header 本身
+**不上 wire**：接收方 MUST 从 outer signed Event、effective scope、Event kind、自己验证过的 current public
+group result 与 sender leaf 逐字重建它，MUST NOT 采信任何随 envelope 传来的副本。
+
+AAD digest 与 ciphertext digest 各自在固定 transcript 上计算：AAD digest 的原像是重建出的 pre-encryption
+header 的 canonical bytes；ciphertext digest 的原像是 envelope 的 `ciphertext` 原始字节。任一不匹配——重建的
+AAD 与解密时使用的 AAD 不同、ciphertext digest 与已签名引用不同、`encryption_context` 与 current public group
+result 不一致——MUST fail closed：MUST NOT 部分接受、MUST NOT 降级为明文、MUST NOT 换一组 secret 重试，也
+MUST NOT 写入任何 typed current 或 outbox 的部分结果。
 
 ### 2.4 Sync 与 MLS Epoch
 
@@ -124,6 +150,15 @@ RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一�
 未知字段、缺字段、indefinite-length CBOR、非最短整数、重复或乱序 map key均拒绝。Genesis 的 epoch transition为
 `0 -> 0`；Commit 必须 `next_epoch = previous_epoch + 1`。binding 的 scope、base、epoch与 revision必须逐字段匹配
 Station 的 current public state和 Commit payload。
+
+**提案形态就是同一个 binding（normative）**：`proposed_group_genesis_binding` **不是第二套 binding 概念**，
+它就是上面这个最小 `MlsGroupBinding` 在**尚无已接受 Genesis 时的提案形态**——同样的成员、同样的封闭编码、
+同样的 `0 -> 0` transition。因此：`0 -> 0` 的 group key-access revision 查询在目标 scope 尚无 accepted Genesis
+时 MUST 携带精确的提案不可变 binding，缺失以 `mls_genesis_binding_proposal_required` 拒绝且不产生 proof 或
+cache 条目；提案与签名 Genesis binding 不一致、与并发胜出的 Genesis binding 不一致，或在已有 accepted Genesis
+之后仍然携带，均以 `mls_genesis_binding_proposal_mismatch` 拒绝，落败方 MUST 丢弃该 proposal-bound proof，
+针对胜出的不可变 binding 重新无提案查询，MUST NOT 复用旧查询或 cache 条目。实现 MUST NOT 为提案态另立
+schema、另设成员或另走一条 binding 校验路径。
 
 #### 2.5.2 Send gate 与 self-heal
 
@@ -222,8 +257,47 @@ Genesis携带验证 epoch 0所需的 public GroupInfo/tree material及固定 Gro
 
 #### 5.1.2 创建 transaction
 
-Genesis与需要加入的初始 endpoint deliveries使用同一 `MlsCommitSubmission` transaction语义；没有 recipient时
-`welcomes=[]`。Station提交前验证 creator current authority与初始 roster。
+Genesis 与需要加入的初始 endpoint deliveries 使用同一 `MlsCommitSubmission` transaction 语义；没有 recipient 时
+`welcomes=[]`。Station 提交前验证 creator current authority 与初始 roster。
+
+**客户端本地 durable transaction（normative）**：创建方在本地为一个待加密的 effective scope 维护**恰好一条**
+durable 记录，其逻辑键是 `(owner_actor_id, effective_scope, operation)`，`operation` 固定为 `mls_genesis`。
+`owner_actor_id` MUST 是完整 ActorId（普通人类创建者含 `station_id`），`effective_scope` MUST 是 §5.1 的
+canonical typed scope，不能是页面路由、展示用 Realm 名或裸字符串别名。该 transaction 只适用于
+`effective_scope.kind` 为 `realm` 或 `circle`；`sidecar` scope 保持 §2.5.1 的独立握手契约，客户端 MUST NOT
+为 sidecar scope 打开该记录。`creator_device_id` 与 `creator_signer_method` 是记录的不可变字段但**不进逻辑键**，
+因此同一账号的重载或第二个窗口找到同一条记录，而另一台设备不会静默开出第二次 Genesis。
+
+记录只沿以下已登记箭头前进：
+
+```text
+genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted
+  -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready
+```
+
+终态为 `ready`（成功）、`rejected`（可回到 `realm_accepted` 重试）、`superseded` 与 `quarantined`。机读真源是
+[`mls-creator-bootstrap-transaction-registry.json`](../../artifacts/registry/mls-creator-bootstrap-transaction-registry.json)，
+实现 MUST 从该 registry 读取状态、箭头与持久化要求，MUST NOT 从本节散文重新推导。
+
+原子切点（normative）：
+
+- selector 在 `ak.realm.create` 的**第一次网络副作用之前**、任何 `0 -> 0` 治理查询之前、任何依赖 selector 的
+  随机材料生成之前落盘；
+- governance binding 在任何依赖它的 MLS / HPKE 随机材料之前钉住；
+- epoch-0 private state、public 原始字节与 exact unsigned Genesis core 作为**同一个恢复单元**提交，且必须早于
+  public blob 上传、Genesis 签名与入队；
+- exact signed Event bytes 与 outbound queue item 在同一次 durable commit 中建立；
+- `ready` 与 send-gate 索引原子发布。
+
+记录停留在 `genesis_intent_persisted` 时，整条封闭 creation intent MAY 在一次原子 durable commit 中被**整体
+替换**（自转移 `genesis_intent_persisted_to_genesis_intent_persisted`）；对单个 selector 的部分 patch 不是合法
+写入。从 `realm_accepted` 起，以及在任何终态中，该 intent 不可变；要换 selector 只能结束本次尝试并开启新的
+attempt generation。
+
+只有 exact accepted Event 证明完成：队列耗尽、HTTP 2xx、duplicate code、UI 效果完成或本地 emitted/submitted
+标志都 MUST NOT 被当作完成信号。该记录**永不进入任何 wire**：它 MUST NOT 出现在 `ak.realm.create` payload、
+任何 current result 或查询投影、Account Data key、client sync 或 federation 面，也 MUST NOT 被用来让对端相信
+另一方的本地状态——Genesis 是否存在、创建者坐标、锁定的 selector 与可写状态一律只由 exact accepted Event 判定。
 
 ### 5.2 意图与生效
 

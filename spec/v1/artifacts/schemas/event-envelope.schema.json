@@ -6740,21 +6740,9 @@
       ]
     },
     "rank": {
-      "type": "object",
-      "required": [
-        "depth",
-        "event_id"
-      ],
-      "properties": {
-        "depth": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$",
+      "description": "Stable manual sort position under the registered ak.rank.lexofractional.v1 profile: 1..128 characters from the fixed base62 alphabet, compared character by character in ASCII order. It is a producer-chosen ordering token, not a derived or causal value; see zh/conformance/encoding.md section 9.1 for the grammar, rank_between and rebalance rules."
     }
   },
   "additionalProperties": false
