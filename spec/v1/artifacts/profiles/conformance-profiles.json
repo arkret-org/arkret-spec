@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.10",
-  "generated_at": "2026-09-16T10:50:00+08:00",
+  "version": "2026-09-16.11",
+  "generated_at": "2026-09-16T23:20:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2326,7 +2326,7 @@
       },
       "additional_requirements": {
         "encrypted_only_must": "Every ak.message.stream payload MUST be encrypted inside ak.schema.signal_envelope.v1 with signal_class=session; no plaintext branch exists.",
-        "authorization_must": "The recipient MUST verify ak.message.stream.send at the Signal envelope security basis and independently verify ak.message.create from its signed commit_authorization_state.authority_refs and signer evidence before display.",
+        "authorization_must": "The recipient MUST verify ak.message.stream.send at the Signal envelope security basis and independently verify ak.message.create from its producer proof, its signer evidence and the RealmCommit that admitted it before display.",
         "resource_must": "Producer and recipient enforce 16 KiB preview, 5 frames/s, 8 concurrent streams, 15-second keyframes and 10-minute lifetime within the generic 46 KiB plaintext / 64 KiB Signal envelope limits.",
         "final_binding_must": "Only a direct, verified ak.message.create with a message_id matching the complete retyped EventId token, actor, device, security scope, Realm, Strand and discussion track replaces the preview."
       }

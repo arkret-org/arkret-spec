@@ -1,4 +1,4 @@
-"""Reject arbitrary Cell reset and the retired recovery kind."""
+"""Reject arbitrary typed current result reset and the removed recovery kind."""
 from pathlib import Path
 import json
 import sys

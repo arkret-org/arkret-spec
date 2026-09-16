@@ -962,6 +962,16 @@
       ]
     },
     {
+      "schema_path": "agent-operations.schema.json#/$defs/key_state/properties/authorized_verification_method",
+      "property_name": "authorized_verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "agent-operations.schema.json#/$defs/key_state/properties/controller_account_id",
       "property_name": "controller_account_id",
       "semantic_category": "responsibility_identity_material",

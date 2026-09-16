@@ -167,11 +167,11 @@ Envelope 在 E2EE 下同样是明文，因此 target admission 不构成解密�
 
 ### 8.2 response 与隐私
 
-`response` / `encrypted_response` 是 oneOf 互斥、必居其一的两个分支，其合法性由目标 Strand effective scope 的 **encryption floor 唯一判定**：
+`response` / `encrypted_response` 是 oneOf 互斥、必居其一的两个分支，其合法性由目标 Strand scope **是否已有 accepted `ak.mls.genesis` 唯一判定**：
 
-- floor 为 `e2ee_required` 时只有 `encrypted_response` 合法，出现明文分支即 `schema_violation`；
-- floor 允许 plaintext 时两分支均可，但明文 response 需要**双重授权**，缺任一侧 MUST 返回 `unsupported_feature`：Realm policy 侧在 `event-payload.schema.json#/$defs/plaintext_data_class` 的封闭枚举中授予 `rsvp_response`，服务侧在 ServiceDescribe 的 `plaintext_visibility.data_classes` 中声明同一 `rsvp_response`。只有 ServiceDescribe 单侧声明不构成合法授权；
-- floor 为 `e2ee_required` 但部署拿不到 scope encryption key 时 MUST 返回 `unsupported_feature`，MUST NOT 静默降级为明文分支。
+- 该 scope 已激活（存在 accepted `ak.mls.genesis`）时只有 `encrypted_response` 合法，出现明文分支 MUST 以 `mls_activation_required` 拒绝；
+- 该 scope 尚未激活时两分支均可，但明文 response 需要**双重授权**，缺任一侧 MUST 返回 `unsupported_feature`：Realm policy 侧在 `event-payload.schema.json#/$defs/plaintext_data_class` 的封闭枚举中授予 `rsvp_response`，服务侧在 ServiceDescribe 的 `plaintext_visibility.data_classes` 中声明同一 `rsvp_response`。只有 ServiceDescribe 单侧声明不构成合法授权；
+- 激活是不可逆的：已激活 scope 的任何回到明文分支的写入 MUST 以 `mls_activation_irreversible` 拒绝；已激活但部署拿不到 scope encryption key 时 MUST 返回 `unsupported_feature`，MUST NOT 静默降级为明文分支。
 
 实现 MUST NOT 用 Calendar 专属开关覆盖 scope floor；v1 不存在"Realm policy 例外允许 plaintext RSVP comment"这一说法。
 

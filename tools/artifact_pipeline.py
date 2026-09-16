@@ -61,9 +61,6 @@ FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SESSION_GRANT_KAT_SCRIPT = Path(__file__).with_name("check_session_grant_kat.py")
 CONTACT_ROUND_KAT_SCRIPT = Path(__file__).with_name("check_contact_round_kat.py")
 HANDLE_CLAIM_KAT_SCRIPT = Path(__file__).with_name("check_handle_claim_kat.py")
-HUMAN_CONTROL_SIGNER_EVIDENCE_KAT_SCRIPT = Path(__file__).with_name(
-    "check_human_control_signer_evidence_kat.py"
-)
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
@@ -1047,71 +1044,6 @@ def print_contract_status() -> None:
     print(registry_diff_summary_text())
 
 
-def authorization_dependency_schema(catalog: dict[str, Any]) -> dict[str, Any]:
-    registry = catalog["authorization_dependency_registry"]
-    registered_actions = {row["action"] for row in catalog["capability_action_registry"]["actions"]}
-    action_sets = registry["action_sets"]
-    for name, actions in action_sets.items():
-        if not actions or actions != sorted(set(actions)) or not set(actions) <= registered_actions:
-            raise ValueError(f"invalid authorization dependency action set: {name}")
-    entries = registry["entries"]
-    kinds = [row["dependency_kind"] for row in entries]
-    if not kinds or len(kinds) != len(set(kinds)):
-        raise ValueError("authorization dependency kinds must be nonempty and unique")
-    branches = []
-    all_actions: set[str] = set()
-    for row in entries:
-        scopes = row["scope_kinds"]
-        if not scopes or len(scopes) != len(set(scopes)) or not set(scopes) <= {"realm", "circle", "sidecar"}:
-            raise ValueError(f"invalid authorization dependency scope: {row['dependency_kind']}")
-        if not row["action_sets"] or not set(row["action_sets"]) <= set(action_sets):
-            raise ValueError(f"invalid authorization dependency action sets: {row['dependency_kind']}")
-        for source_field in ("authorization_source", "generation_source", "closing_transition", "applicability"):
-            if not row.get(source_field):
-                raise ValueError(f"missing dependency source rule: {row['dependency_kind']}.{source_field}")
-        actions = sorted({action for name in row["action_sets"] for action in action_sets[name]})
-        all_actions.update(actions)
-        branches.append({
-            "if": {"properties": {"dependency_kind": {"const": row["dependency_kind"]}}, "required": ["dependency_kind"]},
-            "then": {"properties": {
-                "scope_ref": {"properties": {"kind": {"enum": scopes}}},
-                "actions": {"items": {"enum": actions}},
-            }},
-        })
-    return {"kinds": sorted(kinds), "actions": sorted(all_actions), "branches": branches}
-
-
-def projected_authorization_closure_schema(catalog: dict[str, Any]) -> dict[str, Any]:
-    schema = json.loads((ARTIFACTS / "schemas" / "seal.schema.json").read_text(encoding="utf-8"))
-    closure = schema["$defs"]["authorization_closure"]
-    projection = authorization_dependency_schema(catalog)
-    closure["required"] = ["command_event_id", "dependency_kind", "authorization_event_id", "generation_event_id", "scope_ref", "actions", "frontier"]
-    properties = closure["properties"]
-    closure["properties"] = dict([
-        ("command_event_id", properties["command_event_id"]),
-        ("dependency_kind", {"type": "string", "enum": projection["kinds"], "description": "Closed authorization dependency coordinate discriminator, generated from contract-registry authorization_dependency_registry."}),
-        *[(name, properties[name]) for name in ("authorization_event_id", "generation_event_id", "scope_ref", "actions", "frontier")],
-    ])
-    closure["properties"]["actions"]["items"] = {"type": "string", "enum": projection["actions"]}
-    closure["allOf"] = projection["branches"]
-    return schema
-
-
-def write_authorization_dependency_schema() -> None:
-    (ARTIFACTS / "schemas" / "seal.schema.json").write_text(
-        dump_json(projected_authorization_closure_schema(load_contract_registry())), encoding="utf-8", newline="\n"
-    )
-
-
-def check_authorization_dependency_schema() -> list[str]:
-    try:
-        expected = projected_authorization_closure_schema(load_contract_registry())
-    except (KeyError, ValueError) as error:
-        return [f"invalid authorization dependency registry: {error}"]
-    actual = json.loads((ARTIFACTS / "schemas" / "seal.schema.json").read_text(encoding="utf-8"))
-    return [] if actual == expected else ["authorization dependency schema drift (run artifact_pipeline.py generate)"]
-
-
 def write_derived_registry_views() -> None:
     for path, payload in generated_registry_payloads(load_contract_registry()).items():
         path.write_text(dump_json(payload), encoding="utf-8", newline="\n")
@@ -1237,13 +1169,6 @@ def run_contact_round_kat_check() -> int:
 
 def run_handle_claim_kat_check() -> int:
     result = subprocess.run([sys.executable, str(HANDLE_CLAIM_KAT_SCRIPT)], cwd=ROOT)
-    return result.returncode
-
-
-def run_human_control_signer_evidence_kat_check() -> int:
-    result = subprocess.run(
-        [sys.executable, str(HUMAN_CONTROL_SIGNER_EVIDENCE_KAT_SCRIPT)], cwd=ROOT
-    )
     return result.returncode
 
 

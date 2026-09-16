@@ -65,10 +65,10 @@ class EventAdmissionContractTest(unittest.TestCase):
 
     def test_all_native_exception_classes_have_positive_selector_coverage(self):
         definitions = schema_definitions(self.canonical)
-        history = copy.deepcopy(definitions["shared_history_event"])
-        history["allOf"].pop(0)  # Selector test only; complete Events are tested below.
-        validator = Draft202012Validator(history)
-        classes = self.canonical["history_admission_contract"]["native_admission_classes"]
+        # Selector test only: the generated admission shape carries the branch
+        # guards without the complete-Event reference.
+        validator = Draft202012Validator(copy.deepcopy(definitions["registered_admission_shape"]))
+        classes = self.canonical["authority_commit_admission_contract"]["native_admission_classes"]
         covered = set()
         for row in self.canonical["event_kinds"]:
             if row.get("wire_scope") != "durable_event":
@@ -96,7 +96,7 @@ class EventAdmissionContractTest(unittest.TestCase):
     def test_complete_event_fixture_matrix(self):
         instances = {}
         tested = 0
-        for case in read("fixtures/schema-validation-fixture.json")["schema_validation_cases"]:
+        for case in read("fixtures/event-kind-payload-coverage-fixture.json")["schema_validation_cases"]:
             instance = copy.deepcopy(case.get("instance"))
             if instance is None and case.get("instance_from") in instances:
                 instance = copy.deepcopy(instances[case["instance_from"]])
@@ -111,36 +111,27 @@ class EventAdmissionContractTest(unittest.TestCase):
                         target[path[-1]] = mutation["value"]
             if instance is not None:
                 instances[case["name"]] = instance
-            if not case["name"].startswith(("agent_genesis_", "event_envelope_policy_reanchor_", "event_envelope_causal_recovery_", "event_envelope_recovery_", "event_federation_", "shared_history_")):
-                continue
             schema_ref = "https://arkret.org/v1/" + case["schema_ref"]
             validator = Draft202012Validator({"$ref": schema_ref}, registry=self.resources)
             self.assertEqual(validator.is_valid(instance), case["expect_valid"], case["name"])
             tested += 1
-        self.assertGreaterEqual(tested, 14)
+        self.assertGreaterEqual(tested, 23)
 
-    def test_history_contract_excludes_receiver_order_and_receipt_authority(self):
-        contract = self.canonical["history_admission_contract"]
-        self.assertFalse(contract["receipt_authorizes_event"])
-        self.assertFalse(contract["ordinary_event"]["requires_origin_signature"])
-        self.assertFalse(contract["ordinary_event"]["requires_new_seal"])
-        self.assertIn("receiver_arrival_order", contract["history_forbidden_inputs"])
-        self.assertIn("receiver_current_wall_clock", contract["history_forbidden_inputs"])
-        self.assertEqual(contract["security_event"]["finality"], "unique_scoped_seal_decision")
-
-    def test_native_history_cannot_omit_original_signer_evidence(self):
-        case = next(c for c in read("fixtures/schema-validation-fixture.json")["schema_validation_cases"]
-                    if c["name"] == "shared_history_policy_recovery_producer_only_shape_valid")
-        event = copy.deepcopy(case["instance"])
-        del event["proofs"][0]["signer_resolution_evidence_ref"]
-        validator = Draft202012Validator(
-            {"$ref": self.envelope["$id"] + "#/$defs/shared_history_event"}, registry=self.resources
+    def test_authority_commit_contract_binds_the_commit_and_the_producer_proof(self):
+        contract = self.canonical["authority_commit_admission_contract"]
+        self.assertIn("matching_realm_commit", contract["required_evidence"])
+        self.assertIn("original_producer_proof", contract["required_evidence"])
+        self.assertIn("current_authority_generation", contract["required_evidence"])
+        self.assertEqual(
+            contract["schema_projection"],
+            "schemas/event-envelope.schema.json#/$defs/authority_committed_event",
         )
-        self.assertFalse(validator.is_valid(event))
+        projection = self.envelope["$defs"]["authority_committed_event"]
+        self.assertIn({"$ref": "#"}, projection["allOf"])
 
     def test_capability_class_cannot_be_added_to_native_exceptions(self):
         registry = copy.deepcopy(self.canonical)
-        registry["history_admission_contract"]["native_admission_classes"].append("capability_gated")
+        registry["authority_commit_admission_contract"]["native_admission_classes"].append("capability_gated")
         with self.assertRaises(ValueError):
             schema_definitions(registry)
 

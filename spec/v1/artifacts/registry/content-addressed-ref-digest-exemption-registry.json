@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.9",
+  "version": "2026-09-16.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T11:10:00+08:00",
+  "generated_at": "2026-09-17T00:10:00+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -11,13 +11,28 @@
     "allowed_status": [
       "active"
     ],
-    "prose_binding": "spec/v1/zh/conformance/encoding.md#401-content-addressed-typed-ref-唯一表示normative",
+    "prose_binding": "spec/v1/zh/conformance/encoding.md#401-引用验证",
     "machine_gate": "tools/artifact_lint:content_addressed_ref_sibling_digests",
     "candidate_scope": "Every properties object in spec/v1/artifacts/schemas whose members, after $ref resolution, include at least one string pattern that is exactly one ak:<kind>: form of a content_addressed special form with a 64-hex digest payload (unions that also admit UUID, Event or DID forms are outside the gate by construction) and at least one string pattern of the shape ^(sha256|blake3):[0-9a-f]{64}$.",
     "row_rule": "Each row exempts exactly one digest field. preimage MUST name the bytes the digest commits to and why they differ from every listed content-addressed ref. spec_anchor MUST cite a spec/v1 prose path or heading anchor inside arkret-spec; the registry never references another repository and never carries an undecided row.",
     "retained_mirror": "proof.event_digest inside the enclosing Event's producer/admission proofs is the only content digest that v1 deliberately retains next to the Event identity; it is registered here as a distinct_preimage row against the signer evidence refs and remains governed by encoding.md 6.0.1."
   },
   "exemptions": [
+    {
+      "exemption_id": "ak.exemption.sibling_digest.agent_key_state_authorized_public_key_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/agent-operations.schema.json",
+        "json_path": "$.$defs.key_state.properties",
+        "digest_field": "authorized_public_key_digest",
+        "content_addressed_refs": [
+          "signer_resolution_evidence_ref"
+        ]
+      },
+      "preimage": "SHA-256 of the decoded 32-byte Ed25519 runtime public key, so the runtime can compare it against its own key without parsing evidence; signer_resolution_evidence_ref addresses the canonical signer-evidence root, a different object",
+      "spec_anchor": "spec/v1/zh/identity/key-management.md"
+    },
     {
       "exemption_id": "ak.exemption.sibling_digest.agent_runtime_approval_status_authorized_public_key_digest.v1",
       "status": "active",
@@ -32,6 +47,51 @@
       },
       "preimage": "SHA-256 of the decoded 32-byte Ed25519 runtime public key; signer_resolution_evidence_ref addresses the complete authenticated signer-resolution evidence root",
       "spec_anchor": "spec/v1/zh/identity/key-management.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.backup_series_erase_confirmation_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/keys-operations.schema.json",
+        "json_path": "$.$defs.backup_series_erase_request_body.properties",
+        "digest_field": "erase_confirmation_digest",
+        "content_addressed_refs": [
+          "authority_commit_id"
+        ]
+      },
+      "preimage": "Digest of the caller-signed erase confirmation for this backup series; authority_commit_id addresses the RealmCommit, not the confirmation",
+      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.backup_series_erase_prepared_plan_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/keys-operations.schema.json",
+        "json_path": "$.$defs.backup_series_erase_request_body.properties",
+        "digest_field": "prepared_plan_digest",
+        "content_addressed_refs": [
+          "authority_commit_id"
+        ]
+      },
+      "preimage": "Digest of the prepared transaction plan the coordinator froze before the terminal step; authority_commit_id addresses the RealmCommit, not the plan",
+      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.backup_series_erase_transaction_request_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/keys-operations.schema.json",
+        "json_path": "$.$defs.backup_series_erase_request_body.properties",
+        "digest_field": "transaction_request_digest",
+        "content_addressed_refs": [
+          "authority_commit_id"
+        ]
+      },
+      "preimage": "Digest of the canonical security-transaction request bytes; authority_commit_id addresses the RealmCommit that anchors the erase, which is a different object",
+      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.blob_root_content_digest.v1",
@@ -49,37 +109,7 @@
       "spec_anchor": "spec/v1/zh/crypto-media/media-and-blob.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.device_revocation_state_device_revocation_gate_decision_receipt_accepted_device_possession_proof_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/device-revocation-state.schema.json",
-        "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
-        "digest_field": "accepted_device_possession_proof_digest",
-        "content_addressed_refs": [
-          "covering_commit_id"
-        ]
-      },
-      "preimage": "SHA-256 of the exact canonical AcceptedDevicePossessionProof; not the covering RealmCommit",
-      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.device_revocation_state_device_revocation_gate_decision_receipt_blocking_proposal_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/device-revocation-state.schema.json",
-        "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
-        "digest_field": "blocking_proposal_digest",
-        "content_addressed_refs": [
-          "covering_commit_id"
-        ]
-      },
-      "preimage": "Lexicographically smallest surviving pending proposal_digest; not the covering RealmCommit",
-      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.device_revocation_state_device_revocation_gate_decision_receipt_intent_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.device_revocation_gate_decision_receipt_intent_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
@@ -87,56 +117,43 @@
         "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
         "digest_field": "intent_digest",
         "content_addressed_refs": [
-          "covering_commit_id"
+          "accepted_commit_id"
         ]
       },
-      "preimage": "Immutable caller intent digest of the gated action; not the covering RealmCommit",
+      "preimage": "Digest of the canonical revocation intent the gate linearized; accepted_commit_id addresses the RealmCommit that later accepted the decision, which is a different object with different bytes",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.event_envelope_producer_event_proof_event_digest.v1",
+      "exemption_id": "ak.exemption.sibling_digest.device_revocation_gate_decision_receipt_possession_proof_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
-        "schema_file": "schemas/event-envelope.schema.json",
-        "json_path": "$.$defs.producer_event_proof.properties",
-        "digest_field": "event_digest",
+        "schema_file": "schemas/device-revocation-state.schema.json",
+        "json_path": "$.$defs.device_revocation_gate_decision_receipt.properties",
+        "digest_field": "accepted_device_possession_proof_digest",
         "content_addressed_refs": [
-          "signer_resolution_evidence_ref"
+          "accepted_commit_id"
         ]
       },
-      "preimage": "canonical_digest(envelope_without_event_id_proofs_unsigned) of the enclosing Event (the retained proof.event_digest); not the signer evidence",
-      "spec_anchor": "spec/v1/zh/conformance/encoding.md#6-signature"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.key_backup_active_series_source_commit_ref_source_commit_ref.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/key-backup-active-series.schema.json",
-        "json_path": "$.$defs.source_commit_ref.properties",
-        "digest_field": "source_commit_ref",
-        "content_addressed_refs": [
-          "commit_ref"
-        ]
-      },
-      "preimage": "Digest of the exact PCR RealmCommit and device generation selected by source_commit_ref",
+      "preimage": "SHA-256 of the exact canonical AcceptedDevicePossessionProof verified under the locked current generation; accepted_commit_id addresses the RealmCommit, not the proof",
       "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
     },
     {
-      "exemption_id": "ak.exemption.sibling_digest.key_backup_root_commit_ref.v1",
+      "exemption_id": "ak.exemption.sibling_digest.realm_authority_handoff_final_stream_heads_digest.v1",
       "status": "active",
       "kind": "distinct_preimage",
       "subject": {
-        "schema_file": "schemas/key-backup.schema.json",
-        "json_path": "$.properties.source_commit_ref.properties",
-        "digest_field": "source_commit_ref",
+        "schema_file": "schemas/realm-authority-handoff.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "final_stream_heads_digest",
         "content_addressed_refs": [
-          "commit_ref"
+          "handoff_id",
+          "snapshot_ref",
+          "change_commit_id"
         ]
       },
-      "preimage": "Digest of the exact PCR RealmCommit and device generation selected by source_commit_ref",
-      "spec_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md"
+      "preimage": "Digest of the private final stream-head manifest the old Station hands over; none of handoff_id, snapshot_ref or change_commit_id addresses that manifest, and the manifest is deliberately absent from the public bundle",
+      "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.service_operation_dtos_organizationregistrationreceipt_control_key_digest.v1",

@@ -879,7 +879,7 @@
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "consumers": {
-        "schema_reference": "fragment",
+        "schema_reference": "exact",
         "startup_compile": "exact"
       },
       "wire_covered": true,

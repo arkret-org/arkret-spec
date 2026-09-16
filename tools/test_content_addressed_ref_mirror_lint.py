@@ -95,20 +95,6 @@ class MirrorRemovalLockTest(_MutatingLint):
         errors = self._lock("event-payload.schema.json", mutate)
         self.assertTrue(any("group_info_digest must be derived from group_info_ref" in error for error in errors), errors)
 
-    def test_signer_evidence_digest_required_reintroduction_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["$defs"]["producer_event_proof"]["required"].append("signer_resolution_evidence_digest")
-
-        errors = self._lock("event-envelope.schema.json", mutate)
-        self.assertTrue(any("signer_resolution_evidence_digest must be derived" in error for error in errors), errors)
-
-    def test_delegation_digest_reintroduction_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["$defs"]["MembershipCompensationCasToken"]["properties"]["delegation_digest"] = dict(DIGEST)
-
-        errors = self._lock("service-operation-dtos.schema.json", mutate)
-        self.assertTrue(any("delegation_digest must be derived from delegation_id" in error for error in errors), errors)
-
 
 class SiblingDigestPatternGateTest(_MutatingLint):
     def test_current_schemas_and_registry_are_closed(self) -> None:

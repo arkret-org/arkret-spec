@@ -44,7 +44,7 @@ Event canonical bytes、operation canonical body、HTTP wire bytes 是三个独�
 
 #### 2.1.1 Event（1 MiB）
 
-测量完整 producer-signed Event canonical JSON。Event没有 `unsigned`、`producer_revision`、`domain_refs`、`domain_refs`、`commit_authorization_state`、`preconditions`、`expected_revision` 或 `requirements`。
+测量完整 producer-signed Event canonical JSON。Event没有 `unsigned`、`producer_revision`、`hlc`、`domain_refs`、`commit_authorization_state`、`commit_base`、`preconditions`、`expected_revision` 或 `requirements`。
 
 #### 2.1.2 JSON operation canonical body（8 MiB）
 

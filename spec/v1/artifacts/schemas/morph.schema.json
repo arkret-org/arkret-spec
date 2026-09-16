@@ -90,7 +90,7 @@
     },
     "encrypted_metadata": {
       "$ref": "./encrypted-envelope.schema.json",
-      "description": "Encrypted envelope whose plaintext is a morph_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_floor is e2ee_required."
+      "description": "Encrypted envelope whose plaintext is a morph_metadata object. Required instead of plaintext metadata once the enclosing scope has an accepted ak.mls.genesis; before that activation the scope is plaintext and after it the plaintext branch MUST be rejected with mls_activation_irreversible."
     },
     "content": {
       "$ref": "#/$defs/content_block"

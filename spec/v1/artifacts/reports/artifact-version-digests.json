@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-16.10",
-      "generated_at": "2026-09-16T10:50:00+08:00",
-      "content_digest": "sha256:70057f7d1c9ef1e4348ef607865cba6ed96af65b37536262cdaa99f875b58614"
+      "version": "2026-09-16.11",
+      "generated_at": "2026-09-16T23:20:00+08:00",
+      "content_digest": "sha256:c8abf923573652656c21289d6f306a65373306e9c3069fc36447e7706d1875c2"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -75,9 +75,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/content-addressed-ref-digest-exemption-registry.json",
-      "version": "2026-09-16.9",
-      "generated_at": "2026-09-16T11:10:00+08:00",
-      "content_digest": "sha256:3f4f4df127b0774fda5ce09c5d4e8e2f6e5412c267f3a0ee6a7872b22cf4711f"
+      "version": "2026-09-16.11",
+      "generated_at": "2026-09-17T00:10:00+08:00",
+      "content_digest": "sha256:ba024a86188e217f9a304f5a79b7a0779eff84c4678285e4efbb5ed428bbbfbb"
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
@@ -123,9 +123,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/digest-suite-registry.json",
-      "version": "2026-09-16.7",
-      "generated_at": "2026-09-16T18:00:00+08:00",
-      "content_digest": "sha256:9549b04fff13eb84a8819ddbe9816241025366bf040aa859e918ef7332c87dbf"
+      "version": "2026-09-16.11",
+      "generated_at": "2026-09-16T23:20:00+08:00",
+      "content_digest": "sha256:a6292b9650477ea92e40d2e73a4a76285ff021c84a7cb55046a6b426fb0d1a70"
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
@@ -165,9 +165,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 56,
-      "generated_at": "2026-09-16T21:30:00+08:00",
-      "content_digest": "sha256:1ab9b563c06235c2a85554a79017e1391df5e5ee11ca8adb8df4b3ba979c7f08"
+      "version": 60,
+      "generated_at": "2026-09-16T23:20:00+08:00",
+      "content_digest": "sha256:50afa5e88413ad45a882faf76c3afba170800118f924c26da7347d5b9dff6922"
     },
     {
       "path": "spec/v1/artifacts/registry/hpke-suite-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.11",
-      "generated_at": "2026-09-16T21:30:01+08:00",
-      "content_digest": "sha256:4590e792aa85b041712a3c4261dd7cddba54ecba71c67d6e6f58944ce2bc1488"
+      "version": "2026-09-16.15",
+      "generated_at": "2026-09-16T21:30:05+08:00",
+      "content_digest": "sha256:709e9c838f274951aa94cfbb2af9d8fa63f9f92e814d17d554fa0369ae0a96cf"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -267,9 +267,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/preimage-identity-exemption-registry.json",
-      "version": "2026-09-16.10",
-      "generated_at": "2026-09-16T21:30:00+08:00",
-      "content_digest": "sha256:dabd30f8d6b002752795443dc09d02283cd5391ff0845f38f02ea14a79d4871d"
+      "version": "2026-09-16.11",
+      "generated_at": "2026-09-16T22:10:00+08:00",
+      "content_digest": "sha256:a6a6bfb8ecc7451c1545d7ef3f28d660cb016e878e6eba3b1540f10259abad40"
     },
     {
       "path": "spec/v1/artifacts/registry/profiles-dependency-graph.json",
@@ -279,9 +279,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-09-16.10",
-      "generated_at": "2026-09-16T21:30:00+08:00",
-      "content_digest": "sha256:2fdfcbda3d36eb812273c8a27f25507c50a689caf8c2fa9dfae2a84eb7984343"
+      "version": "2026-09-16.11",
+      "generated_at": "2026-09-16T23:20:00+08:00",
+      "content_digest": "sha256:d2b28ec2ed6f0576211425c425cba94785d9a17520b056d1a6adb89960cfc505"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -363,9 +363,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-16.1",
-      "generated_at": "2026-09-16T08:30:00+08:00",
-      "content_digest": "sha256:220ab161eb01f1dc16f90e666c275507e8f62aa67961768663f4d041ad1b032d"
+      "version": "2026-09-16.12",
+      "generated_at": "2026-09-16T23:45:00+08:00",
+      "content_digest": "sha256:51259b2d5e8384756a9489c6976131ce61abb8b7417488d5892a765e66c85267"
     }
   ]
 }

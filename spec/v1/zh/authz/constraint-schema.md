@@ -19,7 +19,7 @@ updated: 2026-07-30
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
-- **state-changing Event precondition** 只表达 typed current result 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，其数据面约束由 causal refs、`commit_authorization_state.authority_refs` 与 deterministic projection 规则表达。
+- **state-changing Event precondition** 只表达 typed current result 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。Event 不携带 `preconditions[]`，也不携带任何 caller 自述的授权状态；其数据面约束由注册的 `refs`、领域 payload 的 `expected_revision` 与 deterministic projection 规则表达，授权依据由当前治理 Station 在接纳事务内从已提交 typed state 解析。
 - **可验证证据** 是运行时 claim / approval / challenge 的动态评估输入。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 由 accepted approval Event 或 reducer 可验证的、绑定原始 request / Event / state-changing Event canonical hash 的 evidence 满足。
 
 因此，`claim_based` constraint 中的 `required_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有 accepted approval Event 或 reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。

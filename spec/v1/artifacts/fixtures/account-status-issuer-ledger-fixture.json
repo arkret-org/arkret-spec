@@ -1,0 +1,446 @@
+{
+  "suite": "account_status_issuer_ledger",
+  "version": "2026-09-16",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.account_status.issuer_ledger.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.account_status.issuer_ledger.v1"
+  ],
+  "description": "Account Authority issuer-ledger conformance data: genesis creation, CAS successor chaining, record identity and proof binding, the closed replica classification table, idempotency conflict and the bounded fanout outbox transitions.",
+  "ledger": {
+    "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    },
+    "identity_rule": "account_status_record_id = base64url_nopad(0x01 || SHA-256(JCS(unsigned core))) where the unsigned core is the record without account_status_record_id and proof",
+    "proof_context": "ak.account_status_record_proof.v1",
+    "records": [
+      {
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 1,
+          "status_seq": 1,
+          "status": "active",
+          "issued_at": "2026-08-06T00:00:00.000Z",
+          "effective_at": "2026-08-06T00:00:00.000Z",
+          "account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:e73bc3bfdd04a48abe551636b79c653bff7665ab272a809da48c590745cfef0a",
+            "created_at": "2026-08-06T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":1,\"effective_at\":\"2026-08-06T00:00:00.000Z\",\"issued_at\":\"2026-08-06T00:00:00.000Z\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"active\",\"status_seq\":1}",
+        "unsigned_core_digest": "sha256:e73bc3bfdd04a48abe551636b79c653bff7665ab272a809da48c590745cfef0a",
+        "account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K"
+      },
+      {
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 1,
+          "status_seq": 2,
+          "status": "locked",
+          "issued_at": "2026-08-07T00:00:00.000Z",
+          "effective_at": "2026-08-07T00:00:00.000Z",
+          "previous_account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+          "reason_code": "operator_lock",
+          "account_status_record_id": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:c47563cb0d8e20f9921e9aed619259ff11ab724f385c76f43a248848bb77c55c",
+            "created_at": "2026-08-07T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":1,\"effective_at\":\"2026-08-07T00:00:00.000Z\",\"issued_at\":\"2026-08-07T00:00:00.000Z\",\"previous_account_status_record_id\":\"ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"reason_code\":\"operator_lock\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"locked\",\"status_seq\":2}",
+        "unsigned_core_digest": "sha256:c47563cb0d8e20f9921e9aed619259ff11ab724f385c76f43a248848bb77c55c",
+        "account_status_record_id": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc"
+      },
+      {
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 1,
+          "status_seq": 3,
+          "status": "active",
+          "issued_at": "2026-08-08T00:00:00.000Z",
+          "effective_at": "2026-08-08T00:00:00.000Z",
+          "previous_account_status_record_id": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+          "account_status_record_id": "ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:5d802864b1070d759b136a065fb317dc15bd6585d6b0289ccb7f779c4b062547",
+            "created_at": "2026-08-08T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":1,\"effective_at\":\"2026-08-08T00:00:00.000Z\",\"issued_at\":\"2026-08-08T00:00:00.000Z\",\"previous_account_status_record_id\":\"ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"active\",\"status_seq\":3}",
+        "unsigned_core_digest": "sha256:5d802864b1070d759b136a065fb317dc15bd6585d6b0289ccb7f779c4b062547",
+        "account_status_record_id": "ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH"
+      }
+    ],
+    "conflicting_records": [
+      {
+        "name": "fork_on_status_seq_2",
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 1,
+          "status_seq": 2,
+          "status": "suspended",
+          "issued_at": "2026-08-07T01:00:00.000Z",
+          "effective_at": "2026-08-07T01:00:00.000Z",
+          "previous_account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+          "reason_code": "policy_suspend",
+          "account_status_record_id": "ak:account_status_record:AZG81vZ0nFLgZDUdTWQ8OwgKJpfAPCaLGsA4wrGx-qEy",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:91bcd6f6749c52e064351d4d643c3b080a2697c03c268b1ac038c2b1b1faa132",
+            "created_at": "2026-08-07T01:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":1,\"effective_at\":\"2026-08-07T01:00:00.000Z\",\"issued_at\":\"2026-08-07T01:00:00.000Z\",\"previous_account_status_record_id\":\"ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"reason_code\":\"policy_suspend\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"suspended\",\"status_seq\":2}",
+        "unsigned_core_digest": "sha256:91bcd6f6749c52e064351d4d643c3b080a2697c03c268b1ac038c2b1b1faa132",
+        "account_status_record_id": "ak:account_status_record:AZG81vZ0nFLgZDUdTWQ8OwgKJpfAPCaLGsA4wrGx-qEy"
+      },
+      {
+        "name": "successor_with_foreign_predecessor",
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 1,
+          "status_seq": 3,
+          "status": "active",
+          "issued_at": "2026-08-08T02:00:00.000Z",
+          "effective_at": "2026-08-08T02:00:00.000Z",
+          "previous_account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+          "account_status_record_id": "ak:account_status_record:AX--t2cdJ0g6-Upllh0t8hu8SrBrZpZtUoXemL1iQrAx",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:7fbeb7671d27483af94a65961d2df21bbc4ab06b66966d5285de98bd6242b031",
+            "created_at": "2026-08-08T02:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":1,\"effective_at\":\"2026-08-08T02:00:00.000Z\",\"issued_at\":\"2026-08-08T02:00:00.000Z\",\"previous_account_status_record_id\":\"ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"active\",\"status_seq\":3}",
+        "unsigned_core_digest": "sha256:7fbeb7671d27483af94a65961d2df21bbc4ab06b66966d5285de98bd6242b031",
+        "account_status_record_id": "ak:account_status_record:AX--t2cdJ0g6-Upllh0t8hu8SrBrZpZtUoXemL1iQrAx"
+      },
+      {
+        "name": "binding_version_rollback_candidate",
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 1,
+          "status_seq": 4,
+          "status": "active",
+          "issued_at": "2026-08-09T00:00:00.000Z",
+          "effective_at": "2026-08-09T00:00:00.000Z",
+          "previous_account_status_record_id": "ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH",
+          "account_status_record_id": "ak:account_status_record:AWGLvOMZUH8VSpr0wBNfqhfYsEriJR8fQB4RRgFXbkIB",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:618bbce319507f154a9af4c0135faa17d8b04ae2251f1f401e114601576e4201",
+            "created_at": "2026-08-09T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":1,\"effective_at\":\"2026-08-09T00:00:00.000Z\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"previous_account_status_record_id\":\"ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"active\",\"status_seq\":4}",
+        "unsigned_core_digest": "sha256:618bbce319507f154a9af4c0135faa17d8b04ae2251f1f401e114601576e4201",
+        "account_status_record_id": "ak:account_status_record:AWGLvOMZUH8VSpr0wBNfqhfYsEriJR8fQB4RRgFXbkIB"
+      },
+      {
+        "name": "binding_version_2_head",
+        "record": {
+          "schema": "ak.schema.account_status_record.v1",
+          "account_authority_id": "ak:did_core:webvh:z6mkfixtureaccountauthority",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+          "binding_version": 2,
+          "status_seq": 4,
+          "status": "active",
+          "issued_at": "2026-08-09T01:00:00.000Z",
+          "effective_at": "2026-08-09T01:00:00.000Z",
+          "previous_account_status_record_id": "ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH",
+          "account_status_record_id": "ak:account_status_record:AfIOnKWOewxifrXJDf5S914k6Y47I3COVVX-Bsjnbaa1",
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+            "payload_digest": "sha256:f20e9ca58e7b0c627eb5c90dfe52f75e24e98e3b23708e5555fe06c8e76da6b5",
+            "created_at": "2026-08-09T01:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "unsigned_core_canonical_bytes_utf8": "{\"account_authority_id\":\"ak:did_core:webvh:z6mkfixtureaccountauthority\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"binding_version\":2,\"effective_at\":\"2026-08-09T01:00:00.000Z\",\"issued_at\":\"2026-08-09T01:00:00.000Z\",\"previous_account_status_record_id\":\"ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"schema\":\"ak.schema.account_status_record.v1\",\"status\":\"active\",\"status_seq\":4}",
+        "unsigned_core_digest": "sha256:f20e9ca58e7b0c627eb5c90dfe52f75e24e98e3b23708e5555fe06c8e76da6b5",
+        "account_status_record_id": "ak:account_status_record:AfIOnKWOewxifrXJDf5S914k6Y47I3COVVX-Bsjnbaa1"
+      }
+    ]
+  },
+  "genesis_rules": {
+    "created_in_the_binding_commit_transaction": true,
+    "status_seq": 1,
+    "status": "active",
+    "carries_previous_account_status_record_id": false,
+    "waits_for_station_checkpoint": false,
+    "waits_for_realm_commit": false
+  },
+  "successor_cas": {
+    "cas_key": [
+      "account_authority_id",
+      "account_id"
+    ],
+    "required_status_seq": "head.status_seq + 1",
+    "required_predecessor": "head.account_status_record_id",
+    "atomic_writes": [
+      "account_row",
+      "immutable_record",
+      "transition_audit",
+      "propagation_outbox"
+    ]
+  },
+  "idempotency": {
+    "scope": [
+      "Source-Service-ID",
+      "Destination-Service-ID",
+      "Idempotency-Key"
+    ],
+    "same_key_same_canonical_body": "replays the first response bytes",
+    "same_key_different_canonical_body": {
+      "outcome": "rejected",
+      "error_code": "duplicate_conflict",
+      "replica_writes": "none"
+    },
+    "terminal_acks": [
+      "accepted",
+      "duplicate"
+    ],
+    "pending_commit_exists": false
+  },
+  "replica_classification_cases": [
+    {
+      "name": "genesis_admission_accepts_status_seq_1",
+      "classification": "genesis_admission",
+      "durable_head": null,
+      "submitted": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+      "expected": {
+        "outcome": "accepted",
+        "reason_code": null,
+        "replica_writes": "advance"
+      }
+    },
+    {
+      "name": "genesis_gap_requires_status_seq_1",
+      "classification": "genesis_gap",
+      "durable_head": null,
+      "submitted": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+      "expected": {
+        "outcome": "dependency_missing",
+        "required_status_seq": 1,
+        "replica_writes": "none"
+      }
+    },
+    {
+      "name": "advance_follows_the_durable_head",
+      "classification": "advance",
+      "durable_head": {
+        "status_seq": 1,
+        "account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+        "binding_version": 1
+      },
+      "submitted": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+      "expected": {
+        "outcome": "accepted",
+        "reason_code": null,
+        "replica_writes": "advance"
+      }
+    },
+    {
+      "name": "successor_with_a_foreign_predecessor_is_a_fork",
+      "classification": "fork_predecessor_mismatch",
+      "durable_head": {
+        "status_seq": 2,
+        "account_status_record_id": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+        "binding_version": 1
+      },
+      "submitted": "ak:account_status_record:AX--t2cdJ0g6-Upllh0t8hu8SrBrZpZtUoXemL1iQrAx",
+      "expected": {
+        "outcome": "rejected",
+        "error_code": "failed_precondition",
+        "reason_code": "account_status_record_fork",
+        "replica_writes": "none",
+        "quarantine": true
+      }
+    },
+    {
+      "name": "byte_identical_head_resubmission_is_duplicate",
+      "classification": "duplicate",
+      "durable_head": {
+        "status_seq": 2,
+        "account_status_record_id": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+        "binding_version": 1
+      },
+      "submitted": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+      "expected": {
+        "outcome": "duplicate",
+        "replica_writes": "none",
+        "terminal_ack": true
+      }
+    },
+    {
+      "name": "second_record_on_one_sequence_is_a_fork",
+      "classification": "fork_same_sequence",
+      "durable_head": {
+        "status_seq": 2,
+        "account_status_record_id": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+        "binding_version": 1
+      },
+      "submitted": "ak:account_status_record:AZG81vZ0nFLgZDUdTWQ8OwgKJpfAPCaLGsA4wrGx-qEy",
+      "expected": {
+        "outcome": "rejected",
+        "error_code": "failed_precondition",
+        "reason_code": "account_status_record_fork",
+        "replica_writes": "none",
+        "quarantine": true
+      }
+    },
+    {
+      "name": "lower_sequence_is_stale_even_when_locally_retained",
+      "classification": "stale",
+      "durable_head": {
+        "status_seq": 3,
+        "account_status_record_id": "ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH",
+        "binding_version": 1
+      },
+      "submitted": "ak:account_status_record:AcR1Y8sNjiD5kh6a7WGSWf8Rq3JPOFx29DokiEi7d8Vc",
+      "expected": {
+        "outcome": "rejected",
+        "error_code": "failed_precondition",
+        "reason_code": "account_status_record_stale",
+        "replica_writes": "none",
+        "duplicate_forbidden": true
+      }
+    },
+    {
+      "name": "sequence_gap_resolves_before_resubmission",
+      "classification": "sequence_gap",
+      "durable_head": {
+        "status_seq": 1,
+        "account_status_record_id": "ak:account_status_record:Aec7w7_dBKSKvlUWNrecZTv_dmWrJyqAnaSMWQdFz-8K",
+        "binding_version": 1
+      },
+      "submitted": "ak:account_status_record:AV2AKGSxBw11mxNqBl-zF9wVvWWF1rAonMt_d5xLBiVH",
+      "expected": {
+        "outcome": "dependency_missing",
+        "required_status_seq": 2,
+        "replica_writes": "none",
+        "retryable_for_exact_record": true
+      }
+    },
+    {
+      "name": "binding_rollback_is_rejected_before_every_sequence_row",
+      "classification": "binding_version_rollback",
+      "durable_head": {
+        "status_seq": 4,
+        "account_status_record_id": "ak:account_status_record:AfIOnKWOewxifrXJDf5S914k6Y47I3COVVX-Bsjnbaa1",
+        "binding_version": 2
+      },
+      "submitted": "ak:account_status_record:AWGLvOMZUH8VSpr0wBNfqhfYsEriJR8fQB4RRgFXbkIB",
+      "expected": {
+        "outcome": "rejected",
+        "error_code": "failed_precondition",
+        "reason_code": "account_status_binding_rollback",
+        "replica_writes": "none"
+      }
+    }
+  ],
+  "fanout_outbox": {
+    "dedupe_key": [
+      "account_authority_id",
+      "account_id",
+      "destination_id",
+      "account_status_record_id"
+    ],
+    "max_destinations_per_account": 256,
+    "max_outstanding_updates_per_destination": 1,
+    "transitions": [
+      {
+        "name": "incomplete_while_any_destination_is_unacked",
+        "destination_acks": [
+          "accepted",
+          "pending"
+        ],
+        "expected_state": "incomplete",
+        "may_skip_predecessor": false
+      },
+      {
+        "name": "complete_after_every_destination_terminal_ack",
+        "destination_acks": [
+          "accepted",
+          "duplicate"
+        ],
+        "expected_state": "complete",
+        "may_skip_predecessor": false
+      },
+      {
+        "name": "gap_at_destination_resolves_before_successor_submission",
+        "destination_acks": [
+          "dependency_missing"
+        ],
+        "expected_state": "incomplete",
+        "required_action": "resolve_from_required_status_seq_then_resubmit",
+        "may_skip_predecessor": false
+      }
+    ],
+    "barrier_statuses": [
+      "deactivated",
+      "erasure_pending"
+    ]
+  }
+}

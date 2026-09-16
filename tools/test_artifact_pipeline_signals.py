@@ -114,7 +114,6 @@ class CheckVerdictTest(unittest.TestCase):
                 "run_session_grant_kat_check",
                 "run_contact_round_kat_check",
                 "run_handle_claim_kat_check",
-                "run_human_control_signer_evidence_kat_check",
                 "run_artifact_version_check",
                 "run_lint",
             )

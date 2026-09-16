@@ -2590,7 +2590,7 @@
     },
     "circle_create_payload": {
       "type": "object",
-      "description": "Create payload uses the create branch of Circle schema. Reducer requires created_by/created_at to match the Event, enforces the parent Realm content-encryption floor, derives circle_id and for MLS derives mls_group_id. Actor-supplied id or mls_group_id is forbidden.",
+      "description": "Create payload uses the create branch of Circle schema. Reducer requires created_by/created_at to match the Event, derives circle_id and, once the Circle scope has an accepted ak.mls.genesis, derives mls_group_id. A Circle is created plaintext and carries no encryption profile, content scheme or encryption floor. Actor-supplied id or mls_group_id is forbidden.",
       "required": [
         "object"
       ],
@@ -8056,11 +8056,11 @@
         },
         "response": {
           "$ref": "#/$defs/rsvp_response",
-          "description": "Plaintext response branch. Only admissible when the target Strand effective scope encryption floor permits plaintext and the receiving service declares the rsvp_response plaintext data class."
+          "description": "Plaintext response branch. Only admissible while the target Strand scope has no accepted ak.mls.genesis and the receiving service declares the rsvp_response plaintext data class; after activation it MUST be rejected with mls_activation_required."
         },
         "encrypted_response": {
           "$ref": "#/$defs/rsvp_encrypted_response",
-          "description": "Encrypted response branch; content_type is pinned to application/vnd.arkret.calendar-rsvp-response+json and the decrypted plaintext MUST validate against rsvp_response. Required when the effective scope encryption floor is e2ee_required."
+          "description": "Encrypted response branch; content_type is pinned to application/vnd.arkret.calendar-rsvp-response+json and the decrypted plaintext MUST validate against rsvp_response. Required once the target Strand scope has an accepted ak.mls.genesis."
         }
       },
       "oneOf": [

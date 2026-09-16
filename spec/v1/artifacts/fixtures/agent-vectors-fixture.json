@@ -549,7 +549,7 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_pcr_separation_vector",
       "assertions": [
         "agent DID document has one ArkretPrincipalControlRealm service entry binding a non-controller PCR id",
-        "agent PCR genesis created_by equals the agent DID, governance_station_id names the generation-0 governance Station, and both encryption floors are e2ee_required",
+        "agent PCR genesis created_by equals the agent DID, governance_station_id names the generation-0 governance Station, and the Realm carries no encryption profile, content scheme or encryption floor until its first accepted ak.mls.genesis",
         "controller-authored agent PCR events use actor_id equal to agent DID, executed_by equal to controller DID, and a verified authorization_ref",
         "delegated admission fails when the accepted-at delegation purpose or resource scope does not cover the target Event kind and Agent PCR",
         "agent profile, key authorization and lifecycle events land in the agent PCR",

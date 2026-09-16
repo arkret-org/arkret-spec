@@ -43,7 +43,7 @@ class SelfSignerResultTests(unittest.TestCase):
             del changed["queries"][0][field]
             self.assertFalse(self.validator("query_request_body").is_valid(changed))
 
-    def test_self_64_and_peer_16_are_distinct(self):
+    def test_self_query_is_bounded_at_64_selectors(self):
         request = self.request()
         prototype = request["queries"][0]
         request["queries"] = []
@@ -54,18 +54,6 @@ class SelfSignerResultTests(unittest.TestCase):
         self.validator("query_request_body").validate(request)
         request["queries"].append(prototype)
         self.assertFalse(self.validator("query_request_body").is_valid(request))
-        peer = self.request()
-        del peer["queries"][0]["verification_mode"]
-        peer["known_agent_state_digests"] = []
-        self.validator("query_request", "current-signer-evidence-operations.schema.json").validate(peer)
-        self.assertFalse(self.validator("query_request_body").is_valid(peer))
-        prototype = peer["queries"][0]
-        peer["queries"] = []
-        for index in range(17):
-            selector = copy.deepcopy(prototype)
-            selector["verification_method"] += str(index)
-            peer["queries"].append(selector)
-        self.assertFalse(self.validator("query_request", "current-signer-evidence-operations.schema.json").is_valid(peer))
 
     def test_historical_device_has_no_fabricated_authorization_or_source_ref(self):
         selector = self.request("historical_event", "account_device")["queries"][0]
@@ -86,9 +74,7 @@ class SelfSignerResultTests(unittest.TestCase):
         del result["key"]["authorization_ref"]
         self.assertFalse(validator.is_valid(result))
 
-    def test_no_old_self_contract_or_sync_bundle(self):
-        self.assertNotIn("self_query_request_body", self.documents["current-signer-evidence-operations.schema.json"]["$defs"])
-        self.assertNotIn("query_request_body", self.documents["agent-signer-evidence-operations.schema.json"]["$defs"])
+    def test_no_sync_bundle_on_the_subscribe_frame(self):
         self.assertNotIn("agent_signer_evidence_bundle", self.documents["account-subscribe-frame.schema.json"]["properties"])
 
 if __name__ == "__main__":

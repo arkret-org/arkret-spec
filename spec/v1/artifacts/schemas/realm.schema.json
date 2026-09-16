@@ -231,7 +231,7 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Digest suite (canonicalization x hash tuple) used for Event ids, Event ids, RealmCommit ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed Events retain the suite of their signed authority context. Transition uses the control-plane transition Event and dual-root RealmCommit defined by event-auth-state-resolution.md §13."
+      "description": "Digest suite (canonicalization x hash tuple) used for Event ids, RealmCommit ids and every content-addressed typed reference within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed Events retain the suite of their signed authority context. Transition uses the registered control-plane transition Event; the new suite takes effect from the first RealmCommit accepted under it."
     },
     "commit_compaction_max_interval_ms": {
       "type": "integer",

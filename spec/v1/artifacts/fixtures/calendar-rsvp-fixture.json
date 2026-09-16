@@ -1352,7 +1352,7 @@
     {
       "name": "rsvp_privacy_plaintext_branch_rejected_under_e2ee_floor",
       "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
-      "precondition": "target Strand effective scope encryption floor is e2ee_required",
+      "precondition": "target Strand scope has an accepted ak.mls.genesis",
       "action": "submit ak.rsvp.set carrying entry.response in plaintext",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation"

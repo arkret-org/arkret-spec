@@ -78,20 +78,6 @@ class StatedPreimageLintTest(unittest.TestCase):
             errors,
         )
 
-    def test_event_digest_over_the_wrong_bytes_fails(self) -> None:
-        # The `arkret-spec` crypto-signature vector once stated the *envelope*
-        # where the preimage belongs, so its `event_digest` was unreachable.
-        def mutate(fixture):
-            node = self._first_node_with(fixture, "canonical_event_payload")
-            assert node is not None and "event_digest" in node, node
-            node["event_digest"] = "sha256:" + "0" * 64
-
-        errors = self._lint_mutated_fixture("crypto-signature-fixture.json", mutate)
-        self.assertTrue(
-            any("canonical_event_payload" in error for error in errors),
-            errors,
-        )
-
     def test_content_bound_event_id_preimage_is_checked(self) -> None:
         def mutate(fixture):
             node = self._first_node_with(fixture, "digest_preimage_canonical_bytes_utf8")

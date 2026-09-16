@@ -1,9 +1,48 @@
 {
-  "version": "2026-09-16.1",
+  "version": "2026-09-16.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T08:30:00+08:00",
+  "generated_at": "2026-09-16T23:45:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
+    {
+      "vector_id": "ak.vector.account_status.issuer_ledger.v1",
+      "status": "active",
+      "domain": "account_status",
+      "applies_to_fixtures": [
+        "account-status-issuer-ledger-fixture.json"
+      ],
+      "description": "Account Authority issuer ledger: genesis and CAS successor chaining, record identity and proof binding, the closed replica classification table, idempotency conflict and the bounded fanout outbox transitions.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
+        "spec/v1/zh/identity/account-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.provision.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "description": "Agent provisioning declares its principal-control Realm id forward, before the Agent PCR genesis Event is submitted.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
+        "spec/v1/zh/identity/key-management.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit.equivocation_freeze.v1",
+      "status": "active",
+      "domain": "authority_commit",
+      "applies_to_fixtures": [
+        "authority-commit-fixture.json"
+      ],
+      "description": "Two signature-valid but different Commits on one (realm_id, stream_ref, authority_generation, stream_position) freeze that stream; consumers MUST NOT pick a winner.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
+        "spec/v1/zh/sync/authority-commit-log.md"
+      ]
+    },
     {
       "vector_id": "ak.vector.authority_commit.independent_streams.v1",
       "status": "active",
@@ -12,6 +51,32 @@
         "authority-commit-fixture.json"
       ],
       "description": "Realm, Circle and Sidecar streams each start and advance their own predecessor chain; planned handoff transfers every private head without exposing hidden stream existence in the public bundle.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
+        "spec/v1/zh/sync/authority-commit-log.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit.post_handoff_write_rejected.v1",
+      "status": "active",
+      "domain": "authority_commit",
+      "applies_to_fixtures": [
+        "authority-commit-fixture.json"
+      ],
+      "description": "After a planned handoff is accepted, a write signed by the old generation is rejected; only the new generation extends the stream from the imported final head.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
+        "spec/v1/zh/sync/authority-commit-log.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit.stream_continuity_negative.v1",
+      "status": "active",
+      "domain": "authority_commit",
+      "applies_to_fixtures": [
+        "authority-commit-fixture.json"
+      ],
+      "description": "A RealmCommit whose predecessor leaves its own stream, skips a position, or nulls a non-zero position is rejected and writes nothing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
         "spec/v1/zh/sync/authority-commit-log.md"
@@ -96,6 +161,19 @@
       "description": ""
     },
     {
+      "vector_id": "ak.vector.event_id.content_bound.v1",
+      "status": "active",
+      "domain": "object_identity",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "Suite-tagged Event ID derivation: the 33-octet body, its base64url token, and the negative cases for suite code, reserved nibble, padding and decoded length.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/zh/conformance/encoding.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.hpke.p256_aes256gcm_base.v1",
       "status": "active",
       "domain": "hpke",
@@ -135,6 +213,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.recovery_transcript.v1",
+      "status": "active",
+      "domain": "identity_recovery",
+      "applies_to_fixtures": [
+        "recovery-transcript-fixture.json"
+      ],
+      "description": "Byte-exact recovery signing transcripts for every registered recovery factor; the verifier rebuilds the bytes from stored session state and the submitted proof.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
+        "spec/v1/zh/identity/account-lifecycle.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
       "status": "active",
       "domain": "mls",
@@ -159,6 +250,45 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.object_identity.event_derived.v1",
+      "status": "active",
+      "domain": "object_identity",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "An event-derived object id is the retype of its own genesis Event token, byte for byte.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/zh/conformance/encoding.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.object_identity.event_derived_realm.v1",
+      "status": "active",
+      "domain": "object_identity",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "realm_id is the retype of its ak.realm.create Event token; a carried or non-derived value is rejected with realm_id_not_event_derived.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/zh/models/realm-and-space.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.client_account_stream.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "client-sync-fixture.json"
+      ],
+      "description": "Own-Station account aggregate stream: per-stream tail continuity, durable cursor checkpoints, projection-before-checkpoint ordering, reconnect reset vs resume, and explicit delivery cancellation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/client-sync-fixture.json",
+        "spec/v1/zh/sync/client-sync.md"
       ]
     }
   ]

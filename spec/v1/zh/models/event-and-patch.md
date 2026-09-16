@@ -36,7 +36,7 @@ Event Envelope 的顶层字段为：
 | `payload` | 是 | 由 kind 选择的 closed typed payload |
 | `proofs` | 是 | 唯一 producer proof |
 
-Event 不携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、通用 `preconditions`、`commit_authorization_state`、
+Event 不携带 `producer_revision`、`hlc`、`domain_refs`、通用 `preconditions`、`commit_authorization_state`、
 `commit_base`、`expected_revision`、`requirements` 或 `unsigned`。Event 也不携带前一个 Event/Commit；
 `previous_commit_ref` 只存在于治理 Station 在接纳时创建的 `RealmCommit`。
 

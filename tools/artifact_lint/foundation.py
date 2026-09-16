@@ -1621,7 +1621,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if "cell_writes" not in row:
             legacy = sorted(set(row) & {"plane", "sealed", "cell_family", "cell_subject", "state_model"})
             if legacy:
-                lint.fail(event_path, f"{kind} carries retired CBS/Cell fields {legacy}")
+                lint.fail(event_path, f"{kind} carries removed typed-state fields {legacy}")
             continue
         removed_single_target_fields = {
             "cell_family", "cell_subject", "value_projection", "effect_projection",

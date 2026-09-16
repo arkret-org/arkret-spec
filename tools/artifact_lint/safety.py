@@ -54,7 +54,7 @@ def check_error_code_closure(lint: Lint) -> None:
     #   reason_code="..." / reason="..." / reason=`...`
     #   reason == "..."
     #   `error_code=...`
-    #   返回 `...` / reject `...` / audit log records reason_code such as `...`
+    #   return `...` / reject `...` / audit log records reason_code such as `...`
     # We still avoid scanning every freeform backtick token because prose also
     # quotes ordinary schema fields and enum values.
     #

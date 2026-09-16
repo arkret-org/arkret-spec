@@ -185,13 +185,13 @@ class EventKindVerbFormLintTest(unittest.TestCase):
     def test_prose_row_dropped_from_the_table_is_rejected(self) -> None:
         text = COMMON_FIELDS.read_text(encoding="utf-8")
         kinds, _ = lint_artifacts.prose_past_participle_event_kinds(text)
-        self.assertIn("ak.mls.commit_failed", kinds)
+        self.assertIn("ak.direct_conversation.bound", kinds)
         stripped = "\n".join(
-            line for line in text.splitlines() if "`ak.mls.commit_failed`" not in line
+            line for line in text.splitlines() if "`ak.direct_conversation.bound`" not in line
         )
         reduced, errors = lint_artifacts.prose_past_participle_event_kinds(stripped)
         self.assertEqual(errors, [])
-        self.assertNotIn("ak.mls.commit_failed", reduced)
+        self.assertNotIn("ak.direct_conversation.bound", reduced)
 
 
 if __name__ == "__main__":

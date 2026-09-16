@@ -243,7 +243,7 @@ Arkret v1 core conformance 要求如下：
   - Allowed: 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
   - Allowed: 已缓存对象的本地展示(已存在的 Strand / Message / Space / Morph 渲染)
   - Allowed: 已缓存对象的本地搜索 / 本地索引查询
-  - Allowed: 已收到 snapshot 的 `state_digest` 或 RealmCommit 的 `state_root` 重算（分别按各自承诺规则用于本地一致性自检；重算成功本身不授予权限）
+  - Allowed: 已收到 snapshot 的签名校验与 `current_state_entries` 比对，或 RealmCommit 的 `commit_id` 重算（分别按各自承诺规则用于本地一致性自检；重算成功本身不授予权限）
   - Out of scope: Event/RealmCommit ingress、联邦 transaction、client sync、capability freshness、session、Snapshot witness 与账号操作继续验证各自 accepted authority；它们不得仅因 resolver degraded 被拒绝
   - Forbidden: 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `did_unknown`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
 - fallback 期间禁止任何 live DID Document 解析、handle re-resolution、capability subject 重映射或基于网络响应的缓存索引重建。允许的"本地搜索"只能读取进入 degraded mode 之前已经由 verified DID evidence 建好的本地索引；实现不得在 outage 期间用新的 DNS / HTTPS / handle 结果重建索引或补全 subject。

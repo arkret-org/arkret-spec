@@ -14,13 +14,13 @@
       "commits": [
         {
           "stream_position": 0,
-          "commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
           "previous_commit_ref": null
         },
         {
           "stream_position": 1,
-          "commit_id": "ak:realm_commit:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-          "previous_commit_ref": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+          "previous_commit_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
         }
       ]
     },
@@ -33,13 +33,13 @@
       "commits": [
         {
           "stream_position": 0,
-          "commit_id": "ak:realm_commit:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
           "previous_commit_ref": null
         },
         {
           "stream_position": 1,
-          "commit_id": "ak:realm_commit:DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
-          "previous_commit_ref": "ak:realm_commit:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+          "commit_id": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD",
+          "previous_commit_ref": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5"
         }
       ]
     },
@@ -52,7 +52,7 @@
       "commits": [
         {
           "stream_position": 0,
-          "commit_id": "ak:realm_commit:EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+          "commit_id": "ak:realm_commit:AdXXBmSFeH5Gv-mZ8hWlS4P6lpGPDKYhkl_djKbSdjNL",
           "previous_commit_ref": null
         }
       ]
@@ -71,5 +71,160 @@
   "mls_atomic_submission": {
     "commit_and_welcomes_share_one_transaction": true,
     "missing_welcome_writes_nothing": true
+  },
+  "covers_vectors": [
+    "ak.vector.authority_commit.independent_streams.v1",
+    "ak.vector.authority_commit.stream_continuity_negative.v1",
+    "ak.vector.authority_commit.equivocation_freeze.v1",
+    "ak.vector.authority_commit.post_handoff_write_rejected.v1"
+  ],
+  "rejected_commits": [
+    {
+      "name": "predecessor_from_another_stream_is_rejected",
+      "vector_id": "ak.vector.authority_commit.stream_continuity_negative.v1",
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "authority_generation": 1,
+      "candidate": {
+        "stream_position": 2,
+        "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
+        "previous_commit_ref": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD"
+      },
+      "accepted_head": {
+        "stream_position": 1,
+        "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
+      },
+      "expected": "rejected",
+      "reason": "previous_commit_ref MUST name the position-1 Commit of the same stream; this candidate references the Circle stream head instead",
+      "writes_nothing": true
+    },
+    {
+      "name": "broken_predecessor_within_the_same_stream_is_rejected",
+      "vector_id": "ak.vector.authority_commit.stream_continuity_negative.v1",
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "authority_generation": 1,
+      "candidate": {
+        "stream_position": 2,
+        "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
+        "previous_commit_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+      },
+      "accepted_head": {
+        "stream_position": 1,
+        "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
+      },
+      "expected": "rejected",
+      "reason": "position 2 MUST reference the position-1 Commit, not an earlier one on the same stream",
+      "writes_nothing": true
+    },
+    {
+      "name": "position_gap_is_rejected",
+      "vector_id": "ak.vector.authority_commit.stream_continuity_negative.v1",
+      "stream_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "authority_generation": 1,
+      "candidate": {
+        "stream_position": 3,
+        "commit_id": "ak:realm_commit:AYQKipHPvq4eyxdL2jAHJA_4Xug2oSL4XuHFbmYIRFEd",
+        "previous_commit_ref": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD"
+      },
+      "accepted_head": {
+        "stream_position": 1,
+        "commit_id": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD"
+      },
+      "expected": "rejected",
+      "reason": "each stream position increments by exactly one from 0; position 2 is missing",
+      "writes_nothing": true
+    },
+    {
+      "name": "nonzero_position_with_null_predecessor_is_rejected",
+      "vector_id": "ak.vector.authority_commit.stream_continuity_negative.v1",
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "authority_generation": 1,
+      "candidate": {
+        "stream_position": 2,
+        "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
+        "previous_commit_ref": null
+      },
+      "accepted_head": {
+        "stream_position": 1,
+        "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
+      },
+      "expected": "rejected",
+      "reason": "only stream_position 0 may carry a null previous_commit_ref",
+      "writes_nothing": true
+    }
+  ],
+  "equivocation_freeze": {
+    "name": "two_valid_commits_on_one_coordinate_freeze_the_stream",
+    "vector_id": "ak.vector.authority_commit.equivocation_freeze.v1",
+    "coordinate": {
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "authority_generation": 1,
+      "stream_position": 1
+    },
+    "observed_commits": [
+      {
+        "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+        "signature_valid": true,
+        "previous_commit_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+      },
+      {
+        "commit_id": "ak:realm_commit:AWniwIsBYOQg5Kaw0vf2AP4TJnhzsdKQcdPS1QWOfLNY",
+        "signature_valid": true,
+        "previous_commit_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+      }
+    ],
+    "expected": {
+      "stream_state": "frozen",
+      "winner_selected": false,
+      "auto_resolution_forbidden": true,
+      "frozen_scope": "the equivocating stream of this Realm only",
+      "other_streams_unaffected": true
+    },
+    "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md#3-realmcommit-与逐-stream-单链"
+  },
+  "post_handoff_write_rejected": {
+    "name": "old_station_write_after_planned_handoff_is_rejected",
+    "vector_id": "ak.vector.authority_commit.post_handoff_write_rejected.v1",
+    "handoff": {
+      "from_generation": 1,
+      "to_generation": 2,
+      "acceptance_signed": true,
+      "final_stream_heads_imported": true
+    },
+    "candidate": {
+      "signed_by_generation": 1,
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "stream_position": 2,
+      "commit_id": "ak:realm_commit:AaGlrFMBXGHQe7ZKjZtbawpmSG2795fJexU--taCNS9P",
+      "previous_commit_ref": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
+    },
+    "expected": "rejected",
+    "reason": "the old Station permanently refuses new writes once the handoff takes effect; only generation 2 may extend the stream",
+    "writes_nothing": true,
+    "new_generation_first_commit": {
+      "signed_by_generation": 2,
+      "stream_position": 2,
+      "previous_commit_ref": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+      "expected": "accepted"
+    }
   }
 }

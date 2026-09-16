@@ -41,9 +41,6 @@
         },
         "source_commit_ref": {
           "$ref": "#/$defs/digest"
-        },
-        "state_root": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false

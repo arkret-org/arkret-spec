@@ -117,6 +117,14 @@ DID、URI、域名、email 和电话号码仍使用各自的外部 profile，不
 
 先验证 closed schema，再移除对象自身 ID 和签名字段，最后对 canonical JSON 求摘要。
 
+预映射内**不得承诺 Event 标识**：自身标识与同一原子单元内的兄弟标识都会让摘要的原像包含该摘要自身的函数，按构造不可满足。唯一允许的两类例外是 envelope omission 与 forward declaration，且必须逐条登记在
+[`preimage-identity-exemption-registry.json`](../../artifacts/registry/preimage-identity-exemption-registry.json)。**封闭例外清单**：下表是该 registry 的封闭列表投影，两侧 MUST 同批更新：
+
+| exemption_id | kind | 说明 |
+| --- | --- | --- |
+| `ak.exemption.preimage_identity.realm_genesis.v1` | envelope_omission | `ak.realm.create` 的 envelope `realm_id`、`scope_ref.realm_id` 与 create payload object id 都不进入原像；接收方从已接受的 `event_id` 正向派生 `realm_id`。 |
+| `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1` | forward_declaration | `ak.agent.provision` 先声明 `principal_control_realm_id = retype(genesis event_id)`；genesis 原像不含 provision 的任何标识、引用或摘要，依赖只朝一个方向。 |
+
 ### 3.2 Suite-tagged digest
 
 具体 suite 由 typed ID 或所属 Realm genesis 唯一决定；实现不得尝试多种 suite 后择一通过。

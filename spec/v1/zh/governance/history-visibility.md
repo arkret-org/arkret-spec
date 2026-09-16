@@ -34,13 +34,16 @@ stream 的 snapshot section、head 和连续 tail。协议不存在 Realm 全局
 
 ## 3. 明文历史
 
-明文 scope 按 typed `history_access` 和 retention 规则返回：
+明文 scope 按 typed `history_access` 和 retention 规则返回。`history_access` 的权威取值是封闭二态枚举，与
+[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)、[`circle.schema.json`](../../artifacts/schemas/circle.schema.json)
+和 `event-payload.schema.json#/$defs/history_access_value` 逐字一致：
 
 - `since_join`：只从该 actor 有效 join Commit 之后的位置开始；
-- `full`：可在权限允许时分页拉取该 stream 的早期 Commit；
-- `none`：只返回建立当前状态必须的 typed snapshot，不返回早期 timeline。
+- `all_history_for_current_members`：可在权限允许时分页拉取该 stream 的早期 Commit。
 
-即使 policy 为 `full`，bootstrap 也默认 snapshot + recent tail；全历史是后续按需分页，不是 join 的前置条件。
+不存在第三个取值。"只返回建立当前状态所需的 typed snapshot"不是一个 `history_access` 值，而是 retention /
+history floor 与 bootstrap 策略的结果：即使取值为 `all_history_for_current_members`，bootstrap 也默认 snapshot +
+recent tail；全历史是后续按需分页，不是 join 的前置条件。
 
 ## 4. MLS 历史
 

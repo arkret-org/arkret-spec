@@ -486,6 +486,13 @@
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
         },
+        "authorized_verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "authorized_public_key_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256 of the decoded 32-byte Ed25519 public key using the unique agent_signing_public_key_digest helper; the runtime compares it to its own key."
+        },
         "active_authorizations": {
           "type": "array",
           "items": {
@@ -494,6 +501,23 @@
         },
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "current_signer_evidence": {
+          "type": "object",
+          "description": "Complete content-addressed Agent signer root for the currently authorized runtime key. signer_resolution_evidence_ref MUST equal SHA-256(RFC8785-JCS(authenticated_signer_evidence)) in the registered ak:signer_evidence form, and MUST equal the sibling key_state.signer_resolution_evidence_ref byte for byte.",
+          "required": [
+            "signer_resolution_evidence_ref",
+            "authenticated_signer_evidence"
+          ],
+          "properties": {
+            "signer_resolution_evidence_ref": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+            },
+            "authenticated_signer_evidence": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "dependentRequired": {

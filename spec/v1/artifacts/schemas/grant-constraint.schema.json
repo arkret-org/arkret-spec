@@ -726,7 +726,7 @@
     },
     "plaintext_fallback_allowed": {
       "type": "boolean",
-      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext when the encryption floor cannot be met. See constraint-schema.md §12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext in a scope that has no accepted ak.mls.genesis. After activation the flag cannot restore plaintext; the write MUST be rejected with mls_activation_irreversible. See constraint-schema.md §12."
     },
     "audit_trail_required": {
       "type": "boolean",

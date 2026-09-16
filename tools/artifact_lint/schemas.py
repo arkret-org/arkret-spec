@@ -37,6 +37,7 @@ from .core import (
     SIBLING_DIGEST_SECTION_ANCHOR,
     SIBLING_DIGEST_SECTION_PATH,
     CONTENT_ADDRESSED_HEX64,
+    CONTENT_ADDRESSED_SUITE_TAGGED_TOKEN,
     PROFILE_ID_RE,
     PROFILE_ID_TOKEN_RE,
     Path,
@@ -804,7 +805,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     receipt_path = schema_dir / "event-batch-receipt.schema.json"
     key_backup_path = schema_dir / "key-backup.schema.json"
     active_series_path = schema_dir / "key-backup-active-series.schema.json"
-    governance_path = schema_dir / "mls-governance-proof-bundle.schema.json"
     principal = load_json(lint, principal_path)
     contact = load_json(lint, contact_path)
     agent = load_json(lint, agent_path)
@@ -813,7 +813,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     receipt = load_json(lint, receipt_path)
     key_backup = load_json(lint, key_backup_path)
     active_series = load_json(lint, active_series_path)
-    governance = load_json(lint, governance_path)
     if not all(isinstance(value, dict) for value in (
         principal,
         contact,
@@ -823,7 +822,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
         receipt,
         key_backup,
         active_series,
-        governance,
     )):
         return
 
@@ -895,7 +893,7 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     if "frontier" in receipt_required_root or "frontier" in receipt_properties_root:
         lint.fail(
             receipt_path,
-            "Event Batch Receipt must not claim an unscoped partial frontier; use typed frontier contracts",
+            "Event Batch Receipt must not claim an unscoped partial frontier; each stream head is named by its own stream_ref and stream_position",
         )
     for scope_name, derived_fields in (
         ("device_reanchor_scope", {"reanchor_digest", "replacement_authorize_digest"}),
@@ -924,17 +922,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
                 path,
                 "source_commit_ref.device_generation_ref must reuse the canonical PCR generation integer",
             )
-
-    governance_defs = governance.get("$defs", {})
-    proof_material = governance_defs.get("typed_proof_material") if isinstance(governance_defs, dict) else None
-    proof_properties = proof_material.get("properties", {}) if isinstance(proof_material, dict) else {}
-    descriptors = proof_properties.get("event_ids") if isinstance(proof_properties, dict) else None
-    descriptor = descriptors.get("items") if isinstance(descriptors, dict) else None
-    expected_event_id_ref = {"$ref": "./common-ids.schema.json#/$defs/event_id"}
-    if descriptor != expected_event_id_ref:
-        lint.fail(governance_path, "MLS governance event_ids must be the direct EventId set")
-    if isinstance(proof_properties, dict) and "event_descriptors" in proof_properties:
-        lint.fail(governance_path, "MLS governance must not retain the obsolete event_descriptors name")
 
     sidecar_outcome = principal_defs.get("sidecar_ensure_outcome") if isinstance(principal_defs, dict) else None
     branches = sidecar_outcome.get("oneOf", []) if isinstance(sidecar_outcome, dict) else []
@@ -2895,16 +2882,16 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
                 authority_path,
                 f"recovery completion attestation signature projection must bind {field}",
             )
-    for retired_field in (
+    for removed_field in (
         "device_authorization_event_id",
         "device_authorization_event_digest",
         "reanchor_commit_id",
         "terminal_commit_digest",
     ):
-        if retired_field in completion_properties:
+        if removed_field in completion_properties:
             lint.fail(
                 authority_path,
-                f"recovery completion attestation must not retain retired field {retired_field}",
+                f"recovery completion attestation must not restore removed field {removed_field}",
             )
 
 
@@ -3280,17 +3267,13 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("media-metadata.schema.json", ("properties", "thumbnails", "items"), "thumbnail_blob_ref", "thumbnail_ciphertext_digest"),
     ("call-recording-artifact.schema.json", (), "blob_ref", "content_digest"),
     ("call-recording-artifact.schema.json", (), "blob_ref", "ciphertext_digest"),
-    ("realm-state-snapshot.schema.json", ("properties", "chunks", "items"), "chunk_ref", "digest"),
     ("event-payload.schema.json", ("$defs", "mls_commit_payload"), "commit_message_ref", "commit_digest"),
     ("event-payload.schema.json", ("$defs", "agent_key_authorize_payload", "properties", "runtime_attestation"), "attestation_ref", "attestation_digest"),
     ("agent-membership-cascade.schema.json", ("$defs", "agent_cleanup_record"), "controller_terminal_event_id", "controller_terminal_event_digest"),
     ("signer-key-operations.schema.json", ("$defs", "historical_account_device_selector"), "event_id", "event_digest"),
     ("signer-key-operations.schema.json", ("$defs", "historical_agent_selector"), "event_id", "event_digest"),
-    ("agent-signer-evidence.schema.json", ("$defs", "account_status_event_basis"), "status_event_id", "status_event_digest"),
-    ("audit-ryw-receipt.schema.json", (), "audit_event_id", "audit_event_digest"),
     ("event-payload.schema.json", ("$defs", "audit_accessed_payload"), "paired_event_id", "paired_event_digest"),
-    ("history-key.schema.json", ("$defs", "event_candidate_binding", "properties", "event_binding_key"), "event_id", "event_digest"),
-    ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_id", "device_authorization_event_digest"),
+    ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_ref", "device_authorization_event_digest"),
     ("relation.schema.json", ("$defs", "relation_conflict_candidate"), "event_id", "event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "RedactedEventView"), "event_id", "event_digest"),
     ("contact-operations.schema.json", ("$defs", "contact_current_proof"), "head_event_ref", "head_digest"),
@@ -3304,30 +3287,14 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 3), "group_state_ref", "group_state_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 4), "group_state_ref", "group_state_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 5), "group_state_ref", "group_state_digest"),
-    ("event-payload.schema.json", ("$defs", "audit_release_payload"), "seal_ref", "seal_digest"),
     ("holder-quarantine.schema.json", ("$defs", "quarantine_entry"), "invite_event_id", "invite_event_digest"),
-    ("mls-governance-proof-bundle.schema.json", ("$defs", "typed_proof_material", "properties", "seal_descriptors", "items"), "seal_ref", "seal_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationDelegationCore"), "join_event_id", "join_event_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MembershipJoinAcceptedProof"), "join_event_id", "join_event_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "ReferenceLockedEventStub"), "event_id", "event_digest"),
-    ("event-envelope.schema.json", ("$defs", "producer_event_proof"), "signer_resolution_evidence_ref", "signer_resolution_evidence_digest"),
-    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "principal_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
-    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "attester_signer_evidence_ref", "attester_signer_evidence_digest"),
-    ("authenticated-signer-resolution-evidence.schema.json", ("$defs", "agent_signer_evidence"), "account_authority_signer_evidence_ref", "account_authority_signer_evidence_digest"),
-    ("availability-receipt.schema.json", (), "holder_signer_evidence_ref", "holder_signer_evidence_digest"),
-    ("history-key.schema.json", ("$defs", "history_key_response_signing_input"), "source_signer_evidence_ref", "source_signer_evidence_digest"),
-    ("history-key.schema.json", ("$defs", "minimal_metadata_mls_leaf_signer_evidence"), "identity_link_signer_evidence_ref", "identity_link_signer_evidence_digest"),
-    ("history-key.schema.json", ("$defs", "history_key_response_record"), "release_service_signer_evidence_ref", "release_service_signer_evidence_digest"),
-    ("history-key.schema.json", ("$defs", "history_key_response_lost_record"), "release_service_signer_evidence_ref", "release_service_signer_evidence_digest"),
     ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "group_info_ref", "group_info_digest"),
     ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "ratchet_tree_ref", "ratchet_tree_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "group_info_ref", "group_info_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "ratchet_tree_ref", "ratchet_tree_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialOutcome"), "group_info_ref", "group_info_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialOutcome"), "ratchet_tree_ref", "ratchet_tree_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationExecutorDelegation"), "delegation_id", "delegation_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationTerminalCertificate"), "delegation_id", "delegation_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "MembershipCompensationCasToken"), "delegation_id", "delegation_digest"),
 )
 
 
@@ -3411,8 +3378,9 @@ def _pure_content_addressed_kind(pattern: str, kind_alternation: str) -> bool:
     address, so its sibling digest cannot be judged from the schema alone.
     """
     flat = pattern.strip("^$").replace("(?:", "").replace("(", "").replace(")", "")
+    digest_forms = r"(?:(?:sha256\|blake3|sha256|blake3):)?\[0-9a-f\]\{64\}|\[A-Za-z0-9_-\]\{44\}"
     return re.fullmatch(
-        r"ak:(?:" + kind_alternation + r"):(?:(?:sha256\|blake3|sha256|blake3):)?\[0-9a-f\]\{64\}",
+        r"ak:(?:" + kind_alternation + r"):(?:" + digest_forms + r")",
         flat,
     ) is not None
 
@@ -3428,11 +3396,16 @@ def load_content_addressed_kinds(lint: Lint) -> set[str]:
             continue
         kind = row.get("kind")
         payload = row.get("payload_pattern")
-        if not isinstance(kind, str) or not isinstance(payload, str) or CONTENT_ADDRESSED_HEX64 not in payload:
+        carries_digest = isinstance(payload, str) and (
+            CONTENT_ADDRESSED_HEX64 in payload
+            or payload == CONTENT_ADDRESSED_SUITE_TAGGED_TOKEN
+        )
+        if not isinstance(kind, str) or not carries_digest:
             lint.fail(
                 path,
-                f"special_forms[{kind}] is marked content_addressed but its payload_pattern does not "
-                "end in a 64-hex digest; the mark claims the ref carries every digest octet",
+                f"special_forms[{kind}] is marked content_addressed but its payload_pattern is neither "
+                "a 64-hex digest nor a suite-tagged base64url token; the mark claims the ref carries "
+                "every digest octet",
             )
             continue
         kinds.add(kind)
@@ -3458,7 +3431,7 @@ def load_sibling_digest_exemptions(lint: Lint) -> dict[tuple[str, str, str], dic
         lint.fail(path, "registry_rules.allowed_kinds must be exactly distinct_preimage")
     allowed_status = set(rules.get("allowed_status") or [])
     if allowed_status != SIBLING_DIGEST_EXEMPTION_STATUS:
-        lint.fail(path, "registry_rules.allowed_status must be exactly active and retired")
+        lint.fail(path, "registry_rules.allowed_status must be exactly active")
     expected_binding = f"spec/v1/zh/conformance/encoding.md#{SIBLING_DIGEST_SECTION_ANCHOR}"
     if rules.get("prose_binding") != expected_binding:
         lint.fail(path, f"registry_rules.prose_binding must be {expected_binding}")

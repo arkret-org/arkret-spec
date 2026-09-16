@@ -66,7 +66,7 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
 
     def test_compound_generation_string_reintroduction_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["frontier_ref"]["properties"]["device_generation_ref"] = {
+            schema["$defs"]["source_commit_ref"]["properties"]["device_generation_ref"] = {
                 "type": "string",
                 "pattern": "^[1-9][0-9]*-[^\\s]+$",
             }
@@ -82,7 +82,10 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
             }
 
         errors = self._lint("recovery-authority.schema.json", mutate)
-        self.assertTrue(any("must derive the Event digest" in error for error in errors), errors)
+        self.assertTrue(
+            any("must not restore removed field device_authorization_event_digest" in error for error in errors),
+            errors,
+        )
 
     def test_completion_event_id_omission_from_projection_fails(self) -> None:
         def mutate(schema) -> None:
@@ -92,7 +95,9 @@ class DerivedSignatureProjectionLintTest(unittest.TestCase):
             signature["description"] = "base64url signature over an incomplete projection"
 
         errors = self._lint("recovery-authority.schema.json", mutate)
-        self.assertTrue(any("must bind device_authorization_event_id" in error for error in errors), errors)
+        self.assertTrue(
+            any("must bind device_authorization_event_ref" in error for error in errors), errors
+        )
 
 
 if __name__ == "__main__":

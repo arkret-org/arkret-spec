@@ -5,6 +5,10 @@
       "sha256": "fa4c28e771dbcddb674a96a126abcc9fe33e5ca85b2e92e3df5a8fd44078ab1f"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
+      "sha256": "547186b84136ebd445bf96dc486499f244bc319f619cb89d46a4cae079a72d19"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
       "sha256": "4436e92d990a2387af740b085f24e1a59f052ec1d431a80e155d2379cefd80cc"
     },
@@ -18,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "c1499524f0ee8e5d1c3783d2793c6da0409527fef51cf88d6560332d4981cc7c"
+      "sha256": "63ef9ffff8fdab4115aa49072aeb5e140c95299b2b29c777fec382ba2c628593"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -42,7 +46,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "7967eeaf1842ef16531a98d8f83281096057afa079d4f74dc7f097c9cb5a614a"
+      "sha256": "1f08464b72999e6d02aae737b5f2bfe2a905f929dcb0f29098e3eda7c4f23fb8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
@@ -62,7 +66,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
-      "sha256": "8801e4aa55a8af0992624baea8ee6044e188eda6d16392b0a0ef70a3dc69ae95"
+      "sha256": "039a5f9249bc4443bd9f708eb5ac473388129148c6297f54fda0d95fba49ad18"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
@@ -77,6 +81,10 @@
       "sha256": "d4412089ffae27dab63f38b60b4c0df1a45488717921469d614b4dfd552e865d"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
+      "sha256": "7296f30270c396ededbfe5910de32b4f76314b8a6473f676c4108a5ca958938c"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
       "sha256": "58047adbe48fb1a3d09462f66f328deeab83ffc76062a1c714649c47b31d830a"
     },
@@ -86,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "249a10111d900c46480ba24a13259fb027a920c19f503ff90db9c0195c053031"
+      "sha256": "f30cc64eb38015859249e4f2d71fbe32b04259d05bbc54aa075ca492b4ed68ad"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",

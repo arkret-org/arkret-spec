@@ -13,7 +13,11 @@ see_also:
 # 权威提交日志
 
 本章的逐 stream 连续性、私有 handoff head 清单与公开 bundle 不泄漏规则由
-`ak.vector.authority_commit.independent_streams.v1` 覆盖。
+`ak.vector.authority_commit.independent_streams.v1` 覆盖。三类必须拒绝的情形各有可执行负例向量：
+断链与 position 跳号由 `ak.vector.authority_commit.stream_continuity_negative.v1` 覆盖；同一
+`(realm_id, stream_ref, authority_generation, stream_position)` 上的双 Commit 冻结由
+`ak.vector.authority_commit.equivocation_freeze.v1` 覆盖；planned handoff 生效后旧 Station 的写入拒绝由
+`ak.vector.authority_commit.post_handoff_write_rejected.v1` 覆盖。
 
 本章定义 Arkret v1 共享 Realm 状态的唯一接纳、排序、复制、恢复与治理方更换协议。规范关键字按[规范语言](../conformance/normative-language.md)解释。
 
@@ -35,13 +39,15 @@ Realm membership、policy 和 authority 变更只提交到 Realm stream。治理
 
 `event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, refs?, payload, proofs`。
 
-`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。
+`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。该封闭禁用集合的机读投影是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `producer_event_envelope_root` context。
 
 Event 不指向“上一个 Event”。producer 可能离线签名，且多个 producer 会并发；让 Event 绑定 head 会导致合法排队请求因其它写先提交而重签，MLS 请求甚至需要重建密码材料。最终顺序只能由接纳方分配。
 
 ## 3. RealmCommit 与逐 stream 单链
 
 治理 Station 验证 Event 的 canonical ID、producer proof、current authorization、typed payload、领域不变量和 current target revision 后，在同一事务中写入 Event、领域状态、outbox 与 `RealmCommit`。
+
+一条 `RealmCommit` 恰好接纳一条 Event：`event_ref` 与 `stream_position` 都是单值。多条 Event 的原子性是**事务级**的——治理 Station 在同一个接纳事务内接纳整组 Event，并为每条各自签发同一 stream 上连续的 RealmCommit；不存在覆盖多条 Event 的单张 Commit。
 
 每个 `RealmCommit` 必须携带 `stream_ref`、`stream_position` 与 `previous_commit_ref`：
 

@@ -59,20 +59,11 @@ def main() -> int:
                 if preimage.get("kind") == "ak.realm.create" and isinstance(realm_object, dict):
                     if "notary_profile" in realm_object:
                         errors.append(f"{case['name']}: Realm create retains forbidden notary_profile")
-                    notary = realm_object.get("notary")
-                    if not isinstance(notary, dict) or "signer" not in notary:
-                        errors.append(f"{case['name']}: Realm create lacks closed notary configuration")
-                    else:
-                        signer = notary.get("signer")
-                        required_signer_fields = {
-                            "actor_id",
-                            "verification_method",
-                            "key_kind",
-                            "jose_algorithm",
-                            "frozen_public_key_b64u",
-                        }
-                        if not isinstance(signer, dict) or set(signer) != required_signer_fields:
-                            errors.append(f"{case['name']}: notary lacks exact frozen signer descriptor")
+                    for removed in ("notary", "content_scheme", "encryption_profile"):
+                        if removed in realm_object:
+                            errors.append(
+                                f"{case['name']}: Realm create retains removed member {removed}"
+                            )
         body_hex, event_id = derive(suite_code, digest_hex)
         if case.get("event_id_bytes_hex") != body_hex:
             errors.append(f"{case['name']}: body bytes mismatch")

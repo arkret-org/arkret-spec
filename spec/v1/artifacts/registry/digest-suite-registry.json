@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.7",
-  "generated_at": "2026-09-16T18:00:00+08:00",
+  "version": "2026-09-16.11",
+  "generated_at": "2026-09-16T23:20:00+08:00",
   "source_of_truth": true,
   "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
   "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",
@@ -68,7 +68,7 @@
       "kat_absence_reason": "Deterministic CBOR encoding and per-suite digest vectors are not published until all activation_requirements are complete.",
       "activation_requirements": [
         "ak.profile.encoding.cbor.v1 fully specified: deterministic encoding rules pinned by directly adopting an upstream standardized deterministic CBOR profile (CDE, draft-ietf-cbor-cde, or dCBOR, draft-mcnally-deterministic-cbor) under draft-pinning discipline (draft change = new profile version) rather than a bespoke ruleset, CDDL for envelope and canonical objects, schema-agnostic JSON<->CBOR type mapping",
-        "Per-suite conformance vectors published (canonical bytes, event_digest, state_root, receipt digest)",
+        "Per-suite conformance vectors published (canonical bytes, event_digest, commit_id, receipt digest)",
         "Suite transition vectors published for json_jcs -> cbor authority commits"
       ],
       "security_note": "Deterministic CBOR canonicalization with SHA-256. Same hash strength as sha256; the suite exists to enable encode-once/sign-the-bytes verification and MLS/COSE ecosystem alignment for Realms that opt in at create time."

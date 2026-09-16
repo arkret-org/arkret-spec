@@ -116,12 +116,12 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 - `scope_circle_id=ak:circle:...` 对应签名 `scope_ref={kind:"circle", realm_id, circle_id}`。
 - Reducer 在接受每个 Event 时 MUST 从 payload 与 accepted references 派生 scope，并与 producer-signed `scope_ref` 逐字段比较。后续对象 rebind 不得重解释旧 Event。
 - Message 与 Relation 的 read projection MAY 物化顶层 `effective_scope`，但它必须逐字段等于创建 Event 的 `scope_ref`。该 projection 不是可写真相源。
-- Effective history access 恰等于 Circle 当前 `history_access`。父 Realm history facet 不进入该值；父 Realm 当前 membership intersection 与 content/metadata encryption floor 仍独立生效。
+- Effective history access 恰等于 Circle 当前 `history_access`。父 Realm history facet 不进入该值；父 Realm 当前 membership intersection 仍独立生效。Circle 的明文/密文判定只看该 Circle scope 自己是否已有 accepted `ak.mls.genesis`，父 Realm 的激活状态不传递。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
 - Structural Relation / position typed current result 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position typed current result 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。
 - 当参与端点分别落在同一 Realm 的两个不同 Circle，且没有 Realm-default 端点可作为共同公开侧时，这两个 scope 在 v1 中是**不可比较的并列 scope**。Reducer MUST NOT 选择任一 Circle 作为"更窄者"，MUST NOT 取并集，也 MUST NOT 自动把关系提升到 Realm-default。Structural Relation、position、parent、cascade 或任何会产生 target-side reverse projection 的事实 MUST `failed_precondition`(`reason=scope_incomparable`)。弱语义 reference 若 profile 显式允许，producer MUST 选择单一 source-side `scope_circle_id`，且 projection 对该 scope 外 caller 返回 `locked` / none，不得创建目标侧反向边或可枚举空洞。
 
-**Circle lifecycle 求值基线（normative）**：普通 Event 从已签 `commit_authorization_state.authority_refs` 验证 Circle 身份、active 授权实例和 scope，允许未知撤销的传播窗口。安全命令从 `expected_revision` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 typed current result。不得合并多个同 Realm RealmCommit 为权限 view。
+**Circle lifecycle 求值基线（normative）**：普通 Event 的 Circle 身份、active 授权实例与 scope 由当前治理 Station 在接纳事务内从已提交 typed state 解析，允许未知撤销的传播窗口；producer 不携带、也不得替换该授权状态。安全命令从 `expected_revision` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 typed current result。不得合并多个同 Realm RealmCommit 为权限 view。
 
 普通消息不推进 RealmCommit。分区站尚未知道 archive/tombstone 时可暂时接纳；获知后立即阻止受影响的新 live 提交，并按关闭证明重算全部历史资格。缺必要依赖 pending，不以到达时间或旧收据保留永久资格。restore 产生新的授权 generation，不能复活旧 generation 中被关闭排除的 Event；作者必须绑定新授权重新签发后继。
 
@@ -162,7 +162,7 @@ Circle scope Event：
 Reducer 校验顺序(MUST):
 
 1. schema 校验 Event 必有 `scope_ref`，且 `scope_ref.realm_id == realm_id`。
-2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 Event `commit_authorization_state.authority_refs` / state-changing Event `expected_revision` authority-commit 基线中解析对应 Circle，校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
+2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 authority-commit 基线中解析对应 Circle——普通 Event 用治理 Station 接纳时的 current authorization，state-changing Event 用领域 payload 的 `expected_revision`——校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
 3. 从 payload/accepted target projection 派生预期 scope，与签名 `scope_ref` 逐字段比较。
 4. authorization、fanout、history 与 E2EE 只使用已验证的签名 `scope_ref`；对象 projection 可复制该值但不得反向覆盖 Event。
 
@@ -293,7 +293,7 @@ Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `fre
 | 父 Realm archive | 按 Realm 默认隐藏 / 只读投影，可由 Realm restore 恢复 | Circle 与其对象遵循父 Realm archive 的默认隐藏 / 只读投影；不额外 tombstone、不改 membership / MLS eligibility，Realm restore 后恢复到 Circle 自身 lifecycle 决定的状态 |
 | Circle archive | 不受影响 | receiver 获知 archive 关闭后，新写入 MUST fail closed（`failed_precondition`, `reason=circle_not_active`），**含新建以该 archived Circle 为 `scope_circle_id` 的对象**；此前暂时接纳的 Event 按关闭集合重算历史资格。既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
 | Circle tombstone | 不受影响 | receiver 获知 tombstone 关闭后，新对象写入 MUST `circle_not_active`；此前接纳的历史按关闭集合重算。projection 显示 scope unavailable；`scope_circle_id` 不会被自动 rewrite |
-| 父 Realm 修改 history access | 不改 Circle history access | Circle 保持自身当前 facet；仅父 Realm current membership intersection 与 encryption floor 继续生效 |
+| 父 Realm 修改 history access | 不改 Circle history access | Circle 保持自身当前 facet；仅父 Realm current membership intersection 继续生效，Circle 的 MLS 激活状态独立 |
 | Circle history visibility 收紧 | 不受影响 | 投影、watch、message read/write 按新状态重新裁剪 |
 | `scope_circle_id` 改绑 | — | 默认拒；profile 允许时 audit-paired，新旧历史分段展示(见 §6.1) |
 

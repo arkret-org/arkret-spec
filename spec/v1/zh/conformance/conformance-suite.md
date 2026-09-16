@@ -104,11 +104,11 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
 - `ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1`
-  - 输入带有效 `commit_authorization_state.authority_refs` 的 Event。
+  - 输入一条 Event，其 `authorization_ref` 在当前治理 Station 的已提交 typed state 中解析为有效授权实例。
   - 期望 reducer 输出：本地接受、可投影、无需被 RealmCommit 覆盖。
 - `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1`
   - 输入带有效 `expected_revision` 的 state-changing Event 及缺失/错误 basis 的负向样例。
-  - 期望输出：state-changing Event 先 pending，只有被有效 RealmCommit 覆盖并重算 `state_root` 后进入 `committed`。
+  - 期望输出：state-changing Event 先 pending，只有取得该 stream 上有效的 RealmCommit 后进入 `committed`；v1 没有 `state_root`，判据是 Commit 本身，不是重算出来的状态根。
 - `ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1`
   - 输入同一 ordered submit batch 内相互依赖的 state-changing Event。
   - 期望输出：同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 RealmCommit。

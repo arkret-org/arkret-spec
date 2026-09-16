@@ -120,7 +120,7 @@ POST /_arkret/self/moderation/report
 
 该 self operation 只接受 reporter 本人设备直接签名：`event.actor_id == payload.reporter ==
 session principal`，并禁止 `executed_by`、`authorization_ref`、`applet_id`、`source_provider` 与
-MIMI facade provenance。它是 Event，MUST 携带 `commit_authorization_state`，MUST NOT 携带
+MIMI facade provenance。它是 Event，其授权由当前治理 Station 在接纳事务内解析，MUST NOT 携带
 `expected_revision` 或 `preconditions`。服务端只把 exact signed bytes 送入 Event admission，
 不得构造、重建、共同签名或注入任何 guard。
 

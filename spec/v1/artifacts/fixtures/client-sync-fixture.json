@@ -1,0 +1,272 @@
+{
+  "suite": "client_sync",
+  "version": "2026-09-16",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.sync.client_account_stream.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.sync.client_account_stream.v1"
+  ],
+  "description": "Own-Station account aggregate stream: per-stream tail continuity, durable cursor checkpoints, projection-before-checkpoint ordering, reconnect reset vs resume, and explicit delivery cancellation.",
+  "subscription": {
+    "operation_id": "ak.self.account.stream.subscribe.v1",
+    "account_id": {
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+    },
+    "device_id": "ak:device:01964137-1000-7000-8000-000000000011",
+    "stream_classes": [
+      "authority_committed",
+      "account_private",
+      "delivery"
+    ],
+    "global_position_exists": false,
+    "realm_position_exists": false
+  },
+  "stream_tails": [
+    {
+      "name": "realm_stream_tail_is_continuous",
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "previous_commit_ref": null
+        },
+        {
+          "stream_position": 1,
+          "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+          "previous_commit_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+        }
+      ],
+      "expected": "accepted"
+    },
+    {
+      "name": "circle_stream_tail_is_independent",
+      "stream_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+          "previous_commit_ref": null
+        },
+        {
+          "stream_position": 1,
+          "commit_id": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD",
+          "previous_commit_ref": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5"
+        }
+      ],
+      "expected": "accepted"
+    },
+    {
+      "name": "sidecar_stream_tail_is_independent",
+      "stream_ref": {
+        "kind": "sidecar",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:AdXXBmSFeH5Gv-mZ8hWlS4P6lpGPDKYhkl_djKbSdjNL",
+          "previous_commit_ref": null
+        }
+      ],
+      "expected": "accepted"
+    },
+    {
+      "name": "unexplained_position_jump_stops_only_that_stream",
+      "stream_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "commits": [
+        {
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+          "previous_commit_ref": null
+        },
+        {
+          "stream_position": 2,
+          "commit_id": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD",
+          "previous_commit_ref": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5"
+        }
+      ],
+      "expected": "rejected",
+      "expected_client_action": "stop_this_stream_and_refetch_snapshot",
+      "other_streams_reset": false,
+      "to_device_acks_reset": false
+    }
+  ],
+  "checkpoint_ordering": [
+    {
+      "name": "projection_is_installed_before_the_checkpoint_advances",
+      "steps": [
+        {
+          "step": 0,
+          "action": "deliver_commit",
+          "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
+        },
+        {
+          "step": 1,
+          "action": "install_typed_current_result",
+          "durable": true
+        },
+        {
+          "step": 2,
+          "action": "advance_durable_cursor",
+          "cursor": "ak:cursor:realm-position-1"
+        }
+      ],
+      "expected": "accepted"
+    },
+    {
+      "name": "checkpoint_before_projection_is_rejected",
+      "steps": [
+        {
+          "step": 0,
+          "action": "deliver_commit",
+          "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
+        },
+        {
+          "step": 1,
+          "action": "advance_durable_cursor",
+          "cursor": "ak:cursor:realm-position-1"
+        },
+        {
+          "step": 2,
+          "action": "install_typed_current_result",
+          "durable": true
+        }
+      ],
+      "expected": "rejected",
+      "reason": "a durable checkpoint that outruns the installed projection loses the delta after a crash"
+    },
+    {
+      "name": "incremental_before_baseline_complete_merges_by_position",
+      "steps": [
+        {
+          "step": 0,
+          "action": "deliver_incremental",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "stream_position": 1
+        },
+        {
+          "step": 1,
+          "action": "deliver_baseline_section_complete",
+          "section": "realm_bucket",
+          "as_of_stream_position": 0
+        }
+      ],
+      "expected": "accepted",
+      "expected_state": "the position-1 delta survives; the older baseline MUST NOT overwrite it"
+    }
+  ],
+  "reconnect": [
+    {
+      "name": "resume_from_the_last_durable_account_cursor",
+      "stored_cursor": "ak:cursor:account-baseline-complete",
+      "server_outcome": "accepted",
+      "expected": "resume",
+      "baseline_redone": false,
+      "delivery_acks_invalidated": false
+    },
+    {
+      "name": "cursor_expired_redoes_only_that_surface_baseline",
+      "stored_cursor": "ak:cursor:account-expired",
+      "server_outcome": "cursor_expired",
+      "expected": "reset",
+      "baseline_redone": true,
+      "discard_old_cursor": true,
+      "local_verified_commits_deleted": false,
+      "mls_private_state_deleted": false,
+      "delivery_acks_invalidated": false
+    },
+    {
+      "name": "cursor_integrity_invalid_redoes_only_that_surface_baseline",
+      "stored_cursor": "ak:cursor:account-tampered",
+      "server_outcome": "cursor_integrity_invalid",
+      "expected": "reset",
+      "baseline_redone": true,
+      "discard_old_cursor": true,
+      "server_state_advanced": false
+    },
+    {
+      "name": "cursor_unrecognized_redoes_only_that_surface_baseline",
+      "stored_cursor": "ak:cursor:account-unknown",
+      "server_outcome": "cursor_unrecognized",
+      "expected": "reset",
+      "baseline_redone": true,
+      "discard_old_cursor": true
+    },
+    {
+      "name": "revision_stale_keeps_the_cursor_and_continues_backfill",
+      "stored_cursor": "ak:cursor:account-backfill",
+      "server_outcome": "revision_stale",
+      "expected": "resume",
+      "baseline_redone": false,
+      "discard_old_cursor": false,
+      "expected_client_action": "follow_the_response_continuation_cursor"
+    },
+    {
+      "name": "one_missing_stream_tail_recovers_only_that_stream",
+      "stored_cursor": "ak:cursor:account-baseline-complete",
+      "server_outcome": "stream_tail_missing",
+      "affected_stream_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "expected": "resume",
+      "recovered_streams": [
+        "circle"
+      ],
+      "other_streams_reset": false,
+      "to_device_acks_reset": false
+    }
+  ],
+  "delivery_cancellation": [
+    {
+      "name": "explicit_ack_after_durable_processing_removes_the_delivery",
+      "device_message_id": "ak:device_message:01964137-2000-7000-8000-000000000021",
+      "durably_processed": true,
+      "action": "ack",
+      "expected": "removed_from_recipient_queue"
+    },
+    {
+      "name": "cursor_advance_alone_does_not_cancel_a_delivery",
+      "device_message_id": "ak:device_message:01964137-2000-7000-8000-000000000022",
+      "durably_processed": false,
+      "action": "advance_account_cursor",
+      "expected": "still_queued",
+      "reason": "only an explicit ACK after durable processing cancels a recipient delivery"
+    },
+    {
+      "name": "cursor_expiry_does_not_invalidate_an_issued_ack_token",
+      "device_message_id": "ak:device_message:01964137-2000-7000-8000-000000000023",
+      "durably_processed": true,
+      "action": "ack_with_token_after_cursor_expired",
+      "expected": "removed_from_recipient_queue"
+    },
+    {
+      "name": "backfill_path_shares_one_queue_and_ack_token",
+      "device_message_id": "ak:device_message:01964137-2000-7000-8000-000000000024",
+      "durably_processed": true,
+      "action": "ack_from_backfill_path",
+      "expected": "removed_from_recipient_queue",
+      "second_copy_created": false
+    }
+  ]
+}

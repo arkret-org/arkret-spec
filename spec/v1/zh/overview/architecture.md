@@ -85,9 +85,9 @@ Realm 则是协作数据边界。它定义 membership、capability scope、schem
 
 因此实现 MUST NOT 以 `realm_id` 代替组织身份，也 MUST NOT 仅凭用户在某 Realm 内的 membership 推断其属于某组织。组织身份和成员资格应通过组织 DID 签发的 claim / VC / attestation、Realm policy 中列出的 trusted issuer、或 governance registry 中的组织记录证明。
 
-### 2.2 Per-Actor Event Chain
+### 2.2 Signed Event 与逐 stream 投影
 
-Arkret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`producer_revision` 和 `domain_refs` 形成可验证 event chain。
+Arkret v1 的协议一等概念是 **signed Event** 与 **按同一 authority stream 的 RealmCommit position 做的确定性投影**，不是任何形式的内容仓库或公开发布记录。producer 签名的 Event Envelope 只携带 `actor_id` 与注册的 `refs`，**不指向上一条 Event**；顺序由当前治理 Station 在接纳时分配的 `stream_position` 唯一决定。
 
 它承担：
 
@@ -96,9 +96,9 @@ Arkret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain*
 - 设备离线后重传
 - 审计基线
 
-Arkret 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
+Arkret 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 stream 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
 
-Event chain 可以由以下形态承载：
+stream 可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
 - Station 内置的 Event 存储实现与 `/_arkret/self/events/*` surface。
@@ -107,7 +107,7 @@ Event chain 可以由以下形态承载：
 
 Event 的实际存储形态由实现决定：可以是数据库表、对象存储中的 Event blob、文件系统 append-only log、Merkle log、content-addressed block store，或这些形式的组合。协议只要求它能稳定输出 canonical Event bytes、hash、签名、checkpoint、cursor 和 proof material。
 
-Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`producer_revision` 路径递增约束、`domain_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Station。Station 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
+Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`event_id` 幂等性，以及接纳它的 RealmCommit 在其 stream 上的连续 position，而不是来自托管它的 Station。Station 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
 ### 2.3 Station
 
@@ -118,7 +118,7 @@ Station 是 principal 的受控服务边界。它负责承载或代理：
 - blob、push、policy、device message 等辅助服务
 - 与其他 Station 的 federation transaction
 
-Station 不是身份本身，也不能替 principal 伪造 Event，**更不是协议的唯一真相源**：共享状态的真相来自 signed Event 与 per-actor event chain（见 §2.2、§6.2），Station 可拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
+Station 不是身份本身，也不能替 principal 伪造 Event，**更不是协议的唯一真相源**：共享状态的真相来自 signed Event 与其 RealmCommit 在 stream 上的连续 position（见 §2.2、§6.2），Station 可拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
 
 明文规则：
 
@@ -495,15 +495,15 @@ Arkret 固定以下架构取向：
 
 矩阵中的“自己 Station”始终指当前完整 AccountId 的 `station_id` 所标识、在会话建立前已经固定身份且由当前认证上下文调用的 Station；不是当前 URL、Directory 搜索结果、远端 Realm 服务、同 principal 的另一 Station 或任意能返回相似 JSON 的服务。服务器可信结果只替代客户端侧的治理闭包验证工作，不替代服务器首次接纳远端材料时的验证，也不替代端到端客户端职责。
 
-### 6.1 Event Chain 可证明 actor 发过什么
+### 6.1 Signed Event 可证明 actor 发过什么
 
-Event chain 能证明：
+producer proof 能证明：
 
 - 哪个 principal 发布了哪些 Event
-- Event 的签名、`producer_revision` 和 `domain_refs` 是否成立
-- 顺序与签名是否成立
+- Event 的签名与 `event_id` 是否成立
+- 注册的 `refs` 是否指向调用者已获权的对象
 
-Event chain 不能单方面定义共享 realm 的最终当前态。
+顺序不由 producer 证明：它来自接纳该 Event 的 RealmCommit 在其 stream 上的 `stream_position`。producer proof 单独不能定义共享 realm 的最终当前态。
 
 ### 6.2 Station 可提供同步，但不应重写历史
 
@@ -604,7 +604,7 @@ Agent 写入 Event 的可审计署名由 Event Envelope 的规范字段承担，
 
 Arkret v1 固定以下方向：
 
-- signed Event Envelope 和 per-actor event chain 是 actor 发布基线
+- signed Event Envelope 是 actor 发布基线，逐 stream 的 RealmCommit position 是顺序与重放基线
 - identity registry / witness 是 DID 文档的解析与写入层
 - Station / Station sync surface 是受控同步与联邦层
 - search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展

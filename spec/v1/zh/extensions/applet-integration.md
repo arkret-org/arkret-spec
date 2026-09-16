@@ -673,7 +673,7 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 | --- | --- |
 | `committed_request` | 本次实际提交并确认的原请求。复用既有 install 首次/复用请求或 Ghost provision 请求的封闭类型，不创建第二个 request ID、digest 或 actor anchor 副本。 |
 | `digest_suite` | 本次目标 Collaboration Realm 在该确认上下文中的真实 digest suite；MUST NOT 从其他 Realm/PCR 的 RealmCommit 引用推断。 |
-| `commit_authorization_state` | 该已确认安装和原 producer 所需的确切授权引用。结果不改变原 grant 的 scope、有限期或关闭规则。 |
+| `authorization_basis` | 治理 Station 在接纳该安装时解析出的确切授权实例。结果不改变原 grant 的 scope、有限期或关闭规则；它是接纳方的判定记录，不是 producer 可提交的 wire 字段。 |
 | `accepted_actor_checkpoint` | 同一目标 Realm、同一完整 managed Actor 的既有 `RealmActorCheckpointView`，其 digest 按本字段所属 Realm 的 `digest_suite` 校验。 |
 | `applet_service_signer_evidence` | 安装所接受 Applet service producer 的 exact `Service` root，含 `signer_resolution_evidence_ref` 与完整 leaf；ref 必须从 leaf 重算。 |
 | `managed_actor_signer_evidence` | 新 Bot/Ghost current method 的 exact `Principal` root及其唯一 Station `Service` attester leaf；两个 ref 都必须从完整 canonical evidence 重算并交叉匹配。 |
@@ -702,7 +702,7 @@ Actor checkpoint，不重新签发或替换 evidence，不覆盖已经冻结的�
 或绑定不得复用同一幂等身份。迟到结果不得使 checkpoint 倒退、清除已知关闭或重新打开旧授权实例；接收方可以
 确认已保存的旧结果而不恢复其 live 资格。
 
-完成交付后的普通聊天不要求逐消息查询原 Station、推进 RealmCommit 或续订 RealmCommit 年龄租约。原授权的真实有限期与已知关闭继续约束新 live 提交；离线接收方尚未知撤销的传播窗口按 authority-commit §5 处理。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的 `commit_authorization_state`、用户填写的 RealmCommit ID 或重新读取 current DID 的结果冒充本次完成材料。
+完成交付后的普通聊天不要求逐消息查询原 Station、推进 RealmCommit 或续订 RealmCommit 年龄租约。原授权的真实有限期与已知关闭继续约束新 live 提交；离线接收方尚未知撤销的传播窗口按 authority-commit §5 处理。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的授权判定、用户填写的 RealmCommit ID 或重新读取 current DID 的结果冒充本次完成材料。
 
 managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧 root 继续只验证旧 Event。runtime 在
 新 resolution Event accepted 后使用既有 `ak.open.identity.read.resolution.v1` 取得 exact current public

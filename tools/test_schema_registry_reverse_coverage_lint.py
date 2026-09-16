@@ -43,7 +43,6 @@ class SchemaRegistryReverseCoverageTest(unittest.TestCase):
     def test_previously_unregistered_files_now_have_rows(self) -> None:
         registered = _registered_files()
         for name in (
-            "schemas/control-proposal-decision.schema.json",
             "schemas/presence-preference.schema.json",
             "schemas/presence-visibility.schema.json",
         ):

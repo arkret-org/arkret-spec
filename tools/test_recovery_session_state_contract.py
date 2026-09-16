@@ -34,7 +34,7 @@ class RecoverySessionStateContractTest(unittest.TestCase):
         snapshot_fields = {
             "current_device_generation_ref",
             "device_generation_status",
-            "accepted_seal_frontier",
+            "realm_stream_head",
         }
         self.assertLessEqual(snapshot_fields, required)
         for field in sorted(snapshot_fields):

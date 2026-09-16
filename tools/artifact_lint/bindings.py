@@ -838,32 +838,47 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict):
             lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody schema missing")
         else:
-            expected_any_of = [{"required": ["realm_ids"]}, {"required": ["actor_ids"]}]
-            if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must require realm_ids or actor_ids")
+            # One scan request selects exactly one authority stream and walks it
+            # by continuous stream_position, so the body names a single
+            # (realm_id, stream_ref) pair instead of a multi-target selector.
+            expected_required = ["realm_id", "stream_ref", "after_position", "limit"]
+            if schema.get("required") != expected_required:
+                lint.fail(
+                    openapi_path,
+                    "ak.self.events.read.scan.v1 requestBody must require exactly "
+                    f"{expected_required}",
+                )
+            if schema.get("additionalProperties") is not False:
+                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must be closed")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
                 lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody properties missing")
             else:
                 for name, ref in (
-                    ("realm_ids", "#/components/schemas/RealmId"),
-                    ("actor_ids", "../schemas/common-ids.schema.json#/$defs/actor_id"),
+                    ("realm_id", "./common-ids.schema.json#/$defs/realm_id"),
+                    ("stream_ref", "./realm-commit.schema.json#/$defs/stream_ref"),
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
                         lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} property missing")
                         continue
-                    if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must be a non-empty array")
-                    items = property_schema.get("items")
-                    if not isinstance(items, dict) or not (
-                        items.get("$ref") == ref or schema_ref_targets(items, ref.rsplit("/", 1)[-1])
+                    if property_schema.get("$ref") != ref and not schema_ref_targets(
+                        property_schema, ref.rsplit("/", 1)[-1]
                     ):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name}.items must reference {ref}")
-                for name in ("before", "after"):
-                    property_schema = properties.get(name)
-                    if not schema_ref_targets(property_schema, "Cursor"):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must reference Cursor")
+                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must reference {ref}")
+                after_position = properties.get("after_position")
+                if not isinstance(after_position, dict) or after_position.get("oneOf") != [
+                    {"type": "integer", "minimum": 0},
+                    {"type": "null"},
+                ]:
+                    lint.fail(
+                        openapi_path,
+                        "ak.self.events.read.scan.v1.after_position must be a non-negative "
+                        "stream position or null",
+                    )
+                limit = properties.get("limit")
+                if not isinstance(limit, dict) or limit.get("type") != "integer" or limit.get("minimum") != 1:
+                    lint.fail(openapi_path, "ak.self.events.read.scan.v1.limit must be a bounded positive integer")
 
 
 

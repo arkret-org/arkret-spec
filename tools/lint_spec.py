@@ -55,25 +55,19 @@ ALLOWED_PROPOSAL_STATUS = {"draft", "review"}
 
 SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
 
-# Control Proposal Ack naming guard (RC001 / RC002).
-CONTROL_PLANE_SECTION_FILE = SPEC_ZH / "authz" / "event-auth-state-resolution.md"
-CONTROL_PLANE_SECTION_HEADING = "## 14. 控制面 Control Proposal Ack 与 inclusion obligation"
-SECTION_HEADING_RE = re.compile(r"^#{2,3} ")
-RETIRED_RECEIPT_RE = re.compile(
+# Removed receipt-family naming guard (RC001).
+REMOVED_RECEIPT_RE = re.compile(
     r"(?i)"
     r"proposal[_ \-]receipts?"
     r"|member[_ \-]receipts?"
-    r"|ControlProposalReceipt"
     r"|ProposalMemberReceipt"
     r"|receipt_sla"
-    r"|control-proposal-receipts?"
-    r"|control-proposal-member-receipt-proof"
 )
 # Receipt families that keep their qualified names; see glossary and the
-# "Receipt 保留给可独立验证的事实凭证" rule.
+# rule that reserves "Receipt" for independently verifiable evidence of a fact.
 QUALIFIED_RECEIPT_RE = re.compile(
     r"(?i)"
-    r"(?:ingress|event[_ \-]?batch|batch|read|audit[_ \-]?ryw|ryw|identity|recovery"
+    r"(?:ingress|event[_ \-]?batch|batch|read|identity|recovery"
     r"|erasure|availability|terminal|consume|application|review|cancel|request)"
     r"[_ \-]?receipts?"
     r"|receipt[_\-](?:digest|hash|proof|item|sla)"
@@ -425,7 +419,7 @@ def lint_control_plane_receipt(path: Path, text: str, body_offset: int) -> list[
     lines = text.splitlines()
 
     for offset, raw in enumerate(lines[body_offset:], start=body_offset):
-        for match in RETIRED_RECEIPT_RE.finditer(raw):
+        for match in REMOVED_RECEIPT_RE.finditer(raw):
             findings.append(
                 Finding(
                     path,
@@ -436,35 +430,6 @@ def lint_control_plane_receipt(path: Path, text: str, body_offset: int) -> list[
                 )
             )
 
-    if path.resolve() != CONTROL_PLANE_SECTION_FILE.resolve():
-        return findings
-
-    start = next(
-        (i for i, line in enumerate(lines) if line.startswith(CONTROL_PLANE_SECTION_HEADING)),
-        None,
-    )
-    if start is None:
-        return findings
-    end = next(
-        (i for i in range(start + 1, len(lines)) if SECTION_HEADING_RE.match(lines[i])),
-        len(lines),
-    )
-
-    for offset in range(start, end):
-        raw = lines[offset]
-        masked = QUALIFIED_RECEIPT_RE.sub("", raw)
-        if BARE_RECEIPT_RE.search(masked):
-            findings.append(
-                Finding(
-                    path,
-                    offset + 1,
-                    "RC002",
-                    "unqualified 'receipt' in the control-plane section; write "
-                    "'Control Proposal Ack' (or 'Ack' after the first qualified use), "
-                    "or qualify the other receipt family by name",
-                    "error",
-                )
-            )
     return findings
 
 

@@ -38,7 +38,7 @@ class SignalEnvelopeSchemaTest(unittest.TestCase):
                 },
             },
             "sender_device_id": device,
-            "seal_ref": "ak:seal:sha256:" + "a" * 64,
+            "authority_commit_id": "ak:realm_commit:" + "A" * 44,
             "signal_class": "session",
             "sent_at": "2026-08-31T00:00:00.000Z",
             "expires_at": "2026-08-31T00:00:30.000Z",

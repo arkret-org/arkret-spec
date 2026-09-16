@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 56,
+  "version": 60,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-16T23:20:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -213,6 +213,16 @@
         }
       ]
     },
+    "checkpoint_object_property": {
+      "selectors": [
+        {
+          "document_kind": "wire",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "descendants"
+        }
+      ]
+    },
     "child_scope_policy.kind": {
       "selectors": [
         {
@@ -404,16 +414,6 @@
         {
           "document_kind": "schema_instance",
           "schema_ref": "file-transfer.schema.json",
-          "instance_pointer": "",
-          "match_scope": "descendants"
-        }
-      ]
-    },
-    "checkpoint_object_property": {
-      "selectors": [
-        {
-          "document_kind": "wire",
-          "schema_ref": "*",
           "instance_pointer": "",
           "match_scope": "descendants"
         }
@@ -744,6 +744,16 @@
           "schema_ref": "event-payload.schema.json#/$defs/morph_create_payload",
           "instance_pointer": "/object",
           "match_scope": "descendants"
+        }
+      ]
+    },
+    "producer_event_envelope_root": {
+      "selectors": [
+        {
+          "document_kind": "event_envelope",
+          "schema_ref": "*",
+          "instance_pointer": "",
+          "match_scope": "root"
         }
       ]
     },
@@ -5325,6 +5335,159 @@
         "kind": "field",
         "values": [
           "cowrite_policy"
+        ]
+      }
+    },
+    {
+      "id": "producer_revision",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no producer-side revision counter. Ordering is assigned by the accepting governance Station as the RealmCommit stream_position; a producer-declared revision would let the signer claim an order it cannot hold.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "producer_revision"
+        ]
+      }
+    },
+    {
+      "id": "hlc",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no hybrid logical clock. A producer clock is not protocol order. 'hlc' remains legal in Station-local projections such as read-cursor position and Agent sidecar view state, which are not Events.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "hlc"
+        ]
+      }
+    },
+    {
+      "id": "domain_refs",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no separate domain reference array. Registered business references travel in 'refs'; authorization dependencies are resolved inside the admission transaction.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "domain_refs"
+        ]
+      }
+    },
+    {
+      "id": "preconditions",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no precondition array. Concurrency protection is a typed payload member of the kind that needs it, so the accepting Station evaluates it against committed typed state rather than against a caller-authored predicate.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "preconditions"
+        ]
+      }
+    },
+    {
+      "id": "commit_base",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no caller-selected commit base. Every Commit takes its predecessor from the accepting Station's own stream head.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "commit_base"
+        ]
+      }
+    },
+    {
+      "id": "expected_revision",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event envelope carries no expected_revision. The field is a typed payload member of the kinds that define it (see event-payload.schema.json and realm_bootstrap_registry.ordinary_collaboration.ordered_slots[].expected_revision); at envelope level it would be a caller-authored admission predicate.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "id": "requirements",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no requirements block. Admission requirements are registered per Event kind and evaluated by the accepting Station.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "requirements"
+        ]
+      }
+    },
+    {
+      "id": "unsigned",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Event carries no unsigned sidecar block: every envelope member is inside the producer signature. 'unsigned' remains legal on recipient-scoped DeviceMessage delivery objects, which are not Events.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "unsigned"
+        ]
+      }
+    },
+    {
+      "id": "commit_authorization_state",
+      "context": "producer_event_envelope_root",
+      "since_revision": "2026-09-16",
+      "rejection_level": "hard_reject",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Renamed survivor of the removed producer-side authorization context. The Event envelope is closed and carries no caller-authored authorization state; the accepting governance Station resolves current authorization and policy from committed typed state inside the admission transaction.",
+      "match": {
+        "kind": "field",
+        "values": [
+          "commit_authorization_state"
         ]
       }
     }

@@ -115,14 +115,14 @@ class NamingGateBaselineTest(unittest.TestCase):
                 return document
             document = copy.deepcopy(document)
             components = document["components"]["schemas"]
-            components["MlsMembershipRemovalRequest"] = components.pop("MlsMembershipRemovalRequestBody")
-            operation = document["paths"]["/_arkret/self/seals/mls-membership-removal"]["post"]
-            operation["requestBody"]["content"]["application/json"]["schema"]["$ref"] = "#/components/schemas/MlsMembershipRemovalRequest"
+            components["DidOperationSubmitRequest"] = components.pop("DidOperationSubmitRequestBody")
+            operation = document["paths"]["/_arkret/root/identity/submit-did-operation"]["post"]
+            operation["requestBody"]["content"]["application/json"]["schema"]["$ref"] = "#/components/schemas/DidOperationSubmitRequest"
             return document
 
         with patch.object(prose, "load_yaml", side_effect=mutated_loader):
             errors = run_gate().errors
-        self.assertTrue(any("MlsMembershipRemovalRequest" in error and "NC-TYPE-001" in error for error in errors), errors)
+        self.assertTrue(any("DidOperationSubmitRequest" in error and "NC-TYPE-001" in error for error in errors), errors)
         self.assertFalse(any("HistoryKeyRequest" in error for error in errors), errors)
 
     def test_every_rule_declares_enforcement(self) -> None:
@@ -706,7 +706,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_bare_did_core_issuer_fails_with_review_axes(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["EventsFrontierFederationPeerState"]
+            shape = document["$defs"]["OrganizationRegistrationReceipt"]
             shape["required"] = ["issuer" if item == "issuer_id" else item for item in shape["required"]]
             shape["properties"]["issuer"] = shape["properties"].pop("issuer_id")
 
@@ -856,7 +856,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             }
 
         errors = self.lint_with_file(
-            SCHEMA_DIR / "availability-receipt.schema.json",
+            SCHEMA_DIR / "blob.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
@@ -869,7 +869,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             }
 
         errors = self.lint_with_file(
-            SCHEMA_DIR / "availability-receipt.schema.json",
+            SCHEMA_DIR / "blob.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )
@@ -895,7 +895,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             }
 
         errors = self.lint_with_file(
-            SCHEMA_DIR / "availability-receipt.schema.json",
+            SCHEMA_DIR / "blob.schema.json",
             mutate,
             check=check_identifier_role_suffix_contracts,
         )

@@ -16,7 +16,6 @@ from tools.artifact_lint import fixtures
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 CONTRACT_REGISTRY = ARTIFACTS / "registry" / "contract-registry.json"
-PCR_FIXTURE = ARTIFACTS / "fixtures" / "pcr-outward-exposure-fixture.json"
 SESSION_FIXTURE = ARTIFACTS / "fixtures" / "auth-session-proof-fixture.json"
 
 
@@ -44,19 +43,16 @@ class FixtureOperationContractLintTest(unittest.TestCase):
         return list(lint.errors)
 
     def test_committed_contract_cases_pass(self) -> None:
-        self.assertEqual(self.run_fixture(PCR_FIXTURE, load(PCR_FIXTURE)), [])
         self.assertEqual(self.run_fixture(SESSION_FIXTURE, load(SESSION_FIXTURE)), [])
 
-    def test_stale_public_resolution_required_fields_fail(self) -> None:
-        fixture = copy.deepcopy(load(PCR_FIXTURE))
+    def test_stale_required_fields_claim_fails(self) -> None:
+        fixture = copy.deepcopy(load(SESSION_FIXTURE))
         fixture["cases"][0]["expected_required_fields"] = [
             "principal_id",
             "station_id",
             "resolution_projection",
-            "method_history_evidence",
-            "projection_attestation",
         ]
-        errors = self.run_fixture(PCR_FIXTURE, fixture)
+        errors = self.run_fixture(SESSION_FIXTURE, fixture)
         self.assertTrue(
             any("expected_required_fields must exactly equal" in error for error in errors),
             errors,

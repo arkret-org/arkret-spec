@@ -117,8 +117,8 @@ class OpenApiTypedIdCarrierLintTest(unittest.TestCase):
 
     def test_producer_uuid_pattern_on_an_event_derived_kind_is_rejected(self) -> None:
         def mutate(document: dict) -> None:
-            document["components"]["schemas"]["GrantId"]["pattern"] = (
-                f"^ak:grant:{PRODUCER_UUIDV7}$"
+            document["components"]["schemas"]["RealmId"]["pattern"] = (
+                f"^ak:realm:{PRODUCER_UUIDV7}$"
             )
 
         failures = self._run(
@@ -127,7 +127,7 @@ class OpenApiTypedIdCarrierLintTest(unittest.TestCase):
         )
         self.assertTrue(
             any(
-                "validates event-derived ak:grant with a UUID payload" in failure
+                "validates event-derived ak:realm with a UUID payload" in failure
                 for failure in failures
             ),
             failures,

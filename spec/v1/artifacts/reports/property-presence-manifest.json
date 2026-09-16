@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8402,
+    "total_properties": 8405,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2287,
+      "optional": 2289,
       "optional_defaulted": 50,
-      "required": 5630,
+      "required": 5631,
       "required_nullable": 283,
       "tristate": 152
     },
@@ -2242,8 +2242,13 @@
         "/$defs/key_state/properties/approval_request_id": "optional",
         "/$defs/key_state/properties/approval_requested_at": "optional",
         "/$defs/key_state/properties/authorized_event_ref": "optional",
+        "/$defs/key_state/properties/authorized_public_key_digest": "optional",
+        "/$defs/key_state/properties/authorized_verification_method": "optional",
         "/$defs/key_state/properties/controller_account_id": "required",
         "/$defs/key_state/properties/controller_authorization_ref": "required",
+        "/$defs/key_state/properties/current_signer_evidence": "optional",
+        "/$defs/key_state/properties/current_signer_evidence/properties/authenticated_signer_evidence": "required",
+        "/$defs/key_state/properties/current_signer_evidence/properties/signer_resolution_evidence_ref": "required",
         "/$defs/key_state/properties/pairing_code": "optional",
         "/$defs/key_state/properties/pairing_expires_at": "optional",
         "/$defs/key_state/properties/pairing_request_id": "optional",
@@ -4665,7 +4670,6 @@
         "/properties/commit_inclusion": "optional",
         "/properties/commit_inclusion/properties/commit_ref": "optional",
         "/properties/commit_inclusion/properties/source_commit_ref": "optional",
-        "/properties/commit_inclusion/properties/state_root": "optional",
         "/properties/completed_at": "required",
         "/properties/event_digest": "optional",
         "/properties/legal_hold_ref": "tristate",
@@ -9145,7 +9149,6 @@
         "/properties/new_authority_acceptance_signature": "required",
         "/properties/old_authority_signature": "required",
         "/properties/realm_id": "required",
-        "/properties/snapshot_digest": "required",
         "/properties/snapshot_ref": "required",
         "/properties/to_generation": "required",
         "/properties/to_service_id": "required"

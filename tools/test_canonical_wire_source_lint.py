@@ -131,28 +131,12 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
 
     def test_key_backup_generation_string_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["properties"]["frontier_ref"]["properties"]["device_generation_ref"] = {
+            schema["properties"]["source_commit_ref"]["properties"]["device_generation_ref"] = {
                 "type": "string",
             }
 
         errors = self._lint("key-backup.schema.json", mutate)
         self.assertTrue(any("canonical PCR generation integer" in error for error in errors), errors)
-
-    def test_governance_descriptor_digest_mirror_fails(self) -> None:
-        def mutate(schema) -> None:
-            descriptors = schema["$defs"]["typed_proof_material"]["properties"]["event_ids"]
-            descriptors["items"] = {
-                "type": "object",
-                "required": ["event_id"],
-                "properties": {
-                    "event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
-                },
-                "additionalProperties": False,
-            }
-
-        errors = self._lint("mls-governance-proof-bundle.schema.json", mutate)
-        self.assertTrue(any("direct EventId set" in error for error in errors), errors)
-
 
 if __name__ == "__main__":
     unittest.main()

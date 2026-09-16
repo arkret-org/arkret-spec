@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 313,
+  "audited_occurrence_count": 316,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -72,8 +72,19 @@
     },
     {
       "file": "agent-operations.schema.json",
+      "key": "authenticated_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Carries the closed authenticated Agent signer root that key_state.current_signer_evidence content-addresses."
+    },
+    {
+      "file": "agent-operations.schema.json",
       "key": "current_signer_evidence",
-      "occurrences": 2,
+      "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -84,7 +95,7 @@
     {
       "file": "agent-operations.schema.json",
       "key": "signer_resolution_evidence_ref",
-      "occurrences": 4,
+      "occurrences": 5,
       "disposition": "qualifier",
       "reason": "Content-addresses the authenticated root inside current_signer_evidence so the runtime can persist and cite the exact offline signer-resolution closure."
     },

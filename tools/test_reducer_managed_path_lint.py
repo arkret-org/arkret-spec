@@ -190,15 +190,6 @@ class ReducerManagedPathLintTest(unittest.TestCase):
             any("unknown or inactive event kind" in error for error in errors), errors
         )
 
-    def test_unknown_cell_family_owner_is_rejected(self) -> None:
-        registry = self._mutate()
-        profile = self._object(registry, "actor_profile")
-        profile["forbidden_patch_paths"][0]["owner"] = "ak.component.identity.invented.v1"
-        errors = self._run(registry)
-        self.assertTrue(
-            any("unregistered cell family" in error for error in errors), errors
-        )
-
     def test_two_object_kinds_claiming_one_payload_is_rejected(self) -> None:
         registry = self._mutate()
         space = self._object(registry, "space")

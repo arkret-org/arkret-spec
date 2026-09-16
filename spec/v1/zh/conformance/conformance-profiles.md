@@ -251,7 +251,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-每个服务器 MUST 从 accepted state 计算并验证会改变当前 MLS epoch 密钥访问资格的闭合 checkpoint：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 `key_access_revision`。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 checkpoint。E2EE Event 的普通 `commit_authorization_state.authority_refs` 与 MLS checkpoint 正交；服务端不得要求同一 RealmCommit 覆盖自身。
+每个服务器 MUST 从 accepted state 计算并验证会改变当前 MLS epoch 密钥访问资格的闭合 checkpoint：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 `key_access_revision`。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 checkpoint。E2EE Event 的普通 admission 授权判定与 MLS checkpoint 正交；服务端不得要求同一 RealmCommit 覆盖自身。
 
 E2EE 客户端消费自己 Account Station 确认的 exact scope/group/epoch/key-access-revision 结果，核对本地 MLS leaves、待签 intent 与 GroupContext extension 的对应关系，执行 MLS Commit/Welcome 密码学处理；MUST NOT 收集治理闭包、验证历史 authority 或自行重建治理 checkpoint。没有所需服务器结果时，仅相关 scope 保持 pending。该服务器 policy profile 的 proof bundle 与完整 verify/materialize mutation/limit runner 属于服务器或独立审计角色，不是普通 full/e2ee 客户端的继承要求；SDK 是共享代码位置，不代表客户端角色。客户端 conformance 覆盖已确认结果消费、错账号/Realm/scope/group/epoch/basis 绑定、pending 与端到端篡改拒绝。
 
@@ -864,7 +864,7 @@ MUST NOT：
 SHOULD 支持：
 
 - franking proof batch endpoint（一次 fetch 多条 franking proof）以减少 audit traffic。
-- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 RealmCommit state_root 独立，因为 franking proof 不进入 Realm authority commit checkpoint（franking proof 是 service-side audit material，不改变协作状态）。
+- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Realm authority stream 独立，因为 franking proof 不进入 Realm authority commit checkpoint（franking proof 是 service-side audit material，不改变协作状态）。
 - 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
 
 ## 19b. Realtime Media Services

@@ -23,12 +23,6 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
     def signer(self):
         return {"actor_id": {"kind": "service", "service_id": "ak:did_core:web:station.example"}, "verification_method": "did:web:station.example#seal-key-1", "key_kind": "ed25519_raw32", "jose_algorithm": "Ed25519", "frozen_public_key_b64u": "a" * 43}
 
-    def genesis_request(self):
-        return {"request_id": "ak:request:01964137-0000-7000-8000-000000000010", "account_id": self.account(), "intended_purpose": "collaboration"}
-
-    def genesis_outcome(self):
-        return {"request_id": self.genesis_request()["request_id"], "account_id": self.account(), "notary": {"signer": self.signer(), "max_clock_error_ms": 1000}}
-
     def media_request(self):
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000011", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"}
 
@@ -42,37 +36,10 @@ class ServiceBindingResultSchemaTests(unittest.TestCase):
             del changed[key]
             self.assertFalse(validator.is_valid(changed), key)
 
-    def test_genesis_request_is_closed_and_purpose_bound(self):
-        validator = self.validator("genesis-notary-binding.schema.json", "genesis_notary_request_body")
-        self.assert_every_member_required(validator, self.genesis_request())
-        for purpose in ["principal_control", "agent_control", "applet_managed_control", "collaboration_v2", ""]:
-            changed = self.genesis_request()
-            changed["intended_purpose"] = purpose
-            self.assertFalse(validator.is_valid(changed), purpose)
-        for key in ["service_id", "verification_method", "realm_id", "notary"]:
-            changed = self.genesis_request()
-            changed[key] = None
-            self.assertFalse(validator.is_valid(changed), key)
-
-    def test_genesis_outcome_freezes_a_complete_notary_without_evidence(self):
-        validator = self.validator("genesis-notary-binding.schema.json", "genesis_notary_outcome")
-        self.assert_every_member_required(validator, self.genesis_outcome())
-        for key in self.signer():
-            changed = self.genesis_outcome()
-            del changed["notary"]["signer"][key]
-            self.assertFalse(validator.is_valid(changed), key)
-        changed = self.genesis_outcome()
-        changed["notary"]["signer"]["verification_method"] = "did:web:station.example"
-        self.assertFalse(validator.is_valid(changed))
-        for key in ["method_history_evidence", "normalized_did_document", "projection_attestation", "realm_id", "expires_at"]:
-            changed = self.genesis_outcome()
-            changed[key] = None
-            self.assertFalse(validator.is_valid(changed), key)
-
     def test_media_request_carries_no_caller_supplied_service_identity(self):
         validator = self.validator("media-service-binding-result.schema.json", "media_service_binding_request_body")
         self.assert_every_member_required(validator, self.media_request())
-        for key in ["service_id", "did", "base_url", "candidate_origins", "method_history_evidence", "seal_basis"]:
+        for key in ["service_id", "did", "base_url", "candidate_origins", "method_history_evidence"]:
             changed = self.media_request()
             changed[key] = None
             self.assertFalse(validator.is_valid(changed), key)

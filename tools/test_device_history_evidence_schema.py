@@ -1,110 +1,44 @@
-"""Closed historical device evidence and required publication coordinates."""
+"""Device key rows keep the retained signer-evidence coordinate and no digest mirror."""
 
-import copy
 import json
 import unittest
 from pathlib import Path
 
-from jsonschema import Draft202012Validator
-from referencing import Registry, Resource
+
+SCHEMAS = Path(__file__).resolve().parents[1] / "spec/v1/artifacts/schemas"
+DEVICE_RECORDS = ("query_device_record", "peer_query_device_record")
 
 
 class DeviceHistoryEvidenceSchemaTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        artifacts = Path(__file__).resolve().parents[1] / "spec/v1/artifacts"
-        resources = []
-        for path in (artifacts / "schemas").glob("*.json"):
-            document = json.loads(path.read_text(encoding="utf-8"))
-            resources.append((document["$id"], Resource.from_contents(document)))
-        cls.registry = Registry().with_resources(resources)
-        cases = json.loads((artifacts / "fixtures/schema-validation-fixture.json").read_text(encoding="utf-8"))["schema_validation_cases"]
-        cls.core = next(case["instance"] for case in cases if case["name"] == "account_identity_closure_device_attestation_valid")
+        cls.keys = json.loads(
+            (SCHEMAS / "keys-operations.schema.json").read_text(encoding="utf-8")
+        )
 
-    def validator(self, ref):
-        return Draft202012Validator({"$ref": "https://arkret.org/v1/schemas/" + ref}, registry=self.registry)
+    def test_device_rows_require_the_retained_signer_evidence_ref(self):
+        for name in DEVICE_RECORDS:
+            record = self.keys["$defs"][name]
+            self.assertIn("signer_evidence_ref", record["required"], name)
+            self.assertEqual(
+                record["properties"]["signer_evidence_ref"]["$ref"],
+                "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
+                name,
+            )
 
-    def attestation(self):
-        return {"attestation": copy.deepcopy(self.core), "proof": {
-            "verification_method": "did:web:ps.example#signing-1",
-            "created_at": self.core["attested_at"], "jws": "AA",
-        }}
+    def test_device_rows_are_closed_against_a_sibling_digest_mirror(self):
+        for name in DEVICE_RECORDS:
+            record = self.keys["$defs"][name]
+            self.assertIs(record["additionalProperties"], False, name)
+            self.assertNotIn("signer_evidence_digest", record["properties"], name)
 
-    def test_device_history_evidence_is_a_closed_distinct_branch(self):
-        validator = self.validator("authenticated-signer-resolution-evidence.schema.json")
-        value = {
-            "kind": "account_device", "signer_id": self.core["account_id"]["principal_id"],
-            "verification_method": "did:webvh:z6mkfixture:account.example#" + self.core["device_id"],
-            "device_projection_attestation": self.attestation(),
-            "attester_signer_evidence_ref": "ak:signer_evidence:sha256:" + "a" * 64,
-        }
-        validator.validate(value)
-        for field in value:
-            missing = copy.deepcopy(value)
-            del missing[field]
-            self.assertFalse(validator.is_valid(missing), field)
-        value["normalized_did_document"] = {}
-        self.assertFalse(validator.is_valid(value))
-
-    def projection(self):
-        value = copy.deepcopy(self.core)
-        del value["account_id"]
-        del value["device_id"]
-        return value
-
-    def test_query_and_current_evidence_require_retained_coordinate(self):
-        for schema, value in [
-            ("keys-operations.schema.json#/$defs/query_device_record", {
-                "algorithms": {}, "trust_algorithms": [],
-                "device_projection": self.projection(),
-            }),
-            ("keys-operations.schema.json#/$defs/peer_query_device_record", {
-                "algorithms": {}, "trust_algorithms": [],
-                "device_projection_attestation": self.attestation(),
-            }),
-            ("current-signer-evidence-operations.schema.json#/$defs/account_device_evidence", {
-                "sender_kind": "account_device", "account_id": self.core["account_id"],
-                "device_id": self.core["device_id"], "device_projection_attestation": self.attestation(),
-            }),
-        ]:
-            validator = self.validator(schema)
-            self.assertFalse(validator.is_valid(value))
-            value["signer_evidence_ref"] = "ak:signer_evidence:sha256:" + "b" * 64
-            validator.validate(value)
-            value["signer_evidence_digest"] = "sha256:" + "b" * 64
-            self.assertFalse(validator.is_valid(value))
-
-    def test_authorization_closure_requires_closed_kind_scope_action_coordinates(self):
-        validator = self.validator("seal.schema.json#/$defs/authorization_closure")
-        event_id = "ak:event:AfumWbbDTAdHm6EJcwrgFczGIei511I72WryaaMIPtpV"
-        value = {
-            "command_event_id": event_id,
-            "dependency_kind": "realm_controller_assignment",
-            "authorization_event_id": event_id,
-            "generation_event_id": event_id,
-            "scope_ref": {"kind": "realm", "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"},
-            "actions": ["ak.message.create"], "frontier": [],
-        }
-        validator.validate(value)
-        for kind in (None, "lifecycle", "circle_active", "consent_grant"):
-            invalid = copy.deepcopy(value)
-            if kind is None:
-                del invalid["dependency_kind"]
-            else:
-                invalid["dependency_kind"] = kind
-            self.assertFalse(validator.is_valid(invalid), kind)
-        invalid = copy.deepcopy(value)
-        invalid["actions"] = ["ak.message.edit"]
-        self.assertFalse(validator.is_valid(invalid))
-        invalid["actions"] = ["ak.self.agent.command.pause.v1"]
-        self.assertFalse(validator.is_valid(invalid))
-        invalid = copy.deepcopy(value)
-        invalid["scope_ref"] = {"kind": "realm_genesis"}
-        self.assertFalse(validator.is_valid(invalid))
-
-    def test_dependency_schema_is_derived_from_the_closed_registry(self):
-        from tools.artifact_pipeline import check_authorization_dependency_schema
-        self.assertEqual(check_authorization_dependency_schema(), [])
+    def test_client_and_station_rows_stay_distinct_carriers(self):
+        client = self.keys["$defs"]["query_device_record"]
+        station = self.keys["$defs"]["peer_query_device_record"]
+        self.assertIn("device_projection", client["required"])
+        self.assertNotIn("device_projection_attestation", client["properties"])
+        self.assertIn("device_projection_attestation", station["required"])
+        self.assertNotIn("device_projection", station["properties"])
 
 
 if __name__ == "__main__":

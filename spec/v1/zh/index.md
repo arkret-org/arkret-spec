@@ -29,7 +29,7 @@ MLS scope 提供端到端加密，服务器无需读取正文即可完成验证�
 
 - 身份主键：完整 ActorId；账号为不可拆分的 AccountId `{principal_id, station_id}`，DID principal 仅为密码学身份锚点
 - 数据主语（核心对象导览）：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
-- 审计主语：signed Event + per-actor event chain
+- 审计主语：signed Event + 其所在 authority stream 的 RealmCommit position
 - 权限主语：capability
 - 呈现主语：views / projection
 - 扩展承载：Morph（同时是上面 canonical 对象清单中的开放对象）+ schema / profile-defined facets
@@ -135,7 +135,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 ### 4.4 同步与真相模型
 
-- signed Event Envelope 是发布最小单位，actor event chain 是重放和可验证基础。
+- signed Event Envelope 是发布最小单位；重放和可验证的基础是按同一 stream 的 RealmCommit position 做的确定性投影。producer Event 本身不指向上一条 Event。
 - Station / Station sync surface 是同步基础设施，不是唯一真相源。
 - 搜索、inbox、notification、projection 默认由客户端或 SDK 派生。
 - 未加密私有正文不得发送到未授权第三方服务。

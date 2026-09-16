@@ -237,7 +237,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 5. 把该 genesis 与完整初始 facet commitment 持久化为该 `realm_id` 的永久本地绑定；
 6. 此后出现的任何不同 genesis MUST 拒绝，MUST NOT 因为它先到、更新、或来自"更权威"的 peer 而覆盖。
 
-上面第 3 条大体已被现有机制隐含——state-changing Event 要 `expected_revision`、Event 要 `commit_authorization_state.authority_refs`，RealmCommit 链最终 root 在 genesis RealmCommit——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
+上面第 3 条大体已被现有机制隐含——state-changing Event 的领域 payload 要 `expected_revision`、每条 Event 的授权由治理 Station 在接纳事务内解析，RealmCommit 链最终 root 在 genesis RealmCommit——但仍 MUST 显式执行，否则实现会在 backfill 乱序时先落一半状态。
 
 **这条使 `realm_id` 自证。**一个恶意 join candidate 服务自造的"Realm S"时，其 genesis 内容不同 → `event_id` 不同 → `retype(event_id) ≠ S` → 首次接触即被拒。因此 invite、`join_candidates[]` 与 Directory 响应 **MUST NOT** 被要求携带 genesis digest 或 authority-root 值：自证不需要外部背书，也不引入对邀请者或 Directory 的新信任。拒绝时的对外语义复用 [`../sync/federation.md` §5.0](../sync/federation.md) 规则 4 的统一最小披露失败族。
 
@@ -294,7 +294,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 Realm bootstrap event set 以 create 开始。创建时没有 accepted RealmCommit，因此下列两个**互斥封闭分支**内的 Event MAY 免 `expected_revision`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 使用同一句，两处 MUST 保持逐条一致）：
 
 - 普通 Collaboration 分支：`ak.realm.create`；同批同 actor 的 initial facets，顺序唯一由 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 登记：required `profile → policy_bundle → join_rule → history_access → discovery`，可选 `alias`，条件 `plaintext_visible_services`，最后 required creator `member.state{join}`。不得在实现中维护第二套顺序常量；
-- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `expected_revision null`。`ak.strand.create` 平时是携 `commit_authorization_state` 的 Event；但该 exact unit 的 Genesis RealmCommit 同时覆盖四条，Strand 无法引用尚不存在的 RealmCommit，因此在且仅在该 unit 内免 basis。
+- 1:1 Direct Conversation 分支：恰好 `ak.realm.create → founder ak.member.state{join} → peer ak.member.state{join} → main ak.strand.create` 四条，不得携普通 Collaboration facet。固定 profile、policy、join、history 与 discovery baseline 由 [`../identity/contact-and-direct-conversation.md` §6.2](../identity/contact-and-direct-conversation.md) 的 registered reducer contract 机械投影；第 2 槽显式写 founder membership 并携 `expected_revision null`。`ak.strand.create` 平时由治理 Station 解析出既有授权实例后才被接纳；但该 exact unit 的四条 Event 在同一个接纳事务内各自获得连续的 RealmCommit，Strand 无法引用尚未签发的 RealmCommit，因此在且仅在该 unit 内免 basis。
 
 不在该列表内的 state-changing Event 一律要求 `expected_revision`。Human PCR 只允许上文 root create + founding authorize 两项 shape；不得把普通 Realm follow-up 白名单混入 PCR genesis。批次结束后所有非锚点 state-changing Event 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#8-安全状态与-authority commit) 携带 basis。
 

@@ -45,7 +45,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
     def test_failure_and_position_discriminators_are_retained(self) -> None:
         definitions = load("service-operation-dtos.schema.json")["$defs"]
         retained = [
-            ("EventsActorCasConflictProblem", "accepted", False),
             ("SessionGrantReplayExpiredProblem", "state", "expired"),
             ("DeviceMessageDeliveredResult", "status", "delivered"),
             ("DeviceMessageUnknownResult", "status", "unknown"),
@@ -107,15 +106,10 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
                 text = json.dumps(stream[definition], sort_keys=True)
                 self.assertNotIn('"track_name"', text)
 
-    def test_signed_profile_constants_and_notary_algorithm_are_retained(self) -> None:
+    def test_signed_profile_constants_are_retained(self) -> None:
         self.assertEqual(
             load("agent-provision.schema.json")["properties"]["accountability_scope"]["const"],
             "agent_operator",
-        )
-        self.assertEqual(
-            load("event-payload.schema.json")["$defs"]["sidecar_create_payload"]
-            ["properties"]["encryption_profile"]["const"],
-            "mls_rfc9420",
         )
         self.assertEqual(
             load("recovery-receipt.schema.json")["properties"]["identity_model"]["const"],
@@ -126,8 +120,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ["pcr_policy_recovery_binding"]["properties"]["identity_model"]["const"],
             "pcr_policy",
         )
-        notary = load("realm.schema.json")["$defs"]["notary_signer_descriptor"]
-        self.assertIn('"jose_algorithm"', json.dumps(notary, sort_keys=True))
 
     def test_pcd_profile_fixed_parameters_are_not_echoed(self) -> None:
         describe = load("service-describe.schema.json")["properties"]["private_contact_discovery"]

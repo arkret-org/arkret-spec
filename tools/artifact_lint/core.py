@@ -521,9 +521,10 @@ SIGNED_EVENT_REQUEST_MARKERS = ("EventCommitSubmission", "event-envelope.schema.
 
 
 # `actor_private_event` is in scope for the same reason `event_log` is.
-# `event-and-patch.md` §342 is explicit: actor-private "只表示状态可见性与归属，不表示
-# 可以省略持久化、CAS、签名 envelope 或重放校验". It is still a signed Event, so the
-# service still cannot produce the signature.
+# `event-and-patch.md` §342 is explicit: actor-private states visibility and
+# ownership only; it never waives durability, CAS, the signed envelope or replay
+# validation. It is still a signed Event, so the service cannot produce the
+# signature.
 #
 # Scoping this check to `event_log` alone hid `ak.self.account_data.resource.delete.v1`,
 # whose sibling `resource.replace` writes the same `ak.account_data.set` kind — the same
@@ -645,7 +646,7 @@ PREIMAGE_IDENTITY_DERIVATION_RE = re.compile(
 
 PREIMAGE_EXEMPTION_REGISTRY_PATH = ARTIFACTS / "registry" / "preimage-identity-exemption-registry.json"
 
-PREIMAGE_EXEMPTION_SECTION_ANCHOR = "601-原像内禁止承诺-event-标识normative"
+PREIMAGE_EXEMPTION_SECTION_ANCHOR = "31-内容寻址预映射"
 
 PREIMAGE_EXEMPTION_SECTION_PATH = SPEC_ROOT / "zh" / "conformance" / "encoding.md"
 
@@ -667,7 +668,7 @@ PREIMAGE_EXEMPTION_ROW_KEYS = (
 
 PREIMAGE_EXEMPTION_KINDS = frozenset({"envelope_omission", "forward_declaration"})
 
-PREIMAGE_EXEMPTION_STATUS = frozenset({"active", "retired"})
+PREIMAGE_EXEMPTION_STATUS = frozenset({"active"})
 
 # Class A / class B directions. A row carrying one of these is a defective registry,
 # not a ruling: encoding.md 6.0.1 says those shapes are never exemptible.
@@ -681,7 +682,7 @@ PREIMAGE_FORBIDDEN_DIRECTIONS = frozenset({"self_identity", "same_unit_sibling"}
 # or DID forms are outside the gate by construction.
 SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH = ARTIFACTS / "registry" / "content-addressed-ref-digest-exemption-registry.json"
 
-SIBLING_DIGEST_SECTION_ANCHOR = "401-content-addressed-typed-ref-唯一表示normative"
+SIBLING_DIGEST_SECTION_ANCHOR = "401-引用验证"
 
 SIBLING_DIGEST_SECTION_PATH = SPEC_ROOT / "zh" / "conformance" / "encoding.md"
 
@@ -696,7 +697,7 @@ SIBLING_DIGEST_EXEMPTION_ROW_KEYS = (
 
 SIBLING_DIGEST_EXEMPTION_KINDS = frozenset({"distinct_preimage"})
 
-SIBLING_DIGEST_EXEMPTION_STATUS = frozenset({"active", "retired"})
+SIBLING_DIGEST_EXEMPTION_STATUS = frozenset({"active"})
 
 # A bare digest property: exactly one (or the registered pair of) active suite names
 # followed by 64 lowercase hex characters.
@@ -705,6 +706,11 @@ SIBLING_DIGEST_PATTERN_RE = re.compile(
 )
 
 CONTENT_ADDRESSED_HEX64 = "[0-9a-f]{64}"
+
+# Authority-commit identities carry a 33-octet suite-tagged digest rendered as
+# 44 unpadded base64url characters, so a content-addressed ref is either the
+# "<suite>:<64-hex>" form or that single-segment token.
+CONTENT_ADDRESSED_SUITE_TAGGED_TOKEN = "[A-Za-z0-9_-]{44}"
 
 
 
@@ -751,6 +757,7 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     ("digest_preimage_canonical_bytes_utf8", "event_digest", "utf8", "sha256_hex", ""),
     ("canonical_preimage_utf8", "sha256_digest_hex", "utf8", "raw_hex", ""),
     ("request_canonical_bytes_utf8", "request_digest", "utf8", "sha256_hex", ""),
+    ("unsigned_core_canonical_bytes_utf8", "unsigned_core_digest", "utf8", "sha256_hex", ""),
     # PCR genesis receipt device/HPKE key digests: SHA-256 over the canonical
     # multikey, written with the sha256: prefix the receipt schema requires.
     ("preimage_utf8", "expected", "utf8", "sha256_hex", ""),

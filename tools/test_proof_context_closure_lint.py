@@ -28,7 +28,7 @@ ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMAS = ARTIFACTS / "schemas"
 FIXTURES = ARTIFACTS / "fixtures"
-WEBSOCKET_FIXTURE = FIXTURES / "websocket-binding-fixture.json"
+SESSION_FIXTURE = FIXTURES / "auth-session-proof-fixture.json"
 
 DIRECTORY_PROOF_FAMILIES = (
     "directory_resolve_target_request_body",
@@ -110,24 +110,26 @@ class ProofContextClosureLintTest(unittest.TestCase):
         errors = self._run_with_mutations({REGISTRY: move_to_contexts})
         self.assertAnyContains(errors, "local proof leaves belong in domain_separations[]")
 
-    def test_agent_lease_binding_field_must_match_schema(self) -> None:
+    def test_domain_separation_binding_field_must_match_schema(self) -> None:
         def drift(document) -> None:
-            row = self._domain_row(document, "ak.agent_authority_state_evidence.v1")
+            row = self._domain_row(
+                document, "ak.device_authorize_accepted_device_possession_proof.v1"
+            )
             row["binding_fields"][-1] = "evidence"
 
         errors = self._run_with_mutations({REGISTRY: drift})
         self.assertAnyContains(errors, "binding_fields names ['evidence']")
 
-    def test_membership_compensation_bindings_are_schema_closed(self) -> None:
+    def test_managed_actor_bindings_are_schema_closed(self) -> None:
         def drift(document) -> None:
-            cas = self._domain_row(
-                document, "ak.membership_compensation.single_use_cas.v1"
+            authoring = self._domain_row(
+                document, "ak.applet_managed_actor_authoring_request_proof.v1"
             )
-            cas["binding_fields"][2] = "delegation_ref"
-            certificate = self._domain_row(
-                document, "ak.membership_compensation.terminal_certificate.v1"
+            authoring["binding_fields"][1] = "delegation_ref"
+            bundle = self._domain_row(
+                document, "ak.applet_managed_actor_bundle_proof.v1"
             )
-            certificate["binding_fields"][-1] = "issuer"
+            bundle["binding_fields"][-1] = "issuer"
 
         errors = self._run_with_mutations({REGISTRY: drift})
         self.assertAnyContains(errors, "binding_fields names ['delegation_ref']")
@@ -199,44 +201,40 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """A fragment that names no node used to pass: only the file part was checked."""
 
         def break_fragment(document) -> None:
-            self._row(document, "ak.realm_state_snapshot_witness_attestation_proof.v1")[
+            self._row(document, "ak.account_status_record_proof.v1")[
                 "schema_ref"
-            ] = "schemas/realm-state-snapshot.schema.json#/$defs/no_such_family"
+            ] = "schemas/account-operations.schema.json#/$defs/no_such_family"
 
         errors = self._run_with_mutations({REGISTRY: break_fragment})
         self.assertAnyContains(errors, "schema_ref fragment does not resolve to a schema node")
 
-    def test_witness_attestation_cannot_fall_back_to_manifest_context(self) -> None:
-        """Deleting the witness row leaves the schema claiming an unregistered context."""
+    def test_annotated_family_cannot_lose_its_registry_row(self) -> None:
+        """Deleting the row leaves the schema claiming an unregistered context."""
         errors = self._run_with_mutations(
-            {
-                REGISTRY: lambda doc: self._drop_row(
-                    doc, "ak.realm_state_snapshot_witness_attestation_proof.v1"
-                )
-            }
+            {REGISTRY: lambda doc: self._drop_row(doc, "ak.account_status_record_proof.v1")}
         )
         self.assertAnyContains(
-            errors, "names an unregistered proof context: ak.realm_state_snapshot_witness_attestation_proof.v1"
+            errors, "names an unregistered proof context: ak.account_status_record_proof.v1"
         )
 
-    def test_witness_context_cannot_be_registered_as_a_second_file_level_row(self) -> None:
+    def test_two_contexts_cannot_claim_one_anchor(self) -> None:
         """Two rows on one anchor are a multi-consumer family, not a silent alias."""
 
         def flatten(document) -> None:
-            self._row(document, "ak.realm_state_snapshot_witness_attestation_proof.v1")[
+            self._row(document, "ak.account_status_replication_receipt_proof.v1")[
                 "schema_ref"
-            ] = "schemas/realm-state-snapshot.schema.json"
+            ] = self._row(document, "ak.account_status_record_proof.v1")["schema_ref"]
 
         errors = self._run_with_mutations({REGISTRY: flatten})
         self.assertAnyContains(errors, "is claimed by 2 contexts")
 
     def test_annotation_must_match_the_registry_row(self) -> None:
         def drift(document) -> None:
-            document["$defs"]["realm_state_snapshot_witness_attestation"][
+            document["$defs"]["account_status_record"][
                 "x-arkret-proof-context"
-            ] = "ak.realm_state_snapshot_proof.v1"
+            ] = "ak.account_status_replication_receipt_proof.v1"
 
-        errors = self._run_with_mutations({SCHEMAS / "realm-state-snapshot.schema.json": drift})
+        errors = self._run_with_mutations({SCHEMAS / "account-operations.schema.json": drift})
         self.assertAnyContains(errors, "but the registry binds")
 
     def test_second_consumer_of_a_shared_leaf_needs_its_own_operation(self) -> None:
@@ -357,7 +355,12 @@ class ProofContextClosureLintTest(unittest.TestCase):
                 if row.get("domain") != "ak.websocket_auth.v1"
             ]
 
-        errors = self._run_with_mutations({REGISTRY: drop_namespace})
+        def carry_namespace(document) -> None:
+            document["cases"][0]["replay_cache_namespace"] = "ak.websocket_auth.v1"
+
+        errors = self._run_with_mutations(
+            {REGISTRY: drop_namespace, SESSION_FIXTURE: carry_namespace}
+        )
         self.assertAnyContains(errors, "is not a registered replay-cache namespace")
 
     def test_replay_cache_namespace_must_appear_in_its_declared_source(self) -> None:
@@ -395,10 +398,9 @@ class ProofContextClosureLintTest(unittest.TestCase):
         """The exact naming collision 0748 reported: a namespace in a proof_context field."""
 
         def collide(document) -> None:
-            kat = document["dpop_kat"]
-            kat["proof_context"] = kat.pop("replay_cache_namespace")
+            document["cases"][0]["proof_context"] = "ak.websocket_auth.v1"
 
-        errors = self._run_with_mutations({WEBSOCKET_FIXTURE: collide})
+        errors = self._run_with_mutations({SESSION_FIXTURE: collide})
         self.assertAnyContains(errors, "is not a registered proof context: 'ak.websocket_auth.v1'")
 
     def test_domain_separation_label_must_use_dot_and_snake_case(self) -> None:
