@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.8",
-  "generated_at": "2026-09-16T09:30:00+08:00",
+  "version": "2026-09-16.9",
+  "generated_at": "2026-09-16T09:35:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1343,7 +1343,7 @@
         "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or RealmCommit processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
-        "history_access MUST equal since_join. A standard-MLS PCR has no deliverable history secret; a new same-principal endpoint starts at its own initial Add/Welcome admission, while durable device-list and normalized principal views provide the control baseline without restoring foreign active MLS state.",
+        "history_access MUST equal since_join. A new same-principal endpoint starts at its own initial Add/Welcome admission; durable device-list and normalized principal views provide the control baseline, and decryption uses only MLS state held locally by that endpoint.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
         "An Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",

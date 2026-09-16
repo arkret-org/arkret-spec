@@ -1571,7 +1571,7 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
         )
 
     try:
-        history_secret = bytes.fromhex(inputs["history_secret_hex"])
+        epoch_content_root = bytes.fromhex(inputs["epoch_content_root_hex"])
         plaintext = bytes.fromhex(inputs["plaintext_hex"])
         carried_key = bytes.fromhex(inputs["content_key_hex"])
         carried_nonce = bytes.fromhex(expected["derived_nonce_hex"])
@@ -1585,7 +1585,7 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
         )
         return
     if (
-        len(history_secret) != 32
+        len(epoch_content_root) != 32
         or len(carried_key) != 16
         or len(carried_nonce) != 12
         or len(carried_ciphertext) < 16
@@ -1596,7 +1596,7 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
         lint.fail(path, "exporter AEAD transcript counter is outside uint64")
         return
     derived_key = mls_expand_with_label_sha256(
-        history_secret, "ak.content-v1", sender_domain.encode("utf-8"), 16
+        epoch_content_root, "ak.content-v1", sender_domain.encode("utf-8"), 16
     )
     if carried_key != derived_key:
         lint.fail(
@@ -1646,12 +1646,12 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
     mutated_aad = canonical_json(mutated_header).encode("utf-8")
     mutated_ciphertext = bytearray(carried_ciphertext)
     mutated_ciphertext[-1] ^= 1
-    mutated_secret = bytes((history_secret[0] ^ 1,)) + history_secret[1:]
+    mutated_root = bytes((epoch_content_root[0] ^ 1,)) + epoch_content_root[1:]
     mutations = (
         (
-            "history_secret",
+            "epoch_content_root",
             mls_expand_with_label_sha256(
-                mutated_secret,
+                mutated_root,
                 "ak.content-v1",
                 sender_domain.encode("utf-8"),
                 16,
@@ -1662,7 +1662,7 @@ def check_private_kdf_exporter_aead(lint: Lint, path: Path, data: dict[str, Any]
         (
             "sender_domain",
             mls_expand_with_label_sha256(
-                history_secret,
+                epoch_content_root,
                 "ak.content-v1",
                 (sender_domain + "x").encode("utf-8"),
                 16,

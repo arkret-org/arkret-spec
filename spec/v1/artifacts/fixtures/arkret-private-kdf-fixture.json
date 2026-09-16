@@ -37,9 +37,9 @@
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
-        "epoch_content_root_hex": "RECOMPUTE_ROOT",
+        "epoch_content_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
         "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76312e616b3a6465766963653a30313961373336302d303030302d373030302d383030302d303030303030303030303031",
-        "content_key_hex": "5ac66929b497ce870e9a660a5e98d9f5"
+        "content_key_hex": "3c684ab05dc2b96f519b6e6873d73a1e"
       },
       "note": "The ExpandWithLabel context is the raw UTF-8 bytes of the already verified canonical device id; it is not empty or JSON. aead_nk is AEAD.Nk of the negotiated active ciphersuite."
     },
@@ -59,9 +59,9 @@
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
-        "epoch_content_root_hex": "RECOMPUTE_ROOT",
+        "epoch_content_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
         "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d76314040616b3a6469645f636f72653a6b65793a7a364d6b764d5733746a75765736507159695838644c524e775a57794768786533626952446a41345a5069426146614a",
-        "content_key_hex": "b24575e661dad2670ae25d57a826c55c"
+        "content_key_hex": "1b413db62c31ab8efa2436750ea8cf8c"
       },
       "note": "The context is the UTF-8 bytes of canonical Event.actor_id = ak:did_core:key:<canonical-multibase-id>. The exact active LeafNode BasicCredential identity MUST be byte-identical. The producer proof verification_method is a did:key DID URL whose adapter projection equals this actor id; DID URL bytes never enter this KDF context."
     },
@@ -170,11 +170,11 @@
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
-        "epoch_content_root_hex": "RECOMPUTE_ROOT",
+        "epoch_content_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
         "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d76312e616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036",
-        "signal_key_hex": "b54fe4e8d4f389edb2d02028983dfb43",
+        "signal_key_hex": "b6db0bdf6ac63f29db36f214ed8899e4",
         "peer_verified_sender_domain_utf8": "ak:device:01904100-0000-7000-8000-00000000000e",
-        "peer_signal_key_hex": "ea4cbf3072a0996c6c5b72efd8369011",
+        "peer_signal_key_hex": "e5a38183f75c1205740f99083a89abeb",
         "forced_equal_nonce_hex": "000000000102030405060708",
         "same_raw_aead_key": false,
         "negative_mutations": [
@@ -217,7 +217,7 @@
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "routing_root_hex": "f9e39ba45ff2ba26a1e430c0df76bf7b56737a5c1ad9d103b3c07ca205e1963d",
+        "routing_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
         "expand_with_label": "ak.reaction-routing-v1",
         "effective_scope": {
           "kind": "realm",
@@ -250,11 +250,11 @@
         ]
       },
       "expected": {
-        "routing_hmac_key_hex": "8c7ad5a3c2afc46c81c918404ed6df04d6b6c9b0cf45b9d08d2af10d12fab8c0",
+        "routing_hmac_key_hex": "0599b6e51be62e8baf6cdec6bf5f326fe1a7c3cf1d56e38d091029b5a7dcf675",
         "tags_hex": [
-          "ac97c96a90ee4de6eb391f65afdedb0847ad3e60656238aab16f6be55176e5d7",
-          "ac97c96a90ee4de6eb391f65afdedb0847ad3e60656238aab16f6be55176e5d7",
-          "f15b56824f3244910f4cc615559dad3a35756d5b65ccac85d9dabe6be4698f56"
+          "e61c8ae48d2cf86d721e73c9f72969aacdff69fdbbbf5383a18e17173d2bdddb",
+          "e61c8ae48d2cf86d721e73c9f72969aacdff69fdbbbf5383a18e17173d2bdddb",
+          "65a3319be4bc655c9967c470fe339c129ffb46fea1b5a125fe4665a4576a0158"
         ],
         "negative_mutations": [
           "skip_NFC",

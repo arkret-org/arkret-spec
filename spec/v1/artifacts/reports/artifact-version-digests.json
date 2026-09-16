@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-16.8",
-      "generated_at": "2026-09-16T09:30:00+08:00",
-      "content_digest": "sha256:53125e2fcbeb29701d15b279a5135deded858027d1583957b2ce8432df8f2cf5"
+      "version": "2026-09-16.9",
+      "generated_at": "2026-09-16T09:35:00+08:00",
+      "content_digest": "sha256:0deb1c762f9d3d02d8fe90e6d809f6b4553e6e8a06a7a284537733894a69b069"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-16.9",
-      "generated_at": "2026-09-16T09:30:00+08:00",
-      "content_digest": "sha256:ee4d891bdfe73ce03e0d5defb85f419bdf27ff55550301011358fbb0ccb6e3cc"
+      "version": "2026-09-16.10",
+      "generated_at": "2026-09-16T09:35:00+08:00",
+      "content_digest": "sha256:c8b961b0dab1da7a9072e4a04effc83158364a18bcd80cced104fd4ee178e12a"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -147,9 +147,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
-      "version": "2026-09-01.1",
-      "generated_at": null,
-      "content_digest": "sha256:23cb0d6686fdfba4191073b63ddb767a32221f550532874ed04e06d64dc446a3"
+      "version": "2026-09-16.1",
+      "generated_at": "2026-09-16T09:35:00+08:00",
+      "content_digest": "sha256:cadd1dd4a3355dbbe70be1be9e351acc59a4f073e015a374a51a5d4f460b3fcc"
     },
     {
       "path": "spec/v1/artifacts/registry/feature-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-15.41",
-      "generated_at": "2026-09-16T18:30:01+08:00",
-      "content_digest": "sha256:e929ac5934ea9424bb4313d8447649452ede5238ddb65cb7ae3095da3be4ee66"
+      "version": "2026-09-15.42",
+      "generated_at": "2026-09-16T18:30:02+08:00",
+      "content_digest": "sha256:d969570cb05b26aa556a2f628526bc82835a210e1505959e0d34c5d577e89b6f"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.9",
-  "generated_at": "2026-09-16T09:30:00+08:00",
+  "version": "2026-09-16.10",
+  "generated_at": "2026-09-16T09:35:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3317,7 +3317,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an MLS-backed Realm/Circle with content_scheme=mls_rfc9420 sets history_access other than since_join. Standard RFC 9420 content has no deliverable history_secret for later endpoints; plaintext and mls_exporter_aead_v1 may use either since_join or all_history_for_current_members. See zh/models/realm-and-space.md Â§2.3 and zh/crypto-media/encryption-and-audit.md Â§2.10."
+      "description": "Sub-reason for failed_precondition when an MLS-backed Realm/Circle with content_scheme=mls_rfc9420 sets history_access other than since_join. A later endpoint starts from its own Add/Welcome admission and uses only locally held MLS state; plaintext and mls_exporter_aead_v1 may use either since_join or all_history_for_current_members. See zh/models/realm-and-space.md Â§2.3 and zh/crypto-media/encryption-and-audit.md Â§2.10."
     },
     {
       "code": "human_approval_required",
@@ -3757,7 +3757,7 @@
         "moderation_decision",
         "moderation_report"
       ],
-      "description": "A moderation evidence package discloses material beyond the minimal-disclosure obligation (for example unrelated plaintext message bodies, MLS epoch or history secrets). The evidence submission MUST reject. See governance/content-moderation.md."
+      "description": "A moderation evidence package discloses material beyond the minimal-disclosure obligation (for example unrelated plaintext message bodies or MLS private state). The evidence submission MUST reject. See governance/content-moderation.md."
     },
     {
       "code": "minimal_metadata_author_credential_invalid",

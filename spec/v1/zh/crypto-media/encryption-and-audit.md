@@ -18,7 +18,7 @@ sidebar:
 
 本规范定义了 Arkret 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
-- 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)——此为默认 `mls_rfc9420` 内容 scheme 的属性；启用 §2.10 `mls_exporter_aead_v1` 且保留 per-epoch `history_secret` 的 Realm，其 FS / PCS 在被保留 epoch 上按 §2.10.5 退化为限定形态（per-epoch FS、PCS 仅对未被保留的 epoch 成立）
+- 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)——此为默认 `mls_rfc9420` 内容 scheme 的属性；启用 §2.10 `mls_exporter_aead_v1` 时，本地仍保留 epoch content root 的 epoch 持续可解密，只有已安全删除 root 的 epoch 获得对应前向安全边界
 - **可审查加密 (Auditable E2EE)**，在 TEE / HSM / 等价受控执行 profile 下把合规解密绑定到可验证审计记录；在 software-only profile 下提供透明审计流程，但不声称具备同等密码学强制力。
 
 ## 2. 基础加密架构：MLS 与 Arkret 的融合
@@ -536,7 +536,7 @@ discoverability、push 与 preview 由各自 projection 决定，不能改变 AE
 routing_window = floor(unix_ms(event.created_at) / 3_600_000)
 
 routing_root[N] =
-  exporter scheme: history_secret[N]
+  exporter scheme: epoch_content_root[N]
   standard scheme: MLS-Exporter(
     "ak.reaction-routing-root-v1",
     canonical_effective_scope_key_bytes(effective_scope),
@@ -553,26 +553,26 @@ routing_tag = HMAC-SHA256(K_reaction_routing, utf8(canonical_emoji))
 ```
 
 一小时是 v1 固定常量，取 Event 自身必填、已签且加密前冻结的 `created_at`；receiver 按 Event 自身 window 验证任意
-历史 tag，不使用“当前/上一窗”限制。`target_ref` 是已存在的 canonical EventId。Exporter late receiver 可从获准
-history secret 验证；standard MLS routing root 不交付给后加入者。Tag 不对持有 epoch root 的成员隐藏 emoji，也不是
+既有 tag，不使用“当前/上一窗”限制。`target_ref` 是已存在的 canonical EventId。Receiver 只使用本地对应 epoch state；
+standard MLS routing root 同样从本地 epoch state 导出。Tag 不对持有 epoch root 的成员隐藏 emoji，也不是
 跨 window reaction identity。Plaintext reaction 使用公开语义，不需要 opaque tag。
 
 v1 不定义 mention routing KDF、plaintext recipient token 或专用 routing wire；mention 保持在 ciphertext 中，
 push 只发通用 blind wakeup。Routing window 不驱动 MLS Commit 或 epoch。
 
-### 2.10 Exporter AEAD 内容与历史恢复
+### 2.10 Exporter AEAD epoch 内容
 
 仅 `content_scheme=mls_exporter_aead_v1` 的 Realm/Circle 可导出和交付：
 
 ```text
-history_secret[N] = MLS-Exporter(
-  "ak.history-v1",
+epoch_content_root[N] = MLS-Exporter(
+  "ak.epoch-content-root-v1",
   canonical_effective_scope_key_bytes(effective_scope),
   KDF.Nh
 )
 
 K_content[N,sender] = ExpandWithLabel(
-  history_secret[N],
+  epoch_content_root[N],
   "ak.content-v1",
   exact_active_leaf_basic_credential_identity,
   AEAD.Nk
@@ -598,7 +598,7 @@ Receiver 先按 EventId 折叠完全相同 Event，再执行 durable replay gate
 `(mls_group_id,epoch,sender_domain,counter) -> exact EventId/ciphertext digest`。同 tuple 的不同 Event/digest
 即使 AEAD 可开也拒绝。ordinary DeviceId 历史上不得重分配给另一 endpoint/principal。
 
-`history_secret[N]` 是 exporter scheme 的本地 epoch content root；各 epoch root 必须独立，禁止正向或反向互推，且不得进入任何 Event、operation request/response、portable backup 或 Station-side recovery carrier。`history_access` 只裁决可同步的 committed Event 范围，不授予解密能力。Standard `mls_rfc9420` 同样只依赖客户端持有的 MLS state。
+`epoch_content_root[N]` 只存在于客户端本地 MLS state；各 epoch root 必须独立，禁止正向或反向互推，且不得进入任何 Event、operation request/response、portable backup 或 Station-side recovery carrier。`history_access` 只裁决可同步的 committed Event 范围，不授予解密能力。Standard `mls_rfc9420` 同样只依赖客户端持有的 MLS state。
 
 
 ### 2.11 Ordinary Agent Event 的 authorization + MLS 双绑定（normative）
