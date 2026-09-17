@@ -154,7 +154,7 @@
         "realm_id",
         "join_rule",
         "history_access",
-        "authority_generation"
+        "governance_generation"
       ],
       "properties": {
         "realm_id": {
@@ -166,9 +166,10 @@
         "history_access": {
           "$ref": "./realm.schema.json#/properties/history_access"
         },
-        "authority_generation": {
+        "governance_generation": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Station tenure the intake descriptor was answered under."
         },
         "display_name": {
           "type": "string",

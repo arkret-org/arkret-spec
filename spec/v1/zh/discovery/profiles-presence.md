@@ -82,10 +82,7 @@ Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交�
   "kind": "ak.profile.create",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "producer_revision": 1,
   "created_at": "2026-04-26T00:00:00Z",
-  "hlc": "01970e589d21-0001-a13f9c2e",
-  "domain_refs": [],
   "refs": [],
   "payload": {
     "object": {
@@ -124,12 +121,7 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
   "kind": "ak.profile.update",
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "producer_revision": 2,
   "created_at": "2026-04-26T00:01:00Z",
-  "hlc": "01970e598d21-0001-a13f9c2e",
-  "domain_refs": [
-    "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-"
-  ],
   "refs": [
     {
       "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
@@ -175,12 +167,7 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
   "kind": "ak.profile.realm_override",
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-  "producer_revision": 3,
   "created_at": "2026-04-26T00:02:00Z",
-  "hlc": "01970e5a8d21-0001-a13f9c2e",
-  "domain_refs": [
-    "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM"
-  ],
   "refs": [
     {
       "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",

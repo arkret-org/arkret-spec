@@ -23,6 +23,7 @@ testing its own proposition as coverage grows.
 from __future__ import annotations
 
 import copy
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -43,10 +44,28 @@ def row_of(registry: dict, kind: str) -> dict:
 
 
 def any_covered_row(registry: dict, *, exclude: str = "") -> dict:
+    """A covered Event kind whose writes already address distinct targets.
+
+    A row that legitimately repeats a target -- the atomic remove-then-add both
+    Agent key kinds register -- proves nothing when a test duplicates one of its
+    writes, because the gate is meant to allow that shape. Naming those kinds
+    one by one went stale the moment a second one landed, so the filter reads
+    the property itself.
+    """
     for row in registry["event_kinds"]:
-        if row["event_kind"] != exclude and row.get("result_writes"):
+        writes = row.get("result_writes")
+        if row["event_kind"] == exclude or not writes:
+            continue
+        targets = [
+            json.dumps(
+                [write.get("result_family"), write.get("result_selector")],
+                sort_keys=True,
+            )
+            for write in writes
+        ]
+        if len(set(targets)) == len(targets):
             return row
-    raise AssertionError("no covered Event kind in the registry")
+    raise AssertionError("no covered Event kind with distinct write targets")
 
 
 class ResultWriteTargetUniquenessTest(unittest.TestCase):
@@ -97,7 +116,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
     def test_a_repeated_target_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
-            row = any_covered_row(registry, exclude="ak.agent.key.authorize")
+            row = any_covered_row(registry)
             row["result_writes"].append(copy.deepcopy(row["result_writes"][0]))
 
         reported = self._newly_reported(mutate)
@@ -109,7 +128,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         families off the same id."""
 
         def mutate(registry: dict) -> None:
-            row = any_covered_row(registry, exclude="ak.agent.key.authorize")
+            row = any_covered_row(registry)
             clone = copy.deepcopy(row["result_writes"][0])
             clone["result_family"] = "realm_genesis"
             row["result_writes"].append(clone)
@@ -156,7 +175,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         two writes never race."""
 
         def mutate(registry: dict) -> None:
-            row = any_covered_row(registry, exclude="ak.agent.key.authorize")
+            row = any_covered_row(registry)
             first = row["result_writes"][0]
             clone = copy.deepcopy(first)
             first["condition"] = {"kind": "field_present", "field": "payload.probe"}
@@ -170,7 +189,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         guess here means two writes racing on one result."""
 
         def mutate(registry: dict) -> None:
-            row = any_covered_row(registry, exclude="ak.agent.key.authorize")
+            row = any_covered_row(registry)
             first = row["result_writes"][0]
             clone = copy.deepcopy(first)
             first["condition"] = {"kind": "field_present", "field": "payload.probe"}
@@ -188,7 +207,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         on a payload shape whose key cannot be derived."""
 
         def mutate(registry: dict) -> None:
-            write = any_covered_row(registry, exclude="ak.agent.key.authorize")[
+            write = any_covered_row(registry)[
                 "result_writes"
             ][0]
             write["result_selector"] = {
@@ -206,7 +225,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
 
     def test_an_agreeing_coalesce_selector_passes(self) -> None:
         def mutate(registry: dict) -> None:
-            write = any_covered_row(registry, exclude="ak.agent.key.authorize")[
+            write = any_covered_row(registry)[
                 "result_writes"
             ][0]
             write["result_selector"] = {
@@ -226,7 +245,7 @@ class ResultWriteTargetUniquenessTest(unittest.TestCase):
         rule, and pinning that keeps the rule from widening by accident."""
 
         def mutate(registry: dict) -> None:
-            write = any_covered_row(registry, exclude="ak.agent.key.authorize")[
+            write = any_covered_row(registry)[
                 "result_writes"
             ][0]
             write["condition"] = {

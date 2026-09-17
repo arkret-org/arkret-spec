@@ -479,7 +479,7 @@
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
-        "expected_revision": 0,
+        "expected_server_revision": 0,
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
         "push_gateway_id": "ak:did_core:webvh:z6mkpushgatewayservice",
         "encryption_key": "hpke-public-key",
@@ -499,7 +499,7 @@
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
-        "expected_revision": 2,
+        "expected_server_revision": 2,
         "revoked": true
       }
     },
@@ -535,7 +535,7 @@
         },
         "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
         "push_route": "apns_main",
-        "expected_revision": 2,
+        "expected_server_revision": 2,
         "revoked": true,
         "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
       }
@@ -603,17 +603,17 @@
       "writes": [
         {
           "shape": "active",
-          "expected_revision": 0,
+          "expected_server_revision": 0,
           "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8"
         },
         {
           "shape": "active",
-          "expected_revision": 1,
+          "expected_server_revision": 1,
           "push_target_id": "ak:pseudonym:push:lg8aqJ2eJjms1GQpkzloxGn8F802f8RfmfmfsC85eRo"
         },
         {
           "shape": "revoked",
-          "expected_revision": 2
+          "expected_server_revision": 2
         }
       ],
       "expected": {
@@ -628,17 +628,17 @@
       "writes": [
         {
           "name": "first_sibling",
-          "expected_revision": 1,
+          "expected_server_revision": 1,
           "expected": "accepted"
         },
         {
           "name": "second_sibling",
-          "expected_revision": 1,
+          "expected_server_revision": 1,
           "expected": "cas_conflict"
         },
         {
           "name": "old_exact_replay_after_successor",
-          "expected_revision": 0,
+          "expected_server_revision": 0,
           "expected": "cas_conflict"
         }
       ],

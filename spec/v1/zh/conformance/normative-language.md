@@ -61,7 +61,7 @@ see_also:
 ## 5. 关键字使用例
 
 - 规范要求：`Receiver MUST verify proofs[0] before accepting the event.`
-- 规范禁止：`Implementations MUST NOT use HLC to override domain_refs causality.`
+- 规范禁止：`Implementations MUST NOT use HLC to override RealmCommit stream_position order.`
 - 编辑建议：`Implementations SHOULD log clock skew warnings, but MUST NOT reorder by HLC.`
 - 可选能力：`Servers MAY publish event batch receipts.`
 - 非规范叙述：`This profile is recommended for personal_node deployments.`（无大写 RECOMMENDED，仅是叙述）
@@ -72,9 +72,9 @@ see_also:
 
 ## 7. 命名约定：单复数
 
-Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`domain_refs`、`owning_organization_ids`）；单值 scalar 字段使用单数，并显式标明 value category（例如 `track_name`、`actor_id`、`realm_id`、`schema`）。
+Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`blob_refs`、`owning_organization_ids`）；单值 scalar 字段使用单数，并显式标明 value category（例如 `track_name`、`actor_id`、`realm_id`、`schema`）。
 
-- **单 / 复数由 cardinality 决定（normative）**：字段的单数 / 复数形态 MUST 由其 wire cardinality 唯一决定——承载单一引用用单数（`schema`、`commit_ref`、`policy_event_ref`），承载多引用用复数 / 数组形态（`schema_refs`、`domain_refs`、`proofs`）。单数与复数形态**不可互改、不可互换**：`schema` 与 `schema_refs` 是 cardinality 不同的两个字段，MUST NOT 被实现当作同义可替换字段读写。权威命名与 cardinality 判定规则以 [`../models/common-fields.md` §2.1](../models/common-fields.md) 为单一真源。
+- **单 / 复数由 cardinality 决定（normative）**：字段的单数 / 复数形态 MUST 由其 wire cardinality 唯一决定——承载单一引用用单数（`schema`、`commit_ref`、`policy_event_ref`），承载多引用用复数 / 数组形态（`schema_refs`、`blob_refs`、`proofs`）。单数与复数形态**不可互改、不可互换**：`schema` 与 `schema_refs` 是 cardinality 不同的两个字段，MUST NOT 被实现当作同义可替换字段读写。权威命名与 cardinality 判定规则以 [`../models/common-fields.md` §2.1](../models/common-fields.md) 为单一真源。
 - 复数 ↔ 单数不互改。canonical schema / registry MUST 只接受与 cardinality 一致的字段名。
 - 新增 wire 字段 MUST 按 cardinality 选用单 / 复数形式；不得使用 `*_list` / `*_array` / `*_set` 后缀替代复数。
 - 与之配套的 `*_ref` / `*_refs` / `*_id` / `*_ids` 后缀规则见 [`../models/common-fields.md` §2.1](../models/common-fields.md)。

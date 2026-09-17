@@ -43,7 +43,7 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 当前治理 Station 在同一一致性快照中读取 visible stream heads 与 typed current rows，构造 canonical body，
 计算 snapshot ID 并签名。接收方必须验证：
 
-1. authority bundle 证明签名 Station 是该 `authority_generation` 的当前治理 Station；
+1. authority bundle 证明签名 Station 是该 `governance_generation` 的当前治理 Station；
 2. snapshot ID 与 canonical body 匹配；
 3. Station proof 的 domain separation 与 payload digest 匹配；
 4. 每个 visible head 可由随后下载的同 stream tail 连续承接；

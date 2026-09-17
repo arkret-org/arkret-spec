@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.13",
+  "version": "2026-09-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T15:00:00+08:00",
+  "generated_at": "2026-09-18T21:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1947,7 +1947,7 @@
       "retry_safe": true,
       "durable_effect": {
         "kind": "none",
-        "rationale": "installs_only_the_verified_authority_generation_snapshot_and_private_stream_heads"
+        "rationale": "installs_only_the_verified_governance_generation_snapshot_and_private_stream_heads"
       }
     },
     {

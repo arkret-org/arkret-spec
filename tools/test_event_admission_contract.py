@@ -121,7 +121,7 @@ class EventAdmissionContractTest(unittest.TestCase):
         contract = self.canonical["authority_commit_admission_contract"]
         self.assertIn("matching_realm_commit", contract["required_evidence"])
         self.assertIn("original_producer_proof", contract["required_evidence"])
-        self.assertIn("current_authority_generation", contract["required_evidence"])
+        self.assertIn("current_governance_generation", contract["required_evidence"])
         self.assertEqual(
             contract["schema_projection"],
             "schemas/event-envelope.schema.json#/$defs/authority_committed_event",

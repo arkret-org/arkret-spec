@@ -75,9 +75,8 @@
       "ak.realm.create",
       "ak.device.authorize"
     ],
-    "authorize_domain_refs": [
-      "create.event_id"
-    ],
+    "authorize_predecessor_envelope_fields": [],
+    "unit_ordering": "wire order, landed as consecutive RealmCommit stream_position in one transaction",
     "root_commitment_input": "authorize.payload",
     "forbidden_root_commitment_inputs": [
       "authorize.event_id",

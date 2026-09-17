@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 318,
+  "audited_occurrence_count": 325,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -85,6 +85,17 @@
     },
     {
       "file": "agent-operations.schema.json",
+      "key": "agent_current_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Single hoisted shape of the activation-time Agent signer root, referenced by both key_state.current_signer_evidence and agent_runtime_approval_status_outcome.current_signer_evidence so the two carriers cannot drift."
+    },
+    {
+      "file": "agent-operations.schema.json",
       "key": "authenticated_signer_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -97,13 +108,13 @@
     {
       "file": "agent-operations.schema.json",
       "key": "current_signer_evidence",
-      "occurrences": 3,
+      "occurrences": 4,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation"
       ],
-      "reason": "Carries the complete activation-time Agent signer evidence root and recursive authenticated dependencies returned through the existing runtime status operation."
+      "reason": "Carries the complete activation-time Agent signer evidence root and recursive authenticated dependencies returned through the existing runtime status operation and the controller-private key_state, both by $ref to the single hoisted shape."
     },
     {
       "file": "agent-operations.schema.json",
@@ -768,7 +779,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 21,
+      "occurrences": 26,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },

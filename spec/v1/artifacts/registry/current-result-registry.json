@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.2",
+  "version": "2026-09-18.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T09:20:00+08:00",
+  "generated_at": "2026-09-18T21:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -161,6 +161,42 @@
     {
       "result_kind": "strand_position",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_result"
+    },
+    {
+      "result_kind": "invite_lifecycle",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_result"
+    },
+    {
+      "result_kind": "invite_live_target",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_live_target_result"
+    },
+    {
+      "result_kind": "invite_directed_invitee",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_directed_invitee_result"
+    },
+    {
+      "result_kind": "pin",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/pin_result"
+    },
+    {
+      "result_kind": "space_parent",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_parent_result"
+    },
+    {
+      "result_kind": "space_child_scope_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_child_scope_policy_result"
+    },
+    {
+      "result_kind": "agent_provisioning",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_provisioning_result"
+    },
+    {
+      "result_kind": "agent_pcr_genesis_declaration",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_result"
+    },
+    {
+      "result_kind": "agent_selector_claim",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_result"
     }
   ]
 }

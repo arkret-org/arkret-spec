@@ -19,7 +19,7 @@
       "type": "object",
       "required": [
         "realm_id",
-        "authority_generation",
+        "governance_generation",
         "stream_heads",
         "entries"
       ],
@@ -27,9 +27,10 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "authority_generation": {
+        "governance_generation": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Station tenure these entries and stream heads were read under."
         },
         "stream_heads": {
           "type": "array",

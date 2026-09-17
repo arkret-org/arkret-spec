@@ -350,6 +350,12 @@
       }
     },
     {
+      "$ref": "#/$defs/registered_admission_shape"
+    },
+    {
+      "$ref": "#/$defs/registered_execution_shape"
+    },
+    {
       "if": {
         "properties": {
           "kind": {
@@ -2082,6 +2088,25 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "ak.realm.authority.reset"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_authority_reset_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "ak.realm.create"
           }
         },
@@ -3141,12 +3166,6 @@
           }
         }
       }
-    },
-    {
-      "$ref": "#/$defs/registered_admission_shape"
-    },
-    {
-      "$ref": "#/$defs/registered_execution_shape"
     }
   ],
   "$defs": {
@@ -6515,6 +6534,7 @@
                 "ak.realm.alias",
                 "ak.realm.archive",
                 "ak.realm.asset_privacy_policy",
+                "ak.realm.authority.reset",
                 "ak.realm.create",
                 "ak.realm.destroy",
                 "ak.realm.discovery",
@@ -6676,6 +6696,7 @@
             "ak.realm.alias",
             "ak.realm.archive",
             "ak.realm.asset_privacy_policy",
+            "ak.realm.authority.reset",
             "ak.realm.create",
             "ak.realm.destroy",
             "ak.realm.discovery",

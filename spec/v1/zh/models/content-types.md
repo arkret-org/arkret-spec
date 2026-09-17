@@ -453,25 +453,27 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 权威计票由已接受的标准 Message Event 流承担。response Event 保留在 canonical Event log 中作为审计事实，并折叠进目标 poll 的 `PollState`；它不物化为时间线中的独立 `MessageState`。poll Morph 或 Relation 只能投影此状态，不得成为第二真相源。canonical block schema 见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/content-block-poll.schema.json`；对应一致性向量为 `ak.vector.message.poll_reducer.v1`。
 
-#### 4.9.1 因果响应集合与唯一计票（normative）
+#### 4.9.1 改票声明与唯一计票（normative）
 
 分区键为 `(realm_id, effective Circle scope, poll_ref, JCS(Event.actor_id))`；Realm scope 与任一 Circle scope 不同。`actor_id` 保留完整 AccountId：Agent 自身作为 actor 时独立计票；代理写入仍归 `actor_id`，不得按 controller、裸 principal、设备、签名 key 或 `executed_by` 合并或拆分票。minimal-metadata 身份规则不变。
 
-每个分区的输入集合 S 仅含通过上述验证、在当前有效性基线下 accepted 且非 quarantine 的 response Event，按 canonical Event digest 去重。若 Y 的 `domain_refs` 直接包含同分区 X 的 canonical Event digest，建立改票边 X → Y；改票关系为这些边的传递闭包。只有已解析并验证为同分区 response 的引用建立边；其它消息、其它 poll、其它 actor、其它 scope 不建立改票边，也不能作为传递中介。`domain_refs`、`producer_revision`、HLC 和墙钟时间均不额外建立改票边或决定票的优先级。
+**一个分区恰好落在一条 authority stream 内（normative）**：分区键已经固定了 Realm 与 effective Circle scope，而 Realm stream 与每个 Circle stream 是各自独立的 authority stream（[`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md)）。因此同一分区的全部 response Event 都由同一个治理 Station 在同一条 stream 上接纳，各自取得该 stream 严格 +1 的 `RealmCommit.stream_position`。它们之间是**全序**：并发 head 在这个分区里不可能出现。
 
-未解析的 `domain_refs` 必须先取得并验证其引用对象，再判定是否属于本分区；依赖未完成时，该 response 及依赖它的同分区后继不进入有效计票输入，原先可用响应不因此消失。迟到 predecessor 补齐后 MUST 重算受影响分区；不能将未解析引用当成“不存在旧票”而先计为并发。自引用或循环依赖非法，MUST NOT 进入有效计票输入，不得按 digest 打破因果环。本规则不新增通用 Event 接受状态或 wire reason code。
+每个分区的输入集合 S 仅含通过上述验证、在当前有效性基线下 accepted 且非 quarantine 的 response Event，按 canonical Event digest 去重。**当前票唯一由 position 决定**：S 为空时该 actor 不计票，否则当前票是 S 中 `stream_position` 最大的那一条，完整采用它的 `selections`，不得合并多条 response 的选项。Event 不携带 `domain_refs`、`producer_revision` 或 `hlc`（[`../sync/authority-commit-log.md` §2](../sync/authority-commit-log.md) 的封闭禁止清单）；`created_at`、HLC、墙钟时间、canonical Event digest、本地接收顺序与数据库 ID 都不参与当前票的选择，也不得把 position 较小者重新扶为当前票。
 
-令 H(S) 为依赖已闭合的有效输入中没有因果后继的响应集合。H 为空时该 actor 不计票；否则唯一当前票为 H 中 canonical Event digest 的完整 wire 字符串按 unsigned UTF-8 bytes 严格比较的最大者。完整采用该响应的 `selections`，不得合并多个并发响应的选项。digest 仅用于并发分支破局，不表示实际点击先后。producer 改票 SHOULD 在 `domain_refs` 中引用自己已观察到的本分区全部 heads，包括当前展示中未胜出的并发 head；未观察到的分支不得假定已覆盖。
+**改票声明的唯一载体（normative）**：producer 改票时 MUST 在该 `ak.message.create` payload 顶层的 typed `poll_response_heads[]` 中逐条列出它替换的 response——每项是一对 `{poll_event_ref, response_event_ref}`，前者指向承载该 poll 的 Event，后者指向被替换的 response Event（`event-payload.schema.json#/$defs/poll_response_head`，见 [`event-and-patch.md` §2](./event-and-patch.md)）。该字段与 content block 并列在**明文** payload 里，这是它存在的理由：E2EE Realm 的治理 Station 读不到 `selections`，却仍要能验这条改票指向何处。admission MUST 校验每项的两个 ref 都落在本分区——`poll_event_ref` 指向同一 Realm、同一 effective Circle scope 内已接受且含目标 `ak.content.poll` block 的 Event，`response_event_ref` 指向同一分区（同 poll、同 actor、同 scope）内已接受的 response Event；指向其它消息、其它 poll、其它 actor、其它 scope 或无法解析时 MUST 整组拒绝该 response Event 并零写入。
 
-例如 A、B 并发，C 仅引用 A，且 digest 顺序 A > B > C：H={B,C}，所有合法接收顺序的当前票都是 B。若 D 同时引用 B、C，则只有 D 为 head，即使 D 的 digest 更小。只保存 A/B 的比较赢家再与 C 比较的算法不符合本规范。
+`poll_response_heads[]` **不是** winner 判据，也不得被实现当作第二真相源：当前票只由 position 决定，声明只是 producer 对“本条替换了哪几条”的可验证陈述，供审计面与 UI 呈现改票轨迹，并让不能解密正文的验证方也挡得住跨 poll / 跨 actor 的错指。省略该字段或声明不完整的 response 不因此丧失或取得当前票。`response_event_ref` 指向本条 Event 自身在结构上不可能——payload 已被 `event_id` 覆盖——因此这里没有因果环，也不需要环检测。
+
+消费方持有的永远是该 stream 的一个**前缀**：position 连续性校验（[`../sync/authority-commit-log.md` §4](../sync/authority-commit-log.md)）保证它不会把中间缺口当成“没有更晚的票”。缺口未补齐时 MUST 把该分区报告为 provisional，MUST NOT 宣布已收敛；补齐后当前票只沿 position 单向前移，原先可用的 response 不因此消失。本规则不新增通用 Event 接受状态或 wire reason code。
 
 #### 4.9.2 状态、合并与重建（normative）
 
-内部状态 MUST 保留响应身份、selections、已验证改票边，以及足以恢复依赖的 canonical Event 资料或索引。当前 winner 与 tally 只是派生缓存；“每 actor 计一票”不是“内部仅存一条响应”。不得删除仅因并发比较落败而尚未被因果覆盖的 head。
+内部状态 MUST 保留每条 response 的身份、`selections`、`stream_position` 与它声明的 `poll_response_heads[]`，以及足以重放该分区的 canonical Event 资料或索引。当前票与 tally 只是派生缓存；“每 actor 计一票”不是“内部仅存一条 response”：position 较小的历史 response 是审计事实，MUST NOT 被删除。
 
-同一有效性基线下，副本合并为响应集合与已验证边的并集，然后求依赖闭合的 H 与 winner；此 join 必须满足交换律、结合律、幂等律。边必须由对应 Event 的 `domain_refs` 验证，不能信任对端单独声称的覆盖关系。全量重放、迟到依赖、重复输入及任意分片合并必须得出相同 heads、winner、selections 与 tally。仅对全部输入排序后套用两两 winner comparator 不合格。
+同一有效性基线下，副本合并是 response 集合的并集，再在每个分区取 `stream_position` 最大者。该 join 天然满足交换律、结合律与幂等律，因为它就是同一条 stream 上一个全序的 max。`poll_response_heads[]` 的每一项 MUST 由该 Event 自身的已签 payload 验出，不能信任对端单独声称的覆盖关系。全量重放、迟到 position、重复输入及任意分片合并 MUST 得出相同的当前票、`selections` 与 tally。
 
-追溯 quarantine、fork resolution 等改变 accepted 输入集合时，按既有有效性规则撤除失效输入及处理依赖，再重建 projection；跨有效性基线不能假设输入永远只增不减。snapshot／压缩可以使用 heads 加完整因果上下文，但 MUST 与上述集合语义等价且可恢复依赖，不得仅保存展示 winner 或截断必要祖先。
+追溯 quarantine、fork resolution 等改变 accepted 输入集合时，按既有有效性规则撤除失效输入，再重建 projection；跨有效性基线不能假设输入永远只增不减，当前票 MAY 因此回退到 position 更小的 response。snapshot／压缩 MUST 至少保存每个分区当前票的完整 response 与其 position，并 MUST 与上述集合语义等价，不得只保存展示 winner 或 tally 计数。
 
 ### 4.10 复合消息 `ak.content.composite`
 

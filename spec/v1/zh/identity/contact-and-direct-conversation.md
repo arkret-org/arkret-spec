@@ -119,7 +119,7 @@ Control 查询、确切 RealmCommit prepare/sign/submit 流程，再以原 bytes
 `{holder}#{device_id}` method 签名；Station 不持有 holder 私钥，也不得代签 producer Event。Station 只在 current authority 验证成功后签发 RealmCommit，并于同一事务 materialize Contact effect。
 
 request prepare 是 holder-local authoring：它 **MUST** 从 holder PCR 的 current committed stream head
-固定 `producer_revision`、`domain_refs` 与 `expected_revision`；该 head 暂不可得时返回可重试的
+固定该 request 的 typed `expected_revision`；该 head 暂不可得时返回可重试的
 `revision_unavailable` 且零写入。target principal 的解析与投递属于 commit 后的 durable receipted outbox / peer
 carrier；因此 target 当前离线或不可解析 **MUST NOT** 把本地 prepare 改写成 `not_found`，也不得伪造已投递状态。
 
@@ -345,7 +345,7 @@ accepted checkpoint、`complete_through` 与 `fresh_until`。peer mirror 保留 
 transport receipt；收到更高 incoming signed head 时 target service 立即安装已认证变更并阻止已撤销方向的新提交，不等待轮询。
 `contact_current_proof.complete_through` 恰为 signed `(contact_round_id, issuer_id, peer)` 方向已完整认证的
 lineage version：normal 初始 accepted 与 glare 中以 request 为 head 的隐式初始方向均为 1；同方向后继 scope
-update / tombstone 使用其已确认 payload.version。它不是 PCR producer_revision、request admission slot_version、RealmCommit
+update / tombstone 使用其已确认 payload.version。它不是 PCR stream 的 `stream_position`、request admission slot_version、RealmCommit
 高度、接收顺序或时钟。非 terminal proof 的 head 必须逐字对应该方向及该 version，不能以较大无关计数声明完整。
 
 whole-round terminal 的对端确认保留 §2 允许的共享 tombstone head：必须先验证 tombstone 的真实源方向 proof，
@@ -638,7 +638,7 @@ founder **MUST** 一次提交恰好四条 Event：
 
 该顺序同时是 §5.5 的派生顺序，不是可选排版：第 2、3、4 条的 `envelope.realm_id` **MUST** 逐字等于
 `retype(第 1 条 event_id, "realm")`，`main_strand_id` **MUST** 逐字等于 `retype(第 4 条 event_id, "strand")`，
-第 2 条的 `domain_refs` **MUST** 引用第 1 条、第 3 条 **MUST** 引用第 2 条、第 4 条 **MUST** 引用第 3 条。验证方 **MUST** 从 unit 自身 bytes
+unit 内没有任何一条 Event 指向它的前一条：Event 不携带 `domain_refs`，四条的相对次序**只**由这份 wire 顺序给出，并由下文治理 Station 在同一事务内按该顺序签发的 position 连续的四笔 RealmCommit 落定。验证方 **MUST** 从 unit 自身 bytes
 重算这两个坐标，**MUST NOT** 采信请求中另行携带的坐标字段，也 **MUST NOT** 接受任何声称先分配后签名的
 提交形态。本段任一条件不成立 **MUST** 以 `direct_conversation_founding_unit_invalid` 整组零写入拒绝。
 

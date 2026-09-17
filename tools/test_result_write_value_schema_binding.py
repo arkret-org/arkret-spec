@@ -103,14 +103,14 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         write = row_of(registry, "ak.member.state")["result_writes"][0]
         self.assertEqual(
             write["value_schema_ref"],
-            f"{TYPED_CURRENT_RESULT}#/$defs/member_state_current",
+            f"{TYPED_CURRENT_RESULT}#/$defs/member_state_value",
         )
         schema = gate.load_json(gate.Lint(), SCHEMAS / "typed-current-result.schema.json")
         self.assertEqual(
             schema["$defs"]["member_state_result"]["properties"]["value"],
-            {"$ref": "#/$defs/member_state_current"},
+            {"$ref": "#/$defs/member_state_value"},
         )
-        self.assertIn("membership", schema["$defs"]["member_state_current"]["properties"])
+        self.assertIn("membership", schema["$defs"]["member_state_value"]["properties"])
 
     # ---- resolving a registered value schema -----------------------------
 
@@ -122,7 +122,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_a_local_ref_resolves_to_the_value_it_points_at(self) -> None:
         declared, required = self._alternatives(
-            f"{TYPED_CURRENT_RESULT}#/$defs/member_state_current"
+            f"{TYPED_CURRENT_RESULT}#/$defs/member_state_value"
         )[0]
         self.assertEqual(declared, {"membership", "joined_at"})
         self.assertEqual(required, {"membership"})
@@ -173,7 +173,7 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         self.assertIn("member 'revoked_reason' is not declared", reported[0])
 
     def test_a_whole_value_set_that_drops_a_required_member_is_reported(self) -> None:
-        """`ak.mls.genesis` writes all seven members `mls_group_current` requires;
+        """`ak.mls.genesis` writes all seven members `mls_group_value` requires;
         a `set` that writes six materialises a value that violates its own
         registered schema on the first replay."""
 
@@ -322,7 +322,9 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
 
     def test_every_live_whole_value_names_exactly_one_source(self) -> None:
         """Zero baseline, stated as its own assertion: the closure describes
-        what is registered rather than a grammar nobody uses."""
+        what is registered rather than a grammar nobody uses. `const` joined
+        `field` and `envelope_field` for the release write, and only as the
+        literal null, so both halves are asserted here."""
         registry = gate.load_json(gate.Lint(), EVENT_KINDS)
         seen = 0
         for row in registry["event_kinds"]:
@@ -333,9 +335,11 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
                 seen += 1
                 with self.subTest(kind=row["event_kind"], index=index):
                     self.assertEqual(
-                        [m for m in ("field", "envelope_field") if m in value],
+                        [m for m in ("field", "envelope_field", "const") if m in value],
                         list(value),
                     )
+                    if "const" in value:
+                        self.assertIsNone(value["const"])
         self.assertGreater(seen, 0)
 
     def test_a_value_naming_two_sources_is_reported(self) -> None:
@@ -350,9 +354,24 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         self.assertIn("exactly one of field/envelope_field", reported[0])
 
     def test_a_value_naming_a_retired_source_is_reported(self) -> None:
-        """`const`, `projected_value`, `object_without_fields` and `dot` were all
-        legal in the retired grammar. Re-admitting a spelling nothing needs is
-        how removed vocabulary comes back."""
+        """`projected_value`, `object_without_fields` and `dot` were all legal in
+        the grammar this closure replaced. Re-admitting a spelling nothing needs
+        is how removed vocabulary comes back."""
+
+        def mutate(document: dict) -> None:
+            self._a_set_write(document)["result_projection"]["value"] = {
+                "projected_value": "active"
+            }
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 2, reported)
+        self.assertIn("unknown member(s) ['projected_value']", reported[0])
+        self.assertIn("exactly one of field/envelope_field", reported[1])
+
+    def test_a_whole_value_const_that_is_not_null_is_reported(self) -> None:
+        """`const` is admitted for exactly one thing: the release write whose
+        value is the absent state. Any other literal would let a row carry
+        protocol state no payload and no envelope supplies."""
 
         def mutate(document: dict) -> None:
             self._a_set_write(document)["result_projection"]["value"] = {
@@ -360,9 +379,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
             }
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
-        self.assertEqual(len(reported), 2, reported)
-        self.assertIn("unknown member(s) ['const']", reported[0])
-        self.assertIn("exactly one of field/envelope_field", reported[1])
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("const may only be null", reported[0])
 
     def test_a_malformed_value_field_path_is_reported(self) -> None:
         """The path closure is the loose one the retired grammar used and the
@@ -397,13 +415,13 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
                 for write in row.get("result_writes") or ():
                     projection = write.get("result_projection") or {}
                     if projection.get("kind") == "keyed_set_add":
-                        projection["value"] = {"const": "x"}
+                        projection["value"] = {"projected_value": "x"}
                         return
             raise AssertionError("no keyed_set_add projection in the registry")
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
         self.assertEqual(len(reported), 2, reported)
-        self.assertIn("unknown member(s) ['const']", reported[0])
+        self.assertIn("unknown member(s) ['projected_value']", reported[0])
 
 
 if __name__ == "__main__":

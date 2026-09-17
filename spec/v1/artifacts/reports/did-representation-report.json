@@ -7512,6 +7512,66 @@
       ]
     },
     {
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_value/properties/agent_id",
+      "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_provisioning_result/properties/selector/properties/agent_id",
+      "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_provisioning_value/properties/controller_authorization_ref",
+      "property_name": "controller_authorization_ref",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_provisioning_value/properties/controller_principal_id",
+      "property_name": "controller_principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_selector_claim_result/properties/selector/properties/controller_principal_id",
+      "property_name": "controller_principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_selector_claim_value/properties/subject_account_id",
+      "property_name": "subject_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "typed-current-result.schema.json#/$defs/agent_status_result/properties/selector/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -7539,6 +7599,26 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/invite_directed_invitee_value/properties/invitee_account_id",
+      "property_name": "invitee_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/invite_live_target_result/properties/selector/properties/invitee_account_id",
+      "property_name": "invitee_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
       ]
     },
     {
@@ -7795,7 +7875,21 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/91/result_writes/1/result_projection/value_projection/members/0/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/9/result_writes/0/result_projection/value_projection/members/0/name",
+      "property_name": "controller_principal_id",
+      "resolved_carrier": "ambiguous",
+      "required_subject_class": "principal",
+      "resolved_subject_class": null,
+      "contract_carrier": "did_core_id",
+      "account_scoped": false,
+      "required_evidence": [
+        "accepted_controller_principal_binding"
+      ],
+      "projection_source": "payload.controller_principal_id"
+    },
+    {
+      "source": "event_kind_registry.value_projection.members",
+      "schema_path": "event-kind-registry.json#/event_kinds/92/result_writes/1/result_projection/value_projection/members/0/name",
       "property_name": "controller_actor_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "actor",
@@ -7877,6 +7971,30 @@
       "account_scoped": true,
       "required_evidence": [
         "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_provisioning_value/properties/controller_principal_id",
+      "property_name": "controller_principal_id",
+      "resolved_carrier": "did_core_id",
+      "required_subject_class": "principal",
+      "contract_carrier": "did_core_id",
+      "account_scoped": false,
+      "required_evidence": [
+        "accepted_controller_principal_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "typed-current-result.schema.json#/$defs/agent_selector_claim_result/properties/selector/properties/controller_principal_id",
+      "property_name": "controller_principal_id",
+      "resolved_carrier": "did_core_id",
+      "required_subject_class": "principal",
+      "contract_carrier": "did_core_id",
+      "account_scoped": false,
+      "required_evidence": [
+        "accepted_controller_principal_binding"
       ]
     },
     {

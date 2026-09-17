@@ -155,7 +155,7 @@
               "authority_generation": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "The governance Station generation at issuance. It is checked against the committed authority history rather than a mutable typed current result."
+                "description": "Realm authority-root delegation generation at issuance, read from the realm_authority_root typed current result. A ref stays valid only while that value's current authority_generation still equals this one, and the read MUST use the registered inclusion proof at a RealmCommit basis, never an unproven cache. ak.realm.authority.reset is the only kind that advances it, so it is the only act that invalidates a whole delegated generation; ak.realm.owner.transfer preserves it and therefore leaves every child grant valid. This is NOT the governing Station tenure, which is governance_generation on RealmCommit -- a planned Station handoff MUST NOT invalidate any grant."
               }
             },
             "additionalProperties": false,
@@ -194,7 +194,8 @@
           },
           "authority_generation": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "The delegation generation of the root this grant descends from, carried verbatim from the realm_root ref. Part of the dedup key, because the same root at a different generation is a different authority."
           }
         },
         "additionalProperties": false

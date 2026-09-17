@@ -284,12 +284,12 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/member_state_current"
+          "$ref": "#/$defs/member_state_value"
         }
       },
       "additionalProperties": false
     },
-    "member_state_current": {
+    "member_state_value": {
       "description": "Closed value of the member_state typed current result: the materialized membership register of one complete ActorId. models/common-fields.md section 4.5 fixes it as a four-state register over join/knock/leave/ban. It is a named def rather than an inline object because registry/contract-registry.json cites it as the value_schema_ref of ak.member.state; an enclosing _result envelope names the selector and revision beside the value, so citing the envelope would let a value_projection member be checked against the wrong object.",
       "type": "object",
       "required": [
@@ -373,15 +373,15 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/message_reactions_current"
+          "$ref": "#/$defs/message_reactions_value"
         }
       },
       "additionalProperties": false,
-      "description": "Registered projection of one reaction target. models/strand-and-message.md section 9.8.3 is authoritative and says this family is the core keyed-set projection of authz/event-auth-state-resolution.md section 9: ak.reaction.add and ak.reaction.remove each project exactly one keyed_set_add, so a remove is itself an asserted element rather than an explicit revocation. The (target_ref, key, members[], count) summary of that section is the default view folded above this set, never the stored value."
+      "description": "Registered projection of one reaction target. models/strand-and-message.md section 9.8.3 is authoritative and says this family is a keyed-set projection of the closed enum in models/common-fields.md section 2, whose join that section defines: ak.reaction.add and ak.reaction.remove each project exactly one keyed_set_add, so a remove is itself an asserted element rather than an explicit revocation. The (target_ref, key, members[], count) summary of that section is the default view folded above this set, never the stored value."
     },
-    "message_reactions_current": {
+    "message_reactions_value": {
       "type": "object",
-      "description": "Closed value of the message_reactions typed current result: the canonically sorted dot set of reaction assertions on one target. The join is the core keyed-set union, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because section 9.8.3 requires the audit view to rebuild them.",
+      "description": "Closed value of the message_reactions typed current result: the canonically sorted dot set of reaction assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because section 9.8.3 requires the audit view to rebuild them.",
       "required": [
         "assertions"
       ],
@@ -441,12 +441,12 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/mls_group_current"
+          "$ref": "#/$defs/mls_group_value"
         }
       },
       "additionalProperties": false
     },
-    "mls_group_current": {
+    "mls_group_value": {
       "type": "object",
       "required": [
         "effective_scope",
@@ -548,7 +548,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/agent_key_current"
+          "$ref": "#/$defs/agent_key_value"
         }
       },
       "additionalProperties": false
@@ -593,7 +593,7 @@
       },
       "additionalProperties": false
     },
-    "agent_key_current": {
+    "agent_key_value": {
       "type": "object",
       "description": "Closed value of the agent_key typed current result.",
       "required": [
@@ -787,7 +787,7 @@
       "pattern": "^[A-Za-z0-9._-]{1,128}$",
       "description": "Stable opaque recording / transcript segment handle, canonical byte-for-byte (crypto-media/call-state.md section 5.1)."
     },
-    "call_recording_state_current": {
+    "call_recording_state_value": {
       "type": "string",
       "enum": [
         "recording",
@@ -795,7 +795,7 @@
       ],
       "description": "Capture permission state of one recording segment: ak.call.recording.start opens it as recording, a committed ak.call.state recording_transition.to=stopped closes it. ready/failed artifact details live in the separate call_recording_artifact family."
     },
-    "call_transcript_state_current": {
+    "call_transcript_state_value": {
       "type": "string",
       "enum": [
         "transcribing",
@@ -904,7 +904,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/call_recording_state_current"
+          "$ref": "#/$defs/call_recording_state_value"
         }
       },
       "additionalProperties": false
@@ -980,7 +980,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "#/$defs/call_transcript_state_current"
+          "$ref": "#/$defs/call_transcript_state_value"
         }
       },
       "additionalProperties": false
@@ -1662,6 +1662,513 @@
         },
         "value": {
           "$ref": "#/$defs/strand_position_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_lifecycle_value": {
+      "description": "Closed value of the invite_lifecycle typed current result: the one process-state register of one Invite. zh/models/governance-objects.md section 5.3 declares the state set and the edge set, and registry/contract-registry.json carries the edges as event_kind_registry.transition_contracts.invite_lifecycle, so this def holds the state names only. The register carries nothing else on purpose: a transition projection writes one axis, and every other Invite fact that has to be checked against the pre-state is its own registered family (invite_directed_invitee, invite_live_target). A mirrored copy here would be the drifting second truth that section removed join_rule_snapshot for.",
+      "type": "string",
+      "enum": [
+        "pending",
+        "claimed",
+        "send_failed",
+        "accepted",
+        "rejected",
+        "revoked",
+        "expired",
+        "revoked_by_capability_loss",
+        "revoked_by_inviter_left",
+        "invalidated_by_rate_limit"
+      ]
+    },
+    "invite_lifecycle_result": {
+      "type": "object",
+      "description": "Registered projection of one Invite's process state. The subject InviteId is the create Event id retyped (zh/models/common-fields.md section 6.0), so a directed ak.invite.create and a third-party ak.invite.third_party each open exactly one of these and every later Event names it through payload.invite_id.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "invite_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "invite_lifecycle"
+            },
+            "invite_id": {
+              "$ref": "./event-payload.schema.json#/$defs/invite_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/invite_lifecycle_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_live_target_value": {
+      "description": "Closed value of the invite_live_target slot: the record of the directed Invite that currently occupies this account's slot, or null for an empty slot. zh/models/governance-objects.md section 5.3 fixes the occupant as create_event_id in the verbatim ak:event: spelling rather than the ak:invite: retype, because the projection grammar has no retype source; the slot carries no process state, since occupancy itself is what live means. null is the reusable empty state a registered release write returns it to, not a read-only sentinel.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "create_event_id"
+          ],
+          "properties": {
+            "create_event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id",
+              "description": "envelope.event_id of the ak.invite.create that occupies this slot, in the verbatim ak:event: spelling. It is the same 33-octet token as that Invite's InviteId under a different typed prefix, and the two spellings are never interchangeable on the wire."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "invite_live_target_result": {
+      "type": "object",
+      "description": "The one live directed Invite slot of one invitee account inside one Realm. zh/models/governance-objects.md section 5.3 makes it the single source of truth for directed-invite liveness deduplication, keyed by the invitee AccountId alone: the Realm is already given by the Event envelope, so carrying realm_id in the subject is forbidden by zh/conformance/encoding.md section 4.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "invitee_account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "invite_live_target"
+            },
+            "invitee_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/invite_live_target_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_directed_invitee_value": {
+      "description": "Closed value of the invite_directed_invitee record: the exact account one directed Invite is addressed to, written once by ak.invite.create from that same Event's payload and never updated. It is the reverse index of invite_live_target, and the two together are what make the slot release checkable: the slot answers \"which Invite holds this account\", this record answers \"which account does this Invite hold\". ak.invite.third_party writes no record at all, so a third-party Invite's stored invitee is absent rather than null -- that absence is what the stored_field_matches_payload pre-state requirement of zh/models/governance-objects.md section 5.3 reads.",
+      "type": "object",
+      "required": [
+        "invitee_account_id"
+      ],
+      "properties": {
+        "invitee_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_directed_invitee_result": {
+      "type": "object",
+      "description": "Registered create-locked projection of one directed Invite's invitee. The subject InviteId is the create Event id retyped, the same subject invite_lifecycle uses, so a later Event that names payload.invite_id reaches both the state register and this binding without carrying either of them on the wire.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "invite_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "invite_directed_invitee"
+            },
+            "invite_id": {
+              "$ref": "./event-payload.schema.json#/$defs/invite_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/invite_directed_invitee_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pin_assertion_entry": {
+      "type": "object",
+      "description": "One asserted element of the pin keyed set. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete pin payload of that Event. The asserting actor and the polarity -- add, remove or reorder -- are deliberately NOT element fields: models/pins.md section 4.1 reads the polarity from `kind` and the asserter from `actor_id` on the signed envelope of the Event the dot names, because event-and-patch.md section 2.4.2 forbids a projection from assembling, renaming or trimming fields. The value branch is an anyOf and MUST NOT be read as a discriminator: pin_add_payload and pin_reorder_payload share the required {pin_scope, target_ref, rank} triple, so an add and a reorder that carry no optional member are byte-identical and only the envelope tells them apart.",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/pin_add_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/pin_remove_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/pin_reorder_payload"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "pin_value": {
+      "type": "object",
+      "description": "Closed value of the pin typed current result: the canonically sorted dot set of pin assertions in one pin scope. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent. Every one of the three pin kinds adds an assertion, including remove and reorder, so the set keeps both sides of a concurrent pair; the ordered roster, the remove-wins fold, the note inherited by a reorder and the conflict view are all read-side folds above this set, defined in models/pins.md section 4.1, and MUST NOT be implemented as further stored state.",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/pin_assertion_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "pin_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "description": "models/pins.md section 4.1 keys the set per pin scope: the subject is the whole closed pin_scope object, kind and id together. The id alone would not do -- pin_scope is a four-branch oneOf, so two scopes of different kinds carrying the same id would collide into one subject, and the subject would not be reversible into the object the payload signed. target_ref is a field on the element value, not part of the subject.",
+          "required": [
+            "kind",
+            "pin_scope"
+          ],
+          "properties": {
+            "kind": {
+              "const": "pin"
+            },
+            "pin_scope": {
+              "$ref": "./event-payload.schema.json#/$defs/pin_scope"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/pin_value"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Registered projection of one pin scope. models/pins.md section 4.1 is authoritative and spells this projection verbatim: ak.pin.add, ak.pin.remove and ak.pin.reorder each project exactly one keyed_set_add, so a remove and a reorder are themselves asserted elements rather than explicit revocations. The reason is in that section: keyed_set_remove_observed without a match would remove every target in the scope, and with a match it would only remove add dots alive in the frozen prior state, which silently converges a concurrent (add, remove) pair to add instead of surfacing it."
+    },
+    "space_parent_value": {
+      "type": "object",
+      "description": "The registered value shape of space_parent, pinned by models/realm-and-space.md section 3.5. It is the one-member object carrying the parent pointer, with a nullable member, and it is never a bare null: only a member can be absent, which is the same argument realm_set_default_strand_value makes, and here a bare null would also make the family's own compare-and-set inexpressible, because a pre_state requirement is a predicate over a stored FIELD and a null value has no fields. null in the member is the root state, a Space with no structural parent, written explicitly by the ak.space.create genesis write when the signed object omits parent_space_id.",
+      "required": [
+        "parent_space_id"
+      ],
+      "properties": {
+        "parent_space_id": {
+          "oneOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/space_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_parent_result": {
+      "type": "object",
+      "description": "The structural parent of one Space. models/realm-and-space.md section 3.5 is authoritative: the subject is the SpaceId alone, the projection is an ordinary current value, and the current value is the last accepted write on the stream, ordered only by stream_position. The Space metadata projection deliberately excludes parent_space_id, so this family and not the object is the truth source models/relation.md and sync/views.md read the derived contains edge from. A directed cycle among current parents makes every edge in it domain-unresolved; it MUST NOT reselect a register value, fake a root, or produce a live contains.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "space_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space_parent"
+            },
+            "space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/space_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/space_parent_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_child_scope_policy_value": {
+      "description": "The registered value shape of space_child_scope_policy: the closed placement policy object of models/circle.md section 7.1, or null. null is the undeclared state; that section says a Space MAY declare a policy, and an undeclared policy adds no constraint, which is what allow_any also means. The reducer MUST NOT synthesize the allow_any object out of an absent member: a projection may only write a value the signed Event or the envelope supplies, and null is the one registered spelling of the absent state.",
+      "oneOf": [
+        {
+          "$ref": "./space.schema.json#/$defs/child_scope_policy"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "space_child_scope_policy_result": {
+      "type": "object",
+      "description": "The child placement policy of one Space, keyed by SpaceId. models/circle.md section 7.1 is authoritative for the enum and for the four reducer obligations it creates on ak.strand.create, ak.strand.move, ak.space.parent and structural contains writes; section 6.3 is authoritative for why it is not interchangeable with Space.scope_circle_id. It is a family rather than a create-locked object member because space_patch_payload carries a dedicated top-level child_scope_policy command whose own description makes it select security execution, while the generic metadata patch is forbidden from reaching the path at all.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "space_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space_child_scope_policy"
+            },
+            "space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/space_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/space_child_scope_policy_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_provisioning_value": {
+      "type": "object",
+      "description": "The registered value shape of agent_provisioning, pinned by zh/identity/key-management.md section 3.6.3. These are exactly the create-locked members every later authorization reader needs when all it holds is the Agent DID: the controller it is bound to, the Agent PCR that carries its lifecycle and key state, the delegation that authorized the controller, and the immutable requested-scope commitment zh/authz/capabilities.md section 9.1 recomputes a disclosure against. Nothing else from the payload belongs here -- agent_slug and the selector members are agent_selector_claim's, the endorsement members are identity_accountability's, and created_at is already the endorsement's not_before. requested_scope itself is controller-private and MUST NOT appear; only the digest does.",
+      "required": [
+        "controller_principal_id",
+        "principal_control_realm_id",
+        "controller_authorization_ref",
+        "requested_scope_digest"
+      ],
+      "properties": {
+        "controller_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "The managed-principal controller. The create-locked ArkretPrincipalControlRealm serviceEndpoint spells the same DID as controller_did; entry 1 admission compares the two, so this member is that comparison's registered left-hand side."
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "The forward-declared Agent PCR. Until its ak.realm.create is accepted this names a Realm that does not exist yet; that is the registered class C preimage exemption of zh/conformance/encoding.md section 6.0.1 and not an inconsistency."
+        },
+        "controller_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "requested_scope_digest": {
+          "$ref": "./agent-provision.schema.json#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_provisioning_result": {
+      "type": "object",
+      "description": "One Agent provisioning fact (family agent_provisioning), the first of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative. The subject is the Agent DID alone and deliberately not the Agent's full account ActorId: zh/models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, so an ActorId subject would be unconstructible at the moment this write happens. The reason line 594 of section 3.6 forbids a bare DidCoreId for the LIFECYCLE subject -- one principal on two Stations is two accounts -- is already discharged here: this result lives in the controller PCR, and the same-Station rule of section 3.6.3 pins the Agent PCR to that same Station. It is a commit-ordered projection, and a second ak.agent.provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared): the immutable requested_scope ceiling of section 3.6.1 can only be changed by provisioning a new Agent principal, so re-declaring one agent_id is the widening that section forbids.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "agent_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_provisioning"
+            },
+            "agent_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_provisioning_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pcr_genesis_declaration_value": {
+      "type": "object",
+      "description": "The registered value shape of agent_pcr_genesis_declaration: the one-member object naming the Agent this realm id was declared for. It is an INDEX and not a second copy of the provisioning fact, which is what makes the two families separately closed and minimal in the sense zh/conformance/conformance-profiles.md requires: one fact, two registered lookup directions. The readers only ever hold a realm id -- genesis admission holds retype(create.event_id) and entry 1 admission holds serviceEndpoint.realm_id -- so they resolve the Agent here and read the remaining create-locked members from agent_provisioning keyed by it. It is an object rather than a bare id for the reason realm_set_default_strand_value and space_parent_value already give: only a member can be absent, so a register whose value is a bare id has no room to grow a second member without changing what its value IS.",
+      "required": [
+        "agent_id"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pcr_genesis_declaration_result": {
+      "type": "object",
+      "description": "One Agent PCR realm-id declaration (family agent_pcr_genesis_declaration), the fourth of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative: the subject is the forward-declared principal_control_realm_id, the projection is commit-ordered, and a second provision declaring a realm id an accepted provision already claims MUST be rejected with zero writes (agent_pcr_genesis_declaration_conflict). This result covers one controller PCR only; duplicate declarations across controllers are caught by the Station's local uniqueness index, and the two layers together are what makes \"at most one provision declaration per realm id\" hold. The Agent PCR genesis carries no ref back to its provision, so the reverse look-up against this family IS the whole binding: no row MUST fail closed with agent_pcr_genesis_declaration_missing and zero writes, materializing neither the Realm nor the agent_status transition.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "principal_control_realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_pcr_genesis_declaration"
+            },
+            "principal_control_realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_pcr_genesis_declaration_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_selector_claim_value": {
+      "type": "object",
+      "description": "The registered value shape of agent_selector_claim, shared by both of its writers -- the standalone ak.agent.selector_claim and the selector projection of ak.agent.provision. zh/models/actor.md section 3.3 is authoritative. These are exactly the members selector RESOLUTION reads: the target, and the disclosure boundary zh/models/strand-and-message.md and zh/discovery/discovery-directory.md gate a disclosure on. It deliberately does not repeat its own subject: the controller principal and the slug are the selector, and unlike identity_accountability this family has no portable-record reader that consumes the value apart from its selector -- actor.md sends portable selector responses to the real controller-signed claim and forbids a projection standing in for one. issuer_id, vouching_id, source_refs, created_at, verified_at and proofs are therefore absent: the head Event and its acceptance proof already answer where the row came from, and vouching_id has no reader in resolution. There is no claim_scope, open or closed.",
+      "required": [
+        "subject_account_id",
+        "visibility"
+      ],
+      "properties": {
+        "subject_account_id": {
+          "description": "The bound target, or explicit null for a signed unbind. A bind target is always the Agent's COMPLETE AccountId; a bare principal is never admitted, because one principal on two Stations is two accounts and resolution MUST fail closed on that ambiguity rather than deduplicate by principal. null short-circuits resolution: a null or expired row returns no success and MUST NOT reveal the superseded bind it replaced.",
+          "oneOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "visibility": {
+          "$ref": "./agent-selector-claim.schema.json#/properties/visibility"
+        },
+        "audience": {
+          "$ref": "./agent-selector-claim.schema.json#/properties/audience"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_selector_claim_result": {
+      "type": "object",
+      "description": "One controller-scoped Agent selector binding (family agent_selector_claim). zh/models/actor.md section 3.3 is authoritative and makes this the one family with two registered writers that MUST produce the same semantic target: the standalone ak.agent.selector_claim, which verifies its own inner ak.agent_selector_claim_proof.v1, and the selector projection of ak.agent.provision, which has no inner proof and MUST NOT be dressed up as one. The subject is principal-scoped -- (controller principal, agent_slug), never with a Station -- while the target is account-scoped; neither is derived from the other. It is a commit-ordered projection: competing bind/unbind commands check the relevant revision in confirmed order and at most one succeeds, and a stale command is re-read and re-signed rather than joined as a second security head.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "controller_principal_id",
+            "agent_slug"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_selector_claim"
+            },
+            "controller_principal_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "agent_slug": {
+              "$ref": "./string-profiles.schema.json#/$defs/agent_slug"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_selector_claim_value"
         }
       },
       "additionalProperties": false

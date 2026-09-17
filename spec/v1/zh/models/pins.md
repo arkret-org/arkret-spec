@@ -30,7 +30,7 @@ Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或 scope-reference 
 
 `pin_scope` 是 projection home，不是安全边界。`kind=space` 时，reducer MUST 解析 Space metadata 的 effective scope；Space 不因此获得独立 membership、policy、history visibility 或 MLS boundary。
 
-typed current result special form 使用 `pin:<pin_scope.id>`。v1 不注册 pin 专用 typed id。
+该 typed current result 的 **family 名是 `pin`**（[`current-result-registry.json`](../../artifacts/registry/current-result-registry.json) 的登记行，value schema 见 [`typed-current-result.schema.json#/$defs/pin_result`](../../artifacts/schemas/typed-current-result.schema.json)）。它的 `result_selector.kind` 固定为 `composite`，**唯一分量是 `{"kind":"canonical_json","field":"payload.pin_scope"}`——整个封闭对象按 RFC 8785 canonical JSON 取字节**，因此 special form 渲染为 `pin:<pin_scope.kind>:<pin_scope.id>`，kind 在前、id 在后，从该字符串可逆还原出 `{kind, id}`。**MUST NOT 只取 `.id`**：`pin_scope` 是四分支 `oneOf`，丢掉 `kind` 既不可逆，也会让不同 kind 下同名的 id 撞成同一个 subject。producer、reducer、Current publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 typed current result id。v1 不注册 pin 专用 typed id——`strand_position` 同样没有，这不影响可逆性，因为分量本身是自带 kind 的封闭对象。
 
 ## 3. Scope Safety
 
@@ -55,6 +55,8 @@ remove 与 reorder 同样是**往集合里加一条断言**，而不是 explicit
 承载，`target_ref` 是元素值上的字段。三个 kind 的元素值都是各自完整 payload，投影不拼装、
 改名或裁剪字段（[`event-and-patch.md` §2.4.2](./event-and-patch.md)）。
 
+**断言者与极性不是元素字段（normative）**：某个元素属于 add、remove 还是 reorder，以及是谁断言的，reader MUST 从该元素 dot 所指 Event 的签名 envelope（`kind` 与 `actor_id`）读出，MUST NOT 从元素值推断。这不是风格选择而是必要条件：`pin_add_payload` 与 `pin_reorder_payload` 的必填成员同为 `{pin_scope, target_ref, rank}`，两条都不带可选成员时元素值**逐字节相同**，故元素 schema 是 `anyOf` 而不是可判别的 `oneOf`。下文 roster 折叠对三种断言的区分完全依赖这一条。
+
 **为什么 remove 不用 `keyed_set_remove_observed`**：无 `match` 的形态会移除同 scope 下**全部**
 target 的 pin；带 `match` 的形态只移除**冻结前态**下存活的 add dot，与该 remove 并发的 add
 不在其中，于是并发 (add, remove) 会静默收敛为 add；下一段要求这类互斥并发显式暴露而非任选一边，故 remove 必须是断言。
@@ -74,9 +76,9 @@ MUST 以 `failed_precondition`（`reason=pin_target_not_pinned`）拒绝该 `ak.
 **MUST NOT** 用只有 rank 的合成 entry 把目标重新放回 roster。目标对象尚未在本地物化时按
 [`common-fields.md` §5.1](./common-fields.md) 的「未知对象 pending / replay」保留待重放。
 
-该 keyed-set projection 的 join 是 dot 集合并，可交换、可结合、幂等。审计视图保留全部断言；领域投影可报告冲突，但该诊断不是新的 typed current result 状态或授权拒绝。
+该 keyed-set projection 的 join 由 [`common-fields.md` §2](./common-fields.md) 定义（dot 集合并，可交换、可结合、幂等），本节 MUST NOT 另行定义它。审计视图保留全部断言；领域投影可报告冲突，但该诊断不是新的 typed current result 状态或授权拒绝。
 
-重排必须保持稳定：不同 target 按 `(rank, target_ref)` 的 ASCII bytewise lexicographic ascending 排序；相同 rank 不构成互斥冲突。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与无冲突的 current materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。单一 target 的互不可达 reorder/add/remove 按上一段进入 `pin_conflict`，不得用 digest、HLC、actor id 或接收顺序选边。writer SHOULD 使用 rank rebalance 避免长期 rank 碰撞。
+重排必须保持稳定：不同 target 按 `(rank, target_ref)` 的 ASCII bytewise lexicographic ascending 排序；相同 rank 不构成互斥冲突。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与无冲突的 current materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。单一 target 的互不可达 reorder/add/remove 按上一段进入**冲突视图**，不得用 digest、HLC、actor id 或接收顺序选边。该冲突视图**没有也不得有** `reason_code`：本节上文已定它既不是新的 typed current result 状态、也不是授权拒绝，而 `error-code-registry.json` 只登记可拒绝的诊断；本域真正会拒绝的两条是 `pin_target_not_pinned` 与 `expected_rank` 不匹配时的 `failed_precondition`，两者均已登记。writer SHOULD 使用 rank rebalance 避免长期 rank 碰撞。
 
 ## 5. Interactions
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.12",
+  "version": "2026-09-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T02:30:00+08:00",
+  "generated_at": "2026-09-18T21:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -9,7 +9,8 @@
     "The only allowed schema status is active. Unknown or any non-active status fails closed; the registry defines no historical compatibility rows.",
     "consumer_binding, when present, is the machine-readable disposition for a logical schema that is not directly named by an operation, Event kind, or another schema. Runtime and dynamic wire bindings MUST declare kind, selector, and normative_ref. A prose_only binding MUST instead declare a non-empty rationale and MUST NOT be counted as wire coverage.",
     "The effective schema reference of a row is the literal concatenation (file + optional fragment): fragment already includes its leading '#', so consumers MUST NOT insert another separator. For example file='schemas/agent-operations.schema.json' plus fragment='#/$defs/agent_pairing_bootstrap' resolves to exactly 'schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap'. Consumers MUST resolve that URI-fragment JSON Pointer and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
-    "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema."
+    "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema.",
+    "This registry lists WIRE schemas: objects that are signed, transmitted, or referenced by id through payload.schema or a DTO $ref. The VALUE shape of a typed current result is out of scope and MUST NOT get an ak.schema.* id of its own: it is a reducer output whose only registered read path is the value_schema_ref JSON Pointer on that family's result_writes[] rows, and an id would make one value look like a wire schema and invite binding by id instead of by the write contract. A whole-document id over typed-current-result.schema.json is fine -- ak.schema.result_projection.v1 is exactly that -- but a row whose fragment points at one value $defs member is not registrable, and the lint rejects one. The realm_authority_root_value row was the sole such row and was withdrawn; its writers always referenced the pointer, so nothing but the id was lost. See zh/sync/current-results.md section 1 and zh/conformance/schema-registry.md section 1.1."
   ],
   "schemas": [
     {
@@ -1092,13 +1093,6 @@
       "file": "schemas/realm-authority-handoff.schema.json",
       "status": "active",
       "description": "Dual-signed planned authority generation transfer."
-    },
-    {
-      "schema_id": "ak.schema.realm_authority_root_value.v1",
-      "file": "schemas/typed-current-result.schema.json",
-      "fragment": "#/$defs/realm_authority_root_value",
-      "status": "active",
-      "description": "Closed value of the lifetime-stable Realm authority root: current root controller, controller epoch and authority generation, all derived by the registered ak.realm.create value_projection."
     },
     {
       "schema_id": "ak.schema.realm_commit.v1",

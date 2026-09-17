@@ -7,7 +7,7 @@
   "required": [
     "snapshot_id",
     "realm_id",
-    "authority_generation",
+    "governance_generation",
     "visible_stream_heads",
     "current_state_entries",
     "retention_and_history_floor",
@@ -21,9 +21,10 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "authority_generation": {
+    "governance_generation": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Station tenure this snapshot is bound to. A consumer MUST refuse a snapshot whose generation is not the Realm's current governing Station tenure."
     },
     "visible_stream_heads": {
       "type": "array",

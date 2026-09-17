@@ -788,6 +788,25 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     else:
                         if not isinstance(resolved, (dict, bool)):
                             lint.fail(schema_path, f"{schema_id} fragment must resolve to an object or boolean schema")
+        if (
+            file_ref.endswith("typed-current-result.schema.json")
+            and isinstance(fragment, str)
+            and fragment
+        ):
+            # This registry lists wire schemas.  A typed current result's VALUE
+            # is a reducer output whose only registered read path is the
+            # `value_schema_ref` pointer on that family's `result_writes[]`
+            # rows, so an id of its own would make one value shape look like a
+            # signed wire object and invite binding by id instead of by the
+            # write contract.  A whole-document row is still fine -- that is
+            # `ak.schema.result_projection.v1` -- which is why this rejects a
+            # fragment rather than the file.
+            lint.fail(
+                schema_path,
+                f"{schema_id} registers one typed current result value as a schema id; a value shape "
+                "is named only by the value_schema_ref JSON Pointer on its family's result_writes[] "
+                "rows (zh/sync/current-results.md section 1)",
+            )
         if isinstance(fragment, str) or fragment is None:
             effective_fragment = fragment or ""
             seen_fragments = schema_refs_by_file.setdefault(file_ref, set())

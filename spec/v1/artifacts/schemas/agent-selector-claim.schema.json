@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-selector-claim.schema.json",
   "title": "Arkret Agent Selector Claim",
-  "description": "Signed claim binding a controller-scoped Agent selector slug to one exact Agent AccountId. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle. The selector namespace is principal-scoped and the resolved target is account-scoped; the two are different responsibilities and neither is derived from the other.",
+  "description": "Signed claim binding a controller-scoped Agent selector slug to one exact Agent AccountId. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle. The selector namespace is principal-scoped and the resolved target is account-scoped; the two are different responsibilities and neither is derived from the other. This claim carries no open claim_scope: zh/identity/identity-handles.md already forbids one on HandleClaimCore, for the reason that an additionalProperties:true object cannot carry state a MUST-level authorization decision depends on and still have every verifier decide alike. visibility and audience are the registered disclosure boundary, and intent is a request parameter rather than a claim member.",
   "type": "object",
   "required": [
     "schema",
@@ -57,11 +57,6 @@
     "audience": {
       "type": "string",
       "description": "Audience binding for restricted selector disclosure, such as a Realm ID, verifier domain, or service DID."
-    },
-    "claim_scope": {
-      "type": "object",
-      "additionalProperties": true,
-      "description": "Optional scope such as realm_id, organization_id, purpose, allowed_operations, or disclosure policy tags."
     },
     "expires_at": {
       "$ref": "#/$defs/timestamp"

@@ -11,7 +11,7 @@
     "stream_position",
     "previous_commit_ref",
     "event_ref",
-    "authority_generation",
+    "governance_generation",
     "authority_ref",
     "committed_at",
     "signature"
@@ -43,9 +43,10 @@
     "event_ref": {
       "$ref": "./common-ids.schema.json#/$defs/event_id"
     },
-    "authority_generation": {
+    "governance_generation": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Tenure counter of the governing Station that signed this Commit; it advances only on an accepted ak.realm.governance_station.change. It is not the Realm authority-root delegation generation of typed-current-result.schema.json#/$defs/realm_authority_root_value, which advances only on ak.realm.authority.reset."
     },
     "authority_ref": {
       "oneOf": [

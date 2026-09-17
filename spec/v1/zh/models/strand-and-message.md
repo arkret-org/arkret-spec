@@ -615,7 +615,7 @@ Schema id: `ak.schema.message.v1`
 | `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required，不靠默认补齐)。`redacted` 由 `ak.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root_id` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root_id` 下的 revision 形成有序 chain，由 `ak.message.revise` reducer 维护。**`ak.message.create` 的 payload MUST NOT 携带 `revision_root_id` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root_id = id`；只有 `ak.message.revise` 与后续 revise event 才允许携带 `revision_root_id`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root_id` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
-| `edited_at` | no | `timestamp` | 取 §9.5.1 默认展示 revision 对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳**；并发 revision 没有 canonical winner，全部 heads 都保留。 | 默认展示 revision 的编辑时间。 |
+| `edited_at` | no | `timestamp` | 取 §9.5.1 canonical revision 对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳**；历史 revision 全部保留在 revision chain。 | canonical revision 的编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ak.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `created_by` | yes | `ActorId` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -724,7 +724,7 @@ Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agen
 @<controller-handle>/<agent_slug>
 ```
 
-例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller 的完整 `AccountId`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject_id` 等于左侧 controller 账号的 principal 分量（agent selector claim 是 principal 级 selector namespace，与 mention 的账号级 target 是两个不同的登记字段），`agent_slug` 等于 token 右侧，`subject_account_id` 是唯一 active Agent 的**完整 AccountId**，当前有效且未撤销的 bind，`visibility` / `audience` / `claim_scope` 覆盖当前 requester 与 Realm intent，且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject_id`。解析结果 MUST 写成普通结构化 mention 节点，其 `subject_account_id` **逐字节复制已验证 claim 的 `subject_account_id`**。客户端 MUST NOT 从裸 principal 重建它：不得取本机 authoring Station、controller handle 的 Station、DID 默认 Station 或当前解析 facade 的 Station，也不得靠「roster 里恰好只有一个同 principal 账号」凑出来。本地已授权 cache、roster 内联来源与已登记且获授权的 resolver 必须给出同一个目标。同一 principal 在两个 Station 各有一个有效目标时是 **ambiguous**，MUST fail closed，不得按 principal 去重后当成唯一。解析不到、解析出多个 current valid selector claims（含同 principal 异 Station 的两个有效目标）、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
+例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller 的完整 `AccountId`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject_id` 等于左侧 controller 账号的 principal 分量（agent selector claim 是 principal 级 selector namespace，与 mention 的账号级 target 是两个不同的登记字段），`agent_slug` 等于 token 右侧，`subject_account_id` 是唯一 active Agent 的**完整 AccountId**，当前有效且未撤销的 bind，`visibility` / `audience` 覆盖当前 requester 与 Realm intent（该 claim **没有**开放 `claim_scope`，理由见 [`../identity/identity-handles.md` §3.2](../identity/identity-handles.md)：开放对象无法承载 MUST 级授权判定所依赖的状态而仍让所有 verifier 判定一致），且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject_id`。解析结果 MUST 写成普通结构化 mention 节点，其 `subject_account_id` **逐字节复制已验证 claim 的 `subject_account_id`**。客户端 MUST NOT 从裸 principal 重建它：不得取本机 authoring Station、controller handle 的 Station、DID 默认 Station 或当前解析 facade 的 Station，也不得靠「roster 里恰好只有一个同 principal 账号」凑出来。本地已授权 cache、roster 内联来源与已登记且获授权的 resolver 必须给出同一个目标。同一 principal 在两个 Station 各有一个有效目标时是 **ambiguous**，MUST fail closed，不得按 principal 去重后当成唯一。解析不到、解析出多个 current valid selector claims（含同 principal 异 Station 的两个有效目标）、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
 
 任何支持跨 roster / Directory / bridge 的 selector resolve surface 都 MUST 复用 Directory 的反枚举姿态：只有当请求者已与该 agent 共享一个可见 scope、或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与 `intent="mention"` 时，才可返回 agent DID 或 selector claim。未授权、slug 不存在、controller 不存在、agent 不可见、claim expired / revoked / ambiguous 等情况 MUST 使用不可区分的失败形态（例如统一 `not_found` / 空结果 / opaque denial），不得泄露"该 controller 是否拥有某 slug 的 agent"。
 
@@ -851,25 +851,25 @@ Message timeline 的同步与 reducer 行为：
 
 | 场景 | 收敛规则 |
 | --- | --- |
-| Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为 causal_depth → HLC → actor_id → producer_revision → event_id；不得输入 canonical state、授权或 winner 选择。 |
-| Message 编辑 | 并发 revision 共存于 revision chain；默认视图可按下文 §9.5.1 的 producer-biased 稳定顺序先展示一条，普通 branch 读取面保留全部 revision 分支。 |
-| Message 撤回 | 若 revision 与 redaction 并发，默认视图 redaction 优先；审计视图保留完整历史。 |
+| Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为该 Event 所在 stream 的 `RealmCommit.stream_position`；跨 stream 合并展示时按 `(stream_ref, stream_position)` 稳定分组，不得输入 canonical state、授权或 winner 选择。 |
+| Message 编辑 | 同一 revision chain 的全部 revise 落在同一条 authority stream，canonical revision 由下文 §9.5.1 的 `stream_position` 最大者唯一决定；历史 revision 全部保留在普通 branch 读取面。 |
+| Message 撤回 | 若 revision 与 redaction 同时存在，默认视图 redaction 优先；审计视图保留完整历史。 |
 | 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `ak.message.redact` 的 `payload.message_id`。 |
 | Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
 
 历史可见性枚举与 canonical 语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
 
-#### 9.5.1 并发 revision 的「最新可见 revision」全序选择（normative）
+#### 9.5.1 canonical revision 由 stream position 唯一决定（normative）
 
-同一 `revision_root_id` chain 内，两条 `ak.message.revise`（或 `ak.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `domain_refs` 因果闭包中），不存在天然的「谁更晚」。全部并发 heads 都是 canonical revision；默认视图 MAY 用下列 producer-biased 稳定顺序选一条先展示，但该选择不是 canonical winner：
+同一 `revision_root_id` chain 的全部 `ak.message.revise`（以及作为 chain 起点的 `ak.message.create`）都写同一条 Message，而该 Message 属于唯一一个 Strand、唯一一个 effective scope。因此它们全部由同一个治理 Station 在**同一条 authority stream** 上接纳，各自取得该 stream 严格 +1 的 `RealmCommit.stream_position`（[`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md)）。这是一个全序，「谁更晚」不需要再推断：
 
-1. **因果优先**：若一条 revise event 在另一条的 `domain_refs` 因果闭包中（严格因果后继），则后继 revision 胜出，前驱被该后继 supersede。此步用 domain_refs 因果序，不用任何墙钟字段。
-2. **并发默认展示顺序**：对一组**互不可达**的 revision，按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 canonical presentation order 排列，默认视图 MAY 先展示序列最后一条。producer 能以可忽略成本影响该相对位置，因此 UI MUST 提供查看全部并发 branches 的入口，不得把默认项标成“较新”“获胜”或已收敛。
-3. **绝对禁止的语义选择键**：`created_at` / HLC / `actor_id` / `producer_revision` / digest / 本地接收顺序 / 数据库 ID / 服务端插入顺序都不得把其它 head 变成 loser、tombstone 或非 canonical revision。`created_at`（及由其派生的 `edited_at`，见 §9.2）只可作显示信息。
+1. **canonical revision 唯一**：该 chain 的 canonical revision 是 `stream_position` 最大的那一条已接受 revise；chain 只有 create 时就是 create。不存在并发 head，也不需要 presentation-order 破局。
+2. **绝对禁止的语义选择键**：`created_at` / HLC / `actor_id` / canonical Event digest / 本地接收顺序 / 数据库 ID / 服务端插入顺序都不参与该选择，也不得把 position 较小的 revision 重新扶为 canonical。`created_at`（及由其派生的 `edited_at`，见 §9.2）只可作显示信息。
+3. **前缀视图是 provisional**：消费方持有的是该 stream 的一个前缀，position 连续性校验保证它不会把缺口当成「没有更晚的 revision」。缺口未补齐时 MUST 把该 chain 报告为 provisional，MUST NOT 宣布已收敛；补齐后 canonical revision 只沿 position 单向前移。
 
-该规则只决定**默认视图先展示哪一条** revision，不改变 canonical event log：全部并发 revision 都保留在 revision chain 与普通 branch 读取面中，不得只在管理员审计面暴露。`edited_at` 是默认展示项的派生时间戳，不参与 canonical 状态。
+canonical event log 不因此改变：全部历史 revision 仍保留在 revision chain 与普通 branch 读取面中，不得只在管理员审计面暴露，也不得因 position 较小而被删除或标成 tombstone。`edited_at` 是 canonical revision 的派生展示时间戳，不参与 canonical 状态。
 
-> 与撤回的交互：若并发 revision 与 redaction 并存，先按本节选出可见 revision，再按 §9.5 表「Message 撤回」行（redaction 优先）裁决可见性。
+> 与撤回的交互：若 revision 与 redaction 同时存在，先按本节取 canonical revision，再按 §9.5 表「Message 撤回」行（redaction 优先）裁决可见性。
 
 ### 9.6 Ephemeral 信号
 
@@ -936,7 +936,7 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 `domain reducer` 是 `keyed-set projection`——该取值属于
 [`common-fields.md` §2](./common-fields.md) 的封闭枚举，元素的稳定 tag 是
 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot
-`<event_id>:<write_index>`；join 由本节下文给出。其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
+`<event_id>:<write_index>`；join 由 [`common-fields.md` §2](./common-fields.md) 定义。其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
 一个 `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
 是**往集合里加一条断言**，而不是 explicit revocation。这不是绕路，而是本节要求的唯一可表达形态：
 本节明文要求审计视图保留并发 (add, remove) 的双方，若 remove 走 explicit revocation，被移除的

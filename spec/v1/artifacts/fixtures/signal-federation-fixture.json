@@ -42,7 +42,6 @@
           "accepted": true
         },
         "durable_event_written": false,
-        "producer_revision_advanced": false,
         "realm_stream_head_advanced": false,
         "envelope_rewritten": false
       }

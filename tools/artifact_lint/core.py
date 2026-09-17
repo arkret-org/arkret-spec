@@ -404,6 +404,19 @@ VALUE_PROJECTION_DERIVATIONS = {
     "event_digest_from_event_id",
     "mls_commit_transition_digest",
     "mls_genesis_transition_digest",
+    # The Agent AccountId an `ak.agent.provision` selector projection binds:
+    # principal component from the signed `payload.agent_id`, station
+    # component from this Event's own `envelope.actor_id`, which is the
+    # controller account that authored it.  It is a derivation and not a
+    # field because `select` picks ONE field path and no spelling in this
+    # grammar joins a payload principal to an envelope station -- while the
+    # value itself is fully determinate on the wire, so every verifier
+    # reaches the same bytes.  Registering it is also the server-side
+    # counterpart of the prohibition list in zh/models/strand-and-message.md
+    # section 9.4.1: not the local authoring Station, not the controller
+    # handle's Station, not the DID default Station, not the resolving
+    # facade's Station -- this one rule instead.
+    "agent_account_id_from_provision",
 }
 
 
@@ -432,10 +445,21 @@ VALUE_PROJECTION_IDENTITY_SUBJECTS = {
 # the reducer no longer copies or derives `issuer_station_id` -- the account's
 # routing authority is closed inside ActorId and no parallel station sidecar is
 # permitted -- so it was a derivation no registry row and no prose named.
+# The two successor counters read the frozen pre-state. capabilities.md section
+# on authority-root successor counters fixes both: the write CASes the whole
+# authority-root value by `expected_state_digest`, so the pre-state is frozen
+# and the successor has no author-selectable value at all. Each is
+# `checked_add(prestate.<member>, 1)` under the encoding.md section 1 JSON
+# safe-integer ceiling, failing closed on overflow rather than wrapping,
+# saturating or keeping the old value. This is the only pre-state read v1
+# admits: the result is a counter the digest already binds, never a copy of
+# stored protocol state into a new place.
 CELL_WRITE_DERIVATIONS = {
     "capability_authority_depth",
     "capability_authority_root_refs",
     "capability_status",
+    "realm_authority_generation_successor",
+    "realm_controller_epoch_successor",
 }
 
 

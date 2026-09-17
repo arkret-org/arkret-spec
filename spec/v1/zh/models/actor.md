@@ -112,6 +112,29 @@ Schema id: `ak.schema.actor_profile.v1`
 
 - **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `commit-ordered projection` 安全 typed current result。controller principal 与 slug 派生唯一 subject（namespace 不含 Station）；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须恰含已签 expected_revision 中该 typed current result 当前 revision 的 exact bind/provision 来源；首次未写入时为空，不得附加旧 revision 或其它 namespace 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
 
+- **canonical value 与 AccountId 的来源（normative）**：该 family 的 canonical 业务值固定为
+  `{subject_account_id, visibility, audience?, expires_at?}`，两个写入方 MUST 产出同一形状。
+  `subject_account_id` 可空，显式 null 即 unbind；`audience` 缺席表示 public 情形，
+  `expires_at` 缺席表示不设时间过期，二者 MUST NOT 写 JSON `null`。
+  值里**没有** `claim_scope`——开放对象不能承载 MUST 级授权判定所依赖的状态而仍让所有 verifier
+  判定一致，该成员已从 `ak.schema.agent_selector_claim.v1` 移除，理由与
+  [`../identity/identity-handles.md` §3.2](../identity/identity-handles.md) 对 `HandleClaimCore`
+  的既有裁决同一条；disclosure 边界只有 `visibility` 与 `audience`，`intent` 是请求参数而不是
+  claim 成员。`issuer_id`、`vouching_id`、`source_refs`、`created_at`、`verified_at` 与 `proofs`
+  同样不进入值：来源身份已由 head Event 及其接纳证明承载，`vouching_id` 在解析里没有读者，
+  而要求 portable `selector_claim.proofs` 的响应必须出示真实 controller 签名的 claim，
+  不得以本投影顶替。值也不重复自己的 subject——与 `identity_accountability` 不同，
+  本 family 没有「把值当便携记录逐字段读」的读者。
+- **provision 侧 AccountId 的唯一登记派生（normative）**：provision 的 selector 投影里，
+  `subject_account_id` 由已登记派生 `agent_account_id_from_provision` 产出：
+  principal 分量取已签名的 `payload.agent_id`，station 分量取**本 Event 自己的**
+  `envelope.actor_id`（即 controller 账号）的 station 分量。它是 derivation 而不是字段拷贝，
+  因为 `value_projection` 的成员来源里 `select` 只能取**一条**字段路径，
+  没有任何拼法能把 payload 的 principal 与 envelope 的 station 合起来；
+  而该值在 wire 上完全确定，所有 verifier 得到同一串字节。这条派生也是
+  [`strand-and-message.md` §9.4.1](./strand-and-message.md) 那串客户端禁令的服务端对偶：
+  不取本机 authoring Station、不取 controller handle 的 Station、不取 DID 默认 Station、
+  不取当前解析 facade 的 Station——改为这一条唯一规则。
 - **Selector 解析（normative）**：先读取唯一已确认值，再检查当前 Agent lifecycle、accountability、visibility 和 expiry。null 或过期不返回成功，也不显露被取代的旧 bind。缺确认材料 fail closed。解析结果仍须独立验证完整 AccountId；selector 不替代成员、grant 或审计责任身份。provision 不伪造内层 claim proof，portable claim 需要真实 controller 签名。
 
 - Event Envelope 不携带主体分类 stamp。审计 / 取证 / offline reader 必须分别保留签名覆盖的 `actor_id` 与可选 `executed_by`，并解析准入时点的 provisioning / registration / installation / accountability / identity 证据；Actor Profile `actor_kind` 只能作为展示分类，不能决定问责主体、executor 或权限。

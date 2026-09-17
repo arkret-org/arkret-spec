@@ -503,21 +503,7 @@
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
         },
         "current_signer_evidence": {
-          "type": "object",
-          "description": "Complete content-addressed Agent signer root for the currently authorized runtime key. signer_resolution_evidence_ref MUST equal SHA-256(RFC8785-JCS(authenticated_signer_evidence)) in the registered ak:signer_evidence form, and MUST equal the sibling key_state.signer_resolution_evidence_ref byte for byte.",
-          "required": [
-            "signer_resolution_evidence_ref",
-            "authenticated_signer_evidence"
-          ],
-          "properties": {
-            "signer_resolution_evidence_ref": {
-              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
-            },
-            "authenticated_signer_evidence": {
-              "$ref": "./authenticated-signer-resolution-evidence.schema.json"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/agent_current_signer_evidence"
         }
       },
       "dependentRequired": {
@@ -537,6 +523,23 @@
         "pairing_expires_at": [
           "pairing_request_id"
         ]
+      },
+      "additionalProperties": false
+    },
+    "agent_current_signer_evidence": {
+      "type": "object",
+      "description": "Complete content-addressed Agent signer root for the currently authorized runtime key. signer_resolution_evidence_ref MUST equal SHA-256(RFC8785-JCS(authenticated_signer_evidence)) in the registered ak:signer_evidence form, and MUST equal the sibling signer_resolution_evidence_ref of the carrier object byte for byte. authenticated_signer_evidence is the compact six-member signer-resolution evidence and carries no closure of its own; the portable Agent Authority closure travels as agent-authority-evidence.schema.json#/$defs/agent_authority_state_evidence, never inside this root.",
+      "required": [
+        "signer_resolution_evidence_ref",
+        "authenticated_signer_evidence"
+      ],
+      "properties": {
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        },
+        "authenticated_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence"
+        }
       },
       "additionalProperties": false
     },
@@ -859,6 +862,9 @@
         "signer_resolution_evidence_ref": {
           "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
           "description": "Content address of current_signer_evidence.authenticated_signer_evidence. The runtime MUST recompute it from the complete canonical root and reject a mismatch."
+        },
+        "current_signer_evidence": {
+          "$ref": "#/$defs/agent_current_signer_evidence"
         }
       },
       "additionalProperties": false,

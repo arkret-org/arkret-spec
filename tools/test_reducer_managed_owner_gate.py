@@ -15,12 +15,14 @@ cell_families`, which short-circuits on an empty set. Three of the four live
 * `space_metadata` is nowhere in `spec/v1/zh/`; the `scope_circle_id` row it
   owned is `create_locked` and its real owner is `ak.space.create`, matching
   every other `create_locked` row in the file;
-* `space_parent` and `space_child_scope_policy` are real, prose-backed, and
-  unregistered, because the whole Space domain is still part of the uncovered
-  `reducer_input` set. They sit in a shrinking ledger with their citations.
+* `space_parent` and `space_child_scope_policy` were real, prose-backed and
+  unregistered, so they sat in a shrinking ledger with their citations until the
+  Space coverage batch registered both families and closed it.
 
-Every mutation reads as a delta against the live baseline, so each test keeps
-testing its own proposition as the registries grow.
+The ledger is empty now, so the tests that prove how it behaves build their own
+entry instead of borrowing a live one. Every mutation reads as a delta against
+the live baseline, so each test keeps testing its own proposition as the
+registries grow.
 """
 
 from __future__ import annotations
@@ -39,7 +41,19 @@ REGISTRY = gate.REDUCER_MANAGED_REGISTRY_PATH
 FAMILIES = gate.CURRENT_RESULT_REGISTRY_PATH
 BASELINE = gate.REDUCER_MANAGED_OWNER_BASELINE
 
-BASELINED_OWNERS = ("space_child_scope_policy", "space_parent")
+LEDGER_KEY = "owners_without_registered_family"
+
+
+def ledger_entry(owner: str, object_kind: str, path: str) -> dict:
+    """A ledger row of the shape the live entries had before the ledger closed."""
+    return {
+        "owner": owner,
+        "object_kind": object_kind,
+        "path": path,
+        "prose": "synthetic entry; this test owns it",
+        "blocked_on": "synthetic entry; this test owns it",
+        "opened": "2026-09-18",
+    }
 
 
 def object_of(registry: dict, kind: str) -> dict:
@@ -97,13 +111,14 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         self.assertEqual(row["owner_kind"], "event_kind")
         self.assertEqual(row["owner"], "ak.space.create")
 
-    def test_every_baselined_owner_is_still_cited_and_still_unregistered(self) -> None:
-        """Pins what the ledger claims against both registries, so a resolution
-        that forgets the ledger is caught by the ledger's own test too."""
+    def test_the_ledger_is_closed_and_any_entry_would_be_consistent(self) -> None:
+        """The ledger only shrinks, and the Space coverage batch emptied it by
+        registering both families. The loop stays because it is what checks a
+        re-opened entry against both registries."""
         registry = gate.load_json(gate.Lint(), REGISTRY)
         families = gate._registered_result_families(gate.Lint())
         baselined = gate._baselined_unregistered_owners(gate.Lint())
-        self.assertEqual(tuple(sorted(baselined)), BASELINED_OWNERS)
+        self.assertEqual(sorted(baselined), [])
         for owner, row in baselined.items():
             cited = path_row(registry, row["object_kind"], row["path"])
             self.assertEqual(cited["owner_kind"], "result_family")
@@ -142,20 +157,16 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
     # ---- the ledger is an exemption, and it only shrinks ------------------
 
     def test_an_owner_outside_the_ledger_is_reported(self) -> None:
-        """The exemption is per-owner and written down. Drop `space_parent` from
-        the ledger and the registry row it covers fails immediately."""
+        """The exemption is per-owner and written down. An owner that names no
+        registered family and holds no ledger entry fails immediately."""
 
-        def mutate(baseline: dict) -> None:
-            baseline["owners_without_registered_family"] = [
-                row
-                for row in baseline["owners_without_registered_family"]
-                if row["owner"] != "space_parent"
-            ]
+        def mutate(registry: dict) -> None:
+            path_row(registry, "space", "parent_space_id")["owner"] = "space_parent_successor"
 
-        reported = self._newly_reported({BASELINE: mutate})
+        reported = self._newly_reported({REGISTRY: mutate})
         self.assertEqual(len(reported), 1, reported)
         self.assertIn(
-            "current-result-registry.json does not register: 'space_parent'",
+            "current-result-registry.json does not register: 'space_parent_successor'",
             reported[0],
         )
 
@@ -163,15 +174,10 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         """Registering the family is the whole point of the ledger entry, so it
         must not be possible to register it and keep the exemption."""
 
-        def mutate(families: dict) -> None:
-            families["result_kinds"].append(
-                {
-                    "result_kind": "space_parent",
-                    "schema_ref": "schemas/space.schema.json",
-                }
-            )
+        def mutate(baseline: dict) -> None:
+            baseline[LEDGER_KEY] = [ledger_entry("space_parent", "space", "parent_space_id")]
 
-        reported = self._newly_reported({FAMILIES: mutate})
+        reported = self._newly_reported({BASELINE: mutate})
         self.assertEqual(len(reported), 1, reported)
         self.assertIn("space_parent is now registered", reported[0])
 
@@ -180,15 +186,12 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         family at all, and an exemption for nothing is a false record of a
         known gap."""
 
-        def mutate(registry: dict) -> None:
-            row = path_row(registry, "space", "parent_space_id")
-            row["basis"] = "create_locked"
-            row["owner_kind"] = "event_kind"
-            row["owner"] = "ak.space.create"
+        def mutate(baseline: dict) -> None:
+            baseline[LEDGER_KEY] = [ledger_entry("space_bystander", "space", "parent_space_id")]
 
-        reported = self._newly_reported({REGISTRY: mutate})
+        reported = self._newly_reported({BASELINE: mutate})
         self.assertEqual(len(reported), 1, reported)
-        self.assertIn("space_parent is no longer cited", reported[0])
+        self.assertIn("space_bystander is no longer cited", reported[0])
 
     # ---- the half of the guard that was already live ---------------------
 

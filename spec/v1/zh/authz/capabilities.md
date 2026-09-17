@@ -146,7 +146,7 @@ Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 current-v1 **不定义** authority-policy override typed current result、role-assignment typed current result 或 deployment-local owner override。owner 的 direct Event coverage 与 grant issuer ceiling 分别是 fixed reducer semantics bundle 中冻结的 `ak.realm.owner.target_event_kinds` 与 `grant_authority_actions`；偏离默认只能通过本规范已经定义的显式 capability grant、revoke、constraint 与对应 policy control state 表达。实现不得从未知 typed current result、配置文件、`ServiceDescribe`、membership role 或 UI role 标签扩张/收窄这两个集合。这样 typed current result 缺席不是 fallback，而是 current-v1 的唯一协议状态。
 
-**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root typed current result 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
+**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root typed current result 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST 以 `realm_authority_root_conflict` fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
 
 Profile 对 non-event action 的显式授权规则必须登记在
 `conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；
@@ -648,12 +648,22 @@ v1 只有**一种** grant 形态。每条 grant 用 `issuer_authority_refs[]` �
 
 | | root controller 直发 | 普通 principal 再授予 |
 | --- | --- | --- |
-| ref | `{kind:"realm_root", realm_id, result_selector, controller_epoch_at_issuance, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
+| ref | `{kind:"realm_root", realm_id, authority_event_ref, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
 | issuer 证明 | 签发 RealmCommit basis 下 root typed current result 的 `controller_actor_id == issuer_id`，且 `issuer_id == Event.actor_id` | 每条 ref 的具体 `subject == child.issuer_id`（完整 ActorId 相等） |
 | 持续有效性 | root 存在、Realm 未终止且 `authority_generation` 与 ref 相同；controller transfer 不影响 | 该 ref grant 当前 active |
 | 上界 | root owner ceiling ∩ Realm policy | union(ref grants) ∩ Realm policy |
 
 wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是全部差异。`realm_root` 是有根终点，`grant` 是一条边。
+
+**`authority_generation` 与 `governance_generation` 是两个不同的计数器（normative）**：`realm_root` ref 里的
+`authority_generation` 是 authority-root typed current result 的**委派代次**，创世为 0，只由
+`ak.realm.authority.reset` 递增，用途只有一个——一次性整代失效本 Realm 由 root 派生的全部 grant。
+`RealmCommit` / snapshot / join intake / `AccountCurrentResult` 上的 `governance_generation` 是**治理 Station
+任期代次**，只由 `ak.realm.governance_station.change` 递增（见
+[`sync/authority-commit-log.md`](../sync/authority-commit-log.md)）。二者 MUST NOT 互相替代：把托管方换机读成
+授权失效，会让一次例行 handoff 撤销整个 Realm 的授权树；把授权重置读成换机，会让 reset 不产生任何效果。
+`profiles/conformance-profiles.json` 的 participant 掩码 `generation_rule=independent_of_realm_authority_generation`
+说的是前者。
 
 `issuer_authority_refs[]` MUST 非空、canonical 去重，且 reducer MUST 拒绝不贡献任何覆盖的冗余 ref。所有 ref 的能力并集 MUST 覆盖 child 的全部 (action, resource)；标记 `root_control_only` 的 action 永远不能成为 child（见 §3.2）。
 
@@ -664,7 +674,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 **接受后物化字段（normative）**：reducer MUST 物化下列两个字段；它们都不属于 producer 的 closed authoring body，因此不可由作者谎报：
 
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
-- `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, result_selector, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
+- `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, authority_event_ref, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
 
 二者 MUST 登记进 `ak.capability.grant` 的 `result_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `event_kind_registry.event_kinds[].result_writes[]`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。集合的第三个成员是 §12.1 的 `capability_status`，它同样只能由 reducer 物化，四条已登记的 `capability_grant` 写入各自决定它的取值。未登记的 reducer 顺带写入 MUST NOT 进入已提交 typed current result（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
 

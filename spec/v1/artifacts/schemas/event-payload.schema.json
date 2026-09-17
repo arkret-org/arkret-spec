@@ -252,7 +252,7 @@
       "description": "Payload for ak.account_data.set. Writes one holder-private account-data key; the value may be plaintext inside an already private envelope, encrypted account-data material, or a tombstone. Every key is a compare-and-set whole-value register per zh/models/account-data.md §5: expected_revision is the revision the writer believes is current (0 to create), and the accepted revision is expected_revision + 1.",
       "required": [
         "key",
-        "expected_revision"
+        "expected_server_revision"
       ],
       "oneOf": [
         {
@@ -275,11 +275,6 @@
         "key": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "expected_revision": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Compare-and-set precondition against the accepted per-key revision. A mismatch MUST be rejected with cas_conflict and MUST NOT be stored; the revision counter is a high-water mark that never goes backwards, so a stale offline retry cannot resurrect a superseded value."
-        },
         "body": {
           "description": "Caller-supplied opaque account-data value. Any JSON value."
         },
@@ -292,6 +287,11 @@
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "expected_server_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Compare-and-set precondition against the accepted per-key revision. A mismatch MUST be rejected with cas_conflict and MUST NOT be stored; the revision counter is a high-water mark that never goes backwards, so a stale offline retry cannot resurrect a superseded value. This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
         }
       },
       "additionalProperties": false
@@ -2207,9 +2207,8 @@
                   "$ref": "#/$defs/device_id"
                 },
                 "expected_revision": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "description": "Exact current call-roster revision observed by the producer."
+                  "$ref": "./typed-current-result.schema.json#/$defs/revision",
+                  "description": "Exact current call-roster revision observed by the producer. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
                 }
               },
               "additionalProperties": false
@@ -2311,9 +2310,8 @@
                   "$ref": "#/$defs/timestamp"
                 },
                 "expected_revision": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "description": "Exact current moderation revision for this participant observed by the producer."
+                  "$ref": "./typed-current-result.schema.json#/$defs/revision",
+                  "description": "Exact current moderation revision for this participant observed by the producer. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
                 }
               },
               "additionalProperties": false
@@ -2559,8 +2557,8 @@
           "$ref": "#/$defs/grant_id"
         },
         "expected_revision": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./typed-current-result.schema.json#/$defs/revision",
+          "description": "It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
         },
         "reason": {
           "type": "string"
@@ -2579,8 +2577,8 @@
           "$ref": "#/$defs/grant_id"
         },
         "expected_revision": {
-          "type": "integer",
-          "minimum": 0
+          "$ref": "./typed-current-result.schema.json#/$defs/revision",
+          "description": "It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
         },
         "reason": {
           "type": "string"
@@ -2794,9 +2792,8 @@
           "description": "MUST equal the consent_id of the ak.consent.grant being revoked."
         },
         "expected_revision": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Exact current consent revision observed by the producer."
+          "$ref": "./typed-current-result.schema.json#/$defs/revision",
+          "description": "Exact current consent revision observed by the producer. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
@@ -3556,11 +3553,11 @@
         "account_id",
         "device_id",
         "push_route",
-        "expected_revision",
         "push_target_id",
         "push_gateway_id",
         "encryption_key",
-        "capabilities"
+        "capabilities",
+        "expected_server_revision"
       ],
       "properties": {
         "account_id": {
@@ -3572,10 +3569,6 @@
         "push_route": {
           "type": "string",
           "minLength": 1
-        },
-        "expected_revision": {
-          "type": "integer",
-          "minimum": 0
         },
         "push_target_id": {
           "$ref": "./common-ids.schema.json#/$defs/push_target_id"
@@ -3594,6 +3587,11 @@
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "expected_server_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
         }
       },
       "additionalProperties": false
@@ -3604,8 +3602,8 @@
         "account_id",
         "device_id",
         "push_route",
-        "expected_revision",
-        "revoked"
+        "revoked",
+        "expected_server_revision"
       ],
       "properties": {
         "account_id": {
@@ -3618,15 +3616,16 @@
           "type": "string",
           "minLength": 1
         },
-        "expected_revision": {
-          "type": "integer",
-          "minimum": 0
-        },
         "revoked": {
           "const": true
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "expected_server_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
         }
       },
       "additionalProperties": false
@@ -4092,11 +4091,20 @@
     "invite_accept_payload": {
       "type": "object",
       "required": [
-        "invite_id"
+        "invite_id",
+        "previous_state"
       ],
       "properties": {
         "invite_id": {
           "$ref": "#/$defs/invite_id"
+        },
+        "previous_state": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "claimed"
+          ],
+          "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one."
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -4112,6 +4120,7 @@
       "type": "object",
       "required": [
         "invite_id",
+        "previous_state",
         "invitee_account_id",
         "target_state"
       ],
@@ -4119,9 +4128,17 @@
         "invite_id": {
           "$ref": "#/$defs/invite_id"
         },
+        "previous_state": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "claimed"
+          ],
+          "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one."
+        },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "MUST equal the directed invite's stored exact account so invite.lifecycle and member.state move atomically."
+          "description": "MUST equal the directed invite's stored exact account so invite_lifecycle and member_state move atomically."
         },
         "target_state": {
           "type": "string",
@@ -4148,11 +4165,21 @@
       "type": "object",
       "required": [
         "invite_id",
+        "previous_state",
         "target_state"
       ],
       "properties": {
         "invite_id": {
           "$ref": "#/$defs/invite_id"
+        },
+        "previous_state": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "claimed",
+            "send_failed"
+          ],
+          "description": "The invite_lifecycle state this Event expects to move out of. zh/models/governance-objects.md section 5.3 gives this kind several legal source states, so the registered transition projection reads its from endpoint here instead of pinning one const and dropping the rest -- the same shape agent_deactivate_payload uses for previous_status. It is a declared pre-state, not a producer-side order: the reducer compares it with the frozen pre-state at admission and rejects a mismatch, which is what stops an Event authored against a pending Invite from landing on a claimed one."
         },
         "invitee_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -4196,6 +4223,25 @@
               "required": [
                 "invitee_account_id"
               ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "target_state": {
+                "const": "send_failed"
+              }
+            },
+            "required": [
+              "target_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "previous_state": {
+                "const": "pending"
+              }
             }
           }
         }
@@ -5739,9 +5785,8 @@
           "description": "Reference to the prior ak.moderation.decision Event whose committed tag is being removed."
         },
         "expected_revision": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Exact current moderation-target revision the producer observed. A different current revision rejects the Event as stale; exact retry remains idempotent."
+          "$ref": "./typed-current-result.schema.json#/$defs/revision",
+          "description": "Exact current moderation-target revision the producer observed. A different current revision rejects the Event as stale; exact retry remains idempotent. It is the typed revision of the value the producer read, so the compare-and-set names the same {commit_id, stream_position} the typed current result carries. A producer-chosen integer would be a producer-side order, which the authority-commit model does not have."
         },
         "reason_code": {
           "type": "string",
@@ -8386,8 +8431,10 @@
     },
     "space_parent_payload": {
       "type": "object",
+      "description": "Reparent one Space. All three members are required. parent_space_id is nullable and explicit null is the one spelling of \"no parent\" on this payload, so the space_parent register stays total and an omitted member can never mean the root by accident; the Space create object spells the same fact by absence and the genesis write normalizes it. expected_parent_space_id is the declared prior parent this producer read, not an optional compare-and-set: zh/models/realm-and-space.md section 3.5 registers it as a pre_state requirement on the space_parent family, and making it optional would give one Event kind two admission semantics selected by a member's presence.",
       "required": [
         "space_id",
+        "parent_space_id",
         "expected_parent_space_id"
       ],
       "properties": {
@@ -9435,14 +9482,15 @@
     "realm_governance_station_change_payload": {
       "type": "object",
       "required": [
-        "expected_authority_generation",
+        "expected_governance_generation",
         "expected_realm_stream_commit_id",
         "new_governance_station_id"
       ],
       "properties": {
-        "expected_authority_generation": {
+        "expected_governance_generation": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Station tenure the producer observed. The handoff is a compare-and-set on the governing Station tenure, never on the Realm authority-root delegation generation."
         },
         "expected_realm_stream_commit_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
@@ -9506,6 +9554,25 @@
         }
       ],
       "x-arkret-signature-domain": "ak.device_authorize_recovery_possession_proof.v1"
+    },
+    "realm_authority_reset_payload": {
+      "type": "object",
+      "description": "ak.realm.authority.reset — invalidate every capability grant that descends from this Realm's authority root in one accepted Event. It increments authority_generation only: controller_actor_id and controller_epoch are preserved verbatim, so the reset is not a controller change and never moves the root. Every realm_root grant ref carries the generation it was issued under, so advancing the generation is exactly what makes a whole delegated authority tree stop evaluating; ak.realm.owner.transfer preserves the generation and therefore leaves every child grant valid. The current controller is the only possible author: the compare-and-set below requires the frozen pre-state digest, so this is a deliberate act by the holder of root control, never an automatic takeover of a lost authority.",
+      "required": [
+        "realm_id",
+        "expected_state_digest"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "expected_state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "JCS SHA-256 digest of the authority-root typed current result value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite. The successor generation is uniquely computed from the pre-state this digest freezes, so no counter is carried on the wire."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "x-arkret-public-handshake-contract": {

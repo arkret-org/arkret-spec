@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-18T21:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2027,6 +2027,19 @@
       "profile": null,
       "event_mapping_kind": "same_name",
       "root_control_only": true
+    },
+    {
+      "action": "ak.realm.authority.reset",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.authority.reset"
+      ],
+      "profile": null,
+      "root_control_only": true,
+      "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
+      "event_mapping_kind": "same_name"
     }
   ],
   "event_mapping_kind_definitions": {

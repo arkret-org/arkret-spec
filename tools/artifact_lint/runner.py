@@ -207,6 +207,7 @@ from .proof_context_schemas import (
     check_proof_context_object_family_schemas,
     check_every_result_family_has_a_writer,
     check_partial_update_base_producers,
+    check_pre_state_requirement_closure,
     check_registered_families_are_listed_in_prose,
     check_result_family_write_agreement,
     check_result_write_contracts,
@@ -305,6 +306,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "partial_update_base_producers",
                 lambda: check_partial_update_base_producers(lint),
+            ),
+            (
+                "pre_state_requirement_closure",
+                lambda: check_pre_state_requirement_closure(lint),
             ),
             (
                 "registered_families_are_listed_in_prose",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.20",
+  "version": "2026-09-18.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T02:30:00+08:00",
+  "generated_at": "2026-09-18T21:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -468,7 +468,7 @@
       "applies_to_fixtures": [
         "authority-commit-fixture.json"
       ],
-      "description": "Two signature-valid but different Commits on one (realm_id, stream_ref, authority_generation, stream_position) freeze that stream; consumers MUST NOT pick a winner.",
+      "description": "Two signature-valid but different Commits on one (realm_id, stream_ref, governance_generation, stream_position) freeze that stream; consumers MUST NOT pick a winner.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
         "spec/v1/zh/sync/authority-commit-log.md"
@@ -3240,7 +3240,7 @@
       "applies_to_profiles": [
         "ak.profile.chat_mvp.v1"
       ],
-      "description": "Accepted Message Events are the sole Poll truth source. Full ActorId and Realm/Circle partitions retain causal response sets; closed causal heads select one complete vote by unsigned UTF-8 digest order. Arrival permutations, late dependencies, cycles, invalidation and commutative/associative/idempotent replica union must converge in heads, winner, selections and tally.",
+      "description": "Accepted Message Events are the sole Poll truth source. A partition (Realm or Circle scope, poll, full ActorId) lies inside exactly one authority stream, so that actor’s accepted responses are totally ordered by RealmCommit stream_position and the current vote is the greatest position, taken whole. payload.poll_response_heads[] is the producer’s cleartext revote declaration and never a winner criterion: an entry naming another poll, actor or scope rejects the response with zero writes. Arrival permutations, a stream prefix with gaps, invalidation and commutative/associative/idempotent replica union must converge in current vote, selections and tally.",
       "source_refs": [
         "spec/v1/zh/models/content-types.md"
       ]

@@ -15,7 +15,7 @@ see_also:
 本章的逐 stream 连续性、私有 handoff head 清单与公开 bundle 不泄漏规则由
 `ak.vector.authority_commit.independent_streams.v1` 覆盖。三类必须拒绝的情形各有可执行负例向量：
 断链与 position 跳号由 `ak.vector.authority_commit.stream_continuity_negative.v1` 覆盖；同一
-`(realm_id, stream_ref, authority_generation, stream_position)` 上的双 Commit 冻结由
+`(realm_id, stream_ref, governance_generation, stream_position)` 上的双 Commit 冻结由
 `ak.vector.authority_commit.equivocation_freeze.v1` 覆盖；planned handoff 生效后旧 Station 的写入拒绝由
 `ak.vector.authority_commit.post_handoff_write_rejected.v1` 覆盖。
 
@@ -57,9 +57,11 @@ Event 不指向“上一个 Event”。producer 可能离线签名，且多个 p
 - 其它 position 必须引用同一 stream 的 position - 1 Commit；
 - predecessor 不得引用另一 Realm、Circle 或 Sidecar stream；
 - `commit_id` 是去掉 signature 后 closed body 的 content-addressed typed ID；
-- signature 只能由 `authority_generation` 对应的治理 Station service key 产生。
+- signature 只能由 `governance_generation` 对应的治理 Station service key 产生。
 
-同一个 Event 最多有一个 successful Commit。exact retry 返回同一 Commit；拒绝和暂不可用不占 position。同一 `(realm_id, stream_ref, authority_generation, stream_position)` 上出现两个不同但签名有效的 Commit 是治理方 equivocation，消费方必须冻结该 Realm 的相关 stream，不得自动选 winner。
+`governance_generation` 是**治理 Station 任期代次**，只由已接受的 `ak.realm.governance_station.change` 递增，其 `payload.expected_governance_generation` 就是对该计数器的 CAS。它与 authority-root typed current result 的 `authority_generation`（授权委派代次，只由 `ak.realm.authority.reset` 递增）是两个不同的计数器，MUST NOT 互相替代；一次 planned handoff 不改变任何 grant 的有效性。
+
+同一个 Event 最多有一个 successful Commit。exact retry 返回同一 Commit；拒绝和暂不可用不占 position。同一 `(realm_id, stream_ref, governance_generation, stream_position)` 上出现两个不同但签名有效的 Commit 是治理方 equivocation，消费方必须冻结该 Realm 的相关 stream，不得自动选 winner。
 
 ## 4. 写入状态
 
@@ -110,7 +112,7 @@ Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测
 
 ## 7. Snapshot 与 join bootstrap
 
-Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `authority_generation` 和调用方获准的全部 stream heads。它不含 typed current result chunks、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。
+Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `governance_generation` 和调用方获准的全部 stream heads。它不含 typed current result chunks、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。
 
 加入流程必须为：
 

@@ -186,7 +186,7 @@
     {
       "name": "limited_timeline_state_at_window_start",
       "vector_id": "ak.vector.sync.state_at_window_start.v1",
-      "basis": "first_limited_event.domain_refs causal closure joined at nearest reachable RealmCommit",
+      "basis": "confirmed RealmCommit prefix of the same stream up to the position preceding the window start",
       "variants": [
         "deterministic_join",
         "unreachable_basis",
@@ -544,17 +544,17 @@
         ]
       },
       "assertions": [
-        "ak.invite.create atomically writes invite.lifecycle and the invite.live_target slot while ak.invite.accept atomically writes invite.lifecycle, member.state join and the invite.live_target release",
+        "ak.invite.create atomically writes invite_lifecycle and the invite_live_target slot while ak.invite.accept atomically writes invite_lifecycle, member_state join and the invite_live_target release",
         "the membership FSM has no invite state and exact invite acceptance uses the registered leave to join edge",
-        "a rejected or revoked or expired invite changes only invite.lifecycle and leaves the member typed current result byte-identical",
-        "the 3PID create and revoke branches produce no member.state projection; claim produces only a subject-bound membership proposal",
+        "a rejected or revoked or expired invite changes only invite_lifecycle and leaves the member typed current result byte-identical",
+        "the 3PID create and revoke branches produce no member_state projection; claim produces only a subject-bound membership proposal",
         "a direct member ban from leave is evaluated independently by the membership FSM",
         "ak.invite.cancel is valid only for a stored direct invitee binding; token and 3PID invites require the high-risk ak.invite.revoke path",
         "a direct cancel requires signed payload.invitee_account_id to equal the stored invitee binding",
         "claimed to accepted is a registered invite FSM edge and ak.invite.accept must derive its from state from the frozen typed current result",
-        "a directed ak.invite.revoke to send_failed writes only invite.lifecycle and leaves the invite.live_target slot claimed",
-        "a third-party ak.invite.revoke writes only invite.lifecycle because its payload carries no invitee_account_id",
-        "the write count is branch-dependent, not per kind: ak.invite.accept and ak.invite.revoke derive the invite.live_target write only when the payload carries invitee_account_id, so a third-party accept is two writes and a send_failed or third-party revoke is one"
+        "a directed ak.invite.revoke to send_failed writes only invite_lifecycle and leaves the invite_live_target slot claimed",
+        "a third-party ak.invite.revoke writes only invite_lifecycle because its payload carries no invitee_account_id",
+        "the write count is branch-dependent, not per kind: ak.invite.accept and ak.invite.revoke derive the invite_live_target write only when the payload carries invitee_account_id, so a third-party accept is two writes and a send_failed or third-party revoke is one"
       ]
     },
     {
@@ -613,7 +613,7 @@
       },
       "assertions": [
         "principal_admission and cooldown are evaluated under every default_join_rule including public, invite and closed",
-        "ak.invite.create fails before invite.lifecycle and ak.invite.accept fails before either invite.lifecycle or member.state when the hard gate rejects",
+        "ak.invite.create fails before invite_lifecycle and ak.invite.accept fails before either invite_lifecycle or member_state when the hard gate rejects",
         "closed blocks applicant-initiated entry only; the four authorized-writer branches stay available",
         "the DM bootstrap batch reaches active member count 2",
         "adding a third member to an active DM Realm is still rejected"

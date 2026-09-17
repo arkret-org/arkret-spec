@@ -204,6 +204,15 @@ Reducer MUST 在 `ak.strand.create`、`ak.strand.move`、`ak.space.parent`、str
 
 客户端创建子资源时必须显式选择 `scope_circle_id`；需要强制约束时使用 `child_scope_policy` 表达，不存在 reducer 无法验证的 Space 级默认 hint。
 
+**该 policy 是一个已登记的 typed current result family，不是 create-locked 的对象成员**：family 名为 `space_child_scope_policy`，以 SpaceId 为 subject（special form `space_child_scope_policy:<space_id>`），result schema 见 [`typed-current-result.schema.json#/$defs/space_child_scope_policy_result`](../../artifacts/schemas/typed-current-result.schema.json)。值是本节那个封闭 policy 对象**或 `null`**；`null` 是「未声明」状态，与 `allow_any` 同样「不额外限制」，但 reducer **MUST NOT** 把缺席的成员合成成 `{"kind": "allow_any"}` 对象——投影只能写签名 Event 或 envelope 提供的值，`null` 是缺席状态的唯一登记写法。
+
+写入方恰好两处：
+
+- `ak.space.create.result_writes[]`：签名 `object.child_scope_policy` 存在时写该对象，缺席时写 `null`。
+- `ak.space.update.result_writes[]`：**专用的非 patch 写**，条件化在 `space_patch_payload` 顶层的 `child_scope_policy` 成员上。该 payload 用 `propertyNames.not` 禁止通用 `patch` 触及这条路径（含带点路径），并用 `anyOf: [{required: ["patch"]}, {required: ["child_scope_policy"]}]` 把二者分成**两条不同的准入路径**而不是同一件事的两种写法：policy 成员选择 security execution，合并事件是原子的且要求 security finality。成员缺席表示这条 Event 走 metadata patch 分支、在本 family 上零写入，**不**表示 `allow_any`。
+
+[`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 里 `child_scope_policy` 一行的 `owner_kind: result_family` / `owner: space_child_scope_policy` 指向的就是上面这两条写。
+
 ### 7.2 "宽 synthesis + 窄 discussion" 场景如何表达
 
 需要"公开锚 + 私密讨论"组合时，MUST 用 **两个 Strand + Relation** 表达；Strand 永远单一 scope，不存在 per-track 安全边界:

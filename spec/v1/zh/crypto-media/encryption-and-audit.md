@@ -76,6 +76,39 @@ minimal-metadata Realm 的 Realm-local pairwise actor 不是例外：它在 Real
 只有两处封闭的 Realm 外匹配点（consent peer 与 KeyPackage claim）使用 `(realm_id, principal_id)`，因为该分支
 的 `did:key` principal 已经把这一对固定下来。
 
+#### 2.2.2 公开握手契约
+
+`realm` 与 `circle` 两类 effective scope 的 MLS 握手面按本节的封闭契约执行。本节与
+[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的
+`x-arkret-public-handshake-contract` 注解逐键对应，两侧 MUST 保持一致。
+
+1. **wire 形态**：Proposal 与 Commit 进入 wire 的输入 MUST 是完整的 RFC 9420 `PublicMessage`
+   形态 `MLSMessage`。治理 Station MUST NOT 接受 `PrivateMessage` 形态的握手消息，也 MUST NOT
+   接受裸 `Proposal` / `Commit` 对象、裁剪后的片段或 producer 自行摘要出的替代表示：它验证的
+   public transition MUST 出自它自己解析的那份 wire bytes。
+2. **membership MAC 的验证角色**：`PublicMessage` 的 membership MAC 只有持有该 epoch
+   `membership_key` 的**成员**能验证。治理 Station 不是成员，它 MUST NOT 取得 `membership_key`
+   或任何成员 secret，因此 MUST NOT 把 membership MAC 当作准入判据——它只验证 §2.2 列出的公开量。
+   成员在本地 MUST 验证 membership MAC。
+3. **被消费 Proposal 的 leaf provenance**：Station MUST 为每个 accepted Commit 持久保存它实际
+   消费的 Proposal 集合，以及每条 Proposal 的精确 leaf provenance（目标 leaf、该 leaf 的完整
+   ActorId 与 Proposal sender）。该 provenance MUST 只从第 1 项的公开 wire bytes 导出，
+   MUST NOT 依赖任何成员 secret，也 MUST NOT 由 Station 推断或补全。
+4. **Remove+Add 永远产生新 provenance**：先 Remove 再 Add 同一 ActorId 时，即使新 leaf 的
+   `(完整 ActorId, credential, signature key, leaf 位置)` 元组与被移除的 leaf 逐字相同，它也是
+   **一条新的 provenance**。实现 MUST NOT 以元组相等为由复用、合并或省略前一条 provenance
+   记录，也 MUST NOT 据此认为该成员的密文读取能力连续：§2.4 的「只从自己的 Add/Welcome epoch
+   起获得读取能力」不变。
+5. **application 与 Welcome 的保护不变**：握手面公开不改变应用内容与 Welcome 的保护形态。
+   应用内容仍按 §2.3 的 RFC 9420 encrypted envelope 发送，Welcome 仍是 §2.2 的加密 recipient
+   object。实现 MUST NOT 以「握手已公开」为由降低这两者中任何一者的保护。
+6. **minimal-metadata 身份不新增披露**：在 minimal-metadata Realm 中，公开握手只使用 §2.7 已有的
+   Realm-local pairwise 身份，MUST NOT 为了让 Station 读懂握手而额外披露 Principal、Account、
+   Device 或 Realm 外 locator。
+7. **Sidecar 走独立契约**：`sidecar` 形态的 effective scope **不适用**本节契约，它按
+   [`../models/sidecar.md`](../models/sidecar.md) §6 保持自己独立的 MLS 绑定与握手契约。
+   实现 MUST NOT 把本节的 wire 形态、provenance 持久化义务或验证角色默认套到 sidecar scope 上。
+
 ### 2.3 应用载荷加密
 
 effective scope 在没有 accepted `ak.mls.genesis` 时只允许该 Event kind 的明文 payload；Genesis accepted 后 MLS
@@ -255,6 +288,14 @@ epoch 0 public tree、Genesis Event ref与初始 `key_access_revision`。重复 
 
 Genesis携带验证 epoch 0所需的 public GroupInfo/tree material及固定 GroupContext binding；不携任何 member secret。
 
+**leaf index 的唯一恢复来源（normative）**：epoch 0 的 leaf index MUST 只从该 accepted Genesis 所承诺的、
+经 digest 校验的 RFC 9420 GroupInfo 与 `ratchet_tree` extension 原始字节中恢复，且只读取验证通过的 RFC tree
+上**已占用**的 leaf 位置。取材方 MUST 先把拿到的原始字节同时对显式 digest 与 content-addressed ref 逐一哈希
+核对，并校验 GroupInfo 与 tree 的一致性，任一不符即整份丢弃，MUST NOT 保留部分结果。leaf index MUST NOT 由
+Add 的到达顺序、Welcome 的投递顺序、roster 展示顺序、recipient 列表下标、服务端推断出的 leaf DTO 或任何
+proof-bundle leaf 得出；提供方也 MUST NOT 返回 private tree material、成员 secret 或推断出的 leaf DTO。
+leaf index 不承载权限含义（§2.2.1）。
+
 #### 5.1.2 创建 transaction
 
 Genesis 与需要加入的初始 endpoint deliveries 使用同一 `MlsCommitSubmission` transaction 语义；没有 recipient 时
@@ -264,7 +305,7 @@ Genesis 与需要加入的初始 endpoint deliveries 使用同一 `MlsCommitSubm
 durable 记录，其逻辑键是 `(owner_actor_id, effective_scope, operation)`，`operation` 固定为 `mls_genesis`。
 `owner_actor_id` MUST 是完整 ActorId（普通人类创建者含 `station_id`），`effective_scope` MUST 是 §5.1 的
 canonical typed scope，不能是页面路由、展示用 Realm 名或裸字符串别名。该 transaction 只适用于
-`effective_scope.kind` 为 `realm` 或 `circle`；`sidecar` scope 保持 §2.5.1 的独立握手契约，客户端 MUST NOT
+`effective_scope.kind` 为 `realm` 或 `circle`；`sidecar` scope 按 §2.2.2 第 7 项保持独立握手契约，客户端 MUST NOT
 为 sidecar scope 打开该记录。`creator_device_id` 与 `creator_signer_method` 是记录的不可变字段但**不进逻辑键**，
 因此同一账号的重载或第二个窗口找到同一条记录，而另一台设备不会静默开出第二次 Genesis。
 

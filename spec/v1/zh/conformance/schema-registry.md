@@ -52,6 +52,8 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 
 新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-registry.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 
+**登记范围（normative）**：`schemas[]` 只登记 **wire schema**——被签名、被传输、或被 `payload.schema` / DTO `$ref` 按 id 引用的对象。typed current result 的 **value 形状**不在范围内：它是 reducer 的输出，唯一的登记读取路径是该 family 写入行的 `value_schema_ref` JSON Pointer，**MUST NOT** 为它单独发 `ak.schema.*` id（见 [`../sync/current-results.md` §1](../sync/current-results.md)）。文件整体仍可有 id——例如 `ak.schema.result_projection.v1` 覆盖 `typed-current-result.schema.json` 顶层文档——但 `fragment` 指向某一个 value `$defs` 成员的行不予登记。
+
 ### 1.1.1 error code 命名空间例外（normative）
 
 `error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `json_invalid`、`policy_violation`、`failed_precondition`），不加 `ak.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ak.` 前缀补进 wire code。

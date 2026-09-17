@@ -154,7 +154,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 - explicit delivery ack：`ack_token` 签发、累计单调 ack、cross-binding 校验、invalid ack 拒绝，以及服务端丢弃未确认 to-device 消息后 `to_device.lost=true` 的升级路径。
 - cursor binding：`filter_digest` canonical 计算、query-scope digest 绑定、跨 scope 回传 cursor 时返回 `cursor_integrity_invalid`。
-- limited timeline state：实现返回确定性 `state_at_window_start` 时，MUST 分别按 limited timeline 首事件 `domain_refs` 因果闭包重建普通投影，并按对应历史 confirmed RealmCommit state 取得安全/MLS 投影；无法计算时 MUST 使用安全降级而不得伪造状态。
+- limited timeline state：实现返回确定性 `state_at_window_start` 时，MUST 分别按该 stream 上 window 起点之前的 confirmed RealmCommit 前缀重建普通投影，并按对应历史 confirmed RealmCommit state 取得安全/MLS 投影；无法计算时 MUST 使用安全降级而不得伪造状态。
 
 ## 5. 组件级测试矩阵（必测）
 

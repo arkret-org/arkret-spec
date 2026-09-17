@@ -123,7 +123,6 @@ see_also:
 | Recovery Service | 账号恢复服务 | 仅在具有独立恢复 authority 与显式委托时出现的可选角色，不自动继承 Archive Node 或 Key Recovery Service 权限。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
-| Causal Depth | 因果深度 | 事件在已知 DAG / domain_refs 中的深度值；只可用于 timeline 诊断，不参与协议状态 winner。 |
 | Data Plane | 数据面 | 消息、reaction、对象字段、排序、协作文本与计数等业务 Event；共享持久 Event 均由当前治理 Station 接纳并进入对应独立 stream。 |
 | Control Plane | 控制面 | membership、capability、policy、lifecycle 与 MLS epoch 等治理 Event；它们与业务 Event 使用相同的 producer Event + authority commit 路径，并由各自 typed payload 定义额外 signer 与 domain invariant。 |
 | authority commit | 权威提交 | 当前治理 Station 对一个 producer Event 的接纳记录。Realm、每个 Circle、每个 Sidecar 各有独立连续 stream；只有 RealmCommit 携带同 stream 的 `previous_commit_ref`。 |
@@ -328,7 +327,7 @@ see_also:
 | --- | --- | --- |
 | `CAS` | compare-and-swap | 精确前态条件；安全序列提供原子检查，普通数据只对签名因果 basis 检查。内容寻址写完整 content-addressed。 |
 | `SSE` | Server-Sent Events | 见 [`../sync/transport-bindings.md`](../sync/transport-bindings.md)。唯一例外是 [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) 中与 PIR / ORAM 并列的 “Forward-private SSE”，该处指 Searchable Symmetric Encryption；该展开只在该上下文成立。 |
-| `DAG` | Directed Acyclic Graph | 指 `domain_refs` 因果图（[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
+| `DAG` | Directed Acyclic Graph | 指 profile 之间的 `inherits` / `depends_on` 依赖图（[`../conformance/conformance-profiles.md` §2.1](../conformance/conformance-profiles.md)）。v1 的 Event 之间没有因果 DAG：次序只来自各 stream 的 `RealmCommit.stream_position`。 |
 | `MAC` | Message Authentication Code | 不是 Media Access Control。指 MLS transcript 与秘密 MAC；具体的带密钥 hash 构造见 §4.2 `HMAC`。 |
 | Domain Transition | 领域转移 | 对 `commit-ordered projection` 或 `current-value projection` 写入应用的已登记前态/后态校验规则；不是独立共享状态模型，也不参与 join。 |
 | `CRDT` | Conflict-free Replicated Data Type | 指注册 reducer contract 声明的 typed current result 收敛模型；封闭取值枚举见 [`../models/common-fields.md` §2](../models/common-fields.md)。`current-value projection` 的次序与 compare-and-set 语义见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)；`keyed-set projection` 的 join 由使用它的家族各自给出（`message_reactions` 见 [`../models/strand-and-message.md` §9.8.3](../models/strand-and-message.md)）。v1 不定义协同文本 CRDT。 |

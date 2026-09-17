@@ -187,7 +187,15 @@ def check_proof_context_object_family_schemas(lint: Lint) -> None:
 # names that zh/models/pins.md and zh/models/strand-and-message.md already use,
 # so nothing is invented here and the retired spelling is not resurrected.
 _RESULT_PROJECTION_KINDS = frozenset(
-    {"set", "merge", "transition", "keyed_set_add", "keyed_set_remove_observed", "keyed_set_remove_dots"}
+    {
+        "set",
+        "merge",
+        "apply_patch",
+        "transition",
+        "keyed_set_add",
+        "keyed_set_remove_observed",
+        "keyed_set_remove_dots",
+    }
 )
 _RESULT_KEYED_SET_KINDS = frozenset({"keyed_set_add", "keyed_set_remove_observed", "keyed_set_remove_dots"})
 
@@ -203,6 +211,63 @@ _AGENT_SUPERSEDES_PROJECTION = {
     "kind": "keyed_set_remove_dots",
     "dots": {"agent_authorization_dot": {"field": "item.authorized_event_ref"}},
 }
+
+# An `allowed_paths` entry names one top-level member of the family value, which
+# is the only granularity a closed value schema can check. `encoding.md` 9.5.1
+# dotted paths are deliberately not accepted: a nested path would let a patch
+# reach into a member whose own shape the registry never enumerates.
+PATCH_PATH_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+# The two payload-comparing pre-state predicates. `stored_field_matches_payload`
+# is three-valued on purpose: both absent passes, both present and equal passes,
+# anything else fails.
+_PRE_STATE_PAYLOAD_PREDICATES = frozenset(
+    {"stored_field_equals_payload", "stored_field_matches_payload"}
+)
+
+ERROR_CODE_REGISTRY = ARTIFACTS / "registry" / "error-code-registry.json"
+
+
+def _registered_error_codes(lint: Lint) -> set[str] | None:
+    """Every registered error code, so a pre-state failure cannot invent one."""
+    data = load_json(lint, ERROR_CODE_REGISTRY)
+    codes: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if isinstance(node, dict):
+            code = node.get("code")
+            if isinstance(code, str):
+                codes.add(code)
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(data)
+    return codes or None
+
+REDUCER_MANAGED_PATH_REGISTRY = ARTIFACTS / "registry" / "reducer-managed-path-registry.json"
+
+
+def _reducer_managed_paths(lint: Lint) -> set[str]:
+    """Every path the reducer owns, so no `allowed_paths` can name one."""
+    data = load_json(lint, REDUCER_MANAGED_PATH_REGISTRY)
+    paths: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if isinstance(node, dict):
+            path = node.get("path")
+            if isinstance(path, str):
+                paths.add(path)
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(data)
+    return paths
 
 
 def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
@@ -229,15 +294,32 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
     if not isinstance(value, dict):
         lint.fail(EVENT_KIND_REGISTRY, f"{ref} must be an object")
         return
-    unknown = set(value) - {"field", "envelope_field"}
+    unknown = set(value) - {"field", "envelope_field", "const"}
     if unknown:
         lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
-    named = [member for member in ("field", "envelope_field") if member in value]
+    named = [member for member in ("field", "envelope_field", "const") if member in value]
     if len(named) != 1:
         lint.fail(
             EVENT_KIND_REGISTRY,
-            f"{ref} must declare exactly one of field/envelope_field",
+            f"{ref} must declare exactly one of field/envelope_field/const",
         )
+        return
+    if "const" in value:
+        # The explicit decision this function's docstring asks for. A release
+        # write has no payload field to read: `governance-objects.md` section on
+        # invites returns the live-target slot to the absent state, and the only
+        # value that expresses "absent" is null. `transition.from` already spells
+        # that same absent state `{"const": null}` in five registered rows, so
+        # the release write reuses the live spelling instead of adding a second
+        # one. Only the literal null is admitted -- a general whole-value const
+        # would let a row carry protocol state no payload and no envelope
+        # supplies, which is exactly the vocabulary this closure keeps out.
+        if value["const"] is not None:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{ref}.const may only be null; a whole value that is not read from the "
+                "signed Event has no other registered source",
+            )
         return
     if "field" in value:
         from .foundation import lint_field_path
@@ -254,6 +336,102 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
         )
 
 
+def _check_result_apply_patch_projection(
+    lint: Lint, where: str, write: dict, projection: dict
+) -> None:
+    """Validate one `apply_patch` `result_projection` and its closed path set.
+
+    `views.md` section 3.2 has always required a patch projection and the kind
+    was never in the v1 closed set, so `check_partial_update_base_producers`
+    named it in `_PARTIAL_UPDATE_PROJECTIONS` while no row could legally carry
+    it -- a gate reading a key nothing could spell. It is admitted here with the
+    one property that makes a patch decidable: the set of value paths an author
+    may touch is enumerated in the registry, not inferred from the value schema.
+
+    `allowed_paths` is that enumeration. It names top-level members of the
+    family's registered value schema, so a patch can never reach a member the
+    reducer owns. `patch` is the payload field carrying the author's object and
+    is required exactly when `allowed_paths` is non-empty; a write with no
+    author-writable path carries no patch at all (`capabilities.md` section on
+    authority-root successor counters: the reset write has no `payload.patch`)
+    and MUST then change the value only through `derived_members[]`.
+
+    Two disjointness rules close the loop. A path may not be both
+    author-writable and reducer-derived, and a path registered in
+    `reducer-managed-path-registry.json` may never appear in `allowed_paths` --
+    that registry exists precisely to say which members an ordinary patch must
+    not reach.
+    """
+    unknown = set(projection) - {"kind", "patch", "allowed_paths"}
+    if unknown:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection has unknown member(s) {sorted(unknown)}",
+        )
+    allowed = projection.get("allowed_paths")
+    if (
+        not isinstance(allowed, list)
+        or not all(isinstance(item, str) and PATCH_PATH_RE.fullmatch(item) for item in allowed)
+        or len(allowed) != len(set(allowed))
+    ):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection.allowed_paths must be a unique array of top-level "
+            "value member names",
+        )
+        return
+    patch = projection.get("patch")
+    if allowed and not isinstance(patch, dict):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection.patch is required when allowed_paths is non-empty",
+        )
+    elif not allowed and patch is not None:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection declares no allowed_paths, so it MUST NOT carry a "
+            "patch field; only derived_members[] may change the value",
+        )
+    elif isinstance(patch, dict):
+        if set(patch) != {"field"}:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection.patch must be exactly {{field}}",
+            )
+        else:
+            from .foundation import lint_field_path
+
+            lint_field_path(
+                lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.patch.field", patch["field"]
+            )
+    derived = {
+        member.get("name")
+        for member in (write.get("derived_members") or [])
+        if isinstance(member, dict)
+    }
+    if not allowed and not derived:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection is an apply_patch with neither an allowed path nor a "
+            "derived member, so it writes nothing",
+        )
+    both = sorted(set(allowed) & derived)
+    if both:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection.allowed_paths and derived_members[] share {both}; a "
+            "member is either author-writable or reducer-derived, never both",
+        )
+    managed = _reducer_managed_paths(lint)
+    reserved = sorted(set(allowed) & managed)
+    if reserved:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection.allowed_paths names reducer-managed path(s) {reserved} "
+            "registered in reducer-managed-path-registry.json",
+        )
+
+
 def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, projection: dict) -> None:
     """Validate one keyed-set `result_projection` and its `for_each` closure.
 
@@ -261,6 +439,35 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
     section 3.6.1 says so in as many words ("绝不是裸 `event_id`"), and the reason
     is mechanical: one Event may carry several writes on one subject, so a bare
     `event_id` is not unique among them and two entries would collide on one tag.
+
+    `keyed_set_remove_observed.match` has two spellings, and until
+    `ak.agent.key.revoke` was registered it had neither a user nor a prose
+    definition -- lint vocabulary with no reader, which is what this file exists
+    to refuse one level down.
+
+    * `{element_field, source}` is an equality predicate: the named element
+      member must equal the value at the named source path.
+    * `{element_field, present: true}` is an existence predicate: every observed
+      element that HAS the named member is removed.
+
+    The existence spelling exists for exactly one obligation the equality
+    spelling cannot express. `identity/key-management.md` section 3.6.1 scopes
+    the revoke removal to every *active authorize* dot and says in the same
+    sentence that a revocation marker is not an active authorization, and line
+    163 confirms a marker outlives a later re-attach -- so a match-less removal,
+    which takes every observed element in scope (`zh/models/pins.md` section
+    4.1), would drop the earlier boundary. The discrimination itself is already
+    determinate on the wire: `agent_key_authorization_entry.value` is a oneOf of
+    `agent_key_authorize_payload` and `agent_key_revoke_payload`, both
+    `additionalProperties: false` with disjoint required sets, so
+    `verification_method` is present on every authorize element and forbidden on
+    every marker. What was missing was only the word for it, and no field of the
+    revoke payload equals an authorize-only member, so equality could not stand
+    in.
+
+    `present: false` is refused. The complement set is strictly wider, nothing
+    needs it, and in the one registered use it would remove precisely the
+    markers the section requires the value to keep.
     """
     kind = projection["kind"]
     if kind == "keyed_set_add":
@@ -283,16 +490,32 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
         match = projection.get("match")
         if match is None:
             return
-        if not isinstance(match, dict) or set(match) - {"element_field", "source"}:
-            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection.match must be {{element_field, source}}")
+        if not isinstance(match, dict) or set(match) - {"element_field", "source", "present"}:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection.match must be {{element_field, source}} or "
+                "{element_field, present}",
+            )
             return
         from .foundation import lint_field_path
 
         lint_field_path(
             lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.match.element_field", match.get("element_field")
         )
-        if "source" not in match:
-            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection.match.source is required")
+        named = [member for member in ("source", "present") if member in match]
+        if len(named) != 1:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection.match must declare exactly one of source/present",
+            )
+            return
+        if "present" in match and match["present"] is not True:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection.match.present may only be true; an absence predicate "
+                "would remove the elements that LACK the field, which is the strictly wider set and "
+                "in the one registered use would delete the revocation boundary markers it must keep",
+            )
     elif kind == "keyed_set_remove_dots":
         if "for_each" not in write:
             lint.fail(
@@ -794,6 +1017,8 @@ def check_result_write_contracts(lint: Lint) -> None:
                             f"{where}.result_projection.{member}.field",
                             source["field"],
                         )
+            elif projection["kind"] == "apply_patch":
+                _check_result_apply_patch_projection(lint, where, write, projection)
             elif projection["kind"] in _RESULT_KEYED_SET_KINDS:
                 _check_result_keyed_set_projection(lint, where, write, projection)
             elif "value" not in projection and "value_projection" not in projection:
@@ -1141,6 +1366,158 @@ def _selector_shape(write: dict) -> str:
     if isinstance(selector, dict):
         return str(selector.get("kind"))
     return str(selector)
+
+
+def check_pre_state_requirement_closure(lint: Lint) -> None:
+    """A pre-state requirement MUST be a closed stored-field predicate.
+
+    `governance-objects.md` states the rule verbatim for `ak.invite.accept`: the
+    stored live-target slot and the accept payload MUST be either both absent or
+    both present and byte-equal, and a mismatch fails the Event. That is a
+    precondition on a *stored value*, not on a revision, and the clean break
+    deleted the mechanism that expressed it (`7c9d64db` / `616f3550`) while
+    leaving the obligation in the prose -- the recurring defect of a normative
+    paragraph describing a structure no artifact defines.
+
+    It comes back in its original shape, with one adaptation. The retired
+    version required the requirement's family to be an FSM family, because the
+    only rows that carried one were FSM rows. An ordinary slot has no state
+    machine, so the family only has to be a registered typed current result
+    family here; the rest of the closure (closed member set, the conditional
+    payload grammar a conditional write already uses, a registered failure code
+    and reason code) is unchanged.
+
+    Three predicates are registered, exactly as before:
+
+    * `stored_field_present` -- the slot member exists;
+    * `stored_field_equals_payload` -- it exists and equals the payload field;
+    * `stored_field_matches_payload` -- both absent, or both present and equal.
+
+    The third one is what the invite rule needs, and it is not interchangeable
+    with the second: a two-valued equality cannot express "both absent" as a
+    pass, and reading absence as a mismatch would make the very first invite
+    unacceptable.
+
+    A revision compare is deliberately not expressible here. `expected_revision`
+    on a shared-face payload is the typed `{commit_id, stream_position}` of the
+    value the producer read; a stored-value precondition is this. Two mechanisms,
+    two spellings, no overlap.
+    """
+    registered_families = _registered_result_families(lint)
+    if registered_families is None:
+        return
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(EVENT_KIND_REGISTRY, "event_kinds[] must be an array")
+        return
+    error_codes = _registered_error_codes(lint)
+    valid_predicates = sorted({"stored_field_present"} | _PRE_STATE_PAYLOAD_PREDICATES)
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        requirements = row.get("pre_state_requirements")
+        if requirements is None:
+            continue
+        kind = row.get("event_kind")
+        if not isinstance(requirements, list) or not requirements:
+            lint.fail(
+                EVENT_KIND_REGISTRY, f"{kind}.pre_state_requirements must be a non-empty array"
+            )
+            continue
+        if row.get("reducer_input") is not True:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{kind} declares pre_state_requirements but is not a reducer_input Event kind",
+            )
+        for index, requirement in enumerate(requirements):
+            where = f"{kind}.pre_state_requirements[{index}]"
+            if not isinstance(requirement, dict):
+                lint.fail(EVENT_KIND_REGISTRY, f"{where} must be an object")
+                continue
+            unknown = set(requirement) - {
+                "result_family",
+                "subject",
+                "condition",
+                "predicate",
+                "failure",
+            }
+            if unknown:
+                lint.fail(EVENT_KIND_REGISTRY, f"{where} has unknown member(s) {sorted(unknown)}")
+            family = requirement.get("result_family")
+            if family not in registered_families:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_family {family!r} is not a registered typed current "
+                    "result family",
+                )
+            if "subject" in requirement:
+                _check_result_selector(
+                    lint,
+                    f"{where}.subject",
+                    requirement["subject"],
+                    row.get("id_source"),
+                    kind,
+                )
+            if "condition" in requirement:
+                from .foundation import lint_cell_write_condition
+
+                lint_cell_write_condition(
+                    lint, EVENT_KIND_REGISTRY, f"{where}.condition", requirement["condition"]
+                )
+            predicate = requirement.get("predicate")
+            if not isinstance(predicate, dict) or not isinstance(predicate.get("field"), str):
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.predicate must be an object naming a stored field",
+                )
+            elif predicate.get("kind") == "stored_field_present":
+                if set(predicate) != {"kind", "field"}:
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where}.predicate stored_field_present takes exactly "
+                        "{kind, field}",
+                    )
+            elif predicate.get("kind") in _PRE_STATE_PAYLOAD_PREDICATES:
+                payload_field = predicate.get("payload_field")
+                if set(predicate) != {"kind", "field", "payload_field"} or not (
+                    isinstance(payload_field, str) and payload_field.startswith("payload.")
+                ):
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where}.predicate {predicate['kind']} takes exactly "
+                        "{kind, field, payload_field} with a payload.* field",
+                    )
+                else:
+                    from .foundation import lint_field_path
+
+                    lint_field_path(
+                        lint,
+                        EVENT_KIND_REGISTRY,
+                        f"{where}.predicate.payload_field",
+                        payload_field,
+                    )
+            else:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.predicate.kind must be one of {valid_predicates}",
+                )
+            failure = requirement.get("failure")
+            if (
+                not isinstance(failure, dict)
+                or set(failure) != {"code", "reason_code"}
+                or not isinstance(failure.get("code"), str)
+                or not isinstance(failure.get("reason_code"), str)
+            ):
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.failure must be exactly {{code, reason_code}}",
+                )
+            elif error_codes is not None and failure["code"] not in error_codes:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.failure.code {failure['code']!r} is not a registered error code",
+                )
 
 
 def check_partial_update_base_producers(lint: Lint) -> None:

@@ -21,7 +21,7 @@ Account/consumer Station可以验证、排队、转发和缓存，但不能独�
 
 ## 3. 历史分类与因果依赖
 
-Event没有通用 `producer_revision`、`domain_refs` 或 `domain_refs`。业务依赖使用registry声明的typed payload字段或`refs[]` role。依赖某个accepted事实时使用exact committed ref；业务引用不产生跨stream总序。
+Event 没有通用 `producer_revision`、`hlc` 或 `domain_refs`。业务依赖使用registry声明的typed payload字段或`refs[]` role。依赖某个accepted事实时使用exact committed ref；业务引用不产生跨stream总序。
 
 ## 4. 授权关闭
 

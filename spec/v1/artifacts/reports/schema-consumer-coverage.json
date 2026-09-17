@@ -41,7 +41,7 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 220,
+    "total_schemas": 219,
     "by_consumer": {
       "declared_wire": 54,
       "event_kind": 6,
@@ -49,14 +49,14 @@
       "outbound": 63,
       "prose": 103,
       "prose_only": 2,
-      "schema_reference": 159,
-      "startup_compile": 220,
+      "schema_reference": 158,
+      "startup_compile": 219,
       "vectors": 108
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 112,
+    "without_vector_coverage": 111,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -150,7 +150,6 @@
     "ak.schema.read_cursor_operations.v1",
     "ak.schema.read_cursor_update.v1",
     "ak.schema.read_receipt.v1",
-    "ak.schema.realm_authority_root_value.v1",
     "ak.schema.realm_join_bootstrap_outcome.v1",
     "ak.schema.realm_join_bootstrap_request.v1",
     "ak.schema.realm_join_candidate.v1",
@@ -314,7 +313,6 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.event.v1",
-          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.result_projection.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -928,7 +926,7 @@
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "consumers": {
-        "schema_reference": "exact",
+        "schema_reference": "fragment",
         "startup_compile": "exact"
       },
       "wire_covered": true,
@@ -1296,7 +1294,6 @@
           "ak.schema.realm.v1",
           "ak.schema.realm_authority_bundle.v1",
           "ak.schema.realm_authority_handoff.v1",
-          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.realm_commit.v1",
           "ak.schema.realm_genesis.v1",
           "ak.schema.realm_join_bootstrap_outcome.v1",
@@ -3180,24 +3177,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.realm_authority_root_value.v1",
-      "file": "schemas/typed-current-result.schema.json",
-      "consumers": {
-        "prose": "normative_text",
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.result_projection.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
-      },
-      "fragment": "#/$defs/realm_authority_root_value"
-    },
-    {
       "schema_id": "ak.schema.realm_commit.v1",
       "file": "schemas/realm-commit.schema.json",
       "consumers": {
@@ -3507,7 +3486,6 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.event_payload.v1",
-          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.resource_discovery_state.v1",
           "ak.schema.result_projection.v1"
         ],
@@ -3704,6 +3682,7 @@
       "schema_id": "ak.schema.result_projection.v1",
       "file": "schemas/typed-current-result.schema.json",
       "consumers": {
+        "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },
@@ -3718,7 +3697,9 @@
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
           "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
-          "ak.schema.realm_state_snapshot.v1"
+          "ak.schema.event_payload.v1",
+          "ak.schema.realm_state_snapshot.v1",
+          "ak.schema.resource_discovery_state.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -4096,6 +4077,7 @@
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_profile.v1",
           "ak.schema.resource_discovery_state.v1",
+          "ak.schema.result_projection.v1",
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
@@ -4217,7 +4199,6 @@
           "ak.schema.read_cursor_update.v1",
           "ak.schema.realm.v1",
           "ak.schema.realm_authority_bundle.v1",
-          "ak.schema.realm_authority_root_value.v1",
           "ak.schema.realm_commit.v1",
           "ak.schema.realm_join_candidate.v1",
           "ak.schema.realm_link_operations.v1",

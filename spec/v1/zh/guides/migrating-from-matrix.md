@@ -16,7 +16,7 @@ updated: 2026-07-13
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Arkret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circle + Space + Strand + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
+Arkret 的核心抽象是 **signed Event + 逐 stream authority commit log + Realm + Circle + Space + Strand + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -71,7 +71,7 @@ Arkret 的身份与发布模型借鉴 atprotocol 的几个方向：
 - DID 是稳定身份根，handle 是可变入口。
 - handle 采用双向验证模型。
 - DID Document 用于服务发现和 key discovery。
-- 每个 actor 通过 `actor_id`、`producer_revision` 和 `domain_refs` 形成可验证 event chain。
+- 每条 Event 由 `actor_id` 标明作者；可验证的次序与 finality 来自它所在 authority stream 的 `RealmCommit` 与严格 +1 的 `stream_position`，Event 自身不指向上一条 Event。
 - signed Event Envelope 是发布单元，服务器无法伪造 principal 写入。
 
 这不要求普通用户直接看见或管理 DID。客户端和服务端可以提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；持久 Event、grant 或 MLS membership 的权威主体仍是 principal DID。

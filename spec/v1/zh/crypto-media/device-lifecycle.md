@@ -223,7 +223,7 @@ Arkret v1 只有一个 principal device model：DID 是 identity-root key log；
 首次创建 PCR 必须提交一个 closed ordered unit：
 
 1. `ak.realm.create`：由 registration-time DID control key 签名；`realm_genesis.fields.purpose` 必须是 `principal_control`，并携带 `FoundingDeviceDescriptor` 与 durable registration evidence digest。
-2. `ak.device.authorize`：由 descriptor 中 `device_public_key_did` 对 possession transcript 和 Event proof 各自签名；`authorization_binding_kind="registration_anchor"`；`domain_refs` 只能含第一条 create Event id。
+2. `ak.device.authorize`：由 descriptor 中 `device_public_key_did` 对 possession transcript 和 Event proof 各自签名；`authorization_binding_kind="registration_anchor"`。它不携带任何指向第一条 create 的信封字段；两条的次序由这份 closed ordered unit 的 wire 顺序给出，由同一事务内 position 连续的两笔 RealmCommit 落定，绑定则由 `FoundingDeviceDescriptor` 对本条 authorize **payload** digest 的单向承诺给出（§5.0.1）。
 
 构造方必须按 [`event-and-patch.md` §3.2](../models/event-and-patch.md) 先冻结该 unit 唯一的 canonical 毫秒 authoring checkpoint `T`，再构造、求摘要并签署两条 Event；两条 `event.created_at` 与两个唯一 producer proof 的 `proof.created_at` 必须全部逐字等于 `T`。Station 必须在任何验签或状态写入前检查该等值关系；这不是普通 PCR Event 的全局规则。
 
@@ -303,7 +303,7 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 #### 5.2.3 `applet_managed_delegation` possession transcript（normative）
 
-Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、`domain_refs`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
+Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
 
 设备 possession 签名对象是：
 
@@ -446,7 +446,7 @@ Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不�
 
 To-device message 是面向具体 principal/device 的非 Realm 持久消息，用于密钥交换、secret sharing 和通知。
 
-To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 to-device kind 名称（`ak.secret.*`、`ak.read_cursor.update` 与 registry 明确的 actor-private update）在 to-device 通道中出现在 `kind` 字段；它们不得推进 `producer_revision`、`domain_refs`、Realm reducer checkpoint 或持久 timeline。
+To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 to-device kind 名称（`ak.secret.*`、`ak.read_cursor.update` 与 registry 明确的 actor-private update）在 to-device 通道中出现在 `kind` 字段；它们不得推进任何 stream 的 `RealmCommit.stream_position`、Realm reducer checkpoint 或持久 timeline。
 
 `DeviceMessageEnvelope` 基本字段：
 
@@ -1139,8 +1139,10 @@ recovery policy 授权，并由唯一的 RecoveryTransaction terminal commit
 
 1. replacement device 签署的、policy-authorized `ak.device.reanchor` 绑定 policy/version/session、exact `account_id`、replacement
    authorize payload digest 与 monotonic PCR generation CAS；
-2. 同一 replacement device identity key 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`，
-   `domain_refs` 只指向 re-anchor Event。
+2. 同一 replacement device identity key 自签 `ak.device.authorize`，`authorization_binding_kind="pcr_recovery"`。
+   它不携带任何指向 re-anchor Event 的信封字段：两条的唯一绑定是 re-anchor payload 中
+   `replacement_authorize_payload_digest` 对本条 authorize payload 的**单向**承诺，次序由这份 unit 的
+   wire 顺序与同一事务内 position 连续的两笔 RealmCommit 落定。
 
 构造方必须先冻结该 recovery unit 唯一的 canonical 毫秒 authoring checkpoint `T`，再构造、求摘要并签署两条 Event；re-anchor、replacement authorize 及各自唯一 producer proof 的 `created_at` 必须全部逐字等于 `T`。`T` 是该 unit 在已签历史窗口比较中的唯一 Event-time / signer-window / policy-session 时间坐标，proof 不另建签名时间轴；接收方按 [`event-and-patch.md` §3.2](../models/event-and-patch.md) 在验签与任何 recovery 状态写入前 fail closed 比较，并继续以可信 `now` 独立执行现有 current session/lease expiry 等 live admission 检查。
 
@@ -1185,7 +1187,7 @@ Event actor 或把它冒充 account DID。unit-local overlay 的 key、session �
 与 authorize payload key 必须逐字相符；authorize 的 device id 必须等于 session requesting device id。
 先验 candidate key 的签名不是授权：接收方仍必须验证 exact AccountId/Station/PCR lineage、当前有效的
 policy/version、已 verified 且未过期的 session、原 grant/JKT、challenge、generation 与完整 checkpoint CAS、
-re-anchor 的 authorize payload digest 承诺，以及 authorize 唯一 `domain_refs`。
+re-anchor 的 authorize payload digest 承诺，以及该 unit 恰为两条 Event、wire 顺序固定、并在同一 PCR stream 上取得 position 连续的两笔 RealmCommit。
 
 RecoveryTransaction 终结时，reanchor Event 与 replacement-device authorize Event 必须分别取得同一 PCR stream 中连续的 `CommittedEventRef`。generation CAS、设备目录变更、session 消费与 transaction completion 在同一事务提交；失败为零写入。byte-identical retry 返回同一 receipt，异内容返回 conflict。
 

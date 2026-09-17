@@ -113,13 +113,15 @@ class PartialUpdateBaseProducerTest(_GateHarness):
                     updated.add(family)
                 elif gate._is_base_producer(write["result_projection"]):
                     produced.add(family)
-        self.assertEqual(updated, {"capability_grant", "mls_group"})
+        self.assertEqual(updated, {"capability_grant", "mls_group", "realm_authority_root"})
         self.assertLessEqual(updated, produced)
 
     def test_a_keyed_set_family_is_not_asked_for_a_base(self) -> None:
         """`agent_key` has no `set` writer and needs none: a keyed set begins
         empty and `keyed_set_add` is its genesis. A gate that demanded a base
-        here would be demanding one the family's own contract denies."""
+        here would be demanding one the family's own contract denies. The revoke
+        ruling added `keyed_set_remove_observed` beside the authorize pair; it is
+        a removal too, so it changes nothing about the base question."""
         registry = gate.load_json(gate.Lint(), EVENT_KIND_REGISTRY)
         projections = {
             write["result_projection"]["kind"]
@@ -127,7 +129,10 @@ class PartialUpdateBaseProducerTest(_GateHarness):
             for write in row.get("result_writes") or ()
             if write["result_family"] == "agent_key"
         }
-        self.assertEqual(projections, {"keyed_set_add", "keyed_set_remove_dots"})
+        self.assertEqual(
+            projections,
+            {"keyed_set_add", "keyed_set_remove_dots", "keyed_set_remove_observed"},
+        )
         self.assertEqual(self._run(), [])
 
     def test_only_set_and_the_genesis_edge_count_as_producers(self) -> None:
@@ -274,7 +279,7 @@ class ResultFamilyWriteAgreementTest(_GateHarness):
         def mutate(registry: dict) -> None:
             write = write_of(registry, "ak.capability.revoke", "capability_grant")
             write["value_schema_ref"] = (
-                "schemas/typed-current-result.schema.json#/$defs/mls_group_current"
+                "schemas/typed-current-result.schema.json#/$defs/mls_group_value"
             )
 
         reported = self._newly_reported(mutate)

@@ -494,7 +494,7 @@
     },
     "managed_actor_principal_signer_evidence": {
       "type": "object",
-      "description": "Complete content-addressed Principal signer root for the accepted managed Actor resolution plus its one exact Station Service attester leaf. Both refs are recomputed from complete RFC 8785 canonical evidence. attester_signer_evidence MUST hash to authenticated_signer_evidence.attester_signer_evidence_ref; omitted, surplus, or mismatched closure is invalid.",
+      "description": "Complete content-addressed Principal signer root for the accepted managed Actor resolution plus its one exact Station Service attester leaf. signer_resolution_evidence_ref is recomputed from the complete RFC 8785 canonical authenticated_signer_evidence. Signer-resolution evidence carries no attester ref: the attester leaf is bound positionally here and by equality of authority_commit_id with authenticated_signer_evidence, and its subject MUST be the Station Service that signed the accepted managed Actor resolution. Omitted, surplus, or mismatched closure is invalid.",
       "required": [
         "signer_resolution_evidence_ref",
         "authenticated_signer_evidence",
@@ -515,10 +515,12 @@
     },
     "applet_managed_actor_authoring_context": {
       "type": "object",
-      "description": "Current authority context for an Applet-managed Actor. Authorization is checked again when the governance Station commits the authored Event.",
+      "description": "Current authority context for an Applet-managed Actor. Authorization is checked again when the governance Station commits the authored Event. All four members are required: the same section of extensions/applet-integration.md makes an accepted authoring result conditional on both signer roots having been verified and frozen inside the one recoverable atomic commit, so a context without them could never have been accepted.",
       "required": [
         "committed_request",
-        "realm_stream_head"
+        "realm_stream_head",
+        "applet_service_signer_evidence",
+        "managed_actor_signer_evidence"
       ],
       "properties": {
         "committed_request": {

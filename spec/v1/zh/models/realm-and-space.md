@@ -270,7 +270,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
    }
    ```
 
-   该值是 closed `ak.schema.realm_authority_root_value.v1`（[`typed-current-result.schema.json`](../../artifacts/schemas/typed-current-result.schema.json) 的 `realm_authority_root_value`）。`(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 随 root controller 轮换递增，`authority_generation` 只随 planned governance Station handoff 递增。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 typed current result。author 不得自行提供这些派生字段。
+   该值是 [`typed-current-result.schema.json`](../../artifacts/schemas/typed-current-result.schema.json) 的封闭 `realm_authority_root_value`，由三个写入方的 `value_schema_ref` 以 JSON Pointer 指向；它**没有**自己的 `ak.schema.*` id，理由见 [`../sync/current-results.md` §1](../sync/current-results.md)。`(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 只随 `ak.realm.owner.transfer` 递增，`authority_generation` 只随 `ak.realm.authority.reset` 递增；二者都由 registered reducer contract 从 `expected_state_digest` 锁定的冻结前态 `checked_add` 得出，author 无可选值。该 `authority_generation` 是**授权委派代次**，与 `RealmCommit` 的治理 Station 任期代次 `governance_generation` 是两个不同的计数器，MUST NOT 互相替代（见 [`authz/capabilities.md` §10](../authz/capabilities.md#10-issuer-authority)）。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 typed current result。author 不得自行提供这些派生字段。
 
 3. **条件写入 `identity_resolution` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
 4. **条件写入 `agent_status` typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。
@@ -281,6 +281,10 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 以上两条无条件写入加五条条件 row 构成 create 的完整 projection；第 5 至 7 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
 **result_writes[] 的覆盖度（normative）**：`result_writes[]` 是「某个 Event kind 写哪些 typed current result、顺序如何、条件是什么」的唯一机读合同，由 `tools/artifact_lint:result_write_contracts` 校验。**当前它只在部分 Event kind 上登记**（见 `contract-registry.json` 的 `event_kind_registry.registry_rules`，其中记录了确切的已覆盖 / 未覆盖计数）；其余 reducer-input kind 的 registered writes 目前只存在于正文。规范正文 **MUST NOT** 对尚未登记的 kind 引用其 `result_writes[]`——引用一个不存在的登记项，正是这个数组被引入来消除的缺陷。扩大覆盖面时同时收缩该注记，**MUST NOT** 把规则改写成看起来已经完整。
+
+反方向的义务同样是规范性的，且强度相同：**已登记的 kind，它的 `result_writes[]` MUST 穷举该 kind 被接纳时在共享面上写的每一个 typed current result**。部分登记算违规——一个原子写四个家族的 kind 只登记其中一个，就是在「唯一机读合同」这份工件里把自己描述错了，而读者正是被告知要以它为准。因此这类 kind 的登记是**整体的**：四个家族要么在同一批一起落，要么一个都不落，`ak.agent.provision` 就是这条规则的判例（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）。
+
+这条义务**按其本性无法门禁化**，必须由裁决与评审承担：lint 手上没有第二份「该 kind 到底写哪些家族」的清单可以与 `result_writes[]` 比对——`result_writes[]` 自己就是那份清单。`tools/artifact_lint:result_write_contracts` 只能校验已声明的行**自身**自洽（成员被 `value_schema_ref` 声明、whole-value set 写齐 required 成员），它对「少了一行」结构性无感。所以「pipeline 全绿」MUST NOT 被当作某个 kind 覆盖完整的证据。
 
 **root authority 的语义边界（normative）**：authority-root typed current result 的 current controller 在给定 RealmCommit basis 下凭该 typed current result 的 inclusion proof 获得 effective `ak.realm.owner` 与封闭的 root-control authority。它是显式、committed、profile-bound 的协议状态，**不是** `realm_state.owner`、membership 或 `created_by` 身份旁路：
 
@@ -393,7 +397,7 @@ payload 只接受已登记的可选 reason，不接受 archived/frozen boolean�
 
 `ak.member.state` 以完整 `payload.member_id: ActorId` 写入 `member_state`，状态模型为 `commit-ordered projection`，领域 membership 转移在唯一确认顺序处检查；账号分支的相等性包含 AccountId 两个分量。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM。普通 Collaboration bootstrap 的创建者 membership 仅由 §2.5 原子 unit 最后一条独立 `ak.member.state{membership="join"}` 建立；该 slot 是对应 member typed current result 的 genesis write，MUST 携带 `expected_revision null` 并进入 genesis RealmCommit。`ak.realm.create` 自身 MUST NOT 隐式写入 membership，receiver 也不得在仅收到 create 时预置本地成员。完整 unit 接受后，服务端 MAY 从该显式 slot 建立可重建 read index。same-state transition 非法；endpoint 刷新不写 membership，更换 Station 则是 old Actor leave + new Actor 的定向 invite lifecycle create/accept，其中 accept 原子执行 member `leave -> join`。
 
-Invite 过期只推进 `invite.lifecycle`，不写共享 member typed current result。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member typed current result；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
+Invite 过期只推进 `invite_lifecycle`，不写共享 member typed current result。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member typed current result；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
 共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
@@ -556,9 +560,22 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 ### 3.5 `ak.space.parent` 因果父边
 
-`space_parent` 以 SpaceId 为 subject，使用普通 `current-value projection`，值为 `parent_space_id | null`。`ak.space.create` 从签名 `object.parent_space_id` 产生初始写，省略时显式写 null；metadata 投影排除该字段。后续父边只由 `ak.space.parent` 修改，通用 metadata patch 禁止改它。普通父边变更不需要新 RealmCommit。
+`space_parent` 是已登记的 typed current result family（[`current-result-registry.json`](../../artifacts/registry/current-result-registry.json) 行，result schema 见 [`typed-current-result.schema.json#/$defs/space_parent_result`](../../artifacts/schemas/typed-current-result.schema.json)）。它以 SpaceId 为 subject，special form 渲染为 `space_parent:<space_id>`，使用普通 `current-value projection`。
 
-`expected_parent_space_id` / 已登记 precondition 是**可选的显式 compare-and-set**：存在时 MUST 与该 Space 当前 parent 值严格相等，不等即 `failed_precondition` 且零写入；缺席时该次写入不做并发保护，实现 MUST NOT 把缺席补成隐式 CAS。写入在该基底内验证存在性、同 Realm、可读 scope、自指及无环；缺证明 pending，不以本地当前图替换基底。不可读 parent 对外返回既有 `space_parent_unreadable`，已验证跨 Realm 返回 `space_realm_mismatch`。
+值是**单成员对象** `{"parent_space_id": <SpaceId> | null}`，成员可空，**值本身永不是裸 null**。这一点是规范性的，有两条独立理由：一是「只有成员才能缺失」（与 `realm_set_default_strand` 同一论证）；二是本 family 自己的 compare-and-set 是**对已存字段的谓词**，裸 null 没有字段可比，`expected_parent_space_id` 就无法表达。成员取 null 表示 root，即没有结构父。
+
+写入方由 `result_writes[]` 唯一给定，共两条 Event kind：
+
+- `ak.space.create.result_writes[]` 用两条互斥条件写覆盖 genesis：签名 `object.parent_space_id` **存在**时取该字段，**缺席**时把成员显式写成 null。因此每个 Space 从它的第一条 Event 起就有该寄存器，后续写入不可能把「寄存器缺失」误读成 root。Space 对象用**字段缺席**表达无父，本 family 的 payload 用**显式 null** 表达，归一化只发生在这一处。
+- `ak.space.parent.result_writes[]` 是唯一的后续写入路径，且**无条件**：`space_parent_payload.parent_space_id` 是必填且可空的，脱离到 root 是显式 null 而不是省略成员，所以一条写就覆盖全部情形。
+
+metadata 投影排除 `parent_space_id`，所以真源是本 family 而不是 Space 对象；通用 metadata patch 禁止触及该路径，这条禁令在 [`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 里以 `owner_kind: result_family` / `owner: space_parent` 登记，指向的正是上面两条写。普通父边变更不需要新 RealmCommit。
+
+`expected_parent_space_id` 是**必填的前态声明**，不是可选 CAS。它在 `space_parent_payload.required` 里，并登记为 `ak.space.parent.pre_state_requirements[]` 的一条 `stored_field_equals_payload` 谓词：reducer 在提交位置读该 Space 冻结前态的 `parent_space_id` 成员，与该字段逐字节比较，不等即 `failed_precondition / space_parent_mismatch` 且**零写入**。这与 `agent_deactivate_payload.previous_status`、`invite_*` 的 `previous_state` 是同一个惯用法：**每一条 state-changing Event 都在 payload 里声明它读到的前态**。因此本 kind 没有「不做并发保护」的分支，实现 MUST NOT 提供一个省略该字段的旁路——省略在 wire 上就是 `schema_violation`。
+
+这里用两值相等谓词 `stored_field_equals_payload` 而不是三值的 `stored_field_matches_payload`：双方**永远都在**（payload 成员必填，寄存器由 genesis 写保证存在），所以「双方都缺失」不是一个可达状态，用三值谓词只会引入一条无法触发的分支。
+
+写入在该基底内验证存在性、同 Realm、可读 scope、自指及无环；缺证明 pending，不以本地当前图替换基底。不可读 parent 对外返回既有 `space_parent_unreadable`，已验证跨 Realm 返回 `space_realm_mismatch`，成环返回既有 `space_parent_cycle`。
 
 先取每个 Space 的当前 parent——该 stream 上最后一个被接受的 parent 写入，次序只由 `stream_position` 给出；再将有向环内的所有 current parent 边标记为领域 `unresolved`。该环诊断不得反向重选寄存器值，不得伪装 root，也不得产生有效 contains。后续有权写引用各自 current source 后可修复。指向不可见、终态或不兼容 scope 的目标不产生 live navigation，但保留原始因果事实。
 

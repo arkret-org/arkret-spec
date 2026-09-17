@@ -86,7 +86,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "authority_generation": 1,
+      "governance_generation": 1,
       "candidate": {
         "stream_position": 2,
         "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
@@ -107,7 +107,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "authority_generation": 1,
+      "governance_generation": 1,
       "candidate": {
         "stream_position": 2,
         "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
@@ -129,7 +129,7 @@
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
-      "authority_generation": 1,
+      "governance_generation": 1,
       "candidate": {
         "stream_position": 3,
         "commit_id": "ak:realm_commit:AYQKipHPvq4eyxdL2jAHJA_4Xug2oSL4XuHFbmYIRFEd",
@@ -150,7 +150,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "authority_generation": 1,
+      "governance_generation": 1,
       "candidate": {
         "stream_position": 2,
         "commit_id": "ak:realm_commit:AR2KgBM1_rZ-Io7-OPTg1QmG6Q1OqTPt5mygv5irQjvw",
@@ -174,7 +174,7 @@
         "kind": "realm",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
-      "authority_generation": 1,
+      "governance_generation": 1,
       "stream_position": 1
     },
     "observed_commits": [

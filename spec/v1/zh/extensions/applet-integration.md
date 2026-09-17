@@ -672,11 +672,11 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 | 字段 | 精确含义 |
 | --- | --- |
 | `committed_request` | 本次实际提交并确认的原请求。复用既有 install 首次/复用请求或 Ghost provision 请求的封闭类型，不创建第二个 request ID、digest 或 actor anchor 副本。 |
-| `digest_suite` | 本次目标 Collaboration Realm 在该确认上下文中的真实 digest suite；MUST NOT 从其他 Realm/PCR 的 RealmCommit 引用推断。 |
-| `authorization_basis` | 治理 Station 在接纳该安装时解析出的确切授权实例。结果不改变原 grant 的 scope、有限期或关闭规则；它是接纳方的判定记录，不是 producer 可提交的 wire 字段。 |
-| `accepted_actor_checkpoint` | 同一目标 Realm、同一完整 managed Actor 的既有 `RealmActorCheckpointView`，其 digest 按本字段所属 Realm 的 `digest_suite` 校验。 |
+| `realm_stream_head` | 目标 Collaboration Realm 的 commit stream 在该确认时刻的 head，形态是 [`realm-commit.schema.json#/$defs/stream_head`](../../artifacts/schemas/realm-commit.schema.json)（`{stream_ref, stream_position, commit_id}`）。它是本上下文**唯一**的 authority 位置声明；MUST NOT 从其他 Realm/PCR 的 RealmCommit 引用推断。本上下文不再单独声明 digest suite 或 actor checkpoint：suite 由该 stream 所属 Realm 对象承载（见 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），managed Actor 的既有位置由 `committed_request` 的不可变 anchors 唯一确定，接纳方的授权判定记录留在 Station 本地、不是可交付字段。 |
 | `applet_service_signer_evidence` | 安装所接受 Applet service producer 的 exact `Service` root，含 `signer_resolution_evidence_ref` 与完整 leaf；ref 必须从 leaf 重算。 |
-| `managed_actor_signer_evidence` | 新 Bot/Ghost current method 的 exact `Principal` root及其唯一 Station `Service` attester leaf；两个 ref 都必须从完整 canonical evidence 重算并交叉匹配。 |
+| `managed_actor_signer_evidence` | 新 Bot/Ghost current method 的 exact `Principal` root 及其唯一 Station `Service` attester leaf。`signer_resolution_evidence_ref` 必须从完整 canonical `authenticated_signer_evidence` 重算；attester leaf **没有自己的 ref**——signer-resolution evidence 是紧凑六成员对象，不带 attester ref，该 leaf 的绑定由本对象内的位置、与 `authenticated_signer_evidence.authority_commit_id` 相等，以及其 subject 必须是签署该 accepted resolution 的 Station `Service` 三者共同承载（见 [`../identity/key-management.md` §「可复用当前授权」](../identity/key-management.md)）。 |
+
+四个字段全部必需（`required` 与 `properties` 等同）：本节下文把「产生 accepted authoring result」本身条件化在两份 signer evidence 已被验证并与结果、原请求、outbox 意图同事务冻结之上，因此缺任一份的上下文根本不可能被接纳。
 
 安装 Station MUST 在原 install/Ghost closed unit 实际 committed 且全部效果完成安装后，从同一 accepted
 resolution projection 物化 managed Actor `Principal` root，并冻结签署该 projection attestation 的 Station
@@ -691,12 +691,12 @@ Realm Event federation。管理员在安装返回后离线不影响重试交付�
 
 首次 install 或 Ghost provision 的原四 Event Bundle MUST 与 runtime 在 author 阶段已经耐久保存的 exact request/bundle 相等，并使用当时保存的身份密钥。后续 scope 的 install reuse 分支 MAY 首次向 runtime 交付该 scope 的新 request；runtime MUST 将其 `reuse_existing_managed_actor` 全部不可变 anchors 与首次保存的 Bot 身份精确匹配，不得重新生成 Bot、PCR、Bundle 或私钥。丢失原身份材料时 MUST 保持未决并恢复原材料，不能从结果重造平行身份。
 
-`accepted_actor_checkpoint.realm_id` MUST 等于 install effective_scope 的 Realm 或 Ghost basis 的 `realm_id`；完整 Actor MUST 等于该原 Bundle 或 reuse anchors 的 managed Actor，且其 Account Station 与安装目标相等。Circle install 保留原 Circle scope，MUST NOT 扩为整个 Realm。适用的 grant 从原 committed request 和 runtime 的原授权记录取得，缺材料保持未决；`accountability_grant` 仅表达责任，MUST NOT 当作普通发送 capability。跨授权域引用可以使用不同 digest suite。
+`realm_stream_head.stream_ref` 指向的 Realm MUST 等于 install effective_scope 的 Realm 或 Ghost basis 的 `realm_id`；完整 Actor MUST 等于该原 Bundle 或 reuse anchors 的 managed Actor，且其 Account Station 与安装目标相等。Circle install 保留原 Circle scope，MUST NOT 扩为整个 Realm。适用的 grant 从原 committed request 和 runtime 的原授权记录取得，缺材料保持未决；`accountability_grant` 仅表达责任，MUST NOT 当作普通发送 capability。跨授权域引用可以各自使用其 Realm 对象登记的 digest suite。
 
 runtime MUST 验证两个完整 evidence object，重算 Applet `Service` root、Station attester `Service` root 与
 managed Actor `Principal` root，逐字核对 actor、service、verification method、实际本地 public key、原
 registration/install/provision anchors 与 effective install fence；随后把确切来源记录、原 committed
-request、对应原身份/授权材料、两个 producer roots、attester closure、该 Realm suite 与 authoring 上下文
+request、对应原身份/授权材料、两个 producer roots、attester closure、`realm_stream_head` 与 authoring 上下文
 原子保存，才返回 `status="accepted"`。该分支没有 partial 安装。完全相同的重投只确认原持久结果，不重置
 Actor checkpoint，不重新签发或替换 evidence，不覆盖已经冻结的待发送 Event，也不刷新首次观察时间。不同原文
 或绑定不得复用同一幂等身份。迟到结果不得使 checkpoint 倒退、清除已知关闭或重新打开旧授权实例；接收方可以
@@ -846,7 +846,6 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
       "station_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z"
     }
   },
-  "producer_revision": 17,
   "kind": "ak.message.create",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "authorization_ref": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
@@ -856,7 +855,6 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
     "event_id": "1714040000.000100"
   },
   "created_at": "2026-04-26T00:00:01Z",
-  "domain_refs": [],
   "refs": [],
   "payload": {
     "strand_id": "ak:strand:AUPkhcWNNoG21KvR89voO-SRUnh1ZFG80N_5xygyYq0O",

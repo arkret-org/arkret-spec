@@ -38,7 +38,7 @@
         {
           "id": "plaintext_definition",
           "operation": "replace",
-          "expected_revision": 0,
+          "expected_server_revision": 0,
           "content": {
             "schema": "ak.schema.view.v1",
             "id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
@@ -78,7 +78,7 @@
         {
           "id": "encrypted_definition",
           "operation": "replace",
-          "expected_revision": 0,
+          "expected_server_revision": 0,
           "content": "encrypted_account_data_envelope"
         }
       ],
@@ -268,12 +268,12 @@
           "id": "physical_delete",
           "surface": "ak.self.account_data.resource.delete.v1",
           "operation": "delete",
-          "expected_revision": 4
+          "expected_server_revision": 4
         },
         {
           "id": "offline_stale_rewrite",
           "operation": "replace",
-          "expected_revision": 3,
+          "expected_server_revision": 3,
           "content": "encrypted_account_data_envelope"
         }
       ],

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.3",
+  "version": "2026-09-18.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T10:40:00+08:00",
+  "generated_at": "2026-09-18T21:20:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2044,7 +2044,8 @@
           "authorized_event_ref",
           "authorized_verification_method",
           "authorized_public_key_digest",
-          "signer_resolution_evidence_ref"
+          "signer_resolution_evidence_ref",
+          "current_signer_evidence"
         ],
         "closed": true
       }
@@ -8481,7 +8482,7 @@
         "required": [
           "snapshot_id",
           "realm_id",
-          "authority_generation",
+          "governance_generation",
           "visible_stream_heads",
           "current_state_entries",
           "retention_and_history_floor",
@@ -8491,7 +8492,7 @@
         "properties": [
           "snapshot_id",
           "realm_id",
-          "authority_generation",
+          "governance_generation",
           "visible_stream_heads",
           "current_state_entries",
           "retention_and_history_floor",

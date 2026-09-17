@@ -21,13 +21,13 @@
         {
           "id": "write_b",
           "operation": "replace",
-          "expected_revision": 7,
+          "expected_server_revision": 7,
           "content": "ciphertext:b"
         },
         {
           "id": "stale_write_a",
           "operation": "replace",
-          "expected_revision": 7,
+          "expected_server_revision": 7,
           "content": "ciphertext:a"
         }
       ],
@@ -59,7 +59,7 @@
         {
           "id": "merged_retry_a",
           "operation": "replace",
-          "expected_revision": 8,
+          "expected_server_revision": 8,
           "content": "ciphertext:merged-a-b"
         }
       ],
@@ -86,12 +86,12 @@
         {
           "id": "delete_a",
           "operation": "delete",
-          "expected_revision": 7
+          "expected_server_revision": 7
         },
         {
           "id": "update_b",
           "operation": "replace",
-          "expected_revision": 7,
+          "expected_server_revision": 7,
           "content": "ciphertext:b"
         }
       ],
@@ -105,7 +105,7 @@
           "merged_retry": {
             "id": "merged_delete",
             "operation": "delete",
-            "expected_revision": 8
+            "expected_server_revision": 8
           }
         },
         {
@@ -117,7 +117,7 @@
           "merged_retry": {
             "id": "merged_delete",
             "operation": "delete",
-            "expected_revision": 8
+            "expected_server_revision": 8
           }
         }
       ],
@@ -139,13 +139,13 @@
         {
           "id": "write_a",
           "operation": "replace",
-          "expected_revision": 7,
+          "expected_server_revision": 7,
           "content": "ciphertext:a"
         },
         {
           "id": "write_b",
           "operation": "replace",
-          "expected_revision": 7,
+          "expected_server_revision": 7,
           "content": "ciphertext:b"
         }
       ],
@@ -159,7 +159,7 @@
           "merged_retry": {
             "id": "merged_write",
             "operation": "replace",
-            "expected_revision": 8,
+            "expected_server_revision": 8,
             "content": "ciphertext:merged-a-b"
           }
         },
@@ -172,7 +172,7 @@
           "merged_retry": {
             "id": "merged_write",
             "operation": "replace",
-            "expected_revision": 8,
+            "expected_server_revision": 8,
             "content": "ciphertext:merged-a-b"
           }
         }
@@ -194,7 +194,7 @@
         {
           "id": "offline_old_write",
           "operation": "replace",
-          "expected_revision": 7,
+          "expected_server_revision": 7,
           "content": "ciphertext:old"
         }
       ],
@@ -225,13 +225,13 @@
             {
               "id": "create",
               "operation": "replace",
-              "expected_revision": 0,
+              "expected_server_revision": 0,
               "content": "ciphertext:new"
             },
             {
               "id": "repeat_create",
               "operation": "replace",
-              "expected_revision": 0,
+              "expected_server_revision": 0,
               "content": "ciphertext:new"
             }
           ],
@@ -256,7 +256,7 @@
             {
               "id": "recreate",
               "operation": "replace",
-              "expected_revision": 5,
+              "expected_server_revision": 5,
               "content": "ciphertext:recreated"
             }
           ],
@@ -283,18 +283,18 @@
         {
           "id": "physical_delete",
           "operation": "delete",
-          "expected_revision": 3
+          "expected_server_revision": 3
         },
         {
           "id": "terminal_value",
           "operation": "replace",
-          "expected_revision": 3,
+          "expected_server_revision": 3,
           "content": "ciphertext:deleted"
         },
         {
           "id": "stale_live_value",
           "operation": "replace",
-          "expected_revision": 3,
+          "expected_server_revision": 3,
           "content": "ciphertext:active-newer"
         }
       ],

@@ -166,7 +166,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         )
         self.assertEqual(
             set(row["coordinate"]),
-            {"realm_id", "stream_ref", "authority_generation", "stream_position"},
+            {"realm_id", "stream_ref", "governance_generation", "stream_position"},
         )
         observed = row["observed_commits"]
         self.assertEqual(len(observed), 2)
@@ -270,7 +270,6 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             "ak.mls.welcome",
             "ak.notary.fault.censorship",
             "ak.notary.fault.equivocation",
-            "ak.realm.authority.reset",
             "ak.realm.digest_suite_transition",
             "ak.realm.notary",
             "ak.realm.organization_recovery_key.register",
@@ -279,6 +278,17 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         }
         self.assertTrue(removed.isdisjoint(kinds))
         self.assertIn("ak.realm.governance_station.change", kinds)
+        # ak.realm.authority.reset sat in this list for one reason only: the
+        # mechanical sweep of c473e3c4 dropped it together with the kinds the
+        # frozen architecture really does eliminate. Nothing in that
+        # architecture removes an authority-generation reset, and the prose
+        # (authz/capabilities.md) plus the root-owner mask of
+        # profiles/conformance-profiles.json kept naming it as the only act
+        # that invalidates a delegated authority generation. It is registered
+        # again, and the two counters are now spelled apart: this kind advances
+        # the Realm authority-root authority_generation, while a governing
+        # Station tenure is governance_generation.
+        self.assertIn("ak.realm.authority.reset", kinds)
 
     def test_mls_binding_is_minimal_and_revision_based(self):
         binding = read("schemas/event-payload.schema.json")["$defs"]["mls_governance_binding"]

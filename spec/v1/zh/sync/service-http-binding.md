@@ -396,6 +396,27 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 
 普通消息必须在客户端形成 immutable producer-signed Event，再使用统一 Event submit 进入 current authority；准备接口不保留位置也不产生 accepted 结果。
 
+**本地明文意图与加密 wire 请求是两件事（normative）**：`ak.self.messages.command.prepare.v1` 的
+`intent.content` 是一个封闭 `oneOf`——`kind="plaintext"` 承载**本地**明文意图，`kind="mls"` 承载已经加密好的
+wire 请求（`encrypted_content` 与 `encryption_context`）。两者 MUST NOT 混用或互相回退。在已由 accepted
+`ak.mls.genesis` 激活的 effective scope 中，`kind="plaintext"` 的 prepare 请求 MUST 被拒绝
+（[`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）；准备接口
+MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文。
+
+**加密与校验都在客户端（normative）**：客户端 MUST 先按 §2.3 冻结该条消息的 AAD 输入并在本地完成加密，
+再发出 prepare 请求。收到 `draft` 后，客户端 MUST 把 draft 中的 ciphertext、加密 metadata 与全部绑定
+（effective scope、Event kind、`encryption_context`、引用的 public group revision）与自己冻结、送出的那份
+**逐字节**比对，任一不符 MUST 丢弃该 draft 并 fail closed，MUST NOT 就地改写 draft 后签名。
+
+**精确重试不消耗第二个 sender counter（normative）**：prepare 结果不明确时，客户端 MUST 重放 byte-identical
+的同一请求。该重试 MUST NOT 重新加密，因此 MUST NOT 推进 RFC 9420 sender ratchet 的 generation，也 MUST NOT
+产生第二份 ciphertext。为同一条消息生成第二份 ciphertext 会使已冻结的 AAD 与已送出的那份不再唯一对应。
+
+**两请求路径假定发送就绪与本地 MLS state（normative）**：prepare + submit 这条两请求路径**假定**调用方已经
+send-ready 且已持有目标 epoch 的本地 MLS state。prepare MUST NOT 授予权限、MUST NOT 预留 sequence、
+MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT 建立、修复或代替本地 MLS state；
+缺少这些前提时失败发生在客户端加密阶段，而不是由准备接口补齐。
+
 ### 2.5 HTTP Message Signature
 
 所有 peer 写入和高风险读取使用绑定 operation 与 canonical body digest 的服务签名。

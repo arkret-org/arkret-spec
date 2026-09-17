@@ -80,7 +80,7 @@ see_also:
 ### 3.1 Principal / Actor / Organization
 
 - Principal 是身份根，通常由 DID 表示。
-- Actor 是 Principal 在 Realm 内的参与身份——拥有独立的 event chain、profile 与 membership，并以该 Principal 的 key 签名行为；不是只读派生投影。
+- Actor 是 Principal 在 Realm 内的参与身份——拥有独立的 actor 身份、profile 与 membership，并以该 Principal 的 key 签名行为；不是只读派生投影。
 - Organization 是一种 Principal，负责治理、签发、服务委派和官方背书。
 - Organization 不是 Realm；Realm 是协作数据边界。
 

@@ -47,7 +47,7 @@ ak.profile.<name>.v<major>
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
-| Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ak.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/checkpoint/backfill、标准错误。 |
+| Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ak.profile.core_event_store.v1`：Event Envelope、逐 stream authority commit log、events submit/get/list/checkpoint/backfill、标准错误。 |
 | Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`station`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
 | Extension（v1 interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ak.profile.encoding.cbor.v1`、`ak.profile.hash.blake3.v1`（编码 / 哈希 扩展：只有对端显式声明后才启用，未声明一侧遇到该编码或哈希 MUST fail closed）。 |
 | Interop staging extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
@@ -58,7 +58,7 @@ Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh:1.0
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
-- `ak.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
+- `ak.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、逐 stream RealmCommit position 连续性 validation、idempotent duplicate handling、standard error。
 - `ak.profile.chat_mvp.v1`：在 `minimal_client` 之上消费服务器已接纳的 Realm、`ak.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
 - `ak.profile.kanban_mvp.v1`：在 `minimal_client` 之上消费服务器已接纳的 Space（`kind=board/list`）、Strand、`contains` position Relation、`ak.strand.move`、`ak.strand.reorder`、`ak.space.create`、`ak.space.update`、`ak.space.parent`、客户端 Collection projection 和 wait-for query。
 
@@ -1046,7 +1046,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
 | <a id="ak-sdk-006"></a>6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
 | <a id="ak-sdk-007"></a>7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
-| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `domain_refs`、`refs[role=authorized_by]`、`producer_revision` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
+| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `refs[role=authorized_by]` 与领域 `expected_revision` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
 | <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.1 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 Event，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |

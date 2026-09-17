@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
-      "sha256": "fa4c28e771dbcddb674a96a126abcc9fe33e5ca85b2e92e3df5a8fd44078ab1f"
+      "sha256": "e4e114b06169a0f8afb3ed35d25b645a6ff4e1b287919bdef9f844dd76336120"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
@@ -46,7 +46,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "1f08464b72999e6d02aae737b5f2bfe2a905f929dcb0f29098e3eda7c4f23fb8"
+      "sha256": "f6abff069761e2468d6d7e490b52362ccb123cc0ec3843c85ee96b78b5ad782d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "76148ab0124981947f1c358377c3fbeab66d5ab956518a521d8cc16a2db04002"
+      "sha256": "d44b977dd7848853dc08289b07887d2cb3f9cc1d00d4ccff41bf5938aadccadb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
@@ -230,7 +230,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
-      "sha256": "c0a9a8bb2834d8a384ea2b96b991d0adae20a7a5c9ef7f4f5873b85fd967d652"
+      "sha256": "17891f96fc557864b638b19dd1dfdbc1f17b760a0760118e01c8a2c9ca36a120"
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-collision-fixture.json",
@@ -242,11 +242,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "6c08b8c2b4bcabc92eda03fab131bd3bfcddc56a60d5f2661bd81db4b65f54b3"
+      "sha256": "a9b6414a454a6221169119dd232c8915429298d15e344a7345dbc1cfb3572e6a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
-      "sha256": "eddf214a602346e538919749b7258e52eb6ba71a79831a4ba08168807e0f68ee"
+      "sha256": "acfc11a548063bf7c37ffbf366661e7fb85fbe95dad73d114b809a9bb3be77cb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",
@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "b70062cd5929ef1fa0baa47dfafc0c70f61ec1a9218062d3a9e52734c93eeb6e"
+      "sha256": "0b176782cd3bda50d90d2c45b2f135f75956cc127ca9e6d3b514ba73cd43dce0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
