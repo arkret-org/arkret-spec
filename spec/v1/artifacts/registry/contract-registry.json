@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.4",
+  "version": "2026-09-17.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T15:00:00+08:00",
+  "generated_at": "2026-09-17T16:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -2316,6 +2316,20 @@
         "reducer_input": true,
         "payload": "The only reducer input for Realm title, summary and avatar. The complete closed profile value replaces the realm_profile singleton; create and policy Events cannot carry these fields.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_profile_payload",
+        "result_writes": [
+          {
+            "result_family": "realm_profile",
+            "result_selector": null,
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/realm-profile.schema.json",
+            "notes": "models/realm-and-space.md section 2.1 names ak.realm.profile the sole canonical carrier of Realm title, summary and avatar_blob_ref. realm_profile_payload is the closed ak.schema.realm_profile.v1 object itself and realm_profile_result.value refs the same file, so the projection is the identity on the whole payload: every accepted Event replaces the Realm singleton wholesale. There is no per-field merge surface and no ak.realm.update."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -3038,8 +3052,8 @@
         }
       }
     },
-    "version": "2026-09-16.14",
-    "generated_at": "2026-09-17T02:50:00+08:00",
+    "version": "2026-09-17.1",
+    "generated_at": "2026-09-17T16:35:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

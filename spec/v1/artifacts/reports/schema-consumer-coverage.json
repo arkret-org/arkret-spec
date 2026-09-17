@@ -44,7 +44,7 @@
     "total_schemas": 220,
     "by_consumer": {
       "declared_wire": 54,
-      "event_kind": 4,
+      "event_kind": 5,
       "inbound": 52,
       "outbound": 63,
       "prose": 103,
@@ -3495,6 +3495,7 @@
       "schema_id": "ak.schema.realm_profile.v1",
       "file": "schemas/realm-profile.schema.json",
       "consumers": {
+        "event_kind": "registered",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact"

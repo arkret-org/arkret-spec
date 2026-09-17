@@ -390,6 +390,52 @@ def check_result_write_contracts(lint: Lint) -> None:
     _check_prose_result_write_citations(lint, rows)
 
 
+def check_every_result_family_has_a_writer(lint: Lint) -> None:
+    """Every registered typed current result family MUST have at least one writer.
+
+    ``check_result_write_contracts`` closes the write -> family direction: a
+    ``result_writes[]`` row may only name a registered family. This closes the
+    other direction, which is where the ``cell_writes[]`` promise actually
+    decayed. A family can sit in ``current-result-registry.json`` with a closed
+    selector/value schema and a resolvable ``$defs`` entry and still have no
+    Event kind that produces it. Prose then reads as if that state exists,
+    reducers have nothing to replay, and no gate says a word -- a registered
+    shell.
+
+    Partial ``result_writes[]`` coverage is a known and recorded gap (see the
+    ``event_kind_registry`` rule), so this check deliberately does NOT require
+    every ``reducer_input`` kind to declare a contract. It requires only the one
+    invariant that holds regardless of how far coverage has been extended: a
+    family nobody writes MUST NOT stay registered. Either register its writer or
+    withdraw the family.
+    """
+    registered = _registered_result_families(lint)
+    if registered is None:
+        return
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        # check_result_write_contracts reports the shape failure; one is enough.
+        return
+    written: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        writes = row.get("result_writes")
+        if not isinstance(writes, list):
+            continue
+        for write in writes:
+            if isinstance(write, dict) and isinstance(write.get("result_family"), str):
+                written.add(write["result_family"])
+    for family in sorted(registered - written):
+        lint.fail(
+            CURRENT_RESULT_REGISTRY,
+            f"result family {family!r} is registered but no Event kind declares a "
+            "result_writes[] row that produces it; register its writer or withdraw "
+            "the family",
+        )
+
+
 _PROSE_RESULT_WRITE_CITATION_RE = re.compile(r"(ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)\.result_writes")
 
 

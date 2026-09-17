@@ -205,6 +205,7 @@ from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
     check_proof_context_object_family_schemas,
+    check_every_result_family_has_a_writer,
     check_result_write_contracts,
 )
 
@@ -280,6 +281,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_proof_context_object_family_schemas(lint),
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
+            (
+                "every_result_family_has_a_writer",
+                lambda: check_every_result_family_has_a_writer(lint),
+            ),
             ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),
             ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),
             ("event_id_suite_registry", lambda: check_event_id_suite_registry(lint)),
