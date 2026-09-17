@@ -670,7 +670,7 @@
     },
     "identity_resolution_result": {
       "type": "object",
-      "description": "Singleton Realm identity-resolution commitment. Written by the conditional ak.realm.create write when the genesis object carries initial_resolution.",
+      "description": "Singleton Realm identity-resolution projection. The PCR reducer initialises it from the genesis object's initial_resolution on the conditional ak.realm.create write and ak.identity.resolution.update is its only post-genesis writer (zh/identity/identity-did.md section 4.2). The stored value is the five-member resolution_projection, not the three-member commitment the owner signs: resolution_event_ref and updated_at are reducer-derived from the carrying envelope and are read back off this result by section 5.",
       "required": [
         "selector",
         "revision",
@@ -693,7 +693,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
         }
       },
       "additionalProperties": false

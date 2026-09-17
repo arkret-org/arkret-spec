@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.14",
+  "version": "2026-09-18.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T05:10:00+08:00",
+  "generated_at": "2026-09-18T07:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,7 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 37 of the 139 reducer_input kinds declare it; the remaining 102 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 38 of the 139 reducer_input kinds declare it; the remaining 101 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
     ],
     "payload_schema_contract": {
@@ -1614,8 +1614,44 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one expected_revision guard for ak:result:identity_resolution:null and cross-binds both payload predecessor fields to that guarded whole value; the Event remains the auditable history source.",
+        "payload": "Owner-authored CAS update of the PCR current did resolution projection. Admission requires exactly one expected_revision guard for ak:result:identity_resolution:null whose value is the whole current resolution_projection; the payload carries only next and mirrors no predecessor coordinate. The Event remains the auditable history source.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/identity_resolution_update_payload",
+        "result_writes": [
+          {
+            "result_family": "identity_resolution",
+            "result_selector": null,
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "did",
+                    "field": "payload.next.did"
+                  },
+                  {
+                    "name": "method_history_head",
+                    "field": "payload.next.method_history_head"
+                  },
+                  {
+                    "name": "version_id",
+                    "field": "payload.next.version_id"
+                  },
+                  {
+                    "name": "resolution_event_ref",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "updated_at",
+                    "envelope_field": "created_at"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+            "notes": "identity-did.md line 586 makes this the only post-genesis writer of the create-locked identity_resolution singleton and closes its payload on next, a resolution_commitment. The selector is JSON null because that paragraph addresses the guarded result as identity_resolution:null, exactly as the ak.realm.create write already does. The stored value is the five-member resolution_projection, so the three owner-signed members come from payload.next and the two reducer-derived ones from the carrying envelope; taking them from the payload instead is what the admission contract means by 'predecessor event/history coordinates come only from that signed precondition, never from payload mirrors'."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -2471,11 +2507,34 @@
             },
             "result_projection": {
               "kind": "set",
-              "value": {
-                "field": "payload.object.initial_resolution"
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "did",
+                    "field": "payload.object.initial_resolution.did"
+                  },
+                  {
+                    "name": "method_history_head",
+                    "field": "payload.object.initial_resolution.method_history_head"
+                  },
+                  {
+                    "name": "version_id",
+                    "field": "payload.object.initial_resolution.version_id"
+                  },
+                  {
+                    "name": "resolution_event_ref",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "updated_at",
+                    "envelope_field": "created_at"
+                  }
+                ]
               }
             },
-            "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_commitment"
+            "value_schema_ref": "schemas/identity-resolution.schema.json#/$defs/resolution_projection",
+            "notes": "identity-did.md line 586 has the PCR reducer initialise this create-locked singleton from the genesis object's initial_resolution. That object is a resolution_commitment: the three members the owner signs. The stored value is the five-member resolution_projection (identity-did.md line 666 fixes its field order, line 668 reads resolution_event_ref and updated_at back off the accepted current result), so the two reducer-derived members come from the carrying envelope, which is the same rule capabilities.md line 768 and read-receipts.md line 220 apply to every other updated_at in v1. A whole-value set of initial_resolution would install a three-member value where five are required and leave no writer for the other two."
           },
           {
             "result_family": "agent_status",
@@ -3848,8 +3907,8 @@
         }
       }
     },
-    "version": "2026-09-17.11",
-    "generated_at": "2026-09-18T05:10:00+08:00",
+    "version": "2026-09-18.1",
+    "generated_at": "2026-09-18T07:40:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
