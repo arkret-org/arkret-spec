@@ -165,9 +165,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 60,
-      "generated_at": "2026-09-16T23:20:00+08:00",
-      "content_digest": "sha256:50afa5e88413ad45a882faf76c3afba170800118f924c26da7347d5b9dff6922"
+      "version": 61,
+      "generated_at": "2026-09-17T15:00:00+08:00",
+      "content_digest": "sha256:6504cbeabc6ac9fdabadc02cc4985de5c54fef8046bab913ae904e1c6476cf8b"
     },
     {
       "path": "spec/v1/artifacts/registry/hpke-suite-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.25",
-      "generated_at": "2026-09-17T12:00:01+08:00",
-      "content_digest": "sha256:8a65607dfc93e264acc2232f04e99820f1dbf2d96141b81d9253237d9432aec8"
+      "version": "2026-09-16.26",
+      "generated_at": "2026-09-17T14:00:00+08:00",
+      "content_digest": "sha256:4ba7aad7e51f32c3a4fafc3e1aeb5fcfece1fead78d00f310991839f5a070b72"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

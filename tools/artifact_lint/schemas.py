@@ -883,7 +883,7 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     _check_aead_carrier_mirrors(lint, schema_dir)
 
     receipt_defs = receipt.get("$defs", {})
-    receipt_item = receipt_defs.get("event_receipt_item") if isinstance(receipt_defs, dict) else None
+    receipt_item = receipt_defs.get("event_receipt_row") if isinstance(receipt_defs, dict) else None
     receipt_required = set(receipt_item.get("required", [])) if isinstance(receipt_item, dict) else set()
     receipt_properties = set(receipt_item.get("properties", {})) if isinstance(receipt_item, dict) else set()
     if "event_digest" in receipt_required or "event_digest" in receipt_properties:

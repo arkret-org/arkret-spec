@@ -133,9 +133,9 @@
     },
     {
       "schema_file": "applet-edge-operations.schema.json",
-      "shape": "rejected_item",
+      "shape": "rejected_event_row",
       "field": "reason_code",
-      "pointer": "#/$defs/rejected_item/properties/reason_code",
+      "pointer": "#/$defs/rejected_event_row/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
@@ -205,9 +205,9 @@
     },
     {
       "schema_file": "applet-install-operations.schema.json",
-      "shape": "rejected_item",
+      "shape": "rejected_scope_row",
       "field": "reason_code",
-      "pointer": "#/$defs/rejected_item/properties/reason_code",
+      "pointer": "#/$defs/rejected_scope_row/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
@@ -413,25 +413,25 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DeviceMessageDeliveredResult",
+      "shape": "DeviceMessageDeliveredRow",
       "field": "status",
-      "pointer": "#/$defs/DeviceMessageDeliveredResult/properties/status",
+      "pointer": "#/$defs/DeviceMessageDeliveredRow/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DeviceMessageUnknownResult",
+      "shape": "DeviceMessageUnknownRow",
       "field": "reason_code",
-      "pointer": "#/$defs/DeviceMessageUnknownResult/properties/reason_code",
+      "pointer": "#/$defs/DeviceMessageUnknownRow/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DeviceMessageUnknownResult",
+      "shape": "DeviceMessageUnknownRow",
       "field": "status",
-      "pointer": "#/$defs/DeviceMessageUnknownResult/properties/status",
+      "pointer": "#/$defs/DeviceMessageUnknownRow/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },

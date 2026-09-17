@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 60,
+  "version": 61,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-16T23:20:00+08:00",
+  "generated_at": "2026-09-17T15:00:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -709,11 +709,11 @@
         }
       ]
     },
-    "pending_sidecar_access_reconciliation_item": {
+    "pending_sidecar_access_reconciliation_row": {
       "selectors": [
         {
           "document_kind": "schema_instance",
-          "schema_ref": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_item",
+          "schema_ref": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row",
           "instance_pointer": "",
           "match_scope": "root"
         }
@@ -4982,7 +4982,7 @@
     },
     {
       "id": "stage",
-      "context": "pending_sidecar_access_reconciliation_item",
+      "context": "pending_sidecar_access_reconciliation_row",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
       "replacement": "provisioning_phase",

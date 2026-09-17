@@ -507,7 +507,7 @@
         "commits": {
           "type": "array",
           "items": {
-            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_item"
+            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
           },
           "maxItems": 100
         },
@@ -1152,7 +1152,7 @@
         }
       ]
     },
-    "realm_list_item": {
+    "realm_list_row": {
       "type": "object",
       "properties": {
         "realm_id": {
@@ -1208,7 +1208,7 @@
           "maxItems": 100,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/realm_list_item"
+            "$ref": "#/$defs/realm_list_row"
           }
         },
         "next_cursor": {
@@ -1265,7 +1265,7 @@
           "maxItems": 100,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/realm_list_item"
+            "$ref": "#/$defs/realm_list_row"
           }
         },
         "removals": {

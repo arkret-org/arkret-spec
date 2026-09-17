@@ -2444,3 +2444,99 @@ def check_slug_field_closure(lint: Lint) -> None:
             f"{sorted(observed_bare - set(registered_contexts))}, "
             f"stale={sorted(set(registered_contexts) - observed_bare)}",
         )
+
+
+def check_typed_current_result_naming(lint: Lint) -> None:
+    """Earn the one `_result` exemption R4 grants, instead of assuming it.
+
+    NC-TYPE-001 closes the structural wrapper table and `Result` is not in it.
+    `typed-current-result.schema.json` keeps the tail anyway, on one condition:
+    none of those names is chosen at the call site. Every one is pinned to a
+    `result_kind` registered in `current-result-registry.json`, so the tail is
+    a registry projection rather than an invented wrapper role. This proves
+    that bijection in both directions, and proves the exemption stays confined
+    to that one schema -- without it the comment in ``naming.py`` would be an
+    assertion no gate ever checks.
+    """
+
+    schema_name = "typed-current-result.schema.json"
+    schema_path = ARTIFACTS / "schemas" / schema_name
+    registry_path = ARTIFACTS / "registry" / "current-result-registry.json"
+
+    schema = load_json(lint, schema_path)
+    registry = load_json(lint, registry_path)
+    if schema is None or registry is None:
+        return
+
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        lint.fail(schema_path, "typed current result schema has no $defs object")
+        return
+
+    entries = registry.get("result_kinds")
+    if not isinstance(entries, list):
+        lint.fail(registry_path, "current-result-registry needs a result_kinds array")
+        return
+
+    registered: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            lint.fail(registry_path, "result_kinds entries must be objects")
+            continue
+        kind = entry.get("result_kind")
+        schema_ref = entry.get("schema_ref")
+        if not isinstance(kind, str) or not isinstance(schema_ref, str):
+            lint.fail(registry_path, "result_kinds entry needs string result_kind/schema_ref")
+            continue
+        expected_ref = f"schemas/{schema_name}#/$defs/{kind}_result"
+        if schema_ref != expected_ref:
+            lint.fail(
+                registry_path,
+                f"result_kind `{kind}` must resolve to `{expected_ref}`, got `{schema_ref}`; "
+                "the `_result` tail is only legal here because it is derived from the "
+                "registered kind rather than chosen",
+            )
+            continue
+        if f"{kind}_result" not in defs:
+            lint.fail(
+                schema_path,
+                f"registered result_kind `{kind}` has no `$defs/{kind}_result` envelope",
+            )
+            continue
+        registered.add(f"{kind}_result")
+
+    declared = {name for name in defs if name.endswith("_result")}
+    unregistered = sorted(declared - registered)
+    if unregistered:
+        lint.fail(
+            schema_path,
+            f"`_result` $defs keys with no registered result_kind: {unregistered}; "
+            "register the kind or rename the type to a wrapper word R4 allows",
+        )
+
+    # The exemption is per-schema, so prove no other schema quietly reuses the tail.
+    for other_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        if other_path.name == schema_name:
+            continue
+        other = load_json(lint, other_path)
+        if other is None:
+            continue
+
+        def walk(node: Any) -> None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if key == "$defs" and isinstance(value, dict):
+                        strays = sorted(n for n in value if n.endswith("_result"))
+                        if strays:
+                            lint.fail(
+                                other_path,
+                                f"`_result` is reserved for typed current result envelopes; "
+                                f"rename {strays} (a synchronous answer is `_outcome`, a row "
+                                "inside one is `_record`)",
+                            )
+                    walk(value)
+            elif isinstance(node, list):
+                for value in node:
+                    walk(value)
+
+        walk(other)

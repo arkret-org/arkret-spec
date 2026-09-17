@@ -200,7 +200,7 @@
     },
     {
       "schema": "applet-edge-operations.schema.json",
-      "json_pointer": "/$defs/rejected_item/properties/event_id",
+      "json_pointer": "/$defs/rejected_event_row/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
     },
@@ -446,7 +446,7 @@
     },
     {
       "schema": "event-batch-receipt.schema.json",
-      "json_pointer": "/$defs/event_receipt_item/properties/event_id",
+      "json_pointer": "/$defs/event_receipt_row/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
     },

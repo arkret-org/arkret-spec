@@ -92,7 +92,7 @@
       },
       "additionalProperties": false
     },
-    "rejected_item": {
+    "rejected_event_row": {
       "type": "object",
       "required": [
         "reason_code"
@@ -225,7 +225,7 @@
         "rejections": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/rejected_item"
+            "$ref": "#/$defs/rejected_event_row"
           }
         },
         "retry_after_ms": {

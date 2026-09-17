@@ -322,7 +322,17 @@ DEFAULT_REJECTED_WRAPPER_WORDS = (
     "Wrapper",
     "Info",
     "Details",
+    # `Result` reads as a structural answer role, and the closed table already
+    # registers `Outcome` for exactly that. The typed current result envelopes
+    # are the single exemption: their names are not invented at the call site
+    # but derived from `current-result-registry.json`, and
+    # `check_typed_current_result_naming` proves that bijection separately.
+    "Result",
 )
+
+# `_result` survives only inside the schema whose every `$defs` key is pinned to
+# a registered `result_kind`.
+TYPED_CURRENT_RESULT_SCHEMA = "typed-current-result.schema.json"
 
 
 def nc_type_001(candidate: str) -> bool:
@@ -804,4 +814,27 @@ def unregistered_wrapper_word(name: str, rejected_words: tuple[str, ...]) -> str
     for word in rejected_words:
         if name.endswith(word) and name != word:
             return word
+    return None
+
+
+def _snake_of(word: str) -> str:
+    """Render a PascalCase wrapper word as the snake_case tail a `$defs` key uses."""
+
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", word).lower()
+
+
+def unregistered_snake_wrapper_word(name: str, rejected_words: tuple[str, ...]) -> str | None:
+    """`unregistered_wrapper_word` for a snake_case `$defs` key.
+
+    R4 governs one naming axis expressed in two casings: an OpenAPI component
+    spells the wrapper role ``Item`` and the `$defs` key spelling the same role
+    writes ``_item``. Checking only the PascalCase mirror left 1791 `$defs` keys
+    with no wrapper-role gate at all, which is how a whole `_result` family grew
+    a fourth meaning without any check failing.
+    """
+
+    for word in rejected_words:
+        tail = _snake_of(word)
+        if name == tail or name.endswith(f"_{tail}"):
+            return tail
     return None

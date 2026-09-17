@@ -40,7 +40,7 @@
       "type": "array",
       "description": "Canonical set projection of covered Events. Every item carries the canonical Event ID, whose 33-octet token losslessly encodes the suite and full digest, plus the verified Event kind. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
       "items": {
-        "$ref": "#/$defs/event_receipt_item"
+        "$ref": "#/$defs/event_receipt_row"
       },
       "minItems": 1,
       "uniqueItems": true
@@ -82,7 +82,7 @@
                 "contains": {
                   "allOf": [
                     {
-                      "$ref": "#/$defs/event_receipt_item"
+                      "$ref": "#/$defs/event_receipt_row"
                     },
                     {
                       "properties": {
@@ -100,7 +100,7 @@
                 "contains": {
                   "allOf": [
                     {
-                      "$ref": "#/$defs/event_receipt_item"
+                      "$ref": "#/$defs/event_receipt_row"
                     },
                     {
                       "properties": {
@@ -143,7 +143,7 @@
                 "contains": {
                   "allOf": [
                     {
-                      "$ref": "#/$defs/event_receipt_item"
+                      "$ref": "#/$defs/event_receipt_row"
                     },
                     {
                       "properties": {
@@ -161,7 +161,7 @@
                 "contains": {
                   "allOf": [
                     {
-                      "$ref": "#/$defs/event_receipt_item"
+                      "$ref": "#/$defs/event_receipt_row"
                     },
                     {
                       "properties": {
@@ -294,7 +294,7 @@
       "additionalProperties": false,
       "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
     },
-    "event_receipt_item": {
+    "event_receipt_row": {
       "type": "object",
       "required": [
         "event_id",

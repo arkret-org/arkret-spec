@@ -1112,7 +1112,7 @@
       ]
     },
     {
-      "schema_path": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_item/properties/agent_id",
+      "schema_path": "agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",

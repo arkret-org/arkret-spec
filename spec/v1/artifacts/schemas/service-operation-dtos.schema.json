@@ -831,7 +831,7 @@
               "$ref": "./common-ids.schema.json#/$defs/device_id"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/DeviceMessageDeliveredResult"
+              "$ref": "#/$defs/DeviceMessageDeliveredRow"
             }
           }
         },
@@ -847,7 +847,7 @@
               "$ref": "./common-ids.schema.json#/$defs/device_id"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/DeviceMessageUnknownResult"
+              "$ref": "#/$defs/DeviceMessageUnknownRow"
             }
           }
         }
@@ -4078,7 +4078,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessageDeliveredResult": {
+    "DeviceMessageDeliveredRow": {
       "type": "object",
       "required": [
         "device_message_id",
@@ -4090,12 +4090,12 @@
         },
         "status": {
           "const": "delivered",
-          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownResult. It is a positional discriminator, not a success-only outcome constant."
+          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the delivered map, and the status member keeps a detached item self-describing against DeviceMessageUnknownRow. It is a positional discriminator, not a success-only outcome constant."
         }
       },
       "additionalProperties": false
     },
-    "DeviceMessageUnknownResult": {
+    "DeviceMessageUnknownRow": {
       "type": "object",
       "required": [
         "device_message_id",
@@ -4108,7 +4108,7 @@
         },
         "status": {
           "const": "unknown",
-          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredResult. It is a positional discriminator, not a success-only outcome constant."
+          "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredRow. It is a positional discriminator, not a success-only outcome constant."
         },
         "reason_code": {
           "type": "string",

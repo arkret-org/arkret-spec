@@ -109,7 +109,7 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
 
     def test_receipt_item_digest_mirror_fails(self) -> None:
         def mutate(schema) -> None:
-            schema["$defs"]["event_receipt_item"]["properties"]["event_digest"] = {"type": "object"}
+            schema["$defs"]["event_receipt_row"]["properties"]["event_digest"] = {"type": "object"}
 
         errors = self._lint("event-batch-receipt.schema.json", mutate)
         self.assertTrue(any("derive event_digest from event_id" in error for error in errors), errors)

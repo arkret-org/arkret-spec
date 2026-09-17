@@ -131,6 +131,7 @@ from .naming_contracts import (
     check_identifier_value_categories,
     check_naming_rule_coverage_matrix,
     check_slug_field_closure,
+    check_typed_current_result_naming,
 )
 
 from .prose import (
@@ -562,6 +563,7 @@ def main(argv: list[str] | None = None) -> int:
             ("collection_field_contracts", lambda: check_collection_field_contracts(lint)),
             ("duration_field_units", lambda: check_duration_field_units(lint)),
             ("slug_field_closure", lambda: check_slug_field_closure(lint)),
+            ("typed_current_result_naming", lambda: check_typed_current_result_naming(lint)),
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
             ("prose_field_tables", lambda: check_prose_field_tables(lint)),

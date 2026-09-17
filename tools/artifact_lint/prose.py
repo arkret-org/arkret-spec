@@ -68,6 +68,7 @@ from .core import (
 )
 from .naming import (
     DEFAULT_REJECTED_WRAPPER_WORDS,
+    TYPED_CURRENT_RESULT_SCHEMA,
     DEFAULT_FORBIDDEN_LEXEMES,
     FORBIDDEN_SYMBOLIC_LITERALS,
     PASCAL_CASE_RE,
@@ -90,6 +91,7 @@ from .naming import (
     schema_shape_has_type,
     stacked_wrapper_words,
     unregistered_wrapper_word,
+    unregistered_snake_wrapper_word,
 )
 
 
@@ -570,7 +572,16 @@ def check_naming_predicates(lint: Lint) -> None:
                     or unregistered_wrapper_word(type_name.name, rejected_wrapper_words) is not None
                 )
             else:
-                violates = not SNAKE_CASE_RE.fullmatch(type_name.name)
+                # A `$defs` key carries the same wrapper role as its PascalCase
+                # mirror, just spelled in snake_case, so R4's rejected-role list
+                # has to reach it too. `typed-current-result.schema.json` is the
+                # one schema whose `_result` tail is registry-derived rather than
+                # invented, and `check_typed_current_result_naming` proves that.
+                violates = not SNAKE_CASE_RE.fullmatch(type_name.name) or (
+                    file_name != TYPED_CURRENT_RESULT_SCHEMA
+                    and unregistered_snake_wrapper_word(type_name.name, rejected_wrapper_words)
+                    is not None
+                )
             if violates:
                 adjudicate(
                     schema_path, "NC-TYPE-001", file_name, type_name.pointer, type_name.name

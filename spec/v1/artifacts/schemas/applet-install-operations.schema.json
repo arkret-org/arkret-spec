@@ -63,7 +63,7 @@
     "effective_scope": {
       "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
     },
-    "rejected_item": {
+    "rejected_scope_row": {
       "type": "object",
       "required": [
         "reason_code"
@@ -257,7 +257,7 @@
         "rejections": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/rejected_item"
+            "$ref": "#/$defs/rejected_scope_row"
           }
         }
       },
@@ -616,7 +616,7 @@
         "rejections": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/rejected_item"
+            "$ref": "#/$defs/rejected_scope_row"
           }
         }
       },

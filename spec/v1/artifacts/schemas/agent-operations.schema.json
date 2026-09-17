@@ -1480,7 +1480,7 @@
     "agent_sidecar_ensure_request_body": {
       "$ref": "./principal-operations.schema.json#/$defs/sidecar_ensure_request"
     },
-    "pending_sidecar_access_reconciliation_item": {
+    "pending_sidecar_access_reconciliation_row": {
       "type": "object",
       "required": [
         "agent_id",
@@ -1613,7 +1613,7 @@
         "pending_access_reconciliations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/pending_sidecar_access_reconciliation_item"
+            "$ref": "#/$defs/pending_sidecar_access_reconciliation_row"
           }
         }
       },

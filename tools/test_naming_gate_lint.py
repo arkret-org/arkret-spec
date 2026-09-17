@@ -29,6 +29,7 @@ from tools.artifact_lint.core import (
 )
 from tools.artifact_lint.naming import (
     DEFAULT_REJECTED_WRAPPER_WORDS,
+    TYPED_CURRENT_RESULT_SCHEMA,
     PREDICATES,
     enumerate_schema_properties,
     naive_property_occurrences,
@@ -39,6 +40,7 @@ from tools.artifact_lint.naming import (
     split_name_words,
     stacked_wrapper_words,
     unregistered_wrapper_word,
+    unregistered_snake_wrapper_word,
 )
 from tools.artifact_lint.naming_contracts import (
     COLLECTION_NAMING_REGISTRY_PATH,
@@ -415,6 +417,32 @@ class WrapperWordTest(unittest.TestCase):
         self.assertIsNone(
             unregistered_wrapper_word("EventsSubmitOutcome", DEFAULT_REJECTED_WRAPPER_WORDS)
         )
+
+    def test_snake_case_defs_keys_share_the_rejected_role_list(self) -> None:
+        """R4 is one axis in two casings; the `$defs` spelling must not be a hole."""
+
+        for name, expected in (
+            ("relation_conflict_candidate", "candidate"),
+            ("realm_list_item", "item"),
+            ("poll_response_body", "response_body"),
+            ("member_state_result", "result"),
+            ("agent_human_approval_error_details", "details"),
+        ):
+            self.assertEqual(
+                unregistered_snake_wrapper_word(name, DEFAULT_REJECTED_WRAPPER_WORDS),
+                expected,
+                name,
+            )
+        for name in ("events_submit_outcome", "realm_list_row", "stream_row", "resultant_policy"):
+            self.assertIsNone(
+                unregistered_snake_wrapper_word(name, DEFAULT_REJECTED_WRAPPER_WORDS), name
+            )
+
+    def test_result_is_a_rejected_role_outside_the_typed_current_result_schema(self) -> None:
+        """The `_result` tail is legal only where the registry pins every name."""
+
+        self.assertIn("Result", DEFAULT_REJECTED_WRAPPER_WORDS)
+        self.assertEqual(TYPED_CURRENT_RESULT_SCHEMA, "typed-current-result.schema.json")
 
 
 class HashWordBoundaryTest(MutationHarness):

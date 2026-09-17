@@ -126,7 +126,7 @@
       },
       "additionalProperties": false
     },
-    "stream_item": {
+    "stream_row": {
       "type": "object",
       "required": [
         "commit",
@@ -153,7 +153,7 @@
           "type": "array",
           "maxItems": 1000,
           "items": {
-            "$ref": "#/$defs/stream_item"
+            "$ref": "#/$defs/stream_row"
           }
         },
         "truncated": {
@@ -226,7 +226,7 @@
           "type": "array",
           "maxItems": 100,
           "items": {
-            "$ref": "#/$defs/stream_item"
+            "$ref": "#/$defs/stream_row"
           },
           "description": "Only exact matches, in request order. Callers fail closed when any requested ref is absent."
         }

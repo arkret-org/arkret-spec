@@ -84,7 +84,89 @@
       ],
       "enforcement": "predicate+registry",
       "enforcement_scope": "The predicate decides acronym folding, stacked wrapper words and rejected wrapper roles; distinguishing a domain subject from a wrapper role is registry-driven via rejected_wrapper_words.",
-      "exact_path_exceptions": []
+      "exact_path_exceptions": [
+        {
+          "id": "account-data-cas-conflict-error-details",
+          "file": "account-data-operations.schema.json",
+          "pointer": "/$defs/account_data_cas_conflict_details",
+          "name": "account_data_cas_conflict_details",
+          "basis": "internal_structure",
+          "reason": "Names the closed `error.details` member it populates, so the type tracks the field rather than inventing a wrapper role. Renaming the type without renaming that member would break the one-name-per-semantic rule in the other direction.",
+          "anchor": "spec/v1/zh/sync/service-http-binding.md"
+        },
+        {
+          "id": "agent-human-approval-error-details",
+          "file": "agent-operations.schema.json",
+          "pointer": "/$defs/agent_human_approval_error_details",
+          "name": "agent_human_approval_error_details",
+          "basis": "internal_structure",
+          "reason": "Same closed `error.details` member, for the session-grant human-approval branch.",
+          "anchor": "spec/v1/zh/sync/service-http-binding.md"
+        },
+        {
+          "id": "poll-response-body-domain-subject",
+          "file": "content-block-poll.schema.json",
+          "pointer": "/$defs/poll_response_body",
+          "name": "poll_response_body",
+          "basis": "domain_subject",
+          "reason": "A poll response is a domain object a participant authors; this is its content body, not an HTTP ResponseBody. The rejected role is the transport one.",
+          "anchor": "spec/v1/zh/models/strand-and-message.md"
+        },
+        {
+          "id": "rsvp-response-domain-subject",
+          "file": "event-payload.schema.json",
+          "pointer": "/$defs/rsvp_response",
+          "name": "rsvp_response",
+          "basis": "domain_subject",
+          "reason": "`response` is the calendar RSVP domain noun (the invitee's answer), not a transport response.",
+          "anchor": "spec/v1/zh/extensions/calendar.md"
+        },
+        {
+          "id": "rsvp-encrypted-response-domain-subject",
+          "file": "event-payload.schema.json",
+          "pointer": "/$defs/rsvp_encrypted_response",
+          "name": "rsvp_encrypted_response",
+          "basis": "domain_subject",
+          "reason": "Encrypted carrier of the same RSVP domain noun.",
+          "anchor": "spec/v1/zh/extensions/calendar.md"
+        },
+        {
+          "id": "secret-storage-item-domain-subject",
+          "file": "key-backup-plaintext.schema.json",
+          "pointer": "/$defs/secret_storage_item",
+          "name": "secret_storage_item",
+          "basis": "domain_subject",
+          "reason": "A secret storage item is the domain noun for one stored secret; the object carries its own `item_kind` discriminator, so `item` is the subject rather than a row wrapper.",
+          "anchor": "spec/v1/zh/crypto-media/key-backup.md"
+        },
+        {
+          "id": "mimi-group-info-external-literal",
+          "file": "mimi-operations.schema.json",
+          "pointer": "/$defs/group_info",
+          "name": "group_info",
+          "basis": "external_literal",
+          "reason": "RFC 9420 GroupInfo projected verbatim into the MIMI interop surface; the object also carries a `group_info` member of the same external name.",
+          "external_anchor": "RFC 9420 section 12.4.3.2 GroupInfo"
+        },
+        {
+          "id": "saved-item-domain-subject",
+          "file": "personal-productivity.schema.json",
+          "pointer": "/$defs/saved_item",
+          "name": "saved_item",
+          "basis": "domain_subject",
+          "reason": "A saved item is the user-facing domain object of the save/collection feature and carries its own `kind` discriminator; it is not a row inside some enclosing list type.",
+          "anchor": "spec/v1/zh/extensions/personal-productivity.md"
+        },
+        {
+          "id": "relation-conflict-candidate-domain-subject",
+          "file": "relation.schema.json",
+          "pointer": "/$defs/relation_conflict_candidate",
+          "name": "relation_conflict_candidate",
+          "basis": "domain_subject",
+          "reason": "A conflict candidate is the domain noun for one competing relation Event under adjudication, named by the conflict-resolution rule rather than by a structural position.",
+          "anchor": "spec/v1/zh/models/relation.md"
+        }
+      ]
     },
     {
       "rule_id": "NC-CODE-001",
@@ -405,7 +487,8 @@
     "Response",
     "Wrapper",
     "Info",
-    "Details"
+    "Details",
+    "Result"
   ],
   "positive_cases": [
     {

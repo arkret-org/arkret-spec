@@ -788,7 +788,7 @@
             "pending_access_reconciliations": {
               "type": "array",
               "items": {
-                "$ref": "./agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_item"
+                "$ref": "./agent-operations.schema.json#/$defs/pending_sidecar_access_reconciliation_row"
               },
               "uniqueItems": true
             }
