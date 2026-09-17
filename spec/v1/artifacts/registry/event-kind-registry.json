@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.12",
+  "version": "2026-09-16.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T02:30:00+08:00",
+  "generated_at": "2026-09-17T02:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,7 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 3 of the 139 reducer_input kinds declare it (ak.call.state, ak.capability.grant, ak.realm.create); the remaining 136 still have no machine-readable reducer contract, so their registered writes exist only in prose. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 6 of the 139 reducer_input kinds declare it (ak.call.recording.start, ak.call.state, ak.call.summary, ak.capability.grant, ak.realm.create, ak.realm.history_access); the remaining 133 still have no machine-readable reducer contract, so their registered writes exist only in prose. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
   ],
   "payload_schema_contract": {
     "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -369,6 +369,60 @@
       "reducer_input": true,
       "payload": "Call recording / transcript capture start",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_recording_start_payload",
+      "result_writes": [
+        {
+          "result_family": "call_recording_state",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_id"
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.capture_kind",
+            "const": "recording"
+          },
+          "result_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "recording"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_current",
+          "notes": "capture_kind selects the target capture family (crypto-media/call-state.md section 5.1); the pending outcome result is created in the same atomic commit."
+        },
+        {
+          "result_family": "call_transcript_state",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_id"
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.capture_kind",
+            "const": "transcript"
+          },
+          "result_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "transcribing"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_current",
+          "notes": "capture_kind selects the target capture family (crypto-media/call-state.md section 5.1); the pending outcome result is created in the same atomic commit."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -420,7 +474,7 @@
           }
         },
         {
-          "result_family": "call_recording",
+          "result_family": "call_recording_state",
           "result_selector": {
             "kind": "composite",
             "components": [
@@ -463,7 +517,7 @@
           "notes": "ready/failed outcome published from stopped. It grants no capture, key or read authority."
         },
         {
-          "result_family": "call_transcript",
+          "result_family": "call_transcript_state",
           "result_selector": {
             "kind": "composite",
             "components": [
@@ -572,6 +626,25 @@
       "reducer_input": true,
       "payload": "Durable end-of-call summary",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_summary_payload",
+      "result_writes": [
+        {
+          "result_family": "call_summary",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.call_id"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/call_summary_payload",
+          "notes": "Write-once after the call reaches a terminal state (crypto-media/call-state.md section 7); a second summary for the same call_id is rejected."
+        }
+      ],
       "id_source": "reference"
     },
     {
@@ -1755,6 +1828,20 @@
       "reducer_input": true,
       "payload": "Realm history visibility scope",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/history_access_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_history_access",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.to"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/history_access_value",
+          "notes": "Single ratcheted FSM value. After the atomic create unit the only legal state-changing edge is all_history_for_current_members to since_join; widening is permanently rejected (zh/models/realm-and-space.md)."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {

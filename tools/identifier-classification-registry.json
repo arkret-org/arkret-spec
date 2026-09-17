@@ -26,7 +26,7 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 860,
+    "typed_object_id": 871,
     "responsibility_identity_material": 545,
     "registry_catalog_symbol": 14
   },
@@ -573,7 +573,7 @@
       "name": "recording_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._-]{1,128}$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 5,
+      "occurrences": 9,
       "example_path": "call-recording-artifact.schema.json#/properties/recording_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
     },

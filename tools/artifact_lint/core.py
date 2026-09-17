@@ -542,7 +542,7 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # persists nothing unless persist_before_projection is set — so it proves nothing on
 # its own. A downgrade additionally MUST show the state change reaches no replicated
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
-# See arkret-work/work/active/2026-08-06-1723-event-log-operations-need-a-signed-request.md.
+# See arkret-work/tasks/impl-active/2026-08-06-1723-event-log-operations-need-a-signed-request.md.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {}
 
 
@@ -945,7 +945,7 @@ _PROSE_ACTION_TARGET_RE = re.compile(r"target=`([^`]+)`")
 # Files that declare `normative: false` yet legitimately surface RFC 2119
 # keywords (informative guides quoting requirements, the spec map, the OpenAPI
 # view) are waived here. Each entry records why the exemption exists so the
-# waiver list can shrink as the underlying arkret-work/review/spec-open findings are resolved.
+# waiver list can shrink as the underlying arkret-work/tasks/spec-open findings are resolved.
 NON_NORMATIVE_KEYWORD_WAIVERS: dict[str, str] = {
     # Informative migration/consumption/reference guides that quote the wire
     # contract's MUST/SHOULD requirements as reading aids, not as the

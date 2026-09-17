@@ -153,7 +153,7 @@ class ReasonCodeProducerLintTest(unittest.TestCase):
         self.assertIn("removed reason code gone_code still appears", errors[0])
 
     def test_removed_row_naming_a_repository_path_is_rejected(self) -> None:
-        row = {**REMOVED_ROW, "ruling": "arkret-work/review/spec-open/2026-09-04-1752.md"}
+        row = {**REMOVED_ROW, "ruling": "arkret-work/tasks/spec-open/2026-09-04-1752.md"}
         errors = run(registry_with("bound_code"), baseline_document([], [row]), REFERENCING_SCHEMA)
         self.assertEqual(len(errors), 1, errors)
         self.assertIn("never a repository path", errors[0])

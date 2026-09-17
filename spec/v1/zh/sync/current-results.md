@@ -38,7 +38,15 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group；
 - `realm_authority_root`：singleton，值为 closed `ak.schema.realm_authority_root_value.v1`（见 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；
 - `agent_key`：以 `(agent_id, agent_key_id)` 选择一把 Agent 签名 key 的 registered authorization 投影；
-- `agent_status`：以 `agent_id` 选择该 Agent 的 lifecycle 值。
+- `agent_status`：以 `agent_id` 选择该 Agent 的 lifecycle 值；
+- `realm_genesis`：singleton，create-locked identity/security core（`ak.schema.realm_genesis.v1`），由 `ak.realm.create` 的 registered write 一次写入；
+- `realm_history_access`：singleton，Realm history-access FSM 当前值（`since_join` / `all_history_for_current_members`）；
+- `identity_resolution`：singleton，Realm identity-resolution commitment，仅当 genesis object 携带 `initial_resolution` 时由 `ak.realm.create` 条件写入；
+- `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
+- `call_state` / `call_focus` / `call_moderation` / `call_roster` / `call_mute_override`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；
+- `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
+- `call_recording_result` / `call_transcript_result`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
+- `call_summary`：以 `call_id` 选择 write-once 的终态通话摘要。
 
 selector 的身份字段来自已接纳 Event 的 typed payload，不得由调用方另行声明或由服务端按显示名称猜测。新增领域结果
 必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。

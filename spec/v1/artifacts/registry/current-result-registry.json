@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.11",
+  "version": "2026-09-16.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-17T02:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -41,6 +41,62 @@
     {
       "result_kind": "agent_status",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_status_result"
+    },
+    {
+      "result_kind": "realm_genesis",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_genesis_result"
+    },
+    {
+      "result_kind": "realm_history_access",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_history_access_result"
+    },
+    {
+      "result_kind": "identity_resolution",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_resolution_result"
+    },
+    {
+      "result_kind": "capability_grant",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/capability_grant_result"
+    },
+    {
+      "result_kind": "call_state",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_state_result"
+    },
+    {
+      "result_kind": "call_focus",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_focus_result"
+    },
+    {
+      "result_kind": "call_recording_state",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_result"
+    },
+    {
+      "result_kind": "call_recording_result",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_result"
+    },
+    {
+      "result_kind": "call_transcript_state",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_result"
+    },
+    {
+      "result_kind": "call_transcript_result",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_result"
+    },
+    {
+      "result_kind": "call_moderation",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_moderation_result"
+    },
+    {
+      "result_kind": "call_roster",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_roster_result"
+    },
+    {
+      "result_kind": "call_mute_override",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_mute_override_result"
+    },
+    {
+      "result_kind": "call_summary",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_summary_result"
     }
   ]
 }

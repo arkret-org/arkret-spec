@@ -7,7 +7,7 @@
     "spec/v1/artifacts/registry/event-kind-registry.json"
   ],
   "generated_by": "tools/artifact_lint (check_apply_patch_base_producers)",
-  "description": "Ledger of cell families that a registered apply_patch write targets while no registered write produces a base value for them. An apply_patch needs a base, and event-auth-state-resolution.md section 6 forbids closing the gap with a registered initial_value: the base must come from a registered create or genesis write. Opened 2026-09-07 with four entries by review/spec-open/2026-09-07-1305-four-apply-patch-targets-have-no-registered-producer.md and emptied the same day by decisions/0029. families_without_base_producer only shrinks; a new entry is a defect, not a baseline update. resolved_families is kept as the record of what each fix was.",
+  "description": "Ledger of cell families that a registered apply_patch write targets while no registered write produces a base value for them. An apply_patch needs a base, and event-auth-state-resolution.md section 6 forbids closing the gap with a registered initial_value: the base must come from a registered create or genesis write. Opened 2026-09-07 with four entries by tasks/spec-open/2026-09-07-1305-four-apply-patch-targets-have-no-registered-producer.md and emptied the same day by decisions/0029. families_without_base_producer only shrinks; a new entry is a defect, not a baseline update. resolved_families is kept as the record of what each fix was.",
   "families_without_base_producer": [],
   "resolved_families": [
     {

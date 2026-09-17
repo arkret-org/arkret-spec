@@ -30,6 +30,48 @@
     },
     {
       "$ref": "#/$defs/agent_status_result"
+    },
+    {
+      "$ref": "#/$defs/realm_genesis_result"
+    },
+    {
+      "$ref": "#/$defs/realm_history_access_result"
+    },
+    {
+      "$ref": "#/$defs/identity_resolution_result"
+    },
+    {
+      "$ref": "#/$defs/capability_grant_result"
+    },
+    {
+      "$ref": "#/$defs/call_state_result"
+    },
+    {
+      "$ref": "#/$defs/call_focus_result"
+    },
+    {
+      "$ref": "#/$defs/call_recording_state_result"
+    },
+    {
+      "$ref": "#/$defs/call_recording_result"
+    },
+    {
+      "$ref": "#/$defs/call_transcript_state_result"
+    },
+    {
+      "$ref": "#/$defs/call_transcript_result"
+    },
+    {
+      "$ref": "#/$defs/call_moderation_result"
+    },
+    {
+      "$ref": "#/$defs/call_roster_result"
+    },
+    {
+      "$ref": "#/$defs/call_mute_override_result"
+    },
+    {
+      "$ref": "#/$defs/call_summary_result"
     }
   ],
   "$defs": {
@@ -494,6 +536,511 @@
           "items": {
             "$ref": "#/$defs/agent_key_authorization_entry"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_genesis_result": {
+      "type": "object",
+      "description": "Singleton create-locked identity/security core. Written once by the registered ak.realm.create result write (zh/models/realm-and-space.md section 2.5.1); the value is the closed ak.schema.realm_genesis.v1 object.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_genesis"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./realm-genesis.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_history_access_result": {
+      "type": "object",
+      "description": "Singleton Realm history-access FSM current state (zh/models/realm-and-space.md section 2.5.1). Initialized by the conditional ak.realm.create write and moved only by ak.realm.history_access.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_history_access"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/history_access_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_resolution_result": {
+      "type": "object",
+      "description": "Singleton Realm identity-resolution commitment. Written by the conditional ak.realm.create write when the genesis object carries initial_resolution.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "identity_resolution"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment"
+        }
+      },
+      "additionalProperties": false
+    },
+    "capability_grant_result": {
+      "type": "object",
+      "description": "Registered projection of one Capability Grant. The subject GrantId is derived by retyping the accepted ak.capability.grant Event id; the value is the complete projected grant, including reducer-inserted id and the registered derived members authority_depth / authority_root_refs (zh/authz/capabilities.md section 10).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "grant_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "capability_grant"
+            },
+            "grant_id": {
+              "$ref": "./common-ids.schema.json#/$defs/grant_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./capability-grant.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_id_component": {
+      "type": "string",
+      "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
+    },
+    "call_recording_id_component": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,128}$",
+      "description": "Stable opaque recording / transcript segment handle, canonical byte-for-byte (crypto-media/call-state.md section 5.1)."
+    },
+    "call_recording_state_current": {
+      "type": "string",
+      "enum": [
+        "recording",
+        "stopped"
+      ],
+      "description": "Capture permission state of one recording segment: ak.call.recording.start opens it as recording, a committed ak.call.state recording_transition.to=stopped closes it. ready/failed outcomes live in the separate call_recording_result family."
+    },
+    "call_transcript_state_current": {
+      "type": "string",
+      "enum": [
+        "transcribing",
+        "stopped"
+      ],
+      "description": "Capture permission state of one transcript segment: ak.call.recording.start opens it as transcribing, a committed ak.call.state transcript_transition.to=stopped closes it."
+    },
+    "call_state_result": {
+      "type": "object",
+      "description": "Commit-ordered projection of the ak.call.state state_transition axis (crypto-media/call-state.md section 4.1).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_state"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/state_transition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_focus_result": {
+      "type": "object",
+      "description": "Commit-ordered projection of the ak.call.state focus axis. The first committed session_focus is binding (MEDIA-2); later writes MUST restate it verbatim.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_focus"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/focus"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_recording_state_result": {
+      "type": "object",
+      "description": "Capture permission state typed current result of one recording segment (family call_recording_state), keyed by the (call_id, recording_id) segment key so several captures in one call never collide.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id",
+            "recording_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_recording_state"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            },
+            "recording_id": {
+              "$ref": "#/$defs/call_recording_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/call_recording_state_current"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_recording_result": {
+      "type": "object",
+      "description": "Outcome typed current result of one recording segment (family call_recording_result): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id",
+            "recording_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_recording_result"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            },
+            "recording_id": {
+              "$ref": "#/$defs/call_recording_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/result"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_transcript_state_result": {
+      "type": "object",
+      "description": "Capture permission state typed current result of one transcript segment (family call_transcript_state), keyed by the (call_id, recording_id) segment key.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id",
+            "recording_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_transcript_state"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            },
+            "recording_id": {
+              "$ref": "#/$defs/call_recording_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/call_transcript_state_current"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_transcript_result": {
+      "type": "object",
+      "description": "Outcome typed current result of one transcript segment (family call_transcript_result): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id",
+            "recording_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_transcript_result"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            },
+            "recording_id": {
+              "$ref": "#/$defs/call_recording_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/transcript_transition/properties/result"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_moderation_result": {
+      "type": "object",
+      "description": "Commit-ordered projection of the ak.call.state moderation_delta axis (crypto-media/call-state.md section 4.1).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_moderation"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_roster_result": {
+      "type": "object",
+      "description": "Commit-ordered projection of the ak.call.state roster_delta axis. The current value is the last accepted write on the stream; per-participant durable identity is (call_id, actor_id, device_id).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_roster"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_mute_override_result": {
+      "type": "object",
+      "description": "Commit-ordered projection of the ak.call.state mute_override axis (crypto-media/call-state.md section 4.1).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_mute_override"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/mute_override"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_summary_result": {
+      "type": "object",
+      "description": "Write-once durable end-of-call summary (crypto-media/call-state.md section 7), written by ak.call.summary after the call reaches a terminal state.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "call_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "call_summary"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id_component"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
         }
       },
       "additionalProperties": false

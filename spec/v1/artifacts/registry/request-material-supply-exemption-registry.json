@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-17.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T16:30:00+08:00",
+  "generated_at": "2026-09-17T13:00:00+08:00",
   "description": "Closed named-exemption registry for zh/sync/service-http-binding.md 2.2.2. That section requires every gate-scoped required request input (evidence-shaped or CAS/echo-shaped leaves, and untyped required objects) to have a registered supply source, and every declared FSM state and allowed transition to have a registered write. Rows carry individually adjudicated exceptions in two kinds: request_input rows per operation and json-path prefix, fsm_transition rows per typed current result family with the waived states and transitions. Structural rules live in the machine gate, not here: this registry only carries individually adjudicated exceptions so that a blanket category can never be smuggled in as a row.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.request_material_supply\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -16,7 +16,7 @@
     ],
     "disposition_semantics": {
       "external_form": "The field intentionally carries an external standard's own wire form (for example a did:webvh operation object). rationale MUST name the external standard and where its shape is defined. The row is permanent until the carrier design changes.",
-      "open_finding": "A confirmed supply or reachability gap that is not fixed yet. review_anchor MUST point at a review/spec-open entry in arkret-work that still exists; when the finding closes the row MUST be deleted in the same change, otherwise the reverse check fails.",
+      "open_finding": "A confirmed supply or reachability gap that is not fixed yet. review_anchor MUST point at a tasks/spec-open entry in arkret-work that still exists; when the finding closes the row MUST be deleted in the same change, otherwise the reverse check fails.",
       "deferred_supply": "The supply surface is adjudicated but its implementation is scheduled for a later wave. review_anchor MUST point at the adjudication record."
     },
     "machine_gate": "tools/artifact_lint:request_material_supply + fsm_reachability",

@@ -120,7 +120,7 @@ class DerivedWireFieldRemovalLockLintTest(unittest.TestCase):
         self.assertTrue(any("must not be the removed member itself" in e for e in errors), errors)
 
     def test_ruling_naming_a_repository_path_is_rejected(self) -> None:
-        row = {**ROW, "ruling": "arkret-work/review/spec-open/2026-09-02-1951.md"}
+        row = {**ROW, "ruling": "arkret-work/tasks/spec-open/2026-09-02-1951.md"}
         rows, errors = load(lock_with(row))
         self.assertEqual(rows, [])
         self.assertTrue(any("never a repository path" in e for e in errors), errors)

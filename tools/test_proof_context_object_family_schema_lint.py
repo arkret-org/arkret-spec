@@ -177,8 +177,26 @@ class ResultWriteContractTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             artifacts = Path(directory) / "artifacts"
             (artifacts / "registry").mkdir(parents=True)
+            (artifacts / "schemas").mkdir(parents=True)
             (artifacts / "registry" / "event-kind-registry.json").write_text(
                 json.dumps({"event_kinds": event_kinds}), encoding="utf-8"
+            )
+            (artifacts / "registry" / "current-result-registry.json").write_text(
+                json.dumps(
+                    {
+                        "result_kinds": [
+                            {
+                                "result_kind": "probe_result",
+                                "schema_ref": "schemas/probe.schema.json#/$defs/probe_result_result",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (artifacts / "schemas" / "probe.schema.json").write_text(
+                json.dumps({"$defs": {"probe_result_result": {"type": "object"}}}),
+                encoding="utf-8",
             )
             zh = Path(directory) / "zh"
             zh.mkdir()
@@ -189,6 +207,11 @@ class ResultWriteContractTest(unittest.TestCase):
                 mock.patch.object(gate, "ARTIFACTS", artifacts),
                 mock.patch.object(
                     gate, "EVENT_KIND_REGISTRY", artifacts / "registry" / "event-kind-registry.json"
+                ),
+                mock.patch.object(
+                    gate,
+                    "CURRENT_RESULT_REGISTRY",
+                    artifacts / "registry" / "current-result-registry.json",
                 ),
             ):
                 gate.check_result_write_contracts(lint)
@@ -251,6 +274,54 @@ class ResultWriteContractTest(unittest.TestCase):
         )
         self.assertEqual(len(errors), 1, errors)
         self.assertIn("declares no result_writes", errors[0])
+
+    def test_unregistered_result_family_fails(self) -> None:
+        row = self.kind()
+        row["result_writes"][0]["result_family"] = "ghost_family"
+        errors = self.run_gate([row])
+        self.assertTrue(any("not a registered result_kinds[] row" in e for e in errors), errors)
+
+    def test_result_kind_row_with_unresolvable_schema_ref_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            artifacts = Path(directory) / "artifacts"
+            (artifacts / "registry").mkdir(parents=True)
+            (artifacts / "registry" / "event-kind-registry.json").write_text(
+                json.dumps({"event_kinds": []}), encoding="utf-8"
+            )
+            (artifacts / "registry" / "current-result-registry.json").write_text(
+                json.dumps(
+                    {
+                        "result_kinds": [
+                            {
+                                "result_kind": "probe_result",
+                                "schema_ref": "schemas/probe.schema.json#/$defs/missing",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (artifacts / "schemas").mkdir(parents=True)
+            (artifacts / "schemas" / "probe.schema.json").write_text(
+                json.dumps({"$defs": {}}), encoding="utf-8"
+            )
+            lint = Lint()
+            with (
+                mock.patch.object(gate, "ARTIFACTS", artifacts),
+                mock.patch.object(
+                    gate, "EVENT_KIND_REGISTRY", artifacts / "registry" / "event-kind-registry.json"
+                ),
+                mock.patch.object(
+                    gate,
+                    "CURRENT_RESULT_REGISTRY",
+                    artifacts / "registry" / "current-result-registry.json",
+                ),
+            ):
+                gate.check_result_write_contracts(lint)
+            self.assertTrue(
+                any("does not resolve to a schema object" in e for e in lint.errors),
+                lint.errors,
+            )
 
 
 class GateIsWiredTest(unittest.TestCase):

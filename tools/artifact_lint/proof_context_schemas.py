@@ -175,6 +175,61 @@ def check_proof_context_object_family_schemas(lint: Lint) -> None:
 
 _RESULT_PROJECTION_KINDS = frozenset({"set", "merge", "transition"})
 RESULT_FAMILY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+CURRENT_RESULT_REGISTRY = ARTIFACTS / "registry" / "current-result-registry.json"
+
+
+def _registered_result_families(lint: Lint) -> set[str] | None:
+    """The closed typed current result families, with each row's schema resolved."""
+    data = load_json(lint, CURRENT_RESULT_REGISTRY)
+    kinds = data.get("result_kinds") if isinstance(data, dict) else None
+    if not isinstance(kinds, list) or not kinds:
+        lint.fail(CURRENT_RESULT_REGISTRY, "result_kinds[] must be a non-empty array")
+        return None
+    families: set[str] = set()
+    documents: dict[str, Any] = {}
+    for index, row in enumerate(kinds):
+        where = f"result_kinds[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(CURRENT_RESULT_REGISTRY, f"{where} must be an object")
+            continue
+        kind = row.get("result_kind")
+        if not isinstance(kind, str) or not RESULT_FAMILY_RE.fullmatch(kind):
+            lint.fail(
+                CURRENT_RESULT_REGISTRY,
+                f"{where}.result_kind must be a snake_case typed current result family name",
+            )
+        elif kind in families:
+            lint.fail(CURRENT_RESULT_REGISTRY, f"{where}.result_kind duplicates {kind!r}")
+        else:
+            families.add(kind)
+        schema_ref = row.get("schema_ref")
+        if not isinstance(schema_ref, str) or not schema_ref.startswith("schemas/"):
+            lint.fail(
+                CURRENT_RESULT_REGISTRY,
+                f"{where}.schema_ref must point into artifacts/schemas",
+            )
+            continue
+        file_ref, separator, fragment_body = schema_ref.partition("#")
+        if file_ref not in documents:
+            path = ARTIFACTS / file_ref
+            documents[file_ref] = load_json(lint, path) if path.is_file() else None
+        document = documents[file_ref]
+        if document is None:
+            lint.fail(
+                CURRENT_RESULT_REGISTRY,
+                f"{where}.schema_ref does not resolve: {schema_ref}",
+            )
+            continue
+        try:
+            node = resolve_json_pointer(document, f"#{fragment_body}" if separator else "")
+        except (KeyError, IndexError, ValueError):
+            node = None
+        if not isinstance(node, dict):
+            lint.fail(
+                CURRENT_RESULT_REGISTRY,
+                f"{where}.schema_ref does not resolve to a schema object: {schema_ref}",
+            )
+    return families
 
 
 def _check_result_selector(lint: Lint, ref: str, selector: Any) -> None:
@@ -208,7 +263,16 @@ def check_result_write_contracts(lint: Lint) -> None:
     the machine source for which typed current results an Event kind writes. A
     registry array nobody validates is how the previous ``cell_writes[]`` promise
     stayed a promise, so the grammar is closed here from the start.
+
+    Every declared ``result_family`` MUST also be a registered ``result_kinds[]``
+    row of ``current-result-registry.json`` whose ``schema_ref`` resolves: a write
+    into an unregistered family is the same failure mode one level down -- prose
+    and reducers would share a family name that no closed selector/value schema
+    defines.
     """
+    registered_families = _registered_result_families(lint)
+    if registered_families is None:
+        return
     registry = load_json(lint, EVENT_KIND_REGISTRY)
     rows = registry.get("event_kinds") if isinstance(registry, dict) else None
     if not isinstance(rows, list):
@@ -250,6 +314,12 @@ def check_result_write_contracts(lint: Lint) -> None:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
                     f"{where}.result_family must be a snake_case typed current result family name",
+                )
+            elif family not in registered_families:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_family {family!r} is not a registered result_kinds[] row of "
+                    "registry/current-result-registry.json",
                 )
             if "result_selector" not in write:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_selector is required (JSON null for a singleton)")

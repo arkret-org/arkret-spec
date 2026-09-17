@@ -184,7 +184,7 @@ class SiblingDigestPatternGateTest(_MutatingLint):
         def mutate_registry(registry) -> None:
             row = next(r for r in registry["exemptions"] if r["kind"] == "distinct_preimage")
             row["kind"] = "open_finding"
-            row["spec_anchor"] = "arkret-work/review/spec-open/2026-09-02-2033-blob-ref-dual-form-and-content-digest-sibling.md"
+            row["spec_anchor"] = "arkret-work/tasks/spec-open/2026-09-02-2033-blob-ref-dual-form-and-content-digest-sibling.md"
 
         errors = self._sibling(registry_mutation=mutate_registry)
         self.assertTrue(any("kind must be distinct_preimage; an open question is not a ruling" in error for error in errors), errors)

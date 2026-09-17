@@ -142,9 +142,9 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | --- | --- | --- | --- |
 | `state_transition` | `call_state` | `commit-ordered projection` | 领域状态 |
 | `focus` | `call_focus` | `commit-ordered projection` | register |
-| `recording_transition.to=stopped` | `call_recording` | `commit-ordered projection` | 捕获许可状态 |
+| `recording_transition.to=stopped` | `call_recording_state` | `commit-ordered projection` | 捕获许可状态 |
 | `recording_transition.result` | `call_recording_result` | stream-ordered reducer | `{status,details,expected_revision}` |
-| `transcript_transition.to=stopped` | `call_transcript` | `commit-ordered projection` | 捕获许可状态 |
+| `transcript_transition.to=stopped` | `call_transcript_state` | `commit-ordered projection` | 捕获许可状态 |
 | `transcript_transition.result` | `call_transcript_result` | stream-ordered reducer | `{status,details,expected_revision}` |
 | `moderation_delta` | `call_moderation` | `commit-ordered projection` | set |
 | `roster_delta` | `call_roster` | `commit-ordered projection` | set |
@@ -154,7 +154,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 **未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `result_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result typed current result write。完整 op 由 registry `result_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 
-**捕获态按段切分**：录制 / 转写 typed current result 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 typed current result，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `call_recording` 或 `call_transcript`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 typed current result family。
+**捕获态按段切分**：录制 / 转写 typed current result 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 typed current result，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `call_recording_state` 或 `call_transcript_state`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 typed current result family。
 
 **捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布并引用精确 `capture_stop_event_id`，验证 stop 所属 call、段、capture kind 和唯一确认结果。result 保存 `{status,details,expected_revision}`；治理 Station按 stream 顺序执行并拒绝 stale revision，且不能重开捕获。start 的 pending result 与许可创建在同一原子提交内生效。
 
@@ -236,7 +236,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 要求：
 
-- 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 **required** `capture_kind`(`recording` / `transcript`)区分录制与转写两条平行生命周期(转写见 §5.1)；它选择目标 typed current result family(`call_recording` / `call_transcript`)，因此 MUST 显式携带，缺失 MUST `schema_violation`，MUST NOT 由 missing-field default 推断。
+- 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 **required** `capture_kind`(`recording` / `transcript`)区分录制与转写两条平行生命周期(转写见 §5.1)；它选择目标 typed current result family(`call_recording_state` / `call_transcript_state`)，因此 MUST 显式携带，缺失 MUST `schema_violation`，MUST NOT 由 missing-field default 推断。
 - `payload.mode` MUST 显式携带，封闭为 `audio` / `audio_video`；无缺省值，缺失 MUST `schema_violation`。
 - `payload.visible_notice` MUST 显式为 `true`；客户端 MUST 对所有参会者显示录制中。
 - `payload.result` MUST NOT 携带 `recording_start_event_id` 或 `transcript_start_event_id`：本 Event 的 ID 依赖 payload digest，写入自身 ID 会形成无解自引用。`result.retention.consent_confirmed` MUST 为 `true`，否则 reducer 在创建 capture 领域状态 typed current result 前拒绝 `recording_consent_required`。Event 完成 digest / ID 校验后，reducer 按 `capture_kind` 把完整 accepted Event identity 写入对应 projected result typed current result；该 receiver-derived 字段不属于原 Event preimage。start event 原子写入 capture FSM 与独立 result typed current result，不能先进入捕获态再补交同意事实。

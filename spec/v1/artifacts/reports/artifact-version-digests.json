@@ -81,15 +81,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-16.26",
-      "generated_at": "2026-09-17T02:30:00+08:00",
-      "content_digest": "sha256:01c6d29f650712837f271e2c3834f7b9863a0727cb28b70113f4fc97b552a4c5"
+      "version": "2026-09-16.28",
+      "generated_at": "2026-09-17T02:50:00+08:00",
+      "content_digest": "sha256:741b911b3b2fa4aed17855b33651334760ea25b97bc98c1ed0b6e63989033c1b"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
-      "version": "2026-09-16.11",
-      "generated_at": "2026-09-16T21:30:00+08:00",
-      "content_digest": "sha256:9a65496548636ec3cc1aaebf24e8a5a239b1108b7dfdff116206195de1dfdfb5"
+      "version": "2026-09-16.13",
+      "generated_at": "2026-09-17T02:50:00+08:00",
+      "content_digest": "sha256:2d43cec8fe95c4f4f53eaf24485c34df2dbbd4c115ff77039081facca087479b"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -129,15 +129,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-16.13",
-      "generated_at": "2026-09-17T02:30:00+08:00",
-      "content_digest": "sha256:72566d15c747f1677a87a679d58e1d00740bc40641699274d4f3ad665a8e4979"
+      "version": "2026-09-16.14",
+      "generated_at": "2026-09-17T02:45:00+08:00",
+      "content_digest": "sha256:55974df87cb3c53bd28f56834ab12583ae51ec3fbe8ee332dfc6bfe682c8c5ac"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-16.12",
-      "generated_at": "2026-09-17T02:30:00+08:00",
-      "content_digest": "sha256:f2938f431a831c6aba639bc6dc61e511f0e7ee9adfd5462c9382982b8aa38aec"
+      "version": "2026-09-16.14",
+      "generated_at": "2026-09-17T02:50:00+08:00",
+      "content_digest": "sha256:5ad2b9bd16d5a21769e011fa9b841f66fd0110cd07a8811cdee69451bc2b943e"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-16.19",
-      "generated_at": "2026-09-17T02:30:00+08:00",
-      "content_digest": "sha256:3a71fe01a7dfa655410326a77484a99359b2d601fce183d1640d627cdab8451c"
+      "version": "2026-09-16.21",
+      "generated_at": "2026-09-17T02:50:00+08:00",
+      "content_digest": "sha256:e573b6417f3b7f0619a89f37e34006ba1f82b510bc042aabb66faa9edc74dd85"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.20",
-      "generated_at": "2026-09-17T02:00:00+08:00",
-      "content_digest": "sha256:031e4ade59c384a80b2f3768f788f2c89777af40ce56fac94f349f70451b9a2f"
+      "version": "2026-09-16.22",
+      "generated_at": "2026-09-17T02:50:00+08:00",
+      "content_digest": "sha256:245b3bbee5ba854bad2db072ca867b04f179ce7e9f9c37b0c81e16020a36a369"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -321,9 +321,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",
-      "version": "2026-09-16.6",
-      "generated_at": "2026-09-16T16:30:00+08:00",
-      "content_digest": "sha256:fa6d5c6ca422cc280882a4ff8c6754da396782ef0cbe1263a4ee24a573df7d16"
+      "version": "2026-09-17.1",
+      "generated_at": "2026-09-17T13:00:00+08:00",
+      "content_digest": "sha256:83e64c47a4551a8791d54133e923937f785c3db963ab6ecd28159d8a06607802"
     },
     {
       "path": "spec/v1/artifacts/registry/runner-kind-registry.json",
