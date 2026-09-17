@@ -1206,7 +1206,7 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 Applet-managed principal（Bot Actor 与 Ghost Actor，见 [`../extensions/applet-integration.md` §3.3 / §3.4](../extensions/applet-integration.md)）如需参与 E2EE——发布 KeyPackage、作为 Welcome 接收方入组、签署 MLS durable receipt——MUST 使用**受限 delegated device**。本节对 Bot 与 Ghost 等效适用：两者用同一个 managed-actor provision + `applet_managed_control` PCR 模型，因此也用同一条设备授权路径，不存在只覆盖其中一方的形态。
 
-Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通 device 分支的成员，[`encryption-and-audit.md`](./encryption-and-audit.md) 的 device / Agent / minimal-metadata-pairwise 三分支封闭 XOR 不变。
+Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通 device 分支的成员，§9.2.1 的 device / Agent / minimal-metadata-pairwise 三分支封闭 XOR 不变。
 
 - **唯一授权路径**：一条 `authorization_binding_kind="applet_managed_delegation"` 的 `ak.device.authorize`，在该 principal 自己的 `applet_managed_control` PCR 中作为 **genesis 之后的普通后继 Event** 提交，形状与约束见 §5.2.3，签名方解析见 §5.3。MUST NOT 把它塞进 install fixed set、Ghost provisioning aggregate 或任何 genesis unit；MUST NOT 让 Applet service 以自己的 `service_id` 代替该 principal 授权设备。
 - **有界委托**：`scopes` MUST 非空且限制到该 delegated device 实际需要的 Realm / 动作，`expires_at` MUST 是非 null 的到期时刻。过期后该设备 MUST 与 `expired` lifecycle 一样失去新业务授权（§14.1）。
