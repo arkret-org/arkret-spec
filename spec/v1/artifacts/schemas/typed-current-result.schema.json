@@ -72,6 +72,51 @@
     },
     {
       "$ref": "#/$defs/call_summary_result"
+    },
+    {
+      "$ref": "#/$defs/realm_schema_result"
+    },
+    {
+      "$ref": "#/$defs/realm_link_result"
+    },
+    {
+      "$ref": "#/$defs/realm_join_rule_result"
+    },
+    {
+      "$ref": "#/$defs/realm_discovery_result"
+    },
+    {
+      "$ref": "#/$defs/realm_alias_result"
+    },
+    {
+      "$ref": "#/$defs/realm_policy_bundle_result"
+    },
+    {
+      "$ref": "#/$defs/realm_asset_privacy_policy_result"
+    },
+    {
+      "$ref": "#/$defs/realm_plaintext_visible_services_result"
+    },
+    {
+      "$ref": "#/$defs/realm_media_service_result"
+    },
+    {
+      "$ref": "#/$defs/realm_read_receipt_policy_result"
+    },
+    {
+      "$ref": "#/$defs/realm_inheritance_policy_result"
+    },
+    {
+      "$ref": "#/$defs/realm_tombstone_result"
+    },
+    {
+      "$ref": "#/$defs/realm_destroy_result"
+    },
+    {
+      "$ref": "#/$defs/realm_set_default_strand_result"
+    },
+    {
+      "$ref": "#/$defs/strand_position_result"
     }
   ],
   "$defs": {
@@ -1041,6 +1086,513 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "strand_position_value": {
+      "description": "The registered value shape of strand_position, pinned by models/realm-and-space.md section 3.6 as list_space_id with rank, or null. The null branch is the pre-placement state of a Strand that has been created but never moved onto a Board.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "list_space_id",
+            "rank"
+          ],
+          "properties": {
+            "list_space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/list_space_id"
+            },
+            "rank": {
+              "$ref": "./event-payload.schema.json#/$defs/rank"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "realm_schema_result": {
+      "type": "object",
+      "description": "Per-Realm declaration of the Realm-scoped Morph kind tightening (models/governance-objects.md section 4). Singleton: the Realm is given by the Event envelope, which conformance/encoding.md section 9.5.1 forbids repeating in the subject.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_schema"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_schema_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_link_result": {
+      "type": "object",
+      "description": "One directed Realm-to-Realm link. models/realm-links.md section 5 makes the subject the (target_realm_id, link_kind) tuple with the source Realm given by Event scope, and the current value the last accepted write.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "target_realm_id",
+            "link_kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_link"
+            },
+            "target_realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "link_kind": {
+              "$ref": "./event-payload.schema.json#/$defs/realm_link_payload/properties/link_kind"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_link_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_join_rule_result": {
+      "type": "object",
+      "description": "The Realm default_join_rule enum. models/realm-and-space.md section 2.3 makes ak.realm.join_rule its sole canonical carrier.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_join_rule"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_join_rule_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_discovery_result": {
+      "type": "object",
+      "description": "The Realm default_discoverability envelope (models/realm-and-space.md section 2.3).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_discovery"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_discovery_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_alias_result": {
+      "type": "object",
+      "description": "The Realm alias declaration or its tombstone. discovery/discovery-directory.md section 12 resolves an alias from this family and treats a tombstone as absent, so the tombstone branch is retained rather than collapsed to null.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_alias"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_alias_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_policy_bundle_result": {
+      "type": "object",
+      "description": "The Realm policy components that have no facet Event kind of their own. models/realm-and-space.md section 2.3 restates the whole bundle on every policy_revision.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_policy_bundle"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_policy_bundle_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_asset_privacy_policy_result": {
+      "type": "object",
+      "description": "The Realm asset metadata and download policy (crypto-media/media-and-blob.md section 12). It is deliberately not a policy_bundle component and is excluded from key_access_revision.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_asset_privacy_policy"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_plaintext_visible_services_result": {
+      "type": "object",
+      "description": "The declared set of services that may see plaintext in this Realm (models/realm-and-space.md section 2.3).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_plaintext_visible_services"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_media_service_result": {
+      "type": "object",
+      "description": "The single settled media service binding of the Realm. crypto-media/media-service-binding.md section 4 calls it a single-valued commit-ordered projection; section 2.1 pins the closed field set.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_media_service"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_media_service_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_read_receipt_policy_result": {
+      "type": "object",
+      "description": "The Realm read receipt disclosure requirement (discovery/read-receipts.md section 2.5). Strand-level separation goes through a Circle, not through a second subject on this family.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_read_receipt_policy"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_inheritance_policy_result": {
+      "type": "object",
+      "description": "What this Realm inherits from one parent Realm. extensions/mimi-interop.md section 9.1 makes inheritance per-parent, and payload.source_realm_id is the parent carrier.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "source_realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_inheritance_policy"
+            },
+            "source_realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_tombstone_result": {
+      "type": "object",
+      "description": "The terminal tombstone of the Realm, with its required successor_realm_id (models/realm-and-space.md section 2.6). Commit-ordered and written at most once.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_tombstone"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_tombstone_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_destroy_result": {
+      "type": "object",
+      "description": "The terminal destroy of the Realm, which MUST NOT carry a successor (models/realm-and-space.md section 2.6). Commit-ordered and written at most once.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_destroy"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_destroy_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_set_default_strand_value": {
+      "type": "object",
+      "description": "The registered value shape of realm_set_default_strand. models/strand-and-message.md section 2 makes the authoritative current value the Realm projection field default_strand_id and normalizes absent and explicit null to one null before a whole-value comparison, so the value is the one-member object carrying that field rather than a bare pointer: only a member can be absent.",
+      "required": [
+        "default_strand_id"
+      ],
+      "properties": {
+        "default_strand_id": {
+          "$ref": "./realm.schema.json#/properties/default_strand_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_set_default_strand_result": {
+      "type": "object",
+      "description": "The authoritative default_strand_id pointer of the Realm (models/strand-and-message.md section 1). The current value is the last accepted write on the stream.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_set_default_strand"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_set_default_strand_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "strand_position_result": {
+      "type": "object",
+      "description": "The position of one Strand on one Board. models/realm-and-space.md section 3.6 pins the subject to the reversible typed_pair of board_space_id and strand_id and forbids a hash subject, so both typed-ID components MUST be validated on parse.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "board_space_id",
+            "strand_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "strand_position"
+            },
+            "board_space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/board_space_id"
+            },
+            "strand_id": {
+              "$ref": "./event-payload.schema.json#/$defs/strand_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/strand_position_value"
         }
       },
       "additionalProperties": false

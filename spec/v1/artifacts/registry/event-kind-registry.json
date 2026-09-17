@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.5",
+  "version": "2026-09-17.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T17:55:00+08:00",
+  "generated_at": "2026-09-17T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1682,6 +1682,20 @@
       "reducer_input": true,
       "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm genesis and profile schemas are closed and carry no alias property. Declaration payloads and {tombstone:true} both set realm_alias through the registered commit-ordered projection effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_alias",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+          "notes": "discovery/discovery-directory.md section 12 resolves an alias from the effective ak.realm.alias typed current result and treats a tombstone as absent. The projection therefore stores the whole payload branch: collapsing the tombstone branch to null would erase the protocol difference between never-declared and durably withdrawn."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -1704,6 +1718,20 @@
       "reducer_input": true,
       "payload": "Realm asset privacy policy",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_asset_privacy_policy",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload/properties/value",
+          "notes": "crypto-media/media-and-blob.md section 12 names the family and says this kind is its own sole carrier rather than a policy_bundle component. The same section treats an omitted direct_download_allowed as false, which is a read-side default and MUST NOT be materialized by the projection."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -1947,6 +1975,20 @@
       "reducer_input": true,
       "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_destroy",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+          "notes": "models/realm-and-space.md section 2.6 pairs realm_destroy with ak.realm.destroy as a commit-ordered projection that cannot be written twice and that MUST NOT carry a successor."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -1958,6 +2000,20 @@
       "reducer_input": true,
       "payload": "Realm discoverability state",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_discovery_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_discovery",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_discovery_payload/properties/value",
+          "notes": "models/realm-and-space.md section 2.3 makes ak.realm.discovery the sole carrier of default_discoverability and extensions/mimi-interop.md section 9.1 names the family. The payload value is a closed whole-value envelope; preview field selection belongs to ak.realm.preview_policy and is not projected here."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2016,6 +2072,25 @@
       "reducer_input": true,
       "payload": "Per-parent inheritance policy; one entry per source Realm",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_inheritance_policy_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_inheritance_policy",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.source_realm_id"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_inheritance_policy_payload",
+          "notes": "extensions/mimi-interop.md section 9.1 names the family and says inheritance is per-parent; payload.source_realm_id is the only parent carrier in the closed payload, so a singleton selector would let a policy inherited from one parent overwrite another. Recorded weakness: no paragraph spells this subject out the way models/realm-links.md section 5 spells out realm_link."
+        }
+      ],
       "id_source": "reference"
     },
     {
@@ -2027,6 +2102,20 @@
       "reducer_input": true,
       "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed) When the accepted join_policy component is structurally inconsistent with this join_rule (restricted/knock_restricted without at least one auto_resolve gate, or a combinator that degenerates the gate set), the reducer MUST reject with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_join_rule_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_join_rule",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_join_rule_payload/properties/value",
+          "notes": "models/realm-and-space.md section 2.3 makes ak.realm.join_rule the sole canonical carrier of default_join_rule; extensions/mimi-interop.md section 9.1 names the family realm_join_rule. payload.state and payload.reason are admission and audit members, not part of the projected value."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2038,6 +2127,26 @@
       "reducer_input": true,
       "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_link_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_link",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.target_realm_id",
+              "payload.link_kind"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_link_payload",
+          "notes": "models/realm-links.md section 5 states the subject is the (target_realm_id, link_kind) tuple with the Realm given by Event scope, and that the family is an ordinary current-value projection whose current value is the last accepted write. The transition matrix of the same section is an admission rule: transition here would need a from/to over status alone and would drop every other payload member, so the projection is the identity on the closed payload."
+        }
+      ],
       "id_source": "reference"
     },
     {
@@ -2049,6 +2158,20 @@
       "reducer_input": true,
       "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_media_service_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_media_service",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_media_service_payload/properties/value",
+          "notes": "crypto-media/media-service-binding.md section 4 calls ak.realm.media_service a single-valued commit-ordered projection and section 2.1 pins payload.value with its foci[] as the authoritative closed field set. Token issuer deployment configuration is excluded from this typed current result by the same section."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2082,6 +2205,20 @@
       "reducer_input": true,
       "payload": "Plaintext-visible services declaration outside E2EE boundary",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/plaintext_visible_services_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_plaintext_visible_services",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/plaintext_visible_services_payload",
+          "notes": "models/realm-and-space.md section 2.3 lists this kind as the sole carrier of the plaintext-visible service set and extensions/mimi-interop.md section 9.1 names the family. No normative paragraph decomposes the payload, so the projection is the identity on it rather than an invented per-service keyed set."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2104,6 +2241,20 @@
       "reducer_input": true,
       "payload": "Enabled Realm policy components set, written wholesale into the commit-ordered projection typed current result (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_revision MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_policy_bundle",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+          "notes": "models/realm-and-space.md section 2.3 says the whole bundle is restated in full on every policy_revision and that its component fields MUST NOT fall back to create or generic patch, so the projection is the identity on the closed payload. The strict policy_revision monotonicity of section 2.5 is an admission precondition the projection grammar cannot express."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2151,6 +2302,20 @@
       "reducer_input": true,
       "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_read_receipt_policy",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+          "notes": "discovery/read-receipts.md section 2.5 names the family and says this kind is its sole carrier. The payload is a flat closed object with no value wrapper, so the projection is the identity on it. Taking the stricter of parent Realm and Circle policy is a read-side fold, not a projection."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2173,6 +2338,20 @@
       "reducer_input": true,
       "payload": "Realm schema_refs declaration",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_schema_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_schema",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_schema_payload/properties/value",
+          "notes": "models/governance-objects.md section 4 names ak.realm.schema the writer of realm_schema and names the closed realm_schema_payload.value the written object in the same sentence. Per-Realm singleton: conformance/encoding.md section 9.5.1 forbids realm_id in a subject, so the selector is null."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2195,6 +2374,26 @@
       "reducer_input": true,
       "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any shared-token implementation detail. Authorization is the standard Realm-admin gate (hold ak.realm.admin, or the same-name action ak.realm.set_default_strand).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_set_default_strand_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_set_default_strand",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "default_strand_id",
+                  "field": "payload.strand_id"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_set_default_strand_value",
+          "notes": "models/strand-and-message.md section 2 names the family and the current-value projection and makes default_strand_id a single pointer whose current value is the last accepted write on the stream. The same section normalizes absent and explicit null to one null before a whole-value comparison, so the projected value is the one-member object carrying default_strand_id and the wire name payload.strand_id is renamed to it exactly here. payload.strand_id is required, so every accepted write sets a non-null pointer; the canonical explicit-null form is the family initial state, not an effect this kind can produce. The anti-dangling check and the expected_default_strand_id to expected_revision compilation are admission rules outside the projection grammar."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2206,6 +2405,20 @@
       "reducer_input": true,
       "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_tombstone",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+          "notes": "models/realm-and-space.md section 2.6 says ak.realm.tombstone writes realm_tombstone as a commit-ordered projection that cannot be written twice, and requires successor_realm_id, which is carried in the value; the projection is the identity on the closed payload. Write-once is enforced by expected_revision admission, which the projection grammar cannot express."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2576,6 +2789,42 @@
       "reducer_input": true,
       "payload": "Ordinary causal placement update. The destination is validated against the signed basis and cannot change privacy scope or grant read access.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_move_payload",
+      "result_writes": [
+        {
+          "result_family": "strand_position",
+          "result_selector": {
+            "kind": "typed_pair",
+            "components": [
+              {
+                "kind": "id:space",
+                "field": "payload.board_space_id"
+              },
+              {
+                "kind": "id:strand",
+                "field": "payload.strand_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "list_space_id",
+                  "field": "payload.target_space_id"
+                },
+                {
+                  "name": "rank",
+                  "field": "payload.rank"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
+          "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.4, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection."
+        }
+      ],
       "id_source": "reference"
     },
     {
@@ -2587,6 +2836,42 @@
       "reducer_input": true,
       "payload": "Rank-only causal update of the same placement typed current result as ak.strand.move. The signed basis list_space_id must match the projected list_space_id; concurrent writes select the fixed causal-register (depth,EventId) winner while losing Events remain historical provenance. This ordinary placement never grants scope access.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_reorder_payload",
+      "result_writes": [
+        {
+          "result_family": "strand_position",
+          "result_selector": {
+            "kind": "typed_pair",
+            "components": [
+              {
+                "kind": "id:space",
+                "field": "payload.board_space_id"
+              },
+              {
+                "kind": "id:strand",
+                "field": "payload.strand_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "list_space_id",
+                  "field": "payload.space_id"
+                },
+                {
+                  "name": "rank",
+                  "field": "payload.rank"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
+          "notes": "Same subject as ak.strand.move per models/realm-and-space.md section 3.6. A reorder happens within one List Space, carried on payload.space_id, so the whole-value write restates list_space_id rather than merging rank alone: the value shape of that section has no partial form."
+        }
+      ],
       "id_source": "reference"
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.1",
+  "version": "2026-09-17.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T12:00:00+08:00",
+  "generated_at": "2026-09-17T21:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -97,6 +97,66 @@
     {
       "result_kind": "call_summary",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_summary_result"
+    },
+    {
+      "result_kind": "realm_schema",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_schema_result"
+    },
+    {
+      "result_kind": "realm_link",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_link_result"
+    },
+    {
+      "result_kind": "realm_join_rule",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_join_rule_result"
+    },
+    {
+      "result_kind": "realm_discovery",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_discovery_result"
+    },
+    {
+      "result_kind": "realm_alias",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_alias_result"
+    },
+    {
+      "result_kind": "realm_policy_bundle",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_bundle_result"
+    },
+    {
+      "result_kind": "realm_asset_privacy_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_asset_privacy_policy_result"
+    },
+    {
+      "result_kind": "realm_plaintext_visible_services",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_plaintext_visible_services_result"
+    },
+    {
+      "result_kind": "realm_media_service",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_media_service_result"
+    },
+    {
+      "result_kind": "realm_read_receipt_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_read_receipt_policy_result"
+    },
+    {
+      "result_kind": "realm_inheritance_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_inheritance_policy_result"
+    },
+    {
+      "result_kind": "realm_tombstone",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_tombstone_result"
+    },
+    {
+      "result_kind": "realm_destroy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_destroy_result"
+    },
+    {
+      "result_kind": "realm_set_default_strand",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_set_default_strand_result"
+    },
+    {
+      "result_kind": "strand_position",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_result"
     }
   ]
 }

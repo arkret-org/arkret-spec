@@ -340,6 +340,71 @@ def _check_result_selector(lint: Lint, ref: str, selector: Any) -> None:
             lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must be a non-empty array")
         elif len(components) != len({json.dumps(part, sort_keys=True) for part in components}):
             lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must not repeat a component")
+    elif kind == "typed_pair":
+        _check_typed_pair_components(lint, ref, selector)
+
+
+def _check_typed_pair_components(lint: Lint, ref: str, selector: Any) -> None:
+    """A `typed_pair` subject is a reversible two-component typed-ID encoding.
+
+    `zh/models/realm-and-space.md` section 3.6 is the only paragraph that pins a
+    family to this kind, and it pins the reason too: the wire form
+    `strand_position:<board_space_id>:<strand_id>` MUST stay invertible, so the
+    SHA-256 subject of `tuple`/`composite` is explicitly not applicable and a
+    reader MUST validate BOTH typed-ID components rather than slicing the tail.
+    Neither property survives a free-form component list: two components in a
+    fixed order, each naming its own registered id kind, is what makes the
+    encoding reversible and the pair-wise validation possible.
+
+    So the shape is closed here rather than left to `composite`'s weaker "any
+    non-repeating list" rule. Without this branch `typed_pair` would sit in the
+    closed subject table with no grammar behind it -- a subject kind spelled in
+    prose and in the registry that nothing agrees on, which is the same shell
+    one level down from the family shells the writer gate refuses.
+    """
+    from .foundation import CELL_SUBJECT_ID_KIND_RE, lint_field_path
+    from .naming_contracts import ID_KIND_REGISTRY_PATH, registered_id_kinds
+
+    unknown = set(selector) - {"kind", "components"}
+    if unknown:
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
+    components = selector.get("components")
+    if not isinstance(components, list) or len(components) != 2:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref}.components must be exactly two ordered components; the reversible "
+            "typed_pair encoding of zh/models/realm-and-space.md section 3.6 has no other arity",
+        )
+        return
+    id_kinds = registered_id_kinds(load_json(lint, ID_KIND_REGISTRY_PATH))
+    fields: list[str] = []
+    for index, part in enumerate(components):
+        where = f"{ref}.components[{index}]"
+        if not isinstance(part, dict) or set(part) != {"kind", "field"}:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where} must be exactly {{kind, field}}")
+            continue
+        part_kind = part["kind"]
+        if not isinstance(part_kind, str) or CELL_SUBJECT_ID_KIND_RE.fullmatch(part_kind) is None:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.kind must be an `id:<object kind>` typed-ID kind, not {part_kind!r}; "
+                "a typed_pair component that is not typed cannot be validated on parse",
+            )
+        elif id_kinds and part_kind[len("id:") :] not in id_kinds:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.kind {part_kind!r} is not a registered id_kinds[] row of "
+                "registry/id-kind-registry.json",
+            )
+        lint_field_path(lint, EVENT_KIND_REGISTRY, f"{where}.field", part["field"])
+        if isinstance(part["field"], str):
+            fields.append(part["field"])
+    if len(fields) == 2 and fields[0] == fields[1]:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref}.components must not read the same field twice; the two ordered components "
+            "are what make the subject invertible",
+        )
 
 
 def check_result_write_contracts(lint: Lint) -> None:
