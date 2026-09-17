@@ -5,6 +5,11 @@ import json
 import unittest
 from pathlib import Path
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from tools.artifact_lint.forbidden_wire import vocabulary_errors
 
 ARTIFACTS = Path(__file__).resolve().parents[1] / 'spec/v1/artifacts'

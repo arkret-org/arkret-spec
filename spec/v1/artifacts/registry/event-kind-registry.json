@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.7",
+  "version": "2026-09-17.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T23:10:00+08:00",
+  "generated_at": "2026-09-18T00:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -704,6 +704,29 @@
       "reducer_input": true,
       "payload": "Derived capability state",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_derived_payload",
+      "result_writes": [
+        {
+          "result_family": "capability_grant",
+          "result_selector": {
+            "kind": "id:grant",
+            "field": "payload.grant_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.grant"
+            }
+          },
+          "derived_members": [
+            {
+              "name": "capability_status",
+              "derivation": "capability_status"
+            }
+          ],
+          "value_schema_ref": "schemas/capability-grant.schema.json",
+          "notes": "models/realm-links.md section 6 fixes the shape: the payload carries the complete derived grant and a verbatim grant_id, so the subject is payload.grant_id rather than this Event's own id -- id_source is not_an_object_id because the GrantId was already derived by the source ak.capability.grant. The status is reducer-derived like every other projection of this family; rule 5 of that section makes a derivation from a non-active source grant invalid, so a payload.grant.status other than active MUST be rejected rather than projected. The grant body already carries its authority_depth and authority_root_refs, which is why they are not re-derived here."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -735,10 +758,14 @@
             {
               "name": "capability_authority_root_refs",
               "derivation": "capability_authority_root_refs"
+            },
+            {
+              "name": "capability_status",
+              "derivation": "capability_status"
             }
           ],
           "value_schema_ref": "schemas/capability-grant.schema.json",
-          "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The initial revision is 0 and status is active. authority_depth and authority_root_refs are reducer-materialised and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
+          "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are reducer-materialised and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
         }
       ],
       "id_source": "event_derived",
@@ -754,6 +781,39 @@
       "admission": "self_authored_proof",
       "payload": "Subject-authored release of the actor own capability grant",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_relinquish_payload",
+      "result_writes": [
+        {
+          "result_family": "capability_grant",
+          "result_selector": {
+            "kind": "id:grant",
+            "field": "payload.grant_id"
+          },
+          "result_projection": {
+            "kind": "merge",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "updated_by",
+                  "envelope_field": "actor_id"
+                },
+                {
+                  "name": "updated_at",
+                  "envelope_field": "created_at"
+                }
+              ]
+            }
+          },
+          "derived_members": [
+            {
+              "name": "capability_status",
+              "derivation": "capability_status"
+            }
+          ],
+          "value_schema_ref": "schemas/capability-grant.schema.json",
+          "notes": "authz/capabilities.md section 10.4: relinquish is the subject's own release and is deliberately not a revocation -- the reducer target guard accepts actor == target.subject and nothing else -- so it writes the updated_by / updated_at lifecycle pair that capability-grant.schema.json reserves for a non-revocation lifecycle update, and leaves revoked_by / revoked_at to ak.capability.revoke. The terminal status still separates the two, which is what keeps 'which authority closed this grant' answerable. Same expected_revision note as ak.capability.revoke."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -765,6 +825,39 @@
       "reducer_input": true,
       "payload": "Capability revocation",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_revoke_payload",
+      "result_writes": [
+        {
+          "result_family": "capability_grant",
+          "result_selector": {
+            "kind": "id:grant",
+            "field": "payload.grant_id"
+          },
+          "result_projection": {
+            "kind": "merge",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "revoked_by",
+                  "envelope_field": "actor_id"
+                },
+                {
+                  "name": "revoked_at",
+                  "envelope_field": "created_at"
+                }
+              ]
+            }
+          },
+          "derived_members": [
+            {
+              "name": "capability_status",
+              "derivation": "capability_status"
+            }
+          ],
+          "value_schema_ref": "schemas/capability-grant.schema.json",
+          "notes": "authz/capabilities.md section 12.1: revoke names an existing grant_id and moves it to the terminal revoked status, so the projection is a merge over the already-projected grant rather than a set -- the immutable grant body survives the close. revoked_by and revoked_at come from the signed envelope, never from the payload, because the closing authority is the Event's own signer. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {

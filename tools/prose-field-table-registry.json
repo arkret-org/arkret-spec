@@ -141,6 +141,20 @@
       "external_field_mentions": []
     },
     {
+      "document": "spec/v1/zh/models/governance-objects.md",
+      "schema_ref": "capability-grant.schema.json#",
+      "external_field_mentions": [
+        "authority_event_ref",
+        "authority_generation",
+        "constraint_kind",
+        "created_at",
+        "expires_at",
+        "grant_id",
+        "max_authority_depth",
+        "not_before"
+      ]
+    },
+    {
       "document": "spec/v1/zh/models/morph.md",
       "schema_ref": "morph.schema.json#",
       "external_field_mentions": [

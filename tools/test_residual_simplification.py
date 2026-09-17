@@ -16,6 +16,11 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from tools import test_self_signer_result_schema as signer_tests
 
 

@@ -116,13 +116,14 @@ ID 语义：
       "allowed_write_fields": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
     }
   ],
-  "issued_at": "2026-04-26T00:00:00.000Z"
+  "issued_at": "2026-04-26T00:00:00.000Z",
+  "status": "active"
 }
 ```
 
 ### 3.0.1 单一 durable signature（normative）
 
-`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 typed current result subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_station_id`，也不得接受 `subject_station_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
+`ak.capability.grant` 的 `event.payload.grant` 是无 `id`、无 `status`、无 `authority_depth`、无 `authority_root_refs`、无内层 proof 的 closed authoring body；这些 reducer-derived 字段若由 producer 自填，schema MUST 拒绝。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖完整 `ActorId`、scope、typed authority refs、完整 create body 与时间。Event accepted 后 reducer MUST 以 `retype(event_id,"grant")` 同时作为 typed current result subject 和投影 `grant.id`。该 Event 的 `actor_id` MUST 逐字段等于 `grant.issuer_id`，且本 kind MUST NOT 使用 `executed_by`。账号与托管 principal 的 server 归属已经封闭在 ActorId 内，reducer 不再复制或派生 `issuer_station_id`，也不得接受 `subject_station_id`。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
@@ -665,7 +666,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
 - `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, result_selector, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
 
-二者 MUST 登记进 `ak.capability.grant` 的 `result_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `event_kind_registry.event_kinds[].result_writes[]`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。未登记的 reducer 顺带写入 MUST NOT 进入已提交 typed current result（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
+二者 MUST 登记进 `ak.capability.grant` 的 `result_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `event_kind_registry.event_kinds[].result_writes[]`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。集合的第三个成员是 §12.1 的 `capability_status`，它同样只能由 reducer 物化，四条已登记的 `capability_grant` 写入各自决定它的取值。未登记的 reducer 顺带写入 MUST NOT 进入已提交 typed current result（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
 
 审计因此退化为单字段过滤（"权限扩散了几跳、根在哪里"），不需要递归 join，也不会因为各实现自行递归重建而在联邦对端得到不一致的视图。
 
@@ -760,10 +761,11 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id` 与 `ex
 
 ### 12.1 Grant typed current result 的确定性收敛（normative）
 
-capability 授权状态投影到 typed current result family `capability_grant`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`）。每个 `grant_id` 有一个 closed current result，包含 canonical grant、status、revision 与产生该 revision 的 `CommittedEventRef`。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
+capability 授权状态投影到 typed current result family `capability_grant`。该 family 有且只有四个已登记写入方，见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 中 `ak.capability.grant`、`ak.capability.derived`、`ak.capability.revoke`、`ak.capability.relinquish` 的 `result_writes[]`。每个 `grant_id` 有一个 closed current result，包含 canonical grant、status、revision 与产生该 revision 的 `CommittedEventRef`；`status` 是 grant body 自身的字段，与 `revoked_by` / `revoked_at` 同处一层，由封闭派生 `capability_status` 物化，**MUST NOT** 由 producer 自填。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
 
-- **grant**：`grant_id` 必须尚未存在，初始 revision 为 0，status=`active`。
-- **revoke / relinquish**：引用同一 `grant_id` 并携带 exact `expected_revision`；成功后 revision 加一且 status=`revoked` 或 `relinquished`。
+- **grant**：`grant_id` 必须尚未存在，初始 revision 为 0，status=`active`；subject 由 `retype(event_id,"grant")` 派生，projection 为 `set`。
+- **derived**：`ak.capability.derived` 以 `payload.grant_id` 为 subject 物化跨 Realm 派生 grant（[`../models/realm-links.md` §6](../models/realm-links.md)），status 同样为 `active`；源 grant 非 active 时该派生无效，reducer MUST 拒绝而不是投影出一个终态 grant。
+- **revoke / relinquish**：引用同一 `grant_id` 并携带 exact `expected_revision`；成功后 revision 加一且 status=`revoked` 或 `relinquished`。两者 projection 均为 `merge`——不可变的 grant body 在关闭后仍要留存——差别在于写哪一对 lifecycle 字段：revoke 写 `revoked_by` / `revoked_at`，relinquish 按 §10.4 不是撤销，写 `updated_by` / `updated_at`。两者都取承载 Event envelope 的 `actor_id` / `created_at`，不取 payload，因为关闭该 grant 的权威就是这条 Event 的签名方。
 - **终态**：已撤销或主动放弃的 `grant_id` 不得通过重放或另一条 create Event 复活。
 - **压缩**：可以压缩 payload，但必须保留 grant ID、terminal status、revision 与 Commit 引用，snapshot / export 不得把 terminal grant 计为有效授权。
 

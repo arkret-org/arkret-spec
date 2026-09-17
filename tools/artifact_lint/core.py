@@ -434,10 +434,18 @@ VALUE_PROJECTION_IDENTITY_SUBJECTS = {
 # implementations could disagree on the root while both matching the schema.
 # The set is closed: a derivation is a normative reducer rule, not an
 # implementation's private cache. See zh/authz/capabilities.md section 10.
+# zh/authz/capabilities.md section 10 names this set and says an addition is a
+# new normative reducer rule rather than a registry edit. `capability_status` is
+# section 12.1's lifecycle status: it is never author-declared and never a copy
+# of a payload field, so `derived_members[]` is the only registered place it can
+# come from. `capability_issuer_station_id` is gone because section 3.0.1 says
+# the reducer no longer copies or derives `issuer_station_id` -- the account's
+# routing authority is closed inside ActorId and no parallel station sidecar is
+# permitted -- so it was a derivation no registry row and no prose named.
 CELL_WRITE_DERIVATIONS = {
-    "capability_issuer_station_id",
     "capability_authority_depth",
     "capability_authority_root_refs",
+    "capability_status",
 }
 
 

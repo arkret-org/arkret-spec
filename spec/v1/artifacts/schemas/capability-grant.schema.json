@@ -16,6 +16,7 @@
     "actions",
     "resources",
     "issued_at",
+    "status",
     "issuer_authority_refs"
   ],
   "properties": {
@@ -82,7 +83,16 @@
     },
     "issued_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Grant issuance time — carries the 'creation time' semantics for a Capability Grant in place of the generic created_at (models/common-fields.md §3.2). Retention / audit / ordering queries MUST use issued_at / expires_at / revoked_at rather than falling back to created_at."
+      "description": "Grant issuance time — carries the 'creation time' semantics for a Capability Grant in place of the generic created_at (models/common-fields.md §3.2). Retention / audit / ordering queries MUST use issued_at, revoked_at and the expires_at of a temporal grant-constraint rather than falling back to created_at; this object carries no top-level not_before or expires_at, because validity windows are expressed by grant-constraint.schema.json with constraint_kind temporal."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "relinquished"
+      ],
+      "description": "Reducer-derived lifecycle status of this Grant (zh/authz/capabilities.md section 12.1). It is absent from the closed authoring body of ak.capability.grant and is materialised by the registered capability_grant_status derivation, so an author-supplied value MUST be rejected rather than trusted. The two terminal values stay distinct because section 10.4 gives them different authorities: revoke is issuer or root-controller authority, relinquish is the target subject's own signature and MUST NOT require ak.capability.revoke. Collapsing them into revoked_at alone would erase which authority closed the Grant. A terminal value is final -- section 12.1 forbids resurrecting a closed grant_id -- and compaction MUST preserve it."
     },
     "updated_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",

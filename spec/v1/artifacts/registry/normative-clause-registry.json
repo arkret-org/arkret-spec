@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.2",
+  "version": "2026-09-17.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T13:00:00+08:00",
+  "generated_at": "2026-09-18T00:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -212,7 +212,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:1d942bdad36ef005b52eebe4ce5900517190f21a0cb4661f4511b69a84e130c4",
+      "section_digest": "sha256:d38b6b39c6803ca8b9825d6f7a2f06138492f716a67305c672f23372646af91c",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -228,7 +228,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:82d5a70b45697eae43fd728629a0afa10f11c6d44078b2841e2e7606ad4f3132",
+      "section_digest": "sha256:39707ed5b29652e330fd7964469f5fbd0dbf45b14999f7ea14d6c22998d261cb",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [

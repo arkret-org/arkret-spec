@@ -96,7 +96,7 @@
       "View": "Y",
       "Policy": "Y",
       "Blob meta": "Y",
-      "Capability Grant": "— (see `issuer`)",
+      "Capability Grant": "— (see `issuer_id`)",
       "Invite": "— (see `inviter`)",
       "Read Cursor": "— (see `actor_id`)",
       "Notification": "— (see `actor_id`)",

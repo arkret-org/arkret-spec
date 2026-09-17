@@ -161,23 +161,23 @@ Schema id: `ak.schema.capability.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:grant` | `ak:grant:<44-char-suite-tagged-full-digest-token>`；不得使用 `ak:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
+| `id` | yes | `id:grant` | `ak:grant:<44-char-suite-tagged-full-digest-token>`；不得使用 `ak:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID；由承载 Event 的 `event_id` 重类型派生，create payload 不得自带。 |
 | `schema` | yes | `ak.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
-| `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
-| `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector；condition selector 的结构与 `required_claims` 等求值语义见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md)（claim/attestation 条件）与 [`../authz/capabilities.md` §2.4 / §7](../authz/capabilities.md)（DID 主体 + Claim 条件模型）。matching 失败 fail-closed（deny）。 | 被授权主体。 |
+| `issuer_id` | yes | `ActorId` | 必须持有授予权限；承载 Event 的 `actor_id` MUST 与本字段逐字段相等。账号与托管 principal 的 server 归属已封闭在 ActorId 内，不得另设 station sidecar（见 [`../authz/capabilities.md` §3.0.1](../authz/capabilities.md)）。 | 授权方。 |
+| `subject` | yes | `ActorId` 或 condition selector | 可为完整 ActorId 或 condition selector；condition selector 的结构与 `required_claims` 等求值语义见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md)（claim/attestation 条件）与 [`../authz/capabilities.md` §2.4 / §7](../authz/capabilities.md)（主体 + Claim 条件模型）。matching 失败 fail-closed（deny）。 | 被授权主体。 |
 | `actions` | yes | `array<string>` | 例如 `ak.strand.update`、`ak.message.create`；逐字命中、不接受 wildcard，见 [`../authz/capabilities.md` §5](../authz/capabilities.md)。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector array，其 kind 词表、canonical JSON 结构、匹配算法与求值时机由 [`../authz/resource-selector-grammar.md`](../authz/resource-selector-grammar.md) 与 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 权威定义；多个 `resources[]` 默认 OR。匹配失败 fail-closed（不命中即不授权）。 | 资源范围。 |
-| `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_kind=authority_control` 的 `max_authority_depth` 表达；缺省（无 authority_control 约束）等价于 `max_authority_depth=0`，即不可转授。 | 约束条件。 |
+| `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。生效与过期窗口 MUST 通过 `constraint_kind=temporal` 的 `not_before` / `expires_at` 表达，本对象没有同名顶层字段。委托控制 MUST 通过 `constraint_kind=authority_control` 的 `max_authority_depth` 表达；缺省（无 authority_control 约束）等价于 `max_authority_depth=0`，即不可转授。 | 约束条件。 |
+| `issued_at` | yes | `timestamp` | 承载 Grant 的“创建时间”语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at`、`revoked_at` 与 temporal 约束的过期时间，不回退到通用 `created_at`。 | 签发时间。 |
+| `status` | yes | `enum` | `active` / `revoked` / `relinquished`。**Reducer-derived**：由封闭派生 `capability_status` 物化，producer 自填 MUST 拒绝。终态不可复活，压缩后仍 MUST 保留（见 [`../authz/capabilities.md` §12.1](../authz/capabilities.md)）。 | 授权生命周期状态。 |
+| `updated_by` | no | `ActorId` | 非撤销类 grant lifecycle update 的 actor，`ak.capability.relinquish` 写入；普通 grant body 仍不可变。 | 最近更新者。 |
+| `updated_at` | no | `timestamp` | 同上，取该 Event envelope 的 `created_at`。 | 最近更新时间。 |
+| `revoked_by` | no | `ActorId` | `ak.capability.revoke` 写入，取该 Event envelope 的 `actor_id`。 | 撤销者。 |
+| `revoked_at` | no | `timestamp` | 同上，取该 Event envelope 的 `created_at`。 | 撤销时间。 |
 | `issuer_authority_refs` | yes | `array<object>` | MUST 非空。Realm root controller 签发时携带 `kind=realm_root` 的 authority-root typed current result / epoch / generation；再授权时携带 `kind=grant` 的 `ak:grant:` 父授权，不得指向 `ak:capability:`。 | 签发所依据的完整授权根或父授权边。 |
-| `issued_at` | yes | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。 | 签发时间。 |
-| `not_before` | no | `timestamp` |  | 生效时间。 |
-| `expires_at` | no | `timestamp` |  | 过期时间。 |
-| `updated_by` | no | `ActorId` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
-| `updated_at` | no | `timestamp` | grant lifecycle update 的时间；普通 grant body 仍不可变。 | 最近更新时间。 |
-| `revoked_by` | no | `did_core_id` | 撤销后设置。 | 撤销者。 |
-| `revoked_at` | no | `timestamp` |  | 撤销时间。 |
-| `proofs` | yes | `array<Proof>` |  | 授权签名。 |
+| `authority_depth` | no | `integer` | **Reducer-derived**，见 [`../authz/capabilities.md` §10](../authz/capabilities.md)；`realm_root` ref 深度为 0，root controller 直发为 1。 | 距授权根的绝对跳数。 |
+| `authority_root_refs` | no | `array<object>` | **Reducer-derived**，同上；非单值，多亲与跨 Realm 派生可追溯到不同 root。 | 该授权可追溯到的全部授权根。 |
 
 ### 4.3 Capability 派生与 Realm 层级继承
 
