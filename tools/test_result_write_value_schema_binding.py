@@ -302,6 +302,109 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         self.assertEqual(len(reported), 1, reported)
         self.assertIn("must state coverage as", reported[0])
 
+    # ---- the whole-value source closure ----------------------------------
+    #
+    # `result_projection.value` had no validator outside the keyed-set branch:
+    # the gate checked that `value` or `value_projection` was present and then
+    # read neither, so all 31 registered `set` values went unread. The grammar
+    # that did validate it, `foundation.lint_effect_source`, was written for
+    # `effect_projection` and lost its only caller with the `cell_writes[]`
+    # loop.
+
+    @staticmethod
+    def _a_set_write(document: dict) -> dict:
+        for row in document["event_kinds"]:
+            for write in row.get("result_writes") or ():
+                projection = write.get("result_projection") or {}
+                if projection.get("kind") == "set" and "value" in projection:
+                    return write
+        raise AssertionError("no set projection with a value in the registry")
+
+    def test_every_live_whole_value_names_exactly_one_source(self) -> None:
+        """Zero baseline, stated as its own assertion: the closure describes
+        what is registered rather than a grammar nobody uses."""
+        registry = gate.load_json(gate.Lint(), EVENT_KINDS)
+        seen = 0
+        for row in registry["event_kinds"]:
+            for index, write in enumerate(row.get("result_writes") or ()):
+                value = (write["result_projection"] or {}).get("value")
+                if value is None:
+                    continue
+                seen += 1
+                with self.subTest(kind=row["event_kind"], index=index):
+                    self.assertEqual(
+                        [m for m in ("field", "envelope_field") if m in value],
+                        list(value),
+                    )
+        self.assertGreater(seen, 0)
+
+    def test_a_value_naming_two_sources_is_reported(self) -> None:
+        def mutate(document: dict) -> None:
+            self._a_set_write(document)["result_projection"]["value"] = {
+                "field": "payload.value",
+                "envelope_field": "event_id",
+            }
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("exactly one of field/envelope_field", reported[0])
+
+    def test_a_value_naming_a_retired_source_is_reported(self) -> None:
+        """`const`, `projected_value`, `object_without_fields` and `dot` were all
+        legal in the retired grammar. Re-admitting a spelling nothing needs is
+        how removed vocabulary comes back."""
+
+        def mutate(document: dict) -> None:
+            self._a_set_write(document)["result_projection"]["value"] = {
+                "const": "active"
+            }
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 2, reported)
+        self.assertIn("unknown member(s) ['const']", reported[0])
+        self.assertIn("exactly one of field/envelope_field", reported[1])
+
+    def test_a_malformed_value_field_path_is_reported(self) -> None:
+        """The path closure is the loose one the retired grammar used and the
+        keyed-set branch still uses: dot-separated named fields, no index, no
+        wildcard, no empty segment."""
+
+        def mutate(document: dict) -> None:
+            self._a_set_write(document)["result_projection"]["value"] = {
+                "field": "payload.items[0]"
+            }
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("no array index, wildcard or empty segment", reported[0])
+
+    def test_an_unregistered_envelope_field_is_reported(self) -> None:
+        def mutate(document: dict) -> None:
+            self._a_set_write(document)["result_projection"]["value"] = {
+                "envelope_field": "signature"
+            }
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("envelope_field must be one of", reported[0])
+
+    def test_the_keyed_set_value_uses_the_same_closure(self) -> None:
+        """The keyed-set branch had the rule all along; both call one helper now,
+        so the two cannot drift apart."""
+
+        def mutate(document: dict) -> None:
+            for row in document["event_kinds"]:
+                for write in row.get("result_writes") or ():
+                    projection = write.get("result_projection") or {}
+                    if projection.get("kind") == "keyed_set_add":
+                        projection["value"] = {"const": "x"}
+                        return
+            raise AssertionError("no keyed_set_add projection in the registry")
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 2, reported)
+        self.assertIn("unknown member(s) ['const']", reported[0])
+
 
 if __name__ == "__main__":
     unittest.main()

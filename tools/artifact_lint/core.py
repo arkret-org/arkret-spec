@@ -179,7 +179,6 @@ REGISTRY_STATE_MODELS = {
     "ordered_log",
 }
 
-REGISTRY_BOTTOMS = {"reject", "expose", "inert"}
 
 REGISTRY_PLANES = {"data", "control", "conditional"}
 

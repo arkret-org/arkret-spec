@@ -32,9 +32,11 @@ from tools.artifact_lint import proof_context_schemas as gate
 REGISTRY = ROOT / "spec/v1/artifacts/registry/contract-registry.json"
 
 
-def errors_for(selector, id_source=None) -> list[str]:
+def errors_for(selector, id_source=None, event_kind=None) -> list[str]:
     lint = gate.Lint()
-    gate._check_result_selector(lint, "probe.result_selector", selector, id_source)
+    gate._check_result_selector(
+        lint, "probe.result_selector", selector, id_source, event_kind
+    )
     return lint.errors
 
 
@@ -208,6 +210,84 @@ class ResultSelectorGrammarTest(unittest.TestCase):
         reported = errors_for("payload.grant_id")
         self.assertEqual(len(reported), 1, reported)
         self.assertIn("must be JSON null or an object", reported[0])
+
+    # ---- the string_set_digest component carries a context ---------------
+    #
+    # `zh/models/actor.md:141` fixes both sides of the identity_accountability
+    # selector as
+    # `string_set_digest(payload.accountability_scope, ak.accountability_scope_set.v1)`
+    # so the general grant and the provision projection land on one result. The
+    # component grammar closed to {kind, field} during the clean break, which
+    # made that sentence unregisterable, and the validator that knew about
+    # `context` lost its only caller with the `cell_writes[]` loop. No live row
+    # uses the descriptor yet -- these tests are what keeps the contract true for
+    # the first one that does.
+
+    def test_a_string_set_digest_component_requires_a_context(self) -> None:
+        reported = errors_for(
+            {
+                "kind": "composite",
+                "components": [
+                    {"kind": "string_set_digest", "field": "payload.accountability_scope"}
+                ],
+            }
+        )
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("context must be non-empty printable ASCII", reported[0])
+
+    def test_a_string_set_digest_component_accepts_its_context(self) -> None:
+        self.assertEqual(
+            errors_for(
+                {
+                    "kind": "composite",
+                    "components": [
+                        {
+                            "kind": "string_set_digest",
+                            "field": "payload.accountability_scope",
+                            "context": "ak.accountability_scope_set.v1",
+                        }
+                    ],
+                }
+            ),
+            [],
+        )
+
+    def test_the_accountability_context_is_pinned_to_its_kind(self) -> None:
+        """Domain separation is the point: the same scope set under a second
+        context is a second key, and the two registered writers of
+        identity_accountability have to land on one."""
+        reported = errors_for(
+            {
+                "kind": "composite",
+                "components": [
+                    {
+                        "kind": "string_set_digest",
+                        "field": "payload.accountability_scope",
+                        "context": "ak.something.else.v1",
+                    }
+                ],
+            },
+            event_kind="ak.identity.accountability_grant",
+        )
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("ak.accountability_scope_set.v1", reported[0])
+
+    def test_a_string_set_digest_component_rejects_extra_members(self) -> None:
+        reported = errors_for(
+            {
+                "kind": "composite",
+                "components": [
+                    {
+                        "kind": "string_set_digest",
+                        "field": "payload.accountability_scope",
+                        "context": "ak.accountability_scope_set.v1",
+                        "salt": "payload.nonce",
+                    }
+                ],
+            }
+        )
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("unknown member(s) ['salt']", reported[0])
 
 
 if __name__ == "__main__":

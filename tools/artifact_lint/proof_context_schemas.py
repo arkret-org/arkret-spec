@@ -205,6 +205,52 @@ _AGENT_SUPERSEDES_PROJECTION = {
 }
 
 
+def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
+    """A projection's whole-value source MUST name exactly one registered origin.
+
+    ``result_projection.value`` had no validator at all outside the keyed-set
+    branch: ``check_result_write_contracts`` checked that ``value`` or
+    ``value_projection`` was present and then read neither. The grammar that did
+    validate it, ``foundation.lint_effect_source``, was written for
+    ``effect_projection`` and lost its only caller when the ``cell_writes[]``
+    loop went dead, so 31 registered ``set`` values were passing unread.
+
+    The closure is the one already in force for ``keyed_set_add`` in this file,
+    and it is exactly what the live rows use: one member, ``field`` or
+    ``envelope_field``. The retired grammar also admitted ``const``,
+    ``projected_value``, ``object_without_fields`` and ``dot``; no registered row
+    uses any of them for a whole value, and re-admitting a spelling nothing needs
+    is how removed vocabulary comes back. A row that genuinely needs one makes
+    that an explicit decision here rather than passing unnoticed.
+    """
+    if not isinstance(value, dict):
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref} must be an object")
+        return
+    unknown = set(value) - {"field", "envelope_field"}
+    if unknown:
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
+    named = [member for member in ("field", "envelope_field") if member in value]
+    if len(named) != 1:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref} must declare exactly one of field/envelope_field",
+        )
+        return
+    if "field" in value:
+        from .foundation import lint_field_path
+
+        lint_field_path(lint, EVENT_KIND_REGISTRY, f"{ref}.field", value["field"])
+        return
+    from .core import EFFECT_PROJECTION_ENVELOPE_FIELDS
+
+    if value["envelope_field"] not in EFFECT_PROJECTION_ENVELOPE_FIELDS:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref}.envelope_field must be one of "
+            f"{sorted(EFFECT_PROJECTION_ENVELOPE_FIELDS)}",
+        )
+
+
 def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, projection: dict) -> None:
     """Validate one keyed-set `result_projection` and its `for_each` closure.
 
@@ -224,16 +270,9 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
                 f'{where}.result_projection.tag must be exactly {{"dot": true}}; the stable element '
                 "tag is the canonical <event_id>:<write_index> dot, never a bare event_id",
             )
-        value = projection.get("value")
-        if not isinstance(value, dict) or len([k for k in ("field", "envelope_field") if k in value]) != 1:
-            lint.fail(
-                EVENT_KIND_REGISTRY,
-                f"{where}.result_projection.value must declare exactly one of field/envelope_field",
-            )
-        elif "field" in value:
-            from .foundation import lint_field_path
-
-            lint_field_path(lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.value.field", value["field"])
+        _check_projection_value_source(
+            lint, f"{where}.result_projection.value", projection.get("value")
+        )
     elif kind == "keyed_set_remove_observed":
         unknown = set(projection) - {"kind", "match"}
         if unknown:
@@ -332,9 +371,23 @@ _SUBJECT_COMPONENT_KINDS = frozenset({"canonical_json", "string_set_digest"})
 _MULTI_COMPONENT_SUBJECT_KINDS = frozenset({"composite", "tuple"})
 
 
-def _check_subject_component(lint: Lint, ref: str, component: Any) -> None:
-    """One component of a `composite` or `tuple` subject."""
-    from .foundation import lint_subject_field_path
+def _check_subject_component(
+    lint: Lint, ref: str, component: Any, event_kind: Any = None
+) -> None:
+    """One component of a `composite` or `tuple` subject.
+
+    A `string_set_digest` component carries a third member, `context`, and it is
+    not decoration: the digest is domain-separated, so the same scope set under
+    two contexts is two different keys. `zh/models/actor.md:141` fixes both sides
+    of the `identity_accountability` selector as
+    `string_set_digest(payload.accountability_scope, ak.accountability_scope_set.v1)`
+    precisely so the general grant and the provision projection land on one
+    result. The component grammar closed to `{kind, field}` when it was written
+    here, which made that sentence unregisterable; `context` is validated by
+    `foundation.lint_string_set_digest_component`, which the retired
+    `cell_writes[]` loop was the only caller of.
+    """
+    from .foundation import lint_string_set_digest_component, lint_subject_field_path
 
     if isinstance(component, str):
         lint_subject_field_path(lint, EVENT_KIND_REGISTRY, ref, component)
@@ -345,10 +398,15 @@ def _check_subject_component(lint: Lint, ref: str, component: Any) -> None:
             f"{ref} must be an explicit field path or a {{kind, field}} descriptor",
         )
         return
+    kind = component.get("kind")
+    if kind == "string_set_digest":
+        lint_string_set_digest_component(
+            lint, EVENT_KIND_REGISTRY, ref, component, event_kind=event_kind
+        )
+        return
     unknown = set(component) - {"kind", "field"}
     if unknown:
         lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
-    kind = component.get("kind")
     if kind not in _SUBJECT_COMPONENT_KINDS:
         lint.fail(
             EVENT_KIND_REGISTRY,
@@ -363,7 +421,7 @@ def _check_subject_component(lint: Lint, ref: str, component: Any) -> None:
 
 
 def _check_result_selector(
-    lint: Lint, ref: str, selector: Any, id_source: Any = None
+    lint: Lint, ref: str, selector: Any, id_source: Any = None, event_kind: Any = None
 ) -> None:
     """A singleton is JSON null; anything else is a closed subject descriptor.
 
@@ -413,7 +471,9 @@ def _check_result_selector(
         if len(components) != len({json.dumps(part, sort_keys=True) for part in components}):
             lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must not repeat a component")
         for index, component in enumerate(components):
-            _check_subject_component(lint, f"{ref}.components[{index}]", component)
+            _check_subject_component(
+                lint, f"{ref}.components[{index}]", component, event_kind
+            )
         return
     if kind == "typed_pair":
         _check_typed_pair_components(lint, ref, selector)
@@ -678,6 +738,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                     f"{where}.result_selector",
                     write["result_selector"],
                     row.get("id_source"),
+                    kind,
                 )
             derived_members = write.get("derived_members")
             if derived_members is not None:
@@ -736,6 +797,10 @@ def check_result_write_contracts(lint: Lint) -> None:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
                     f"{where}.result_projection must declare value or value_projection",
+                )
+            elif "value" in projection:
+                _check_projection_value_source(
+                    lint, f"{where}.result_projection.value", projection["value"]
                 )
             condition = write.get("condition")
             if condition is not None:
@@ -1239,3 +1304,121 @@ def check_result_family_write_agreement(lint: Lint) -> None:
                 f"{family} is written under {len(refs)} different value_schema_ref values, so its "
                 f"writers do not agree on what the family's value is: {detail}",
             )
+
+
+# zh/models/pins.md section 3: a keyed set's add and its remove are the two
+# halves of one atomic re-key, so they are the one pair that may legally share a
+# target inside a single Event.
+_RESULT_SET_ADD_PROJECTIONS = frozenset({"keyed_set_add"})
+_RESULT_SET_REMOVE_PROJECTIONS = frozenset(
+    {"keyed_set_remove_observed", "keyed_set_remove_dots"}
+)
+
+
+def _result_target_key(write: dict) -> str:
+    return json.dumps(
+        [write.get("result_family"), write.get("result_selector")],
+        sort_keys=True,
+        ensure_ascii=False,
+    )
+
+
+def check_result_write_target_uniqueness(lint: Lint) -> None:
+    """Two writes of one Event MUST NOT address the same typed current result.
+
+    ``zh/models/event-and-patch.md`` section 2.4.2 lets one Event carry several
+    ops of the same family only where the kind's closed contract registers them
+    explicitly. Anything else is a duplicate target: two ops on one result are
+    indistinguishable to a receiver, which is the same ambiguity the registry
+    exists to remove.
+
+    Two repeats are legal and both are provable from the row itself:
+
+    * a keyed set's atomic remove-then-add. ``zh/identity/key-management.md``
+      section 3.6.1 requires exactly that shape for Agent key re-authorization,
+      and ``ak.agent.key.authorize`` is the live use;
+    * a provably disjoint condition pair -- complementary presence tests, or
+      unequal exact constants on one field. Anything weaker would be a guess,
+      and a wrong guess means two writes racing on one result.
+
+    The rule and its two exceptions were written for ``cell_writes[]`` and went
+    down with it in the clean break; ``check_result_write_contracts`` closed the
+    per-write grammar but says nothing about two rows agreeing on a target. The
+    same-row coalesce agreement below has the same history.
+    """
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(EVENT_KIND_REGISTRY, "event_kinds[] must be an array")
+        return
+
+    from .foundation import complementary_conditions
+
+    writes_seen = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        seen: dict[str, tuple[Any, Any]] = {}
+        for index, write in enumerate(row.get("result_writes") or []):
+            if not isinstance(write, dict):
+                continue
+            writes_seen += 1
+            where = f"{kind}.result_writes[{index}]"
+            projection = write.get("result_projection")
+            projection_kind = (
+                projection.get("kind") if isinstance(projection, dict) else None
+            )
+            condition = write.get("condition")
+
+            # event-and-patch.md 2.4.2: when an `any_field_present` condition
+            # selects the same alternative paths a `coalesce` selector derives
+            # from, the two lists MUST agree item-for-item and in order. A
+            # mismatch means the result can be required on a payload shape whose
+            # key cannot be derived, or keyed on a shape where it must not be
+            # written. The other legitimate use of `any_field_present` -- one
+            # result carrying several distinct fields, addressed by an
+            # unconditional selector -- is not constrained here.
+            selector = write.get("result_selector")
+            if (
+                isinstance(condition, dict)
+                and condition.get("kind") == "any_field_present"
+                and isinstance(condition.get("fields"), list)
+                and isinstance(selector, dict)
+                and selector.get("kind") == "coalesce"
+                and selector.get("fields") != condition["fields"]
+            ):
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.condition.fields must equal the result_selector coalesce fields "
+                    "item-for-item and in order, or the result can be required on a payload "
+                    "shape whose key cannot be derived",
+                )
+
+            key = _result_target_key(write)
+            previous = seen.get(key)
+            if previous is not None:
+                previous_kind, previous_condition = previous
+                pair = {previous_kind, projection_kind}
+                paired = bool(pair & _RESULT_SET_ADD_PROJECTIONS) and bool(
+                    pair & _RESULT_SET_REMOVE_PROJECTIONS
+                )
+                if not paired and not complementary_conditions(
+                    previous_condition, condition
+                ):
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where} addresses the same (result_family, result_selector) as an "
+                        "earlier write of this Event without being a keyed-set "
+                        "remove-then-add pair or carrying a provably disjoint condition; two "
+                        "ops on one result are indistinguishable to a receiver",
+                    )
+            seen[key] = (projection_kind, condition)
+
+    if not writes_seen:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "check_result_write_target_uniqueness inspected no result_writes[] entry at all; "
+            "the registry either lost its writes or spells the array under another key, and "
+            "either way this gate's silence means nothing",
+        )
