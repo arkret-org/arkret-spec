@@ -33,12 +33,15 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `realm_profile`：当前 Realm profile；
 - `realm_policy`：当前 Realm policy，值是 `ak.realm.policy` 选定的封闭引用 `{policy_id}`，
   **不是** Policy 文档本体（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)）；
-- 以下十四个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
+- 以下十二个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
   （[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 禁止把 envelope 的
   `realm_id` 再写进 subject），各由同名 facet Event kind 单独承载：
   `realm_schema`、`realm_join_rule`、`realm_discovery`、`realm_alias`、`realm_policy_bundle`、
   `realm_asset_privacy_policy`、`realm_plaintext_visible_services`、`realm_media_service`、
-  `realm_read_receipt_policy`、`realm_tombstone`、`realm_destroy`、`realm_set_default_strand`；
+  `realm_read_receipt_policy`、`realm_tombstone`、`realm_destroy`、`realm_set_default_strand`。
+  [`../models/realm-and-space.md` §2.6.0](../models/realm-and-space.md) 另以同一形态命名了
+  `realm_archive` 与 `realm_freeze`，但二者尚未登记为 `result_kinds[]` 行，故**不在**本清单内；
+  在它们登记之前，本清单的数目以本行为准；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——

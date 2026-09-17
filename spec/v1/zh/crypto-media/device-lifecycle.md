@@ -429,11 +429,10 @@ Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不�
 {
   "kind": "ak.device.list_update",
   "payload": {
-    "principal_id": "ak:did_core:webvh:zExamplePrincipalScid",
-    "changed": [
+    "changed_ids": [
       "ak:device:01964137-0000-7000-8000-000000000000"
     ],
-    "left": [
+    "left_ids": [
       "ak:device:01964138-0000-7000-8000-000000000000"
     ],
     "stream_id": "devstream_42"
