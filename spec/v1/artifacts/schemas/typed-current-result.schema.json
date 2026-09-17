@@ -120,6 +120,33 @@
     },
     {
       "$ref": "#/$defs/strand_position_result"
+    },
+    {
+      "$ref": "#/$defs/invite_lifecycle_result"
+    },
+    {
+      "$ref": "#/$defs/invite_live_target_result"
+    },
+    {
+      "$ref": "#/$defs/invite_directed_invitee_result"
+    },
+    {
+      "$ref": "#/$defs/pin_result"
+    },
+    {
+      "$ref": "#/$defs/space_parent_result"
+    },
+    {
+      "$ref": "#/$defs/space_child_scope_policy_result"
+    },
+    {
+      "$ref": "#/$defs/agent_provisioning_result"
+    },
+    {
+      "$ref": "#/$defs/agent_pcr_genesis_declaration_result"
+    },
+    {
+      "$ref": "#/$defs/agent_selector_claim_result"
     }
   ],
   "$defs": {
