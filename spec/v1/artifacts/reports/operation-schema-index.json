@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.28",
+  "version": "2026-09-17.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T02:50:00+08:00",
+  "generated_at": "2026-09-17T14:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7480,13 +7480,13 @@
           "transaction_id",
           "request_digest",
           "status",
-          "series_results"
+          "series_records"
         ],
         "properties": [
           "transaction_id",
           "request_digest",
           "status",
-          "series_results",
+          "series_records",
           "confirmation"
         ],
         "closed": true
@@ -8581,7 +8581,7 @@
           "prepared_plan",
           "prepared_plan_digest",
           "accepted_steps",
-          "terminal_result"
+          "terminal_outcome"
         ],
         "closed": true
       }
@@ -8672,7 +8672,7 @@
           "prepared_plan",
           "prepared_plan_digest",
           "accepted_steps",
-          "terminal_result"
+          "terminal_outcome"
         ],
         "closed": true
       }
@@ -8704,7 +8704,7 @@
           "prepared_plan",
           "prepared_plan_digest",
           "accepted_steps",
-          "terminal_result"
+          "terminal_outcome"
         ],
         "closed": true
       }

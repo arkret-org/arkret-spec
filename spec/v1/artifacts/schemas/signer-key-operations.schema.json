@@ -264,7 +264,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 65536
     },
-    "current_result": {
+    "current_outcome": {
       "type": "object",
       "required": [
         "selector",
@@ -285,7 +285,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 16384
     },
-    "historical_account_device_result": {
+    "historical_account_device_outcome": {
       "type": "object",
       "required": [
         "selector",
@@ -311,7 +311,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 16384
     },
-    "historical_agent_result": {
+    "historical_agent_outcome": {
       "type": "object",
       "required": [
         "selector",
@@ -337,7 +337,7 @@
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 16384
     },
-    "unavailable_result": {
+    "unavailable_outcome": {
       "type": "object",
       "required": [
         "selector",
@@ -380,16 +380,16 @@
           "items": {
             "oneOf": [
               {
-                "$ref": "#/$defs/current_result"
+                "$ref": "#/$defs/current_outcome"
               },
               {
-                "$ref": "#/$defs/historical_account_device_result"
+                "$ref": "#/$defs/historical_account_device_outcome"
               },
               {
-                "$ref": "#/$defs/historical_agent_result"
+                "$ref": "#/$defs/historical_agent_outcome"
               },
               {
-                "$ref": "#/$defs/unavailable_result"
+                "$ref": "#/$defs/unavailable_outcome"
               }
             ]
           }

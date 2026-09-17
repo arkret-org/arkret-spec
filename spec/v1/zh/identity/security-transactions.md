@@ -26,14 +26,14 @@ SecurityTransaction {
   prepared_plan,
   prepared_plan_digest,
   accepted_steps,
-  terminal_result
+  terminal_outcome
 }
 ```
 
-`kind` 是 `recovery` 或 `security_rotation`。`terminal_result` 缺省表示事务仍活动；存在时其
+`kind` 是 `recovery` 或 `security_rotation`。`terminal_outcome` 缺省表示事务仍活动；存在时其
 `result` 是 `completed | aborted | expired`，并且是终态 kind 的唯一真相源。coordinator 是否已经开始
 某一步、重试次数与 lease 只属于本地 durable step-attempt ledger 或运行遥测，不得序列化或持久化为协议
-phase/state。客户端是否需要设备签名必须由 `terminal_result` 缺省且
+phase/state。客户端是否需要设备签名必须由 `terminal_outcome` 缺省且
 `steps(kind)[accepted_steps.length]` 为 client-attested step 纯函数计算，禁止把该 readiness 再序列化或
 持久化为协议状态。
 
@@ -125,7 +125,7 @@ digest，验证 outer attestation；recovery 还必须验证 receipt 自己的
 device signature transcript。其它 step 对应非 terminal-ready resource 的 attestation 必须拒绝。`get` 是
 response loss、restart 与跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 仍不携带
-`terminal_result`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
+`terminal_outcome`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
 result 仍是成功终态的必要条件。
 
 旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
@@ -217,7 +217,7 @@ terminal result，不能重新上传或重新 erase。
 3. target恰等于prepared plan的old backups，任何active、未计划、缺digest或额外backup均拒绝；
 4. lease的basis/rule/actor/device/scope覆盖当前transaction且未过期。
 
-response按backup kind返回durable `series_results[]`。storage partial failure只能把尚未擦除项标为
+response按backup kind返回durable `series_records[]`。storage partial failure只能把尚未擦除项标为
 `pending`或`failed_retryable`；已经擦除项必须单调保持`erased`，重启或精确重试不得复活、改写
 digest或重新加入remaining集合。`request_digest`是完整erase request canonical bytes的SHA-256；
 相同transaction id但request digest不同必须`duplicate_conflict`。每个result的

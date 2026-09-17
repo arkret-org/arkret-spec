@@ -45,7 +45,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
 - `call_state` / `call_focus` / `call_moderation` / `call_roster` / `call_mute_override`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；
 - `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
-- `call_recording_result` / `call_transcript_result`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
+- `call_recording_artifact` / `call_transcript_artifact`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
 - `call_summary`：以 `call_id` 选择 write-once 的终态通话摘要。
 
 selector 的身份字段来自已接纳 Event 的 typed payload，不得由调用方另行声明或由服务端按显示名称猜测。新增领域结果

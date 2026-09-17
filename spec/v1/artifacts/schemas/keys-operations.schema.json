@@ -1156,7 +1156,7 @@
       },
       "additionalProperties": false
     },
-    "backup_series_erase_result": {
+    "backup_series_erase_record": {
       "type": "object",
       "required": [
         "backup_kind",
@@ -1250,7 +1250,7 @@
         "transaction_id",
         "request_digest",
         "status",
-        "series_results"
+        "series_records"
       ],
       "properties": {
         "transaction_id": {
@@ -1266,13 +1266,13 @@
             "complete"
           ]
         },
-        "series_results": {
+        "series_records": {
           "type": "array",
           "minItems": 1,
           "maxItems": 1,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/backup_series_erase_result"
+            "$ref": "#/$defs/backup_series_erase_record"
           }
         },
         "confirmation": {

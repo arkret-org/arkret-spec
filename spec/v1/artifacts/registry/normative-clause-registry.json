@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.21",
+  "version": "2026-09-17.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T02:50:00+08:00",
+  "generated_at": "2026-09-17T13:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -258,7 +258,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:555f4572f2d61248a87090d2598ab0fa545fc78fbbe501517982deb4a4509bb2",
+      "section_digest": "sha256:2a1f32c0a81cd57a9c758f20d2d8c14eb8635174a27c6b513ef64cdaceadacf1",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes. Compact media bindings carry only expires_at/issuer_kid/sig; rebuild the signed seven-tuple from the exact enclosing Event/Call and roster entry, require its frozen focus to match the accepted selection on write, and never reinterpret old signatures using a later focus.",
       "testability_grade": "vector",
       "evidence_refs": [

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.13",
+  "version": "2026-09-17.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T02:50:00+08:00",
+  "generated_at": "2026-09-17T12:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -71,16 +71,16 @@
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_result"
     },
     {
-      "result_kind": "call_recording_result",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_result"
+      "result_kind": "call_recording_artifact",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_artifact_result"
     },
     {
       "result_kind": "call_transcript_state",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_result"
     },
     {
-      "result_kind": "call_transcript_result",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_result"
+      "result_kind": "call_transcript_artifact",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_artifact_result"
     },
     {
       "result_kind": "call_moderation",

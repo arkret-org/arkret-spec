@@ -667,7 +667,7 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 
 普通发送的 Applet producer MAY 消费其安装所绑定 Station 的已确认结果。该角色服从 own-Station result 的信任边界：结果提供构造普通 Event 所需的已确认配置和引用，MUST NOT 作为接收 Station 的准入证明。接收 Station 仍独立验证原 producer、安装、grant、membership 与适用关闭依赖；本节不授予 Applet 读取整个 Realm/PCR 的权限。另承担治理消费者角色的 Applet 仍 MUST 从独立可信起点验证 authority-commit 证明，不能从此结果创建 governance-Station trust。
 
-`ak.edge.applet.command.transaction.v1` 的请求具有两个互斥的封闭分支：既有 Event/Signal 批次，或 `authoring_result`。后者只允许 Station→Applet；Applet→Arkret 入站出现该分支 MUST 返回 `schema_violation`。该分支不得同时包含 `events` 或 `signals`，完整 canonical body 上限为 16 MiB。结果结构由 `applet-edge-operations.schema.json#/$defs/applet_managed_actor_authoring_result` 定义，字段顺序为：
+`ak.edge.applet.command.transaction.v1` 的请求具有两个互斥的封闭分支：既有 Event/Signal 批次，或 `authoring_result`。后者只允许 Station→Applet；Applet→Arkret 入站出现该分支 MUST 返回 `schema_violation`。该分支不得同时包含 `events` 或 `signals`，完整 canonical body 上限为 16 MiB。结果结构由 `applet-edge-operations.schema.json#/$defs/applet_managed_actor_authoring_context` 定义，字段顺序为：
 
 | 字段 | 精确含义 |
 | --- | --- |

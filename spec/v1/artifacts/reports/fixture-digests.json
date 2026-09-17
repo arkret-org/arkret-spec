@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "3a028ccfba9ee2eb35a669f7ff335be181ad607fc7bdb08dc0300c0f9a54f669"
+      "sha256": "0e6f8949f14cd5e8ab27b0a228ca20417cfc9036170dc99c9c92cd0112055f0f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",

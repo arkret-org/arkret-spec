@@ -143,9 +143,9 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | `state_transition` | `call_state` | `commit-ordered projection` | 领域状态 |
 | `focus` | `call_focus` | `commit-ordered projection` | register |
 | `recording_transition.to=stopped` | `call_recording_state` | `commit-ordered projection` | 捕获许可状态 |
-| `recording_transition.result` | `call_recording_result` | stream-ordered reducer | `{status,details,expected_revision}` |
+| `recording_transition.result` | `call_recording_artifact` | stream-ordered reducer | `{status,details,expected_revision}` |
 | `transcript_transition.to=stopped` | `call_transcript_state` | `commit-ordered projection` | 捕获许可状态 |
-| `transcript_transition.result` | `call_transcript_result` | stream-ordered reducer | `{status,details,expected_revision}` |
+| `transcript_transition.result` | `call_transcript_artifact` | stream-ordered reducer | `{status,details,expected_revision}` |
 | `moderation_delta` | `call_moderation` | `commit-ordered projection` | set |
 | `roster_delta` | `call_roster` | `commit-ordered projection` | set |
 | `mute_override` | `call_mute_override` | `commit-ordered projection` | register |
@@ -322,7 +322,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 - `ak.call.summary` 写入 `call_summary`，`result_selector = payload.call_id`，采用 `execution=data`、`domain reducer=current-value projection`。它无需等待新 RealmCommit；并发摘要保留全部历史身份并按固定 rank 投影单值，有权后继引用 current source。摘要不授予通话、捕获或密钥访问权限。
 - `final_state` MUST 是某终态，且该 `call_id` 的 `call_state:<call_id>` MUST 已存在终态 head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。该前置只看 `state` 轴 typed current result——某段捕获结果尚未收敛或捕获未终结 MUST NOT 阻止 summary 写入。
-- `recording_state` / `transcript_state` 是终态时刻从各捕获段 typed current result（`call_recording_result` / `call_transcript_result`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture typed current result。多段并存时该字段是 producer 签署的摘要声明；接收站不得自行选择不同段重写持久值。显示逐段状态时读取相同资格上下文内的完整结果集合。
+- `recording_state` / `transcript_state` 是终态时刻从各捕获段 typed current result（`call_recording_artifact` / `call_transcript_artifact`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture typed current result。多段并存时该字段是 producer 签署的摘要声明；接收站不得自行选择不同段重写持久值。显示逐段状态时读取相同资格上下文内的完整结果集合。
 
 **字段必填 / nullable 语义（normative）**:`ak.call.summary` payload 字段约束如下，reducer / consumer MUST 按此校验，不一致 `schema_violation`:
 

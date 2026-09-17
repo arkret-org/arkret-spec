@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.22",
-  "generated_at": "2026-09-17T02:50:00+08:00",
+  "version": "2026-09-16.25",
+  "generated_at": "2026-09-17T12:00:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,7 +17,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:095cfedc19bbd7cf5431ffeca493a9e6ed024a847370c109a3b6d44b55fe6411"
+      "sha256": "sha256:4251a392281487bf9590dccfe71f9ef6e9442c0d58de10626c51997c1a4c00d6"
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -309,7 +309,7 @@
     },
     {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
-      "sha256": "sha256:34fd6749482b331a3a36fd32feee425b730b543394964732d37b19a309b0d720"
+      "sha256": "sha256:493ee63ae0c5961841a72fd7b6d3cef867e17f6834b260bfb15604f5e87e58bf"
     },
     {
       "operation_id": "ak.peer.erasure_receipt.resource.get.v1",
@@ -353,7 +353,7 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:b3bb820dec110f2c2a8e070341690a8976e5fd178e1b8567804376de5d55cf1f"
+      "sha256": "sha256:93540980fa078325e2e5f46a0292307244c12941fc47f181655c5eb39b721473"
     },
     {
       "operation_id": "ak.peer.realm_join.read.application_status.v1",
@@ -361,7 +361,7 @@
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:9e1c2943957afff3ca93f246538a6aa281c4beeefd65d302650286edb0cb116e"
+      "sha256": "sha256:63eace9f0c89c099465cc15be2e8b26712e90ca0ae1f0987082a0dc676bd0d6d"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -461,7 +461,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:b7009349a5569ec58573c3a5907dcf99d376e08595580c4ec34fee925cc60a3d"
+      "sha256": "sha256:9a0383f0dfe2cf811ff35a641d0e3cb052e2004206498bb9c08db81638ac7084"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -725,7 +725,7 @@
     },
     {
       "operation_id": "ak.self.keys.backup_series.command.erase.v1",
-      "sha256": "sha256:78aa98c927b423e0b77ad789af59825e2757785bb303643a3d84dc384525002e"
+      "sha256": "sha256:1280fee871d30d378bcc7eabeef415d8febc83ad8f39c5b18eef1d907a5e0832"
     },
     {
       "operation_id": "ak.self.keys.backups.command.issue_delete_challenge.v1",
@@ -845,7 +845,7 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:c3620fd4939e2fbefd81e9832fb3dce29dc2acd5448955dfb0ded3d40c4680a9"
+      "sha256": "sha256:e355ecbec15ceaf5e38956d1a81a3689688d1a3ea494d02ac03929e972e1546b"
     },
     {
       "operation_id": "ak.self.relation_conflicts.read.candidates.v1",
@@ -853,15 +853,15 @@
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
-      "sha256": "sha256:d3030f8f2b5e1c512453c22da42764a7175b5c8b183eaa6cfa337ca7705a8678"
+      "sha256": "sha256:f7237bdcc8550baf8cf9e65ed9dfeba596a0365147f4b65ec31da508ceec88c3"
     },
     {
       "operation_id": "ak.self.security_transaction.command.create.v1",
-      "sha256": "sha256:960ac632f26ea3916d11bc6a61239ed676af58f6b56e962af149542e359e5c72"
+      "sha256": "sha256:386878a66ced4a19975845f5e6815c8e28156885e543ce95615ee0ab8d6c4da9"
     },
     {
       "operation_id": "ak.self.security_transaction.resource.get.v1",
-      "sha256": "sha256:b031f73d5f9febb1d4e29669999eaec06b8fc47f43228f82795570341494a76a"
+      "sha256": "sha256:6198224b1edd70d1520fa7843bb30dd0904b158dd5a111f4c38544173ca9d901"
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",
@@ -873,7 +873,7 @@
     },
     {
       "operation_id": "ak.self.signer_keys.read.resolve.v1",
-      "sha256": "sha256:e38f2f4511c66f1b5e5b981d73bd2bea2c99431f6cb64709627019dcc61148f9"
+      "sha256": "sha256:0975ebc47df0eed46d38d3c29bf63e0350306013d56f4a46863441c024ba61ca"
     },
     {
       "operation_id": "ak.self.space.read.list.v1",

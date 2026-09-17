@@ -285,17 +285,17 @@
     },
     {
       "schema_file": "keys-operations.schema.json",
-      "shape": "backup_series_erase_result",
+      "shape": "backup_series_erase_record",
       "field": "reason_code",
-      "pointer": "#/$defs/backup_series_erase_result/properties/reason_code",
+      "pointer": "#/$defs/backup_series_erase_record/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
     {
       "schema_file": "keys-operations.schema.json",
-      "shape": "backup_series_erase_result",
+      "shape": "backup_series_erase_record",
       "field": "status",
-      "pointer": "#/$defs/backup_series_erase_result/properties/status",
+      "pointer": "#/$defs/backup_series_erase_record/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },
@@ -485,33 +485,33 @@
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "current_result",
+      "shape": "current_outcome",
       "field": "status",
-      "pointer": "#/$defs/current_result/properties/status",
+      "pointer": "#/$defs/current_outcome/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "historical_account_device_result",
+      "shape": "historical_account_device_outcome",
       "field": "status",
-      "pointer": "#/$defs/historical_account_device_result/properties/status",
+      "pointer": "#/$defs/historical_account_device_outcome/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "historical_agent_result",
+      "shape": "historical_agent_outcome",
       "field": "status",
-      "pointer": "#/$defs/historical_agent_result/properties/status",
+      "pointer": "#/$defs/historical_agent_outcome/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },
     {
       "schema_file": "signer-key-operations.schema.json",
-      "shape": "unavailable_result",
+      "shape": "unavailable_outcome",
       "field": "status",
-      "pointer": "#/$defs/unavailable_result/properties/status",
+      "pointer": "#/$defs/unavailable_outcome/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     }

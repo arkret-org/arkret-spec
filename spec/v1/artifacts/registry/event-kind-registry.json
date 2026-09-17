@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.14",
+  "version": "2026-09-17.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T02:50:00+08:00",
+  "generated_at": "2026-09-17T12:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -496,7 +496,7 @@
           "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide."
         },
         {
-          "result_family": "call_recording_result",
+          "result_family": "call_recording_artifact",
           "result_selector": {
             "kind": "composite",
             "components": [
@@ -538,7 +538,7 @@
           }
         },
         {
-          "result_family": "call_transcript_result",
+          "result_family": "call_transcript_artifact",
           "result_selector": {
             "kind": "composite",
             "components": [

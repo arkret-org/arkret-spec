@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-17.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-17T12:00:00+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -1036,7 +1036,7 @@
       "path": "/$defs/query_signing_key",
       "removed": "actor",
       "source": {
-        "path": "/$defs/current_result",
+        "path": "/$defs/current_outcome",
         "field": "selector"
       },
       "derivation": "Read actor from the enclosing complete selector; never correlate by result array position.",
@@ -1049,7 +1049,7 @@
       "path": "/$defs/query_signing_key",
       "removed": "verification_method",
       "source": {
-        "path": "/$defs/current_result",
+        "path": "/$defs/current_outcome",
         "field": "selector"
       },
       "derivation": "Read verification_method from the enclosing complete selector; never correlate by result array position.",
@@ -1062,7 +1062,7 @@
       "path": "/$defs/historical_device_signing_key",
       "removed": "actor",
       "source": {
-        "path": "/$defs/historical_account_device_result",
+        "path": "/$defs/historical_account_device_outcome",
         "field": "selector"
       },
       "derivation": "Read actor from the enclosing complete selector; never correlate by result array position.",
@@ -1075,7 +1075,7 @@
       "path": "/$defs/historical_device_signing_key",
       "removed": "verification_method",
       "source": {
-        "path": "/$defs/historical_account_device_result",
+        "path": "/$defs/historical_account_device_outcome",
         "field": "selector"
       },
       "derivation": "Read verification_method from the enclosing complete selector; never correlate by result array position.",

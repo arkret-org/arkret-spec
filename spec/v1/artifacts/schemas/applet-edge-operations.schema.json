@@ -513,7 +513,7 @@
       },
       "additionalProperties": false
     },
-    "applet_managed_actor_authoring_result": {
+    "applet_managed_actor_authoring_context": {
       "type": "object",
       "description": "Current authority context for an Applet-managed Actor. Authorization is checked again when the governance Station commits the authored Event.",
       "required": [
@@ -553,7 +553,7 @@
           "$ref": "#/$defs/did_core_id"
         },
         "authoring_result": {
-          "$ref": "#/$defs/applet_managed_actor_authoring_result"
+          "$ref": "#/$defs/applet_managed_actor_authoring_context"
         }
       },
       "additionalProperties": false,

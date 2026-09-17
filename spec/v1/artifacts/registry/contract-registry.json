@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.28",
+  "version": "2026-09-17.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T02:50:00+08:00",
+  "generated_at": "2026-09-17T14:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -849,7 +849,7 @@
             "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide."
           },
           {
-            "result_family": "call_recording_result",
+            "result_family": "call_recording_artifact",
             "result_selector": {
               "kind": "composite",
               "components": [
@@ -891,7 +891,7 @@
             }
           },
           {
-            "result_family": "call_transcript_result",
+            "result_family": "call_transcript_artifact",
             "result_selector": {
               "kind": "composite",
               "components": [
@@ -7408,7 +7408,7 @@
         "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "accepts_a_signed_terminal_result_and_never_triggers_erasure_or_authors_an_event"
+          "rationale": "accepts_a_signed_terminal_outcome_and_never_triggers_erasure_or_authors_an_event"
         }
       },
       {
@@ -13890,16 +13890,16 @@
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_result"
       },
       {
-        "result_kind": "call_recording_result",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_result"
+        "result_kind": "call_recording_artifact",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_artifact_result"
       },
       {
         "result_kind": "call_transcript_state",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_result"
       },
       {
-        "result_kind": "call_transcript_result",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_result"
+        "result_kind": "call_transcript_artifact",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_artifact_result"
       },
       {
         "result_kind": "call_moderation",

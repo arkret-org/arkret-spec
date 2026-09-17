@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.12",
+  "version": "2026-09-17.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T02:30:00+08:00",
+  "generated_at": "2026-09-17T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1783,7 +1783,7 @@
       "response_schema_ref": "schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "accepts_a_signed_terminal_result_and_never_triggers_erasure_or_authors_an_event"
+        "rationale": "accepts_a_signed_terminal_outcome_and_never_triggers_erasure_or_authors_an_event"
       }
     },
     {

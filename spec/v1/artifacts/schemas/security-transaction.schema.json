@@ -61,8 +61,8 @@
       },
       "description": "Durable accepted prefix. Entry i has the step kind at index i of the fixed order selected by kind; entries never carry a duplicate step label."
     },
-    "terminal_result": {
-      "$ref": "#/$defs/terminal_result"
+    "terminal_outcome": {
+      "$ref": "#/$defs/terminal_outcome"
     }
   },
   "allOf": [
@@ -114,25 +114,25 @@
           "kind": {
             "const": "recovery"
           },
-          "terminal_result": {
+          "terminal_outcome": {
             "properties": {
-              "result": {
+              "outcome": {
                 "const": "completed"
               }
             },
             "required": [
-              "result"
+              "outcome"
             ]
           }
         },
         "required": [
           "kind",
-          "terminal_result"
+          "terminal_outcome"
         ]
       },
       "then": {
         "properties": {
-          "terminal_result": {
+          "terminal_outcome": {
             "required": [
               "receipt_id",
               "completion_attestation"
@@ -147,25 +147,25 @@
           "kind": {
             "const": "security_rotation"
           },
-          "terminal_result": {
+          "terminal_outcome": {
             "properties": {
-              "result": {
+              "outcome": {
                 "const": "completed"
               }
             },
             "required": [
-              "result"
+              "outcome"
             ]
           }
         },
         "required": [
           "kind",
-          "terminal_result"
+          "terminal_outcome"
         ]
       },
       "then": {
         "properties": {
-          "terminal_result": {
+          "terminal_outcome": {
             "not": {
               "anyOf": [
                 {
@@ -648,7 +648,7 @@
           "if": {
             "not": {
               "required": [
-                "terminal_result"
+                "terminal_outcome"
               ]
             }
           },
@@ -663,19 +663,19 @@
         {
           "if": {
             "properties": {
-              "terminal_result": {
+              "terminal_outcome": {
                 "properties": {
-                  "result": {
+                  "outcome": {
                     "const": "completed"
                   }
                 },
                 "required": [
-                  "result"
+                  "outcome"
                 ]
               }
             },
             "required": [
-              "terminal_result"
+              "terminal_outcome"
             ]
           },
           "then": {
@@ -884,7 +884,7 @@
           "if": {
             "not": {
               "required": [
-                "terminal_result"
+                "terminal_outcome"
               ]
             }
           },
@@ -899,19 +899,19 @@
         {
           "if": {
             "properties": {
-              "terminal_result": {
+              "terminal_outcome": {
                 "properties": {
-                  "result": {
+                  "outcome": {
                     "const": "completed"
                   }
                 },
                 "required": [
-                  "result"
+                  "outcome"
                 ]
               }
             },
             "required": [
-              "terminal_result"
+              "terminal_outcome"
             ]
           },
           "then": {
@@ -941,16 +941,16 @@
       "minLength": 1,
       "maxLength": 2048
     },
-    "terminal_result": {
+    "terminal_outcome": {
       "oneOf": [
         {
           "type": "object",
           "required": [
-            "result",
+            "outcome",
             "completed_at"
           ],
           "properties": {
-            "result": {
+            "outcome": {
               "const": "completed"
             },
             "completed_at": {
@@ -968,11 +968,11 @@
         {
           "type": "object",
           "required": [
-            "result",
+            "outcome",
             "completed_at"
           ],
           "properties": {
-            "result": {
+            "outcome": {
               "const": "aborted"
             },
             "completed_at": {
@@ -988,11 +988,11 @@
         {
           "type": "object",
           "required": [
-            "result",
+            "outcome",
             "completed_at"
           ],
           "properties": {
-            "result": {
+            "outcome": {
               "const": "expired"
             },
             "completed_at": {

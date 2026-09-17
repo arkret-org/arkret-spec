@@ -42,7 +42,7 @@
         "transaction_id": "ak:transaction:019a7400-0000-7000-8000-000000000006",
         "request_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "status": "partial",
-        "series_results": [
+        "series_records": [
           {
             "backup_kind": "secret_storage",
             "previous_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000001",
@@ -82,7 +82,7 @@
   },
   "assertions": [
     "one_transaction_id_and_one_reserved_id_set",
-    "request_plan_step_outputs_and_first_terminal_result_are_durable",
+    "request_plan_step_outputs_and_first_terminal_outcome_are_durable",
     "exact_replay_returns_the_stored_outcome",
     "conflicting_replay_returns_duplicate_conflict",
     "accepted_webvh_entry_resumes_the_same_reanchor_unit",
@@ -241,7 +241,7 @@
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
-        "completed_terminal_result"
+        "completed_terminal_outcome"
       ],
       "visible_after_commit": [
         "accepted_reanchor_event",
@@ -252,7 +252,7 @@
         "consumed_recovery_session",
         "accepted_terminal_step",
         "recovery_completion_attestation",
-        "completed_terminal_result"
+        "completed_terminal_outcome"
       ]
     },
     {
@@ -282,7 +282,7 @@
         "consumed_recovery_session",
         "accepted_terminal_step",
         "recovery_completion_attestation",
-        "completed_terminal_result"
+        "completed_terminal_outcome"
       ],
       "retry_with_a_new_receipt": "accepted",
       "retry_with_different_bytes_for_a_frozen_step_outcome": "duplicate_conflict"
@@ -304,9 +304,9 @@
       "expected": "replay_stored_outcome",
       "stored_outcome_checked_before_live_state_refusal": true,
       "replayed_members": [
-        "terminal_result",
-        "terminal_result.receipt_id",
-        "terminal_result.completion_attestation"
+        "terminal_outcome",
+        "terminal_outcome.receipt_id",
+        "terminal_outcome.completion_attestation"
       ]
     },
     {
@@ -324,7 +324,7 @@
       "request_digest",
       "prepared_plan_digest",
       "accepted_steps",
-      "terminal_result"
+      "terminal_outcome"
     ],
     "minimum_independent_runners": 2
   }

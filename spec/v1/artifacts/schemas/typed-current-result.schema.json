@@ -53,13 +53,13 @@
       "$ref": "#/$defs/call_recording_state_result"
     },
     {
-      "$ref": "#/$defs/call_recording_result"
+      "$ref": "#/$defs/call_recording_artifact_result"
     },
     {
       "$ref": "#/$defs/call_transcript_state_result"
     },
     {
-      "$ref": "#/$defs/call_transcript_result"
+      "$ref": "#/$defs/call_transcript_artifact_result"
     },
     {
       "$ref": "#/$defs/call_moderation_result"
@@ -679,7 +679,7 @@
         "recording",
         "stopped"
       ],
-      "description": "Capture permission state of one recording segment: ak.call.recording.start opens it as recording, a committed ak.call.state recording_transition.to=stopped closes it. ready/failed outcomes live in the separate call_recording_result family."
+      "description": "Capture permission state of one recording segment: ak.call.recording.start opens it as recording, a committed ak.call.state recording_transition.to=stopped closes it. ready/failed artifact details live in the separate call_recording_artifact family."
     },
     "call_transcript_state_current": {
       "type": "string",
@@ -795,9 +795,9 @@
       },
       "additionalProperties": false
     },
-    "call_recording_result": {
+    "call_recording_artifact_result": {
       "type": "object",
-      "description": "Outcome typed current result of one recording segment (family call_recording_result): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
+      "description": "Published artifact typed current result of one recording segment (family call_recording_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
       "required": [
         "selector",
         "revision",
@@ -813,7 +813,7 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_recording_result"
+              "const": "call_recording_artifact"
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
@@ -871,9 +871,9 @@
       },
       "additionalProperties": false
     },
-    "call_transcript_result": {
+    "call_transcript_artifact_result": {
       "type": "object",
-      "description": "Outcome typed current result of one transcript segment (family call_transcript_result): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
+      "description": "Published artifact typed current result of one transcript segment (family call_transcript_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
       "required": [
         "selector",
         "revision",
@@ -889,7 +889,7 @@
           ],
           "properties": {
             "kind": {
-              "const": "call_transcript_result"
+              "const": "call_transcript_artifact"
             },
             "call_id": {
               "$ref": "#/$defs/call_id_component"
