@@ -318,9 +318,73 @@ def _registered_result_families(lint: Lint) -> set[str] | None:
     return families
 
 
-def _check_result_selector(lint: Lint, ref: str, selector: Any) -> None:
-    """A singleton is JSON null; anything else is a closed subject descriptor."""
-    from .foundation import is_registered_cell_subject_kind
+# `canonical_json` and `string_set_digest` describe how one component of a
+# multi-component subject is reduced to bytes. Neither has a row in the closed
+# embedding table, so neither has a defined wire id on its own, and neither is a
+# member of CELL_SUBJECT_KINDS -- a top-level use is already rejected there, and
+# is spelled as a single-component composite instead (ruling 2026-09-05-1200,
+# conformance/encoding.md section 9.5.1).
+_SUBJECT_COMPONENT_KINDS = frozenset({"canonical_json", "string_set_digest"})
+_MULTI_COMPONENT_SUBJECT_KINDS = frozenset({"composite", "tuple"})
+
+
+def _check_subject_component(lint: Lint, ref: str, component: Any) -> None:
+    """One component of a `composite` or `tuple` subject."""
+    from .foundation import lint_subject_field_path
+
+    if isinstance(component, str):
+        lint_subject_field_path(lint, EVENT_KIND_REGISTRY, ref, component)
+        return
+    if not isinstance(component, dict):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref} must be an explicit field path or a {{kind, field}} descriptor",
+        )
+        return
+    unknown = set(component) - {"kind", "field"}
+    if unknown:
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
+    kind = component.get("kind")
+    if kind not in _SUBJECT_COMPONENT_KINDS:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref}.kind must be one of {sorted(_SUBJECT_COMPONENT_KINDS)}, not {kind!r}; "
+            "those are the only registered component descriptors, and a typed-ID component "
+            "belongs to a typed_pair subject rather than to this one",
+        )
+    if "field" not in component:
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref}.field is required")
+        return
+    lint_subject_field_path(lint, EVENT_KIND_REGISTRY, f"{ref}.field", component["field"])
+
+
+def _check_result_selector(
+    lint: Lint, ref: str, selector: Any, id_source: Any = None
+) -> None:
+    """A singleton is JSON null; anything else is a closed subject descriptor.
+
+    conformance/encoding.md section 9.5.1 is the whole rule: "subject 的 registry
+    字段来源必须显式命名", and a bare field name or a payload-then-envelope
+    fallback is undefined and MUST be rejected. Before this closure only the
+    `kind` itself was checked against the closed table, plus a shallow
+    non-empty/no-duplicate pass over `composite.components` -- so a subject could
+    name no source at all, name one through an unregistered envelope field, or
+    carry members nobody reads, and the registry would still pass.
+
+    That was not hypothetical: `authz/capabilities.md` says the revoke selector
+    derives from `payload.grant_id` and `extensions/mimi-interop.md` says the
+    room-binding subject is `payload.mimi_room_uri` under a `uri` kind, and
+    neither sentence could be spelled in the grammar, because a non-composite
+    subject had nowhere to name its field.
+
+    A fieldless `id:<object kind>` subject stays legal only where it already
+    means something: an `id_source: "event_derived"` Event kind, where the
+    object's id is this Event's own id retyped. `ak.capability.grant` and
+    `ak.strand.create` are the two live uses and both say so in their notes. On
+    any other row a missing `field` is exactly the undefined bare source that
+    section 9.5.1 rejects.
+    """
+    from .foundation import is_registered_cell_subject_kind, lint_subject_field_path
 
     if selector is None:
         return
@@ -334,14 +398,57 @@ def _check_result_selector(lint: Lint, ref: str, selector: Any) -> None:
             f"{ref}.kind is not in the encoding.md section 4.1 closed subject table: {kind!r}",
         )
         return
-    if kind == "composite":
+    if kind in _MULTI_COMPONENT_SUBJECT_KINDS:
+        unknown = set(selector) - {"kind", "components"}
+        if unknown:
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
         components = selector.get("components")
         if not isinstance(components, list) or not components:
             lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must be a non-empty array")
-        elif len(components) != len({json.dumps(part, sort_keys=True) for part in components}):
+            return
+        if len(components) != len({json.dumps(part, sort_keys=True) for part in components}):
             lint.fail(EVENT_KIND_REGISTRY, f"{ref}.components must not repeat a component")
-    elif kind == "typed_pair":
+        for index, component in enumerate(components):
+            _check_subject_component(lint, f"{ref}.components[{index}]", component)
+        return
+    if kind == "typed_pair":
         _check_typed_pair_components(lint, ref, selector)
+        return
+    if kind == "coalesce":
+        unknown = set(selector) - {"kind", "fields"}
+        if unknown:
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
+        fields = selector.get("fields")
+        if not isinstance(fields, list) or not fields:
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref}.fields must be a non-empty array")
+            return
+        if len(fields) != len({json.dumps(part, sort_keys=True) for part in fields}):
+            lint.fail(EVENT_KIND_REGISTRY, f"{ref}.fields must not repeat a field")
+        for index, field in enumerate(fields):
+            lint_subject_field_path(lint, EVENT_KIND_REGISTRY, f"{ref}.fields[{index}]", field)
+        return
+    unknown = set(selector) - {"kind", "field"}
+    if unknown:
+        lint.fail(EVENT_KIND_REGISTRY, f"{ref} has unknown member(s) {sorted(unknown)}")
+    if "field" in selector:
+        lint_subject_field_path(lint, EVENT_KIND_REGISTRY, f"{ref}.field", selector["field"])
+        if id_source == "event_derived" and kind.startswith("id:"):
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{ref} names a source field on an id_source=event_derived Event kind; the "
+                "fieldless form already means this Event's own id retyped, so naming a field "
+                "here says the object id comes from the payload and contradicts the row",
+            )
+    elif id_source == "event_derived" and kind.startswith("id:"):
+        return
+    else:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{ref}.field is required for a {kind!r} subject; encoding.md section 9.5.1 says a "
+            "subject's registry field source MUST be named explicitly, and only an "
+            "id_source=event_derived id:<object kind> subject may omit it (it is then this "
+            "Event's own id retyped)",
+        )
 
 
 def _check_typed_pair_components(lint: Lint, ref: str, selector: Any) -> None:
@@ -495,7 +602,12 @@ def check_result_write_contracts(lint: Lint) -> None:
             if "result_selector" not in write:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_selector is required (JSON null for a singleton)")
             else:
-                _check_result_selector(lint, f"{where}.result_selector", write["result_selector"])
+                _check_result_selector(
+                    lint,
+                    f"{where}.result_selector",
+                    write["result_selector"],
+                    row.get("id_source"),
+                )
             derived_members = write.get("derived_members")
             if derived_members is not None:
                 from .foundation import lint_derived_members
