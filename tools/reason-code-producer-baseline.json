@@ -44,7 +44,6 @@
     "direct_conversation_third_party_member_forbidden",
     "federation_authority_mismatch",
     "federation_trust_domain_mismatch",
-    "grant_relinquish_not_subject",
     "grant_revoke_not_authorized",
     "grant_revoked_before_event_checkpoint",
     "grant_revoked_upstream",

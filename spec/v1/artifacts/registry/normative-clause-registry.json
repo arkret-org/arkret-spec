@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.2",
+  "version": "2026-09-18.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T21:20:00+08:00",
+  "generated_at": "2026-09-18T22:40:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -596,6 +596,16 @@
       "requirement": "Message prepare distinguishes local plaintext intent from the encrypted wire request: the intent content oneOf is closed, a plaintext prepare is rejected in an MLS-activated scope, and the client freezes its AAD inputs and encrypts locally before calling prepare rather than letting the Station encrypt. The client compares the returned draft ciphertext, encrypted metadata and bindings byte-for-byte against what it froze and fails closed on any difference. An exact retry replays byte-identical bytes, so it never re-encrypts and never consumes another sender ratchet generation. The two-request path assumes send readiness and local MLS state: prepare grants no permission, reserves no sequence, advances no stream position and does not establish MLS state.",
       "testability_grade": "audit",
       "test_plan": "Audited against message-authoring.schema.json: the review pass asserts message_authoring_content is a closed oneOf of plaintext and mls, that message_prepare_outcome returns only a draft with no acceptance, reservation or position, and that no prepare request member carries a key or would let the Station encrypt. A conformance run replays a byte-identical prepare and asserts a single ciphertext and no second sender ratchet generation. No vector exists because the obligation spans a client-local encryption step the vector harness does not author."
+    },
+    {
+      "clause_id": "AK-NC-071",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/authz/capabilities.md#104-revoke-与-relinquish-的分工normative",
+      "section_digest": "sha256:b9c300026f8f7002798e5c985e0f315013ba40a6d93374a9f65a44cb7cdc2ec3",
+      "requirement": "ak.capability.relinquish is subject-only self-service: the reducer accepts it only when the acting actor is the grant's own subject, and it MUST NOT additionally require the actor to hold ak.capability.revoke, because a narrow holder would otherwise be unable to give up what it holds. A relinquish by anyone other than the subject is rejected with reason grant_relinquish_not_subject. Descendants of the relinquished grant fail on read through refs, exactly as they do after a revoke.",
+      "testability_grade": "audit",
+      "test_plan": "Audited against event-kind-registry.json and error-code-registry.json: the review pass asserts ak.capability.relinquish's admission names the subject identity alone, that no capability action registers as its precondition, and that grant_relinquish_not_subject is the registered rejection reason with this event kind as its only producer. A conformance run submits a relinquish signed by a non-subject holder of ak.capability.revoke and asserts rejection with that reason, then submits one signed by the subject holding no revoke action and asserts acceptance. No vector exists yet because the capability vector group has no relinquish transcript."
     }
   ]
 }
