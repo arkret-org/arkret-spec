@@ -694,11 +694,41 @@ def check_result_write_contracts(lint: Lint) -> None:
                 )
                 continue
             if projection["kind"] == "transition":
+                unknown = set(projection) - {"kind", "from", "to"}
+                if unknown:
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where}.result_projection has unknown member(s) {sorted(unknown)}",
+                    )
+                # A const endpoint is the sharper declaration and stays the norm.
+                # A field endpoint exists because one row can carry several edges
+                # whose prestate only the payload knows: agent_deactivate_payload
+                # closes previous_status to [active, paused], and
+                # history_access_payload closes from to null plus both states. In
+                # those two shapes a const would have to pick one edge and drop
+                # the rest, or restate a closed set the payload schema already
+                # holds. check_fsm_state_reachability resolves a field endpoint
+                # against that schema, so the edge stays as narrow as the schema
+                # is -- an unresolvable field widens to the whole state list
+                # rather than inventing reachability.
                 for member in ("from", "to"):
-                    if not isinstance(projection.get(member), dict) or "const" not in projection[member]:
+                    source = projection.get(member)
+                    if not isinstance(source, dict) or len(
+                        [key for key in ("const", "field") if key in source]
+                    ) != 1:
                         lint.fail(
                             EVENT_KIND_REGISTRY,
-                            f"{where}.result_projection.{member} must declare a const state",
+                            f"{where}.result_projection.{member} must declare exactly one of "
+                            "const/field",
+                        )
+                    elif "field" in source:
+                        from .foundation import lint_field_path
+
+                        lint_field_path(
+                            lint,
+                            EVENT_KIND_REGISTRY,
+                            f"{where}.result_projection.{member}.field",
+                            source["field"],
                         )
             elif projection["kind"] in _RESULT_KEYED_SET_KINDS:
                 _check_result_keyed_set_projection(lint, where, write, projection)

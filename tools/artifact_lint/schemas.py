@@ -4518,20 +4518,40 @@ def _fsm_field_states(
 
 
 def check_fsm_state_reachability(lint: Lint) -> None:
-    """Every fsm cell family must declare exactly one entry idiom
+    """Every fsm result family must declare exactly one entry idiom
     (initial_state | initial_states | template) and every declared state must
-    be reachable from the entry set through registered cell writes; every
+    be reachable from the entry set through registered result writes; every
     allowed transition must have a write that can perform it and no write may
     leave the allowed transition table. This is the gate OPEN-FLOW-PROTO-013
-    was missing."""
+    was missing.
+
+    It was also, between the clean break and this commit, a gate that said
+    nothing at all. It read `transition_contracts`, `transition_templates` and
+    `cell_contracts` off the registry and walked `cell_writes[].cell_family`
+    with an `effect_projection` -- four names the authority-commit change
+    removed. All three inputs came back absent, three `or {}` swallowed that,
+    and the gate reported success over four normative paragraphs
+    (`models/circle.md`, `models/morph.md`, `models/realm-and-space.md`,
+    `models/strand-and-message.md`) that name `transition_contracts` as the
+    source of truth for object lifecycle transitions. A gate whose input
+    vanished does not become a no-op; it becomes a false witness, because
+    `check` records "nobody looked" as "the check passed". So the absent
+    contract block is now a failure, not an early return."""
     registry_path = ARTIFACTS / "registry" / "contract-registry.json"
     contract = load_json(lint, registry_path)
     if not isinstance(contract, dict):
         return
     event_kind_registry = contract.get("event_kind_registry") or {}
-    transition_contracts = event_kind_registry.get("transition_contracts") or {}
+    transition_contracts = event_kind_registry.get("transition_contracts")
+    if not isinstance(transition_contracts, dict) or not transition_contracts:
+        lint.fail(
+            registry_path,
+            "event_kind_registry.transition_contracts must be a non-empty object; without it "
+            "every typed current result lifecycle axis is unchecked and this gate reports "
+            "success over nothing",
+        )
+        return
     transition_templates = event_kind_registry.get("transition_templates") or {}
-    cell_contracts = event_kind_registry.get("cell_contracts") or {}
     schema_files = _supply_schema_files(lint)
     payload_refs: dict[str, str] = {}
     for row in event_kind_registry.get("event_kinds") or []:
@@ -4541,14 +4561,61 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             payload_refs[kind] = ref
 
     writes_by_family: dict[str, list[tuple[str, dict[str, Any]]]] = {}
-    for event_kind, cell_contract in cell_contracts.items():
-        for write in cell_contract.get("cell_writes") or []:
-            if "transition_contract" not in write:
+    undeclared_machines: dict[str, set[str]] = {}
+    bypassing_writers: dict[str, set[str]] = {}
+    for row in event_kind_registry.get("event_kinds") or []:
+        event_kind = row.get("event_kind")
+        if not isinstance(event_kind, str):
+            continue
+        for write in row.get("result_writes") or []:
+            if not isinstance(write, dict):
                 continue
-            family = write.get("cell_family")
-            projection = write.get("effect_projection") or {}
-            if family and projection.get("kind") in ("transition", "transition_to"):
-                writes_by_family.setdefault(family, []).append((event_kind, {**projection, "write_condition": write.get("condition", {})}))
+            family = write.get("result_family")
+            projection = write.get("result_projection")
+            if not isinstance(family, str) or not isinstance(projection, dict):
+                continue
+            if projection.get("kind") == "transition":
+                if family not in transition_contracts:
+                    undeclared_machines.setdefault(family, set()).add(event_kind)
+                    continue
+                writes_by_family.setdefault(family, []).append(
+                    (
+                        event_kind,
+                        {**projection, "write_condition": write.get("condition") or {}},
+                    )
+                )
+            elif family in transition_contracts:
+                bypassing_writers.setdefault(family, set()).add(event_kind)
+
+    for family, kinds in sorted(undeclared_machines.items()):
+        lint.fail(
+            registry_path,
+            f"{sorted(kinds)} write result family {family!r} with a transition projection, but "
+            "transition_contracts declares no machine for it; a from/to pair with no state set "
+            "behind it is checked against nothing",
+        )
+    # A `set` on an fsm family overwrites the state whatever it was, which makes
+    # `allowed_transitions` documentation rather than a rule. Both spellings were
+    # live on three families here: creation used `transition` and every later
+    # change used `set`.
+    for family, kinds in sorted(bypassing_writers.items()):
+        lint.fail(
+            registry_path,
+            f"transition_contracts.{family}: {sorted(kinds)} write it with a non-transition "
+            "projection, which installs a state without passing allowed_transitions",
+        )
+
+    registered_families = {
+        row.get("result_kind")
+        for row in (contract.get("current_result_registry") or {}).get("result_kinds") or []
+        if isinstance(row, dict)
+    }
+    for family in sorted(set(transition_contracts) - registered_families):
+        lint.fail(
+            registry_path,
+            f"transition_contracts.{family}: no such typed current result family in "
+            "current_result_registry.result_kinds",
+        )
 
     fsm_exemption_rows = [
         row
@@ -4701,20 +4768,17 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             condition = projection.get("write_condition", {})
             if condition.get("kind") == "field_equals" and condition.get("field") == to_source.get("field"):
                 to_states = [value for value in to_states if value == condition.get("const")]
-            if projection.get("kind") == "transition":
-                from_source = projection.get("from") or {}
-                if "const" in from_source:
-                    from_states = (
-                        [_FSM_ABSENT]
-                        if from_source["const"] is None
-                        else [from_source["const"]]
-                    )
-                elif isinstance(from_source.get("field"), str):
-                    from_states = _fsm_field_states(
-                        schema_files, payload_ref, from_source["field"], states
-                    )
-                else:
-                    from_states = list(states)
+            from_source = projection.get("from") or {}
+            if "const" in from_source:
+                from_states = (
+                    [_FSM_ABSENT]
+                    if from_source["const"] is None
+                    else [from_source["const"]]
+                )
+            elif isinstance(from_source.get("field"), str):
+                from_states = _fsm_field_states(
+                    schema_files, payload_ref, from_source["field"], states
+                )
             else:
                 from_states = list(states)
             for from_state in from_states:
@@ -4732,21 +4796,18 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             # reducer against the frozen prestate at admission
             # (event-and-patch.md transition_to semantics), so the synthetic
             # expansion above must not be treated as a declared write pair.
-            if projection.get("kind") == "transition":
-                from_source = projection.get("from") or {}
-                to_source = projection.get("to") or {}
-                if (
-                    "const" in from_source
-                    and from_source["const"] is not None
-                    and "const" in to_source
-                    and (from_source["const"], to_source["const"]) not in allowed
-                ):
-                    lint.fail(
-                        registry_path,
-                        f"transition_contracts.{family}: {event_kind} writes "
-                        f"{from_source['const']} -> {to_source['const']} "
-                        "outside allowed_transitions",
-                    )
+            if (
+                "const" in from_source
+                and from_source["const"] is not None
+                and "const" in to_source
+                and (from_source["const"], to_source["const"]) not in allowed
+            ):
+                lint.fail(
+                    registry_path,
+                    f"transition_contracts.{family}: {event_kind} writes "
+                    f"{from_source['const']} -> {to_source['const']} "
+                    "outside allowed_transitions",
+                )
 
         if not entry_states and not any(edge[0] == _FSM_ABSENT for edge in edges):
             lint.fail(

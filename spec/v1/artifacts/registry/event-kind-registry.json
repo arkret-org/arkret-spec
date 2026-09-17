@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.9",
+  "version": "2026-09-17.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T01:10:00+08:00",
+  "generated_at": "2026-09-18T03:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,8 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 34 of the 139 reducer_input kinds declare it; the remaining 105 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 37 of the 139 reducer_input kinds declare it; the remaining 102 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
     "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -104,6 +105,101 @@
     "validation_rule": "Every active standard ak.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
     "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported.",
     "explicit_binding_rule": "Each active standard event kind declares exactly one payload_schema_ref, and the Event Envelope dispatch selects that exact location. Missing, dangling, duplicate, or divergent bindings fail closed. Consumers MUST NOT infer a payload schema from kind spelling or naming conventions."
+  },
+  "transition_contracts": {
+    "agent_status": {
+      "axis": "lifecycle",
+      "states": [
+        "uninitialized",
+        "active",
+        "paused",
+        "deactivated"
+      ],
+      "initial_state": "uninitialized",
+      "terminal_states": [
+        "deactivated"
+      ],
+      "idempotent_replay": "same_event_identity_replay_noop",
+      "allowed_transitions": [
+        [
+          "uninitialized",
+          "active"
+        ],
+        [
+          "active",
+          "paused"
+        ],
+        [
+          "paused",
+          "active"
+        ],
+        [
+          "active",
+          "deactivated"
+        ],
+        [
+          "paused",
+          "deactivated"
+        ]
+      ]
+    },
+    "realm_history_access": {
+      "axis": "history_access",
+      "states": [
+        "since_join",
+        "all_history_for_current_members"
+      ],
+      "initial_states": [
+        "since_join",
+        "all_history_for_current_members"
+      ],
+      "terminal_states": [
+        "since_join"
+      ],
+      "idempotent_replay": "same_event_identity_replay_noop",
+      "allowed_transitions": [
+        [
+          "all_history_for_current_members",
+          "since_join"
+        ]
+      ]
+    },
+    "call_recording_state": {
+      "axis": "capture_permission",
+      "states": [
+        "recording",
+        "stopped"
+      ],
+      "initial_state": "recording",
+      "terminal_states": [
+        "stopped"
+      ],
+      "idempotent_replay": "same_event_identity_replay_noop",
+      "allowed_transitions": [
+        [
+          "recording",
+          "stopped"
+        ]
+      ]
+    },
+    "call_transcript_state": {
+      "axis": "capture_permission",
+      "states": [
+        "transcribing",
+        "stopped"
+      ],
+      "initial_state": "transcribing",
+      "terminal_states": [
+        "stopped"
+      ],
+      "idempotent_replay": "same_event_identity_replay_noop",
+      "allowed_transitions": [
+        [
+          "transcribing",
+          "stopped"
+        ]
+      ]
+    }
   },
   "event_kinds": [
     {
@@ -535,12 +631,16 @@
             "const": "stopped"
           },
           "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.recording_transition.to"
+            "kind": "transition",
+            "from": {
+              "const": "recording"
+            },
+            "to": {
+              "const": "stopped"
             }
           },
-          "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide."
+          "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide. crypto-media/call-state.md section 4.2 fixes the stop write as recording_transition={recording_id,from:\"recording\",to:\"stopped\"} and event-payload.schema.json pins from to recording on the to=stopped branch, so the edge is const to const; the to=ready / to=failed branches carry artifact provenance and write call_recording_artifact, not this family.",
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_current"
         },
         {
           "result_family": "call_recording_artifact",
@@ -578,11 +678,16 @@
             "const": "stopped"
           },
           "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.transcript_transition.to"
+            "kind": "transition",
+            "from": {
+              "const": "transcribing"
+            },
+            "to": {
+              "const": "stopped"
             }
-          }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_current",
+          "notes": "Capture permission state only, parallel to call_recording_state. event-payload.schema.json pins transcript_transition.from to transcribing on the to=stopped branch; the to=ready / to=failed branches write call_transcript_artifact."
         },
         {
           "result_family": "call_transcript_artifact",
@@ -2043,7 +2148,7 @@
               "const": "active"
             }
           },
-          "notes": "The subject is derived from the complete Agent account ActorId and MUST be reused by ak.self.agent.command.pause / resume / deactivate; the lifecycle payload carries no agent_id mirror."
+          "notes": "The subject is derived from the complete Agent account ActorId and MUST be reused by ak.self.agent.pause / ak.self.agent.resume / ak.self.agent.deactivate; the lifecycle payload carries no agent_id mirror."
         },
         {
           "result_family": "realm_history_access",
@@ -2189,13 +2294,16 @@
           "result_family": "realm_history_access",
           "result_selector": null,
           "result_projection": {
-            "kind": "set",
-            "value": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.from"
+            },
+            "to": {
               "field": "payload.to"
             }
           },
           "value_schema_ref": "schemas/event-payload.schema.json#/$defs/history_access_value",
-          "notes": "Single ratcheted FSM value. After the atomic create unit the only legal state-changing edge is all_history_for_current_members to since_join; widening is permanently rejected (zh/models/realm-and-space.md)."
+          "notes": "Single ratcheted FSM value. The endpoints are read from the payload rather than restated here because one row carries two edges: the create unit writes from=null once and chooses either closed initial state, and after create the only legal state-changing edge is all_history_for_current_members to since_join; widening is permanently rejected (zh/models/realm-and-space.md section 2.2)."
         }
       ],
       "id_source": "not_an_object_id"
@@ -2697,6 +2805,30 @@
       ],
       "payload": "Agent lifecycle terminal state. One accepted controller-authorized Event is the unavoidable parent AND gate for every runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission. Cleanup is asynchronous and MUST NOT synthesize or require child revocation Events. Terminal — no transition out.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_deactivate_payload",
+      "result_writes": [
+        {
+          "result_family": "agent_status",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.previous_status"
+            },
+            "to": {
+              "const": "deactivated"
+            }
+          },
+          "notes": "identity/account-lifecycle.md section 9.1 allows deactivation from either non-terminal state, so from MUST be read from payload.previous_status, whose enum is exactly [active, paused]; no single const could carry both edges. deactivated is terminal. The subject is the same canonical composite over the complete Agent account ActorId that the ak.realm.create genesis write uses (identity/key-management.md section 3.6.3)."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2726,6 +2858,30 @@
       ],
       "payload": "Agent lifecycle transition to paused. Current controller authority and the active agent state are checked atomically when the governance Station commits the Event.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_pause_payload",
+      "result_writes": [
+        {
+          "result_family": "agent_status",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.previous_status"
+            },
+            "to": {
+              "const": "paused"
+            }
+          },
+          "notes": "identity/account-lifecycle.md section 9.1 fixes the edge as active to paused. from is read from payload.previous_status, which agent_pause_payload pins to the const active, rather than restated here: a hand-copied constant beside the schema that already closes it is the drift this array exists to prevent. to cannot be read from payload.transition, whose const is the verb pause, not the state name. The subject is the same canonical composite over the complete Agent account ActorId that the ak.realm.create genesis write uses (identity/key-management.md section 3.6.3)."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2755,6 +2911,30 @@
       ],
       "payload": "Agent lifecycle transition from paused to active. The governance Station revalidates controller, agent key, capability, Realm policy and accountability state at commit.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_resume_payload",
+      "result_writes": [
+        {
+          "result_family": "agent_status",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "transition",
+            "from": {
+              "field": "payload.previous_status"
+            },
+            "to": {
+              "const": "active"
+            }
+          },
+          "notes": "identity/account-lifecycle.md section 9.1 fixes the edge as paused to active, and requires the reducer to re-check controller, agent, key, capability, Realm policy and accountability grant before it is taken. from is read from payload.previous_status (const paused). The subject is the same canonical composite over the complete Agent account ActorId that the ak.realm.create genesis write uses (identity/key-management.md section 3.6.3)."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {

@@ -250,13 +250,20 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         )
 
     def test_a_note_that_lags_the_rows_is_reported(self) -> None:
-        """This is the mutation that was true on disk for four commits."""
+        """This is the mutation that was true on disk for four commits.
+
+        The stale counts are rewritten out of the note the registry currently
+        carries rather than spelled out here: a hand-copied count in the test is
+        the same defect one level down, and it would go stale the next time
+        coverage grows."""
 
         def mutate(document):
             index = self._note_index(document)
-            document["registry_rules"][index] = document["registry_rules"][index].replace(
-                "34 of the 139 reducer_input kinds declare it; the remaining 105",
+            note = document["registry_rules"][index]
+            document["registry_rules"][index] = gate._COVERAGE_NOTE_RE.sub(
                 "12 of the 139 reducer_input kinds declare it; the remaining 127",
+                note,
+                count=1,
             )
 
         reported = self._newly_reported({EVENT_KINDS: mutate})

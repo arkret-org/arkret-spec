@@ -1083,7 +1083,7 @@ _SUPPLY_PAYLOAD_SUPPLY_FILES = ("payload", "event-envelope.schema.json")
 
 
 # ---------------------------------------------------------------------------
-# service-http-binding.md 2.2.2: FSM state reachability
+# sync/current-results.md 2.1: FSM state reachability
 # ---------------------------------------------------------------------------
 
 _FSM_CONTRACT_KEYS = frozenset(

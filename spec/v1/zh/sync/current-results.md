@@ -3,7 +3,7 @@ title: 服务器当前结果与有界基线
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-18
 sidebar:
   label: 当前结果与基线
 ---
@@ -72,6 +72,23 @@ EventId 均不得替代 revision。
 领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
 逐字段相等时接纳；不相等返回 `failed_precondition` 并提供调用者有权读取的 current result。首次创建可使用该领域
 schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达式。
+
+### 2.1 生命周期轴与转换合同
+
+某个领域结果若带有生命周期轴（状态机），该轴的转换真源是 contract registry 的
+`event_kind_registry.transition_contracts` 中同名 family 条目：它封闭该轴的状态集合、入口
+（`initial_state` / `initial_states` / `template` 三者恰取其一）、终态与允许的 `(from, to)` 边。
+本节只定义合同的读法，不复制任何一张转换表。
+
+- 写入该 family 的 Event MUST 使用 `transition` 投影并声明 `from` 与 `to`；MUST NOT 使用整值投影。
+  整值写入会绕过 `allowed_transitions`，使转换表退化为注释而不是规则。
+- `from` 与 `to` 各自 MUST 恰好声明 `const` 与 `field` 之一。一行需要承载多条边（前态取值不止一个）时
+  用 `field` 指向 payload 中已封闭该取值集合的字段，不得在 registry 里另抄一份常量。
+- 未在 `transition_contracts` 中登记的 family MUST NOT 使用 `transition` 投影：没有状态集合的
+  `from` / `to` 对没有任何可校验的对象。
+- 终态 MUST NOT 带出边。终态性只由转换表本身承载；实现不得以约定、服务端表或默认值补充。
+
+该合同缺失时 MUST 视为失败，不得当作「该轴无约束」：读不到转换表的检查只能证明没有人检查过。
 
 ## 3. 当前结果响应
 
