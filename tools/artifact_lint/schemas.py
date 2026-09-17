@@ -2698,7 +2698,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
     # last dot-segment as a case-insensitive substring of the class name.
-    # Catches typo / copy-paste errors like `ak.self.agent.command.pause.v1 â†’ agent_resume_payload`.
+    # Catches typo / copy-paste errors like `ak.self.agent.command.pause.v1 -> agent_resume_payload`.
     seen_pairs: set[tuple[str, str]] = set()
     for kind, class_name in collect_payload_dispatch_pairs(data):
         if (kind, class_name) in seen_pairs:
@@ -3073,8 +3073,8 @@ def check_preimage_event_identity_commitments(lint: Lint) -> None:
     `payload` and `refs`. Class A (the enclosing Event's own identity or a retype of it)
     and class B (a not-yet-formed sibling of the same atomic unit or ordered submit
     batch) have no fixed point, so they are unconstructible and are rejected here
-    unconditionally. Class C â€” a one-way forward declaration naming a later Event from
-    another submission whose bytes the author already froze â€” is constructible and is
+    unconditionally. Class C -- a one-way forward declaration naming a later Event from
+    another submission whose bytes the author already froze -- is constructible and is
     allowed only when `preimage-identity-exemption-registry.json` carries an active row
     for exactly that field.
 
@@ -4367,8 +4367,8 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             lint.fail(document_contract_path, f"legacy service type {forbidden_type} must not be registered")
 
     # A rejected DID service type is only allowed to be *named by the rule that
-    # rejects it*. Anywhere else in the artifact tree â€” a fixture value, an error
-    # description, a schema enum â€” it reads as a second, dual-read spelling of
+    # rejects it*. Anywhere else in the artifact tree -- a fixture value, an error
+    # description, a schema enum -- it reads as a second, dual-read spelling of
     # `ArkretService` + `serviceKind`, which is exactly what the closure forbids.
     rejection_rule_paths = {
         "contract-registry.json": "$.did_document_contract_registry.registry_rules[3]",
@@ -4573,7 +4573,22 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             "success over nothing",
         )
         return
-    transition_templates = event_kind_registry.get("transition_templates") or {}
+    # No registered contract uses the `template` entry idiom today, so an absent
+    # block is the correct state and this is NOT the empty-sweep shape the rest
+    # of the dead-gate sweep was about: `transition_templates` was never renamed
+    # away, it was never populated. What must not pass silently is a block that
+    # is present and says nothing -- that reads exactly like a template registry
+    # whose entries were lost.
+    transition_templates = event_kind_registry.get("transition_templates")
+    if transition_templates is None:
+        transition_templates = {}
+    elif not isinstance(transition_templates, dict) or not transition_templates:
+        lint.fail(
+            registry_path,
+            "event_kind_registry.transition_templates, when present, must be a non-empty "
+            "object; omit the block entirely when no contract uses the template idiom",
+        )
+        transition_templates = {}
     schema_files = _supply_schema_files(lint)
     payload_refs: dict[str, str] = {}
     for row in event_kind_registry.get("event_kinds") or []:
@@ -4654,11 +4669,32 @@ def check_fsm_state_reachability(lint: Lint) -> None:
     fsm_used_rows: set[str] = set()
 
     for template_name, template in transition_templates.items():
+        if not isinstance(template, dict):
+            lint.fail(
+                registry_path,
+                f"transition_templates.{template_name} must be an object",
+            )
+            continue
         unknown = set(template.keys()) - _FSM_TEMPLATE_KEYS
         if unknown:
             lint.fail(
                 registry_path,
                 f"transition_templates.{template_name}: unknown keys {sorted(unknown)}",
+            )
+        # Same ruling as `concurrent_sibling_conflict` below, for the same
+        # reason. A template's `instance_parameters` are consumed by exactly one
+        # operation -- equality against `conditional_transitions[].when.const`
+        # -- so a declared parameter schema constrains nothing that is read, and
+        # a field that looks like a validator but validates nothing is worse
+        # than no field: the next author writes the contract against the schema
+        # and the gate agrees with whatever they wrote.
+        if "parameter_schema" in template:
+            lint.fail(
+                registry_path,
+                f"transition_templates.{template_name}: parameter_schema is not enforced "
+                "anywhere; instance_parameters are compared by equality against "
+                "conditional_transitions[].when.const, so a declared schema would be "
+                "decoration. Register a reader before declaring one",
             )
 
     for family, declared in transition_contracts.items():
@@ -4703,7 +4739,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         # by nobody at runtime, which is how four spellings of one rule and one
         # unimplementable rule accumulated: `same_transition_same_basis_noop`
         # (plus `_status_`, `_stage_`, `_to_state_`) named `(from,to)` + basis,
-        # while `event-auth-state-resolution.md` Â§9.3.1.5 dedupes by Event
+        # while `event-auth-state-resolution.md` §9.3.1.5 dedupes by Event
         # identity and keeps two same-`(from,to)` identities as two heads; and
         # `identical_transition_only_otherwise_reject` promised a rejection the
         # causal state model cannot deliver, because §9.3.1.7 item 5 rejects only inside one
@@ -4719,6 +4755,21 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             )
         if "concurrent_sibling_conflict" in contract_view:
             lint.fail(registry_path, f"transition_contracts.{family}: concurrency is defined by the registered execution model, not a transition-table bottom")
+        # Before the authority-commit clean break exactly one family declared
+        # this -- `ak.component.mls_last_resort_keypackage.*`, naming a profile
+        # that could claim or consume the keypackage without leaving
+        # `published`. No gate read it then either, and no prose in spec/v1/zh
+        # mentions it, so "this profile preserves the state" was a sentence the
+        # registry could say and nothing could check. If that family comes back
+        # it needs a reader first; accepting the key meanwhile is how the last
+        # 339 lines of unread contract accumulated.
+        if "state_preserving_profiles" in contract_view:
+            lint.fail(
+                registry_path,
+                f"transition_contracts.{family}: state_preserving_profiles has no reader in "
+                "this gate and no normative prose; a state-preserving profile that nothing "
+                "checks is indistinguishable from an unconstrained one",
+            )
         entry_states = []
         if contract_view.get("initial_state") in states:
             entry_states.append(contract_view["initial_state"])
@@ -4735,15 +4786,15 @@ def check_fsm_state_reachability(lint: Lint) -> None:
             for pair in contract_view.get("allowed_transitions") or []
         }
         # A terminal state has to be terminal in the table, not just by
-        # convention. Nothing reads `terminal_states` at runtime â€” the SDK's
-        # `Fsm` holds only the transition table and the initial state â€” so if
+        # convention. Nothing reads `terminal_states` at runtime -- the SDK's
+        # `Fsm` holds only the transition table and the initial state -- so if
         # the table carried an edge out of a terminal state, the machine would
         # take it and the declaration would be decoration. Self-loops stay
         # legal: `ak.component.realm.link.v1` declares `(tombstoned,
         # tombstoned)` so a repeated declaration is idempotent rather than a
         # sibling conflict.
         #
-        # `event-auth-state-resolution.md` Â§9.5.1 names this check as the
+        # `event-auth-state-resolution.md` §9.5.1 names this check as the
         # registry invariant its fsm recovery admission rests on: that admission
         # checks only `allowed_transitions` membership out of each superseded
         # head, and "a recovery out of a terminal state is refused" is equivalent
@@ -4834,7 +4885,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
         if not entry_states and not any(edge[0] == _FSM_ABSENT for edge in edges):
             lint.fail(
                 registry_path,
-                f"transition_contracts.{family}: no entry â€” neither an initial state "
+                f"transition_contracts.{family}: no entry -- neither an initial state "
                 "nor an absent-state creation write exists",
             )
             continue

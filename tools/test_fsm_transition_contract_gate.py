@@ -349,5 +349,207 @@ class TransitionProjectionEndpointTest(unittest.TestCase):
         self.assertIn("unknown member(s)", reported[0])
 
 
+class FsmTemplateIdiomTest(unittest.TestCase):
+    """The third entry idiom, which no registered contract uses.
+
+    `sync/current-results.md` section 2.1 says a transition contract declares
+    exactly one of `initial_state` / `initial_states` / `template`, and the
+    registry rule repeats it. Nothing has ever declared a template: the
+    `transition_templates` block has been absent for the whole life of the
+    registry, not renamed away by the clean break like the keys around it. So
+    the template half of this gate has never once executed against real data,
+    which is the same position `check_fsm_state_reachability` as a whole was in
+    until 2026-09-18 -- the difference being that here the silence is correct.
+
+    These tests are what keeps it correct: they drive every branch of the
+    template path with a synthetic registry, so the day someone writes the first
+    template the merge, the key closure and the conditional-edge lookup are
+    known to work rather than assumed to.
+    """
+
+    def _run(self, mutate=None) -> list[str]:
+        original_load_json = gate.load_json
+        documents = {}
+        if mutate is not None:
+            document = copy.deepcopy(original_load_json(gate.Lint(), CONTRACT_REGISTRY))
+            mutate(document)
+            documents[CONTRACT_REGISTRY.resolve()] = document
+
+        def load_json_with_mutation(lint, path):
+            return documents.get(path.resolve(), original_load_json(lint, path))
+
+        gate.load_json = load_json_with_mutation
+        try:
+            lint = gate.Lint()
+            gate.check_fsm_state_reachability(lint)
+            return lint.errors
+        finally:
+            gate.load_json = original_load_json
+
+    def _newly_reported(self, mutate) -> list[str]:
+        baseline = set(self._run())
+        return sorted(set(self._run(mutate)) - baseline)
+
+    @staticmethod
+    def _templatize(registry: dict, *, name: str = "agent_lifecycle") -> dict:
+        """Rewrite `agent_status` into template form without changing meaning.
+
+        Every key except `axis` is a template key, so the merged view must come
+        back byte-identical to the contract the other tests in this file run
+        against. Returns the template body for the caller to perturb.
+        """
+        block = registry["event_kind_registry"]
+        contract = block["transition_contracts"]["agent_status"]
+        template = {key: value for key, value in contract.items() if key != "axis"}
+        block["transition_templates"] = {name: template}
+        block["transition_contracts"]["agent_status"] = {
+            "axis": contract["axis"],
+            "template": name,
+        }
+        return template
+
+    def test_the_live_registry_declares_no_template(self) -> None:
+        """Pinned on purpose. An absent block is the correct state, and if one
+        appears these tests stop describing the gate's real input."""
+        registry = gate.load_json(gate.Lint(), CONTRACT_REGISTRY)
+        self.assertNotIn(
+            "transition_templates", registry["event_kind_registry"]
+        )
+        self.assertEqual(self._run(), [])
+
+    def test_a_template_based_contract_is_equivalent_to_an_inline_one(self) -> None:
+        self.assertEqual(self._newly_reported(self._templatize), [])
+
+    def test_a_contract_declaring_an_unknown_template_is_reported(self) -> None:
+        def mutate(registry: dict) -> None:
+            self._templatize(registry)
+            registry["event_kind_registry"]["transition_contracts"]["agent_status"][
+                "template"
+            ] = "no_such_template"
+
+        reported = self._newly_reported(mutate)
+        self.assertTrue(
+            any("unknown template no_such_template" in error for error in reported),
+            reported,
+        )
+
+    def test_a_contract_declaring_both_a_template_and_an_initial_state_is_reported(
+        self,
+    ) -> None:
+        """The three entry idioms are exclusive, and a template that carries its
+        own entry plus an overriding one is how a machine ends up with two."""
+
+        def mutate(registry: dict) -> None:
+            self._templatize(registry)
+            registry["event_kind_registry"]["transition_contracts"]["agent_status"][
+                "initial_state"
+            ] = "uninitialized"
+
+        reported = self._newly_reported(mutate)
+        self.assertTrue(
+            any("exactly one of initial_state" in error for error in reported),
+            reported,
+        )
+
+    def test_a_template_key_outside_the_closed_set_is_reported(self) -> None:
+        def mutate(registry: dict) -> None:
+            self._templatize(registry)["axis"] = "lifecycle"
+
+        reported = self._newly_reported(mutate)
+        self.assertTrue(
+            any("unknown keys ['axis']" in error for error in reported), reported
+        )
+
+    def test_a_present_but_empty_template_block_is_reported(self) -> None:
+        """An absent block means "no contract uses templates"; an empty one
+        means "the template registry is here and says nothing", which is the
+        shape a lost block has."""
+
+        def mutate(registry: dict) -> None:
+            registry["event_kind_registry"]["transition_templates"] = {}
+
+        reported = self._newly_reported(mutate)
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("must be a non-empty object", reported[0])
+
+    def test_a_declared_parameter_schema_is_reported(self) -> None:
+        def mutate(registry: dict) -> None:
+            self._templatize(registry)["parameter_schema"] = {
+                "type": "object",
+                "properties": {"tier": {"type": "string"}},
+            }
+
+        reported = self._newly_reported(mutate)
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("parameter_schema is not enforced", reported[0])
+
+    def test_state_preserving_profiles_is_reported(self) -> None:
+        """The one family that used to declare this
+        (`ak.component.mls_last_resort_keypackage.*`) is gone, and no gate ever
+        read it. Accepting it again would register an unchecked claim."""
+
+        def mutate(registry: dict) -> None:
+            registry["event_kind_registry"]["transition_contracts"]["agent_status"][
+                "state_preserving_profiles"
+            ] = [
+                {
+                    "profile": "ak.feature.mls_last_resort_keypackage.v1",
+                    "action": "claim_or_consume",
+                    "required_state": "published",
+                }
+            ]
+
+        reported = self._newly_reported(mutate)
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("has no reader in this gate", reported[0])
+
+    # ---- conditional transitions ----------------------------------------
+
+    # The one const -> const edge in the family (`ak.realm.create`). Withholding
+    # a field-sourced edge changes nothing the gate can see, so it would not
+    # tell a real reader from one that admits every conditional edge.
+    _CONDITIONAL_EDGE = ["uninitialized", "active"]
+
+    def _templatize_with_conditional_edge(
+        self, registry: dict, *, tier: str
+    ) -> None:
+        """Move one live edge out of `allowed_transitions` and back in as a
+        conditional edge the instance parameters do or do not select."""
+        template = self._templatize(registry)
+        template["allowed_transitions"] = [
+            pair
+            for pair in template["allowed_transitions"]
+            if pair != self._CONDITIONAL_EDGE
+        ]
+        template["conditional_transitions"] = [
+            {
+                "when": {"parameter": "tier", "const": "full"},
+                "transition": self._CONDITIONAL_EDGE,
+            }
+        ]
+        registry["event_kind_registry"]["transition_contracts"]["agent_status"][
+            "instance_parameters"
+        ] = {"tier": tier}
+
+    def test_a_conditional_edge_is_admitted_when_its_parameter_matches(self) -> None:
+        def mutate(registry: dict) -> None:
+            self._templatize_with_conditional_edge(registry, tier="full")
+
+        self.assertEqual(self._newly_reported(mutate), [])
+
+    def test_a_conditional_edge_is_withheld_when_its_parameter_does_not(self) -> None:
+        """The negative half. Without it, a `conditional_transitions` reader that
+        admitted every edge unconditionally would pass the test above."""
+
+        def mutate(registry: dict) -> None:
+            self._templatize_with_conditional_edge(registry, tier="reduced")
+
+        reported = self._newly_reported(mutate)
+        self.assertTrue(reported, "withholding the edge must change something")
+        self.assertTrue(
+            any("uninitialized -> active" in error for error in reported), reported
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

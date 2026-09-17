@@ -1101,6 +1101,10 @@ _FSM_CONTRACT_KEYS = frozenset(
     }
 )
 
+# Two of the members below are accepted so that the gate can reject them with a
+# reason instead of a generic "unknown key": `concurrent_sibling_conflict` and
+# `parameter_schema` on the template side, `state_preserving_profiles` on the
+# contract side. See check_fsm_state_reachability for each ruling.
 _FSM_TEMPLATE_KEYS = frozenset(
     {
         "states",
