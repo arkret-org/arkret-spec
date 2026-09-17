@@ -41,6 +41,9 @@
       "$ref": "#/$defs/identity_resolution_result"
     },
     {
+      "$ref": "#/$defs/identity_accountability_result"
+    },
+    {
       "$ref": "#/$defs/capability_grant_result"
     },
     {
@@ -694,6 +697,49 @@
         },
         "value": {
           "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_accountability_result": {
+      "type": "object",
+      "description": "One accountability endorsement (family identity_accountability). zh/models/actor.md section 3.3.1: there is one record with two writers, and its identity is (Realm, issuer principal, subject principal, normalized exact scope set) -- the Realm component is the scope this result lives in, so it is not a selector member. A grant that changes a provision endorsement MUST be written into the original controller PCR; the same tuple in another Realm is a different record and cannot revoke this one.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "description": "Composite subject. Producers MUST NOT spell it by string concatenation; the registered composite derives its third component as string_set_digest(accountability_scope, ak.accountability_scope_set.v1), so the scope set carried here is the normalized set that digest is taken over.",
+          "required": [
+            "kind",
+            "issuer_id",
+            "subject_id",
+            "accountability_scope"
+          ],
+          "properties": {
+            "kind": {
+              "const": "identity_accountability"
+            },
+            "issuer_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "subject_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "accountability_scope": {
+              "$ref": "./accountability-grant.schema.json#/$defs/accountability_projection/properties/accountability_scope"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./accountability-grant.schema.json#/$defs/accountability_projection"
         }
       },
       "additionalProperties": false

@@ -81,15 +81,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-18.1",
-      "generated_at": "2026-09-18T07:40:00+08:00",
-      "content_digest": "sha256:0d6cf5d4d02c03e3768540998b106caacd14a3cd54d0797f68a5cabdf381c2e3"
+      "version": "2026-09-18.2",
+      "generated_at": "2026-09-18T09:20:00+08:00",
+      "content_digest": "sha256:7ae444dca606a7a8fb9aeb2eda7844e7f26c6106ff1a3139e3e4b36c4e99c5e6"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
-      "version": "2026-09-17.2",
-      "generated_at": "2026-09-17T21:30:00+08:00",
-      "content_digest": "sha256:176c012f75175b6902ba0027cb708cb2e92f05acb858828169b86f756c7b6656"
+      "version": "2026-09-18.2",
+      "generated_at": "2026-09-18T09:20:00+08:00",
+      "content_digest": "sha256:6b8ffe8188164f9ff1bcfcd4c0e5be072b36d0a40422df85dfa346569e8bb751"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-18.1",
-      "generated_at": "2026-09-18T07:40:00+08:00",
-      "content_digest": "sha256:a4a56619b5975cdd0903537b89dd46c0bfb9f361f18da29c2bd7077a7dd82afc"
+      "version": "2026-09-18.2",
+      "generated_at": "2026-09-18T09:20:00+08:00",
+      "content_digest": "sha256:856eaec84647696482b6b58c21a3bc3eca330354cf3bc47317b06a4f11e5cf9b"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.34",
-      "generated_at": "2026-09-18T07:40:00+08:00",
-      "content_digest": "sha256:684ee2d32edf4b0d62c0290db164ce3d318883cd020cda40ad0ad998d9e8e8ba"
+      "version": "2026-09-16.35",
+      "generated_at": "2026-09-18T09:20:00+08:00",
+      "content_digest": "sha256:2ce12ef227f63d9ed87b4ce588222d90ff1840315006420d0a0d2a9ed1241a8a"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

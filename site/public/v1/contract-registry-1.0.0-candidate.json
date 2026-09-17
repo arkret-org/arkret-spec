@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.1",
+  "version": "2026-09-18.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T07:40:00+08:00",
+  "generated_at": "2026-09-18T09:20:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,7 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 38 of the 139 reducer_input kinds declare it; the remaining 101 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 39 of the 139 reducer_input kinds declare it; the remaining 100 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
     ],
     "payload_schema_contract": {
@@ -1598,8 +1598,62 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Every `Actor Profile.accountable_principal_ids[]` entry requires a matching active grant at profile admission; a missing grant deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md §3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
+        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable to the issuer for a declared scope (employment / contracted_service / agent_operator). Every Actor Profile.accountable_principal_ids[] entry requires a matching active record at profile admission; a missing one deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md section 3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
         "payload_schema_ref": "schemas/accountability-grant.schema.json",
+        "result_writes": [
+          {
+            "result_family": "identity_accountability",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.issuer_id",
+                "payload.subject_id",
+                {
+                  "kind": "string_set_digest",
+                  "field": "payload.accountability_scope",
+                  "context": "ak.accountability_scope_set.v1"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "issuer_id",
+                    "field": "payload.issuer_id"
+                  },
+                  {
+                    "name": "subject_id",
+                    "field": "payload.subject_id"
+                  },
+                  {
+                    "name": "accountability_scope",
+                    "normalized_string_set": {
+                      "field": "payload.accountability_scope",
+                      "context": "ak.accountability_scope_set.v1"
+                    }
+                  },
+                  {
+                    "name": "not_before",
+                    "field": "payload.not_before"
+                  },
+                  {
+                    "name": "expires_at",
+                    "field": "payload.expires_at"
+                  },
+                  {
+                    "name": "grant_status",
+                    "field": "payload.grant_status"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/accountability-grant.schema.json#/$defs/accountability_projection",
+            "notes": "actor.md section 3.3.1 makes this the independent writer of a record that also has an atomic ak.agent.provision projection, and fixes the subject as (Realm, issuer principal, subject principal, normalized exact scope set). The scope component is digested rather than spelled so the wire's singleton string and its one-element array reach the same subject; the stored member is the normalized array through normalized_string_set for the same reason, which is why neither is a plain field copy. The proof is deliberately not projected: it authenticates the Event, and the head Event already answers where the record came from. expires_at is projected only when the payload carries it -- absent means non-expiring, and JSON null would be a third state the value schema does not have. ak.agent.provision is not registered here: it projects four typed results atomically and result_writes[] is a kind's complete contract, so its row has to land with all four families."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -3907,8 +3961,8 @@
         }
       }
     },
-    "version": "2026-09-18.1",
-    "generated_at": "2026-09-18T07:40:00+08:00",
+    "version": "2026-09-18.2",
+    "generated_at": "2026-09-18T09:20:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -14743,6 +14797,10 @@
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_resolution_result"
       },
       {
+        "result_kind": "identity_accountability",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_accountability_result"
+      },
+      {
         "result_kind": "capability_grant",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/capability_grant_result"
       },
@@ -14847,7 +14905,7 @@
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_result"
       }
     ],
-    "version": "2026-09-17.2",
-    "generated_at": "2026-09-17T21:30:00+08:00"
+    "version": "2026-09-18.2",
+    "generated_at": "2026-09-18T09:20:00+08:00"
   }
 }

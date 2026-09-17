@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8632,
+    "total_properties": 8645,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2295,
+      "optional": 2296,
       "optional_defaulted": 50,
-      "required": 5850,
+      "required": 5862,
       "required_nullable": 285,
       "tristate": 152
     },
@@ -1977,6 +1977,12 @@
         "ak.schema.accountability_grant.v1"
       ],
       "properties": {
+        "/$defs/accountability_projection/properties/accountability_scope": "required",
+        "/$defs/accountability_projection/properties/expires_at": "optional",
+        "/$defs/accountability_projection/properties/grant_status": "required",
+        "/$defs/accountability_projection/properties/issuer_id": "required",
+        "/$defs/accountability_projection/properties/not_before": "required",
+        "/$defs/accountability_projection/properties/subject_id": "required",
         "/properties/accountability_scope": "required",
         "/properties/expires_at": "optional",
         "/properties/grant_status": "required",
@@ -11299,6 +11305,13 @@
         "/$defs/capability_grant_result/properties/selector/properties/grant_id": "required",
         "/$defs/capability_grant_result/properties/selector/properties/kind": "required",
         "/$defs/capability_grant_result/properties/value": "required",
+        "/$defs/identity_accountability_result/properties/revision": "required",
+        "/$defs/identity_accountability_result/properties/selector": "required",
+        "/$defs/identity_accountability_result/properties/selector/properties/accountability_scope": "required",
+        "/$defs/identity_accountability_result/properties/selector/properties/issuer_id": "required",
+        "/$defs/identity_accountability_result/properties/selector/properties/kind": "required",
+        "/$defs/identity_accountability_result/properties/selector/properties/subject_id": "required",
+        "/$defs/identity_accountability_result/properties/value": "required",
         "/$defs/identity_resolution_result/properties/revision": "required",
         "/$defs/identity_resolution_result/properties/selector": "required",
         "/$defs/identity_resolution_result/properties/selector/properties/kind": "required",

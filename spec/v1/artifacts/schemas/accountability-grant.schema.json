@@ -70,6 +70,52 @@
         "agent_operator"
       ]
     },
+    "accountability_projection": {
+      "type": "object",
+      "description": "Canonical business value of the identity_accountability typed current result. zh/models/actor.md section 3.3.1 fixes these six members and keeps two things out on purpose: the inner proof, and any source event reference. The head Event and its accepted proof already carry where this endorsement came from, so copying an event id into the value would make two endorsements that say the same thing compare unequal. Both registered writers -- the independent ak.identity.accountability_grant and ak.agent.provision's atomic accountability projection -- MUST reach this shape through a declared value_projection rather than a renaming result_projection.value.field path.",
+      "required": [
+        "issuer_id",
+        "subject_id",
+        "accountability_scope",
+        "not_before",
+        "grant_status"
+      ],
+      "properties": {
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Principal accepting accountability. ak.agent.provision maps its controller_principal_id here."
+        },
+        "subject_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Endorsed actor principal. ak.agent.provision maps its agent_id here."
+        },
+        "accountability_scope": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scope"
+          },
+          "description": "The normalized set, always an array even when the wire form was the singleton string, deduplicated and sorted by ascending raw UTF-8 bytes. This is the same normalization the composite subject digests under ak.accountability_scope_set.v1, which is what makes a provision projection and a later independent grant address one typed current result rather than two."
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp",
+          "description": "ak.agent.provision derives this from the carrying envelope's created_at, which is why its admission requires payload.created_at to equal it byte-for-byte."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Optional, and absent is the meaning rather than the absence of a meaning: the grant is non-expiring and governed by grant_status. A writer whose payload omits it MUST leave this member out; writing JSON null is not the same statement."
+        },
+        "grant_status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     }

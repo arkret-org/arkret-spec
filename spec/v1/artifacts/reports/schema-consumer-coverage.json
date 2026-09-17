@@ -313,7 +313,9 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.event.v1"
+          "ak.schema.event.v1",
+          "ak.schema.realm_authority_root_value.v1",
+          "ak.schema.result_projection.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }

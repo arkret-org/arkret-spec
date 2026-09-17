@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.2",
+  "version": "2026-09-18.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T21:30:00+08:00",
+  "generated_at": "2026-09-18T09:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -53,6 +53,10 @@
     {
       "result_kind": "identity_resolution",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_resolution_result"
+    },
+    {
+      "result_kind": "identity_accountability",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_accountability_result"
     },
     {
       "result_kind": "capability_grant",
