@@ -1135,8 +1135,8 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 全设备丢失时，账号重新登录不能替代 PCR recovery proof。基础路径由丢失前已进入 accepted RealmCommit 的
 recovery policy 授权，并由唯一的 RecoveryTransaction terminal commit
-（[`../identity/security-transactions.md` §2](../identity/security-transactions.md)）一次提交两条 Event 与首个新
-generation RealmCommit：
+（[`../identity/security-transactions.md` §2](../identity/security-transactions.md)）在同一事务内提交两条 Event
+与承载它们的、position 连续的首批新 generation RealmCommit（每条 Event 各一笔）：
 
 1. replacement device 签署的、policy-authorized `ak.device.reanchor` 绑定 policy/version/session、exact `account_id`、replacement
    authorize payload digest 与 monotonic PCR generation CAS；

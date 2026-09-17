@@ -278,7 +278,7 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 6. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
 7. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
 
-以上两条无条件写入加五条条件 row 构成 create 的完整 projection；第 5 至 7 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 一起进入 genesis RealmCommit/state commitment。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
+以上两条无条件写入加五条条件 row 构成 create 的完整 projection；第 5 至 7 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
 **result_writes[] 的覆盖度（normative）**：`result_writes[]` 是「某个 Event kind 写哪些 typed current result、顺序如何、条件是什么」的唯一机读合同，由 `tools/artifact_lint:result_write_contracts` 校验。**当前它只在部分 Event kind 上登记**（见 `contract-registry.json` 的 `event_kind_registry.registry_rules`，其中记录了确切的已覆盖 / 未覆盖计数）；其余 reducer-input kind 的 registered writes 目前只存在于正文。规范正文 **MUST NOT** 对尚未登记的 kind 引用其 `result_writes[]`——引用一个不存在的登记项，正是这个数组被引入来消除的缺陷。扩大覆盖面时同时收缩该注记，**MUST NOT** 把规则改写成看起来已经完整。
 

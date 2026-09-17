@@ -153,11 +153,11 @@ RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、prev
 接受 terminal step 时，治理 Station 在同一数据库事务与同一 stream-head/generation CAS 下：
 
 1. 重验 transaction、session、plan、receipt、outer attestation 与两条 Event；
-2. 以 `[reanchor, authorize]` 顺序为 PCR stream 生成并签署一个 RealmCommit；
+2. 以 `[reanchor, authorize]` 顺序为 PCR stream 生成并签署**两笔 position 连续的 RealmCommit**，每条 Event 各一笔；
 3. 原子保存 Event、RealmCommit、stream head、generation advance、replacement device active state、session consumption 与 terminal result；
 4. 生成 `RecoveryCompletionAttestation`。
 
-任一步失败都不得留下可见 Event、RealmCommit 或部分 generation state。成功后两条 Event 的 `CommittedEventRef` 必须具有相同 `stream_ref` 与 `commit_id`，position 按上述顺序递增。
+任一步失败都不得留下可见 Event、RealmCommit 或部分 generation state。成功后两条 Event 的 `CommittedEventRef` MUST 具有相同 `stream_ref`、**不同 `commit_id`** 与不同 `event_id`，`stream_position` 按上述顺序严格加一。一条 RealmCommit 恰好接纳一条 Event（[`realm-commit.schema.json`](../../artifacts/schemas/realm-commit.schema.json) 的 `event_ref` 与 `stream_position` 都是单值必填），因此「两条 Event 落在同一个 `commit_id` 上」不是一种可实现的形态：同一个 `commit_id` 就是同一个 `stream_position`。unit 的原子性是**事务级**的，由上述第 3 步的同事务 stream-head/generation CAS 保证，不由共享一笔 Commit 保证。
 
 ### 2.4 operation 与 grant 边界
 
