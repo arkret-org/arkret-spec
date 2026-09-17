@@ -379,14 +379,6 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             "read_retry_contract",
             "write_durable_effect_contract",
         },
-        "event_kind_lattice_dispatch_fixture": {
-            "registered_dispatch_target",
-            "bottom_only_for_causal_register",
-            "family_semantics_present",
-            "unknown_dispatch_fails_closed",
-            "transition_contract_closure",
-            "actor_private_contract_closure",
-        },
         "event_kind_payload_coverage_fixture": {
             "catalog_registry_bijection",
             "payload_schema_ref_resolves",
@@ -394,10 +386,20 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             "unknown_durable_kind_fails_closed",
         },
     }
+    # The table above is keyed by suite and the sweep below is keyed by file, so
+    # an entry naming a suite nobody ships is unreachable rather than wrong:
+    # c473e3c4 deleted event-kind-lattice-dispatch-fixture.json with the rest of
+    # the pre-clean-break lattice and left its row here, asserting against a file
+    # that had stopped existing. The row is gone and the two are reconciled after
+    # the sweep so the next deletion is an error instead of a silent hole.
+    declared_suites: set[str] = set()
     for path in sorted(fixture_root.glob("*.json")):
         data = load_json(lint, path)
         if not isinstance(data, dict):
             continue
+        suite_name = data.get("suite")
+        if isinstance(suite_name, str):
+            declared_suites.add(suite_name)
         runner = data.get("runner")
         if not isinstance(runner, dict):
             lint.fail(path, "top-level runner must be an object with runner.kind")
@@ -429,6 +431,13 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             } if isinstance(assertions, list) else set()
             if expected is None or actual != expected:
                 lint.fail(path, f"registry coverage assertions are not bound to the executable lint contract: {sorted(actual)}")
+    unshipped = sorted(set(executable_registry_assertions) - declared_suites)
+    if unshipped:
+        lint.fail(
+            fixture_root,
+            "executable registry assertion contract names fixture suite(s) no file declares: "
+            f"{unshipped}",
+        )
 
 
 def check_erasure_verification_contract(lint: Lint) -> None:

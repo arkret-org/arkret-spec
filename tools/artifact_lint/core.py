@@ -171,15 +171,6 @@ SECURITY_CLOSURE_VECTOR_IDS = {
 }
 
 
-REGISTRY_STATE_MODELS = {
-    "or_set",
-    "causal_register",
-    "sequenced_state",
-    "counter",
-    "ordered_log",
-}
-
-
 REGISTRY_PLANES = {"data", "control", "conditional"}
 
 # zh/conformance/encoding.md 4.1 closes the set of top-level `cell_subject`

@@ -213,10 +213,13 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
     ``value_projection`` was present and then read neither. The grammar that did
     validate it, ``foundation.lint_effect_source``, was written for
     ``effect_projection`` and lost its only caller when the ``cell_writes[]``
-    loop went dead, so 31 registered ``set`` values were passing unread.
+    loop went dead, so every registered whole value was passing unread. That
+    grammar is gone entirely now: 65e4daf3 deleted the function with the rest of
+    the dead half of ``check_registries``.
 
     The closure is the one already in force for ``keyed_set_add`` in this file,
-    and it is exactly what the live rows use: one member, ``field`` or
+    and it is wider than what the live rows use: all 30 whole values in the
+    registry (27 ``set`` and 3 ``keyed_set_add``) name ``field``, and none names
     ``envelope_field``. The retired grammar also admitted ``const``,
     ``projected_value``, ``object_without_fields`` and ``dot``; no registered row
     uses any of them for a whole value, and re-admitting a spelling nothing needs

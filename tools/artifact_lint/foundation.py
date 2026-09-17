@@ -25,7 +25,6 @@ from .core import (
     OPERATION_KINDS,
     PROFILE_ID_RE,
     Path,
-    REGISTRY_STATE_MODELS,
     REGISTRY_PLANES,
     ROOT,
     SCHEMA_ID_RE,
