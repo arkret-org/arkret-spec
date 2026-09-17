@@ -6,8 +6,8 @@
   "generated_from": [
     "spec/v1/artifacts/registry/event-kind-registry.json"
   ],
-  "generated_by": "tools/artifact_lint (check_apply_patch_base_producers)",
-  "description": "Ledger of cell families that a registered apply_patch write targets while no registered write produces a base value for them. An apply_patch needs a base, and event-auth-state-resolution.md section 6 forbids closing the gap with a registered initial_value: the base must come from a registered create or genesis write. Opened 2026-09-07 with four entries by tasks/spec-open/2026-09-07-1305-four-apply-patch-targets-have-no-registered-producer.md and emptied the same day by decisions/0029. families_without_base_producer only shrinks; a new entry is a defect, not a baseline update. resolved_families is kept as the record of what each fix was.",
+  "generated_by": "tools/artifact_lint (check_partial_update_base_producers)",
+  "description": "Ledger of typed current result families that a registered partial update (merge, or apply_patch if that projection returns) targets while no registered write produces a base value for them. A partial update needs a base, and models/views.md section 3.2 forbids closing the gap with a registered initial_value: the base must come from a registered create or genesis write. Opened 2026-09-07 with four entries by tasks/spec-open/2026-09-07-1305-four-apply-patch-targets-have-no-registered-producer.md and emptied the same day by decisions/0029. Entries name the family under result_family; the frozen resolved_families records below predate the authority-commit clean break and keep the cell_family spelling of their date. families_without_base_producer only shrinks; a new entry is a defect, not a baseline update.",
   "families_without_base_producer": [],
   "resolved_families": [
     {

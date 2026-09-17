@@ -42,7 +42,7 @@ import posixpath
 import re
 from typing import Any
 
-from .core import ARTIFACTS, Lint, load_json, resolve_json_pointer
+from .core import ARTIFACTS, Lint, TOOLS_ROOT, load_json, resolve_json_pointer
 
 PROOF_CONTEXT_REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMA_REGISTRY = ARTIFACTS / "registry" / "schema-registry.json"
@@ -1042,3 +1042,200 @@ def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
                     f"cites {kind}.result_writes[] but that Event kind declares no result_writes "
                     "in contract-registry.json; register the contract or stop citing it",
                 )
+
+
+# A whole prior value has to exist before anything can update part of it.
+# `set` writes one outright; a `transition` out of the absent state creates the
+# object the same way. Everything else builds on what a previous write left.
+_PARTIAL_UPDATE_PROJECTIONS = frozenset({"merge", "apply_patch"})
+PATCH_BASE_PRODUCER_BASELINE = TOOLS_ROOT / "patch-base-producer-baseline.json"
+
+
+def _is_base_producer(projection: Any) -> bool:
+    if not isinstance(projection, dict):
+        return False
+    kind = projection.get("kind")
+    if kind == "set":
+        return True
+    if kind != "transition":
+        return False
+    source = projection.get("from")
+    # `from: {"const": null}` is the genesis edge out of the absent state; a
+    # transition between two real states changes one axis of a value someone
+    # else created.
+    return isinstance(source, dict) and "const" in source and source["const"] is None
+
+
+def _selector_shape(write: dict) -> str:
+    selector = write.get("result_selector")
+    if selector is None:
+        return "null"
+    if isinstance(selector, dict):
+        return str(selector.get("kind"))
+    return str(selector)
+
+
+def check_partial_update_base_producers(lint: Lint) -> None:
+    """A partial update needs a base value, and only a registered write supplies it.
+
+    `zh/models/views.md` section 3.2 argues it in full and the argument is not
+    about views: an update that lands on a typed current result nobody has
+    written has no pre-state, the current-value contract forbids closing the gap
+    with a registered `initial_value`, and `null` or an empty object MUST NOT be
+    treated as implicit initialization. So the base has to come from a
+    registered create or genesis write, and the first partial update MUST NOT
+    become the object's definition by default.
+
+    The gate was written for `apply_patch` and has been dead since the
+    authority-commit clean break renamed `cell_writes[].cell_family` /
+    `effect_projection` to `result_writes[].result_family` /
+    `result_projection`. `apply_patch` is not in the v1 `result_projection`
+    closed set at all -- views.md section 3.2 still requires it and the three
+    patch kinds are still uncovered, which is its own open question -- but
+    `merge` is the live partial update and the same sentence covers it verbatim.
+    Both are checked here so the rule binds today and keeps binding if the patch
+    vocabulary comes back.
+
+    Keyed-set projections are deliberately not partial updates: a keyed set
+    begins empty, `keyed_set_add` is its genesis, and a remove over the observed
+    set (`zh/models/pins.md` section 3) needs no whole prior value. Requiring a
+    `set` producer for `agent_key` would be demanding a base its own contract
+    says it does not have.
+    """
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(EVENT_KIND_REGISTRY, "event_kinds[] must be an array")
+        return
+
+    producers: dict[str, set[str]] = {}
+    producer_shapes: dict[str, set[str]] = {}
+    other_writers: dict[str, set[str]] = {}
+    updaters: dict[str, set[str]] = {}
+    updater_shapes: dict[str, set[str]] = {}
+    writes_seen = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        for write in row.get("result_writes") or []:
+            if not isinstance(write, dict):
+                continue
+            writes_seen += 1
+            family = write.get("result_family")
+            if not isinstance(family, str):
+                continue
+            projection = write.get("result_projection")
+            projection_kind = (
+                projection.get("kind") if isinstance(projection, dict) else None
+            )
+            if projection_kind in _PARTIAL_UPDATE_PROJECTIONS:
+                updaters.setdefault(family, set()).add(kind)
+                updater_shapes.setdefault(family, set()).add(_selector_shape(write))
+            elif _is_base_producer(projection):
+                producers.setdefault(family, set()).add(kind)
+                producer_shapes.setdefault(family, set()).add(_selector_shape(write))
+            else:
+                other_writers.setdefault(family, set()).add(kind)
+
+    if not writes_seen:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "check_partial_update_base_producers inspected no result_writes[] entry at all; "
+            "the registry either lost its writes or spells the array under another key, and "
+            "either way this gate's silence means nothing",
+        )
+        return
+
+    unproduced = {family for family in updaters if not producers.get(family)}
+
+    # decisions/0029 section 3.2: a producer has to be usable as this update's
+    # base, not merely present. A producer that addresses a different selector
+    # shape names a different object, so it supplies no base for this one.
+    for family in sorted(set(updaters) - unproduced):
+        if not updater_shapes[family] <= producer_shapes[family]:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{family} is partially updated on selector shape(s) "
+                f"{sorted(updater_shapes[family])} but its base-value producer(s) address "
+                f"{sorted(producer_shapes[family])}; a base value has to be written to the same "
+                "object the update addresses",
+            )
+    for family in sorted(unproduced & set(other_writers)):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{family} has only writer(s) {sorted(other_writers[family])} beside its partial "
+            "update(s); none of them writes a whole value, so none can be the base the update "
+            "resolves against",
+        )
+
+    baseline = load_json(lint, PATCH_BASE_PRODUCER_BASELINE) or {}
+    known = {
+        entry.get("result_family")
+        for entry in baseline.get("families_without_base_producer") or []
+        if isinstance(entry, dict)
+    }
+    for family in sorted(unproduced - known):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{family} is the target of partial update write(s) {sorted(updaters[family])} but no "
+            "registered write produces a base value for it; an update has no pre-state and the "
+            "current-value contract forbids closing the gap with a registered initial_value",
+        )
+    for family in sorted(known - unproduced):
+        detail = (
+            "now has a registered base-value producer"
+            if family in updaters
+            else "is no longer the target of any partial update write"
+        )
+        lint.fail(
+            PATCH_BASE_PRODUCER_BASELINE,
+            f"{family} {detail}; remove it from families_without_base_producer "
+            "(the baseline only shrinks)",
+        )
+
+
+def check_result_family_write_agreement(lint: Lint) -> None:
+    """All writers of one family must agree on the value schema they write.
+
+    This is what survives of `check_concurrency_class_closure`, which required
+    every writer of a family to share one `execution` / `state_model` /
+    `value_shape` contract. The clean break removed all three members, so that
+    gate compared three absent values on an absent array and said nothing; its
+    only live rule was the retired-`concurrency_class` row guard, which now sits
+    with the other removed-field guards in `check_registries`.
+
+    The proposition still holds, and in v1 it has one spelling: a family has one
+    value, so two rows that both name a `value_schema_ref` for it MUST name the
+    same one. A row may still omit it -- a `transition` writes no projection
+    members and has nothing to declare -- so this checks agreement among the
+    rows that declare one, not presence.
+    """
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(EVENT_KIND_REGISTRY, "event_kinds[] must be an array")
+        return
+    declared: dict[str, dict[str, set[str]]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        for write in row.get("result_writes") or []:
+            if not isinstance(write, dict):
+                continue
+            family = write.get("result_family")
+            ref = write.get("value_schema_ref")
+            if isinstance(family, str) and isinstance(ref, str):
+                declared.setdefault(family, {}).setdefault(ref, set()).add(kind)
+    for family, refs in sorted(declared.items()):
+        if len(refs) > 1:
+            detail = "; ".join(
+                f"{ref} ({', '.join(sorted(str(kind) for kind in kinds))})"
+                for ref, kinds in sorted(refs.items())
+            )
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{family} is written under {len(refs)} different value_schema_ref values, so its "
+                f"writers do not agree on what the family's value is: {detail}",
+            )

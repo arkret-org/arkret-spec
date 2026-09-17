@@ -206,7 +206,9 @@ from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
     check_proof_context_object_family_schemas,
     check_every_result_family_has_a_writer,
+    check_partial_update_base_producers,
     check_registered_families_are_listed_in_prose,
+    check_result_family_write_agreement,
     check_result_write_contracts,
     check_result_write_coverage_note,
 )
@@ -290,6 +292,14 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "every_result_family_has_a_writer",
                 lambda: check_every_result_family_has_a_writer(lint),
+            ),
+            (
+                "result_family_write_agreement",
+                lambda: check_result_family_write_agreement(lint),
+            ),
+            (
+                "partial_update_base_producers",
+                lambda: check_partial_update_base_producers(lint),
             ),
             (
                 "registered_families_are_listed_in_prose",

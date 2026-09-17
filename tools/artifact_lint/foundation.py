@@ -989,128 +989,6 @@ def lint_effect_projection(
                 lint_effect_source(lint, path, f"{branch_ref}.value", branch["value"])
 
 
-def _cell_subject_sources(subject: object) -> set[str]:
-    """Every payload/envelope field path a cell subject is derived from."""
-    sources: set[str] = set()
-    if isinstance(subject, dict):
-        field = subject.get("field")
-        if isinstance(field, str):
-            sources.add(field)
-        for key in ("components", "options"):
-            for part in subject.get(key) or []:
-                sources |= _cell_subject_sources(part)
-    return sources
-
-
-def check_apply_patch_base_producers(lint: Lint, event_registry: dict, event_path: Path) -> None:
-    """An apply_patch needs a base value, and only a registered write can supply it.
-
-    zh/authz/event-auth-state-resolution.md section 9.3.1.2 closes the other door:
-    a family may not declare an initial_value, so the base has to come from a
-    registered create or genesis write. A family whose only writer is the patch
-    itself therefore has no defined pre-state, and the first patch silently
-    becomes the object's definition. The four families that are in that state
-    today are frozen in tools/patch-base-producer-baseline.json; the list only
-    shrinks.
-    """
-    def subject_shape(write: dict) -> str:
-        subject = write.get("cell_subject")
-        if subject is None:
-            return "null"
-        if isinstance(subject, dict):
-            return str(subject.get("kind"))
-        return str(subject)
-
-    producers: dict[str, set[str]] = {}
-    producer_shapes: dict[str, set[str]] = {}
-    non_set_producers: dict[str, set[str]] = {}
-    patchers: dict[str, set[str]] = {}
-    patcher_shapes: dict[str, set[str]] = {}
-    for row in event_registry.get("event_kinds") or []:
-        if not isinstance(row, dict):
-            continue
-        kind = row.get("event_kind")
-        for write in row.get("cell_writes") or []:
-            if not isinstance(write, dict):
-                continue
-            family = write.get("cell_family")
-            if not isinstance(family, str):
-                continue
-            projection_kind = (write.get("effect_projection") or {}).get("kind")
-            if projection_kind == "apply_patch":
-                patchers.setdefault(family, set()).add(kind)
-                patcher_shapes.setdefault(family, set()).add(subject_shape(write))
-            elif projection_kind == "set":
-                producers.setdefault(family, set()).add(kind)
-                producer_shapes.setdefault(family, set()).add(subject_shape(write))
-            elif projection_kind in ("append", "transition"):
-                non_set_producers.setdefault(family, set()).add(kind)
-    unproduced = {family for family in patchers if not producers.get(family)}
-
-    # decisions/0029 section 3.2: a producer has to be usable as this patch's
-    # base, not merely present. An append or a transition writes no whole value,
-    # and a producer that addresses a different subject shape names a different
-    # object, so neither supplies a base the patch can apply to.
-    for family in sorted(set(patchers) - unproduced):
-        if not patcher_shapes[family] <= producer_shapes[family]:
-            lint.fail(
-                event_path,
-                f"{family} is patched on subject shape(s) {sorted(patcher_shapes[family])} but its "
-                f"set producer(s) address {sorted(producer_shapes[family])}; a base value has to be "
-                "written to the same object the patch addresses",
-            )
-    for family in sorted(unproduced & set(non_set_producers)):
-        lint.fail(
-            event_path,
-            f"{family} has only append/transition writer(s) {sorted(non_set_producers[family])}; "
-            "neither writes a whole value, so neither can be the base an apply_patch resolves "
-            "against",
-        )
-
-    baseline_path = TOOLS_ROOT / "patch-base-producer-baseline.json"
-    baseline = load_json(lint, baseline_path) or {}
-    known = {
-        entry.get("cell_family")
-        for entry in baseline.get("families_without_base_producer") or []
-        if isinstance(entry, dict)
-    }
-    for family in sorted(unproduced - known):
-        lint.fail(
-            event_path,
-            f"{family} is the target of apply_patch write(s) {sorted(patchers[family])} but no "
-            "registered write produces a base value for it; a patch has no pre-state and section "
-            "9.3.1.2 forbids closing the gap with a registered initial_value",
-        )
-    for family in sorted(known - unproduced):
-        detail = (
-            "now has a registered base-value producer"
-            if family in patchers
-            else "is no longer the target of any apply_patch write"
-        )
-        lint.fail(
-            baseline_path,
-            f"{family} {detail}; remove it from families_without_base_producer "
-            "(the baseline only shrinks)",
-        )
-
-
-def check_concurrency_class_closure(lint: Lint, event_registry: dict, event_path: Path) -> None:
-    """Every writer of a registered family must use one execution/model contract."""
-    families = {}
-    for row in event_registry.get("event_kinds", []):
-        if "concurrency_class" in row:
-            lint.fail(event_path, "retired concurrency_class must not override registered write execution")
-        for write in row.get("cell_writes", []):
-            family = write.get("cell_family")
-            execution = write.get("execution")
-            model = write.get("state_model")
-            if (execution == "security") != (model == "sequenced_state"):
-                lint.fail(event_path, f"{family} execution and state_model disagree")
-            contract = (execution, model, write.get("value_shape"))
-            if family in families and families[family] != contract:
-                lint.fail(event_path, f"{family} has conflicting execution/model contracts")
-            families[family] = contract
-
 
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
@@ -1129,10 +1007,6 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     profile_registry = load_json(lint, profile_path) or {}
     constraint_schema = load_json(lint, constraint_schema_path) or {}
 
-    if any("cell_writes" in row for row in event_registry.get("event_kinds", []) if isinstance(row, dict)):
-        check_concurrency_class_closure(lint, event_registry, event_path)
-        check_apply_patch_base_producers(lint, event_registry, event_path)
-
     event_rows = event_registry.get("event_kinds", [])
     event_kinds = unique_values(lint, event_path, event_rows, "event_kind")
     event_by_kind = {
@@ -1150,7 +1024,22 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if wire_scope not in wire_scopes:
             lint.fail(event_path, f"{kind} has unknown wire_scope {wire_scope!r}")
         if "cell_writes" not in row:
-            legacy = sorted(set(row) & {"plane", "sealed", "cell_family", "cell_subject", "state_model"})
+            # `concurrency_class` joins the list from the retired
+            # check_concurrency_class_closure: the clean break removed the
+            # per-write `execution` / `state_model` / `value_shape` members that
+            # gate compared, so this row-level guard is the only part of it that
+            # still has a subject.
+            legacy = sorted(
+                set(row)
+                & {
+                    "plane",
+                    "sealed",
+                    "cell_family",
+                    "cell_subject",
+                    "state_model",
+                    "concurrency_class",
+                }
+            )
             if legacy:
                 lint.fail(event_path, f"{kind} carries removed typed-state fields {legacy}")
             continue
