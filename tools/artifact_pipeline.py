@@ -1346,6 +1346,7 @@ def cmd_check(_: argparse.Namespace) -> int:
     print_contract_status()
     checks = (
         ("authority commit protocol", lambda: subprocess.run([sys.executable, "-m", "tools.test_authority_commit_protocol"], cwd=ROOT).returncode),
+        ("result family writer gate", lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_result_family_writer_gate"], cwd=ROOT).returncode),
         ("current principal schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode),
         ("openapi operation selector", lambda: run_openapi_operation_selector("check")),
         ("operation closure locks", lambda: run_operation_closure_locks("check")),

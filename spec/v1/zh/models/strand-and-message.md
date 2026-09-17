@@ -935,7 +935,7 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 **本节与 typed current result projection 的分层（normative）**：`message_reactions` 是
 [`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md) 的核心
 `keyed-set projection`，其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
-一个 `{"kind":"keyed-set projection_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
+一个 `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
 是**往集合里加一条断言**，而不是 explicit revocation。这不是绕路，而是本节要求的唯一可表达形态：
 本节明文要求审计视图保留并发 (add, remove) 的双方，若 remove 走 explicit revocation，被移除的
 add dot 就不复存在，审计视图无从重建；本节又要求 remove 连**与之并发**的 add 一并 tombstone，

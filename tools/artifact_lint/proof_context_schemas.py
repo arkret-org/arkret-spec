@@ -173,7 +173,93 @@ def check_proof_context_object_family_schemas(lint: Lint) -> None:
                 )
 
 
-_RESULT_PROJECTION_KINDS = frozenset({"set", "merge", "transition"})
+# `set` / `merge` / `transition` cover a register-shaped family. `agent_key` is
+# not register-shaped: zh/identity/key-management.md section 3.6.1 fixes its
+# registered reducer projection as a tagged set whose element tag is the
+# canonical `<event_id>:<write_index>` Event dot of event-and-patch.md section
+# 2.4.2, and typed-current-result.schema.json backs that with a closed
+# `agent_key_authorization_entry` of exactly `{tag_id, value}`. A register kind
+# cannot express it, and spelling it as `set` would silently collapse a
+# tagged-set family into whole-value overwrite -- the shell this file exists to
+# refuse. The three keyed-set kinds below carry over the shapes of the retired
+# pre-v1 set vocabulary that still sits dormant in foundation.py, under the v1
+# names that zh/models/pins.md and zh/models/strand-and-message.md already use,
+# so nothing is invented here and the retired spelling is not resurrected.
+_RESULT_PROJECTION_KINDS = frozenset(
+    {"set", "merge", "transition", "keyed_set_add", "keyed_set_remove_observed", "keyed_set_remove_dots"}
+)
+_RESULT_KEYED_SET_KINDS = frozenset({"keyed_set_add", "keyed_set_remove_observed", "keyed_set_remove_dots"})
+
+# The exact Agent supersedes remove of foundation.py lines 1186-1193. `for_each`
+# and `keyed_set_remove_dots` exist only for this one registered write; anything
+# else would be an open-ended per-item removal loop over arbitrary families.
+_AGENT_SUPERSEDES_FOR_EACH = {"field": "payload.supersedes", "max_items": 256}
+_AGENT_SUPERSEDES_SELECTOR = {
+    "kind": "composite",
+    "components": ["payload.agent_id", "item.key_id"],
+}
+_AGENT_SUPERSEDES_PROJECTION = {
+    "kind": "keyed_set_remove_dots",
+    "dots": {"agent_authorization_dot": {"field": "item.authorized_event_ref"}},
+}
+
+
+def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, projection: dict) -> None:
+    """Validate one keyed-set `result_projection` and its `for_each` closure.
+
+    The add tag MUST be the write's own canonical dot. `key-management.md`
+    section 3.6.1 says so in as many words ("绝不是裸 `event_id`"), and the reason
+    is mechanical: one Event may carry several writes on one subject, so a bare
+    `event_id` is not unique among them and two entries would collide on one tag.
+    """
+    kind = projection["kind"]
+    if kind == "keyed_set_add":
+        unknown = set(projection) - {"kind", "tag", "value"}
+        if unknown:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection has unknown member(s) {sorted(unknown)}")
+        if projection.get("tag") != {"dot": True}:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f'{where}.result_projection.tag must be exactly {{"dot": true}}; the stable element '
+                "tag is the canonical <event_id>:<write_index> dot, never a bare event_id",
+            )
+        value = projection.get("value")
+        if not isinstance(value, dict) or len([k for k in ("field", "envelope_field") if k in value]) != 1:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection.value must declare exactly one of field/envelope_field",
+            )
+        elif "field" in value:
+            from .foundation import lint_field_path
+
+            lint_field_path(lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.value.field", value["field"])
+    elif kind == "keyed_set_remove_observed":
+        unknown = set(projection) - {"kind", "match"}
+        if unknown:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection has unknown member(s) {sorted(unknown)}")
+        match = projection.get("match")
+        if match is None:
+            return
+        if not isinstance(match, dict) or set(match) - {"element_field", "source"}:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection.match must be {{element_field, source}}")
+            return
+        from .foundation import lint_field_path
+
+        lint_field_path(
+            lint, EVENT_KIND_REGISTRY, f"{where}.result_projection.match.element_field", match.get("element_field")
+        )
+        if "source" not in match:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection.match.source is required")
+    elif kind == "keyed_set_remove_dots":
+        if "for_each" not in write:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection keyed_set_remove_dots is legal only inside the registered "
+                "for_each supersedes remove; a payload-enumerated dot array with no per-item bound is "
+                "an open removal loop",
+            )
+
+
 RESULT_FAMILY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 CURRENT_RESULT_REGISTRY = ARTIFACTS / "registry" / "current-result-registry.json"
 
@@ -301,6 +387,7 @@ def check_result_write_contracts(lint: Lint) -> None:
             unknown = set(write) - {
                 "result_family",
                 "result_selector",
+                "for_each",
                 "condition",
                 "result_projection",
                 "derived_members",
@@ -309,6 +396,25 @@ def check_result_write_contracts(lint: Lint) -> None:
             }
             if unknown:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where} has unknown member(s) {sorted(unknown)}")
+            if "for_each" in write:
+                if (
+                    kind != "ak.agent.key.authorize"
+                    or index != 0
+                    or write["for_each"] != _AGENT_SUPERSEDES_FOR_EACH
+                    or write.get("result_selector") != _AGENT_SUPERSEDES_SELECTOR
+                    or write.get("result_projection") != _AGENT_SUPERSEDES_PROJECTION
+                ):
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where}.for_each is restricted to the exact Agent supersedes remove of "
+                        "zh/identity/key-management.md section 3.6.1: write 0 of ak.agent.key.authorize, "
+                        "removing only the observed authorization dot from its old key subject",
+                    )
+            elif kind == "ak.agent.key.authorize" and index == 0:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} must enumerate the bounded exact supersedes set before the add",
+                )
             family = write.get("result_family")
             if not isinstance(family, str) or not RESULT_FAMILY_RE.fullmatch(family):
                 lint.fail(
@@ -346,6 +452,8 @@ def check_result_write_contracts(lint: Lint) -> None:
                             EVENT_KIND_REGISTRY,
                             f"{where}.result_projection.{member} must declare a const state",
                         )
+            elif projection["kind"] in _RESULT_KEYED_SET_KINDS:
+                _check_result_keyed_set_projection(lint, where, write, projection)
             elif "value" not in projection and "value_projection" not in projection:
                 lint.fail(
                     EVENT_KIND_REGISTRY,

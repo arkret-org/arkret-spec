@@ -46,14 +46,14 @@ Pin note 若存在 MUST 使用 `EncryptedPayload` 加密；v1 不提供 plaintex
 
 `pin:<pin_scope.id>` 是 [`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md)
 的核心 `keyed-set projection`，其元素是 **pin 断言**：`ak.pin.add`、`ak.pin.remove` 与 `ak.pin.reorder`
-**各精确投影一个** `{"kind":"keyed-set projection_add","tag":{"dot":true},"value":{"field":"payload"}}`。
+**各精确投影一个** `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`。
 remove 与 reorder 同样是**往集合里加一条断言**，而不是 explicit revocation。
 
 一个 pin scope 下的全部 pin 共用这一个 typed current result，因此 entry 身份分两层：`pin_scope` 由 typed current result subject
 承载，`target_ref` 是元素值上的字段。三个 kind 的元素值都是各自完整 payload，投影不拼装、
 改名或裁剪字段（[`event-and-patch.md` §2.4.2](./event-and-patch.md)）。
 
-**为什么 remove 不用 `keyed-set projection_remove_observed`**：无 `match` 的形态会移除同 scope 下**全部**
+**为什么 remove 不用 `keyed_set_remove_observed`**：无 `match` 的形态会移除同 scope 下**全部**
 target 的 pin；带 `match` 的形态只移除**冻结前态**下存活的 add dot，与该 remove 并发的 add
 不在其中，于是并发 (add, remove) 会静默收敛为 add；下一段要求这类互斥并发显式暴露而非任选一边，故 remove 必须是断言。
 

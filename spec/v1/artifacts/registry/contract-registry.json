@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.5",
+  "version": "2026-09-17.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T16:30:00+08:00",
+  "generated_at": "2026-09-17T17:55:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,7 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 6 of the 139 reducer_input kinds declare it (ak.call.recording.start, ak.call.state, ak.call.summary, ak.capability.grant, ak.realm.create, ak.realm.history_access); the remaining 133 still have no machine-readable reducer contract, so their registered writes exist only in prose. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 12 of the 139 reducer_input kinds declare it (ak.agent.key.authorize, ak.call.recording.start, ak.call.state, ak.call.summary, ak.capability.grant, ak.member.state, ak.mls.commit, ak.mls.genesis, ak.realm.create, ak.realm.history_access, ak.realm.profile, ak.strand.create); the remaining 127 still have no machine-readable reducer contract, so their registered writes exist only in prose. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -546,6 +546,53 @@
         "reducer_input": true,
         "payload": "Agent key authorization is a commit-ordered projection security command with complete explicit revocation set representation. Same-key replacement removes all authorization dots visible at the signed basis and adds one replacement dot, after exact revision and authority checks at execution. Competing replacements cannot survive as concurrent permission heads. Runtime replacement pairs a new raw key and revokes prior active keys in the same confirmed transaction.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
+        "result_writes": [
+          {
+            "result_family": "agent_key",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.agent_id",
+                "item.key_id"
+              ]
+            },
+            "for_each": {
+              "field": "payload.supersedes",
+              "max_items": 256
+            },
+            "result_projection": {
+              "kind": "keyed_set_remove_dots",
+              "dots": {
+                "agent_authorization_dot": {
+                  "field": "item.authorized_event_ref"
+                }
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_current",
+            "notes": "identity/key-management.md section 3.6.1 fixes the order: the reducer MUST first project, for every payload.supersedes[] item, a remove of the observed canonical Event dot named by that item's authorized_event_ref on the OLD key subject, and only then add the new authorization. So this is write_index 0 and the add below is write_index 1. The subject moves per item, which is why the selector reads item.key_id while the add reads payload.key_id; payload.supersedes is the exact complete active authorization set at expected_revision, bounded at 256 items, so the loop is closed rather than open. Removing the exact observed dot rather than the whole observed set is what makes same-key re-authorization and replacement supersede provable from the signed RealmCommit without a service-private key table."
+          },
+          {
+            "result_family": "agent_key",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.agent_id",
+                "payload.key_id"
+              ]
+            },
+            "result_projection": {
+              "kind": "keyed_set_add",
+              "tag": {
+                "dot": true
+              },
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_current",
+            "notes": "identity/key-management.md section 3.6.1: the stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id, and the element value is the complete authorize payload. The subject MUST be the SDK composite_subject([agent_id, key_id]) and MUST NOT be spelled by string concatenation or as a diagnostic subject; agent_key_result.selector carries the two components separately for the same reason. ak.agent.key.revoke is the family's second normative writer and is deliberately still unregistered: section 3.6.1 tells it to remove every active authorize dot observed at expected_revision and then add a revocation boundary marker, but agent_key_authorization_entry is a closed {tag_id, value} with no authorize/revoke discriminator, so 'every active authorize dot' and 'every observed dot' are only the same set until a re-authorization follows an earlier revoke. Registering a bare keyed_set_remove_observed, whose match-less form removes every observed element in scope (zh/models/pins.md section 3), would silently drop that earlier boundary marker, so the shape waits on a prose ruling rather than on a guess."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -1487,6 +1534,34 @@
         "admission": "capability_gated",
         "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
+        "result_writes": [
+          {
+            "result_family": "member_state",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.member_id"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "membership",
+                    "field": "payload.membership"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
+            "notes": "models/realm-and-space.md section 2.7 says ak.member.state writes member_state under the complete payload.member_id ActorId, and the account branch compares both AccountId components, so the subject is the canonical JSON of the whole ActorId and never a bare DID. The shared materialized membership FSM of models/common-fields.md section 4.5 is a four-state register over join/knock/leave/ban, so the projection is a whole-value set of the one member the payload carries. member_state_result.value also admits an optional joined_at, but no normative paragraph names a writer for it; leaving it unprojected keeps the registry honest instead of inventing envelope.created_at as its source. ak.invite.accept drives the same leave -> join edge in that FSM table and is not registered here: its payload identifies the accepting party by AccountId and the retype to the complete ActorId this subject requires has no expressible source in the current selector grammar."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -1600,6 +1675,42 @@
         "reducer_input": true,
         "payload": "MLS commit. governance_binding MUST bind the current key_access_revision.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_commit_payload",
+        "result_writes": [
+          {
+            "result_family": "mls_group",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.governance_binding.effective_scope"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "merge",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "current_mls_commit_event_ref",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "epoch",
+                    "field": "payload.next_epoch"
+                  },
+                  {
+                    "name": "covered_key_access_revision",
+                    "field": "payload.covers_key_access_revision"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_current",
+            "notes": "crypto-media/encryption-and-audit.md sections 2.4.1 and 5.2 split the two revisions between two writers: current_key_access_revision is advanced by membership, leaf endpoint authorization, policy or scope terminal changes, never by an MLS Event, and a Commit only advances the covered side to the revision it declares it covers. The projection is therefore a merge and not a set: mls_commit_payload carries no ratchet tree ref and no genesis ref, so a whole-value write would drop two required members of MlsGroupCurrent."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -1611,6 +1722,58 @@
         "reducer_input": true,
         "payload": "MLS group genesis",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_payload",
+        "result_writes": [
+          {
+            "result_family": "mls_group",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.governance_binding.effective_scope"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "field": "payload.governance_binding.effective_scope"
+                  },
+                  {
+                    "name": "genesis_event_ref",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "current_mls_commit_event_ref",
+                    "envelope_field": "event_id"
+                  },
+                  {
+                    "name": "epoch",
+                    "field": "payload.governance_binding.next_epoch"
+                  },
+                  {
+                    "name": "current_key_access_revision",
+                    "field": "payload.governance_binding.key_access_revision"
+                  },
+                  {
+                    "name": "covered_key_access_revision",
+                    "field": "payload.governance_binding.key_access_revision"
+                  },
+                  {
+                    "name": "public_tree_ref",
+                    "field": "payload.ratchet_tree_ref"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_current",
+            "notes": "crypto-media/encryption-and-audit.md section 5.1 makes ak.mls.genesis the single per-scope creator of the closed MlsGroupCurrent of section 2.5, and mls_genesis_payload carries no group id, so payload.governance_binding.effective_scope is the only subject source and is the scope_ref the mls_group selector requires. The three numeric members are read from the signed governance_binding rather than written as registry literals; mls_genesis_payload allOf-locks next_epoch and key_access_revision to 0, so the projection stays a pure function of the payload and the schema, not the registry, enforces the genesis zero. Genesis is its own current Commit, so both Event refs are this Event."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -2738,6 +2901,22 @@
         "reducer_input": true,
         "payload": "Strand create",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_create_payload",
+        "result_writes": [
+          {
+            "result_family": "strand",
+            "result_selector": {
+              "kind": "id:strand"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.object"
+              }
+            },
+            "value_schema_ref": "schemas/strand.schema.json",
+            "notes": "strand_id is event-derived, so the id:strand selector retypes this create Event's own id exactly as ak.capability.grant does; strand_create_payload forbids a payload-carried id for that reason. payload.object is already the closed ak.schema.strand.v1 object and strand_result.value refs the same file, so the projection is the identity on it. The later ak.strand.update / stage.set / tracks.update / archive / restore kinds retarget the same subject by reference rather than by derivation and are not registered here yet."
+          }
+        ],
         "id_source": "event_derived",
         "id_kind": "strand"
       },
@@ -3052,8 +3231,8 @@
         }
       }
     },
-    "version": "2026-09-17.1",
-    "generated_at": "2026-09-17T16:35:00+08:00",
+    "version": "2026-09-17.5",
+    "generated_at": "2026-09-17T17:55:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

@@ -6997,7 +6997,7 @@
     },
     "reaction_payload": {
       "type": "object",
-      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The typed current result is a core authority-ordered keyed set of reaction assertions and both kinds project one keyed-set projection_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, authority-ordered keyed set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
+      "description": "Reducer input for ak.reaction.add and ak.reaction.remove. The typed current result is a core authority-ordered keyed set of reaction assertions and both kinds project one keyed_set_add; default-view membership is keyed on (actor_id, target_ref, key), and a remove tombstones every add from the same actor with the same key that is not strictly causally later than it, which includes the adds concurrent with it. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, authority-ordered keyed set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
         "target_ref",
         "key"
