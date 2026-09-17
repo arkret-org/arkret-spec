@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.2",
+  "version": "2026-09-18.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T09:20:00+08:00",
+  "generated_at": "2026-09-18T10:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -686,7 +686,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_current",
-            "notes": "identity/key-management.md section 3.6.1: the stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id, and the element value is the complete authorize payload. The subject MUST be the SDK composite_subject([agent_id, key_id]) and MUST NOT be spelled by string concatenation or as a diagnostic subject; agent_key_result.selector carries the two components separately for the same reason. ak.agent.key.revoke is the family's second normative writer and is deliberately still unregistered: section 3.6.1 tells it to remove every active authorize dot observed at expected_revision and then add a revocation boundary marker, but agent_key_authorization_entry is a closed {tag_id, value} with no authorize/revoke discriminator, so 'every active authorize dot' and 'every observed dot' are only the same set until a re-authorization follows an earlier revoke. Registering a bare keyed_set_remove_observed, whose match-less form removes every observed element in scope (zh/models/pins.md section 3), would silently drop that earlier boundary marker, so the shape waits on a prose ruling rather than on a guess."
+            "notes": "identity/key-management.md section 3.6.1: the stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id, and the element value is the complete authorize payload. The subject MUST be the SDK composite_subject([agent_id, key_id]) and MUST NOT be spelled by string concatenation or as a diagnostic subject; agent_key_result.selector carries the two components separately for the same reason. ak.agent.key.revoke is the family's second normative writer and is still unregistered, but not for the reason this note used to give. The entry IS discriminated: agent_key_authorization_entry.value is a oneOf of agent_key_authorize_payload and agent_key_revoke_payload, both additionalProperties:false with disjoint required sets, so an authorize element and a revocation marker are always told apart. What cannot be spelled is the removal. Section 3.6.1 scopes it to every ACTIVE AUTHORIZE dot and says in the same sentence that a marker is not an active authorization, and key-management.md line 163 confirms a marker outlives a later re-attach, so a match-less keyed_set_remove_observed -- which takes every observed element in scope, per zh/models/pins.md section 4.1 -- would drop the earlier boundary. The match form is an equality predicate {element_field, source}, and no field of the revoke payload equals an authorize-only element field, so it cannot express the filter either; keyed_set_remove_dots needs a for_each array the revoke payload does not have. The v1 projection vocabulary therefore cannot express this write at all. arkret-work tasks/spec-open/2026-09-18-1030-agent-domain-result-write-blockers.md carries the three candidate resolutions; this row must not be guessed into place before one is chosen."
           }
         ],
         "id_source": "not_an_object_id"
@@ -3961,8 +3961,8 @@
         }
       }
     },
-    "version": "2026-09-18.2",
-    "generated_at": "2026-09-18T09:20:00+08:00",
+    "version": "2026-09-18.3",
+    "generated_at": "2026-09-18T10:40:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-provision.schema.json",
   "title": "Arkret Agent Provision",
-  "description": "Controller-authored payload that creates one Agent Agent provisioning fact and atomically projects its accountability and controller-scoped selector bindings. The containing Event proof is the only signature; this payload carries no nested proof.",
+  "description": "Controller-authored payload that creates one Agent provisioning fact. One accepted reducer transaction atomically writes FOUR typed current results from it -- the provisioning fact, the accountability endorsement, the controller-scoped selector binding and the principal_control_realm_id claim -- and MUST NOT expose a partially completed state. zh/identity/key-management.md sections 3.6 and 3.6.3, zh/identity/account-lifecycle.md, zh/conformance/conformance-profiles.md and zh/extensions/applet-integration.md all enumerate the same four; this description used to name only two, which reads as a licence for the accountability/selector two-Event fan-out that conformance-profiles.md explicitly forbids. The containing Event proof is the only signature; this payload carries no nested proof.",
   "type": "object",
   "x-arkret-pcr-outward-event-kinds": [
     "ak.agent.provision"
