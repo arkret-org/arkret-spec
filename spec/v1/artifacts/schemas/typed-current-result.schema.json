@@ -240,16 +240,18 @@
               "const": "realm_policy"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "Per-Realm singleton. encoding.md section 9.5.1 forbids restating the envelope realm_id in a subject, so the subject carries nothing beyond its kind."
         },
         "revision": {
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./policy.schema.json"
+          "$ref": "./event-payload.schema.json#/$defs/realm_policy_payload/properties/value"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Registered projection of the Realm policy reference. conformance/schema-registry.md fixes ak.realm.policy as a closed reference to one independently defined Policy object (payload.value.policy_id), so the family carries that reference and not the Policy document body: no projection kind can dereference a policy_id, and inline Realm facets live in ak.realm.policy_bundle or their dedicated facet Event kinds."
     },
     "member_state_result": {
       "type": "object",
@@ -340,21 +342,22 @@
       "required": [
         "selector",
         "revision",
-        "reactions"
+        "value"
       ],
       "properties": {
         "selector": {
           "type": "object",
+          "description": "Section 9.8 keys the set per target: the subject is the reacted-to object, and the payload carries no other target field. v1 core additionally requires an ak:message: target in the same effective scope (section 9.8.2), which a reducer enforces on admission; profiles MAY register further reactable kinds, so the wire type stays the generic object_ref of reaction_payload.",
           "required": [
             "kind",
-            "event_id"
+            "target_ref"
           ],
           "properties": {
             "kind": {
               "const": "message_reactions"
             },
-            "event_id": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            "target_ref": {
+              "$ref": "./event-payload.schema.json#/$defs/object_ref"
             }
           },
           "additionalProperties": false
@@ -362,27 +365,43 @@
         "revision": {
           "$ref": "#/$defs/revision"
         },
-        "reactions": {
+        "value": {
+          "$ref": "#/$defs/message_reactions_current"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Registered projection of one reaction target. models/strand-and-message.md section 9.8.3 is authoritative and says this family is the core keyed-set projection of authz/event-auth-state-resolution.md section 9: ak.reaction.add and ak.reaction.remove each project exactly one keyed_set_add, so a remove is itself an asserted element rather than an explicit revocation. The (target_ref, key, members[], count) summary of that section is the default view folded above this set, never the stored value."
+    },
+    "message_reactions_current": {
+      "type": "object",
+      "description": "Closed value of the message_reactions typed current result: the canonically sorted dot set of reaction assertions on one target. The join is the core keyed-set union, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because section 9.8.3 requires the audit view to rebuild them.",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "type": "object",
-            "required": [
-              "actor_id",
-              "key"
-            ],
-            "properties": {
-              "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/actor_id"
-              },
-              "key": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 128
-              }
-            },
-            "additionalProperties": false
+            "$ref": "#/$defs/reaction_assertion_entry"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "reaction_assertion_entry": {
+      "type": "object",
+      "description": "One asserted element of the message_reactions keyed set. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete reaction payload of that Event. The asserting actor and the polarity -- whether this is an add or a remove -- are deliberately NOT element fields: section 9.8.3 reads both from the signed envelope of the Event the dot names, because event-and-patch.md section 2.4.2 forbids a projection from assembling, renaming or trimming fields.",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
         }
       },
       "additionalProperties": false

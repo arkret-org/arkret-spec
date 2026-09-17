@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.9",
+  "version": "2026-09-17.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T21:30:00+08:00",
+  "generated_at": "2026-09-17T23:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -2002,6 +2002,28 @@
         "reducer_input": true,
         "payload": "Reaction add",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/reaction_payload",
+        "result_writes": [
+          {
+            "result_family": "message_reactions",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.target_ref"
+              ]
+            },
+            "result_projection": {
+              "kind": "keyed_set_add",
+              "tag": {
+                "dot": true
+              },
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_reactions_current",
+            "notes": "models/strand-and-message.md section 9.8.3 is authoritative and spells this projection verbatim: both reaction kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove adds an assertion to the set instead of revoking one. The section gives the reason: an explicit revocation would erase the removed add dot, and the audit view is required to keep both sides of a concurrent (add, remove) pair; an explicit revocation also judges against a frozen prior state, which the concurrent adds this section tombstones are not part of. The set is keyed per target because section 9.8 defines it as per-target and the closed payload carries no other target field. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element. Remove-wins convergence, deduplication, count and the dangling-target hold are read-side folds and admission rules that the projection grammar does not express."
+          }
+        ],
         "id_source": "reference"
       },
       {
@@ -2013,6 +2035,28 @@
         "reducer_input": true,
         "payload": "Reaction remove",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/reaction_payload",
+        "result_writes": [
+          {
+            "result_family": "message_reactions",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.target_ref"
+              ]
+            },
+            "result_projection": {
+              "kind": "keyed_set_add",
+              "tag": {
+                "dot": true
+              },
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_reactions_current",
+            "notes": "models/strand-and-message.md section 9.8.3 is authoritative and spells this projection verbatim: both reaction kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove adds an assertion to the set instead of revoking one. The section gives the reason: an explicit revocation would erase the removed add dot, and the audit view is required to keep both sides of a concurrent (add, remove) pair; an explicit revocation also judges against a frozen prior state, which the concurrent adds this section tombstones are not part of. The set is keyed per target because section 9.8 defines it as per-target and the closed payload carries no other target field. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element. Remove-wins convergence, deduplication, count and the dangling-target hold are read-side folds and admission rules that the projection grammar does not express."
+          }
+        ],
         "id_source": "reference"
       },
       {
@@ -2583,6 +2627,20 @@
         "reducer_input": true,
         "payload": "Realm access policy reference (policy_id); inline policy components remain in ak.realm.policy_bundle or dedicated facet kinds",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
+        "result_writes": [
+          {
+            "result_family": "realm_policy",
+            "result_selector": null,
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload.value"
+              }
+            },
+            "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload/properties/value",
+            "notes": "conformance/schema-registry.md fixes this kind as a closed reference to one independently defined Policy object (payload.value.policy_id), and sync/current-results.md section 2 registers realm_policy as the current Realm policy, a per-Realm singleton whose subject may not restate the envelope realm_id. The projected value is therefore the closed {policy_id} reference and not the Policy document: no registered projection kind can dereference an id, so a family holding the document body could never be written. The optional state and reason members are admission-level lifecycle fields, not part of the projected value. The Policy document itself is carried by the still-uncovered ak.policy.set family, whose payload governance-objects.md closes to {policy_id, value}."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -3516,8 +3574,8 @@
         }
       }
     },
-    "version": "2026-09-17.6",
-    "generated_at": "2026-09-17T21:30:00+08:00",
+    "version": "2026-09-17.7",
+    "generated_at": "2026-09-17T23:10:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
