@@ -78,7 +78,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "d4412089ffae27dab63f38b60b4c0df1a45488717921469d614b4dfd552e865d"
+      "sha256": "a0d42618ed7fc409e92b7eb3b9a80cff1c7c9a44bd1197a58df7809cf601c335"
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",

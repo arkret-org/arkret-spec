@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.2",
+  "version": "2026-09-18.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T22:10:00+08:00",
+  "generated_at": "2026-09-18T23:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3509,7 +3509,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Pins the event-and-patch.md Â§4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
+      "description": "Pins the event-and-patch.md §4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
