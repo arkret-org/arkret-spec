@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.8",
-  "generated_at": "2026-09-16T11:10:00+08:00",
+  "version": "2026-09-18.1",
+  "generated_at": "2026-09-18T06:20:00+08:00",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
@@ -224,10 +224,10 @@
           "path": "scope_circle_id",
           "basis": "create_locked",
           "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "result_family",
-          "owner": "space_metadata",
+          "owner_kind": "event_kind",
+          "owner": "ak.space.create",
           "schema_enforced": true,
-          "description": "Privacy scope is fixed at creation; ordinary metadata edits cannot rebind it."
+          "description": "Privacy scope is fixed at creation; ordinary metadata edits cannot rebind it. The value arrives in ak.space.create's signed object (realm-and-space.md section 3.2) and no later Event kind writes it, so the owner is that create, not a typed current result family: no such family is registered and none is described anywhere in the prose."
         }
       ]
     },

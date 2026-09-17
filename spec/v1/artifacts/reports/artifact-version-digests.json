@@ -297,9 +297,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-managed-path-registry.json",
-      "version": "2026-09-16.8",
-      "generated_at": "2026-09-16T11:10:00+08:00",
-      "content_digest": "sha256:307537ca7e46fb78bf9f2a001ba873743c6b2ee797f2e53f24657e55d1c852fb"
+      "version": "2026-09-18.1",
+      "generated_at": "2026-09-18T06:20:00+08:00",
+      "content_digest": "sha256:059dbae4166327f0fdeb6fb8678794f3c4199c3e0d5ebf647df944be576a2b6a"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",

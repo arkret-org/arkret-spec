@@ -35,6 +35,7 @@ import re
 from .core import (
     ARTIFACTS,
     SPEC_ROOT,
+    TOOLS_ROOT,
     Any,
     Lint,
     Path,
@@ -54,6 +55,10 @@ PROSE_PATH = SPEC_ROOT / "zh" / "models" / "event-and-patch.md"
 ERROR_CODE_PATH = ARTIFACTS / "registry" / "error-code-registry.json"
 
 EVENT_KIND_PATH = ARTIFACTS / "registry" / "event-kind-registry.json"
+
+CURRENT_RESULT_REGISTRY_PATH = ARTIFACTS / "registry" / "current-result-registry.json"
+
+REDUCER_MANAGED_OWNER_BASELINE = TOOLS_ROOT / "reducer-managed-owner-baseline.json"
 
 REASON_CODE = "patch_unset_redactable_field"
 
@@ -432,7 +437,18 @@ def check_reducer_managed_path_registry(lint: Lint) -> None:
     seen_kinds: set[str] = set()
     claimed_payloads: dict[str, str] = {}
     active_event_kinds = _active_event_kinds(lint)
-    cell_families = _declared_cell_families(lint)
+    result_families = _registered_result_families(lint)
+    baselined_owners = _baselined_unregistered_owners(lint)
+    if not result_families:
+        # Fail closed. The previous reader returned the empty set on every run
+        # and the owner guard short-circuited on it, so "no families" read
+        # exactly like "every owner is fine".
+        lint.fail(
+            CURRENT_RESULT_REGISTRY_PATH,
+            "result_kinds[] is empty or unreadable, so the reducer-managed owner guard has "
+            "nothing to check owners against; its silence would mean nothing",
+        )
+    _check_result_family_owner_baseline(lint, data, result_families, baselined_owners)
 
     for index, row in enumerate(objects):
         label = f"objects[{index}]"
@@ -466,7 +482,15 @@ def check_reducer_managed_path_registry(lint: Lint) -> None:
         )
 
         exemptions = _check_exemptions(
-            lint, path, label, row, universal, declared_properties, active_event_kinds, cell_families
+            lint,
+            path,
+            label,
+            row,
+            universal,
+            declared_properties,
+            active_event_kinds,
+            result_families,
+            baselined_owners,
         )
 
         extras = _check_object_paths(
@@ -478,7 +502,8 @@ def check_reducer_managed_path_registry(lint: Lint) -> None:
             declared_properties,
             set(declared_reason_codes),
             active_event_kinds,
-            cell_families,
+            result_families,
+            baselined_owners,
         )
 
         effective = (universal.keys() & declared_properties) - exemptions | set(extras)
@@ -751,7 +776,8 @@ def _check_exemptions(
     universal: dict[str, dict[str, Any]],
     declared_properties: set[str],
     active_event_kinds: set[str],
-    cell_families: set[str],
+    result_families: set[str],
+    baselined_owners: dict[str, dict[str, Any]],
 ) -> set[str]:
     exemptions: set[str] = set()
     rows = row.get("universal_exemptions")
@@ -782,7 +808,9 @@ def _check_exemptions(
             )
         if not isinstance(exemption["justification"], str) or not exemption["justification"].strip():
             lint.fail(path, f"{entry_label}.justification must name the clause that authorises the carve-out")
-        _check_owner(lint, path, entry_label, exemption, active_event_kinds, cell_families)
+        _check_owner(
+            lint, path, entry_label, exemption, active_event_kinds, result_families, baselined_owners
+        )
         exemptions.add(member)
     return exemptions
 
@@ -796,7 +824,8 @@ def _check_object_paths(
     declared_properties: set[str],
     reason_codes: set[str],
     active_event_kinds: set[str],
-    cell_families: set[str],
+    result_families: set[str],
+    baselined_owners: dict[str, dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
     extras: dict[str, dict[str, Any]] = {}
     rows = row.get("forbidden_patch_paths")
@@ -842,7 +871,9 @@ def _check_object_paths(
             lint.fail(path, f"{entry_label}.schema_enforced must be a boolean")
         if not isinstance(entry["description"], str) or not entry["description"].strip():
             lint.fail(path, f"{entry_label}.description must be a non-empty string")
-        _check_owner(lint, path, entry_label, entry, active_event_kinds, cell_families)
+        _check_owner(
+            lint, path, entry_label, entry, active_event_kinds, result_families, baselined_owners
+        )
     return extras
 
 
@@ -852,7 +883,8 @@ def _check_owner(
     label: str,
     row: dict[str, Any],
     active_event_kinds: set[str],
-    cell_families: set[str],
+    result_families: set[str],
+    baselined_owners: dict[str, dict[str, Any]],
 ) -> None:
     owner_kind = row.get("owner_kind")
     owner = row.get("owner")
@@ -864,22 +896,85 @@ def _check_owner(
         return
     if owner_kind == "event_kind" and active_event_kinds and owner not in active_event_kinds:
         lint.fail(path, f"{label}.owner references unknown or inactive event kind: {owner!r}")
-    if owner_kind == "result_family" and cell_families and owner not in cell_families:
-        lint.fail(path, f"{label}.owner references unregistered cell family: {owner!r}")
+    if owner_kind == "result_family" and owner not in result_families:
+        if owner in baselined_owners:
+            return
+        lint.fail(
+            path,
+            f"{label}.owner references a typed current result family that "
+            f"current-result-registry.json does not register: {owner!r}",
+        )
 
 
-def _declared_cell_families(lint: Lint) -> set[str]:
-    data = load_json(lint, EVENT_KIND_PATH)
+def _registered_result_families(lint: Lint) -> set[str]:
+    """The closed set of typed current result families an owner may name.
+
+    This used to walk `event_kinds[].cell_writes[].cell_family` and, since the
+    authority-commit clean break renamed both, always returned the empty set.
+    Its one consumer guards with `and cell_families`, so the guard short-circuited
+    and every `owner_kind: result_family` owner went unchecked -- three of the
+    four live owners turned out to be unregistered.
+
+    `current-result-registry.json` is the right source in any case: it is the
+    closed family registry, generated from `contract-registry.json`, and a
+    forbidden path that cites a family as its write authority is citing that
+    registry's rows, not whichever Event kind happens to write one today.
+    """
+    data = load_json(lint, CURRENT_RESULT_REGISTRY_PATH)
     if not isinstance(data, dict):
         return set()
-    families: set[str] = set()
-    for row in data.get("event_kinds", []):
+    return {
+        row["result_kind"]
+        for row in data.get("result_kinds") or []
+        if isinstance(row, dict) and isinstance(row.get("result_kind"), str)
+    }
+
+
+def _baselined_unregistered_owners(lint: Lint) -> dict[str, dict[str, Any]]:
+    data = load_json(lint, REDUCER_MANAGED_OWNER_BASELINE)
+    if not isinstance(data, dict):
+        return {}
+    return {
+        row["owner"]: row
+        for row in data.get("owners_without_registered_family") or []
+        if isinstance(row, dict) and isinstance(row.get("owner"), str)
+    }
+
+
+def _check_result_family_owner_baseline(
+    lint: Lint,
+    data: Any,
+    result_families: set[str],
+    baselined: dict[str, dict[str, Any]],
+) -> None:
+    """The ledger only shrinks: a baselined owner that resolved must leave it."""
+    cited: set[str] = set()
+    for row in data.get("objects") or []:
         if not isinstance(row, dict):
             continue
-        for write in row.get("cell_writes") or []:
-            if isinstance(write, dict) and isinstance(write.get("cell_family"), str):
-                families.add(write["cell_family"])
-    return families
+        groups = (row.get("forbidden_patch_paths"), row.get("universal_exemptions"))
+        for group in groups:
+            for entry in group or []:
+                if not isinstance(entry, dict):
+                    continue
+                if entry.get("owner_kind") == "result_family" and isinstance(
+                    entry.get("owner"), str
+                ):
+                    cited.add(entry["owner"])
+    for owner in sorted(baselined):
+        if owner not in cited:
+            lint.fail(
+                REDUCER_MANAGED_OWNER_BASELINE,
+                f"{owner} is no longer cited as a result_family owner by "
+                "reducer-managed-path-registry.json; remove it from "
+                "owners_without_registered_family (the ledger only shrinks)",
+            )
+        elif owner in result_families:
+            lint.fail(
+                REDUCER_MANAGED_OWNER_BASELINE,
+                f"{owner} is now registered in current-result-registry.json; remove it "
+                "from owners_without_registered_family (the ledger only shrinks)",
+            )
 
 
 def _known_reason_codes(lint: Lint) -> set[str]:

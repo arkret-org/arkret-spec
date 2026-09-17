@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "kind": "reducer_managed_owner_baseline",
+  "source_of_truth": false,
+  "generated_from": [
+    "spec/v1/artifacts/registry/reducer-managed-path-registry.json",
+    "spec/v1/artifacts/registry/current-result-registry.json"
+  ],
+  "generated_by": "tools/artifact_lint (check_reducer_managed_path_registry, _check_owner)",
+  "description": "Ledger of reducer-managed forbidden patch paths whose owner_kind is result_family and whose owner current-result-registry.json does not register. A forbidden path cites its owner as the write authority that replaces the banned patch, so an unregistered owner names a write authority that does not exist yet. Opened 2026-09-18 when the owner guard was repaired: it had walked event_kinds[].cell_writes[].cell_family since the authority-commit clean break renamed both, always returned the empty set, and short-circuited on `and cell_families`, so no owner had ever been checked. Both entries are real families with normative prose; each is blocked on the typed current result coverage batch, because check_every_result_family_has_a_writer forbids registering a family no Event kind writes. owners_without_registered_family only shrinks; a new entry is a defect, not a baseline update.",
+  "owners_without_registered_family": [
+    {
+      "owner": "space_parent",
+      "object_kind": "space",
+      "path": "parent_space_id",
+      "prose": "zh/models/realm-and-space.md section 3.5: space_parent takes SpaceId as its subject, uses an ordinary current-value projection, and its value is `parent_space_id | null`. ak.space.create produces the genesis write from the signed object.parent_space_id and writes an explicit null when it is omitted; later writes come only from ak.space.parent. Named again in zh/models/relation.md section 4 and zh/models/views.md.",
+      "blocked_on": "None of the six ak.space.* kinds declares a result_writes[] row yet, so the family cannot be registered without tripping check_every_result_family_has_a_writer. It lands with the Space domain's coverage batch.",
+      "opened": "2026-09-18"
+    },
+    {
+      "owner": "space_child_scope_policy",
+      "object_kind": "space",
+      "path": "child_scope_policy",
+      "prose": "zh/models/circle.md section 7.1 describes child_scope_policy as a policy the Space declares and the reducer enforces on ak.strand.create, ak.strand.move, ak.space.parent and structural contains writes.",
+      "blocked_on": "No dedicated Event kind writes it: the policy arrives in the signed create object and the registry already forbids patching it, so today it behaves as create_locked rather than as a separate family. Whether it is a family at all is the open question; the row's basis and owner are provisional until the Space coverage batch rules on it.",
+      "opened": "2026-09-18"
+    }
+  ]
+}
