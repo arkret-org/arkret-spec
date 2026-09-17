@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.3",
+  "version": "2026-09-16.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T14:00:00+08:00",
+  "generated_at": "2026-09-17T15:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -576,7 +576,7 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_result branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime."
+      "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_context branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime."
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -2652,7 +2652,7 @@
           "ak.profile.create"
         ]
       },
-      "notes": "The four creation Events carry one real Applet Service signer-evidence ref. The successful transaction durably retains that exact Service root with the Event set and install state. Once the managed Actor resolution projection is accepted, completion atomically materializes and retains its Principal root plus the exact Station Service attester leaf and enqueues the existing authoring_result delivery; runtime signer inputs are not mirrored into the administrator outcome."
+      "notes": "The four creation Events carry one real Applet Service signer-evidence ref. The successful transaction durably retains that exact Service root with the Event set and install state. Once the managed Actor resolution projection is accepted, completion atomically materializes and retains its Principal root plus the exact Station Service attester leaf and enqueues the existing authoring_context delivery; runtime signer inputs are not mirrored into the administrator outcome."
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",
@@ -2731,7 +2731,7 @@
           "ak.profile.create"
         ]
       },
-      "notes": "All four creation Events use the Applet Service as actual producer and carry its real Service signer-evidence ref; the pre-effective Ghost never signs this unit. Commit durably retains that root with the four Events and Ghost state. Completion atomically materializes the Ghost Principal root and exact Station Service attester leaf and enqueues the existing authoring_result delivery; the synchronous outcome does not mirror runtime signer inputs."
+      "notes": "All four creation Events use the Applet Service as actual producer and carry its real Service signer-evidence ref; the pre-effective Ghost never signs this unit. Commit durably retains that root with the four Events and Ghost state. Completion atomically materializes the Ghost Principal root and exact Station Service attester leaf and enqueues the existing authoring_context delivery; the synchronous outcome does not mirror runtime signer inputs."
     },
     {
       "operation_id": "ak.self.applet.install.command.preview.v1",

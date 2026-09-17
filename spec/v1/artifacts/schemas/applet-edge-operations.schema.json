@@ -539,11 +539,11 @@
     },
     "applet_authoring_transaction_request_body": {
       "type": "object",
-      "description": "Exclusive node-to-Applet completion delivery. The reverse direction is forbidden. The Applet persists the whole result and exact source binding before returning accepted; partial installation is forbidden.",
+      "description": "Exclusive node-to-Applet completion delivery. The reverse direction is forbidden. The Applet persists the whole authoring context and exact source binding before returning accepted; partial installation is forbidden.",
       "required": [
         "applet_id",
         "source_id",
-        "authoring_result"
+        "authoring_context"
       ],
       "properties": {
         "applet_id": {
@@ -552,7 +552,7 @@
         "source_id": {
           "$ref": "#/$defs/did_core_id"
         },
-        "authoring_result": {
+        "authoring_context": {
           "$ref": "#/$defs/applet_managed_actor_authoring_context"
         }
       },

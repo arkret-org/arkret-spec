@@ -2576,7 +2576,7 @@
         "/$defs/applet_actor_view/properties/exists": "required",
         "/$defs/applet_actor_view/properties/external_ref": "optional",
         "/$defs/applet_authoring_transaction_request_body/properties/applet_id": "required",
-        "/$defs/applet_authoring_transaction_request_body/properties/authoring_result": "required",
+        "/$defs/applet_authoring_transaction_request_body/properties/authoring_context": "required",
         "/$defs/applet_authoring_transaction_request_body/properties/source_id": "required",
         "/$defs/applet_event_transaction_request_body/properties/applet_id": "required",
         "/$defs/applet_event_transaction_request_body/properties/events": "optional",

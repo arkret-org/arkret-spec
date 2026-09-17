@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.3",
+  "version": "2026-09-17.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-17T14:00:00+08:00",
+  "generated_at": "2026-09-17T15:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -42,7 +42,7 @@
           "source_id",
           "events",
           "signals",
-          "authoring_result"
+          "authoring_context"
         ],
         "closed": true,
         "variants": [
@@ -67,12 +67,12 @@
             "required": [
               "applet_id",
               "source_id",
-              "authoring_result"
+              "authoring_context"
             ],
             "properties": [
               "applet_id",
               "source_id",
-              "authoring_result"
+              "authoring_context"
             ],
             "closed": true
           }
