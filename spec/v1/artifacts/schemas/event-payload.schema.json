@@ -7850,7 +7850,7 @@
       "properties": {
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. contract-registry.json registers nothing for it: apply_patch is not in the v1 result_projection closed set and no expected_prestate member has ever existed, so this is an admission rule outside the projection grammar."
         },
         "patch": {
           "allOf": [
@@ -9347,7 +9347,7 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. Registered as apply_patch expected_prestate in contract-registry.json."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. contract-registry.json registers nothing for it: apply_patch is not in the v1 result_projection closed set and no expected_prestate member has ever existed, so this is an admission rule outside the projection grammar."
         },
         "object": {
           "allOf": [
