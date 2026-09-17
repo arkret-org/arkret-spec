@@ -932,9 +932,11 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 `ak.vector.reaction.remove_wins_join.v1` 与 `reaction-fixture.json` 固化本节 add/remove、并发、redaction、epoch 与 capability-revoke 行为。
 
-**本节与 typed current result projection 的分层（normative）**：`message_reactions` 是
-[`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md) 的核心
-`keyed-set projection`，其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
+**本节与 typed current result projection 的分层（normative）**：`message_reactions` 的
+`domain reducer` 是 `keyed-set projection`——该取值属于
+[`common-fields.md` §2](./common-fields.md) 的封闭枚举，元素的稳定 tag 是
+[`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot
+`<event_id>:<write_index>`；join 由本节下文给出。其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
 一个 `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
 是**往集合里加一条断言**，而不是 explicit revocation。这不是绕路，而是本节要求的唯一可表达形态：
 本节明文要求审计视图保留并发 (add, remove) 的双方，若 remove 走 explicit revocation，被移除的
@@ -946,8 +948,8 @@ add dot 就不复存在，审计视图无从重建；本节又要求 remove 连*
 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 禁止在 projection 内拼装、改名或裁剪字段，
 而这两个事实已由签名 envelope 承载，无需复制进元素值。
 
-因此下文"不引用核心 `keyed-set projection` projection"的准确含义是：**remove-wins 收敛规则不是 keyed-set projection 的
-join**，而是该 keyed-set projection 之上的**默认视图投影**。typed current result 的 join 仍是核心 keyed-set projection 的 dot 集合并，
+因此下文"不改变该 join 本身"的准确含义是：**remove-wins 收敛规则不是 keyed-set projection 的
+join**，而是该 keyed-set projection 之上的**默认视图投影**。typed current result 的 join 仍是 keyed-set projection 的 dot 集合并，
 仍然可交换、可结合、幂等。领域投影直接从完整 dot 集计算 remove-wins 视图；实现 MUST NOT 据此把该 typed current result 实现成第六种 state model。
 
 默认视图的成员判定式：actor `A` 属于 `(target_ref, key)` 的 `members[]`，当且仅当集合中存在
@@ -956,7 +958,7 @@ join**，而是该 keyed-set projection 之上的**默认视图投影**。typed 
 `members[]` 是 actor 集合，同一 actor 的多条存活 add 只贡献一个成员条目。
 
 - **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
-- **add / remove**：`ak.reaction.remove` 对该 actor、同 `(target_ref, key)`、且**不严格因果晚于**该 remove 的所有 add（即因果过去 ∪ 与该 remove 并发）打 tombstone；只有**严格因果晚于**该 remove 的 re-add 才存活。因此并发（无因果序）的 (add, remove) 在默认视图 MUST 按 remove 收敛；审计视图保留双方。本规则是 reaction 专用的 remove-wins set，不引用 `event-auth-state-resolution.md` 的核心 `keyed-set projection` projection。
+- **add / remove**：`ak.reaction.remove` 对该 actor、同 `(target_ref, key)`、且**不严格因果晚于**该 remove 的所有 add（即因果过去 ∪ 与该 remove 并发）打 tombstone；只有**严格因果晚于**该 remove 的 re-add 才存活。因此并发（无因果序）的 (add, remove) 在默认视图 MUST 按 remove 收敛；审计视图保留双方。本规则是 reaction 专用的 remove-wins set，是 §9.8.3 给出的 dot 集合并 join 之上的默认视图投影，不改变该 join 本身。
 - **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 reaction set 条目。
 - **target redacted**：目标 Message 被 redact 后，默认视图 summary MUST NOT 暴露 reaction 成员；审计视图保留 reaction event 于 redaction stub 之下（与 [§9.5](#95-冲突与收敛规则) 撤回语义一致）。
 - **E2EE epoch**：routing tag 绑定当前 MLS epoch；同一真实 emoji 在不同 epoch 派生不同 tag，因此跨 epoch 不去重（见 §2.9 与 fixture `e2ee_epoch_rotation_breaks_dedup`）。

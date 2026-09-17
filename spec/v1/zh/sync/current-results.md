@@ -51,7 +51,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `strand_position`：以 `typed_pair(id:space(board_space_id), id:strand(strand_id))` 选择一条
   Strand 在某个 Board 上的位置，值为 `{list_space_id, rank}` 或 `null`（尚未上板）
   （见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md)）；
-- `message_reactions`：以被表态对象的 `payload.target_ref` 选择该 target 的 reaction 断言集合（v1 core 的 target MUST 是同一 effective scope 内的 `ak:message:`，见 [`../models/strand-and-message.md` §9.8.2](../models/strand-and-message.md)）；值是核心 `keyed-set projection` 的 dot 集合，**不是** `(target_ref, key, members[], count)` 默认视图——后者是它之上的读侧折叠（§9.8.3）；
+- `message_reactions`：以被表态对象的 `payload.target_ref` 选择该 target 的 reaction 断言集合（v1 core 的 target MUST 是同一 effective scope 内的 `ak:message:`，见 [`../models/strand-and-message.md` §9.8.2](../models/strand-and-message.md)）；值是 `keyed-set projection` 的 dot 集合，**不是** `(target_ref, key, members[], count)` 默认视图——后者是它之上的读侧折叠（§9.8.3）；
 - `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group；
 - `realm_authority_root`：singleton，值为 closed `ak.schema.realm_authority_root_value.v1`（见 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；
 - `agent_key`：以 `(agent_id, agent_key_id)` 选择一把 Agent 签名 key 的 registered authorization 投影；

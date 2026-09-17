@@ -44,8 +44,10 @@ Pin note 若存在 MUST 使用 `EncryptedPayload` 加密；v1 不提供 plaintex
 
 ### 4.1 收敛（normative）
 
-`pin:<pin_scope.id>` 是 [`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md)
-的核心 `keyed-set projection`，其元素是 **pin 断言**：`ak.pin.add`、`ak.pin.remove` 与 `ak.pin.reorder`
+`pin:<pin_scope.id>` 的 `domain reducer` 是 `keyed-set projection`——该取值属于
+[`common-fields.md` §2](./common-fields.md) 的封闭枚举，元素的稳定 tag 是
+[`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot
+`<event_id>:<write_index>`；join 由本节下文给出。其元素是 **pin 断言**：`ak.pin.add`、`ak.pin.remove` 与 `ak.pin.reorder`
 **各精确投影一个** `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`。
 remove 与 reorder 同样是**往集合里加一条断言**，而不是 explicit revocation。
 

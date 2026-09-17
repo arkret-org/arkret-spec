@@ -331,7 +331,7 @@ see_also:
 | `DAG` | Directed Acyclic Graph | 指 `domain_refs` 因果图（[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
 | `MAC` | Message Authentication Code | 不是 Media Access Control。指 MLS transcript 与秘密 MAC；具体的带密钥 hash 构造见 §4.2 `HMAC`。 |
 | Domain Transition | 领域转移 | 对 `commit-ordered projection` 或 `current-value projection` 写入应用的已登记前态/后态校验规则；不是独立共享状态模型，也不参与 join。 |
-| `CRDT` | Conflict-free Replicated Data Type | 指注册 reducer contract 声明的 typed current result 收敛模型（`current-value projection` / `keyed-set projection` / `counter` 等）；见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。v1 不定义协同文本 CRDT。 |
+| `CRDT` | Conflict-free Replicated Data Type | 指注册 reducer contract 声明的 typed current result 收敛模型；封闭取值枚举见 [`../models/common-fields.md` §2](../models/common-fields.md)。`current-value projection` 的次序与 compare-and-set 语义见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)；`keyed-set projection` 的 join 由使用它的家族各自给出（`message_reactions` 见 [`../models/strand-and-message.md` §9.8.3](../models/strand-and-message.md)）。v1 不定义协同文本 CRDT。 |
 | `LWW` | Last-Writer-Wins | 仅用于对照说明；v1 数据面冲突不隐式选 winner。 |
 | `RYW` | Read-Your-Writes | 见 §2 与 [`../sync/operations-sync.md`](../sync/operations-sync.md)。 |
 | `KAT` | Known-Answer Test | 指逐字节固定的 fixture 向量集。 |
