@@ -479,14 +479,7 @@
           "$ref": "#/$defs/strand_id"
         },
         "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         }
       },
       "additionalProperties": false
@@ -635,14 +628,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "claim_purpose": {
           "type": "string",
@@ -886,14 +872,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "claim_purpose": {
           "type": "string",
@@ -1631,14 +1610,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "mls_epoch": {
           "type": "integer",

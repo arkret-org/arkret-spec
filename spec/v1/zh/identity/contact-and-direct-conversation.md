@@ -700,7 +700,7 @@ source 与 exact founding-unit ref，不得为重复背书发明新的 authority
 ### 7.3 唯一 group 与 repair
 
 DM Realm 与所有其它 MLS-backed effective scope 使用同一规则：
-`mls_group_id = derive(canonical_effective_scope_key(scope))`，每个 scope 恰有一个 immutable group 与从零开始且永不重置的 epoch lineage。
+`mls_group_id` 按 [`../models/realm-and-space.md` §2.2](../models/realm-and-space.md) 的唯一派生式从该 scope 算出，每个 scope 恰有一个 immutable group 与从零开始且永不重置的 epoch lineage。
 首次 `ak.mls.genesis` 是 create-once；不存在第二个 group、候选 group、epoch reset 或额外 group selector。
 
 Founding、peer Add 和以后 repair 都只通过该 group 的 ordinary winning Commit 推进。只要至少一个 current authorized live member

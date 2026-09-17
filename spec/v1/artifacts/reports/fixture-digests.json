@@ -186,11 +186,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "e343a3c92ff17069b90d35f9cdf141a7f869178db77f2692a17bee5096315d41"
+      "sha256": "b5a255ff9df93826d4bf7e37ff03b169af4f47eecee0e1b21ab1ad8153504122"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "b5794e6fa1c85ab4eac2331adc9a216a927e5a4fadac64d7af69b1df76cbb679"
+      "sha256": "b9f3b7f49aeeef1c4b6c71163f9c35786ccead096b4112ef2e672975848b3a37"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
@@ -203,6 +203,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
       "sha256": "76be3b6a8c084cead2c2b27f075b4f9e7a1264b96425a32799e98133f9eacc49"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
+      "sha256": "2d48b91fcb01a5ac54bce59565507d94d81381aa901d1d26e9207c4c552bb3a2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",

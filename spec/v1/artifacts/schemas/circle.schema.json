@@ -82,9 +82,8 @@
       "additionalProperties": false
     },
     "mls_group_id": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId)). Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
+      "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
+      "description": "Reducer-derived from this Circle's circle-branch effective scope; both realm_id and circle_id enter the scope key bytes. Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
     },
     "state": {
       "type": "string",

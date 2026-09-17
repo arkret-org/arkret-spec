@@ -100,6 +100,14 @@
     },
     {
       "name": "challenge_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 1,
+      "example_path": "event-payload.schema.json#/$defs/join_gate_proof/properties/challenge_id",
+      "reason": "Provider-scoped single-use coordinate of a solved join gate challenge; it carries no authority by itself (join-policy.md section 4)."
+    },
+    {
+      "name": "challenge_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
       "occurrences": 4,
@@ -113,14 +121,6 @@
       "occurrences": 4,
       "example_path": "account-operations.schema.json#/$defs/account_registration_control_proof/properties/challenge_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "challenge_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/join_gate_proof/properties/challenge_id",
-      "reason": "Provider-scoped single-use coordinate of a solved join gate challenge; it carries no authority by itself (join-policy.md section 4)."
     },
     {
       "name": "channel_id",
@@ -434,27 +434,11 @@
     },
     {
       "name": "mls_group_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
+      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{43}$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 10,
-      "example_path": "agent-operations.schema.json#/$defs/agent_sidecar_mls_context/properties/mls_group_id",
-      "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
-    },
-    {
-      "name": "mls_group_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 4,
-      "example_path": "event-payload.schema.json#/$defs/mls_commit_failed_payload/properties/mls_group_id",
-      "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
-    },
-    {
-      "name": "mls_group_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 4,
+      "occurrences": 18,
       "example_path": "circle-operations.schema.json#/$defs/circle_view/properties/mls_group_id",
-      "reason": "RFC 9420 MLS identifier carried for interop and diagnostics; not an Arkret typed ID."
+      "reason": "RFC 9420 MLS group_id, derived from the effective scope by the fixed v1 digest and never an Arkret typed ID. Every occurrence now refs the one terminal in common-ids.schema.json, so the three earlier signatures collapsed into this one."
     },
     {
       "name": "network_id",
@@ -586,14 +570,6 @@
       "reason": "High-entropy pairwise handle used to address one immutable Station-to-Gateway registration; the authenticated source tenant and stored record, not the handle alone, carry authority."
     },
     {
-      "name": "supersedes_registration_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._~-]{22,128}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "push-operations.schema.json#/$defs/push_registration_handoff_active/properties/supersedes_registration_id",
-      "reason": "Names the exact immutable predecessor only within the authenticated Station tenant; it carries no authority outside that stored registration chain."
-    },
-    {
       "name": "rejection_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
@@ -715,6 +691,14 @@
       "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/device_list_update_payload/properties/stream_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
+    },
+    {
+      "name": "supersedes_registration_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)[A-Za-z0-9._~-]{22,128}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 1,
+      "example_path": "push-operations.schema.json#/$defs/push_registration_handoff_active/properties/supersedes_registration_id",
+      "reason": "Names the exact immutable predecessor only within the authenticated Station tenant; it carries no authority outside that stored registration chain."
     },
     {
       "name": "supersedes_statement_id",

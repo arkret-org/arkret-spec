@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.1",
+  "version": "2026-09-18.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T21:00:00+08:00",
+  "generated_at": "2026-09-18T22:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3303,6 +3303,32 @@
       "description": "The governance binding epochs must equal the Commit payload base and next epoch, and a rejected Commit advances neither the MLS epoch result nor the active epoch, failing with epoch_update_required.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.group_id_derivation_kat.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-group-id-derivation-fixture.json"
+      ],
+      "description": "mls_group_id is base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope))) and is exactly 43 characters. The scope key bytes are UTF8(realm_id) for a realm scope and UTF8(realm_id) || 0x1F || UTF8(circle_id | sidecar_id) otherwise, so dropping realm_id, reordering the components or switching to JCS changes the value; a circle and a sidecar sharing one payload do not collide.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
+        "spec/v1/zh/models/realm-and-space.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.group_id_reversible_formula_rejected.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-group-id-derivation-fixture.json"
+      ],
+      "description": "The pre-2218 reversible encoding base64url_no_pad(canonical_effective_scope_key_bytes) is rejected. A verifier recomputes the v1 derivation and compares; it MUST NOT accept a second formula, and MUST NOT choose between formulas by string length, group epoch or local state.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
+        "spec/v1/zh/models/realm-and-space.md"
       ]
     },
     {

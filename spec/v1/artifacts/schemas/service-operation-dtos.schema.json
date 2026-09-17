@@ -1544,10 +1544,7 @@
           "$ref": "./event-payload.schema.json#/$defs/effective_scope"
         },
         "mls_group_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 512
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
           "const": 0
@@ -1602,10 +1599,7 @@
           "$ref": "./event-payload.schema.json#/$defs/effective_scope"
         },
         "mls_group_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 512
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
           "const": 0

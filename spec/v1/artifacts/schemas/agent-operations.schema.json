@@ -1543,14 +1543,7 @@
           "description": "UTF-8 byte-lexicographically sorted accepted refs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results."
         },
         "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "epoch": {
           "type": "integer",

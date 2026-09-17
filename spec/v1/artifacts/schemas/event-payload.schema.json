@@ -5600,14 +5600,7 @@
           "uniqueItems": true
         },
         "mls_group_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ],
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
           "description": "MLS group id. MUST be present for E2EE MIMI rooms."
         },
         "content_profile": {

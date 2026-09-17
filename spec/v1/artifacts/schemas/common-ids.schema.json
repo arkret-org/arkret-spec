@@ -40,6 +40,11 @@
       "type": "string",
       "pattern": "^ak:sidecar:[A-Za-z0-9_-]{44}$"
     },
+    "mls_group_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "RFC 9420 group_id as base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope))), so exactly 43 characters. Derived by the reducer and the SDK from the effective scope alone; actors never submit it. The v1 formula is the only one: the earlier reversible base64url of the scope key bytes MUST NOT be accepted alongside it. See zh/models/realm-and-space.md section 2.2."
+    },
     "device_id": {
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"

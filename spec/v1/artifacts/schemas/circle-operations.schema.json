@@ -104,9 +104,8 @@
           ]
         },
         "mls_group_id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "Reducer-derived base64url_no_pad(utf8(canonical CircleId))."
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
+          "description": "Reducer-derived from this Circle's circle-branch effective scope; both realm_id and circle_id enter the scope key bytes."
         },
         "state": {
           "$ref": "#/$defs/circle_state"
@@ -312,8 +311,7 @@
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
         "mls_group_id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
         },
         "note": {
           "type": "string",

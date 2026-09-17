@@ -186,8 +186,7 @@
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "mls_group_id": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9_-]+$"
+            "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
           },
           "epoch": {
             "type": "integer",

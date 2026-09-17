@@ -59,9 +59,7 @@
       "description": "Optional display-track context marker for application routing. Track names do not create independent membership, policy, or MLS key scope."
     },
     "mls_group_id": {
-      "type": "string",
-      "pattern": "^(?!ak:)",
-      "minLength": 1,
+      "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
       "description": "Optional MLS group identifier (base64url RFC 9420 GroupID) for diagnostic / cross-implementation correlation. NOT used by the reducer for authorization — authoritative MLS group state lives in ak.mls.genesis / ak.mls.commit events. Provided here so audit projections can quickly correlate an identity-link with its MLS group without replaying the full epoch chain."
     },
     "mls_leaf_index": {

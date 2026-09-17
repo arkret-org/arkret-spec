@@ -49,8 +49,43 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 ### 2.2 Realm 与 MLS group
 
 Realm 创建时没有加密 profile、content scheme 或 encryption floor。每个 scope 初始为 plaintext；首个
-accepted `ak.mls.genesis` 将该 scope 不可逆地激活为 standard RFC 9420。Materialized group id 为
-`base64url_no_pad(utf8(canonical_effective_scope_key(scope)))`；actor 不提交该值。
+accepted `ak.mls.genesis` 将该 scope 不可逆地激活为 standard RFC 9420。
+
+**canonical effective scope key bytes（normative）**：`effective_scope` 是 `realm` / `circle` / `sidecar`
+三分支封闭 `oneOf`，它的 canonical key bytes 固定为
+
+```text
+realm:    UTF8(realm_id)
+circle:   UTF8(realm_id) || 0x1F || UTF8(circle_id)
+sidecar:  UTF8(realm_id) || 0x1F || UTF8(sidecar_id)
+```
+
+三个 typed ID 都是定长、字符集受限（`^ak:<kind>:[A-Za-z0-9_-]{44}$`）且自带 kind 前缀，因此 `0x1F`
+不可能出现在分量内部，该编码在三分支上整体单射。实现 MUST NOT 改用 JCS、字段序或任何带长度前缀的
+变体，也 MUST NOT 省略 `circle` / `sidecar` 分支的 `realm_id`。
+
+**MLS `group_id` 的唯一派生式（normative）**：RFC 9420 原生 `group_id` bytes 固定为
+
+```text
+group_id_bytes = SHA-256(
+  UTF8("ak.mls.group_id.v1") || 0x00 || canonical_effective_scope_key_bytes(effective_scope)
+)
+```
+
+Arkret JSON 中的 `mls_group_id` 是 `base64url_no_pad(group_id_bytes)`，v1 固定 43 个字符。digest 固定为
+SHA-256，**不**跟随 Realm `digest_algorithm`——group identity 不为每个 Realm 增加 suite 分支。actor
+MUST NOT 提交该值；reducer 与 SDK 只从 effective scope 派生并逐字节验证。
+
+v1 **只有**这一个公式。实现 MUST NOT 同时接受早期的可逆编码
+`base64url_no_pad(utf8(canonical_effective_scope_key(scope)))`，MUST NOT 按字符串长度、group epoch 或
+接收方本地状态在两个公式之间猜测，也 MUST NOT 把已有 group 的 `group_id` 原地改写后继续沿用原
+transcript：旧 group 只能整体重建。本派生**不**承诺隐藏同一 group 的流量关联，也不抵抗已知候选 scope ID
+的字典验证；它只阻止被动观察者从 `group_id` 直接还原 effective scope ID。
+
+三个分支的 byte-exact KAT 与旧公式拒收向量是
+`ak.vector.mls.group_id_derivation_kat.v1` 与
+`ak.vector.mls.group_id_reversible_formula_rejected.v1`，材料在
+[`mls-group-id-derivation-fixture.json`](../../artifacts/fixtures/mls-group-id-derivation-fixture.json)。
 
 Realm-default group 与每个 MLS-backed Circle group 完全独立。Realm policy 不提供 Circle group/secret/counter fallback。
 `history_access` 是 Realm 自有的单向安全 ratchet：create 初始化为二态之一，之后仅允许

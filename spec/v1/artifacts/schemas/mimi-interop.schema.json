@@ -273,8 +273,7 @@
               ]
             },
             "mls_group_id": {
-              "type": "string",
-              "pattern": "^(?!ak:)"
+              "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
             },
             "content_profile": {
               "type": "string",

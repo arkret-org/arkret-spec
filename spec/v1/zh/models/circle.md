@@ -52,7 +52,7 @@ Schema id: `ak.schema.circle.v1`
 | `created_at` | create Event 的规范时间 |
 
 Schema 的两个 closed branch 是：create branch 同时禁止 `id/mls_group_id`；materialized branch 要求 `id`，且 MLS
-时要求 derived `mls_group_id=base64url_no_pad(utf8(canonical CircleId))`。Plaintext、standard MLS、exporter MLS 的
+时要求 derived `mls_group_id`，其值按 [`realm-and-space.md` §2.2](./realm-and-space.md) 的唯一派生式从该 Circle 的 `circle` 分支 effective scope 算出（`realm_id` 与 `circle_id` 都进入 key bytes）。Plaintext、standard MLS、exporter MLS 的
 closed union 见 [`history-visibility.md`](../governance/history-visibility.md) §2。
 
 self-surface 的 `circle_view`（[`circle-operations.schema.json#/$defs/circle_view`](../../artifacts/schemas/circle-operations.schema.json)）
