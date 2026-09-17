@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
-      "sha256": "2d48b91fcb01a5ac54bce59565507d94d81381aa901d1d26e9207c4c552bb3a2"
+      "sha256": "593f8deeb04d3ac6e9b06fd400391e639be3fe8e36df68bacc93cac946f15767"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",

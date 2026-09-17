@@ -56,13 +56,18 @@ accepted `ak.mls.genesis` 将该 scope 不可逆地激活为 standard RFC 9420�
 
 ```text
 realm:    UTF8(realm_id)
-circle:   UTF8(realm_id) || 0x1F || UTF8(circle_id)
+circle:   UTF8(circle_id)
 sidecar:  UTF8(realm_id) || 0x1F || UTF8(sidecar_id)
 ```
 
-三个 typed ID 都是定长、字符集受限（`^ak:<kind>:[A-Za-z0-9_-]{44}$`）且自带 kind 前缀，因此 `0x1F`
-不可能出现在分量内部，该编码在三分支上整体单射。实现 MUST NOT 改用 JCS、字段序或任何带长度前缀的
-变体，也 MUST NOT 省略 `circle` / `sidecar` 分支的 `realm_id`。
+RealmId 与 CircleId 都是全局唯一的 typed ID，自带互不相同的 kind 前缀且定长
+（`^ak:<kind>:[A-Za-z0-9_-]{44}$`），因此它们各自单独就已经确定了一个 scope，重复 `realm_id`
+不增加任何区分度；Sidecar 分支保留 `realm_id` 前缀，是因为 Sidecar 的 scope key 早于本节就按
+`RealmId || 0x1F || SidecarId` 定义，且 `0x1F` 不可能出现在两个分量内部。三条分支的字节串因 kind
+前缀与长度互不重叠，该编码整体单射。实现 MUST NOT 改用 JCS、字段序或任何带长度前缀的变体，
+MUST NOT 给 `circle` 分支补上 `realm_id`，也 MUST NOT 省略 `sidecar` 分支的 `realm_id`——三者都会
+改变 `group_id`，并同时改变以同一字节串为 context 的 MLS-Exporter 派生（见
+[`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）。
 
 **MLS `group_id` 的唯一派生式（normative）**：RFC 9420 原生 `group_id` bytes 固定为
 

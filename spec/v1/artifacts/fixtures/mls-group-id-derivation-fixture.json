@@ -4,12 +4,12 @@
     "entrypoint": "ak.suite.mls.group_id_derivation.v1"
   },
   "suite": "mls_group_id_derivation",
-  "version": "2026-09-18",
+  "version": "2026-09-18.1",
   "covers_vectors": [
     "ak.vector.mls.group_id_derivation_kat.v1",
     "ak.vector.mls.group_id_reversible_formula_rejected.v1"
   ],
-  "description": "Known-answer tests for the single v1 MLS group_id derivation in zh/models/realm-and-space.md section 2.2: group_id_bytes = SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope)), carried as base64url_no_pad, exactly 43 characters. One case per effective_scope branch pins both the scope key bytes and the digest input, so a Realm/Circle/Sidecar encoding drift or a dropped realm_id changes an expected value instead of passing silently. The circle and sidecar cases deliberately reuse one 44-character payload under two kind prefixes: the typed IDs are self-describing and 0x1F cannot occur inside one, so the two scopes MUST NOT collide. The last case is the negative the 2218 ruling turns on -- the pre-2218 reversible encoding is not a second accepted spelling of the same field.",
+  "description": "Known-answer tests for the single v1 MLS group_id derivation in zh/models/realm-and-space.md section 2.2: group_id_bytes = SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope)), carried as base64url_no_pad, exactly 43 characters. One case per effective_scope branch pins both the scope key bytes and the digest input, so an encoding drift -- prefixing the circle branch with its realm_id, dropping the sidecar branch's realm_id, reordering the sidecar components or switching to JCS -- changes an expected value instead of passing silently. The circle and sidecar cases deliberately reuse one 44-character payload under two kind prefixes: the typed IDs are self-describing and fixed length, so the two scopes MUST NOT collide even though only the sidecar branch carries a realm_id. The last case is the negative the 2218 ruling turns on -- the pre-2218 reversible encoding is not a second accepted spelling of the same field.",
   "cases": [
     {
       "name": "realm_scope",
@@ -37,9 +37,9 @@
         }
       },
       "expected": {
-        "canonical_effective_scope_key_bytes_hex": "616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a351f616b3a636972636c653a41554432574f68582d5868343776424874524a504d52665852515847694f5751714f724a474a6e4538436149",
-        "digest_input_hex": "616b2e6d6c732e67726f75705f69642e763100616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a351f616b3a636972636c653a41554432574f68582d5868343776424874524a504d52665852515847694f5751714f724a474a6e4538436149",
-        "mls_group_id": "chYFMFza1482aqA8OhQcN_h5bLy9lX2Hag3qrRVHfBU"
+        "canonical_effective_scope_key_bytes_hex": "616b3a636972636c653a41554432574f68582d5868343776424874524a504d52665852515847694f5751714f724a474a6e4538436149",
+        "digest_input_hex": "616b2e6d6c732e67726f75705f69642e763100616b3a636972636c653a41554432574f68582d5868343776424874524a504d52665852515847694f5751714f724a474a6e4538436149",
+        "mls_group_id": "mnoZ_saVPf3fDTNZYVjrFGJxJwRL6QkkU1EzZRYPzm4"
       }
     },
     {

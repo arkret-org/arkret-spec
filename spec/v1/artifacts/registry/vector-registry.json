@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.3",
+  "version": "2026-09-18.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T23:10:00+08:00",
+  "generated_at": "2026-09-18T23:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3312,7 +3312,7 @@
       "applies_to_fixtures": [
         "mls-group-id-derivation-fixture.json"
       ],
-      "description": "mls_group_id is base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope))) and is exactly 43 characters. The scope key bytes are UTF8(realm_id) for a realm scope and UTF8(realm_id) || 0x1F || UTF8(circle_id | sidecar_id) otherwise, so dropping realm_id, reordering the components or switching to JCS changes the value; a circle and a sidecar sharing one payload do not collide.",
+      "description": "mls_group_id is base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope))) and is exactly 43 characters. The scope key bytes are UTF8(realm_id) for a realm scope, UTF8(circle_id) for a circle scope and UTF8(realm_id) || 0x1F || UTF8(sidecar_id) for a sidecar scope, so prefixing the circle branch with its realm_id, dropping the sidecar branch's realm_id, reordering the sidecar components or switching to JCS changes the value; a circle and a sidecar sharing one payload do not collide, because the kind prefixes differ.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
         "spec/v1/zh/models/realm-and-space.md"
