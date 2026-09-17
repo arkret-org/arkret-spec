@@ -206,6 +206,7 @@ from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
     check_proof_context_object_family_schemas,
     check_every_result_family_has_a_writer,
+    check_registered_families_are_listed_in_prose,
     check_result_write_contracts,
 )
 
@@ -284,6 +285,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "every_result_family_has_a_writer",
                 lambda: check_every_result_family_has_a_writer(lint),
+            ),
+            (
+                "registered_families_are_listed_in_prose",
+                lambda: check_registered_families_are_listed_in_prose(lint),
             ),
             ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),
             ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),

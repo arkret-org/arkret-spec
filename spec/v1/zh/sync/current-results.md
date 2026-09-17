@@ -31,9 +31,23 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 每条结果是一个 closed typed object，包含领域 `selector`、`revision` 与完整领域值。v1 登记的 selector kind 为：
 
 - `realm_profile`：当前 Realm profile；
-- `realm_policy`：当前 Realm policy；
+- `realm_policy`：当前 Realm policy，值是 `ak.realm.policy` 选定的封闭引用 `{policy_id}`，
+  **不是** Policy 文档本体（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)）；
+- 以下十四个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
+  （[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 禁止把 envelope 的
+  `realm_id` 再写进 subject），各由同名 facet Event kind 单独承载：
+  `realm_schema`、`realm_join_rule`、`realm_discovery`、`realm_alias`、`realm_policy_bundle`、
+  `realm_asset_privacy_policy`、`realm_plaintext_visible_services`、`realm_media_service`、
+  `realm_read_receipt_policy`、`realm_tombstone`、`realm_destroy`、`realm_set_default_strand`；
+- `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
+  （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
+- `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——
+  继承是 per-parent 的，单例 subject 会让一个父 Realm 的继承覆盖另一个；
 - `member_state`：以完整 `actor_id` 选择成员状态；
 - `strand`：以 `strand_id` 选择 Strand；
+- `strand_position`：以 `typed_pair(id:space(board_space_id), id:strand(strand_id))` 选择一条
+  Strand 在某个 Board 上的位置，值为 `{list_space_id, rank}` 或 `null`（尚未上板）
+  （见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md)）；
 - `message_reactions`：以被表态对象的 `payload.target_ref` 选择该 target 的 reaction 断言集合（v1 core 的 target MUST 是同一 effective scope 内的 `ak:message:`，见 [`../models/strand-and-message.md` §9.8.2](../models/strand-and-message.md)）；值是核心 `keyed-set projection` 的 dot 集合，**不是** `(target_ref, key, members[], count)` 默认视图——后者是它之上的读侧折叠（§9.8.3）；
 - `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group；
 - `realm_authority_root`：singleton，值为 closed `ak.schema.realm_authority_root_value.v1`（见 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；

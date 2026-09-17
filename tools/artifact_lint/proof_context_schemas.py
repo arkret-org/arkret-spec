@@ -609,6 +609,62 @@ def check_every_result_family_has_a_writer(lint: Lint) -> None:
         )
 
 
+
+CURRENT_RESULTS_PROSE = ARTIFACTS.parent / "zh" / "sync" / "current-results.md"
+CURRENT_RESULTS_PROSE_HEADING = "## 2. 领域 selector 与 revision"
+_PROSE_FAMILY_TOKEN_RE = re.compile(r"`([a-z][a-z0-9_]*)`")
+
+
+def check_registered_families_are_listed_in_prose(lint: Lint) -> None:
+    """Every registered family MUST appear in the normative selector list.
+
+    ``sync/current-results.md`` section 2 opens with "v1 登记的 selector kind 为"
+    and then enumerates the families. That sentence is a closure claim: it tells
+    an implementer that an unlisted selector is one it MUST reject. The registry
+    is what reducers and schemas are generated from, so when a batch adds
+    families and leaves the list alone, the prose starts telling implementers to
+    reject state the registry requires them to carry -- and nothing said a word,
+    because no gate connected the two. That is what happened when fifteen Realm
+    facet families landed against a list still naming twenty-three.
+
+    Only this direction is mechanized. The reverse -- a listed name that is not
+    registered -- cannot be read off the section reliably, because the same
+    backtick spelling carries payload fields, subject kinds and Event kinds; a
+    matcher loose enough to catch it would mostly catch those. The reverse
+    direction is also the less dangerous one: an unregistered family name in
+    prose has no schema and no writer, so ``check_typed_current_result_naming``
+    and ``check_every_result_family_has_a_writer`` both bite the moment anyone
+    tries to make it real.
+    """
+    registered = _registered_result_families(lint)
+    if registered is None:
+        return
+    if not CURRENT_RESULTS_PROSE.is_file():
+        lint.fail(CURRENT_RESULTS_PROSE, "normative selector list is missing")
+        return
+    text = CURRENT_RESULTS_PROSE.read_text(encoding="utf-8")
+    parts = text.split(CURRENT_RESULTS_PROSE_HEADING)
+    if len(parts) != 2:
+        # Renaming the heading would silently disable this gate, so the anchor is
+        # itself part of the contract.
+        lint.fail(
+            CURRENT_RESULTS_PROSE,
+            f"expected exactly one {CURRENT_RESULTS_PROSE_HEADING!r} heading to anchor the "
+            "registered selector list",
+        )
+        return
+    section = parts[1].split("\n## ")[0]
+    listed = set(_PROSE_FAMILY_TOKEN_RE.findall(section))
+    missing = sorted(registered - listed)
+    if missing:
+        lint.fail(
+            CURRENT_RESULTS_PROSE,
+            f"section 2 enumerates the registered selector kinds but omits {missing}; "
+            "the section tells implementers to reject an unlisted selector, so an omitted "
+            "family is prose instructing them to reject state the registry requires",
+        )
+
+
 _PROSE_RESULT_WRITE_CITATION_RE = re.compile(r"(ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)\.result_writes")
 
 
