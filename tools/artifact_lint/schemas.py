@@ -1784,15 +1784,24 @@ def check_composite_subject_terminal_types(
     event_schema_path: Path,
     event_schema: Any,
 ) -> None:
-    """Reject cell-subject endpoints that are absent or not typed scalars.
+    """Reject `result_selector` endpoints that are absent or not typed scalars.
 
-    Single-field subjects and every composite/select endpoint must exist in the
+    Single-field selectors and every composite component must exist in the
     payload class selected for the Event kind. Coalesce descriptors may share
     one descriptor across payload classes, but at least one candidate must
     resolve. Every resolved ordinary endpoint must be scalar. A
     `string_set_digest` component is checked against its stricter closed
     string-or-array schema contract and is treated as a string only after
     transformation.
+
+    This gate read `cell_writes[].cell_subject` until 2026-09-18. The clean
+    break renamed the array to `result_writes[]` and the member to
+    `result_selector`, so every row loop below iterated an absent key and the
+    gate reported success over every selector in the registry -- including four
+    `ak.call.state` rows naming a `payload.recording_id` that
+    `call_state_payload` does not have. A selector whose components do not
+    resolve is not a cosmetic defect: it is the key the reducer writes under, so
+    an unresolvable component means the row cannot be implemented at all.
     """
     event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     event_registry = load_json(lint, event_registry_path)
@@ -1835,7 +1844,7 @@ def check_composite_subject_terminal_types(
                     f"#{fragment}" if separator else "#",
                 )
             except KeyError:
-                lint.fail(event_registry_path, f"cell subject schema ref not found: {ref}")
+                lint.fail(event_registry_path, f"result selector schema ref not found: {ref}")
                 return target_path, target_document, {}
             schema_path, document, node = target_path, target_document, target
         return schema_path, document, node
@@ -2248,17 +2257,19 @@ def check_composite_subject_terminal_types(
         return True
 
     rows = event_registry.get("event_kinds")
+    writes_seen = 0
     for row in rows if isinstance(rows, list) else []:
         if not isinstance(row, dict) or not isinstance(row.get("event_kind"), str):
             continue
         kind = row["event_kind"]
-        writes = row.get("cell_writes")
+        writes = row.get("result_writes")
         for write_index, write in enumerate(writes if isinstance(writes, list) else []):
-            subject = write.get("cell_subject") if isinstance(write, dict) else None
+            writes_seen += 1
+            subject = write.get("result_selector") if isinstance(write, dict) else None
             if not isinstance(subject, dict):
                 continue
             subject_kind = subject.get("kind")
-            subject_ref = f"{kind} cell_writes[{write_index}].cell_subject"
+            subject_ref = f"{kind} result_writes[{write_index}].result_selector"
             if subject_kind == "canonical_json":
                 # Ruling 2026-09-05-1200: canonical_json is only a components[]
                 # descriptor (encoding.md 9.5.1). A top-level use has no row in the
@@ -2304,7 +2315,7 @@ def check_composite_subject_terminal_types(
                 components if isinstance(components, list) else []
             ):
                 component_ref = (
-                    f"{kind} cell_writes[{write_index}].cell_subject.components"
+                    f"{kind} result_writes[{write_index}].result_selector.components"
                     f"[{component_index}]"
                 )
                 if (
@@ -2357,7 +2368,7 @@ def check_composite_subject_terminal_types(
                     elif selector_types != {"string"}:
                         lint.fail(
                             event_registry_path,
-                            f"{kind} cell_writes[{write_index}].cell_subject.components"
+                            f"{kind} result_writes[{write_index}].result_selector.components"
                             f"[{component_index}] selector {selector!r} must be a "
                             f"schema-declared JSON string, got "
                             f"{sorted(selector_types) or ['untyped']}",
@@ -2367,6 +2378,17 @@ def check_composite_subject_terminal_types(
                         kind, write_index, source, component_ref
                     )
 
+    # Fail closed on an empty sweep. This gate spent the whole authority-commit
+    # clean break iterating `cell_writes`, a key the break had renamed, and
+    # reported "checked, clean" over every selector in the registry. A gate that
+    # inspected nothing has not passed; it has not run.
+    if not writes_seen:
+        lint.fail(
+            event_registry_path,
+            "check_composite_subject_terminal_types inspected no result_writes[] entry at "
+            "all; the registry either lost its writes or spells the array under another key, "
+            "and either way this gate's silence means nothing",
+        )
 
 
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.13",
+  "version": "2026-09-17.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T03:40:00+08:00",
+  "generated_at": "2026-09-18T05:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -975,7 +975,7 @@
               "kind": "composite",
               "components": [
                 "payload.call_id",
-                "payload.recording_id"
+                "payload.recording_transition.recording_id"
               ]
             },
             "condition": {
@@ -992,7 +992,7 @@
                 "const": "stopped"
               }
             },
-            "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide. crypto-media/call-state.md section 4.2 fixes the stop write as recording_transition={recording_id,from:\"recording\",to:\"stopped\"} and event-payload.schema.json pins from to recording on the to=stopped branch, so the edge is const to const; the to=ready / to=failed branches carry artifact provenance and write call_recording_artifact, not this family.",
+            "notes": "Capture permission state only. The subject is the (call_id, recording_id) segment key, so several captures in one call never collide. The segment key component is payload.recording_transition.recording_id / payload.transcript_transition.recording_id, not a top-level payload.recording_id: call_state_payload has no such top-level field, and crypto-media/call-state.md section 4.2 names the per-transition member as the one that MUST equal the segment's start event recording_id byte for byte. crypto-media/call-state.md section 4.2 fixes the stop write as recording_transition={recording_id,from:\"recording\",to:\"stopped\"} and event-payload.schema.json pins from to recording on the to=stopped branch, so the edge is const to const; the to=ready / to=failed branches carry artifact provenance and write call_recording_artifact, not this family.",
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_current"
           },
           {
@@ -1001,7 +1001,7 @@
               "kind": "composite",
               "components": [
                 "payload.call_id",
-                "payload.recording_id"
+                "payload.recording_transition.recording_id"
               ]
             },
             "condition": {
@@ -1014,7 +1014,7 @@
                 "field": "payload.recording_transition.result"
               }
             },
-            "notes": "ready/failed outcome published from stopped. It grants no capture, key or read authority."
+            "notes": "ready/failed outcome published from stopped. It grants no capture, key or read authority. The segment key component is payload.recording_transition.recording_id / payload.transcript_transition.recording_id, not a top-level payload.recording_id: call_state_payload has no such top-level field, and crypto-media/call-state.md section 4.2 names the per-transition member as the one that MUST equal the segment's start event recording_id byte for byte."
           },
           {
             "result_family": "call_transcript_state",
@@ -1022,7 +1022,7 @@
               "kind": "composite",
               "components": [
                 "payload.call_id",
-                "payload.recording_id"
+                "payload.transcript_transition.recording_id"
               ]
             },
             "condition": {
@@ -1040,7 +1040,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_current",
-            "notes": "Capture permission state only, parallel to call_recording_state. event-payload.schema.json pins transcript_transition.from to transcribing on the to=stopped branch; the to=ready / to=failed branches write call_transcript_artifact."
+            "notes": "Capture permission state only, parallel to call_recording_state. event-payload.schema.json pins transcript_transition.from to transcribing on the to=stopped branch; the to=ready / to=failed branches write call_transcript_artifact. The segment key component is payload.recording_transition.recording_id / payload.transcript_transition.recording_id, not a top-level payload.recording_id: call_state_payload has no such top-level field, and crypto-media/call-state.md section 4.2 names the per-transition member as the one that MUST equal the segment's start event recording_id byte for byte."
           },
           {
             "result_family": "call_transcript_artifact",
@@ -1048,7 +1048,7 @@
               "kind": "composite",
               "components": [
                 "payload.call_id",
-                "payload.recording_id"
+                "payload.transcript_transition.recording_id"
               ]
             },
             "condition": {
@@ -1060,7 +1060,8 @@
               "value": {
                 "field": "payload.transcript_transition.result"
               }
-            }
+            },
+            "notes": "ready/failed transcript outcome published from stopped. It grants no capture, key or read authority. The segment key component is payload.recording_transition.recording_id / payload.transcript_transition.recording_id, not a top-level payload.recording_id: call_state_payload has no such top-level field, and crypto-media/call-state.md section 4.2 names the per-transition member as the one that MUST equal the segment's start event recording_id byte for byte."
           },
           {
             "result_family": "call_moderation",
@@ -3847,8 +3848,8 @@
         }
       }
     },
-    "version": "2026-09-17.10",
-    "generated_at": "2026-09-18T03:40:00+08:00",
+    "version": "2026-09-17.11",
+    "generated_at": "2026-09-18T05:10:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
