@@ -281,24 +281,28 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "type": "object",
-          "required": [
-            "membership"
-          ],
-          "properties": {
-            "membership": {
-              "enum": [
-                "join",
-                "knock",
-                "leave",
-                "ban"
-              ]
-            },
-            "joined_at": {
-              "$ref": "./time.schema.json#/$defs/timestamp"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/member_state_current"
+        }
+      },
+      "additionalProperties": false
+    },
+    "member_state_current": {
+      "description": "Closed value of the member_state typed current result: the materialized membership register of one complete ActorId. models/common-fields.md section 4.5 fixes it as a four-state register over join/knock/leave/ban. It is a named def rather than an inline object because registry/contract-registry.json cites it as the value_schema_ref of ak.member.state; an enclosing _result envelope names the selector and revision beside the value, so citing the envelope would let a value_projection member be checked against the wrong object.",
+      "type": "object",
+      "required": [
+        "membership"
+      ],
+      "properties": {
+        "membership": {
+          "enum": [
+            "join",
+            "knock",
+            "leave",
+            "ban"
+          ]
+        },
+        "joined_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false

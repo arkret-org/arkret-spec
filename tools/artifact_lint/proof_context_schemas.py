@@ -38,6 +38,7 @@ level down.
 from __future__ import annotations
 
 import json
+import posixpath
 import re
 from typing import Any
 
@@ -261,6 +262,9 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
 
 
 RESULT_FAMILY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+_COVERAGE_NOTE_RE = re.compile(
+    r"(\d+) of the (\d+) reducer_input kinds declare it; the remaining (\d+)"
+)
 CURRENT_RESULT_REGISTRY = ARTIFACTS / "registry" / "current-result-registry.json"
 
 
@@ -514,6 +518,73 @@ def _check_typed_pair_components(lint: Lint, ref: str, selector: Any) -> None:
         )
 
 
+_VALUE_SCHEMA_REF_DEPTH = 6
+
+
+def _value_schema_alternatives(
+    lint: Lint, file_ref: str, node: Any, depth: int = 0
+) -> list[tuple[set[str], set[str]]]:
+    """Resolve one registered value schema to its alternative member shapes.
+
+    A `value_projection` builds the stored value out of members named one at a
+    time, so the question a reader has -- is this member part of the value this
+    family stores, and does a whole-value `set` write all of it? -- is answered
+    by the write's own `value_schema_ref`. Nothing read it, so a member name
+    could be anything: `ak.member.state` pointed its ref at the enclosing
+    `member_state_result` envelope, whose own members are selector/revision/value,
+    and wrote `membership` into it.
+
+    Each entry is one alternative the value may take, as (declared, required).
+    Resolution follows the three shapes the registered value schemas use: a
+    direct `properties` map, a `$ref` (local `#/$defs/...` or a sibling artifact
+    file), and `oneOf`/`anyOf` branches, which are alternatives rather than a
+    union because `required` only binds inside the branch that matched. An
+    `allOf` member is a conjunction and folds into the enclosing alternative. A
+    `{"type": "null"}` branch is dropped rather than reported: it is a real
+    registered state -- `strand_position_value` spells pre-placement that way --
+    but an object projection can never produce it, so it constrains nothing.
+    """
+    if depth > _VALUE_SCHEMA_REF_DEPTH or not isinstance(node, dict):
+        return []
+    ref = node.get("$ref")
+    if isinstance(ref, str):
+        target_file, separator, fragment = ref.partition("#")
+        if target_file in ("", "."):
+            target_ref = file_ref
+        else:
+            target_ref = posixpath.normpath(
+                posixpath.join(posixpath.dirname(file_ref), target_file)
+            )
+        path = ARTIFACTS / target_ref
+        document = load_json(lint, path) if path.is_file() else None
+        if not isinstance(document, dict):
+            return []
+        try:
+            target = resolve_json_pointer(document, f"#{fragment}") if separator else document
+        except (KeyError, IndexError, ValueError):
+            return []
+        return _value_schema_alternatives(lint, target_ref, target, depth + 1)
+    branches = node.get("oneOf") or node.get("anyOf")
+    if isinstance(branches, list) and branches:
+        alternatives: list[tuple[set[str], set[str]]] = []
+        for branch in branches:
+            if isinstance(branch, dict) and branch.get("type") == "null":
+                continue
+            alternatives.extend(_value_schema_alternatives(lint, file_ref, branch, depth + 1))
+        return alternatives
+    declared = set(node["properties"]) if isinstance(node.get("properties"), dict) else set()
+    required = set(node["required"]) if isinstance(node.get("required"), list) else set()
+    for member in node.get("allOf") or ():
+        for member_declared, member_required in _value_schema_alternatives(
+            lint, file_ref, member, depth + 1
+        ):
+            declared |= member_declared
+            required |= member_required
+    if not declared:
+        return []
+    return [(declared, required)]
+
+
 def check_result_write_contracts(lint: Lint) -> None:
     """Validate the registered shared-state ``result_writes[]`` of each Event kind.
 
@@ -652,6 +723,17 @@ def check_result_write_contracts(lint: Lint) -> None:
                     value_projection,
                 )
             value_schema_ref = write.get("value_schema_ref")
+            projected_members = (
+                value_projection.get("members")
+                if isinstance(value_projection, dict)
+                else None
+            )
+            if projected_members and value_schema_ref is None:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} names value_projection members but declares no value_schema_ref, "
+                    "so nothing says which object those members belong to",
+                )
             if value_schema_ref is not None:
                 if not isinstance(value_schema_ref, str) or not value_schema_ref.startswith("schemas/"):
                     lint.fail(EVENT_KIND_REGISTRY, f"{where}.value_schema_ref must point into artifacts/schemas")
@@ -671,8 +753,132 @@ def check_result_write_contracts(lint: Lint) -> None:
                         EVENT_KIND_REGISTRY,
                         f"{where}.value_schema_ref does not resolve to a schema object: {value_schema_ref}",
                     )
+                elif projected_members:
+                    _check_projected_members(
+                        lint, where, write, projection, value_schema_ref, file_ref, node
+                    )
 
     _check_prose_result_write_citations(lint, rows)
+
+
+def _check_projected_members(
+    lint: Lint,
+    where: str,
+    write: dict,
+    projection: dict,
+    value_schema_ref: str,
+    file_ref: str,
+    node: Any,
+) -> None:
+    """Hold a value_projection to the value schema the same write names."""
+    alternatives = _value_schema_alternatives(lint, file_ref, node)
+    if not alternatives:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.value_schema_ref declares no members, so its value_projection cannot be "
+            f"checked against it: {value_schema_ref}",
+        )
+        return
+    declared: set[str] = set()
+    for alternative_declared, _ in alternatives:
+        declared |= alternative_declared
+    projected: set[str] = set()
+    for member in projection["value_projection"]["members"]:
+        if not isinstance(member, dict):
+            continue
+        name = member.get("name")
+        if not isinstance(name, str):
+            continue
+        projected.add(name)
+        if name not in declared:
+            lint.fail(
+                EVENT_KIND_REGISTRY,
+                f"{where}.result_projection.value_projection member {name!r} is not declared by "
+                f"value_schema_ref {value_schema_ref}",
+            )
+    if projection["kind"] != "set" or write.get("derived_members"):
+        # `merge` writes only the members it names, so an unnamed required member
+        # is the already-projected value's, not this write's. A write that also
+        # materialises derived members is undecidable here for a different
+        # reason: `derived_members[].name` is the registered reducer derivation,
+        # and which value member that derivation lands in is fixed by the
+        # normative rule rather than by this row.
+        return
+    # A `set` replaces the whole value, so anything a matching alternative
+    # requires and this projection does not write produces a value that violates
+    # its own registered schema on the first replay.
+    floor: set[str] | None = None
+    for _, alternative_required in alternatives:
+        floor = alternative_required if floor is None else floor & alternative_required
+    for name in sorted((floor or set()) - projected):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_projection is a whole-value set but does not write {name!r}, which "
+            f"value_schema_ref {value_schema_ref} requires",
+        )
+
+
+def check_result_write_coverage_note(lint: Lint) -> None:
+    """The coverage note MUST count the rows that are actually there.
+
+    ``registry_rules`` calls partial ``result_writes[]`` coverage a known gap and
+    tells the next editor to shrink the note as coverage grows. Nothing read it,
+    so it stayed at the numbers it was written with while four commits raised
+    coverage -- a source-of-truth registry describing itself wrongly, which is
+    the same defect class as a stale generated mirror except that no digest
+    catches it. The note carried an enumeration of the declaring kinds too;
+    ``event_kinds[]`` already is that list, so the copy is gone and only the two
+    counts remain, recomputed here from the rows.
+    """
+    block = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = block.get("event_kinds") if isinstance(block, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "event_kinds[] is missing, so result_writes[] coverage cannot be counted",
+        )
+        return
+    reducer_inputs = [row for row in rows if isinstance(row, dict) and row.get("reducer_input")]
+    covered = [row for row in reducer_inputs if row.get("result_writes")]
+    notes = [
+        rule
+        for rule in (block.get("registry_rules") or ())
+        if isinstance(rule, str) and "COVERAGE IS PARTIAL" in rule
+    ]
+    if len(notes) != 1:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "event_kind_registry.registry_rules must carry exactly one result_writes[] coverage "
+            f"note, found {len(notes)}",
+        )
+        return
+    match = _COVERAGE_NOTE_RE.search(notes[0])
+    if match is None:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "the result_writes[] coverage note must state coverage as "
+            "'<n> of the <total> reducer_input kinds declare it; the remaining <rest>'",
+        )
+        return
+    declared, total, remaining = (int(group) for group in match.groups())
+    if (declared, total, remaining) != (
+        len(covered),
+        len(reducer_inputs),
+        len(reducer_inputs) - len(covered),
+    ):
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "the result_writes[] coverage note says "
+            f"{declared} of {total} with {remaining} remaining, but event_kinds[] has "
+            f"{len(covered)} of {len(reducer_inputs)} with "
+            f"{len(reducer_inputs) - len(covered)} remaining",
+        )
+    if "ak." in notes[0]:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "the result_writes[] coverage note must not enumerate the declaring kinds: "
+            "event_kinds[] is that list and the copy went stale",
+        )
 
 
 def check_every_result_family_has_a_writer(lint: Lint) -> None:

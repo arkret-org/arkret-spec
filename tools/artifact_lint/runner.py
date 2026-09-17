@@ -208,6 +208,7 @@ from .proof_context_schemas import (
     check_every_result_family_has_a_writer,
     check_registered_families_are_listed_in_prose,
     check_result_write_contracts,
+    check_result_write_coverage_note,
 )
 
 
@@ -282,6 +283,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_proof_context_object_family_schemas(lint),
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
+            (
+                "result_write_coverage_note",
+                lambda: check_result_write_coverage_note(lint),
+            ),
             (
                 "every_result_family_has_a_writer",
                 lambda: check_every_result_family_has_a_writer(lint),

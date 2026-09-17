@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-17.11",
+  "version": "2026-09-17.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T00:20:00+08:00",
+  "generated_at": "2026-09-18T01:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,7 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 12 of the 139 reducer_input kinds declare it (ak.agent.key.authorize, ak.call.recording.start, ak.call.state, ak.call.summary, ak.capability.grant, ak.member.state, ak.mls.commit, ak.mls.genesis, ak.realm.create, ak.realm.history_access, ak.realm.profile, ak.strand.create); the remaining 127 still have no machine-readable reducer contract, so their registered writes exist only in prose. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 34 of the 139 reducer_input kinds declare it; the remaining 105 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -1651,8 +1651,8 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
-            "notes": "models/realm-and-space.md section 2.7 says ak.member.state writes member_state under the complete payload.member_id ActorId, and the account branch compares both AccountId components, so the subject is the canonical JSON of the whole ActorId and never a bare DID. The shared materialized membership FSM of models/common-fields.md section 4.5 is a four-state register over join/knock/leave/ban, so the projection is a whole-value set of the one member the payload carries. member_state_result.value also admits an optional joined_at, but no normative paragraph names a writer for it; leaving it unprojected keeps the registry honest instead of inventing envelope.created_at as its source. ak.invite.accept drives the same leave -> join edge in that FSM table and is not registered here: its payload identifies the accepting party by AccountId and the retype to the complete ActorId this subject requires has no expressible source in the current selector grammar."
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_current",
+            "notes": "models/realm-and-space.md section 2.7 says ak.member.state writes member_state under the complete payload.member_id ActorId, and the account branch compares both AccountId components, so the subject is the canonical JSON of the whole ActorId and never a bare DID. The shared materialized membership FSM of models/common-fields.md section 4.5 is a four-state register over join/knock/leave/ban, so the projection is a whole-value set of the one member the payload carries. member_state_current also admits an optional joined_at, but no normative paragraph names a writer for it; leaving it unprojected keeps the registry honest instead of inventing envelope.created_at as its source. ak.invite.accept drives the same leave -> join edge in that FSM table and is not registered here: its payload identifies the accepting party by AccountId and the retype to the complete ActorId this subject requires has no expressible source in the current selector grammar."
           }
         ],
         "id_source": "not_an_object_id"
@@ -3667,8 +3667,8 @@
         }
       }
     },
-    "version": "2026-09-17.8",
-    "generated_at": "2026-09-18T00:20:00+08:00",
+    "version": "2026-09-17.9",
+    "generated_at": "2026-09-18T01:10:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
