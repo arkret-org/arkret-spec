@@ -6180,12 +6180,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -6786,7 +6780,7 @@
     },
     "policy_rule_state_payload": {
       "type": "object",
-      "description": "Policy rule state payload. rule_id is the stable policy_rule typed current result subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). The typed current result is an append-only projection, so each accepted event appends one revision rather than replacing the previous one.",
+      "description": "Policy rule state payload. rule_id is the stable policy_rule typed current result subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). rule_id matches ^[a-z][a-z0-9_]{0,63}$ and is a document-local symbol, so it is only a stable subject inside one addressing scope; see tools/identifier-classification-registry.json. This payload carries no state or reason member, per the whole-value state wrapper rule in zh/models/common-fields.md section 5.",
       "required": [
         "rule_id",
         "value"
@@ -6799,12 +6793,6 @@
         },
         "value": {
           "$ref": "./policy.schema.json#/$defs/policy_rule"
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -8359,12 +8347,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -8728,12 +8710,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -8755,12 +8731,6 @@
             "knock_restricted",
             "closed"
           ]
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -8882,12 +8852,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -8967,12 +8931,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -9043,12 +9001,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "state": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false
