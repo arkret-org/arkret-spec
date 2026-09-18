@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T12:00:00+08:00",
+  "generated_at": "2026-09-19T18:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -360,7 +360,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
-      "section_digest": "sha256:f03c60d3236edfeb0ae7ff0a2df936b650bb8743151a053973eecdd4e3aa8a5b",
+      "section_digest": "sha256:1c7eab68b50d4b75445763916a6e02edaf603634f915b8d7b736ec6ab8cdb9b4",
       "requirement": "Any equivalent Bound endorsement accepted by the Realm confirmed sequence can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and missing confirmation fail closed. Ordinary admission uses the receiving Station's authenticated Contact intervals and known revocations without requiring origin or governance Station availability. Founding evidence never becomes an ordinary origin co-signature requirement. Clients consume exact Station results without replaying governance history.",
       "testability_grade": "audit",
       "test_plan": "Run Direct Conversation authority and capability-ref tests with one, repeated and concurrent equivalent endorsements, missing confirmation, foreign participants and wrong Strand. Execute bidirectional encrypted messages with origin and governance Station offline beyond the old query TTL, known Contact revocation, and reload with real accounts. Client refresh failure must preserve an accepted binding; authenticated blockers and peer/account changes must invalidate it, and delayed responses cannot reinstall old context. Schema fixtures reject found without binding_event_ref."

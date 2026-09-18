@@ -3817,7 +3817,7 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Participant endorsement of the settled Direct Conversation coordinates and the first exact-pair state in the scope's single immutable derived MLS group. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. Immutable after the first accepted write. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
+      "description": "Participant endorsement of the settled Direct Conversation coordinates and the first exact-pair state in the scope's single immutable derived MLS group. It does not enforce uniqueness: at most one Realm can exist per pair because only the founder derived from the pair's root Contact round may author the founding unit. What the first accepted write settles is the BINDING CONTENT -- a later endorsement carrying a different semantic binding_digest is refused before projection -- not the membership of the result: contact-and-direct-conversation.md section 8.3 makes this a set-shaped collection, and the second participant endorsement of the same binding MUST be acceptable. binding_digest is a receiver-derived off-wire semantic digest over the closed normalized binding object defined by contact-and-direct-conversation.md section 8.3 and MUST NOT be added to this payload.",
       "required": [
         "pair_key",
         "unordered_participant_ids",

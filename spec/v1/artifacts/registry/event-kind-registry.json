@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.13",
+  "version": "2026-09-18.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T16:00:00+08:00",
+  "generated_at": "2026-09-19T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,7 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 72 of the 139 reducer_input kinds declare it; the remaining 67 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 73 of the 139 reducer_input kinds declare it; the remaining 66 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -1610,9 +1610,31 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Participant endorsement of settled Direct Conversation coordinates and the first exact-pair state of the one scope-derived MLS group. Immutable after the first accepted write; later group state advances only by ordinary Commit.",
+      "payload": "Participant endorsement of settled Direct Conversation coordinates and the first exact-pair state of the one scope-derived MLS group. The endorsed binding content is settled by the first accepted write and later group state advances only by ordinary Commit; the endorsements themselves are a set, and the second participant endorsement of the same binding MUST be acceptable.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "direct_conversation_binding",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.pair_key"
+            ]
+          },
+          "result_projection": {
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
+          "notes": "identity/contact-and-direct-conversation.md section 8.3, which is normative that this result is set-shaped and commit-ordered. The element tag is the canonical <event_id>:<write_index> dot and never a bare event_id; the element value is the complete endorsement payload. This is an add-only set with no registered remover: the payload MUST NOT carry binding_state or supersedes_binding_ref, so nothing in v1 retracts an endorsement, and a future retraction is a separate security command rather than a second projection on this family. The earlier reading that pair_key carried a write-once set is withdrawn: immutability after the first accepted write constrains the binding CONTENT -- a different semantic binding_digest is refused before projection and raises the suspended diagnostic -- and not the membership, so both participant endorsements of one binding coexist. The domain dedupe key (binding_digest, envelope.actor_id) folds one participant repeated confirmations of one digest into one endorsement; it is a read-side fold over the stored elements and MUST NOT rewrite them."
+        }
+      ]
     },
     {
       "event_kind": "ak.handle.discovery",

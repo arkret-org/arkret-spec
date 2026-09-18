@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8785,
+    "total_properties": 8793,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2299,
       "optional_defaulted": 50,
-      "required": 5994,
+      "required": 6002,
       "required_nullable": 288,
       "tristate": 154
     },
@@ -11358,6 +11358,14 @@
         "/$defs/consent_value/properties/revoked_at": "optional",
         "/$defs/consent_value/properties/revoked_reason": "optional",
         "/$defs/consent_value/properties/status": "required",
+        "/$defs/direct_conversation_binding_endorsement_entry/properties/tag_id": "required",
+        "/$defs/direct_conversation_binding_endorsement_entry/properties/value": "required",
+        "/$defs/direct_conversation_binding_result/properties/revision": "required",
+        "/$defs/direct_conversation_binding_result/properties/selector": "required",
+        "/$defs/direct_conversation_binding_result/properties/selector/properties/kind": "required",
+        "/$defs/direct_conversation_binding_result/properties/selector/properties/pair_key": "required",
+        "/$defs/direct_conversation_binding_result/properties/value": "required",
+        "/$defs/direct_conversation_binding_value/properties/endorsements": "required",
         "/$defs/identity_accountability_result/properties/revision": "required",
         "/$defs/identity_accountability_result/properties/selector": "required",
         "/$defs/identity_accountability_result/properties/selector/properties/accountability_scope": "required",

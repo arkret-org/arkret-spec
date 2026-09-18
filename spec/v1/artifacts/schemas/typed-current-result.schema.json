@@ -180,6 +180,76 @@
     }
   ],
   "$defs": {
+    "direct_conversation_binding_endorsement_entry": {
+      "type": "object",
+      "description": "One endorsement of the settled Direct Conversation binding. The tag is the canonical dot of the accepted Event write that produced it; the value is that Event complete payload. binding_digest is receiver-derived and deliberately absent from both: it is not a wire field (contact-and-direct-conversation.md section 8.3), and storing it here would create a second copy of a value every reader MUST recompute anyway.",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_binding_value": {
+      "type": "object",
+      "description": "Closed value of the direct_conversation_binding typed current result.",
+      "required": [
+        "endorsements"
+      ],
+      "properties": {
+        "endorsements": {
+          "type": "array",
+          "description": "Canonically sorted endorsement entries, at least one. Both participants may endorse the same binding and both entries coexist; the domain dedupe key is (binding_digest, envelope.actor_id), so repeated confirmations by one participant of one digest count as a single endorsement. Folding on read MUST NOT rewrite an element: each entry keeps the exact signed payload that was accepted.",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/direct_conversation_binding_endorsement_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_binding_result": {
+      "type": "object",
+      "description": "Registered projection of one canonical Direct Conversation participant endorsements (contact-and-direct-conversation.md section 8.3). It is NOT a uniqueness device: at most one Realm exists per pair because only the founder derived from the pair root Contact round may author the founding unit (section 5.4 admission), and pair_key is that verified founding unit semantic coordinate rather than a global slot any Realm may claim. The result lives inside the Direct Conversation own Realm, which is why neither realm_id nor main_strand_id is a selector member (conformance/encoding.md section 4): admission already verifies both against the Realm settled coordinates, and repeating them here would be a second copy of the scope the result is already in.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "pair_key"
+          ],
+          "properties": {
+            "kind": {
+              "const": "direct_conversation_binding"
+            },
+            "pair_key": {
+              "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload/properties/pair_key"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/direct_conversation_binding_value"
+        }
+      },
+      "additionalProperties": false
+    },
     "revision": {
       "type": "object",
       "required": [

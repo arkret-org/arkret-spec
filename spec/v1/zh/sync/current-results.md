@@ -121,6 +121,12 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
 - `pin`：以完整封闭的 `pin_scope`（`{kind, id}`）选择一个 pin scope 的 tagged 断言集；它是 `keyed-set projection`，
   三条 `ak.pin.*` 各加一条断言，roster、remove-wins 与冲突视图都是读侧折叠（见 [`../models/pins.md` §4.1](../models/pins.md)）；
+- `direct_conversation_binding`：以 `pair_key` 选择一条 canonical Direct Conversation 的
+  participant endorsement 集合；它是 `keyed-set projection`，tag 为 Event dot、元素值是完整的
+  endorsement payload，两名 participant 对**同一** binding 的背书共存，去重键
+  `(binding_digest, envelope.actor_id)` 是读侧折叠；不同 semantic binding digest 在投影前即拒绝。
+  结果活在该 Direct Conversation 自己的 Realm 内，因此 `realm_id` / `main_strand_id` 不是 selector 成员
+  （见 [`../identity/contact-and-direct-conversation.md` §8.3](../identity/contact-and-direct-conversation.md)）；
 - `invite_lifecycle`：以 `invite_id` 选择一条 Invite 的流程状态轴；它是 `transition_contracts` 登记的
   状态机 family，值只有状态名本身（见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；
 - `invite_live_target`：以 `canonical_json(invitee_account_id)` 选择该 invitee 在本 Realm 的唯一 live
