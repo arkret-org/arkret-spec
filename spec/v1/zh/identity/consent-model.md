@@ -25,8 +25,9 @@ Consent 不授予 Realm capability，也不替代目标 Realm 的 membership、p
 - 完整 peer ActorId；
 - `consent_scope`；
 - 可选 `not_before`、`expires_at`、约束、证据引用与理由；
-- current revision 与产生该 revision 的 `CommittedEventRef`；
 - `active | revoked | expired` 状态。
+
+current revision 不是 value 的成员：typed current result 的 `revision` 与 `value` 同层，是封闭的 `{commit_id, stream_position}`（见 [`sync/current-results.md` §2](../sync/current-results.md)），`commit_id` 即产生该 revision 的 RealmCommit。
 
 同一 `consent_id` 在任一时刻只有一个 current value。治理 Station按 PCR Realm stream 的 Commit 顺序执行 reducer；协议不暴露集合标签、写索引或合流元数据。
 
@@ -53,12 +54,15 @@ Revoke payload 使用同一稳定 ID，并要求调用方签入 current revision
 ```json
 {
   "consent_id": "ak:consent:018f2d40-0000-7000-8000-000000000001",
-  "expected_revision": 0,
+  "expected_revision": {
+    "commit_id": "ak:realm_commit:0Zm5xr9E1cVJm2Q7pT4sN8bK6hW3yD1gXfL0aRtUvOc",
+    "stream_position": 7
+  },
   "reason": "holder_request"
 }
 ```
 
-治理 Station必须在 commit 事务中同时验证目标存在、仍为 active 且 current revision 等于 `expected_revision`。成功后 revision 加一并进入 `revoked`；stale revision、未知 ID、重复撤销或主体不匹配均拒绝。撤销只影响后续 admission，不追溯撤销已经提交的其它 Realm Event。
+治理 Station必须在 commit 事务中同时验证目标存在、仍为 active 且 current revision 等于 `expected_revision`。成功后 revision 变为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}` 并进入 `revoked`；stale revision、未知 ID、重复撤销或主体不匹配均拒绝。撤销只影响后续 admission，不追溯撤销已经提交的其它 Realm Event。
 
 ### 3.3 Producer 与提交
 

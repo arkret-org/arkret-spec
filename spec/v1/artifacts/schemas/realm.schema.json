@@ -80,10 +80,6 @@
             "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
           },
           {
-            "type": "string",
-            "pattern": "^(?!ak\\.)[a-z][a-z0-9_-]*(?:\\.[a-z][a-z0-9_-]*){2,}\\.v[0-9]+$"
-          },
-          {
             "enum": [
               "ak.profile.principal_control_realm.v1",
               "ak.profile.direct_conversation_realm.v1",
@@ -94,7 +90,7 @@
       },
       "minItems": 1,
       "uniqueItems": true,
-      "description": "Create-locked union of registered schema ids and the closed Realm structural-role profile allowlist. Policy, deployment conformance and operation-local profiles are forbidden here."
+      "description": "Union of registered ak.schema.*.vN ids and the closed Realm structural-role profile allowlist. Only the structural-role half is create-locked: zh/models/realm-and-space.md section 2.3 says ak.realm.schema updates the schema-id half and can neither add, remove nor replace a structural-role profile, so calling the whole union create-locked contradicts the one Event that writes it. Third-party namespaces are not accepted: zh/models/realm-and-space.md section 2.3 closes this member to ak.schema.*.vN outside the genesis allowlist, realm_schema_payload closes the update path to the same pattern, and no registered Event mints a non-ak. schema id. Policy, deployment conformance and operation-local profiles are forbidden here."
     },
     "fields": {
       "type": "object",

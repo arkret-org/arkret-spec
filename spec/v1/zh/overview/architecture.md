@@ -64,7 +64,7 @@ Arkret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Stra
 2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `ak:circle:`，对象通过 `scope_circle_id` 引用。
 3. 仅用于导航 / 结构分组的容器 MUST 使用 `ak:space:`，MUST NOT 借此获得 membership 或安全边界。
 4. 带协作语义的最小单元 MUST 使用 `ak:strand:`。
-5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
+5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 governance 提案流程中留档。
 
 子资源 scope 继承（`child_scope_policy`）取值、冲突解析，以及 `Space.scope_circle_id` 与 `realm_id` 同时存在时的优先级，权威定义见 [`models/circle.md`](../models/circle.md)（`child_scope_policy` 与 scope 解析优先级）；overview 不重复承载该解析规则。
 

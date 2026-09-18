@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 325,
+  "audited_occurrence_count": 326,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -883,6 +883,18 @@
         "attestation"
       ],
       "reason": "Conformance clauses may attach executable proof artifacts or externally issued test attestations."
+    },
+    {
+      "file": "typed-current-result.schema.json",
+      "key": "evidence_ref",
+      "disposition": "polymorphic_container",
+      "occurrences": 1,
+      "material_families": [
+        "proof",
+        "attestation",
+        "receipt"
+      ],
+      "reason": "Projection of consent_grant_payload.evidence_ref into the consent typed current result; the referenced consent material may be a proof, attestation, or receipt."
     },
     {
       "file": "sdk-conformance-claim.schema.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.5",
+  "version": "2026-09-18.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T23:50:00+08:00",
+  "generated_at": "2026-09-19T01:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -223,7 +223,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:39707ed5b29652e330fd7964469f5fbd0dbf45b14999f7ea14d6c22998d261cb",
+      "section_digest": "sha256:77eebb5d08db05b8766c726eb777e6568ee3652947cb12aae5e74fd0c5b9b3d1",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [

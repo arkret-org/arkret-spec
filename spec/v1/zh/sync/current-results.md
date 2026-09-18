@@ -59,6 +59,10 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `moderation_franking_proof`：以被证明 Event 的 `payload.event_id` 选择一条接收方 franking 证明
   （见 [`../governance/content-moderation.md` §6](../governance/content-moderation.md)）；证明独立于任何后续
   report 产生，因此 `report_id` / `target_ref` 既不是 payload 字段也不进 subject；
+- `consent`：以 producer 分配的稳定 `payload.consent_id` 选择 holder PCR 内的一条 Consent 记录
+  （见 [`../identity/consent-model.md` §2](../identity/consent-model.md)）；value 同层承载 grant body 与
+  reducer 派生的 `status`（`active | revoked`），`expired` 不是投影状态而是 §5 的验证时窗口判定；
+  peer 永不可读该结果（§8）；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——
@@ -116,13 +120,29 @@ schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达
 （`initial_state` / `initial_states` / `template` 三者恰取其一）、终态与允许的 `(from, to)` 边。
 本节只定义合同的读法，不复制任何一张转换表。
 
-- 写入该 family 的 Event MUST 使用 `transition` 投影并声明 `from` 与 `to`；MUST NOT 使用整值投影。
-  整值写入会绕过 `allowed_transitions`，使转换表退化为注释而不是规则。
+- 写入**已在 `transition_contracts` 登记的 family** 的 Event MUST 使用 `transition` 投影并声明 `from` 与
+  `to`；MUST NOT 使用整值投影。整值写入会绕过 `allowed_transitions`，使转换表退化为注释而不是规则。
 - `from` 与 `to` 各自 MUST 恰好声明 `const` 与 `field` 之一。一行需要承载多条边（前态取值不止一个）时
   用 `field` 指向 payload 中已封闭该取值集合的字段，不得在 registry 里另抄一份常量。
 - 未在 `transition_contracts` 中登记的 family MUST NOT 使用 `transition` 投影：没有状态集合的
   `from` / `to` 对没有任何可校验的对象。
 - 终态 MUST NOT 带出边。终态性只由转换表本身承载；实现不得以约定、服务端表或默认值补充。
+
+**生命周期轴有且只有两种登记载体，新增 family MUST 二选一**（本节此前只写了第一种，使
+[`authz/capabilities.md` §12.1](../authz/capabilities.md) 的 `capability_grant` 读起来像违例，
+并让"稳定 ID + 不可变 body + 终态"这一类 family 无处登记）：
+
+1. **`transition_contracts` 轴 + `transition` 投影**：result value 只承载状态名本身（`invite_lifecycle`
+   即此形），该 family 的其它事实各自另立 family。
+2. **封闭 reducer 派生成员**：status 是 value body 内与其它字段同层的一个成员，由
+   `result_writes[].derived_members[].derivation` 中一个封闭派生名物化，MUST NOT 由 producer 自填；
+   该 family MUST NOT 出现在 `transition_contracts` 中（`capability_grant` 即此形）。
+
+判据不是风格偏好，而是 `expected_revision`：该 family 的写入方若用 `expected_revision` 做 CAS，
+则 body 与 status MUST 在同一个 result 内——`expected_revision` 是单个
+`{commit_id, stream_position}`，拆成两个 family 就有两条独立 revision，CAS 失去唯一比较对象。
+因此**凡 payload 带 `expected_revision` 的 family MUST 取形态 2**；其余取形态 1。
+两种形态都禁止把状态同时放在两处：一个 family 只有一个状态真源。
 
 该合同缺失时 MUST 视为失败，不得当作「该轴无约束」：读不到转换表的检查只能证明没有人检查过。
 

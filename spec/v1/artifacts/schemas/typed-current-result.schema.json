@@ -156,6 +156,9 @@
     },
     {
       "$ref": "#/$defs/agent_selector_claim_result"
+    },
+    {
+      "$ref": "#/$defs/consent_result"
     }
   ],
   "$defs": {
@@ -2303,6 +2306,94 @@
         },
         "value": {
           "$ref": "#/$defs/agent_selector_claim_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_value": {
+      "type": "object",
+      "description": "Closed value of the consent typed current result, one record per stable consent_id (zh/identity/consent-model.md section 2). status is the lifecycle axis and it lives inside the body rather than in event_kind_registry.transition_contracts, because ak.consent.revoke guards itself with expected_revision: a single {commit_id, stream_position} can only be the CAS operand if body and status share one result. See zh/sync/current-results.md section 2.1 for the two registered carriers of a lifecycle axis. expired is deliberately not a state here: zh/identity/consent-model.md section 5 evaluates the not_before / expires_at window at verification time, so a projected expired would be a clock-driven write no Event authorises.",
+      "required": [
+        "consent_id",
+        "peer",
+        "consent_scope",
+        "status"
+      ],
+      "properties": {
+        "consent_id": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/consent_id"
+        },
+        "peer": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_peer"
+        },
+        "consent_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/consent_scope"
+        },
+        "not_before": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/not_before"
+        },
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/expires_at"
+        },
+        "constraints": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/constraints"
+        },
+        "evidence_ref": {
+          "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/evidence_ref"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason the holder recorded when granting."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ],
+          "description": "Reducer-derived lifecycle status materialised by the registered consent_status derivation; an author-supplied value MUST be rejected rather than trusted. revoked is terminal: zh/identity/consent-model.md section 3.2 rejects a repeat revoke, and a revoked consent_id is never revived."
+        },
+        "revoked_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp",
+          "description": "Projected from the ak.consent.revoke envelope created_at, never from its payload: the authority that closed this consent is that Event's signer."
+        },
+        "revoked_reason": {
+          "type": "string",
+          "description": "Projected from ak.consent.revoke payload.reason. Named apart from reason so the grant-time reason survives the close."
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_result": {
+      "type": "object",
+      "description": "Registered projection of one holder-private Consent record inside the holder's Principal Control Realm. The subject is the producer-assigned stable consent_id (zh/identity/consent-model.md section 2); peers can never read it (section 8).",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "consent_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "consent"
+            },
+            "consent_id": {
+              "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/consent_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/consent_value"
         }
       },
       "additionalProperties": false

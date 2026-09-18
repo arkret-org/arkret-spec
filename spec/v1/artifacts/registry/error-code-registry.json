@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T00:20:00+08:00",
+  "version": "2026-09-19.2",
+  "generated_at": "2026-09-19T01:40:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4334,7 +4334,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "An `ak.call.recording.start` event attempted to enter recording/transcribing without `payload.result.retention.consent_confirmed=true` and a capture-kind-specific start-event ref equal to the Event `event_id`. Reducer MUST reject before either capture FSM or result typed current result is written. See zh/crypto-media/call-state.md §5.2."
+      "description": "A capture attempted to enter or stay in recording/transcribing without the consent evidence its Realm requires. The reachable trigger is the per-participant consent acknowledgment profile of zh/crypto-media/call-state.md §5.2: a recorded party has no current device-signed acknowledgment, or membership, device or capture epoch changed and the acknowledgment was not re-acquired. This code is NOT how a producer-declared consent value is refused: `call_recording_start_payload.result.retention.consent_confirmed` is `const: true`, so any other value is `schema_violation` before the reducer runs, and the capture-kind start-event ref is stamped by the reducer because the payload MUST NOT carry it. Reducer MUST reject before either capture FSM or result typed current result is written."
     },
     {
       "code": "recording_state_transition_invalid",

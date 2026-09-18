@@ -92,7 +92,7 @@
         "revoked",
         "relinquished"
       ],
-      "description": "Reducer-derived lifecycle status of this Grant (zh/authz/capabilities.md section 12.1). It is absent from the closed authoring body of ak.capability.grant and is materialised by the registered capability_grant_status derivation, so an author-supplied value MUST be rejected rather than trusted. The two terminal values stay distinct because section 10.4 gives them different authorities: revoke is issuer or root-controller authority, relinquish is the target subject's own signature and MUST NOT require ak.capability.revoke. Collapsing them into revoked_at alone would erase which authority closed the Grant. A terminal value is final -- section 12.1 forbids resurrecting a closed grant_id -- and compaction MUST preserve it."
+      "description": "Reducer-derived lifecycle status of this Grant (zh/authz/capabilities.md section 12.1). It is absent from the closed authoring body of ak.capability.grant and is materialised by the registered capability_status derivation, so an author-supplied value MUST be rejected rather than trusted. The two terminal values stay distinct because section 10.4 gives them different authorities: revoke is issuer or root-controller authority, relinquish is the target subject's own signature and MUST NOT require ak.capability.revoke. Collapsing them into revoked_at alone would erase which authority closed the Grant. A terminal value is final -- section 12.1 forbids resurrecting a closed grant_id -- and compaction MUST preserve it."
     },
     "updated_by": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",

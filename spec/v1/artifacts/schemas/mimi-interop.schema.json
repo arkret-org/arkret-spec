@@ -315,7 +315,7 @@
     "content_mapping_receipt": {
       "type": "object",
       "required": [
-        "kind",
+        "receipt_kind",
         "profile",
         "mimi_room_uri",
         "source_format",

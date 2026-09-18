@@ -759,7 +759,10 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
   "kind": "ak.capability.revoke",
   "payload": {
     "grant_id": "ak:grant:AU1_A5a8MMz_OdxEleQlWPFn-ljdJteaJv3ZZ9APkcrZ",
-    "expected_revision": 0,
+    "expected_revision": {
+      "commit_id": "ak:realm_commit:0Zm5xr9E1cVJm2Q7pT4sN8bK6hW3yD1gXfL0aRtUvOc",
+      "stream_position": 41
+    },
     "reason": "contract ended"
   }
 }
@@ -773,9 +776,9 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id` 与 `ex
 
 capability 授权状态投影到 typed current result family `capability_grant`。该 family 有且只有四个已登记写入方，见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 中 `ak.capability.grant`、`ak.capability.derived`、`ak.capability.revoke`、`ak.capability.relinquish` 的 `result_writes[]`。每个 `grant_id` 有一个 closed current result，包含 canonical grant、status、revision 与产生该 revision 的 `CommittedEventRef`；`status` 是 grant body 自身的字段，与 `revoked_by` / `revoked_at` 同处一层，由封闭派生 `capability_status` 物化，**MUST NOT** 由 producer 自填。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
 
-- **grant**：`grant_id` 必须尚未存在，初始 revision 为 0，status=`active`；subject 由 `retype(event_id,"grant")` 派生，projection 为 `set`。
+- **grant**：`grant_id` 必须尚未存在，初始 revision 为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}`，status=`active`；subject 由 `retype(event_id,"grant")` 派生，projection 为 `set`。
 - **derived**：`ak.capability.derived` 以 `payload.grant_id` 为 subject 物化跨 Realm 派生 grant（[`../models/realm-links.md` §6](../models/realm-links.md)），status 同样为 `active`；源 grant 非 active 时该派生无效，reducer MUST 拒绝而不是投影出一个终态 grant。
-- **revoke / relinquish**：引用同一 `grant_id` 并携带 exact `expected_revision`；成功后 revision 加一且 status=`revoked` 或 `relinquished`。两者 projection 均为 `merge`——不可变的 grant body 在关闭后仍要留存——差别在于写哪一对 lifecycle 字段：revoke 写 `revoked_by` / `revoked_at`，relinquish 按 §10.4 不是撤销，写 `updated_by` / `updated_at`。两者都取承载 Event envelope 的 `actor_id` / `created_at`，不取 payload，因为关闭该 grant 的权威就是这条 Event 的签名方。
+- **revoke / relinquish**：引用同一 `grant_id` 并携带 exact `expected_revision`；成功后 revision 变为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}`，status=`revoked` 或 `relinquished`。两者 projection 均为 `merge`——不可变的 grant body 在关闭后仍要留存——差别在于写哪一对 lifecycle 字段：revoke 写 `revoked_by` / `revoked_at`，relinquish 按 §10.4 不是撤销，写 `updated_by` / `updated_at`。两者都取承载 Event envelope 的 `actor_id` / `created_at`，不取 payload，因为关闭该 grant 的权威就是这条 Event 的签名方。
 - **终态**：已撤销或主动放弃的 `grant_id` 不得通过重放或另一条 create Event 复活。
 - **压缩**：可以压缩 payload，但必须保留 grant ID、terminal status、revision 与 Commit 引用，snapshot / export 不得把 terminal grant 计为有效授权。
 

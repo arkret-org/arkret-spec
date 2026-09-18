@@ -113,7 +113,10 @@ class PartialUpdateBaseProducerTest(_GateHarness):
                     updated.add(family)
                 elif gate._is_base_producer(write["result_projection"]):
                     produced.add(family)
-        self.assertEqual(updated, {"capability_grant", "mls_group", "realm_authority_root"})
+        self.assertEqual(
+            updated,
+            {"capability_grant", "consent", "mls_group", "realm_authority_root"},
+        )
         self.assertLessEqual(updated, produced)
 
     def test_a_keyed_set_family_is_not_asked_for_a_base(self) -> None:
