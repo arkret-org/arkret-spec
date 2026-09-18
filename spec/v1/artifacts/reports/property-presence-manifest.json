@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8800,
+    "total_properties": 8834,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2300,
+      "optional": 2304,
       "optional_defaulted": 50,
-      "required": 6008,
+      "required": 6037,
       "required_nullable": 288,
-      "tristate": 154
+      "tristate": 155
     },
-    "tristate_occurrences": 154,
-    "tristate_audit_targets": 121,
+    "tristate_occurrences": 155,
+    "tristate_audit_targets": 122,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 111,
+      "absent_null_equivalent": 112,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -191,6 +191,7 @@
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding",
     "strand.schema.json/allOf/2/then/properties/metadata",
+    "typed-current-result.schema.json/$defs/device_authorization_value/properties/expires_at",
     "view.schema.json/$defs/query/properties/relation"
   ],
   "tristate_audit_targets": [
@@ -1423,6 +1424,16 @@
       "instance_path": "/metadata",
       "occurrences": [
         "/allOf/2/then/properties/metadata"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "typed-current-result.schema.json",
+      "shape": "/$defs/device_authorization_value",
+      "instance_path": "/expires_at",
+      "occurrences": [
+        "/$defs/device_authorization_value/properties/expires_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -5948,6 +5959,7 @@
         "/$defs/device_authorize_payload/properties/applet_id": "optional",
         "/$defs/device_authorize_payload/properties/authorization_binding_kind": "required",
         "/$defs/device_authorize_payload/properties/authorized_by": "required",
+        "/$defs/device_authorize_payload/properties/authorized_generation_ref": "required",
         "/$defs/device_authorize_payload/properties/device_id": "required",
         "/$defs/device_authorize_payload/properties/device_key_algorithm": "required",
         "/$defs/device_authorize_payload/properties/device_public_key_did": "required",
@@ -11361,6 +11373,39 @@
         "/$defs/consent_value/properties/revoked_at": "optional",
         "/$defs/consent_value/properties/revoked_reason": "optional",
         "/$defs/consent_value/properties/status": "required",
+        "/$defs/device_authorization_result/properties/revision": "required",
+        "/$defs/device_authorization_result/properties/selector": "required",
+        "/$defs/device_authorization_result/properties/selector/properties/device_id": "required",
+        "/$defs/device_authorization_result/properties/selector/properties/kind": "required",
+        "/$defs/device_authorization_result/properties/value": "required",
+        "/$defs/device_authorization_value/properties/algorithms": "required",
+        "/$defs/device_authorization_value/properties/applet_id": "optional",
+        "/$defs/device_authorization_value/properties/authorization_binding_kind": "required",
+        "/$defs/device_authorization_value/properties/authorized_by": "required",
+        "/$defs/device_authorization_value/properties/authorized_generation_ref": "required",
+        "/$defs/device_authorization_value/properties/device_authorize_event_id": "required",
+        "/$defs/device_authorization_value/properties/device_key_algorithm": "required",
+        "/$defs/device_authorization_value/properties/device_public_key_did": "required",
+        "/$defs/device_authorization_value/properties/device_signature": "required",
+        "/$defs/device_authorization_value/properties/expires_at": "tristate",
+        "/$defs/device_authorization_value/properties/hpke_key": "required",
+        "/$defs/device_authorization_value/properties/not_before": "required",
+        "/$defs/device_authorization_value/properties/pairing_challenge_transcript_digest": "optional",
+        "/$defs/device_authorization_value/properties/recovery_session_id": "optional",
+        "/$defs/device_authorization_value/properties/scopes": "optional",
+        "/$defs/device_generation_result/properties/revision": "required",
+        "/$defs/device_generation_result/properties/selector": "required",
+        "/$defs/device_generation_result/properties/selector/properties/kind": "required",
+        "/$defs/device_generation_result/properties/value": "required",
+        "/$defs/device_generation_value/properties/current_device_generation_ref": "required",
+        "/$defs/device_revocation_proposal_entry/properties/tag_id": "required",
+        "/$defs/device_revocation_proposal_entry/properties/value": "required",
+        "/$defs/device_revocation_proposals_result/properties/revision": "required",
+        "/$defs/device_revocation_proposals_result/properties/selector": "required",
+        "/$defs/device_revocation_proposals_result/properties/selector/properties/device_id": "required",
+        "/$defs/device_revocation_proposals_result/properties/selector/properties/kind": "required",
+        "/$defs/device_revocation_proposals_result/properties/value": "required",
+        "/$defs/device_revocation_proposals_value/properties/proposals": "required",
         "/$defs/direct_conversation_binding_endorsement_entry/properties/tag_id": "required",
         "/$defs/direct_conversation_binding_endorsement_entry/properties/value": "required",
         "/$defs/direct_conversation_binding_result/properties/revision": "required",

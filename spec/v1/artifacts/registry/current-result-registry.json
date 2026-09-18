@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T15:30:00+08:00",
+  "generated_at": "2026-09-21T16:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -680,6 +680,44 @@
           "models/relation.md §6.5"
         ],
         "note": "Concurrent adjudication and re-resolution are decided against the current resolution value."
+      }
+    },
+    {
+      "result_kind": "device_authorization",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_authorization_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "crypto-media/device-lifecycle.md §5.4",
+          "crypto-media/device-lifecycle.md §8.2",
+          "crypto-media/device-lifecycle.md §14.1"
+        ],
+        "note": "The approving device of an accepted_device pairing MUST itself be an active, unrevoked device at the current generation, and a keys/query row is issued only after its authorization window is checked against this result. It is also the join target of the device_status fold and of account_device signer evidence."
+      }
+    },
+    {
+      "result_kind": "device_generation",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "crypto-media/device-lifecycle.md §5.5.2",
+          "crypto-media/device-lifecycle.md §8.2",
+          "identity/key-management.md §8"
+        ],
+        "note": "Every ak.device.authorize is admitted only if its authorized_generation_ref equals this value, every ak.device.reanchor only if its previous_device_generation does; and a keys/query row is refused when the device's generation does not match it."
+      }
+    },
+    {
+      "result_kind": "device_revocation_proposals",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_revocation_proposals_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "crypto-media/device-lifecycle.md §2.2",
+          "crypto-media/device-lifecycle.md §14.1"
+        ],
+        "note": "The revocation-pending gate on new live authorization reads this set, and the SecurityRotationTransaction of §2.2 resumes from the element it created. Folding it against the covering command result is what yields revoked / rejected."
       }
     }
   ]

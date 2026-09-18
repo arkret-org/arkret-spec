@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T15:30:00+08:00",
+  "generated_at": "2026-09-21T17:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,7 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 74 of the 139 reducer_input kinds declare it; the remaining 65 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 77 of the 139 reducer_input kinds declare it; the remaining 62 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
     ],
     "payload_schema_contract": {
@@ -1905,6 +1905,110 @@
         "admission": "self_authored_proof",
         "payload": "Device authorization",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+        "result_writes": [
+          {
+            "result_family": "device_authorization",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.device_id"
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "device_public_key_did",
+                    "field": "payload.device_public_key_did"
+                  },
+                  {
+                    "name": "hpke_key",
+                    "field": "payload.hpke_key"
+                  },
+                  {
+                    "name": "algorithms",
+                    "field": "payload.algorithms"
+                  },
+                  {
+                    "name": "device_key_algorithm",
+                    "field": "payload.device_key_algorithm"
+                  },
+                  {
+                    "name": "authorized_by",
+                    "field": "payload.authorized_by"
+                  },
+                  {
+                    "name": "authorization_binding_kind",
+                    "field": "payload.authorization_binding_kind"
+                  },
+                  {
+                    "name": "authorized_generation_ref",
+                    "field": "payload.authorized_generation_ref"
+                  },
+                  {
+                    "name": "not_before",
+                    "field": "payload.not_before"
+                  },
+                  {
+                    "name": "expires_at",
+                    "field": "payload.expires_at"
+                  },
+                  {
+                    "name": "scopes",
+                    "field": "payload.scopes"
+                  },
+                  {
+                    "name": "applet_id",
+                    "field": "payload.applet_id"
+                  },
+                  {
+                    "name": "recovery_session_id",
+                    "field": "payload.recovery_session_id"
+                  },
+                  {
+                    "name": "pairing_challenge_transcript_digest",
+                    "field": "payload.pairing_challenge_transcript_digest"
+                  },
+                  {
+                    "name": "device_signature",
+                    "field": "payload.device_signature"
+                  },
+                  {
+                    "name": "device_authorize_event_id",
+                    "envelope_field": "event_id"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_authorization_value",
+            "notes": "Unconditional whole-value replacement of one device's current authorization inside its principal control Realm. crypto-media/device-lifecycle.md 5.5.1 fixes this member list and says what is deliberately NOT in it. device_status is absent because 5.5.3 makes the lifecycle axis a read-side fold: two of its edges (revocation_pending to revoked, and the clearing of pending) are decided by the committed command result of the covering RealmCommit, so a stored axis would have to register a state machine with only inbound edges. attested_at and the attestation's own expires_at are absent because the section 8.2 device_projection_attestation is a DOWNSTREAM signed projection of this result plus the device_generation result, and 5.5.1 forbids letting its freshness coordinates define the stored value. authorization_window is not a member either: it is the paired presentation of not_before and expires_at. authorized_generation_ref is a plain payload copy and NOT a derivation, which is the whole point of 5.5.2 -- the two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters an expected_state_digest freezes, and this Event has no such CAS, so a pre-state read here could not be guaranteed to agree across implementations. device_authorize_event_id is the one non-payload member and the envelope is its only legal source. The selector is the device_id alone: the PCR already fixes the account."
+          },
+          {
+            "result_family": "device_generation",
+            "result_selector": null,
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.authorization_binding_kind",
+              "const": "registration_anchor"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "current_device_generation_ref",
+                    "literal": 1
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
+            "notes": "The registration_anchor branch initializes the PCR-local generation to 1. This is the row that dissolves the 'generation family has no registered initializer' objection of crypto-media/device-lifecycle.md 5.5.4: the pcr_genesis_unit is the ordered pair [ak.realm.create, ak.device.authorize], so the unit is how this Event is atomically accepted, not a second producer standing in for it. identity/account-lifecycle.md step 7 states the same initialization from the acceptance side and the two MUST agree. The literal is 1 rather than a copy of payload.authorized_generation_ref because 5.5.2 already requires that field to equal 1 on this branch; projecting the literal makes the family's initial value unforgeable by an author. The other three binding kinds write nothing here: they join an existing generation rather than create one."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -1940,6 +2044,26 @@
         "admission": "pcr_recovery",
         "payload": "PCR-policy recovery re-anchor. Accepted only as the first event of an atomic re-anchor plus replacement-authorize unit for the exact account-local lineage. It fences the old PCR generation against the complete accepted RealmCommit checkpoint. DID-root possession is accepted only as an explicitly enabled optional policy factor.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_reanchor_payload",
+        "result_writes": [
+          {
+            "result_family": "device_generation",
+            "result_selector": null,
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "current_device_generation_ref",
+                    "field": "payload.new_device_generation"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
+            "notes": "The only advance of the PCR-local generation. Admission MUST require payload.previous_device_generation to equal the current value and new_device_generation to be its immediate successor, which is the CAS that makes this self-reported pre-state coordinate safe -- the same shape crypto-media/device-lifecycle.md 5.5.2 uses to justify putting authorized_generation_ref on the ak.device.authorize wire. device_generation_status is not projected: its conflicted value is a verified-conflict fold with no Event producer (5.5.4), so the keys/query device_generation_state object is the pair (this member, the folded status)."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -1952,6 +2076,28 @@
         "admission": "self_authored_proof",
         "payload": "Device revocation. Every accepted proposal atomically persists a canonical EventCommitSubmissionAck and ak.schema.device_revocation_state.v1 revocation_pending record for the exact reducer-derived authority/device/generation. It is not eligible for the Ack-less self-principal PCR exception.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_revoke_payload",
+        "result_writes": [
+          {
+            "result_family": "device_revocation_proposals",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                "payload.device_id"
+              ]
+            },
+            "result_projection": {
+              "kind": "keyed_set_add",
+              "tag": {
+                "dot": true
+              },
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_revocation_proposals_value",
+            "notes": "One accepted revoke appends one immutable element; nothing ever removes a dot. crypto-media/device-lifecycle.md 5.5.3 makes the pending / rejected / revoked trio a fold of each element against the committed command result of the RealmCommit covering it, whose durability identity/security-transactions.md section 3 already requires -- so the pending-to-terminal convergence has a carrier without v1 needing a non-Event producer vocabulary, and no second Event has to mutate the element. That is also why 'several transactions count independently, rejecting one does not clear another' (security/server-threat-model.md) is structural here rather than a rule an implementation could miss. The value is the whole payload, unassembled: ak.schema.device_revocation_state.v1 is the READ shape, and its target_device_authorize_event_id / target_device_generation_ref come from joining the device_authorization result of the same device_id, its accepted_at / acceptance_seq from the accepting transaction and its committed_at / denied_actions from the covering command result. The producer therefore self-reports no derived pending selector."
+          }
+        ],
         "id_source": "not_an_object_id"
       },
       {
@@ -5445,8 +5591,8 @@
         }
       }
     },
-    "version": "2026-09-18.18",
-    "generated_at": "2026-09-19T23:30:00+08:00",
+    "version": "2026-09-21.2",
+    "generated_at": "2026-09-21T17:10:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -17314,9 +17460,47 @@
           ],
           "note": "Concurrent adjudication and re-resolution are decided against the current resolution value."
         }
+      },
+      {
+        "result_kind": "device_authorization",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_authorization_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/device-lifecycle.md §5.4",
+            "crypto-media/device-lifecycle.md §8.2",
+            "crypto-media/device-lifecycle.md §14.1"
+          ],
+          "note": "The approving device of an accepted_device pairing MUST itself be an active, unrevoked device at the current generation, and a keys/query row is issued only after its authorization window is checked against this result. It is also the join target of the device_status fold and of account_device signer evidence."
+        }
+      },
+      {
+        "result_kind": "device_generation",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/device-lifecycle.md §5.5.2",
+            "crypto-media/device-lifecycle.md §8.2",
+            "identity/key-management.md §8"
+          ],
+          "note": "Every ak.device.authorize is admitted only if its authorized_generation_ref equals this value, every ak.device.reanchor only if its previous_device_generation does; and a keys/query row is refused when the device's generation does not match it."
+        }
+      },
+      {
+        "result_kind": "device_revocation_proposals",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_revocation_proposals_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/device-lifecycle.md §2.2",
+            "crypto-media/device-lifecycle.md §14.1"
+          ],
+          "note": "The revocation-pending gate on new live authorization reads this set, and the SecurityRotationTransaction of §2.2 resumes from the element it created. Folding it against the covering command result is what yields revoked / rejected."
+        }
       }
     ],
-    "version": "2026-09-21.1",
-    "generated_at": "2026-09-21T15:30:00+08:00"
+    "version": "2026-09-21.3",
+    "generated_at": "2026-09-21T17:10:00+08:00"
   }
 }

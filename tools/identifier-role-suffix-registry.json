@@ -730,6 +730,14 @@
       "reason": "closed device-or-principal ID union selected by authorization_binding_kind; the complete authorized_by role retains its bare byline spelling"
     },
     {
+      "file": "typed-current-result.schema.json",
+      "pointer": "/$defs/device_authorization_value/properties/authorized_by",
+      "terminal_categories": [
+        "mixed[did_core_id,typed_object_id]"
+      ],
+      "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization typed current result (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
+    },
+    {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_revoke_payload/properties/revoked_by",
       "terminal_categories": [

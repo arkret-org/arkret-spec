@@ -3346,6 +3346,7 @@
         "device_key_algorithm",
         "authorized_by",
         "authorization_binding_kind",
+        "authorized_generation_ref",
         "not_before",
         "device_signature"
       ],
@@ -3380,6 +3381,10 @@
             "applet_managed_delegation"
           ],
           "description": "registration_anchor is valid only in accepted PCR genesis; pcr_recovery only in a recovery unit authorized by the accepted PCR recovery policy; accepted_device requires an active approving device; applet_managed_delegation is valid only as an ordinary successor Event inside an accepted applet_managed_control PCR and only while the exact Applet install that created that principal is still active. No branch permits a same-core foreign PCR lineage."
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "PCR-local device generation this authorization is bound to, carried on the wire and verified by the accepting side with one equality against already committed state (device-lifecycle.md section 5.5.2). registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes; pcr_recovery MUST equal the sibling ak.device.reanchor new_device_generation; accepted_device and applet_managed_delegation MUST equal the PCR's current_device_generation_ref at acceptance. It is NOT a reducer pre-state read: v1's two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters whose pre-state an expected_state_digest CAS freezes, and this Event has no such freeze. Self-reporting it does not contradict the ak.device.revoke rule against self-reported derived pending selectors: that rule covers selectors only the reducer produces inside its own transaction, while this one is decided before acceptance by a single equality. It is not and MUST NOT be derived from a DID versionId. It is covered by the registration_anchor / pcr_recovery / applet_managed_delegation possession transcripts, which allOf this payload; the accepted_device device_pairing_target_proof is a closed eight-member object that deliberately excludes it, and the approving device's Event proof over the full canonical Event bytes covers it instead."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"

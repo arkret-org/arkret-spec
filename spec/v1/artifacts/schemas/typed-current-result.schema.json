@@ -177,6 +177,15 @@
     },
     {
       "$ref": "#/$defs/policy_result"
+    },
+    {
+      "$ref": "#/$defs/device_authorization_result"
+    },
+    {
+      "$ref": "#/$defs/device_generation_result"
+    },
+    {
+      "$ref": "#/$defs/device_revocation_proposals_result"
     }
   ],
   "$defs": {
@@ -2922,6 +2931,227 @@
         },
         "value": {
           "$ref": "#/$defs/relation_conflict_resolution_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_authorization_value": {
+      "type": "object",
+      "description": "Closed value of the device_authorization typed current result, fixed by zh/crypto-media/device-lifecycle.md section 5.5.1. One accepted ak.device.authorize replaces it whole; there is no partial patch. Every member but device_authorize_event_id is a verbatim copy of the signed payload, and that one member comes from this Event's own envelope event_id because the payload MUST NOT carry it. device_status is deliberately absent: section 5.5.3 makes the lifecycle axis a read-side fold over this result, the revocation proposal set, the current generation and verified conflict evidence, so storing it here would be a second, staler truth. attested_at and the attestation's own expires_at are absent for the same reason in reverse: they are freshness coordinates of the section 8.2 device_projection_attestation, which is a DOWNSTREAM signed projection of this result and MUST NOT define it. authorization_window is not a member either -- it is the paired presentation of not_before and expires_at on the keys/query surface. No account_id or principal_id copy appears: the PCR and the Event envelope already fix them.",
+      "required": [
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "authorization_binding_kind",
+        "authorized_generation_ref",
+        "not_before",
+        "device_signature",
+        "device_authorize_event_id"
+      ],
+      "properties": {
+        "device_public_key_did": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string",
+          "description": "The device signing key. Section 8.2 names this same value device_signing_key_did on the keys/query surface; that is one value under two surface names, never two facts."
+        },
+        "hpke_key": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+        },
+        "algorithms": {
+          "$ref": "./event-payload.schema.json#/$defs/string_list",
+          "description": "Already UTF-8 bytewise sorted and deduplicated by admission."
+        },
+        "device_key_algorithm": {
+          "const": "Ed25519"
+        },
+        "authorized_by": {
+          "$ref": "./event-payload.schema.json#/$defs/device_or_principal_ref"
+        },
+        "authorization_binding_kind": {
+          "type": "string",
+          "enum": [
+            "registration_anchor",
+            "pcr_recovery",
+            "accepted_device",
+            "applet_managed_delegation"
+          ]
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "The PCR generation this authorization was accepted under. Section 5.5.2 puts it on the wire rather than deriving it, because no expected_state_digest freezes this Event's pre-state."
+        },
+        "not_before": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/nullable_timestamp"
+        },
+        "scopes": {
+          "$ref": "./event-payload.schema.json#/$defs/string_list"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "pairing_challenge_transcript_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest",
+          "description": "Section 5.2.2 requires the accepted payload to keep it so the target signature stays reverifiable after the staged short-link record is cleaned up."
+        },
+        "device_signature": {
+          "$ref": "./event-payload.schema.json#/$defs/signature_material"
+        },
+        "device_authorize_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_authorization_result": {
+      "type": "object",
+      "description": "Current authorization of one device inside its principal control Realm (family device_authorization). The selector is the device_id alone: the PCR already fixes the account, so an account_id selector component would be a second truth. zh/crypto-media/device-lifecycle.md section 5.5.1 is authoritative.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "device_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "device_authorization"
+            },
+            "device_id": {
+              "$ref": "./event-payload.schema.json#/$defs/device_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/device_authorization_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_generation_value": {
+      "type": "object",
+      "description": "Closed value of the device_generation typed current result: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. device_generation_status is NOT a member -- its conflicted value is the same kind of verified-conflict fold as the device-level conflicted of section 5.5.3 and has no Event producer, so the device_generation_state object on the keys/query surface is the pair (this member, the folded status) rather than a two-member stored value.",
+      "required": [
+        "current_device_generation_ref"
+      ],
+      "properties": {
+        "current_device_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "Initialized to 1 by the registration_anchor ak.device.authorize of the pcr_genesis_unit and advanced only by ak.device.reanchor to its new_device_generation. It is not and MUST NOT be derived from a DID versionId."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_generation_result": {
+      "type": "object",
+      "description": "Singleton PCR-local device generation fence (family device_generation). The selector carries no component beyond its kind: one principal control Realm has exactly one generation. Both writers are registered Event kinds, which is why this family has no genesis-only initializer -- the registration_anchor branch of ak.device.authorize IS the pcr_genesis_unit's second member.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "device_generation"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/device_generation_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_revocation_proposal_entry": {
+      "type": "object",
+      "description": "One tagged element of device_revocation_proposals. The tag is the canonical dot of the accepted ak.device.revoke write that produced it -- that dot's event_id is the proposal_event_id of ak.schema.device_revocation_state.v1 -- and the value is that Event's complete payload, unassembled. The element is immutable and no second Event rewrites it: pending / rejected / revoked is a fold of this element against the committed command result of the RealmCommit that covers it (zh/crypto-media/device-lifecycle.md section 5.5.3).",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/device_revoke_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_revocation_proposals_value": {
+      "type": "object",
+      "description": "Closed value of device_revocation_proposals: the canonically sorted dot set of accepted revocation proposals against one device. It is a keyed set under models/common-fields.md section 2 -- commutative, associative, idempotent, order-independent -- and nothing ever removes a dot. This is what makes 'several transactions count independently, rejecting one does not clear another' (zh/security/server-threat-model.md) structural rather than a rule an implementation could miss: each proposal is its own element and each element folds only its own covering command result.",
+      "required": [
+        "proposals"
+      ],
+      "properties": {
+        "proposals": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/device_revocation_proposal_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_revocation_proposals_result": {
+      "type": "object",
+      "description": "Accepted revocation proposals against one device (family device_revocation_proposals), keyed by device_id inside its principal control Realm. ak.schema.device_revocation_state.v1 in device-revocation-state.schema.json is the READ-SIDE fold of this set, not its write shape: its target_device_authorize_event_id and target_device_generation_ref come from joining the device_authorization result of the same device_id, accepted_at / acceptance_seq from the accepting transaction, and committed_at / denied_actions from the covering command result. That is why a producer never self-reports a derived pending selector.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "device_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "device_revocation_proposals"
+            },
+            "device_id": {
+              "$ref": "./event-payload.schema.json#/$defs/device_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/device_revocation_proposals_value"
         }
       },
       "additionalProperties": false

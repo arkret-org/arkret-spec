@@ -146,6 +146,9 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
 - `call_recording_artifact` / `call_transcript_artifact`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
 - `call_summary`：以 `call_id` 选择 write-once 的终态通话摘要。
+- `device_authorization`：以 `device_id` 选择该设备在本 principal control Realm 内的当前授权事实，整体置换写入；封闭 value 与被排除的成员（`device_status` / `attested_at` / `authorization_window`）见 [`../crypto-media/device-lifecycle.md` §5.5.1](../crypto-media/device-lifecycle.md)；
+- `device_generation`：单值 selector（除 kind 外无成分，一个 PCR 一份），值只有 `current_device_generation_ref`；写入方是 `registration_anchor` 分支的 `ak.device.authorize`（置 `1`）与 `ak.device.reanchor`（置 `new_device_generation`），见 [`../crypto-media/device-lifecycle.md` §5.5.4](../crypto-media/device-lifecycle.md)；
+- `device_revocation_proposals`：以 `device_id` 选择针对该设备的已接纳撤销提案 keyed set，元素不可变、永不删除；`revocation_pending` / `rejected` / `revoked` 是每个元素与其覆盖 command result 的读侧折叠，不是存储轴，见 [`../crypto-media/device-lifecycle.md` §5.5.3](../crypto-media/device-lifecycle.md)。
 
 selector 的身份字段来自已接纳 Event 的 typed payload，不得由调用方另行声明或由服务端按显示名称猜测。新增领域结果
 必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。
