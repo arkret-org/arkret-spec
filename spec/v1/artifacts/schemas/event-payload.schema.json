@@ -2867,7 +2867,7 @@
     },
     "contact_requested_payload": {
       "type": "object",
-      "description": "Requester-signed directional Contact request fact. It is created before any acceptance receipt or basis exists, so neither may appear in this payload. It grants only the requester's explicit Contact scopes and neither reads nor writes Consent.",
+      "description": "Requester-signed directional Contact request fact. It is created before any acceptance receipt or contact round exists, so neither may appear in this payload. It grants only the requester's explicit Contact scopes and neither reads nor writes Consent.",
       "required": [
         "peer",
         "granted_to_peer_scopes",
@@ -2899,7 +2899,7 @@
     },
     "contact_tombstoned_payload": {
       "type": "object",
-      "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, basis and predecessor coordinates. It does not read, write or revoke Consent.",
+      "description": "Holder-signed terminal event for one issuer-local Contact lineage. The event kind itself supplies terminal semantics; the payload carries only the exact peer, contact round and predecessor coordinates. It does not read, write or revoke Consent.",
       "required": [
         "peer",
         "contact_round_id",

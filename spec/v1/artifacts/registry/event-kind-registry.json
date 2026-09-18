@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.14",
+  "version": "2026-09-18.16",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T18:00:00+08:00",
+  "generated_at": "2026-09-19T20:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1466,7 +1466,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable basis, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent.",
+      "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable contact round, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload",
       "id_source": "not_an_object_id"
     },
@@ -1479,7 +1479,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It creates no basis and has no Consent or basis-proof fields.",
+      "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It establishes no Contact round and carries no Consent or Contact round evidence fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload",
       "id_source": "not_an_object_id"
     },
@@ -1492,7 +1492,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and basis and never reads or writes Consent.",
+      "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and contact round and never reads or writes Consent.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload",
       "id_source": "not_an_object_id"
     },
@@ -1504,7 +1504,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable basis, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal.",
+      "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable contact round, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_scope_update_payload",
       "id_source": "not_an_object_id"
     },
@@ -1516,7 +1516,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable basis and cannot carry scope replacement or write/revoke Private Consent.",
+      "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable contact round and cannot carry scope replacement or write/revoke Private Consent.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload",
       "id_source": "not_an_object_id"
     },

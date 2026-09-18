@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.1",
+  "version": "2026-09-16.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T21:00:00+08:00",
+  "generated_at": "2026-09-19T20:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -405,7 +405,7 @@
       "file": "schemas/contact-operations.schema.json",
       "fragment": "#/$defs/contact_scope_update_payload",
       "status": "active",
-      "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable basis, version, predecessor and full granted-scope set.",
+      "description": "Closed holder-signed Contact scope replacement payload, including the peer XOR, stable contact round, version, predecessor and full granted-scope set.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "ak.contact.scope.update Event payload",

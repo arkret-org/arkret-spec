@@ -179,7 +179,7 @@ linked Realm 可见性或 Circle effective-scope 可见性中任一项被收紧�
 
 `ak.vector.contact.next_prepare_input.v1` MUST 证明：`ak.self.contact.read.list.v1` 投影携带封闭的
 `next_prepare_input` 后继游标——accepted 行 MUST 携带它，五个不可作者化的 `contact_state` 值 MUST NOT 携带；
-其 `basis_id`、`version` 与 `predecessor_event_ref` 逐字复制进 scope update 与 tombstone 两个 prepare 阶段；
+其 `contact_round_id`、`version` 与 `predecessor_event_ref` 逐字复制进 scope update 与 tombstone 两个 prepare 阶段；
 `version` 是下一条 Event 的 version，`predecessor_event_ref` 是当前谱系头而不是该头的前驱；
 过期游标以 `contact_lineage_conflict` 或 `contact_scope_stale` 拒绝，且 MUST 重新读取而不是猜测或原样重试。
 

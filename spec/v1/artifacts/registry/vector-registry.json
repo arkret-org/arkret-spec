@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T13:00:00+08:00",
+  "generated_at": "2026-09-19T20:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1219,7 +1219,7 @@
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "The ak.self.contact.read.list.v1 projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its basis_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
+      "description": "The ak.self.contact.read.list.v1 projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its contact_round_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
