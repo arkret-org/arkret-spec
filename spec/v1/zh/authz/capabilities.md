@@ -565,25 +565,29 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 - accountability 不等于 capability。
 - owner / guardian / controller 不会自动把自己的权限传给 subject。
 - subject 要执行操作，仍然必须命中显式 grant。
-- 高风险动作 MUST 按 action registry 的 `risk_tier` 要求 responsible / guardian / controller approval 或等价 proposal workflow。
-- Event MUST 记录 grant、issuer-authority chain、approval 证据和执行上下文；缺失时 reducer MUST fail closed。
+- 高风险动作 MUST 按 action registry 的 `risk_tier` 要求 responsible / guardian / controller approval（证据形态见 [`constraint-schema.md` §9.2](./constraint-schema.md)）。
+- **接纳审计记录** MUST 可解析到 grant、issuer-authority chain、原始审批证据与执行上下文；任一项不可解析时 reducer MUST fail closed。审批证据**不在** Event 内：它随提交容器 `EventCommitSubmission.approval_signatures[]` 到达，由接纳该 Event 的治理 Station 在同一原子事务内耐久保存并绑定原始提交（[`constraint-schema.md` §9.2.5](./constraint-schema.md)）。因此 EventEnvelope 本身 MUST NOT 携带 approver 字段集。
 
 风险分层硬约束：
 
 - `risk_tier=high` 的 action MUST 有 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence。
-- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认不可转授（无 `authority_control` 约束，等价 `max_authority_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
+- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval workflow、默认不可转授（无 `authority_control` 约束，等价 `max_authority_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
 - Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有 resource selector；缺失时 reducer MUST `failed_precondition`。
 - Agent / service principal 的 grant 的 `expires_at` 分层要求:`risk_tier=high` 的 action 按上文风险分层硬约束 MUST 有有限 `expires_at`;registry `required_constraints` 列出 `expires_at` 的 action(如 `ak.agent.sidecar.publish`)同样 MUST,缺失时 reducer MUST `failed_precondition`。**低 / 中风险** action 的 agent grant MAY 不设时间过期(longevity-safe:失效控制由撤销链、pause / deactivate kill switch 与 controller lifecycle / membership 级联承担，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md));agent 的常驻工作面(read / draft / reply_as_agent / organizer)全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
 
-### 8.1 Proposal 模式
+### 8.1 高风险操作的审批顺序（normative）
 
-高风险操作建议使用 proposal 模式：
+v1 只有 `before_commit` 一种审批模式，顺序固定为三步，MUST NOT 被压成一步：
 
 ```txt
-actor -> proposal.created
-guardian/controller -> proposal.approved
-system/human -> `ak.strand.update` 或 `ak.morph.update`
+1. 发起者 author 并签名完整目标 Event（得到 canonical 字节与 event_id），先不提交
+2. 每个 approver 对该 exact event_id 与原 Event 摘要签发 approval signature
+3. 发起者用 EventCommitSubmission{event, approval_signatures[]} 提交；
+   reducer 在同一接纳事务内验证证据、消费 nonce 并写入
 ```
+
+两层审批要求（grant 上的 approval constraint 与 Realm 治理面的 `policy_action` 配置）MUST 各自被满足，且 MUST 能分别拒绝；证据形态、被签字节与 nonce 合同见[`constraint-schema.md` §9.2](./constraint-schema.md)，两层关系见该文件 §9.3 与[`../models/governance-objects.md` §3.5](../models/governance-objects.md)。
+`approval_mode` 的值集恰为 `{"before_commit"}`：v1 没有「先立提案对象、再批准该对象」的第二条路径。
 
 ## 9. Agent 安全授权
 

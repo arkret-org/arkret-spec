@@ -567,9 +567,9 @@
     "approval_mode": {
       "type": "string",
       "enum": [
-        "before_commit",
-        "proposal_then_approve"
-      ]
+        "before_commit"
+      ],
+      "description": "The only approval mode of v1. The approved write MUST NOT take effect before the approval evidence is verified and accepted in the same transaction (zh/authz/constraint-schema.md section 9.2.7). There is no second mode and no path that first materializes a proposal object and then approves that object."
     },
     "approval_actor_ids": {
       "type": "array",
@@ -593,9 +593,6 @@
     },
     "auto_reject_on_timeout": {
       "type": "boolean"
-    },
-    "proposal_morph_kind": {
-      "type": "string"
     },
     "approval_threshold": {
       "type": "string",

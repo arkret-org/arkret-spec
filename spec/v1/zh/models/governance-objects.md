@@ -217,18 +217,20 @@ approval constraint。它 MUST 在跨 grant 合并
 反向同样禁止；「后写覆盖先写」「更具体的 scope 覆盖更宽的 scope」都 MUST NOT 被用作跨配置的裁决规则。
 
 **满足证据**：本层复用
-[`../authz/constraint-schema.md` §9.3](../authz/constraint-schema.md) 的 **approval signature**，
+[`../authz/constraint-schema.md` §9.2](../authz/constraint-schema.md) 的 **approval signature**，
 **MUST NOT** 另造第二种审批证据类型。一份 approval signature 对本层的 quorum 计一票，
 当且仅当它同时满足：
 
-- 按 §9.3 的全部字段绑定与 replay 规则有效（canonical signing input 完整、`approved_at` 在该节规定的
+- 按 §9.2 的全部字段绑定与 replay 规则有效（`signing_bytes` 逐字节重算通过、`approved_at` 在该节规定的
   freshness 边界内、`(approver_did, nonce)` 未复用、签名由 `approver_did` 在 `approved_at` 时刻
   未被撤销的 verification method 签发）；
 - `request_canonical_digest` 等于**本次**请求 body 的 JCS SHA-256 摘要，`action` 等于 `A`，
   `realm_id` 等于 `R`；
-- 其 `grant_id` 是本次操作的某个**满足的依赖 grant**（§15.4 第 2 步的定义）。§9.3 的字段集要求
-  `grant_id` 与 `proposal_id` 恰有其一，本层不为此增设第三种取值：走 grant 路径即绑 `grant_id`，
-  走提案路径即绑 `proposal_id`；
+- 其 `approval_context` 是 §9.2.2 的两支之一：`context_kind="grant"` 时 `grant_id` MUST 是本次操作的
+  某个**满足的依赖 grant**（§15.4 第 2 步的定义）；`context_kind="realm_governance"` 时不携带任何
+  grant / policy 标识，表示本层对 `(action token, scope)` 的独立审批要求。本层 MUST 接受这两支——
+  治理层的要求可以作用于不靠单份 grant 接纳的动作，实现 MUST NOT 为了满足 schema 伪造 `grant_id`；
+  反向，一份 `realm_governance` 支证据 MUST NOT 被当成对某份特定 grant 的批准。
 - `approver_did` **不是**本次操作的发起者。自签名 MUST NOT 计票，否则 `approval_quorum=1` 等于没有要求；
 - `approver_did` 自身持有一份对 `(A, T)` 有效的 capability grant。`policy_action.value` 不携带
   `approval_actor_ids`，所以有资格投票的集合由这一条定义，MUST NOT 放宽成「任意 Realm 成员」——

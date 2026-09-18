@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 62,
+  "version": 63,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-19T23:30:00+08:00",
+  "generated_at": "2026-09-21T22:00:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -3970,20 +3970,22 @@
       }
     },
     {
-      "id": "proposal_morph_type",
+      "id": "proposal_approval_mode_fields",
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
-      "replacement": "proposal_morph_kind",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json; all other registered contexts MUST reject the field.",
+      "notes": "v1 has exactly one approval mode, before_commit, and no proposal object: approval evidence binds either an authored Event or one registered operation request body (zh/authz/constraint-schema.md section 9.2.3). These four names are the removed proposal-mode spellings -- the constraint field, its earlier type spelling, the approval_mode value and the approval binding id -- and there is no replacement field, so no rename target is registered. Reintroducing any of them as a constraint field, an approval_mode value, a Morph kind or an evidence member MUST hard_reject.",
       "match": {
         "kind": "field",
         "values": [
-          "proposal_morph_type"
+          "proposal_id",
+          "proposal_morph_kind",
+          "proposal_morph_type",
+          "proposal_then_approve"
         ]
       }
     },

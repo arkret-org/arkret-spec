@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T18:00:00+08:00",
+  "generated_at": "2026-09-21T22:00:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1063,16 +1063,11 @@
         "scopes",
         "recovery_session_id",
         "authorization_binding_kind",
+        "authorized_generation_ref",
         "account_id"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_possession_transcript",
-      "injected_fields": [
-        {
-          "field": "account_id",
-          "source": "Event envelope account actor_id"
-        }
-      ],
       "transcript_schema_refs": [
         "schemas/event-payload.schema.json#/$defs/device_authorize_possession_transcript"
       ]
@@ -1093,16 +1088,11 @@
         "scopes",
         "recovery_session_id",
         "authorization_binding_kind",
+        "authorized_generation_ref",
         "account_id"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_recovery_possession_transcript",
-      "injected_fields": [
-        {
-          "field": "account_id",
-          "source": "Event envelope account actor_id"
-        }
-      ],
       "transcript_schema_refs": [
         "schemas/event-payload.schema.json#/$defs/device_authorize_recovery_possession_transcript"
       ]
@@ -1123,17 +1113,12 @@
         "scopes",
         "recovery_session_id",
         "authorization_binding_kind",
+        "authorized_generation_ref",
         "account_id",
         "applet_id"
       ],
       "defined_in": "zh/crypto-media/device-lifecycle.md",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript",
-      "injected_fields": [
-        {
-          "field": "account_id",
-          "source": "Event envelope account actor_id"
-        }
-      ],
       "transcript_schema_refs": [
         "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript"
       ]
@@ -1584,6 +1569,25 @@
       ],
       "defined_in": "zh/identity/key-management.md",
       "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/agent_authority_state_attestation"
+    },
+    {
+      "domain": "ak.approval.signature.v1",
+      "object_family": "approval_signature",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "approval_context",
+        "approval_target",
+        "request_canonical_digest",
+        "operation",
+        "action",
+        "realm_id",
+        "initiating_actor_id",
+        "approver_did",
+        "approved_at",
+        "nonce"
+      ],
+      "defined_in": "zh/authz/constraint-schema.md",
+      "schema_ref": "schemas/approval-signature.schema.json#/$defs/approval_signature_input"
     }
   ]
 }

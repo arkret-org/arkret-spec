@@ -689,7 +689,7 @@
     },
     "agent_key_approval_evidence": {
       "type": "object",
-      "description": "Evidence that authorized this agent key. Durable grant/approval/proposal/policy evidence carries ref so it can be replayed at the event checkpoint; the short-lived pairing_request branch instead binds pairing_request_id, request_canonical_digest, and approved_by and MUST omit ref.",
+      "description": "Evidence that authorized this agent key: a tagged, resolvable reference to authorization provenance, not a detached signature. Durable grant/approval/policy evidence carries evidence_ref so it can be replayed at the event checkpoint; approval_event MUST resolve to a registered, accepted Agent confirmation Event (ak.agent.action_approve) and MUST NOT be read as an ak.schema.approval_signature.v1 evidence object (zh/authz/constraint-schema.md section 9.2.6). The short-lived pairing_request branch instead binds pairing_request_id, request_canonical_digest, and approved_by and MUST omit ref.",
       "required": [
         "kind"
       ],
@@ -699,7 +699,6 @@
           "enum": [
             "capability_grant",
             "approval_event",
-            "proposal_event",
             "policy_event",
             "pairing_request"
           ]
@@ -3341,7 +3340,7 @@
         },
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
-          "description": "PCR-local device generation this authorization is bound to, carried on the wire and verified by the accepting side with one equality against already committed state (device-lifecycle.md section 5.5.2). registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes; pcr_recovery MUST equal the sibling ak.device.reanchor new_device_generation; accepted_device and applet_managed_delegation MUST equal the PCR's current_device_generation_ref at acceptance. It is NOT a reducer pre-state read: v1's two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters whose pre-state an expected_state_digest CAS freezes, and this Event has no such freeze. Self-reporting it does not contradict the ak.device.revoke rule against self-reported derived pending selectors: that rule covers selectors only the reducer produces inside its own transaction, while this one is decided before acceptance by a single equality. It is not and MUST NOT be derived from a DID versionId. It is covered by the registration_anchor / pcr_recovery / applet_managed_delegation possession transcripts, which allOf this payload; the accepted_device device_pairing_target_proof is a closed eight-member object that deliberately excludes it, and the approving device's Event proof over the full canonical Event bytes covers it instead."
+          "description": "PCR-local device generation this authorization is bound to, carried on the wire and verified by the accepting side with one equality against already committed state (device-lifecycle.md section 5.5.2). registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes; pcr_recovery MUST equal the sibling ak.device.reanchor new_device_generation; accepted_device and applet_managed_delegation MUST equal the PCR's current_device_generation_ref at acceptance. It is NOT a reducer pre-state read: v1's two derivation vocabularies admit only pure functions of this Event plus the two authority-root successor counters whose pre-state an expected_state_digest CAS freezes, and this Event has no such freeze. Self-reporting it does not contradict the ak.device.revoke rule against self-reported derived pending selectors: that rule covers selectors only the reducer produces inside its own transaction, while this one is decided before acceptance by a single equality. It is not and MUST NOT be derived from a DID versionId. It is covered by the registration_anchor / pcr_recovery / applet_managed_delegation possession transcripts, whose shared device_authorize_possession_core registers it as a signed member; those transcripts cover the authorization core plus the injected account_id and exclude every signature and digest member of this payload, so they are not an allOf of this payload. The accepted_device device_pairing_target_proof is a closed eight-member object that deliberately excludes it, and the approving device's Event proof over the full canonical Event bytes covers it instead."
         },
         "scopes": {
           "$ref": "#/$defs/string_list"
@@ -3354,11 +3353,10 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Required Ed25519 possession proof. registration_anchor uses ak.device_authorize_possession_proof.v1; pcr_recovery uses ak.device_authorize_recovery_possession_proof.v1; applet_managed_delegation uses ak.device_authorize_applet_managed_possession_proof.v1 over the same authorization core plus applet_id; accepted_device carries the single device_pairing_target_proof signature over the full challenge descriptor bound to the final AccountId and authorization core. The accepted-device branch MUST verify pairing_challenge_transcript_digest against that signed descriptor; no second new-device signature is required."
+          "description": "Required Ed25519 possession proof. It is the output of a possession transcript and therefore never a member of one. registration_anchor signs device_authorize_possession_transcript under ak.device_authorize_possession_proof.v1; pcr_recovery signs device_authorize_recovery_possession_transcript under ak.device_authorize_recovery_possession_proof.v1; applet_managed_delegation signs device_authorize_applet_managed_possession_transcript under ak.device_authorize_applet_managed_possession_proof.v1, the same device_authorize_possession_core plus applet_id; accepted_device carries the single device_pairing_target_proof signature over the full challenge descriptor bound to the final AccountId and authorization core. The accepted-device branch MUST verify pairing_challenge_transcript_digest against that signed descriptor; no second new-device signature is required."
         },
         "recovery_session_id": {
-          "type": "string",
-          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "$ref": "#/$defs/device_authorize_recovery_session_id",
           "description": "Required by the pcr_recovery branch and omitted for registration_anchor, ordinary accepted_device pairing and applet_managed_delegation."
         },
         "pairing_challenge_transcript_digest": {
@@ -9345,28 +9343,76 @@
       ]
     },
     "device_authorize_applet_managed_possession_transcript": {
+      "description": "Candidate-device possession transcript of the applet_managed_delegation branch. The signing input is UTF8(\"ak.device_authorize_applet_managed_possession_proof.v1\\n\") || canonical_json(this object); the signature it produces is the payload's device_signature, which is why device_signature is not a member here. It adds applet_id, the exact Applet install whose accepted managed-actor provision created this principal and therefore the device's revocation fence, and it narrows expires_at and scopes to non-null because the payload requires both on this branch. recovery_session_id is the normalized null.",
+      "x-arkret-signature-domain": "ak.device_authorize_applet_managed_possession_proof.v1",
       "allOf": [
         {
-          "$ref": "#/$defs/device_authorize_payload"
+          "$ref": "#/$defs/device_authorize_possession_core"
         }
       ],
-      "x-arkret-signature-domain": "ak.device_authorize_applet_managed_possession_proof.v1"
+      "required": [
+        "applet_id"
+      ],
+      "properties": {
+        "authorization_binding_kind": {
+          "const": "applet_managed_delegation"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "scopes": {
+          "$ref": "#/$defs/string_list"
+        },
+        "recovery_session_id": {
+          "const": null
+        }
+      },
+      "unevaluatedProperties": false
     },
     "device_authorize_possession_transcript": {
+      "description": "Candidate-device possession transcript of the registration_anchor branch: the second Event of a PCR genesis unit. The signing input is UTF8(\"ak.device_authorize_possession_proof.v1\\n\") || canonical_json(this object); the signature it produces is the payload's device_signature, which is why device_signature is not a member here. authorized_generation_ref is fixed to 1, the value the same pcr_genesis_unit initializes. recovery_session_id and scopes are the normalized nulls of a branch whose payload carries neither.",
+      "x-arkret-signature-domain": "ak.device_authorize_possession_proof.v1",
       "allOf": [
         {
-          "$ref": "#/$defs/device_authorize_payload"
+          "$ref": "#/$defs/device_authorize_possession_core"
         }
       ],
-      "x-arkret-signature-domain": "ak.device_authorize_possession_proof.v1"
+      "properties": {
+        "authorization_binding_kind": {
+          "const": "registration_anchor"
+        },
+        "authorized_generation_ref": {
+          "const": 1
+        },
+        "scopes": {
+          "const": null
+        },
+        "recovery_session_id": {
+          "const": null
+        }
+      },
+      "unevaluatedProperties": false
     },
     "device_authorize_recovery_possession_transcript": {
+      "description": "Candidate-device possession transcript of the pcr_recovery branch. The signing input is UTF8(\"ak.device_authorize_recovery_possession_proof.v1\\n\") || canonical_json(this object); the signature it produces is the payload's device_signature, which is why device_signature is not a member here. recovery_session_id is narrowed to the non-null accepted recovery session, so the transcript cannot be replayed outside the unit that authorized it, and authorized_generation_ref MUST equal the sibling ak.device.reanchor new_device_generation.",
+      "x-arkret-signature-domain": "ak.device_authorize_recovery_possession_proof.v1",
       "allOf": [
         {
-          "$ref": "#/$defs/device_authorize_payload"
+          "$ref": "#/$defs/device_authorize_possession_core"
         }
       ],
-      "x-arkret-signature-domain": "ak.device_authorize_recovery_possession_proof.v1"
+      "properties": {
+        "authorization_binding_kind": {
+          "const": "pcr_recovery"
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/device_authorize_recovery_session_id"
+        }
+      },
+      "unevaluatedProperties": false
     },
     "realm_authority_reset_payload": {
       "type": "object",
@@ -9422,6 +9468,103 @@
         }
       },
       "additionalProperties": false
+    },
+    "device_authorize_recovery_session_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Accepted recovery session this device authorization is admitted beside. One form, referenced by the device_authorize_payload member and by the possession core so the transcript cannot drift to a second spelling."
+    },
+    "device_authorize_possession_core": {
+      "type": "object",
+      "description": "Shared signing-input core of the three candidate-device possession transcripts: registration_anchor, pcr_recovery and applet_managed_delegation. This object is not a wire member of any Event: it is the object the candidate device signs, and the signing input is UTF8(\"<domain>\\n\") || canonical_json(this object) with canonical_json per conformance/encoding.md section 2 (JCS) and <domain> the variant's x-arkret-signature-domain. The resulting signature is what the ak.device.authorize payload then carries as device_signature, so this core MUST NOT contain device_signature, any Event id, any Event or envelope digest, pairing_challenge_transcript_digest or any other proof material: those are outputs of this transcript or carriers for it, and signing them would be circular. account_id is present and is injected from the Event envelope actor_id rather than mirrored by the closed payload. Every authorization member the payload may omit is required here and normalized to null, so 'absent' and 'present as null' cannot both encode the same authorization (crypto-media/device-lifecycle.md section 5.2.1). The core is deliberately not closed; each registered variant closes itself with unevaluatedProperties false after narrowing its branch, so exactly the members that variant registers may appear.",
+      "required": [
+        "account_id",
+        "device_id",
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "authorization_binding_kind",
+        "authorized_generation_ref",
+        "not_before",
+        "expires_at",
+        "scopes",
+        "recovery_session_id"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Complete account AccountId subject of the ak.device.authorize Event this transcript authorizes, injected from that Event envelope's account actor_id. It is NOT a payload member: device_authorize_payload is closed and MUST NOT mirror a principal_id or an account_id, so a verifier MUST rebuild this member from the envelope actor_id.account_id it already authenticated and MUST NOT take it from a payload member, a route, a session audience or any unsigned body member."
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id",
+          "description": "Candidate device identity, byte-equal to device_authorize_payload.device_id."
+        },
+        "device_public_key_did": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Candidate device Ed25519 signing key in did:key form, byte-equal to device_authorize_payload.device_public_key_did. It is the key that verifies this transcript's own signature."
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Candidate device HPKE public key, byte-equal to device_authorize_payload.hpke_key. Signing it here is what forbids a service from substituting it."
+        },
+        "algorithms": {
+          "$ref": "#/$defs/string_list",
+          "description": "Canonical sorted unique algorithm ids, byte-equal to device_authorize_payload.algorithms. The producer MUST sort and deduplicate them by UTF-8 bytewise order before signing."
+        },
+        "device_key_algorithm": {
+          "const": "Ed25519",
+          "description": "Byte-equal to device_authorize_payload.device_key_algorithm."
+        },
+        "authorized_by": {
+          "$ref": "#/$defs/device_or_principal_ref",
+          "description": "Byte-equal to device_authorize_payload.authorized_by. Under registration_anchor it MUST equal account_id.principal_id; that is an equality between two members of this same object, which JSON Schema cannot express, so it is a normative requirement of crypto-media/device-lifecycle.md section 5.2.1 that the accepting side checks. Under pcr_recovery the same principal is selected by the accepted recovery policy and the account-local lineage, not by current DID controller state. Under applet_managed_delegation it is the Applet-managed principal's own principal_id."
+        },
+        "authorization_binding_kind": {
+          "type": "string",
+          "enum": [
+            "registration_anchor",
+            "pcr_recovery",
+            "applet_managed_delegation"
+          ],
+          "description": "The branch this transcript is signed for. accepted_device is absent by construction: that branch's candidate signs device-pairing.schema.json#/$defs/device_pairing_target_proof under its own domain instead, because at stage time it does not yet know the approving sibling. A verifier MUST select the domain from this member and MUST NOT accept a transcript reused across binding kinds."
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
+          "description": "PCR-local device generation this authorization is bound to, byte-equal to device_authorize_payload.authorized_generation_ref. The candidate device signs it, so a relay cannot move an authorization to another generation without invalidating this signature (crypto-media/device-lifecycle.md section 5.5.2)."
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Byte-equal to device_authorize_payload.not_before."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp",
+          "description": "Required here and null when the payload omits it. Making it required is what makes the section 5.2.1 normalization executable: if it were optional, an omitted member and an explicit null would be two canonical byte strings for one authorization and the normalization could not be enforced."
+        },
+        "scopes": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/string_list"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required here and null when the payload omits it, for the same reason as expires_at."
+        },
+        "recovery_session_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/device_authorize_recovery_session_id"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required here; non-null only on the pcr_recovery branch and normalized to null on the two branches whose payload forbids the member."
+        }
+      }
     }
   },
   "x-arkret-public-handshake-contract": {

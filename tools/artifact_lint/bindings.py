@@ -1644,6 +1644,26 @@ def check_event_admission_coverage(lint: Lint) -> None:
     predicate_contract = event_registry.get("admission_predicate_contract")
     if not isinstance(predicate_contract, dict) or predicate_contract.get("closed_world") is not True:
         lint.fail(event_path, "event registry missing closed-world admission_predicate_contract")
+    validated_selectors = {
+        "payload_path",
+        "const",
+        "not_const",
+        "ref_role",
+        "ref_critical",
+        "ref_exact_count",
+        "top_level_fields_present",
+        "top_level_fields_absent",
+    }
+    declared_selectors = (predicate_contract or {}).get("non_otherwise_selectors") if isinstance(predicate_contract, dict) else None
+    if not isinstance(declared_selectors, dict) or set(declared_selectors) != validated_selectors:
+        lint.fail(
+            event_path,
+            "admission_predicate_contract.non_otherwise_selectors MUST be exactly the selector "
+            f"vocabulary this gate validates {sorted(validated_selectors)!r} - a selector declared "
+            "in the registry but unvalidated here, or validated here but undeclared, is a silent "
+            "second source of truth",
+        )
+    allowed_selectors = set(declared_selectors) if isinstance(declared_selectors, dict) else validated_selectors
     actions = action_registry.get("actions", [])
     covered: set[str] = set()
     for a in actions:
@@ -1686,7 +1706,6 @@ def check_event_admission_coverage(lint: Lint) -> None:
                             if index != len(variants) - 1 or len(when) != 1:
                                 lint.fail(event_path, f"{kind}: conditional otherwise MUST be the final predicate and contain no other selectors")
                         else:
-                            allowed_selectors = {"payload_path", "const", "not_const", "ref_role", "ref_critical", "ref_exact_count", "top_level_fields_present"}
                             unknown_selectors = set(when) - allowed_selectors
                             if unknown_selectors:
                                 lint.fail(event_path, f"{kind}: admission_variants[{index}].when has unknown selectors {sorted(unknown_selectors)!r}")
@@ -1714,11 +1733,15 @@ def check_event_admission_coverage(lint: Lint) -> None:
                                 lint.fail(event_path, f"{kind}: admission_variants[{index}].when.ref_critical MUST be boolean")
                             if "ref_exact_count" in when and (not isinstance(when["ref_exact_count"], int) or isinstance(when["ref_exact_count"], bool) or when["ref_exact_count"] < 0):
                                 lint.fail(event_path, f"{kind}: admission_variants[{index}].when.ref_exact_count MUST be a non-negative integer")
-                            if "top_level_fields_present" in when:
-                                fields = when["top_level_fields_present"]
+                            if "top_level_fields_present" in when and "top_level_fields_absent" in when:
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when MUST NOT combine top_level_fields_present with top_level_fields_absent")
+                            for selector in ("top_level_fields_present", "top_level_fields_absent"):
+                                if selector not in when:
+                                    continue
+                                fields = when[selector]
                                 allowed_fields = {"executed_by", "authorization_ref"}
                                 if not isinstance(fields, list) or not fields or len(fields) != len(set(fields)) or any(field not in allowed_fields for field in fields):
-                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.top_level_fields_present MUST be a non-empty unique subset of {sorted(allowed_fields)!r}")
+                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.{selector} MUST be a non-empty unique subset of {sorted(allowed_fields)!r}")
                             predicate_key = json.dumps(when, sort_keys=True, separators=(",", ":"))
                             if predicate_key in seen_predicates:
                                 lint.fail(event_path, f"{kind}: admission_variants[{index}].when duplicates an earlier predicate")

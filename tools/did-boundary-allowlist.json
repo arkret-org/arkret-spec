@@ -60,6 +60,10 @@
       "category": "resolution_or_did_document"
     },
     {
+      "pointer": "approval-signature.schema.json#/$defs/approval_signature_input/properties/approver_did/$ref",
+      "category": "did_method_log_or_evidence"
+    },
+    {
       "pointer": "contact-operations.schema.json#/$defs/contact_delegated_producer_signer/properties/delegated_actor_did/$ref",
       "category": "did_method_log_or_evidence"
     },

@@ -682,28 +682,20 @@
   ],
   "exact_exceptions": [
     {
+      "file": "applet-package.schema.json",
+      "pointer": "/$defs/actor_namespace_entry/properties/pattern",
+      "reason": "Wildcard namespace pattern over actor did:webvh DIDs, not a DID identifier. The SCID segment is the wildcard because every Ghost carries its own validated SCID, so the value never denotes one resolvable DID and cannot take a _did role suffix.",
+      "terminal_categories": [
+        "did"
+      ]
+    },
+    {
       "file": "capability-grant.schema.json",
       "pointer": "/properties/subject",
       "terminal_categories": [
         "actor_id"
       ],
       "reason": "closed condition-selector union: exact ActorId or discriminator-bearing condition object"
-    },
-    {
-      "file": "event-payload.schema.json",
-      "pointer": "/$defs/capability_grant_payload/properties/grant/properties/subject",
-      "terminal_categories": [
-        "actor_id"
-      ],
-      "reason": "exact projection of CapabilityGrant.subject closed ActorId-or-condition union"
-    },
-    {
-      "file": "event-payload.schema.json",
-      "pointer": "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
-      "terminal_categories": [
-        "did_url"
-      ],
-      "reason": "value is inside the closed account-block target union whose containing branch determines the representation"
     },
     {
       "file": "event-envelope.schema.json",
@@ -715,6 +707,22 @@
     },
     {
       "file": "event-payload.schema.json",
+      "pointer": "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
+      "terminal_categories": [
+        "did_url"
+      ],
+      "reason": "value is inside the closed account-block target union whose containing branch determines the representation"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/capability_grant_payload/properties/grant/properties/subject",
+      "terminal_categories": [
+        "actor_id"
+      ],
+      "reason": "exact projection of CapabilityGrant.subject closed ActorId-or-condition union"
+    },
+    {
+      "file": "event-payload.schema.json",
       "pointer": "/$defs/device_authorize_payload/properties/authorized_by",
       "terminal_categories": [
         "mixed[did_core_id,typed_object_id]"
@@ -722,12 +730,12 @@
       "reason": "closed device-or-principal ID union selected by authorization_binding_kind; the complete authorized_by role retains its bare byline spelling"
     },
     {
-      "file": "typed-current-result.schema.json",
-      "pointer": "/$defs/device_authorization_value/properties/authorized_by",
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/device_authorize_possession_core/properties/authorized_by",
       "terminal_categories": [
         "mixed[did_core_id,typed_object_id]"
       ],
-      "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization typed current result (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
+      "reason": "byte-equal projection of device_authorize_payload.authorized_by into the signed possession transcript core (device-lifecycle.md 5.2.1); the union and its discriminator authorization_binding_kind travel with it, so renaming the copy would split one role across two spellings"
     },
     {
       "file": "event-payload.schema.json",
@@ -736,22 +744,6 @@
         "mixed[did_core_id,typed_object_id]"
       ],
       "reason": "closed device-or-principal ID union; the complete revoked_by provenance role retains its bare byline spelling"
-    },
-    {
-      "file": "service-operation-dtos.schema.json",
-      "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
-      "terminal_categories": [
-        "typed_object_id"
-      ],
-      "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
-    },
-    {
-      "file": "service-describe.schema.json",
-      "pointer": "/properties/rate_limit_policy/properties/entries/items/properties/endpoint",
-      "terminal_categories": [
-        "uri"
-      ],
-      "reason": "closed endpoint selector union: absolute service path or absolute HTTP(S) URL"
     },
     {
       "file": "query.schema.json",
@@ -803,22 +795,6 @@
     },
     {
       "file": "relation.schema.json",
-      "pointer": "/properties/from_ref",
-      "terminal_categories": [
-        "actor_id"
-      ],
-      "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
-    },
-    {
-      "file": "relation.schema.json",
-      "pointer": "/properties/to_ref",
-      "terminal_categories": [
-        "actor_id"
-      ],
-      "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
-    },
-    {
-      "file": "relation.schema.json",
       "pointer": "/allOf/0/then/properties/to_ref",
       "terminal_categories": [
         "actor_id"
@@ -834,12 +810,44 @@
       "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
     },
     {
-      "file": "applet-package.schema.json",
-      "pointer": "/$defs/actor_namespace_entry/properties/pattern",
-      "reason": "Wildcard namespace pattern over actor did:webvh DIDs, not a DID identifier. The SCID segment is the wildcard because every Ghost carries its own validated SCID, so the value never denotes one resolvable DID and cannot take a _did role suffix.",
+      "file": "relation.schema.json",
+      "pointer": "/properties/from_ref",
       "terminal_categories": [
-        "did"
-      ]
+        "actor_id"
+      ],
+      "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
+    },
+    {
+      "file": "relation.schema.json",
+      "pointer": "/properties/to_ref",
+      "terminal_categories": [
+        "actor_id"
+      ],
+      "reason": "RelationEndpoint is the normative object-reference-string or full ActorId union (models/relation.md section 2); kind-specific schema refinements preserve the same endpoint field, governed by the independent polymorphic _ref grammar."
+    },
+    {
+      "file": "service-describe.schema.json",
+      "pointer": "/properties/rate_limit_policy/properties/entries/items/properties/endpoint",
+      "terminal_categories": [
+        "uri"
+      ],
+      "reason": "closed endpoint selector union: absolute service path or absolute HTTP(S) URL"
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "pointer": "/$defs/SignedSessionGrantClaims/properties/jti",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "RFC 7519 registered JWT claim name retained inside the signed claims object"
+    },
+    {
+      "file": "typed-current-result.schema.json",
+      "pointer": "/$defs/device_authorization_value/properties/authorized_by",
+      "terminal_categories": [
+        "mixed[did_core_id,typed_object_id]"
+      ],
+      "reason": "verbatim projection of device_authorize_payload.authorized_by into the device_authorization typed current result (device-lifecycle.md 5.5.1); the union and its discriminator authorization_binding_kind are projected beside it, so renaming the copy would split one role across two spellings"
     }
   ]
 }

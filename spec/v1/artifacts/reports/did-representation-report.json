@@ -1732,6 +1732,36 @@
       ]
     },
     {
+      "schema_path": "approval-signature.schema.json#/$defs/approval_signature_input/properties/approver_did",
+      "property_name": "approver_did",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did"
+      ]
+    },
+    {
+      "schema_path": "approval-signature.schema.json#/$defs/approval_signature_input/properties/initiating_actor_id",
+      "property_name": "initiating_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "approval-signature.schema.json#/$defs/approval_signature_proof/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "authenticated-signer-resolution-evidence.schema.json#/$defs/base/properties/subject_id",
       "property_name": "subject_id",
       "semantic_category": "responsibility_identity_material",
@@ -3279,6 +3309,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/device_authorize_possession_core/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
       ]
     },
     {

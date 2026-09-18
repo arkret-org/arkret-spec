@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 151,
+    "complete_event_id": 152,
     "digest_copy_or_commitment": 5,
     "external_event_namespace": 1
   },
@@ -232,6 +232,12 @@
       "schema": "applet-install-plan.schema.json",
       "json_pointer": "/$defs/widget_effect/properties/policy_event_ref",
       "field": "policy_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "approval-signature.schema.json",
+      "json_pointer": "/$defs/approval_target/oneOf/0/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

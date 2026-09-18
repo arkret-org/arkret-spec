@@ -820,6 +820,17 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     # multikey, written with the sha256: prefix the receipt schema requires.
     ("preimage_utf8", "expected", "utf8", "sha256_hex", ""),
     ("noncanonical_preimage_utf8", "noncanonical_expected", "utf8", "sha256_hex", ""),
+    # PCR genesis authorize payload and the transcripts beside it: the fixture
+    # spells the JCS bytes and the SHA-256 over exactly those bytes, with no
+    # domain prefix. `canonical_payload_json` is the proof-free
+    # ak.device.authorize payload the founding device descriptor and the identity
+    # creation control transcript both commit to; `canonical_json` is the same
+    # shape for the device possession transcript and that control transcript.
+    # Neither key name contains `preimage` or `canonical_bytes`, so the
+    # completeness guard below could not reach them and a stale digest beside a
+    # rebuilt preimage stayed invisible.
+    ("canonical_payload_json", "payload_digest", "utf8", "sha256_hex", ""),
+    ("canonical_json", "canonical_json_sha256", "utf8", "sha256_hex", ""),
     (
         "canonical_bytes_utf8",
         "expected_registration_epoch",

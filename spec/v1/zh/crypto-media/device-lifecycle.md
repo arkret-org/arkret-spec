@@ -244,25 +244,35 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 
 #### 5.2.1 registration/recovery possession transcript（normative）
 
-genesis 时候选设备签署第二条 authorize；recovery 时同一候选设备签署整个封闭 unit。设备 possession 签名对象覆盖完整 authorization core；recovery 分支还必须加入 policy/session/generation binding：
+genesis 时候选设备签署第二条 authorize；recovery 时同一候选设备签署整个封闭 unit。设备 possession 签名对象覆盖完整 authorization core 加注入的 `account_id`；recovery 分支还必须加入 policy/session/generation binding。下面是 `registration_anchor` 分支的**完整成员集合**：
 
 ```json
 {
+  "account_id": {"principal_id": "ak:did_core:webvh:zExamplePrincipalScid", "station_id": "ak:did_core:webvh:zExampleStationScid"},
   "device_id": "ak:device:...",
   "device_public_key_did": "did:key:...",
   "hpke_key": "z...",
   "algorithms": ["..."],
   "device_key_algorithm": "Ed25519",
   "authorized_by": "ak:did_core:webvh:zExamplePrincipalScid",
+  "authorization_binding_kind": "registration_anchor",
+  "authorized_generation_ref": 1,
   "not_before": "2026-08-09T00:00:00.000Z",
   "expires_at": null,
   "scopes": null,
-  "recovery_session_id": null,
-  "authorization_binding_kind": "registration_anchor"
+  "recovery_session_id": null
 }
 ```
 
-`algorithms` 必须先按 UTF-8 bytewise 排序去重；缺失的 optional 字段在 transcript 中规范化为 `null`。transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，不是 payload 字段；签名字段、Event id、envelope digest 及其它 proof material 不进入该对象。`registration_anchor` 下 `authorized_by=account_id.principal_id`；`pcr_recovery` 的 authority 来自 re-anchor Event 所绑定的 accepted recovery policy，而不是 current DID controller。
+签名输入是 `UTF8("<domain>\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS），`<domain>` 按 §5.2 从 `authorization_binding_kind` 选定。
+
+`algorithms` 必须先按 UTF-8 bytewise 排序去重；缺失的 optional 字段在 transcript 中规范化为 `null`——`expires_at` / `scopes` / `recovery_session_id` 在该对象里是**必需成员**，payload 未携带时取 `null`。把它们写成 optional 会让「成员缺失」与「成员为 `null`」成为同一份授权的两串 canonical bytes，规范化就不可执行；因此 transcript 成员集合恒定，与 payload 是否携带该 optional 字段无关。
+
+transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，不是 payload 字段——`device_authorize_payload` 是封闭对象，MUST NOT 镜像 `principal_id` 或 `account_id`，verifier MUST 从自己已认证的 envelope `actor_id.account_id` 重建该成员，MUST NOT 取自 payload 成员、路由、session audience 或任何未签 body 成员。`device_signature` 是**本 transcript 的产物**，因此 MUST NOT 是它的成员：把输出签进输入是循环。Event id、envelope digest、`pairing_challenge_transcript_digest` 及其它 proof material 同样不进入该对象。
+
+`authorized_generation_ref` **在**该对象内，由候选设备一并签名（§5.5.2）；`registration_anchor` 下它 MUST 等于 `1`，即同一 `pcr_genesis_unit` 初始化的值。`registration_anchor` 下 `authorized_by=account_id.principal_id`——这是同一对象两个成员之间的相等，JSON Schema 表达不了，由接纳方按本节校验；`pcr_recovery` 的 authority 来自 re-anchor Event 所绑定的 accepted recovery policy，而不是 current DID controller。
+
+**wire 形态（normative）**：三支 possession transcript 的 wire 形态是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `device_authorize_possession_transcript` / `device_authorize_recovery_possession_transcript` / `device_authorize_applet_managed_possession_transcript`。三者 `allOf` 同一个 `device_authorize_possession_core`（完整 authorization core 加注入的 `account_id`，不含任何签名或 digest 成员），各自收窄自己的 `authorization_binding_kind` 分支，并以 `unevaluatedProperties: false` 自我收口，因此未登记的成员无法搭车。它们**不是** `device_authorize_payload` 的 `allOf`：payload required `device_signature` 且禁止 `account_id`，那种形态没有任何实例能满足。`accepted_device` 不在这三支之内，它签 §5.2.2 的独立封闭对象。
 
 #### 5.2.2 `accepted_device` target proof（normative）
 
@@ -305,26 +315,28 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
 
 Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
 
-设备 possession 签名对象是：
+设备 possession 签名对象是 §5.2.1 的同一个 core 加 `applet_id`，完整成员集合为：
 
 ```json
 {
+  "account_id": {"principal_id": "ak:did_core:webvh:zExampleManagedActorScid", "station_id": "ak:did_core:webvh:zExampleStationScid"},
   "device_id": "ak:device:...",
   "device_public_key_did": "did:key:...",
   "hpke_key": "z...",
   "algorithms": ["..."],
   "device_key_algorithm": "Ed25519",
   "authorized_by": "ak:did_core:webvh:zExampleManagedActorScid",
+  "authorization_binding_kind": "applet_managed_delegation",
+  "authorized_generation_ref": 7,
   "not_before": "2026-09-15T00:00:00.000Z",
   "expires_at": "2026-12-15T00:00:00.000Z",
   "scopes": ["..."],
   "recovery_session_id": null,
-  "authorization_binding_kind": "applet_managed_delegation",
   "applet_id": "ak:applet:..."
 }
 ```
 
-签名输入是 `UTF8("ak.device_authorize_applet_managed_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 必须先按 UTF-8 bytewise 排序去重；`account_id` 与 §5.2.1 同样从 Event envelope 的完整 account `actor_id` 注入，不是 payload 字段。
+签名输入是 `UTF8("ak.device_authorize_applet_managed_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 必须先按 UTF-8 bytewise 排序去重；`account_id` 与 §5.2.1 同样从 Event envelope 的完整 account `actor_id` 注入，不是 payload 字段。本分支的 `expires_at` 与 `scopes` 是 payload required 的，因此在 transcript 里 MUST 为非 `null`；`recovery_session_id` 是规范化的 `null`；`authorized_generation_ref` MUST 等于接纳时刻该 PCR 的 `current_device_generation_ref`（示例中的 `7` 只是占位值）。wire 形态是 `device_authorize_applet_managed_possession_transcript`，见 §5.2.1 的 wire 形态段。
 
 该分支的封闭约束（normative）：
 
@@ -427,7 +439,7 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 
 这与 `ak.device.revoke` 的「producer 不得自报 derived pending selector」**不冲突**，界线是：**可由接纳方用一条等式对已提交状态判定的坐标**可以自报（generation）；**只有 reducer 在本次事务中才产生、外部无从先验的选择子**（revocation pending 记录所指的授权实例与 acceptance 序，见 §5.5.3）不可自报。两者的差别是「可否在接纳前被等式判定」，不是「是否叫 derived」。
 
-签名覆盖：`registration_anchor` / `pcr_recovery` / `applet_managed_delegation` 三支的 possession transcript 是完整 payload 的 `allOf`，因此候选设备连同本字段一起签名。`accepted_device` 的 §5.2.2 target proof 是一个**显式封闭的八成员对象**，本字段**不**在其中——它与 `authorized_by` / `not_before` / `expires_at` / `scopes` 同处，由批准设备覆盖完整 canonical Event bytes 的 Event proof 承担；§5.2.2 的封闭对象成员表因此不变，目标设备也不需要在 §5.4.1 的装配前比对中新增一项（它的 attestation 本就不承诺 generation）。
+签名覆盖：`registration_anchor` / `pcr_recovery` / `applet_managed_delegation` 三支的 possession transcript 把本字段登记为 `device_authorize_possession_core` 的必需成员（§5.2.1），因此候选设备连同本字段一起签名。那三个 transcript 覆盖的是 **authorization core 加注入的 `account_id`**，并排除 `device_signature` 与一切 digest / proof material，因此它们**不是**完整 payload 的 `allOf`；payload 的封闭成员表与 transcript 的成员表是两张表，各自由 schema 独立收口。`accepted_device` 的 §5.2.2 target proof 是一个**显式封闭的八成员对象**，本字段**不**在其中——它与 `authorized_by` / `not_before` / `expires_at` / `scopes` 同处，由批准设备覆盖完整 canonical Event bytes 的 Event proof 承担；§5.2.2 的封闭对象成员表因此不变，目标设备也不需要在 §5.4.1 的装配前比对中新增一项（它的 attestation 本就不承诺 generation）。
 
 设备 generation **MUST NOT** 塞进 `object_*` 公共元数据派生名：公共名的规范输入不含 PCR generation。
 

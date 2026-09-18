@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.2",
-  "generated_at": "2026-09-21T18:00:00+08:00",
+  "version": "2026-09-21.3",
+  "generated_at": "2026-09-21T22:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2472,7 +2472,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An approval signature carrying a (approver_did, nonce) tuple that was already consumed for the same grant_id / proposal_id was resubmitted. Approval signatures are single-use per-grant; reusing them is a cross-grant replay attempt. See zh/authz/constraint-schema.md §9.3."
+      "description": "An approval signature whose (approval_context, approver_did, nonce) triple was already consumed by a successfully accepted target was presented for a different target. The nonce namespace is (approval_context, approver_did) and the nonce is consumed only when the target is accepted, in that same transaction: an exact replay of the already accepted target returns the original outcome, and a failed verification or an unmet quorum MUST NOT consume it early, so normal retries that collect the remaining votes still work. See zh/authz/constraint-schema.md section 9.2."
     },
     {
       "code": "approval_required",
@@ -2480,7 +2480,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Event was rejected because approval evidence is required and what was supplied does not meet the requirement. Two independent layers can raise that requirement and both are evaluated: an approval constraint on a matched capability grant (zh/authz/capabilities.md §6 / §8, zh/authz/constraint-schema.md §9), and the Realm governance approval configuration registered as the policy_action typed current result (zh/models/governance-objects.md §3.5), which hangs off an (action token, scope) pair rather than off one grant. Either layer alone is enough to produce this reason code, and a layer writing approval_required=false only withdraws its own demand -- it never cancels the other's. The top-level error is claim_required. This is a require_review-class outcome, not a deny: supplying the missing approval signatures and retrying is the defined path."
+      "description": "Event was rejected because approval evidence is required and what was supplied does not meet the requirement. Two independent layers can raise that requirement and both are evaluated: an approval constraint on a matched capability grant (zh/authz/capabilities.md §6 / §8, zh/authz/constraint-schema.md §9), whose evidence type is ak.schema.approval_signature.v1 carried in EventCommitSubmission.approval_signatures[] rather than inside the Event, and the Realm governance approval configuration registered as the policy_action typed current result (zh/models/governance-objects.md §3.5), which hangs off an (action token, scope) pair rather than off one grant. Either layer alone is enough to produce this reason code, and a layer writing approval_required=false only withdraws its own demand -- it never cancels the other's. The top-level error is claim_required. This is a require_review-class outcome, not a deny: supplying the missing approval signatures and retrying is the defined path."
     },
     {
       "code": "audience_mismatch",

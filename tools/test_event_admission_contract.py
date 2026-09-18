@@ -44,10 +44,10 @@ class EventAdmissionContractTest(unittest.TestCase):
 
     def test_zero_ref_count_matches_absence_but_positive_count_does_not(self):
         for count in [0, 1]:
-            validator = Draft202012Validator(predicate_schema({"ref_role": "did_inception", "ref_exact_count": count}))
+            validator = Draft202012Validator(predicate_schema({"ref_role": "attestation", "ref_exact_count": count}))
             self.assertEqual(validator.is_valid({}), count == 0)
             self.assertEqual(validator.is_valid({"refs": []}), count == 0)
-            self.assertEqual(validator.is_valid({"refs": [{"role": "did_inception"}]}), count == 1)
+            self.assertEqual(validator.is_valid({"refs": [{"role": "attestation"}]}), count == 1)
 
     def test_negative_payload_selector_covers_absent_path(self):
         validator = Draft202012Validator(predicate_schema({"payload_path": "object.purpose", "not_const": "agent_control"}))

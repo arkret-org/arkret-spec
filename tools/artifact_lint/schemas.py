@@ -2405,22 +2405,6 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
             lint.fail(path, f"present {field} must contain at least one reference")
         if isinstance(schema, dict) and "default" in schema:
             lint.fail(path, f"{field} must not define a default that changes signed identity")
-    def realm_create_purpose_const(branch: object) -> object:
-        if not isinstance(branch, dict):
-            return None
-        return (
-            branch.get("properties", {})
-            .get("payload", {})
-            .get("properties", {})
-            .get("object", {})
-            .get("properties", {})
-            .get("purpose", {})
-            .get("const")
-        )
-
-    discriminator_conditions = {
-        "Any Event carrying did_inception": ("then", "principal_control"),
-    }
     schema_nodes = [node for _json_path, node, _key in walk_json(data) if isinstance(node, dict)]
 
     realm_identity_comment = (
@@ -2477,27 +2461,6 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
             "scope_ref.realm_genesis description must use the uniform event-derived "
             "formula for human and Agent PCRs",
         )
-
-    for comment_prefix, (branch_name, expected_purpose) in discriminator_conditions.items():
-        matches = [
-            node
-            for node in schema_nodes
-            if isinstance(node.get("$comment"), str)
-            and node["$comment"].startswith(comment_prefix)
-        ]
-        if len(matches) != 1:
-            lint.fail(
-                path,
-                f"Event envelope must contain exactly one {comment_prefix!r} admission condition",
-            )
-            continue
-        actual_purpose = realm_create_purpose_const(matches[0].get(branch_name))
-        if actual_purpose != expected_purpose:
-            lint.fail(
-                path,
-                f"{comment_prefix!r} must constrain purpose={expected_purpose!r}, "
-                f"got {actual_purpose!r}",
-            )
 
     realm_genesis_path = ARTIFACTS / "schemas" / "realm-genesis.schema.json"
     realm_genesis = load_json(lint, realm_genesis_path)

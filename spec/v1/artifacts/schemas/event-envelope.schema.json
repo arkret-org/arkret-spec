@@ -217,111 +217,6 @@
       }
     },
     {
-      "$comment": "Any Event carrying did_inception is confined to the closed self-principal PCR-genesis shape and carries exactly one critical ref. A delegated Agent PCR create intentionally carries no did_inception; batch/reducer admission distinguishes self-principal genesis from delegated Agent genesis by comparing the complete actor_id, executed_by, authorization_ref, PCR binding and DID subject, which JSON Schema cannot express.",
-      "if": {
-        "properties": {
-          "refs": {
-            "contains": {
-              "type": "object",
-              "properties": {
-                "role": {
-                  "const": "did_inception"
-                }
-              },
-              "required": [
-                "role"
-              ]
-            }
-          }
-        },
-        "required": [
-          "refs"
-        ]
-      },
-      "then": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm.create"
-          },
-          "payload": {
-            "type": "object",
-            "properties": {
-              "object": {
-                "type": "object",
-                "properties": {
-                  "purpose": {
-                    "const": "principal_control"
-                  }
-                },
-                "required": [
-                  "purpose"
-                ]
-              }
-            },
-            "required": [
-              "object"
-            ]
-          },
-          "refs": {
-            "contains": {
-              "type": "object",
-              "properties": {
-                "role": {
-                  "const": "did_inception"
-                },
-                "critical": {
-                  "const": true
-                }
-              },
-              "required": [
-                "role",
-                "critical"
-              ]
-            },
-            "minContains": 1,
-            "maxContains": 1,
-            "allOf": [
-              {
-                "$comment": "Count the reserved role independently so a critical ref plus a non-critical duplicate cannot pass.",
-                "contains": {
-                  "type": "object",
-                  "properties": {
-                    "role": {
-                      "const": "did_inception"
-                    }
-                  },
-                  "required": [
-                    "role"
-                  ]
-                },
-                "minContains": 1,
-                "maxContains": 1
-              }
-            ]
-          }
-        },
-        "required": [
-          "kind",
-          "payload",
-          "refs"
-        ],
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "executed_by"
-              ]
-            },
-            {
-              "required": [
-                "authorization_ref"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
       "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / refs[role=authorized_by] / payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
       "not": {
         "anyOf": [
@@ -3363,7 +3258,6 @@
                 "after",
                 "audit_pair",
                 "recovery_capability",
-                "did_inception",
                 "accountability",
                 "bootstrap_genesis",
                 "disclosure_authorization",
@@ -3467,7 +3361,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare DID base under the active method adapter, validates that method history/key, projects the base DID to did_core_id, and compares it byte-for-byte with the principal component of executed_by when present or actor_id otherwise; a did_core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve the complete actor_id plus device_id through the device directory. The sole exception is an Event whose selected admission variant is registration_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event. PCR recovery uses the session-frozen replacement device identity key for both Events; did_root is only an optional policy factor, never an alternate Event signer."
+          "description": "DID URL of the Event-signing key. Generic verification extracts the canonical bare DID base under the active method adapter, validates that method history/key, projects the base DID to did_core_id, and compares it byte-for-byte with the principal component of executed_by when present or actor_id otherwise; a did_core_id is never concatenated into a DID URL. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve the complete actor_id plus device_id through the device directory. The sole exception is an Event whose selected admission variant is registration_anchor: its closed verifier MUST instead resolve the registration-time active update key and controller-proof verification method from that unit's already verified typed principal_registration_anchor, require verification_method to equal that method, and verify the controller proof and update authority against the anchor's own frozen did:webvh history rather than any current resolution; there is no DID-inception Event reference to resolve, and a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event. PCR recovery uses the session-frozen replacement device identity key for both Events; did_root is only an optional policy factor, never an alternate Event signer."
         },
         "event_digest": {
           "$ref": "#/$defs/digest"
@@ -3909,29 +3803,18 @@
                         ]
                       },
                       {
-                        "properties": {
-                          "refs": {
-                            "contains": {
-                              "properties": {
-                                "role": {
-                                  "const": "did_inception"
-                                },
-                                "critical": {
-                                  "const": true
-                                }
-                              },
-                              "required": [
-                                "role",
-                                "critical"
-                              ]
-                            },
-                            "minContains": 1,
-                            "maxContains": 1
-                          }
-                        },
-                        "required": [
-                          "refs"
-                        ]
+                        "not": {
+                          "required": [
+                            "executed_by"
+                          ]
+                        }
+                      },
+                      {
+                        "not": {
+                          "required": [
+                            "authorization_ref"
+                          ]
+                        }
                       }
                     ]
                   },
@@ -4056,24 +3939,6 @@
                               "required": [
                                 "payload"
                               ]
-                            },
-                            {
-                              "properties": {
-                                "refs": {
-                                  "not": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        }
-                                      },
-                                      "required": [
-                                        "role"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
                             },
                             {
                               "required": [
@@ -4288,29 +4153,18 @@
                               ]
                             },
                             {
-                              "properties": {
-                                "refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "did_inception"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "refs"
-                              ]
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
                             }
                           ]
                         },
@@ -4398,24 +4252,6 @@
                               "required": [
                                 "payload"
                               ]
-                            },
-                            {
-                              "properties": {
-                                "refs": {
-                                  "not": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        }
-                                      },
-                                      "required": [
-                                        "role"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
                             },
                             {
                               "required": [
@@ -4655,29 +4491,18 @@
                               ]
                             },
                             {
-                              "properties": {
-                                "refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "did_inception"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "refs"
-                              ]
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
                             }
                           ]
                         },
@@ -4740,24 +4565,6 @@
                               "required": [
                                 "payload"
                               ]
-                            },
-                            {
-                              "properties": {
-                                "refs": {
-                                  "not": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        }
-                                      },
-                                      "required": [
-                                        "role"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
                             },
                             {
                               "required": [
@@ -4935,24 +4742,6 @@
                         ]
                       },
                       {
-                        "properties": {
-                          "refs": {
-                            "not": {
-                              "contains": {
-                                "properties": {
-                                  "role": {
-                                    "const": "did_inception"
-                                  }
-                                },
-                                "required": [
-                                  "role"
-                                ]
-                              }
-                            }
-                          }
-                        }
-                      },
-                      {
                         "required": [
                           "executed_by",
                           "authorization_ref"
@@ -4990,29 +4779,18 @@
                               ]
                             },
                             {
-                              "properties": {
-                                "refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "did_inception"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "refs"
-                              ]
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
                             }
                           ]
                         },
@@ -5333,29 +5111,18 @@
                               ]
                             },
                             {
-                              "properties": {
-                                "refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "did_inception"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "refs"
-                              ]
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
                             }
                           ]
                         },
@@ -5477,24 +5244,6 @@
                               "required": [
                                 "payload"
                               ]
-                            },
-                            {
-                              "properties": {
-                                "refs": {
-                                  "not": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        }
-                                      },
-                                      "required": [
-                                        "role"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
                             },
                             {
                               "required": [
@@ -5675,29 +5424,18 @@
                               ]
                             },
                             {
-                              "properties": {
-                                "refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "did_inception"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "refs"
-                              ]
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
                             }
                           ]
                         },
@@ -5819,24 +5557,6 @@
                               "required": [
                                 "payload"
                               ]
-                            },
-                            {
-                              "properties": {
-                                "refs": {
-                                  "not": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        }
-                                      },
-                                      "required": [
-                                        "role"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
                             },
                             {
                               "required": [
@@ -5992,29 +5712,18 @@
                               ]
                             },
                             {
-                              "properties": {
-                                "refs": {
-                                  "contains": {
-                                    "properties": {
-                                      "role": {
-                                        "const": "did_inception"
-                                      },
-                                      "critical": {
-                                        "const": true
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "critical"
-                                    ]
-                                  },
-                                  "minContains": 1,
-                                  "maxContains": 1
-                                }
-                              },
-                              "required": [
-                                "refs"
-                              ]
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
                             }
                           ]
                         },
@@ -6136,24 +5845,6 @@
                               "required": [
                                 "payload"
                               ]
-                            },
-                            {
-                              "properties": {
-                                "refs": {
-                                  "not": {
-                                    "contains": {
-                                      "properties": {
-                                        "role": {
-                                          "const": "did_inception"
-                                        }
-                                      },
-                                      "required": [
-                                        "role"
-                                      ]
-                                    }
-                                  }
-                                }
-                              }
                             },
                             {
                               "required": [

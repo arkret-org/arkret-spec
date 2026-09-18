@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/approval-signature.schema.json",
+  "title": "Arkret Approval Signature",
+  "description": "The single approval evidence type of v1 (zh/authz/constraint-schema.md section 9.2). One approver signs one exact target: either a fully authored Event that has not been submitted yet, or the original typed RequestBody of one registered operation. The object is not an Event, never enters Realm history, and MUST NOT be written into an EventEnvelope, a signed payload or an Event refs[] entry. It travels in the submission container beside the target, EventCommitSubmission.approval_signatures[] for Event targets. It proves that an approver approved that target; it proves nothing about the initiator's own authority.",
+  "type": "object",
+  "required": [
+    "input",
+    "proof"
+  ],
+  "properties": {
+    "input": {
+      "$ref": "#/$defs/approval_signature_input"
+    },
+    "proof": {
+      "$ref": "#/$defs/approval_signature_proof"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "approval_signature_input": {
+      "type": "object",
+      "description": "The complete signed semantics. signing_bytes are UTF8(\"ak.approval.signature.v1\") || 0x0A || JCS(input): the registered primitive is the signing input itself, never a JSON digest that is signed in a second step. JCS orders object keys, so this schema fixes no field order. Every member is required and the object is closed: a missing or extra member is a schema_violation, not a signature_invalid, and an absent member MUST NOT be reconstructed as null or as a local default.",
+      "required": [
+        "approval_context",
+        "approval_target",
+        "request_canonical_digest",
+        "operation",
+        "action",
+        "realm_id",
+        "initiating_actor_id",
+        "approver_did",
+        "approved_at",
+        "nonce"
+      ],
+      "properties": {
+        "approval_context": {
+          "$ref": "#/$defs/approval_context"
+        },
+        "approval_target": {
+          "$ref": "#/$defs/approval_target"
+        },
+        "request_canonical_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA-256 over the RFC 8785 JCS bytes of the original input selected by approval_target: the complete authored Event including its own producer proof for the event branch, the original typed RequestBody for the operation branch. The evidence container is outside that original input and never contributes to this digest. This digest and the HTTP Content-Digest over the actually transmitted body, which does include the evidence container, are two independent checks; each MUST be performed and neither substitutes for the other."
+        },
+        "operation": {
+          "type": "string",
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$",
+          "description": "The registered operation token of the entry point that carries this execution, as listed in registry/operation-registry.json. An unregistered value is a schema_violation. It pins which entry point the approval was given for, so the same action replayed through another operation MUST fail."
+        },
+        "action": {
+          "type": "string",
+          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+          "description": "The approved capability action token, identical to the element of the grant actions[] array that the execution matches (zh/authz/capabilities.md section 5)."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "The Realm the approved action happens in. It stops cross-Realm replay of one approval."
+        },
+        "initiating_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "The exact ActorId that initiates this execution, carrying the complete account identity rather than a bare principal. One approval does not authorize another Account of the same principal: replay from a different Station MUST be rejected."
+        },
+        "approver_did": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "The approver that issues this approval. The verification method in proof MUST resolve through this DID, and it MUST have been unrevoked at approved_at."
+        },
+        "approved_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "The signing instant. A reducer MUST reject approved_at later than now plus the protocol-level hard_future_skew_ms registered in zh/conformance/scalability-constraints.md section 2, and for the grant context MUST also reject approved_at earlier than that grant's effective_not_before. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 22,
+          "maxLength": 256,
+          "description": "Approver-private, per-approval unique random string carrying at least 128 bits of entropy. Its namespace is (approval_context, approver_did) and it MUST NOT be shared with the ak.agent.action_approve confirmation nonce, with any challenge, or with any other signature evidence. It is consumed only when the target is successfully accepted, in that same transaction."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.approval.signature.v1"
+    },
+    "approval_signature_proof": {
+      "type": "object",
+      "description": "The single detached signature over signing_bytes. It is a locally anchored signing domain, not the shared event-envelope detached-proof leaf: that leaf signs a binding object carrying a payload_digest, whereas this domain registers the signing input itself. proof is never a member of input, so no container field outside input is covered. verification_method is not signed and carries no authority of its own: it only selects a key, and it MUST resolve through the signed approver_did, so substituting it yields an invalid signature.",
+      "required": [
+        "kind",
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$",
+          "description": "Compact detached JWS whose payload is signing_bytes. The signature algorithm comes from registry/signature-alg-registry.json; this domain introduces no second proof suite and no locally assembled key material."
+        }
+      },
+      "additionalProperties": false
+    },
+    "approval_context": {
+      "description": "Which layer raised the approval requirement this signature answers. The two branches are decidable from the schema alone. The governance branch exists because the governance layer can also cover actions that are not admitted against one single grant: an implementation MUST NOT fabricate a grant_id to satisfy the schema, and a governance-context signature MUST NOT be read as approval of one particular grant. The two layers are intersected, each quorum is judged independently and vote counts are never merged (zh/models/governance-objects.md section 3.5).",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "context_kind",
+            "grant_id"
+          ],
+          "properties": {
+            "context_kind": {
+              "const": "grant"
+            },
+            "grant_id": {
+              "$ref": "./common-ids.schema.json#/$defs/grant_id",
+              "description": "The approval requirement carried by one specific capability grant (zh/authz/constraint-schema.md section 9.1). It MUST be one of the satisfied dependency grants of this execution."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "context_kind"
+          ],
+          "properties": {
+            "context_kind": {
+              "const": "realm_governance"
+            }
+          },
+          "additionalProperties": false,
+          "$comment": "The Realm governance approval requirement registered on an (action token, scope) pair. It deliberately carries no policy or action configuration identifier: realm_id, action and approval_target already determine the requirement, and a private governance identifier MUST NOT ride along in evidence that may leave the Station."
+        }
+      ]
+    },
+    "approval_target": {
+      "description": "The exact approved target, which also selects the original input of request_canonical_digest. An approval MUST NOT bind a bare principal, a displayable target name or part of a payload instead.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "target_kind",
+            "event_id"
+          ],
+          "properties": {
+            "target_kind": {
+              "const": "event"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id",
+              "description": "The complete content-bound id of the target Event. Authoring and producer signing finish before any approval is signed, so this id is already fixed when the approver computes signing_bytes and is never a function of the approval. This object is not an Event and this field sits outside the preimage of every Event digest, so no content-addressing order is constrained by it. Attaching approval signatures MUST NOT change event_id: they ride in the submission container, outside the Event."
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "target_kind"
+          ],
+          "properties": {
+            "target_kind": {
+              "const": "operation"
+            }
+          },
+          "additionalProperties": false,
+          "$comment": "A non-Event operation target, bound solely by request_canonical_digest over the original typed RequestBody. Each such operation MUST register its own evidence container in its canonical request contract; v1 registers none yet, so an operation without a registered container MUST NOT claim to support this workflow."
+        }
+      ]
+    }
+  }
+}

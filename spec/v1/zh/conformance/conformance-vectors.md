@@ -130,8 +130,13 @@ evidence 解析，`RealmCommit` 签名按对应 generation 的治理 Station his
 相互独立的 reducer 必须产生相同的投影输入。
 
 `ak.vector.capability.approval_constraint.v1` MUST 证明：即使持有高权限 grant，approval constraint 未满足时
-也不得直接通过写入执行；必须存在可复现的 proposal / review 生命周期；审核通过后产生可验证的审批完成 Event，
-再由独立 action Event 执行。
+也不得直接通过写入执行。审批证据是 `ak.schema.approval_signature.v1`（[`../authz/constraint-schema.md` §9.2](../authz/constraint-schema.md)），
+随 `EventCommitSubmission.approval_signatures[]` 与目标 Event 一同提交，**不是**第二条 Event，也不改变目标 `event_id`。
+向量 MUST 覆盖：`signing_bytes` 逐字节重算、`approval_context` 两支（grant 与 realm_governance）、
+`approval_target` 两支（Event 与 operation）、换 body／`event_id`／Realm／action／operation／发起 Account／
+context／nonce 的拒绝、`approved_at` 时间边界、同一 approver 重复计票只算一票，以及 nonce 只在成功接纳时消费
+（未达 quorum 与验证失败 MUST NOT 提前消费，exact 重放返回原 outcome，换目标返回 `approval_nonce_reused`）。
+形状错误 MUST 报 `schema_violation`，密码学错误 MUST 报 `signature_invalid`，两者不得互相冒充。
 
 `ak.vector.capability.revoke_downstream_recheck.v1` MUST 证明：grant G 授权的 Event E 与由 G 派生的 child grant C
 授权的 pending Event P，在 `ak.capability.revoke` 撤销 G 被接纳后，P MUST fail closed 或隔离并给出稳定

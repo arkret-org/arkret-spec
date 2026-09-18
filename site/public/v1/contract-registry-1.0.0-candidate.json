@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.6",
+  "version": "2026-09-21.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T20:00:00+08:00",
+  "generated_at": "2026-09-21T22:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -366,10 +366,10 @@
       "capability_gated": "Gated by capability actions. The authorizing actions are exactly the ones whose target_event_kinds list this kind in capability-action-registry; there is no second per-event list. Reducer MUST verify the actor holds a matching action grant. Fail-closed.",
       "conditional": "Admission is selected from the event row's closed admission_variants. Receivers evaluate every non-otherwise predicate using admission_predicate_contract: exactly one match selects that variant, more than one match is fail-closed, and zero matches selects the single final otherwise variant. The otherwise branch is a fallback and is not counted as a simultaneously matching predicate. Each selected variant applies its own admission class and capabilities.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
-      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create with no did_inception ref and with both executed_by and authorization_ref. For purpose=agent_control the immutable accepted controller-authored ak.agent.provision is resolved by its whole-value claim of retype(this EventId, realm); the genesis MUST NOT carry a backward agent_provision ref, which would create an EventId cycle. The verifier cross-binds the complete actor/controller AccountIds, PCR delegation and provision payload before materializing Agent status. An explicitly organization-governed purpose=principal_control branch proves its separate accepted organization authority. A self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
+      "delegated_pcr_genesis": "Admitted only for a PCR ak.realm.create carrying both executed_by and authorization_ref. A purpose=principal_control create carrying only one of the two matches no variant and is denied with zero writes. For purpose=agent_control the immutable accepted controller-authored ak.agent.provision is resolved by its whole-value claim of retype(this EventId, realm); the genesis MUST NOT carry a backward agent_provision ref, which would create an EventId cycle. The verifier cross-binds the complete actor/controller AccountIds, PCR delegation and provision payload before materializing Agent status. An explicitly organization-governed purpose=principal_control branch proves its separate accepted organization authority. A self-principal or generic realm.create capability substitution is rejected. This class never authorizes a following device-authorize slot by itself.",
       "applet_managed_pcr_genesis": "Admitted only for purpose=applet_managed_control ak.realm.create carrying exactly one critical refs[] role=applet_managed_actor_provision. The referenced accepted ak.applet.managed_actor.provision is immutable and cross-binds the exact account ActorId, applet/service/registration/authority, role, event-derived realm_id and object.initial_resolution. executed_by MUST equal the provision service_id and authorization_ref MUST equal its applet_authority_ref. It never substitutes Agent or human PCR admission.",
       "deny": "Explicit fail-closed admission branch. Selection always rejects the Event as failed_precondition/schema_violation and MUST NOT consult capabilities or alternate proof paths.",
-      "registration_anchor": "Admitted only for self-principal PCR genesis using durable registration-time DID control evidence and one critical did_inception ref. The verifier validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant.",
+      "registration_anchor": "Admitted only for self-principal PCR genesis: a purpose=principal_control ak.realm.create carrying neither executed_by nor authorization_ref. The create carries no DID-inception Event reference, because DID inception is method-native material and not an Arkret Event. Registration-time DID control evidence is the frozen typed principal_registration_anchor carried by the genesis submission: the verifier rebuilds the registration-time DID, terminal version / history head, normalized DID Document and then-active update key from that one anchor, recomputes SHA-256 over its RFC 8785 JCS bytes and requires the result to equal the identity creation control proof registration_anchor_digest. It validates the accepted-at adapter/method evidence and project(did)=actor_id; current DID state after registration is irrelevant. The selector only routes to this verifier and proves no authorization: a create that reaches it without the complete ordered genesis unit, anchor and accepted receipt closure is still rejected with zero writes.",
       "pcr_recovery": "Admitted only for ak.device.reanchor under the account-local lineage's accepted PCR recovery policy/session and monotonic generation CAS. did_root is merely one optional policy-enabled factor. A current DID proof without the matching account-local lineage and policy cannot enter this class.",
       "direct_conversation_agent_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_agent_provision pointing to an accepted ak.agent.provision Event. Used solely for the controller-to-own-Agent Direct Conversation branch, which has no Contact round. The verifier cross-binds participants to exactly that controller and Agent, requires the Direct Conversation profile rather than a PCR profile, checks the controller binding is current, and fixes founder = controller so the Agent runtime key never needs Direct Conversation founding scope. This role is structurally exclusive with direct_conversation_contact_round and with the Agent PCR agent_provision role.",
       "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the root-round responder; glare branch: the full signed request Event author ActorId referenced by requests[0], never the Station receipt issuer_id; requests MUST be strictly ascending by the complete request_event_ref wire string UTF-8 unsigned bytes, with duplicate Event refs rejected regardless of receipt digest and no receiver-side sorting or deduplication), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_member_ids and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked encryption and history baseline. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
@@ -379,7 +379,7 @@
     },
     "admission_predicate_contract": {
       "closed_world": true,
-      "selector_semantics": "All selector fields in one non-otherwise when object are ANDed. payload_path is relative to Event.payload; const uses exact JSON value equality, while not_const matches inequality or an absent path. top_level_fields_present requires every listed Event Envelope field. ref_* selectors evaluate Event.refs after schema validation. Unknown selectors, missing companion selectors, multiple matching non-otherwise variants, or evaluation errors are fail-closed.",
+      "selector_semantics": "All selector fields in one non-otherwise when object are ANDed. payload_path is relative to Event.payload; const uses exact JSON value equality, while not_const matches inequality or an absent path. top_level_fields_present requires every listed Event Envelope field to be present, and top_level_fields_absent requires every listed field to be absent, evaluated member by member. A member that is present with a null value still counts as present and is still subject to that member's own schema, so top_level_fields_absent is not a 'not both present' selector; the two field selectors MUST NOT appear in one when object. ref_* selectors evaluate Event.refs after schema validation. Unknown selectors, missing companion selectors, multiple matching non-otherwise variants, or evaluation errors are fail-closed.",
       "non_otherwise_selectors": {
         "payload_path": {
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -431,6 +431,21 @@
           "items_enum": [
             "executed_by",
             "authorization_ref"
+          ],
+          "value_shape": "array",
+          "exclusive_with": [
+            "top_level_fields_absent"
+          ]
+        },
+        "top_level_fields_absent": {
+          "minItems": 1,
+          "uniqueItems": true,
+          "items_enum": [
+            "executed_by",
+            "authorization_ref"
+          ],
+          "exclusive_with": [
+            "top_level_fields_present"
           ],
           "value_shape": "array"
         }
@@ -4027,9 +4042,10 @@
             "when": {
               "payload_path": "object.purpose",
               "const": "principal_control",
-              "ref_role": "did_inception",
-              "ref_critical": true,
-              "ref_exact_count": 1
+              "top_level_fields_absent": [
+                "executed_by",
+                "authorization_ref"
+              ]
             },
             "admission": "registration_anchor"
           },
@@ -4062,8 +4078,6 @@
             "when": {
               "payload_path": "object.purpose",
               "const": "principal_control",
-              "ref_role": "did_inception",
-              "ref_exact_count": 0,
               "top_level_fields_present": [
                 "executed_by",
                 "authorization_ref"
@@ -6735,6 +6749,12 @@
         "file": "schemas/applet-widget-declaration.schema.json",
         "status": "active",
         "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
+      },
+      {
+        "schema_id": "ak.schema.approval_signature.v1",
+        "file": "schemas/approval-signature.schema.json",
+        "status": "active",
+        "description": "The single approval evidence type of v1: one approver's detached signature over the closed approval input, carried beside the target in the submission container and never inside an Event."
       },
       {
         "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",

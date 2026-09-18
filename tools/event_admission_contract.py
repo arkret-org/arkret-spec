@@ -18,7 +18,7 @@ def nested(path: str, value: dict) -> dict:
 
 
 def predicate_schema(when: dict) -> dict:
-    supported = {"payload_path", "const", "not_const", "ref_role", "ref_critical", "ref_exact_count", "top_level_fields_present"}
+    supported = {"payload_path", "const", "not_const", "ref_role", "ref_critical", "ref_exact_count", "top_level_fields_present", "top_level_fields_absent"}
     if not when or set(when) - supported:
         raise ValueError(f"unknown admission selector: {when}")
     clauses = []
@@ -47,11 +47,22 @@ def predicate_schema(when: dict) -> dict:
             clauses.append({"properties": {"refs": constraint}, "required": ["refs"]})
     elif "ref_critical" in when or "ref_exact_count" in when:
         raise ValueError("reference selector without role")
-    if "top_level_fields_present" in when:
-        fields = when["top_level_fields_present"]
+    if "top_level_fields_present" in when and "top_level_fields_absent" in when:
+        raise ValueError("top-level presence and absence selectors are mutually exclusive")
+    for key in ("top_level_fields_present", "top_level_fields_absent"):
+        if key not in when:
+            continue
+        fields = when[key]
         if not fields or not isinstance(fields, list):
             raise ValueError("empty top-level field selector")
-        clauses.append({"required": fields})
+        if len(set(fields)) != len(fields):
+            raise ValueError("duplicate top-level field selector member")
+        if key == "top_level_fields_present":
+            clauses.append({"required": fields})
+        else:
+            # Absence is evaluated member by member, so a member that is present
+            # with any value, including null, still counts as present.
+            clauses.extend({"not": {"required": [field]}} for field in fields)
     return {"allOf": clauses}
 
 

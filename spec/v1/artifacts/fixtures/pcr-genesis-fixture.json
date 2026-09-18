@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 2,
+  "version": 3,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -18,57 +18,88 @@
   },
   "founding_authorize": {
     "payload": {
-      "principal_id": "ak:did_core:webvh:z6mkfixture",
       "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-      "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-      "hpke_key": "z6LSfixtureFoundingHpkeKey",
+      "device_public_key_did": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+      "hpke_key": "z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc",
       "algorithms": [
         "ak.hpke_x25519_aead_chacha20poly1305.v1",
         "ak.mls.v1"
       ],
       "device_key_algorithm": "Ed25519",
-      "authorized_by": "did:webvh:z6mkfixture:alice.example",
+      "authorized_by": "ak:did_core:webvh:z6mkfixture",
       "authorization_binding_kind": "registration_anchor",
+      "authorized_generation_ref": 1,
       "not_before": "2026-08-09T00:00:00.000Z",
-      "device_signature": "fixture-signature"
+      "device_signature": "vXlj3xRInCey4eiS0m81kEIQchwIBgq8TJQqoSvvKaRJpso7T6-EL-S77YQKKep4lPFG9lZSiLQHo91384q7AQ"
     },
-    "canonical_payload_json": "{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"did:webvh:z6mkfixture:alice.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\",\"device_signature\":\"fixture-signature\",\"hpke_key\":\"z6LSfixtureFoundingHpkeKey\",\"not_before\":\"2026-08-09T00:00:00.000Z\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\"}",
-    "payload_digest": "sha256:84fa7ce19be5901d540dadf9d9959da470525c26f52174cbf855769d9d9a8ec9"
+    "canonical_payload_json": "{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"ak:did_core:webvh:z6mkfixture\",\"authorized_generation_ref\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"device_signature\":\"vXlj3xRInCey4eiS0m81kEIQchwIBgq8TJQqoSvvKaRJpso7T6-EL-S77YQKKep4lPFG9lZSiLQHo91384q7AQ\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"not_before\":\"2026-08-09T00:00:00.000Z\"}",
+    "payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
+    "device_signature_transcript": {
+      "domain": "ak.device_authorize_possession_proof.v1",
+      "signing_input": "UTF8(\"ak.device_authorize_possession_proof.v1\\n\") || canonical_json(transcript)",
+      "transcript_pointer": "/device_possession/canonical_object",
+      "verification_key": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+      "signing_material": {
+        "test_material_registry_row": "conformance_ed25519_fixture_key",
+        "public_key_pointer": "crypto-signature-fixture.json#/vectors/0/did_document_fragment/publicKeyJwk/x",
+        "private_key_seed_pointer": "recovery-transcript-fixture.json#/test_key/private_key_seed"
+      },
+      "note": "device_signature is the Ed25519 signature over that signing input under the already registered conformance_ed25519_fixture_key: seed bytes 0x00 through 0x1f, published in the fixtures named above. This fixture therefore carries no private key member of its own, and a verifier can both verify and re-sign. The X25519 HPKE key is the same 32 published seed bytes read as an X25519 scalar, so hpke_key is published test material too and MUST NOT be reused outside conformance fixtures."
+    }
   },
   "device_possession": {
     "canonical_object": {
-      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixture",
+        "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+      },
       "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-      "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
-      "hpke_key": "z6LSfixtureFoundingHpkeKey",
+      "device_public_key_did": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+      "hpke_key": "z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc",
       "algorithms": [
         "ak.hpke_x25519_aead_chacha20poly1305.v1",
         "ak.mls.v1"
       ],
       "device_key_algorithm": "Ed25519",
-      "authorized_by": "did:webvh:z6mkfixture:alice.example",
+      "authorized_by": "ak:did_core:webvh:z6mkfixture",
+      "authorization_binding_kind": "registration_anchor",
+      "authorized_generation_ref": 1,
       "not_before": "2026-08-09T00:00:00.000Z",
       "expires_at": null,
       "scopes": null,
-      "recovery_session_id": null,
-      "authorization_binding_kind": "registration_anchor"
+      "recovery_session_id": null
     },
-    "canonical_json": "{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"did:webvh:z6mkfixture:alice.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\",\"expires_at\":null,\"hpke_key\":\"z6LSfixtureFoundingHpkeKey\",\"not_before\":\"2026-08-09T00:00:00.000Z\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"recovery_session_id\":null,\"scopes\":null}",
-    "canonical_json_sha256": "sha256:8286a33c266023d7e094a452f5de87d5f566a87caa154eb3cc729a136729bcce"
+    "canonical_json": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"ak:did_core:webvh:z6mkfixture\",\"authorized_generation_ref\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"expires_at\":null,\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"not_before\":\"2026-08-09T00:00:00.000Z\",\"recovery_session_id\":null,\"scopes\":null}",
+    "canonical_json_sha256": "sha256:c0fb87affba7beed7a5fc10a2bad9b43ee3d75f0d0a86177ff5694429cd442be",
+    "domain": "ak.device_authorize_possession_proof.v1",
+    "device_signature": "vXlj3xRInCey4eiS0m81kEIQchwIBgq8TJQqoSvvKaRJpso7T6-EL-S77YQKKep4lPFG9lZSiLQHo91384q7AQ",
+    "verification": {
+      "signing_input": "UTF8(\"ak.device_authorize_possession_proof.v1\\n\") || canonical_json",
+      "verification_key": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+      "carried_at": "/founding_authorize/payload/device_signature",
+      "forbidden_members": [
+        "device_signature",
+        "event_id",
+        "event_digest",
+        "envelope_digest",
+        "principal_id"
+      ],
+      "note": "account_id is injected from the ak.device.authorize Event envelope account actor_id and is not a payload member; device_signature is the output of this transcript and therefore never one of its members."
+    }
   },
   "founding_device_descriptor": {
     "descriptor_version": 1,
     "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-    "device_public_key_did": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+    "device_public_key_did": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
     "device_key_algorithm": "Ed25519",
     "device_key_purpose": "event_signing_and_mls_identity",
-    "hpke_key": "z6LSfixtureFoundingHpkeKey",
+    "hpke_key": "z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc",
     "hpke_key_algorithm": "X25519",
     "algorithms": [
       "ak.hpke_x25519_aead_chacha20poly1305.v1",
       "ak.mls.v1"
     ],
-    "founding_authorize_payload_digest": "sha256:84fa7ce19be5901d540dadf9d9959da470525c26f52174cbf855769d9d9a8ec9"
+    "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4"
   },
   "unit_contract": {
     "ordered_kinds": [
@@ -319,6 +350,74 @@
       "field": "identity_creation_control_proof.founding_authorize_envelope_digest",
       "mutation": "add",
       "expected": "reject"
+    },
+    {
+      "field": "founding_authorize.payload.principal_id",
+      "mutation": "add",
+      "expected": "schema_violation",
+      "notes": "device_authorize_payload is closed and the exact AccountId subject comes from the Event envelope actor_id, so a mirrored principal_id is not a cross-check failure but an invalid payload."
+    },
+    {
+      "field": "founding_authorize.payload.authorized_generation_ref",
+      "mutation": "remove",
+      "expected": "schema_violation"
+    },
+    {
+      "field": "founding_authorize.payload.authorized_generation_ref",
+      "mutation": "set_to_2",
+      "expected": "reject",
+      "notes": "registration_anchor MUST carry 1, the value the same pcr_genesis_unit initializes (device-lifecycle.md section 5.5.2)."
+    },
+    {
+      "field": "founding_authorize.payload.authorized_by",
+      "mutation": "replace_with_a_did",
+      "expected": "schema_violation",
+      "notes": "authorized_by is a device_id or a did_core_id; under registration_anchor it MUST equal account_id.principal_id and is never a DID."
+    },
+    {
+      "field": "founding_authorize.payload.device_signature",
+      "mutation": "flip_one_bit",
+      "expected": "proof_invalid"
+    },
+    {
+      "field": "device_possession.canonical_object.account_id",
+      "mutation": "remove",
+      "expected": "schema_violation",
+      "notes": "the transcript without the injected AccountId binds no account."
+    },
+    {
+      "field": "device_possession.canonical_object.account_id",
+      "mutation": "replace_with_principal_id",
+      "expected": "schema_violation",
+      "notes": "a bare principal core is not an AccountId; accounts with the same principal at different Stations are permanently distinct."
+    },
+    {
+      "field": "device_possession.canonical_object.device_signature",
+      "mutation": "add",
+      "expected": "schema_violation",
+      "notes": "the signature is the output of this transcript, never one of its members."
+    },
+    {
+      "field": "device_possession.canonical_object.expires_at",
+      "mutation": "remove_instead_of_normalizing_to_null",
+      "expected": "schema_violation",
+      "notes": "section 5.2.1 normalizes a missing optional member to null; an omitted member would be a second canonical byte string for one authorization."
+    },
+    {
+      "field": "device_possession.canonical_object.scopes",
+      "mutation": "remove_instead_of_normalizing_to_null",
+      "expected": "schema_violation"
+    },
+    {
+      "field": "device_possession.canonical_object.recovery_session_id",
+      "mutation": "remove_instead_of_normalizing_to_null",
+      "expected": "schema_violation"
+    },
+    {
+      "field": "device_possession.canonical_object.authorization_binding_kind",
+      "mutation": "accepted_device",
+      "expected": "schema_violation",
+      "notes": "accepted_device signs device_pairing_target_proof under its own domain; a transcript MUST NOT be reused across binding kinds."
     }
   ],
   "initial_session_request": {
@@ -355,7 +454,7 @@
       "control_key_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
       "pcr_realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
       "realm_create_payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-      "founding_authorize_payload_digest": "sha256:84fa7ce19be5901d540dadf9d9959da470525c26f52174cbf855769d9d9a8ec9",
+      "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
       "initial_session_request_digest": "sha256:83f587a5c8a466bc13b555b3a90c0f8ddfdf0427c10320e7e02caa4a298bae10",
       "genesis_unit_kinds": [
         "ak.realm.create",
@@ -371,8 +470,8 @@
       "expires_at": "2026-08-09T00:05:00.000Z",
       "verification_key_multibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
     },
-    "canonical_json": "{\"account_subject\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"audience\":\"did:webvh:z6mkfixtureaccountexample:account.example\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"did_version_id\":\"1-fixturegenesis\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:84fa7ce19be5901d540dadf9d9959da470525c26f52174cbf855769d9d9a8ec9\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:83f587a5c8a466bc13b555b3a90c0f8ddfdf0427c10320e7e02caa4a298bae10\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"log_head_digest\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"operation_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"trust_domain\":\"fixture.example\",\"verification_key_multibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"}",
-    "canonical_json_sha256": "sha256:92af9a145aaea19e310cc8fc12f9e8e15dde80bd5af893befb16cddb83917f1b",
+    "canonical_json": "{\"account_subject\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"audience\":\"did:webvh:z6mkfixtureaccountexample:account.example\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"did_version_id\":\"1-fixturegenesis\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:83f587a5c8a466bc13b555b3a90c0f8ddfdf0427c10320e7e02caa4a298bae10\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"log_head_digest\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"operation_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"trust_domain\":\"fixture.example\",\"verification_key_multibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"}",
+    "canonical_json_sha256": "sha256:ad61e1bbf17979397364d23ac55354e57f75612e97bf979b2b541ccff320e3cf",
     "forbidden_fields": [
       "realm_create_event_id",
       "founding_authorize_event_id",
@@ -499,17 +598,17 @@
     "vector_id": "ak.vector.identity.pcr_genesis.v1",
     "rule": "SHA-256(UTF-8(canonical multikey)); fixed at SHA-256, never the Realm digest_algorithm",
     "device_key_digest": {
-      "expected": "sha256:88d57d808ea9594c50a950437f08bb72a09c824491351cb7b016d7552cd11dea",
-      "preimage_utf8": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "expected": "sha256:7826c7b7b276671e4e5c5c3bc07f7baf97b4f3bd6c46f89a389c9abb391aef96",
+      "preimage_utf8": "z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
       "rejected_reason": "digesting the whole did:key URI is noncanonical; the receipt binds the bare multikey",
-      "noncanonical_expected": "sha256:3fa973b9a2ef96b14861c224438f604e3bb0a8cb872772aa6d3b3d80f5710c0b",
-      "noncanonical_preimage_utf8": "did:key:z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1",
+      "noncanonical_expected": "sha256:ef9b53055830b478d663ad000e5df0ac756d3a128b50d61cfe44d93e0e61a379",
+      "noncanonical_preimage_utf8": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
       "source_pointer": "/founding_device_descriptor/device_public_key_did",
       "transform": "strip the did:key: prefix"
     },
     "hpke_key_digest": {
-      "expected": "sha256:9e086dd9b7db70b10713bfa6ff80d0960d048d52ce6ad9140e980d7acffb51be",
-      "preimage_utf8": "z6LSfixtureFoundingHpkeKey",
+      "expected": "sha256:18c43797e2158b2bf7942a5e58c091ee872d1884c7dd50655407da69a34a4410",
+      "preimage_utf8": "z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc",
       "source_pointer": "/founding_device_descriptor/hpke_key",
       "transform": "none; the canonical multikey exactly as carried"
     },

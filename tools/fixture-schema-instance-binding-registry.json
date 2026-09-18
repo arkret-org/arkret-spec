@@ -18,6 +18,18 @@
       "why": "Embedded in the root-signed PCR genesis payload, so it is not an independently signed object and carries no schema member. Review 2026-09-02-1955 deleted device_key_digest and hpke_key_digest from the schema; this fixture kept shipping both until 2026-09-03."
     },
     {
+      "fixture": "pcr-genesis-fixture.json",
+      "pointer": "/founding_authorize/payload",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
+      "why": "The founding ak.device.authorize payload is embedded in the genesis unit, so it carries no schema member and had no landing point at all. It shipped a principal_id the closed payload forbids, omitted the required authorized_generation_ref and carried a DID where authorized_by admits only a device_id or a did_core_id, while its own payload_digest stayed self-consistent -- a recomputable digest over an inadmissible preimage."
+    },
+    {
+      "fixture": "pcr-genesis-fixture.json",
+      "pointer": "/device_possession/canonical_object",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_possession_transcript",
+      "why": "The signed possession transcript is a real wire signing object with no schema member. It shipped an eleven-member shape with principal_id and without account_id or authorized_generation_ref, disagreeing with both proof-context-registry.json binding_fields and device-lifecycle.md section 5.2.1, and nothing validated it."
+    },
+    {
       "fixture": "file-transfer-stream-aead-fixture.json",
       "pointer": "/kat/record_json",
       "schema_ref": "schemas/file-transfer.schema.json",

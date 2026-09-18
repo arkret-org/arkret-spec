@@ -1241,13 +1241,21 @@
     },
     "EventCommitSubmission": {
       "type": "object",
-      "description": "One exact producer-signed Event submitted to the current governance Station. There are no RealmCommit, typed current result, offline-lease or proof-bundle sidecars.",
+      "description": "One exact producer-signed Event submitted to the current governance Station, plus the approval signatures that the two approval layers require for it. There are no RealmCommit, typed current result, offline-lease or proof-bundle sidecars. approval_signatures is the only sidecar and it is deliberately outside event: the Event bytes and event_id are finished before any approval is signed, so attaching them never changes the Event (zh/authz/constraint-schema.md section 9.2.5).",
       "required": [
         "event"
       ],
       "properties": {
         "event": {
           "$ref": "./event-envelope.schema.json"
+        },
+        "approval_signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "./approval-signature.schema.json"
+          },
+          "minItems": 1,
+          "description": "One ak.schema.approval_signature.v1 object per approver for this exact Event, each binding approval_target.event_id equal to event.event_id. Every ingress that wraps EventCommitSubmission -- ordinary self submit, batch submission, control transactions, facade hand-off -- reuses this one field and MUST NOT define its own DTO. The array is omitted when no approval layer demands evidence; it MUST NOT be present and empty. The governance Station persists the evidence, the verification basis, the nonce consumption and the binding to this submission inside the same atomic acceptance transaction, and the shared Realm Event store keeps the original Event bytes unchanged."
         }
       },
       "additionalProperties": false

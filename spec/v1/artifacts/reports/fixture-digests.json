@@ -246,7 +246,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "d44b977dd7848853dc08289b07887d2cb3f9cc1d00d4ccff41bf5938aadccadb"
+      "sha256": "778b6ea82a636646ae68548116bf6bc43d1a6e6557cea87fcf2263420bf21f2a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

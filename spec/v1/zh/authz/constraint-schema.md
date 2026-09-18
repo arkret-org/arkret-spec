@@ -72,7 +72,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `required_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = accepted PCR device 表达。 | `ak.profile.constraint.claim_based.v1` |
-| `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `ak.profile.constraint.approval_workflow.v1` |
+| `claim_based` | `approval` | extension | 预审批 approval workflow（v1 只有 `approval_mode=before_commit`）；审批证据是 §9.2 的 approval signature。 | `ak.profile.constraint.approval_workflow.v1` |
 | `claim_based` | `accountability` | extension | grant-local 责任主体、guardian / controller 审批关系；使用 `accountability_required`、`approval_relation`、`approval_actor_ids` 等已注册字段。 | `ak.profile.constraint.claim_based.v1` |
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`redacted_history_allowed`。 | `ak.profile.constraint.visibility_control.v1` |
@@ -443,6 +443,8 @@ quota authority MUST 同时满足：
 
 ### 9.1 预审批
 
+v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`——目标写入在被批准之前 MUST NOT 生效（§9.2.7）。
+
 ```json
 {
   "constraint_kind": "claim_based",
@@ -459,51 +461,161 @@ quota authority MUST 同时满足：
 }
 ```
 
-### 9.2 提案模式
+### 9.2 Approval signature（normative）
 
-```json
-{
-  "constraint_kind": "claim_based",
-  "constraint_subkind": "approval",
-  "effect": "require_review",
-  "approval_mode": "proposal_then_approve",
-  "proposal_morph_kind": "proposal",
-  "approval_threshold": "majority",
-  "approval_actor_ids": [
-    "did:webvh:zBKfb3ss3d2vsHuUhDkuNgSsS:approver1.example.com",
-    "did:webvh:zFZyvJ85CyxcAXBp6TQfLSPQa:approver2.example.com"
-  ]
-}
+**Approval signature** 是 v1 **唯一**的审批证据类型：一个由 approver DID 签发的独立 wire 对象，
+登记为 `ak.schema.approval_signature.v1`
+（[`../../artifacts/schemas/approval-signature.schema.json`](../../artifacts/schemas/approval-signature.schema.json)）。
+它证明「某 approver 批准了某个 exact 目标」，**不**证明发起者有权执行该目标。
+
+它**不是 Event**，不进入 Realm history，MUST NOT 被写进 `EventEnvelope`、被签 payload 或任何
+Event 的 `refs[]`。wire 对象恰由两个成员组成：closed `input`（被签语义的全部）与 `proof`（签名本身）；
+`proof` MUST NOT 出现在 `input` 内，`input` 之外的任何容器字段都不参与签名。
+签名算法、`verification_method` 解析与 proof 编码复用已注册的 DID 与 detached-proof 合同
+（[`../identity/identity-did.md` §9](../identity/identity-did.md)、
+[`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)、
+[`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）；
+MUST NOT 自行拼接 key material，也 MUST NOT 为本节新造第二种 proof suite。
+
+#### 9.2.1 被签字节（normative）
+
+```txt
+signing_bytes = UTF8("ak.approval.signature.v1") || 0x0A || JCS(input)
 ```
 
-### 9.3 Approval signature replay protection（normative）
+`JCS` 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme，
+对对象 key 排序，因此本节**不**规定字段书写顺序。签名直接覆盖 `signing_bytes`：
+该 domain 在 `proof-context-registry.json` 登记的 primitive 是**签名输入**，
+MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二种形态。
+`input` 是 closed 对象，分支由 closed discriminator 决定；缺字段 MUST NOT 被补成 `null`
+或任何本地默认值，缺字段 / 多字段一律 `schema_violation`，不是 `signature_invalid`。
 
-**Approval signature** 是独立的 replay 防护证据。它由 approver DID 签发并绑定 `(grant_id 或 proposal_id, nonce, ...)`，证明“某 approver 批准了该 Event”；其 nonce 命名空间不得与其它 challenge 或签名证据共享。
+#### 9.2.2 `approval_context`：该审批要求来自哪一层（normative）
 
-无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Event 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `signature_invalid`）：
+`approval_context` 是 closed XOR，两支在 schema 层可判定：
+
+| 支 | 形状 | 含义 |
+| --- | --- | --- |
+| `grant` | `{"context_kind":"grant","grant_id": GrantId}` | §9.1 挂在**一份具体 grant** 上的审批要求。`grant_id` MUST 是本次操作的某个**满足的依赖 grant**。 |
+| `realm_governance` | `{"context_kind":"realm_governance"}` | [`../models/governance-objects.md` §3.5](../models/governance-objects.md) 登记在 `(action token, scope)` 上的 Realm 治理面审批要求。 |
+
+`realm_governance` 支 MUST NOT 携带 `policy_id` / `action_id` 一类治理配置标识：
+本 Realm 对该动作的审批要求由 `realm_id` + `action` + `approval_target` 已经完整确定，
+而私密治理配置标识 MUST NOT 被搭载进一份可能流出的证据。
+
+治理层的审批要求可以作用于**不靠单份 grant 接纳**的动作，因此实现 MUST NOT 为了满足 schema
+而伪造一个 `grant_id`。反向也成立：一份 `realm_governance` 证据 MUST NOT 被当成对某份特定 grant
+的批准。一份 `grant` 支证据若**同时**满足两层各自现行的资格条件，MAY 分别计入两层；
+两层的合并方式仍按 §9.3，各自 quorum 独立判定，MUST NOT 把票数合并成一个阈值。
+
+`nonce` 的命名空间是 `(approval_context, approver_did)`：它 MUST NOT 与
+`ak.agent.action_approve` 的 confirmation nonce（§9.2.6）、任何 challenge 或其它签名证据共享。
+
+#### 9.2.3 `approval_target`：被批准的 exact 目标（normative）
+
+`approval_target` 是 closed XOR，`request_canonical_digest` 的 original input 由它决定：
+
+| 支 | 形状 | `request_canonical_digest` 的 original input |
+| --- | --- | --- |
+| `event` | `{"target_kind":"event","event_id": EventId}` | **完整预写 Event**（含它自己的 producer proof）。 |
+| `operation` | `{"target_kind":"operation"}` | 该 operation 的**原始 typed RequestBody**。 |
+
+`request_canonical_digest` = `sha256:` + SHA-256(JCS(original input))。
+
+`event` 支的顺序是固定的：先完成目标 Event 的 canonical 字节与 `event_id`，再签批准。
+因此不存在 `event_id` ↔ 批准之间的自引用，附加 evidence 也 MUST NOT 改变 `event_id`
+（evidence 在 Event 之外，见 §9.2.5）。
+
+证据容器本身**不**参与 `request_canonical_digest`。该摘要与 HTTP `Content-Digest`
+（[`../sync/service-http-binding.md` §8.2](../sync/service-http-binding.md)，覆盖**实际传输 body**，
+因此含 evidence 容器）是**两个独立校验**，MUST 各自执行，MUST NOT 互相代入或互相省略。
+
+实现 MUST NOT 用裸 principal、可显示的 target 名称、或 payload 的一部分替代上述绑定。
+
+#### 9.2.4 `input` 其余字段（normative）
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `grant_id` 或 `proposal_id` | id | 该 approval 所针对的具体 grant id（§9.1 路径）或 proposal Event id（§9.2 路径）。两者互斥，必填其一。 |
-| `request_canonical_digest` | hash | 被批准的请求 body 的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
-| `approver_did` | did | 签发该 approval 的 actor DID。 |
-| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms` 或 `approved_at < grant.effective_not_before`。此处 `hard_future_skew_ms` 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级硬上界（默认 300_000，即 5 分钟）——approval 属授权 state event，采用硬上界作为 future-drift reject 边界；实现 MUST NOT 自定义更宽容差。该 5 分钟容差与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）以及 [`capabilities.md` §18.2](./capabilities.md) 服务协商参数 `clock_skew_tolerance_ms` 是**不同场景的独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界；`clock_skew_tolerance_ms` 只用于 freshness 状态分级。三者不得互相代入。 |
-| `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。reducer MUST 在每个 grant / proposal 范围内拒绝同 `(approver_did, nonce)` 的第二次出现。 |
-| `action` | string | 被批准的 capability action token（与 grant `actions[]` 中的元素一致）。 |
-| `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放（同一 approver 在 Realm A 的批准不能被用于 Realm B 的同 action）。 |
+| `operation` | operation token | 承载本次执行的**已注册** operation token（见 [`operation-registry.json`](../../artifacts/registry/operation-registry.json)）。未注册值 `schema_violation`。它固定了「这份批准是给哪个入口的」，同一 action 在另一个 operation 上重放 MUST 失败。 |
+| `action` | string | 被批准的 capability action token，与 grant `actions[]` 中的元素一致。 |
+| `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放。 |
+| `initiating_actor_id` | ActorId | 发起本次执行的 **exact** `ActorId`（完整 `principal_id` + `station_id`）。它不授权同一 principal 的另一个 Account：同 DID 不同 Station 的重放 MUST 拒绝。 |
+| `approver_did` | did | 签发该 approval 的 approver DID。 |
+| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms`；`grant` 支还 MUST 拒绝 `approved_at < grant.effective_not_before`。此处 `hard_future_skew_ms` 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级硬上界（默认 300_000，即 5 分钟）——approval 属授权 state event，采用硬上界作为 future-drift reject 边界；实现 MUST NOT 自定义更宽容差。该 5 分钟容差与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）以及 [`capabilities.md` §18.2](./capabilities.md) 服务协商参数 `clock_skew_tolerance_ms` 是**不同场景的独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界；`clock_skew_tolerance_ms` 只用于 freshness 状态分级。三者不得互相代入。 |
+| `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。命名空间见 §9.2.2，消费规则见 §9.2.5。 |
 
-**Reducer normative**:
+#### 9.2.5 载体、接纳审计与 nonce 消费（normative）
 
-1. reducer MUST 校验 approval signature 由 `approver_did` 的当前 active verification method 签发，且 verification method 在 `approved_at` 时间点未被 revoke;
-2. reducer MUST 维护 per-(grant_id 或 proposal_id, approver_did) 的 nonce 集合; 同 `(approver_did, nonce)` 的二次提交 MUST 返回 `failed_precondition` reason=`approval_nonce_reused`;
-3. `timeout` 过期后，所有未达 threshold 的 approval signature MUST 被视为失效——后续即便补够数量，也 MUST 重新由 approver 在新 nonce 下重签;
-4. `approval_mode=before_commit` 与 `approval_mode=proposal_then_approve` 都适用本节。
+**Event 目标的载体**是提交容器 `EventCommitSubmission` 的 `approval_signatures[]`
+（[`service-operation-dtos.schema.json`](../../artifacts/schemas/service-operation-dtos.schema.json)），
+位于完整 `event` 之外。所有包装 `EventCommitSubmission` 的 ingress——普通 self submit、批次提交、
+控制事务、facade 转交——MUST 复用同一字段，MUST NOT 各造 DTO。
 
-> **理由**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名，把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的必要条件。
+**非 Event operation** 使用同一份 evidence schema，但载体 MUST 逐个 operation 在其 canonical request
+合同里显式登记；原 typed RequestBody MUST NOT 为了容纳 evidence 而放开 `additionalProperties`。
+v1 目前**没有**任何非 Event operation 登记该载体：所有受本节或 §9.3 审批要求约束的动作都通过
+提交 Event 执行。没有登记载体的 operation MUST NOT 声称支持本节 workflow，
+也 MUST NOT 把 evidence 塞进任意既有字段。
 
-### 9.4 与 Realm 治理面审批配置的关系（normative）
+**接纳审计**：治理 Station MUST 在接纳／执行的**同一原子事务**内持久化 evidence、验证依据、
+nonce 消费记录与到原始提交的绑定。共享 Realm Event store 保持原 Event 字节不变；
+私密审批材料只向获准审计者提供。accepted 历史按 **accepted-at** 依据验证：
+approver 之后换 key 或被撤销 MUST NOT 使已接纳 Event 作废；
+但当前的**新**执行仍 MUST 重新核对资格、grant 与 policy。
 
-本节 §9.1–§9.3 定义的是**挂在一份具体 grant 上**的审批要求：它随该 grant 的签发与撤销进出，
+**Reducer normative**：
+
+1. 先按 closed schema 校验 `input`。形状错误 MUST 报 `schema_violation`，密码学错误 MUST 报
+   `signature_invalid`；MUST NOT 把 schema 缺字段一律误报成 `signature_invalid`。
+2. 校验签名由 `approver_did` 在 `approved_at` 时点**未被撤销**的 verification method 签发，
+   并按 §9.2.1 的 `signing_bytes` 重算。
+3. 按 §9.2.3 重算 `request_canonical_digest` 并逐字节比对；`event` 支还 MUST 校验
+   `approval_target.event_id` 等于本次提交 Event 的 `event_id`。
+4. **nonce 在成功接纳目标时消费**，且与接纳写入同事务。同一 exact 已接纳目标的重放 MUST 返回
+   原 outcome；同 `(approval_context, approver_did, nonce)` 被用于**另一个**目标 MUST 返回
+   `failed_precondition` reason=`approval_nonce_reused`。未达 quorum 或验证失败 MUST NOT 提前消费
+   nonce——否则正常的补票重试永远失败。并发校验与消费 MUST 在同一事务内完成。
+5. `timeout` 过期后，所有未达 threshold 的 approval signature MUST 被视为失效：MUST NOT 复用旧票，
+   approver MUST 用新 `nonce` 重签。
+6. v1 的 `approval_mode` 只有 `before_commit` 一种。
+
+> **理由**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名，把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的必要条件。把被签字节写成逐字节公式，是因为两份实现按同一张字段表各自拼字节会得到互不验证的签名，而两边都能声称合规——那不是功能缺失，是安全原语不可互操作。
+
+#### 9.2.6 三种审批形状的边界（normative）
+
+v1 有三个字段名部分重叠、职责**互不替代**的对象。它们 MUST NOT 互作 schema alias，
+MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方的票数：
+
+| 对象 | 是什么 | 绑定 | 职责 |
+| --- | --- | --- | --- |
+| 本节 approval signature（`ak.schema.approval_signature.v1`） | detached 签名证据，非 Event | `approval_context` + `approval_target` + 原请求摘要 + 投票资格 | grant 层（§9.1）与 Realm 治理层（§9.3）的通用审批 quorum 证据 |
+| `ak.agent.action_approve` | 已登记的 **Event kind**，`result_writes` 为空 | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令** |
+| `agent_key_approval_signatures` | `ak.agent.key.*` payload 内的 **tagged 引用** | `evidence_ref` 指向一条已接纳 Event 或 grant | 授权 **provenance** 的可解析引用 |
+
+- Agent confirmation 成功**只**满足 Agent draft 的发布 gate，MUST NOT 免除目标 Event 的 grant／
+  governance approval 要求；两者都命中时 MUST 都被满足，且 MUST 能**分别**拒绝。
+- 同一个 controller MAY 另签一份本节 evidence，并按各层资格计票；但 MUST NOT 把
+  `agent_key_approval_signatures` 的 `approval_event` 引用直接当成一份 detached 签名。
+- `agent_key_approval_signatures.approval_event` MUST 解析到一条**已登记且已接纳**的 Agent
+  confirmation Event。只有存在真实 producer 与正文来源的 provenance 支才保留。
+
+#### 9.2.7 审批模式是封闭单值（normative）
+
+`approval_mode` 的值集恰为 `{"before_commit"}`。v1 没有第二种审批模式，也没有任何「先立提案对象、
+再批准该对象」的路径：审批绑定的目标只能是 §9.2.3 的两支之一。已被移除的提案模式字段与
+绑定名由 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)
+`hard_reject`，MUST NOT 以任何 `constraint_subkind=approval` 字段、Morph kind 或 evidence 成员
+重新出现。`approval_threshold` / `timeout` / `auto_reject_on_timeout` 等 `before_commit`
+仍在使用的字段保留。
+
+Agent 自己的私有 draft 能力（`ak.agent.draft.propose` / `ak.agent.action_request` /
+`ak.agent.action_reject`，见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）
+与本节无关，**不受**影响：它是 controller-owned account-data 上的 draft 流程，不是审批 constraint。
+将来若要提供真正的提案产品能力，MUST 先有完整独立设计与登记对象。
+
+### 9.3 与 Realm 治理面审批配置的关系（normative）
+
+本节 §9.1–§9.2 定义的是**挂在一份具体 grant 上**的审批要求：它随该 grant 的签发与撤销进出，
 `approval_actor_ids` / `approval_relation` / `approval_threshold` 由该 grant 自己携带。
 
 v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `policy_action` 配置，它挂在
@@ -519,8 +631,10 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
    也 MUST NOT 把两层的票数合并成一个阈值。
 2. 本节 constraint 写 `approval_required=false` 的含义是「**本层**不施加要求」，
    MUST NOT 被读成「该操作不需要审批」，MUST NOT 取消治理面层的要求；反向同样。
-3. 治理面层复用 §9.3 的 approval signature 作为唯一证据类型，字段绑定与 replay 规则原样适用，
-   MUST NOT 为它另造第二种审批证据。一份签名若同时满足两层的资格条件，MAY 同时计入两层。
+3. 治理面层复用 §9.2 的 approval signature 作为唯一证据类型，字段绑定与 replay 规则原样适用，
+   MUST NOT 为它另造第二种审批证据。治理面层的证据走 `approval_context.context_kind="realm_governance"`
+   支，因此它 MUST NOT 为满足 schema 伪造 `grant_id`；一份 `grant` 支签名若同时满足两层的资格条件，
+   MAY 同时计入两层。
 
 ## 10. 基于声明的约束（claim_based, constraint_subkind=claim）
 

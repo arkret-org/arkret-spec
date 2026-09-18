@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 900,
-    "responsibility_identity_material": 551,
+    "typed_object_id": 907,
+    "responsibility_identity_material": 553,
     "registry_catalog_symbol": 14
   },
   "pending_rename_convergence": [],
@@ -560,6 +560,14 @@
       "occurrences": 9,
       "example_path": "call-recording-artifact.schema.json#/properties/recording_id",
       "reason": "Identifier minted by a system outside Arkret and retained verbatim; Arkret never parses it as a typed ID."
+    },
+    {
+      "name": "recovery_session_id",
+      "terminal_signature": "[[\"const\", \"None\"]]",
+      "category": "typed_object_id",
+      "occurrences": 2,
+      "example_path": "event-payload.schema.json#/$defs/device_authorize_possession_transcript/properties/recovery_session_id",
+      "reason": "Branch that pins the member to null on the two possession transcripts whose payload forbids a recovery session; the value category comes from the base declaration, which is a typed recovery-session id."
     },
     {
       "name": "registration_id",
