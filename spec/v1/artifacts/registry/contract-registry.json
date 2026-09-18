@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.4",
+  "version": "2026-09-21.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T18:00:00+08:00",
+  "generated_at": "2026-09-21T19:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,8 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 77 of the 139 reducer_input kinds declare it; the remaining 62 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+      "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 78 of the 134 reducer_input kinds declare it; the remaining 56 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
     ],
     "payload_schema_contract": {
@@ -1817,9 +1818,9 @@
         "verb_form": "past_participle",
         "verb_form_rationale": "Contact round terminal state announcement: the round is advanced by the source service slot CAS, and the Event only broadcasts the terminal state that was already reached.",
         "wire_scope": "durable_event",
-        "reducer_input": true,
+        "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable contact round, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent.",
+        "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable contact round, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (establishing the normal round and this issuer directional initial state), not a Realm typed current result.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload",
         "id_source": "not_an_object_id"
       },
@@ -1830,9 +1831,9 @@
         "verb_form": "past_participle",
         "verb_form_rationale": "Contact round terminal state announcement: the round is advanced by the source service slot CAS, and the Event only broadcasts the terminal state that was already reached.",
         "wire_scope": "durable_event",
-        "reducer_input": true,
+        "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It establishes no Contact round and carries no Consent or Contact round evidence fields.",
+        "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It establishes no Contact round and carries no Consent or Contact round evidence fields. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (terminating exactly the matching admission slot), not a Realm typed current result: the payload carries no round, version or lineage coordinate at all, and the never-revives guarantee is held by that slot CAS.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload",
         "id_source": "not_an_object_id"
       },
@@ -1843,9 +1844,9 @@
         "verb_form": "past_participle",
         "verb_form_rationale": "Contact round state announcement: the round is advanced by the source service slot CAS, and the Event only broadcasts the state that was already reached.",
         "wire_scope": "durable_event",
-        "reducer_input": true,
+        "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and contact round and never reads or writes Consent.",
+        "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and contact round and never reads or writes Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (freezing the exact (holder, peer) admission slot with its request and receipt), not a Realm typed current result: identity/contact-and-direct-conversation.md section 2 derives contact_round_id from a source-signed acceptance receipt whose core members never enter the Event stream, so replaying this Realm's committed Events cannot reconstruct the lineage key.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload",
         "id_source": "not_an_object_id"
       },
@@ -1855,9 +1856,9 @@
         "status": "active",
         "verb_form": "base",
         "wire_scope": "durable_event",
-        "reducer_input": true,
+        "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable contact round, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal.",
+        "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable contact round, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal. Its durable effect is holder-Station private service state under ak.contact.admission.v1, not a Realm typed current result.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_scope_update_payload",
         "id_source": "not_an_object_id"
       },
@@ -1867,9 +1868,9 @@
         "status": "active",
         "verb_form": "base",
         "wire_scope": "durable_event",
-        "reducer_input": true,
+        "reducer_input": false,
         "admission": "self_authored_proof",
-        "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable contact round and cannot carry scope replacement or write/revoke Private Consent.",
+        "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable contact round and cannot carry scope replacement or write/revoke Private Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1, not a Realm typed current result.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload",
         "id_source": "not_an_object_id"
       },
@@ -4783,6 +4784,22 @@
         "id_kinds": [
           "report",
           "moderation_queue_item"
+        ],
+        "result_writes": [
+          {
+            "result_family": "moderation_report",
+            "result_selector": {
+              "kind": "id:event"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
+            "notes": "governance/content-moderation.md section 3.3 makes the accepted report itself the canonical fact. The subject is this Event's own id retyped to an EventId, which is exactly the value ak.moderation.decision carries in payload.target_ref when decision=dismiss, so dismiss names the report by the id it already has and no retype step is added to the subject grammar. The value is the complete report payload, unassembled; the two-state queue item is a read-side View folded from this family plus the dismiss records in moderation_state, and MUST NOT become a second stored state. moderation-queue-item.schema.json stays a service response shape and is NOT this family's value: its visibility / evidence_policy / priority / assigned_to_ids members are read-side derivations and local workflow, enumerated in the same section."
+          }
         ]
       },
       {
@@ -5591,8 +5608,8 @@
         }
       }
     },
-    "version": "2026-09-21.2",
-    "generated_at": "2026-09-21T17:10:00+08:00",
+    "version": "2026-09-21.3",
+    "generated_at": "2026-09-21T19:00:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -5651,6 +5668,62 @@
       "status": "active",
       "defined_in": "zh/discovery/push-notifications.md",
       "description": "Push bridge discovery and delivery contract shared by gateway, Station and clients."
+    },
+    {
+      "contract_id": "ak.contact.admission.v1",
+      "status": "active",
+      "defined_in": "zh/identity/contact-and-direct-conversation.md",
+      "description": "Holder-Station private durable Contact contract. The admission slot, the contact round, each issuer-local direction lineage, the verified peer mirror and the contact list folding are private service state of the holder Station, not Realm typed current results derived by replaying this Realm committed Events. The signed Events, acceptance receipts and carrier artefacts keep their admission, signature and audit contracts unchanged; only the Realm typed-result dispatch is withdrawn. Durable founding evidence, the private slot and the accepted Event facts MUST together be sufficient to rebuild the same contact list after a restart. Nothing here enters the receiving side canonical Event store or advances a Realm reducer, and no non-Event producer is added to result_writes[].",
+      "branches": [
+        {
+          "branch": "ak.contact.requested",
+          "durable_effect": "Freeze the (exact holder Account, exact peer Account) admission slot together with the request Event bytes and its acceptance receipt.",
+          "unique_key": "(holder_account_id, peer_account_id)",
+          "prior_state_cas": "Slot absent, or present and held by this exact request and receipt pair.",
+          "exact_retry": "Reuses the stored request and receipt; never mints a second request for the same slot.",
+          "rejection": "A slot already held by a different request, or a terminated slot, is rejected with zero side effects."
+        },
+        {
+          "branch": "ak.contact.rejected",
+          "durable_effect": "Terminate exactly the admission slot matching the named request Event and acceptance-receipt digest.",
+          "unique_key": "(holder_account_id, peer_account_id, request_event_ref, request_acceptance_receipt_digest)",
+          "prior_state_cas": "That exact slot is present and not yet terminal.",
+          "exact_retry": "Idempotent no-op on the already terminated slot.",
+          "rejection": "No contact round and no lineage is created; a terminated slot is never revived, and a mismatched request or receipt is rejected with zero side effects."
+        },
+        {
+          "branch": "ak.contact.accepted",
+          "durable_effect": "Establish the normal contact round, this issuer directional initial state, and store the verified counterpart founding evidence.",
+          "unique_key": "(contact_round_id, issuer_id, peer)",
+          "prior_state_cas": "The matching admission slot is present, non-terminal, and carries the request and receipt pair the payload names.",
+          "exact_retry": "Idempotent on the identical accepted Event; the round is established once.",
+          "rejection": "A mismatched round, request or receipt, or an already terminal round, is rejected with zero side effects."
+        },
+        {
+          "branch": "ak.contact.scope.update / ak.contact.tombstone",
+          "durable_effect": "Advance only this issuer-local direction; tombstone makes the round terminal.",
+          "unique_key": "(contact_round_id, issuer_id, peer, version)",
+          "prior_state_cas": "The same private transaction verifies the exact round, issuer, predecessor Event ref and version, including the founding edge of identity/contact-and-direct-conversation.md section 3.",
+          "exact_retry": "Idempotent on the identical Event at the identical version.",
+          "rejection": "Wrong issuer, round, head or version is rejected with zero side effects; a terminal direction is never revived."
+        },
+        {
+          "branch": "glare_finalize (carrier operation, no signed Event)",
+          "durable_effect": "After verifying both requests and both receipts, durably store the single founding evidence and version 1 for each side direction.",
+          "unique_key": "(contact_round_id, issuer_id, peer)",
+          "prior_state_cas": "No founding evidence stored yet for that direction, or byte-identical evidence already stored.",
+          "exact_retry": "Repeated carrier delivery is idempotent.",
+          "rejection": "Conflicting founding evidence for the same direction is rejected with zero side effects; the carrier is never accepted into memory only and then claimed to be foldable."
+        },
+        {
+          "branch": "proof_refresh (carrier operation, no signed Event)",
+          "durable_effect": "Replace the stored verification material (lease, checkpoint, current proof) for a direction.",
+          "unique_key": "(contact_round_id, issuer_id, peer)",
+          "prior_state_cas": "The direction exists and the incoming signed head is not lower than the stored one.",
+          "exact_retry": "Idempotent; installing the same material twice changes nothing.",
+          "rejection": "MUST NOT advance the business version and MUST NOT create a direction that does not exist."
+        }
+      ]
     }
   ],
   "schema_registry": {
@@ -17325,6 +17398,17 @@
         }
       },
       {
+        "result_kind": "moderation_report",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_report_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "governance/content-moderation.md §3.3"
+          ],
+          "note": "The moderation queue View returns the accepted report and folds its two-state status from this family plus the dismiss records in moderation_state."
+        }
+      },
+      {
         "result_kind": "agent_selector_claim",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_result",
         "consumption": {
@@ -17484,7 +17568,7 @@
         }
       }
     ],
-    "version": "2026-09-21.3",
-    "generated_at": "2026-09-21T17:10:00+08:00"
+    "version": "2026-09-21.4",
+    "generated_at": "2026-09-21T19:00:00+08:00"
   }
 }

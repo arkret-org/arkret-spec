@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8780,
+    "total_properties": 8785,
     "total_schema_documents": 163,
     "by_presence_class": {
       "optional": 2294,
       "optional_defaulted": 49,
-      "required": 5994,
+      "required": 5999,
       "required_nullable": 288,
       "tristate": 155
     },
@@ -11409,6 +11409,11 @@
         "/$defs/moderation_franking_proof_result/properties/selector/properties/event_id": "required",
         "/$defs/moderation_franking_proof_result/properties/selector/properties/kind": "required",
         "/$defs/moderation_franking_proof_result/properties/value": "required",
+        "/$defs/moderation_report_result/properties/revision": "required",
+        "/$defs/moderation_report_result/properties/selector": "required",
+        "/$defs/moderation_report_result/properties/selector/properties/event_id": "required",
+        "/$defs/moderation_report_result/properties/selector/properties/kind": "required",
+        "/$defs/moderation_report_result/properties/value": "required",
         "/$defs/moderation_state_result/properties/revision": "required",
         "/$defs/moderation_state_result/properties/selector": "required",
         "/$defs/moderation_state_result/properties/selector/properties/kind": "required",

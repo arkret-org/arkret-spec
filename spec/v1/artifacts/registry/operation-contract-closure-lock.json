@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.72",
-  "generated_at": "2026-09-21T17:10:00+08:00",
+  "version": "2026-09-16.74",
+  "generated_at": "2026-09-21T19:00:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -301,7 +301,7 @@
     },
     {
       "operation_id": "ak.peer.contacts.command.submit.v1",
-      "sha256": "sha256:4bc1bc607a75285445f8378b47a435d47ee1f9ccb15383a1f6f6353d7f226d9b"
+      "sha256": "sha256:8cfa1c0890cac1203462dcd6349bb35298730c1677f7514c735fd232889dfd8f"
     },
     {
       "operation_id": "ak.peer.device_revocations.command.check.v1",
@@ -353,7 +353,7 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:181e750f8a6174c82c48a3c614d0a7259417795302efc0e822126e703f85d15b"
+      "sha256": "sha256:17610ce30eb6eea947d015c0fb1ba22eb1530029282764d9f557e1d8e513e2f8"
     },
     {
       "operation_id": "ak.peer.realm_join.read.application_status.v1",
@@ -361,7 +361,7 @@
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:b987e1aaa92a86e0b0e768e1f72ec620a7fccb0f4742c2f19540dbccec2ba472"
+      "sha256": "sha256:0fa887bb313a9c10006f0b513f6beda5618e46e84ebbdc33a401445b85f09e3c"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -461,7 +461,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:db53cc50f577521cbcdf6a41b1e676077e41b117dcb2a073a7000e6cefe3473d"
+      "sha256": "sha256:d25d4b021ab24c67052c1aa088e71f7b3eda2228964d28d1f1484d38bf3d5415"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -633,31 +633,31 @@
     },
     {
       "operation_id": "ak.self.contact.command.checkpoint.v1",
-      "sha256": "sha256:c7eebb1e5e0340ad30ec521e020afa35a57c9cc26d8ca15fa1f1b2274b549fb8"
+      "sha256": "sha256:516fe0a278dbb2801ad86b0e411581764c96c414c12e177a7de55842f0a9f483"
     },
     {
       "operation_id": "ak.self.contact.command.reject.v1",
-      "sha256": "sha256:a8211ca79cadff72de5aaf702301e217395989063bffa28d352f21cde09a217a"
+      "sha256": "sha256:b9146ea24f6de8c94da2b04fea0bfebac34e09325cf44fb0e093062b8221a395"
     },
     {
       "operation_id": "ak.self.contact.command.request.v1",
-      "sha256": "sha256:731c3bf709c2755eb28e91e7a3ed5e2302810691a9109e0317b002884600ba9f"
+      "sha256": "sha256:350d7d0017022ae553f604bf8601ef550b37d001d2621c17fad3fbd8d4ed6b2d"
     },
     {
       "operation_id": "ak.self.contact.command.respond.v1",
-      "sha256": "sha256:cdd261eadbb33a62de426ef32fb742e3bcb85148f5d167625ea066447a7afcd2"
+      "sha256": "sha256:f6c231034f0722c8ea562d17cba0f203adfbbd8d98280c658415da995134609f"
     },
     {
       "operation_id": "ak.self.contact.command.scope_update.v1",
-      "sha256": "sha256:5fe2944b4659d1ca8b5a282c096f17a1ada593776b9cbec727c079e153e5c6e9"
+      "sha256": "sha256:6d13355423ba315e8072db0a3adabbafd7d1e4299b655cd91091ace5050ba055"
     },
     {
       "operation_id": "ak.self.contact.command.tombstone.v1",
-      "sha256": "sha256:57ac816977628cee6a632a40fa66c06c04300840cc249c9a6360c4ee170819f1"
+      "sha256": "sha256:f993960eb1d9f546ff30d4c2431576469a52e4af8d5ec2bdc62968283a95eae9"
     },
     {
       "operation_id": "ak.self.contact.read.list.v1",
-      "sha256": "sha256:5ddfc35c9c7a1bbb30a184bc720fc984dd77131ce3e64123db4fc24d21cf7311"
+      "sha256": "sha256:2a00269be4b2e0a3b391bbaea6450b2b766b1800b94af22d53ba9e1bc6835bc1"
     },
     {
       "operation_id": "ak.self.current_principal.read.resolve.v1",
@@ -677,7 +677,7 @@
     },
     {
       "operation_id": "ak.self.direct_conversation.read.resolve.v1",
-      "sha256": "sha256:589741dd2785324cac4e14436fe1adcbad62810b6b2ef3412ad4de3cc68dc34d"
+      "sha256": "sha256:2a861fe22b96fd560ad955dbf45317431201c3063e49bf9a85dcf5ef1a7a493d"
     },
     {
       "operation_id": "ak.self.events.command.submit.v1",
@@ -845,7 +845,7 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:c46c55598b20623a48cc1accced88f3f8fe54de5c092859186eb502f315d7851"
+      "sha256": "sha256:c4b84f84b57fd45e86ae9aee3a633fd15708a51d1b611e5c41264ab4f1c55cbc"
     },
     {
       "operation_id": "ak.self.relation_conflicts.read.candidates.v1",

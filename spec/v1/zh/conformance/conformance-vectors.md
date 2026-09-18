@@ -215,6 +215,10 @@ linked Realm 可见性或 Circle effective-scope 可见性中任一项被收紧�
 其 `contact_round_id`、`version` 与 `predecessor_event_ref` 逐字复制进 scope update 与 tombstone 两个 prepare 阶段；
 `version` 是下一条 Event 的 version，`predecessor_event_ref` 是当前谱系头而不是该头的前驱；
 过期游标以 `contact_lineage_conflict` 或 `contact_scope_stale` 拒绝，且 MUST 重新读取而不是猜测或原样重试。
+founding edge 与方向无关：normal responder 的 accepted Event 是自己方向的 version 1；normal requester 与 glare 双方
+以各自的 request Event ID 作 bootstrap predecessor，首个 successor 的 `version` MUST 为 2——因此 normal requester 在
+对方接受后立刻收窄 scope 或 tombstone MUST 被接受，而不是当作 glare 专属形状拒绝；三个方向的 `complete_through`
+与该 version 1 一致；首个 successor 的 issuer、contact round、head 或 version 任一不符 MUST 零写入拒绝。
 
 `ak.vector.contact.pending_incoming_prepare.v1` MUST 证明：本 Station 已验证的 incoming request 投影包含
 exact `request_event_ref` 与可选的原始 `request_message`；客户端只提交 peer 与 ref、核对准备好的意图并签名，

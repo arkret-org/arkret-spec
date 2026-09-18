@@ -1695,6 +1695,40 @@
       },
       "additionalProperties": false
     },
+    "moderation_report_result": {
+      "type": "object",
+      "description": "The accepted moderation report itself (governance/content-moderation.md section 3.3). The subject is the report Event's own EventId, which is the same value ak.moderation.decision carries in payload.target_ref for decision=dismiss. The value is the complete report payload. The queue item is a read-side View over this family and the dismiss records in moderation_state, not a second stored state.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "moderation_report"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_preview_policy_result": {
       "type": "object",
       "description": "The Realm preview / peek policy (models/realm-and-space.md section 2.3). It is the projected source of the query field preview_policy_id and is a per-Realm singleton like every sibling facet in that sentence. The value is payload.value only: payload.reason is audit provenance carried by the Event, not projected state.",

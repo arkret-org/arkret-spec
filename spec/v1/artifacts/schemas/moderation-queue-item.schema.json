@@ -18,7 +18,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ak:moderation_queue_item:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:moderation_queue_item:[A-Za-z0-9_-]{44}$",
+      "description": "The accepted ak.self.moderation.report Event id retyped to moderation_queue_item; services MUST NOT allocate an independent identifier. See governance/content-moderation.md section 3.3."
     },
     "report": {
       "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload",
@@ -39,7 +40,8 @@
         "normal",
         "high",
         "urgent"
-      ]
+      ],
+      "description": "Local administrator workflow only: never carried in an Event payload, never part of the decision fold, never replicated across Stations, and never a capability. Omit when unassigned. See governance/content-moderation.md section 3.3."
     },
     "visibility": {
       "type": "string",
@@ -48,13 +50,15 @@
         "encrypted_evidence",
         "plaintext_evidence",
         "franking_proof_only"
-      ]
+      ],
+      "description": "Read-side derivation over the accepted report and the target scope, in the order given in governance/content-moderation.md section 3.3: plaintext scope -> plaintext_evidence; evidence_package present -> encrypted_evidence; franking_proof only -> franking_proof_only; otherwise metadata_only. When evidence is withheld or trimmed for an unauthorized caller, this member MUST be downgraded to the evidence shape that caller can actually receive, and MUST NOT reveal whether the trimmed evidence exists. Never written by the reporter and never hard-filled with one default."
     },
     "assigned_to_ids": {
       "type": "array",
       "items": {
         "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-      }
+      },
+      "description": "Local administrator workflow only; entries MUST already hold the matching moderation capability in this scope. Omit when unassigned. See governance/content-moderation.md section 3.3."
     },
     "evidence_policy": {
       "type": "object",
@@ -76,14 +80,16 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Derived handling policy; omit when there is no material source. plaintext_allowed mirrors the plaintext-scope branch of visibility, franking_proof_verification_required mirrors whether the report payload carries a franking_proof. retention_expires_at and legal_hold are local retention policy and MUST NOT change the canonical decision. See governance/content-moderation.md section 3.3."
     },
     "audit_refs": {
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
-      }
+      },
+      "description": "Local administrator workflow only; entries MUST be Events the caller is already authorized to read. See governance/content-moderation.md section 3.3."
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"

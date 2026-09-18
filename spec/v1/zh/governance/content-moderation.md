@@ -207,6 +207,26 @@ MIMI facade provenance。它是 Event，其授权由当前治理 Station 在接�
 - 本两态 queue-item 只承载用户 `report` 的受理 / 完成，不承载 §2.6 的 policy `require_review` pending 状态。后者以 active moderation decision add 为真相源并投影到同一 UI queue；两者可以在 View 中合并展示，但 reducer MUST 保持各自 lifecycle 与 id 不混用。
 - 如后续工作流需要中间相(如 triage / review 分阶段),MAY 在新修订中增补状态值;v1 实现 MUST NOT 产生这两值之外的 `status`。
 
+**举报 family 与 queue item 派生（normative）**：
+
+1. 已接受的 `ak.self.moderation.report` Event 自身就是 canonical fact，登记为 `moderation_report` typed current result family：subject 是该 Event 自己的 id retype 成 EventId，value 是完整 report payload，projection 为 `set`。`ak.moderation.decision{decision="dismiss"}` 的 `target_ref` 逐字等于该 subject，因此驳回不需要额外分配 report id，也不需要在 subject 语法里新增 retype 步骤。
+2. queue item 是**读取侧 View**，不是第二份存储态：`id` MUST 是同一 report Event id retype 成 `moderation_queue_item`（见 `id-kind-registry.json`），`report` 取 `moderation_report` 的 current value，`created_at` 取该 Event 被接受的 commit 时间，`status` 按上表从该 family 与 `moderation_state` 中指向它的 dismiss / decision records 折叠。服务端 MUST NOT 为 queue item 维护可独立写入的状态，也 MUST NOT 接受对上述任一成员的直接写入。
+3. `visibility` 是从已接受材料推导的读取侧判定，MUST 按以下顺序取第一个成立的分支，MUST NOT 由 reporter 写入：
+   - 被举报内容所在 scope 未端到端加密（moderator 依既有可见性即可直接读取目标内容）→ `plaintext_evidence`；
+   - report payload 携带 `evidence_package` → `encrypted_evidence`；
+   - report payload 携带 `franking_proof` 且不携带 evidence package → `franking_proof_only`；
+   - 以上皆不成立 → `metadata_only`。
+
+   对无权 caller 省略或裁剪 evidence 时，MUST 同时把 `visibility` 降级到该 caller 实际可返回的证据形态；MUST NOT 通过 `visibility`、其它 item metadata 或错误码暴露被裁剪掉的 evidence 是否存在。实现 MUST NOT 给所有 queue item 硬填同一个 `visibility` 默认值。
+4. `evidence_policy` 出现时，两个必填布尔 MUST 从同一材料推导：`plaintext_allowed` 等于上述第一分支是否成立；`franking_proof_verification_required` 等于 report payload 是否携带 `franking_proof`（携带时 moderator MUST 先按 §3.4 完成验证，才可依据 evidence package 采取处置）。`retention_expires_at` 与 `legal_hold` 是本 Station 的保留策略，MUST NOT 改变 canonical decision，也 MUST NOT 阻止其它 Station 在同一 accepted basis 上独立求值。没有上述材料时 MUST 省略 `evidence_policy`。
+5. `priority`、`assigned_to_ids` 与 `audit_refs` 是**本服务本地**的管理员工作流成员：它们不进入任何 Event payload、不参与 decision fold、不跨 Station 复制、不构成 capability，也不改变 exact replay outcome。`assigned_to_ids` 只能列出在该 scope 内已持有对应 moderation capability 的 DID；`audit_refs` 只能引用该 caller 本就有权读取的 Event。没有本地工作流赋值时 MUST 省略这些字段，MUST NOT 硬填统一默认值。
+6. `decision="dismiss"` 按同一 EventId 直接查询 `moderation_report`：`payload.target_ref` 本就是该 report Event ID，
+   不需要在 subject 语法里新增 retype 步骤。report 不存在、`target_ref` 指向的不是 `ak.self.moderation.report`、
+   或 issuer 不持有该 exact scope 的 moderation capability 时，**MUST** 零写入拒绝。dismiss 在 `moderation_state`
+   中的记录继续保留为审计事实，但它 **MUST NOT** 授予目标内容任何 allow 权限。终结是单调的：item 进入 `resolved`
+   后，对该 dismiss 的 `ak.moderation.decision.lift` 只解除该 decision 的后续治理效力，**MUST NOT** 把举报重新打开
+   为 `submitted`；重新处理需要新的 report。
+
 ### 3.4 E2EE 举报 Evidence Package 与 Franking
 
 在 E2EE Realm / Circle 中，服务端无法读取正文。举报 E2EE 内容时，reporter MAY 提交一个加密 evidence package 给目标 scope 的 moderator；实现 SHOULD 支持 `franking_proof`，用于证明某条密文 envelope 曾被接收服务投递，而不保存明文。
@@ -338,7 +358,7 @@ v1 不定义可复制的 Realm 级 blocklist、server ACL 或 content-filter pol
 服务端 MAY 配置部署本地的风险信号、过滤器与 ACL，但这些配置不是 Realm 共享状态，不得伪装成标准 Event，也不得赋予 capability。Organization 明确适用于某 Realm 的 `ak.organization.moderation_policy` 可作为额外 deny 层；Realm 不存在独立 override typed current result。
 ### 5.4 消息审核队列
 
-Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报记录与 §2.6 active `require_review` decision。举报 item 的 `status={submitted,resolved}` 只描述 report lifecycle；policy review item 的 pending / resolved 由对应 decision add 是否仍 active 派生，不得为后者伪造 `moderation-queue-item.status` 新枚举。建议使用标准 View 机制：
+Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报记录与 §2.6 active `require_review` decision。举报 item 的 `status={submitted,resolved}` 只描述 report lifecycle；policy review item 的 pending / resolved 由对应 decision add 是否仍 active 派生，不得为后者伪造 `moderation-queue-item.status` 新枚举。举报 item 的每个成员按 §3.3 的派生规则从 `moderation_report` family、`moderation_state` 与本地工作流取得，该 View 本身不持有可写状态。建议使用标准 View 机制：
 
 ```json
 {

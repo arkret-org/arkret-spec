@@ -676,7 +676,7 @@
         "complete_through": {
           "type": "integer",
           "minimum": 1,
-          "description": "Last completely authenticated version of the direction identified by (contact_round_id, issuer_id, peer): initial normal accepted or implicit glare request head is 1, successors use their confirmed payload.version. Never the PCR stream position, request slot_version, RealmCommit height or receiver time. A counterpart terminal acknowledgement retains its local confirmed version, without copying the remote version or incrementing it."
+          "description": "Last completely authenticated version of the direction identified by (contact_round_id, issuer_id, peer): version 1 is either the normal responder's initial accepted Event or a founding request head, which covers both glare sides and the normal requester (identity/contact-and-direct-conversation.md section 3, founding edge); successors use their confirmed payload.version. Never the PCR stream position, request slot_version, RealmCommit height or receiver time. A counterpart terminal acknowledgement retains its local confirmed version, without copying the remote version or incrementing it."
         },
         "fresh_until": {
           "$ref": "#/$defs/timestamp",

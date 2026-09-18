@@ -403,7 +403,7 @@ Contact scope 只表达 issuer holder 授予 peer 的方向，唯一字段为 `g
 predecessor 与完整 scope 集合；扩大和收窄都必须由 holder 显式签名。tombstone 只终止 Contact，不承担 scope
 update。
 
-scope full-set replacement 为空仅把非 terminal round 投影为 `suspended`；同一 lineage 后续显式 widen 可恢复。
+scope full-set replacement 为空不改变 `contact_state`：非 terminal round 仍是 `accepted`，只是该方向当前不授予任何 scope；同一 lineage 后续显式 widen 可恢复。
 proposal 阶段 reject 与 accepted round 上 tombstone 是 terminal；terminal 后 constituent request refs、round 与
 lineage 永不复活，recontact 必须创建全新 request receipt(s)与新 round。
 
@@ -411,7 +411,8 @@ source service 必须对每个 issuer lineage 签 monotonic head checkpoint/curr
 accepted checkpoint、`complete_through` 与 `fresh_until`。peer mirror 保留 source signed fact、lease/checkpoint 与
 transport receipt；收到更高 incoming signed head 时 target service 立即安装已认证变更并阻止已撤销方向的新提交，不等待轮询。
 `contact_current_proof.complete_through` 恰为 signed `(contact_round_id, issuer_id, peer)` 方向已完整认证的
-lineage version：normal 初始 accepted 与 glare 中以 request 为 head 的隐式初始方向均为 1；同方向后继 scope
+lineage version：version 1 或者是 normal responder 的初始 accepted，或者是以 request 为 head 的 founding 方向——
+glare 双方与 normal requester 都属于后者（见本节 founding edge）；同方向后继 scope
 update / tombstone 使用其已确认 payload.version。它不是 PCR stream 的 `stream_position`、request admission slot_version、RealmCommit
 高度、接收顺序或时钟。非 terminal proof 的 head 必须逐字对应该方向及该 version，不能以较大无关计数声明完整。
 
@@ -447,13 +448,29 @@ direction，terminal 关闭尚开放的方向区间；新 round/new request 不�
 `contact_state`。按 `contact_state` 逐值判定：`accepted` **MUST** 携带；`pending_outgoing`、`pending_incoming`、
 `rejected`、`expired`、`tombstoned` **MUST NOT** 携带——前两者尚未建立 round 与 lineage，后三者是 terminal 且 round 与
 lineage 永不复活。glare 机械派生的 round 直接投影为 accepted 时同样 **MUST** 携带，此时 `predecessor_event_ref` 是该
-issuer 自己的 request head。若该 issuer-local lineage 尚无任何带版本号的 accepted successor，则这个 request head 是
-bootstrap predecessor，`next_prepare_input.version` **MUST** 为 2；验证方 **MUST** 把“逐字等于该 issuer 自己的 request
-Event ID 的 predecessor + version 2”作为 glare founding edge 的唯一合法首个 successor，**MUST NOT** 因 request payload
-没有 lineage `version` 字段而拒绝，也 **MUST NOT** 合成一条 version 1 的 `ak.contact.accepted` Event。首个 successor 之后
-恢复普通规则：`version = current head version + 1` 且 predecessor 逐字等于 current head Event ID。
-scope 全集替换为空只把非 terminal round 投影为 `suspended`，其 `contact_state` 仍是
-`accepted`，因此仍 **MUST** 携带该子对象，否则后续显式 widen 无从 author。
+issuer 自己的 request head。
+
+**founding edge 与方向无关（normative）**：任一 issuer-local 方向 `(contact_round_id, issuer_id, peer)` 在尚无任何带
+版本号的 accepted successor 时，该 issuer 自己的 request Event ID 就是 bootstrap predecessor，
+`next_prepare_input.version` **MUST** 为 2；验证方 **MUST** 把“逐字等于该 issuer 自己的 request Event ID 的
+predecessor + version 2”作为该方向唯一合法的首个 successor，**MUST NOT** 因 request payload 没有 lineage `version`
+字段而拒绝，也 **MUST NOT** 合成一条 version 1 的 `ak.contact.accepted` Event。该许可覆盖两条路径：glare 双方，以及
+**normal requester**。normal requester 自己只 author 过 `ak.contact.requested`，responder 的 `ak.contact.accepted` 是
+**responder 方向**的 version 1、不是 requester 方向的 head，因此 requester 的首条 `ak.contact.scope.update` /
+`ak.contact.tombstone` 正走这条 founding edge；把该许可逐字限定在 glare 会拒绝这条普通路径。normal responder 的
+accepted Event 仍是自己方向的 version 1，不走 founding edge。
+
+启用该 edge 的前提是**该方向属于一个已成立的 exact round**：normal requester 的 founding evidence 是经验证的
+responder `ak.contact.accepted`（逐字携带同一 `contact_round_id`，且 issuer / peer 绑定与 §2 的 request/receipt 一致），
+glare 双方的 founding evidence 是 §2 `glare_finalize` 耐久保存的那一份。实现 **MUST NOT** 仅凭本地 pending request 就把
+方向宣称为 accepted 并 author successor；错 issuer、错 round、错 head 或错 version 的 prepare **MUST** 零写入拒绝。
+version 既不是 RealmCommit position，也不是 request admission `slot_version`。
+
+首个 successor 之后恢复普通规则：`version = current head version + 1` 且 predecessor 逐字等于 current head Event ID。
+scope 全集替换为空不产生第二条状态轴：非 terminal round 的 `contact_state` 仍是 `accepted`，因此仍 **MUST**
+携带该子对象，否则后续显式 widen 无从 author。`contact_list_row` 已有的三份 scopes 足以表达“授权暂停”，UI MAY
+据双向有效交集为空把该行显示为暂停；实现 **MUST NOT** 为此向六值 `contact_state` 枚举新增 `suspended`，也
+**MUST NOT** 另造一份 durable 暂停状态。过期、撤销与终态仍按本节既有优先序读侧折叠。
 
 游标可能陈旧。服务端 prepare 侧已有 `contact_lineage_conflict`（409）与 `contact_scope_stale`（409），持陈旧游标的
 prepare 只会被拒且零写入；被拒后客户端 **MUST** 重读 `ak.self.contact.read.list.v1` 并以新值重试，**MUST NOT** 猜测
@@ -472,6 +489,28 @@ mirror 是 principal-private 存储，**MUST NOT** 进入接收方 canonical Rea
 本条规范向量为 `ak.vector.contact.pending_incoming_prepare.v1`。客户端与服务器职责见 [账号服务器信任与结果消费](../sync/server-trusted-results.md)。
 
 不存在、policy deny、过期、未授权与 quarantined 对无权主体必须使用相同 opaque failure。
+
+### 3.1 Contact 耐久效果的归属（normative）
+
+Contact 的 admission slot、contact round、每条 issuer-local 方向 lineage、已验证的对端 mirror 与列表折叠，
+全部是 **holder Station 的私有服务状态**，不是靠重放本 Realm 已提交 Event 得到的 Realm typed current result。
+理由是结构性的：§2 的 `contact_round_id` 由 source-signed acceptance receipt 的摘要决定，而该 receipt 的 core
+成员（`slot_version`、`source_checkpoint`、`accepted_at`、`issuer_id`）没有一个进入 Event 流；glare 分支还需要
+对端的 request 与 receipt，而本节已规定 mirror **MUST NOT** 推进 reducer。
+
+因此 `ak.contact.requested` / `rejected` / `accepted` / `scope.update` / `tombstone` 五条 kind 在
+`contract-registry.json` 中 `reducer_input` 为 `false`，其真实耐久效果登记在 canonical `service_contracts` 的
+`ak.contact.admission.v1`：每个分支的效果、唯一键、前态 CAS、exact retry 与零副作用拒绝逐条列出，本节与 §2 是
+它的 `defined_in`。这只收窄 Realm typed-result 分派，**不**削减这些 Event 既有的 admission、签名、提交证据与
+私有事务效果；`wire_scope` 仍是 `durable_event`。
+
+- 实现 **MUST NOT** 仅把 carrier 收进内存就宣称列表“可折叠”：耐久 founding evidence、私有 slot 与已接纳的 Event
+  事实必须足以在重启后重建同一份列表。
+- 这些材料依旧 **MUST NOT** 进入接收方 canonical Event store，也 **MUST NOT** 推进 reducer、RealmCommit 或
+  authority-commit checkpoint。
+- `glare_finalize` 与 `proof_refresh` 没有 signed Event，它们是 carrier operation；实现 **MUST NOT** 为此新增
+  non-Event 的 Realm reducer producer，也不扩 `result_writes[]`。
+- 不得为提高登记覆盖率而给这五条 kind 造一个正文从未命名的 typed current result family。
 
 ## 4. Contact operation surface
 

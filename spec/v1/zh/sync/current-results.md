@@ -59,6 +59,11 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `moderation_franking_proof`：以被证明 Event 的 `payload.event_id` 选择一条接收方 franking 证明
   （见 [`../governance/content-moderation.md` §6](../governance/content-moderation.md)）；证明独立于任何后续
   report 产生，因此 `report_id` / `target_ref` 既不是 payload 字段也不进 subject；
+- `moderation_report`：以来源举报 Event 自身的 EventId 选择一条已受理的 `ak.self.moderation.report`
+  （见 [`../governance/content-moderation.md` §3.3](../governance/content-moderation.md)）；value 是原封闭
+  report payload，family 不可变。`ak.moderation.decision{decision="dismiss"}` 的 `payload.target_ref` 逐字
+  就是这个 subject，因此驳回按同一 EventId 查询，subject 语法里没有也不需要 retype 步骤；服务面的
+  moderation queue item 是本 family 与 `moderation_state` 的读取侧 View，**不是**本 family 的 value；
 - `consent`：以 producer 分配的稳定 `payload.consent_id` 选择 holder PCR 内的一条 Consent 记录
   （见 [`../identity/consent-model.md` §2](../identity/consent-model.md)）；value 同层承载 grant body 与
   reducer 派生的 `status`（`active | revoked`），`expired` 不是投影状态而是 §5 的验证时窗口判定；
