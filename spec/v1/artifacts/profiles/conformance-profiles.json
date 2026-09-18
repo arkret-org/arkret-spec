@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.12",
-  "generated_at": "2026-09-18T23:50:00+08:00",
+  "version": "2026-09-16.13",
+  "generated_at": "2026-09-19T16:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1862,8 +1862,7 @@
       "required_event_kinds": [
         "ak.organization.discovery",
         "ak.organization.moderation_policy",
-        "ak.policy.set",
-        "ak.policy.rule"
+        "ak.policy.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [

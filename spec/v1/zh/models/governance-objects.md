@@ -138,14 +138,41 @@ root；v1 没有第三个 policy family，也不通过随机 `policy_id` 查询�
 
 Moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
 
-### 3.4 Policy Action Log
+### 3.4 Policy Action 审批配置
 
-`ak.policy.action` 在 v1 只有一个 approval-action document family。payload 必须携带 required `value`，并在
-`policy_id` / `action_id` 中恰好携带一个作为 ordered-log subject；`value` 必须是 closed
+`ak.policy.action` 在 v1 只有一个 family，写入 typed current result `policy_action`。payload 必须携带 required
+`value`，并在 `policy_id` / `action_id` 中恰好携带一个作为 subject；`value` 必须是 closed
 `{action,approval_required,approval_quorum,policy_scope}`，其中 `action` 是完整 `ak.*` action token、
 `approval_quorum >= 1`、`policy_scope` 是完整 typed resource/DID ref。v1 不按 subject id 分派 action body，
 也不允许 `state` / `reason`、平铺 action 字段或未知 value 字段；违者 `schema_violation`。机器真源为
 [`policy_action_state_payload`](../../artifacts/schemas/event-payload.schema.json)。
+
+**这是审批配置，不是执行回执，也不是审批授权（normative）**：该 value 只声明「某 action 需不需要审批、需要几票、
+在哪个 scope 内」。一条被接受的 `ak.policy.action` Event **MUST NOT** 被读成已经满足了某次审批，也 **MUST NOT**
+被读成授予了执行该 `action` 的权限——[§3.3](#33-policy-与-capability-决策) 的「policy 不能授予权限」对本节同样成立，
+执行授权仍只来自 capability grant。实际的审批发生与否由该 action 自己的 Event 链承担。
+
+**投影与 selector（normative）**：`policy_action` 是 whole-value set family——`value` 整体替换上一版本，
+没有成员级 patch；当前值由同一流内的接受位置确定，[`../sync/current-results.md`](../sync/current-results.md)
+的通则适用，无需额外 `expected_revision`。payload 顶层的 `policy_id` / `action_id` closed XOR 是**两个命名空间，
+不是一个可合并的 subject**，因此 selector MUST 带标签地分成两支，且两支的 composite key 逐项封闭：
+
+| 分支 | 判据 | composite key | 主体 |
+| --- | --- | --- | --- |
+| `policy_ref` | payload 带 `policy_id` | `(policy_id, value.action)` | 挂在某份 Policy 文档下的 action 审批配置 |
+| `realm_action` | payload 不带 `policy_id` | `(action_id)` | Realm 内独立的 action 审批配置 |
+
+`policy_ref` 支 MUST 把 `value.action` 计入 key：一份 Policy 文档可以为多个 action 各配置一次，只按 `policy_id`
+归集会让改一个 action 静默覆盖同文档的其余配置。该支的 `policy_id` MUST 解析到**本 Realm 内**的一份 Policy 文档。
+
+`realm_action` 支的 `action_id` 是**本 Realm 内的配置名**：它不是 capability token，不是全局对象 ID，也不是某份
+Policy 文档内部的 rule 或 action 标识，MUST NOT 按这三者中的任何一种解读或解析。首条被接受的写入把
+`(value.action, value.policy_scope)` 绑定到该 `action_id`；此后同一 `action_id` 的写入是对该配置的更新，
+**MUST NOT** 把这个名字改挂到另一个 `action` 或另一个 scope 上，否则历史引用会在不改名的情况下改指。
+
+两支都 MUST 用标签区分，**MUST NOT** 用无标签的 coalesce 把两个命名空间并成一个 key 空间，也 MUST NOT 用显示
+名称或文档内局部符号（如 `PolicyRule.rule_id`）充当 subject。`value.policy_scope` MUST 解析到本 Realm 内一个
+**精确的**已授权 scope：非空字符串检查不是这项校验，合法的子 scope 也 MUST NOT 被放宽成 RealmId。
 
 ## 4. Capability Grant
 

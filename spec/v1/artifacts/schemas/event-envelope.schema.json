@@ -1879,25 +1879,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.policy.rule"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/policy_rule_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.policy.set"
           }
         },
@@ -6524,7 +6505,6 @@
                 "ak.pin.remove",
                 "ak.pin.reorder",
                 "ak.policy.action",
-                "ak.policy.rule",
                 "ak.policy.set",
                 "ak.profile.create",
                 "ak.profile.realm_override",
@@ -6685,7 +6665,6 @@
             "ak.pin.remove",
             "ak.pin.reorder",
             "ak.policy.action",
-            "ak.policy.rule",
             "ak.policy.set",
             "ak.profile.create",
             "ak.profile.realm_override",

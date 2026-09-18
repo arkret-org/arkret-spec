@@ -2700,7 +2700,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is exactly {policy_id, value}, value.schema selects the generic Policy or the RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own -- ak.policy.rule's rule_id is a document-local symbol and names no result.",
+      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is exactly {policy_id, value}, value.schema selects the generic Policy or the RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own. The separate ak.policy.rule Event kind that used to assert one rule at a time is deleted: it carried no policy_id, so its rule_id named nothing resolvable, and rule editing submits the whole authorized Policy document through ak.policy.set.",
       "properties": {
         "selector": {
           "type": "object",
@@ -2723,6 +2723,98 @@
         },
         "value": {
           "$ref": "#/$defs/policy_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_action_value": {
+      "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/value"
+    },
+    "policy_action_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one approval CONFIGURATION (models/governance-objects.md section 3.4). The value is the closed {action, approval_required, approval_quorum, policy_scope} document and nothing else: an accepted ak.policy.action is not an execution receipt and not an approval grant, so it confers no authority to run the action and satisfies no actual approval. The payload's closed XOR over policy_id / action_id is TWO namespaces rather than one coalesced subject, and the selector carries the branch tag verbatim so they can never merge: branch=policy_ref is keyed by (policy_id, value.action), because one Policy document may configure several actions and keying on policy_id alone would let an edit of one action silently overwrite the others; branch=realm_action is keyed by a Realm-local configuration name that hangs off no Policy document, and MUST NOT be read as naming an action inside one. Both branches live inside the Event's own Realm, which is why no realm_id member appears here (conformance/encoding.md section 4).",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "branch"
+          ],
+          "oneOf": [
+            {
+              "properties": {
+                "branch": {
+                  "const": "policy_ref"
+                }
+              },
+              "required": [
+                "policy_id",
+                "action"
+              ],
+              "not": {
+                "required": [
+                  "action_id"
+                ]
+              }
+            },
+            {
+              "properties": {
+                "branch": {
+                  "const": "realm_action"
+                }
+              },
+              "required": [
+                "action_id"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "policy_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "action"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "properties": {
+            "kind": {
+              "const": "policy_action"
+            },
+            "branch": {
+              "enum": [
+                "policy_ref",
+                "realm_action"
+              ],
+              "description": "The branch tag is part of the key, not a rendering hint: without it the two subject spaces would be an untagged coalesce."
+            },
+            "policy_id": {
+              "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/policy_id"
+            },
+            "action": {
+              "$ref": "./event-payload.schema.json#/$defs/policy_action_document/properties/action"
+            },
+            "action_id": {
+              "$ref": "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/policy_action_value"
         }
       },
       "additionalProperties": false

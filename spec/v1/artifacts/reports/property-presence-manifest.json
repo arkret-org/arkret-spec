@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8779,
+    "total_properties": 8785,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2295,
+      "optional": 2299,
       "optional_defaulted": 50,
-      "required": 5992,
+      "required": 5994,
       "required_nullable": 288,
       "tristate": 154
     },
@@ -5301,8 +5301,6 @@
         "/allOf/153/then/properties/payload": "optional",
         "/allOf/154/if/properties/kind": "required",
         "/allOf/154/then/properties/payload": "optional",
-        "/allOf/155/if/properties/kind": "required",
-        "/allOf/155/then/properties/payload": "optional",
         "/allOf/16/if/properties/kind": "required",
         "/allOf/16/then/properties/payload": "optional",
         "/allOf/17/if/properties/kind": "required",
@@ -6332,8 +6330,6 @@
         "/$defs/policy_action_state_payload/properties/action_id": "optional",
         "/$defs/policy_action_state_payload/properties/policy_id": "optional",
         "/$defs/policy_action_state_payload/properties/value": "required",
-        "/$defs/policy_rule_state_payload/properties/rule_id": "required",
-        "/$defs/policy_rule_state_payload/properties/value": "required",
         "/$defs/policy_set_state_payload/properties/policy_id": "required",
         "/$defs/policy_set_state_payload/properties/value": "required",
         "/$defs/poll_response_head/properties/poll_event_ref": "required",
@@ -11459,6 +11455,16 @@
         "/$defs/pin_result/properties/selector/properties/pin_scope": "required",
         "/$defs/pin_result/properties/value": "required",
         "/$defs/pin_value/properties/assertions": "required",
+        "/$defs/policy_action_result/properties/revision": "required",
+        "/$defs/policy_action_result/properties/selector": "required",
+        "/$defs/policy_action_result/properties/selector/oneOf/0/properties/branch": "optional",
+        "/$defs/policy_action_result/properties/selector/oneOf/1/properties/branch": "optional",
+        "/$defs/policy_action_result/properties/selector/properties/action": "optional",
+        "/$defs/policy_action_result/properties/selector/properties/action_id": "optional",
+        "/$defs/policy_action_result/properties/selector/properties/branch": "required",
+        "/$defs/policy_action_result/properties/selector/properties/kind": "required",
+        "/$defs/policy_action_result/properties/selector/properties/policy_id": "optional",
+        "/$defs/policy_action_result/properties/value": "required",
         "/$defs/policy_result/properties/revision": "required",
         "/$defs/policy_result/properties/selector": "required",
         "/$defs/policy_result/properties/selector/properties/kind": "required",
@@ -11584,7 +11590,12 @@
         "/$defs/view_result/properties/selector/properties/kind": "required",
         "/$defs/view_result/properties/selector/properties/view_id": "required",
         "/$defs/view_result/properties/value": "required"
-      }
+      },
+      "conditionally_required": [
+        "/$defs/policy_action_result/properties/selector/properties/action",
+        "/$defs/policy_action_result/properties/selector/properties/action_id",
+        "/$defs/policy_action_result/properties/selector/properties/policy_id"
+      ]
     },
     "view.schema.json": {
       "schema_ids": [

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.1",
+  "version": "2026-09-16.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T21:00:00+08:00",
+  "generated_at": "2026-09-19T14:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -950,7 +950,6 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.policy.set",
-        "ak.policy.rule",
         "ak.policy.action",
         "ak.realm.policy",
         "ak.realm.policy_bundle",
@@ -963,17 +962,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.policy.rule",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.policy.rule"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.policy.set",
@@ -1203,7 +1191,6 @@
         "ak.morph.update",
         "ak.organization.moderation_policy",
         "ak.policy.action",
-        "ak.policy.rule",
         "ak.policy.set",
         "ak.reaction.add",
         "ak.reaction.remove",
@@ -1308,7 +1295,6 @@
         "ak.object.stage.set",
         "ak.policy.action",
         "ak.policy.manage",
-        "ak.policy.rule",
         "ak.policy.set",
         "ak.presence.broadcast",
         "ak.reaction.add",

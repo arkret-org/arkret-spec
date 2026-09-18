@@ -6778,25 +6778,6 @@
       },
       "additionalProperties": false
     },
-    "policy_rule_state_payload": {
-      "type": "object",
-      "description": "Policy rule state payload. rule_id has the same lexical form as policy.schema.json #/$defs/policy_rule rule_id and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape that $def defines (zh/models/governance-objects.md section 5). It is NOT a typed current result subject: tools/identifier-classification-registry.json classifies it as a document_local_symbol, resolvable only inside the containing Policy, and this payload carries no policy_id to name that Policy. The one registered policy family is written by ak.policy.set over the whole Policy object, whose required non-empty rules[] carries every rule and over which governance-objects.md section 3.2 defines the entire priority / default_effect evaluation. This payload carries no state or reason member, per the whole-value state wrapper rule in zh/models/common-fields.md section 5.",
-      "required": [
-        "rule_id",
-        "value"
-      ],
-      "properties": {
-        "rule_id": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Rule identifier, same lexical form as policy.schema.json #/$defs/policy_rule rule_id."
-        },
-        "value": {
-          "$ref": "./policy.schema.json#/$defs/policy_rule"
-        }
-      },
-      "additionalProperties": false
-    },
     "policy_set_state_payload": {
       "type": "object",
       "description": "Closed Policy definition state payload. policy_id is the stable policy typed current result subject. value.schema selects exactly one of the two v1 Policy document families directly in this schema; unknown families fail schema validation.",

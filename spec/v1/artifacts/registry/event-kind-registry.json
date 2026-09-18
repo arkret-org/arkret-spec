@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.12",
+  "version": "2026-09-18.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T14:00:00+08:00",
+  "generated_at": "2026-09-19T16:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,7 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 71 of the 140 reducer_input kinds declare it; the remaining 69 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 72 of the 139 reducer_input kinds declare it; the remaining 67 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -2880,20 +2880,54 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Policy-gated action proposal or execution",
+      "payload": "Policy-gated action approval configuration (writes the policy_action typed current result)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_action_state_payload",
-      "id_source": "not_an_object_id"
-    },
-    {
-      "event_kind": "ak.policy.rule",
-      "category": "policy",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Policy rule state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_rule_state_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "policy_action",
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.policy_id"
+          },
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.policy_id",
+              "payload.value.action"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_action_value",
+          "notes": "models/governance-objects.md section 3.4. ak.policy.action carries an approval CONFIGURATION -- {action, approval_required, approval_quorum, policy_scope} -- and nothing else: it is not an execution receipt and not an approval grant, so an accepted Event confers no authority to run the action and satisfies no actual approval. The payload's closed XOR over policy_id / action_id is two namespaces, not one coalesced subject, so each branch is registered as its own write under a complementary presence condition and the selector carries the branch tag verbatim. This branch is keyed by (policy_id, value.action): one Policy document may configure several actions and each one is its own configuration, so keying on policy_id alone would make editing one action silently overwrite the rest. value.action MUST be a registered action token and policy_id MUST resolve to a Policy document in this exact Realm."
+        },
+        {
+          "result_family": "policy_action",
+          "condition": {
+            "kind": "field_absent",
+            "field": "payload.policy_id"
+          },
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.action_id"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_action_value",
+          "notes": "models/governance-objects.md section 3.4, the realm_action branch: a Realm-local configuration identifier that does not hang off any Policy document. action_id is a Realm-local configuration name -- not a capability token, not a global object id, and not an action inside some Policy document -- so this branch MUST NOT be read as naming one. The first accepted write binds the (action, policy_scope) pair to that action_id; a later write under the same action_id updates that configuration and MUST NOT move the name to a different action or a different scope. policy_scope MUST resolve to an exact authorized scope inside this Realm; a non-empty-string check is not that, and a legal sub-scope MUST NOT be narrowed to RealmId."
+        }
+      ]
     },
     {
       "event_kind": "ak.policy.set",

@@ -256,7 +256,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 `ak.message.redact` → `{ak.message.redact, ak.redaction}` **不是聚合 admin**：registry 把它标为 `event_mapping_kind="operation_verb"`（risk_tier=medium），即上表第四类“操作动词动作”。授权决策、IAM 工具与 audit 解析 MUST 以 registry 的 `event_mapping_kind` 与 `target_event_kinds` 为准。
 
-**聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ak.policy.manage` 在 §5.4 与具体的 `ak.policy.set` / `ak.policy.rule` / `ak.policy.action` 并列：持有 `ak.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ak.policy.*` 与 `ak.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ak.policy.set` / `ak.policy.rule` / `ak.policy.action` 这三个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ak.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
+**聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ak.policy.manage` 在 §5.4 与具体的 `ak.policy.set` / `ak.policy.action` 并列：持有 `ak.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ak.policy.*` 与 `ak.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ak.policy.set` / `ak.policy.action` 这两个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ak.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
 
 新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-registry.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
 
@@ -418,8 +418,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.self.agent.participation.resource.replace.v1`（controller-only private Account Data replace；profile=`ak.profile.agent_participation_policy.v1`）。请求为 closed `{target_scope,selection,expected_version}`，selection 是 required 五位 `{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf}`。该操作只保存 controller 偏好并推进 CAS version，不创建或撤销 capability。实际动作把当前 selection 与 target-local deployment safety、Realm/Circle/Strand policy 逐位求交，再独立校验普通 capability、session scope、membership 与 lifecycle；任一 required 输入 unknown/stale/fork 均 fail closed（reason `agent_participation_ceiling_unresolved`：该 gate 把未决 policy 视为全 false，controller 的私有 selection 保持不变）。`reply_message`只治理`ak.message.create`；reactions 分别治理其 action；mention 只治理 fanout；act-on-behalf 必须保留 controller/Agent attribution 与 approval/accountability。
 - `ak.policy.manage`
 - `ak.policy.set`
-- `ak.policy.rule`（管理 policy 规则集合，target=`ak.policy.rule`）
-- `ak.policy.action`（管理 policy 动作集合，target=`ak.policy.action`）
+- `ak.policy.action`（登记 policy 动作的**审批配置**，target=`ak.policy.action`；配置不是执行回执也不是审批授权，见 [`models/governance-objects.md` §3.4](../models/governance-objects.md)）
 - `ak.invite.create`
 - `ak.invite.cancel`
 - `ak.invite.third_party`（签发 3PID 邀请，target=`ak.invite.third_party`）

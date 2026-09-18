@@ -81,14 +81,18 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `policy`：以 `payload.policy_id` 选择一份 Policy 文档整体，由 `ak.policy.set` 单一写者整体置换
   （见 [`../models/governance-objects.md` §3.2](../models/governance-objects.md)）；
   `rules[]` 是该值的必填非空成员，优先级与 `default_effect` 求值全在这份文档内进行，
-  因此单条 rule **不是**自己的 subject——`ak.policy.rule` 的 `rule_id` 是文档内局部符号，不命名任何结果；
+  因此单条 rule **不是**自己的 subject——`PolicyRule.rule_id` 是文档内局部符号，不命名任何结果，
+  改一条 rule 也是把整份被授权的 Policy 文档经 `ak.policy.set` 重新提交；
+- `policy_action`：`ak.policy.action` 的 action 审批**配置**，whole-value set。
+  selector 按 payload 顶层 `policy_id` / `action_id` 的 closed XOR 带标签分成两支：
+  `policy_ref` 取 `(policy_id, value.action)`，`realm_action` 取 `(action_id)`；
+  两支是两个命名空间，MUST NOT 无标签合并（见 [`../models/governance-objects.md` §3.4](../models/governance-objects.md)）；
 - `view`：以 `view_id` 选择一个 View，由 `ak.view.create`、`ak.view.update`、`ak.view.reconcile`
   三个 kind 写同一个 family（[`../models/views.md` §3.2](../models/views.md) 对此为 normative）；
   `create` 与 `reconcile` 整体置换，`update` 对冻结前态 `apply_patch`；
-  自报的 `id` 不进值内——subject 已经是它；三者中 `ak.view.update` 尚未登记 `result_writes[]`
-  （它的 `apply_patch` 还缺 §3.1 canonical state 那句话隐含但未枚举的 `allowed_paths`
-  与 `state_changed_at` / `updated_by` / `updated_at` 三个 reducer 派生成员的注册名），
-  这不改变 family 的数目：本条登记的是 selector kind，写者清单以 views.md §3.2 为准；
+  自报的 `id` 不进值内——subject 已经是它；三个写者的 `result_writes[]` 均已登记，
+  `ak.view.update` 的 `allowed_paths` 与 `state_changed_at` / `updated_by` / `updated_at`
+  三个 reducer 派生成员在 registry 内逐项封闭；写者清单以 views.md §3.2 为准；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——

@@ -26,7 +26,7 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 894,
+    "typed_object_id": 895,
     "responsibility_identity_material": 557,
     "registry_catalog_symbol": 14
   },
@@ -36,7 +36,7 @@
       "name": "action_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 1,
+      "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
@@ -639,8 +639,8 @@
       "name": "rule_id",
       "terminal_signature": "[[\"pattern\", \"^[a-z][a-z0-9_]{0,63}$\"]]",
       "category": "document_local_symbol",
-      "occurrences": 3,
-      "example_path": "event-payload.schema.json#/$defs/policy_rule_state_payload/properties/rule_id",
+      "occurrences": 2,
+      "example_path": "policy.schema.json#/$defs/policy_rule/properties/rule_id",
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
