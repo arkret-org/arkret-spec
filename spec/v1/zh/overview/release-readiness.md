@@ -78,7 +78,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 标准 `ak:<kind>:` prefix 以机器注册表为准。 |
 | Profile 矩阵 | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | `core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
 | Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、authority-commit projection、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
-| Snapshot 约束 | `artifacts/schemas/realm-state-snapshot.schema.json`, `zh/conformance/realm-state-snapshot-schema.md`, `zh/sync/operations-sync.md` | manifest 必须包含 `event_set_commitment`；高保障 profile 支持 inclusion / omission challenge。 |
+| Snapshot 约束 | `artifacts/schemas/realm-state-snapshot.schema.json`, `zh/conformance/realm-state-snapshot-schema.md`, `zh/sync/operations-sync.md` | snapshot 绑定 `governance_generation`、可见 stream heads 与 history floor，由当前治理 Station 签名；验证失败整份丢弃。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-evidence.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | signed report request、queue item、E2EE evidence / franking 边界有独立且无循环依赖的 schema 与服务绑定。 |
 | Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `artifacts/fixtures/fanout-route-miss-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push、membership ActorId routing projection 有回归向量。 |
 
@@ -86,7 +86,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 - 标准 `ak.*` Event kind 必须出现在 `event-kind-registry.json`，MUST NOT 只写在 Markdown 中
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer
-- Snapshot 签名不能单独证明无遗漏；实现必须校验 `event_set_commitment`
+- Snapshot 签名不能单独证明无遗漏；实现必须逐 stream 用同 stream tail 承接每个 `visible_stream_heads[]`
 - Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务 MUST NOT 绕过 capability、Realm policy、history visibility、plaintext-visible service 或 E2EE 边界
 - canonical object schema 未声明的未知字段必须被 schema validation 拒绝；schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容必须在 canonical bytes、存储、转发和 backfill 中保留
 - 未知 critical extension 必须 fail closed

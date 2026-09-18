@@ -1,16 +1,16 @@
 {
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T23:30:00+08:00",
-  "description": "Ledger of `<file>.md §N` citations inside canonical artifacts whose target section does not exist in the spec prose. Every entry is a normative obligation asserted only by artifact prose, whose stated source has no home: that is a protocol gap, not a numbering slip, so it MUST NOT be repaired by editing the number. check_artifact_prose_section_refs consults this ledger.",
+  "version": "2026-09-20.2",
+  "generated_at": "2026-09-20T02:55:00+08:00",
+  "description": "Ledger of `<file>.md §N` citations — inside canonical artifacts, and in the prose's own plain text — whose target section does not exist. Every entry is a normative obligation whose stated source has no home: that is a protocol gap, not a numbering slip, so it MUST NOT be repaired by editing the number. `artifact` is the citing file: a path under spec/v1/artifacts, or a zh/... prose page. check_artifact_prose_section_refs and check_prose_plain_text_section_refs both consult this ledger.",
   "ratchet": "This list may only shrink. A new entry is admissible only together with the spec report that owns the gap it records; landing that report MUST remove the entry rather than renumber the citation.",
   "exemptions": [
     {
-      "artifact": "registry/error-code-registry.json",
-      "target": "zh/sync/operations-sync.md",
-      "section": "4.4",
-      "asserted_by": "reason_code soft_failed",
-      "reason": "operations-sync.md never carried a §4.4 in any commit, and no page defines the reversible soft-failed reducer state, its upgrade-to-accepted path, or the 'accepted MUST NOT degrade to rejected without a new governance event' rule. The only occurrence of the token in the prose tree is one bullet in zh/security/server-threat-model.md §2.3, which ranks failure-convergence strategies and does not define the state machine. Renumbering to that bullet would assert an obligation the bullet does not carry.",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-2350-soft-failed-reducer-state-has-no-normative-home.md"
+      "artifact": "zh/conformance/conformance-profiles.md",
+      "target": "zh/conformance/conformance-vectors.md",
+      "section": "1.14",
+      "asserted_by": "SDK clause AK-SDK-014",
+      "reason": "conformance-vectors.md never carried a §1.x level in any commit, and the obligation the row asserts — a production profile rejecting test DIDs, test key ids and test trust domains — appears exactly once in the whole repository: in that row itself. No page defines what counts as test material, no ak.profile.production.* exists to be the subject, and none of the 373 vectors in vector-registry.json covers it, although conformance-profiles.json grades the clause V and demands a vector_result. Renumbering would point a MUST with no content at a section that does not assert it.",
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-0230-ak-sdk-014-asserts-a-must-with-no-source-and-no-evidence.md"
     }
   ]
 }

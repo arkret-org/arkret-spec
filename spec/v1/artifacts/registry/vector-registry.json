@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.4",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T23:55:00+08:00",
+  "generated_at": "2026-09-20T03:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1097,18 +1097,6 @@
       "description": "After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.capability.revoke_rollback.v1",
-      "status": "active",
-      "domain": "capability",
-      "applies_to_profiles": [
-        "ak.profile.station.v1"
-      ],
-      "description": "An accepted revoke makes Events depending on that grant rejected or soft-failed over the registered historical range, and rolling the revoke back restores the same Events to authorized on recomputation; the rollback produces independently auditable evidence and never rewrites a historical event_id.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-suite.md"
       ]
     },
     {

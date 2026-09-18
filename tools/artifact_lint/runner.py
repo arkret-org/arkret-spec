@@ -138,6 +138,7 @@ from .naming_contracts import (
 from .prose import (
     check_account_notification_prose_schema_alignment,
     check_artifact_prose_section_refs,
+    check_prose_plain_text_section_refs,
     check_canonical_digest_alias,
     check_common_object_field_matrix,
     check_content_composite_uses_parts,
@@ -619,6 +620,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "artifact_prose_section_refs",
                 lambda: check_artifact_prose_section_refs(lint),
+            ),
+            (
+                "prose_plain_text_section_refs",
+                lambda: check_prose_plain_text_section_refs(lint),
             ),
             ("cross_source", lambda: check_cross_source_drift(lint, known)),
             ("markdown_links", lambda: check_markdown_links(lint)),

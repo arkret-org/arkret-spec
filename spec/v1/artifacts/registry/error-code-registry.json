@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.3",
-  "generated_at": "2026-09-19T23:30:00+08:00",
+  "version": "2026-09-20.1",
+  "generated_at": "2026-09-20T03:10:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3349,14 +3349,6 @@
       "description": "Standard moderation reason: content alleged to violate applicable law (CSAM, threats, IP infringement, etc.)."
     },
     {
-      "code": "inclusion_proof_failed",
-      "applies_to": [
-        "client_sync",
-        "realm_state_snapshot_verification"
-      ],
-      "description": "Snapshot inclusion / omission challenge failed: issuer could not produce a valid Merkle branch or ordered-set slice for a sampled Event ID / actor sequence range against the manifest's event_set_commitment.root, OR the proof's root differs, OR an actor sequence gap is not reflected in soft_failed/quarantined digests. Client MUST quarantine or reject the snapshot and fall back to raw Event replay."
-    },
-    {
       "code": "initial_session_request_mismatch",
       "applies_to": [
         "identity_creation"
@@ -3864,7 +3856,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Auth state for the event could not be fully resolved within the implementation's auth_chain backfill bound; treat as soft-fail per scalability-constraints.md."
+      "description": "Authorization state for the event could not be fully resolved from the material the evaluator holds: a required grant, delegation link or current revocation status was not retrievable. It is an incomplete-evaluation diagnostic, never an admission outcome. The evaluator MUST NOT derive an allow cache entry from it and MUST either retry the dependency fetch or fail closed; a resolvable dependency that is merely absent is dependency_missing. See zh/authz/capabilities.md §10.3."
     },
     {
       "code": "participant_binding_invalid",
@@ -4748,14 +4740,6 @@
         "client_sync"
       ],
       "description": "Sub-reason for failed_precondition when any plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/sync/signal.md §1 and §3."
-    },
-    {
-      "code": "soft_failed",
-      "applies_to": [
-        "state_resolution",
-        "service_call"
-      ],
-      "description": "An Event or reducer input is held in a reversible soft-failed state pending causal backfill, authorization material, policy evidence, or asynchronous verification. It may later upgrade to accepted or roll back to rejected, but accepted MUST NOT degrade to rejected without a new governance event. See zh/sync/operations-sync.md §4.4."
     },
     {
       "code": "space_already_terminal",

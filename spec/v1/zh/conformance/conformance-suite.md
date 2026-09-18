@@ -131,7 +131,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 - `ak.vector.capability.authority_chain.v1`
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
   - 期望输出：可验证且具备时间边界的派生有效性。
-- `ak.vector.capability.revoke_rollback.v1`
   - 撤销后既有事件在历史范围内的生效/失效行为。
 - `ak.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。

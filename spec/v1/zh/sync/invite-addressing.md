@@ -237,7 +237,7 @@ token 要求：
 - `opaque`:`invite_delivery_outcome` 只返回 generic `status`(`accepted | duplicate | deferred`),MUST NOT 携带 `disclosed_outcome`，且对 exists / not-exists / quarantine / drop 各情形不可区分。这是反枚举 / 反侧信道的默认。
 - `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`，把真实处理结果告知邀请者。**`disclosed_outcome` 的封闭枚举只有 `delivered | blocked` 两值。**
 
-**quarantine MUST NOT 被回送（normative）**：`disclosed_outcome` 的上界由 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分 `MUST NOT` 决定。`delivered` 与 `blocked` 回答的是“这次投递是否被**接收方策略**放行”，属于本节设计意图内的反馈；而“invite 进入 holder quarantine inbox”回答的是 **holder 的 consent 决策尚未作出**——那是 consent-model §2.1 / §6.1.2 明确的 holder-private 状态，等价于回答“holder 未对该 requester 授予 active invite grant”。高信任档只说明 inviter 已知 holder 存在，泄露的不是 existence 而是 consent 状态，因此**不构成**可以回送的理由。
+**quarantine MUST NOT 被回送（normative）**：`disclosed_outcome` 的上界由 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分 `MUST NOT` 决定。`delivered` 与 `blocked` 回答的是“这次投递是否被**接收方策略**放行”，属于本节设计意图内的反馈；而“invite 进入 holder quarantine inbox”回答的是 **holder 的 consent 决策尚未作出**——那是 consent-model §6.1 明确的 holder-private 状态，等价于回答“holder 未对该 requester 授予 active invite grant”。高信任档只说明 inviter 已知 holder 存在，泄露的不是 existence 而是 consent 状态，因此**不构成**可以回送的理由。
 
 **quarantine 的 wire 落点固定为 `status="deferred"` 且不携带 `disclosed_outcome`**：`deferred` 与“正在重试投递”、“holder 侧尚未处理”共用同一语义，因而不构成对 quarantine 的可区分指示。该映射在所有信任档、所有 `disclosure` 取值下一致，不因 `high_trust=outcome` 而改变。
 

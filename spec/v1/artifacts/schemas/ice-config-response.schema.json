@@ -84,7 +84,7 @@
     },
     "next_retry_at": {
       "$ref": "./time.schema.json#/$defs/timestamp",
-      "description": "Set when the response is a soft failure (e.g. turn_credential_expired). Clients MUST NOT retry before this time."
+      "description": "Set when the response reports a temporary service failure (e.g. turn_credential_expired). Clients MUST NOT retry before this time."
     },
     "signature": {
       "$ref": "#/$defs/signature",

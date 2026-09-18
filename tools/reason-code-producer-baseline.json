@@ -50,7 +50,6 @@
     "handle_holder_acceptance_missing",
     "identity_link_no_longer_visible",
     "identity_link_policy_tightened",
-    "inclusion_proof_failed",
     "invalid_membership_transition",
     "invite_event_actor_mismatch",
     "invite_event_unaccepted",
@@ -92,7 +91,6 @@
     "selector_missing_realm_scope",
     "selector_too_complex",
     "service_key_revoked",
-    "soft_failed",
     "space_parent_cycle",
     "token_expired",
     "ttl_expired",
@@ -202,6 +200,12 @@
       "why": "Its whole precondition is gone: AuthorityRevision, trusted_history_base_basis, trusted_current_basis and the direct-traversal retention target were deleted with the authority-commit clean break. No spec/v1 file outside this registry names any of them, so no producer can reach this branch and none can be written without reintroducing the deleted revision model."
     },
     {
+      "code": "inclusion_proof_failed",
+      "ruling": "2350 soft_failed reducer state has no normative home",
+      "registry_version": "2026-09-19.3",
+      "why": "整条定义 snapshot Merkle branch／ordered-set inclusion／omission challenge 与 actor sequence 摘要，而 closed 的 realm-state-snapshot.schema.json 没有 event_set_commitment、soft_failed/quarantined digest 或 challenge carrier，任何载体都产生不了它。"
+    },
+    {
       "code": "invalid_task_fsm_transition",
       "ruling": "2026-09-04-1752 workflow profile stage transition",
       "registry_version": "2026-09-04.2",
@@ -302,6 +306,12 @@
       "ruling": "0032 product-owned account recovery minimal protocol",
       "registry_version": "2026-09-11.1",
       "why": "Only reachable during threshold_recovery share reconstruction. Ruling 0032 deleted the threshold_recovery method, its shares[] and share_commitment from the closed recovery policy, so the check has no wire object to run against."
+    },
+    {
+      "code": "soft_failed",
+      "ruling": "2350 soft_failed reducer state has no normative home",
+      "registry_version": "2026-09-19.3",
+      "why": "裁决废止通用可逆 reducer 中间态：authority-commit-log.md §3–§4 的 admission 结果封闭为 committed / duplicate / rejected / retryable_unavailable，没有共享 pending 阶段；本地队列、缺依赖诊断、领域待审、解密等待与服务重试各有归宿，均不需要共享软失败状态。"
     },
     {
       "code": "unsupported_operation_binding",

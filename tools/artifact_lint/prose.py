@@ -2204,6 +2204,82 @@ def _artifact_prose_section_citations(text: str):
             yield current, match.group("section")
 
 
+_MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\([^)]*\)")
+
+_PLAIN_PROSE_SECTION_REF_RE = re.compile(
+    r"(?<![/\w.-])(?P<file>[a-z][a-z0-9-]{2,})\s*§\s*(?P<section>\d+(?:\.\d+)*)"
+)
+
+
+def _prose_page_index() -> dict[str, list[Path]]:
+    """Map each prose page's suffix-less name to the files that carry it.
+
+    Prose cites sibling pages by bare name (``conformance-vectors §1.11``),
+    never by path, so the name has to resolve across the whole tree. A name two
+    files answer to is not resolvable by a reader either, and is reported.
+    """
+    index: dict[str, list[Path]] = {}
+    for path in sorted((SPEC_ROOT / "zh").rglob("*.md")):
+        index.setdefault(path.stem, []).append(path)
+    return index
+
+
+def _load_prose_section_ref_exemptions() -> set[tuple[str, str, str]]:
+    exemptions: set[tuple[str, str, str]] = set()
+    if not ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.is_file():
+        return exemptions
+    ledger = json.loads(
+        ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.read_text(encoding="utf-8")
+    )
+    for entry in ledger.get("exemptions", []):
+        exemptions.add((entry["artifact"], entry["target"], str(entry["section"])))
+    return exemptions
+
+
+def check_prose_plain_text_section_refs(lint: Lint) -> None:
+    """Every bare ``<page> §N`` in the prose must name a real section.
+
+    LK001 reads markdown links only, and check_artifact_prose_section_refs reads
+    canonical artifacts only. Between them sits the shape the conformance-profiles
+    SDK table used for its whole "真相源" column: a plain-text citation of a
+    sibling page's section, checked by nothing. Markdown links are stripped first
+    so a broken link is one finding from LK001, not two.
+    """
+    pages = _prose_page_index()
+    exemptions = _load_prose_section_ref_exemptions()
+    section_cache: dict[Path, set[str]] = {}
+    for path in sorted((SPEC_ROOT / "zh").rglob("*.md")):
+        citing = f"zh/{path.relative_to(SPEC_ROOT / 'zh').as_posix()}"
+        stripped = _MARKDOWN_LINK_RE.sub("", path.read_text(encoding="utf-8"))
+        seen: set[tuple[str, str]] = set()
+        for match in _PLAIN_PROSE_SECTION_REF_RE.finditer(stripped):
+            name, section = match.group("file"), match.group("section")
+            targets = pages.get(name)
+            if not targets:
+                continue  # not a page name; ordinary prose that happens to precede a §
+            key = (name, section)
+            if key in seen:
+                continue
+            seen.add(key)
+            if len(targets) > 1:
+                where = ", ".join(t.relative_to(SPEC_ROOT).as_posix() for t in targets)
+                lint.fail(path, f"cites {name} §{section}, but that name resolves to {where}")
+                continue
+            target = targets[0]
+            if section in _prose_numbered_sections(target, section_cache):
+                continue
+            target_rel = target.relative_to(SPEC_ROOT).as_posix()
+            if (citing, f"zh/{target_rel}", section) in exemptions:
+                continue
+            if (citing, target_rel, section) in exemptions:
+                continue
+            lint.fail(
+                path,
+                f"cites {name} §{section}, "
+                f"which is not a section heading in {target_rel}",
+            )
+
+
 def check_artifact_prose_section_refs(lint: Lint) -> None:
     """Every `<file>.md §N` a canonical artifact cites must name a real section.
 
@@ -2213,15 +2289,7 @@ def check_artifact_prose_section_refs(lint: Lint) -> None:
     artifact-to-prose direction. Generated views are skipped so that one stale
     citation in contract-registry.json is one finding, not four.
     """
-    exemptions: set[tuple[str, str, str]] = set()
-    if ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.is_file():
-        ledger = json.loads(
-            ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.read_text(encoding="utf-8")
-        )
-        for entry in ledger.get("exemptions", []):
-            exemptions.add(
-                (entry["artifact"], entry["target"], str(entry["section"]))
-            )
+    exemptions = _load_prose_section_ref_exemptions()
 
     section_cache: dict[Path, set[str]] = {}
     for path in raw_artifact_files():

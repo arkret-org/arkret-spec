@@ -128,11 +128,6 @@ evidence 解析，`RealmCommit` 签名按对应 generation 的治理 Station his
 也不得直接通过写入执行；必须存在可复现的 proposal / review 生命周期；审核通过后产生可验证的审批完成 Event，
 再由独立 action Event 执行。
 
-`ak.vector.capability.revoke_rollback.v1` MUST 证明：revoke 被接纳后，依赖该 grant 的既有 Event 在历史范围内
-按登记语义被拒绝或标记 soft-fail；回滚 revoke 后同一 Event 在重算中恢复为 authorized。回滚必须产生独立可审计的
-结果并保留 `rollback_ref` 或等价证据，不得改写历史 Event 的 `event_id`；accepted 集合始终对应各自 stream 当前
-已接纳的 Commit 前缀。
-
 `ak.vector.capability.revoke_downstream_recheck.v1` MUST 证明：grant G 授权的 Event E 与由 G 派生的 child grant C
 授权的 pending Event P，在 `ak.capability.revoke` 撤销 G 被接纳后，P MUST fail closed 或隔离并给出稳定
 reason code；allow cache 与 policy decision cache 中依赖 G 或 C 的条目 MUST 在同一 reducer 事务内失效；

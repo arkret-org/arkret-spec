@@ -20,6 +20,11 @@ from artifact_lint.prose import (
     ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH,
     _artifact_prose_section_citations,
     check_artifact_prose_section_refs,
+    check_prose_plain_text_section_refs,
+)
+from artifact_lint.prose import (
+    _PLAIN_PROSE_SECTION_REF_RE,
+    _prose_page_index,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,6 +33,7 @@ ARTIFACTS = SPEC / "artifacts"
 EVENT_AND_PATCH = SPEC / "zh" / "models" / "event-and-patch.md"
 PATCH_SCHEMA = ARTIFACTS / "schemas" / "patch.schema.json"
 ERROR_CODES = ARTIFACTS / "registry" / "error-code-registry.json"
+PROFILES = SPEC / "zh" / "conformance" / "conformance-profiles.md"
 
 HEADING_RE = re.compile(r"^#{1,6}\s+(\d+(?:\.\d+)*)(?:[.．]\s+|\s+|$)")
 
@@ -43,6 +49,12 @@ def numbered_sections(path: Path) -> set[str]:
 def run_gate() -> list[str]:
     lint = Lint()
     check_artifact_prose_section_refs(lint)
+    return lint.errors
+
+
+def run_prose_gate() -> list[str]:
+    lint = Lint()
+    check_prose_plain_text_section_refs(lint)
     return lint.errors
 
 
@@ -123,8 +135,25 @@ class ExemptionLedgerTest(unittest.TestCase):
             ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.read_text(encoding="utf-8")
         )
 
+    def test_the_ratchet_text_is_still_stated(self) -> None:
+        """The shrink-only rule has to be readable by whoever adds the next row."""
+        self.assertIn("may only shrink", self.ledger["ratchet"])
+        self.assertIn(
+            "MUST NOT be repaired by editing the number", self.ledger["description"]
+        )
+
+    def test_every_owning_report_file_exists(self) -> None:
+        """A row without a live report is a row nobody is obliged to retire."""
+        work = ROOT.parent / "arkret-work"
+        for entry in self.ledger["exemptions"]:
+            report = entry["owner_report"]
+            self.assertTrue(report.startswith("arkret-work/"), report)
+            if work.is_dir():
+                self.assertTrue(
+                    (work / report[len("arkret-work/") :]).is_file(), report
+                )
+
     def test_every_entry_names_a_reason_and_an_owning_report(self) -> None:
-        self.assertTrue(self.ledger["exemptions"])
         for entry in self.ledger["exemptions"]:
             for key in ("artifact", "target", "section", "reason", "owner_report"):
                 self.assertTrue(entry.get(key), (key, entry))
@@ -146,14 +175,80 @@ class ExemptionLedgerTest(unittest.TestCase):
                 "remove the exemption instead of keeping it",
             )
 
-    def test_dropping_an_exemption_turns_the_gate_red(self) -> None:
+    def test_an_exemption_covers_exactly_the_citation_it_names(self) -> None:
+        """Retarget a live row's section: the citation it named goes red again."""
+        entry = self.ledger["exemptions"][0]
+        self.assertEqual([], run_gate())
         with MutateFile(
             ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH,
-            '"exemptions": [',
-            '"exemptions": [] , "retired_exemptions": [',
+            f'"section": "{entry["section"]}"',
+            f'"section": "{entry["section"]}9"',
         ):
-            errors = run_gate()
-        self.assertEqual(len(self.ledger["exemptions"]), len(errors), errors)
+            errors = run_prose_gate()
+        self.assertEqual(1, len(errors), errors)
+        self.assertIn(entry["target"].removeprefix("zh/"), errors[0])
+
+
+class ProsePlainTextSectionRefGateTest(unittest.TestCase):
+    """`<page> §N` written as plain prose was checked by nothing.
+
+    LK001 reads markdown links; check_artifact_prose_section_refs reads canonical
+    artifacts. The conformance-profiles SDK table wrote its whole source column in
+    the one shape neither of them sees, and eleven of its citations had rotted.
+    """
+
+    def test_no_page_cites_a_sibling_section_that_does_not_exist(self) -> None:
+        self.assertEqual([], run_prose_gate())
+
+    def test_a_nonexistent_section_turns_the_gate_red(self) -> None:
+        with MutateFile(PROFILES, "conformance-vectors §3.4", "conformance-vectors §3.44"):
+            errors = run_prose_gate()
+        self.assertEqual(1, len(errors), errors)
+        self.assertIn("§3.44", errors[0])
+        self.assertIn("conformance-vectors.md", errors[0])
+
+    def test_a_section_that_exists_on_another_page_turns_the_gate_red(self) -> None:
+        # encoding.md has §7.1; consent-model.md does not. Citing the right
+        # number against the wrong file is the failure the gate exists for.
+        self.assertIn("7.1", numbered_sections(SPEC / "zh" / "conformance" / "encoding.md"))
+        self.assertNotIn(
+            "7.1", numbered_sections(SPEC / "zh" / "identity" / "consent-model.md")
+        )
+        with MutateFile(PROFILES, "encoding §7.1", "consent-model §7.1"):
+            errors = run_prose_gate()
+        self.assertEqual(1, len(errors), errors)
+        self.assertIn("consent-model.md", errors[0])
+
+    def test_a_markdown_link_is_left_to_the_link_checker(self) -> None:
+        # Inside a markdown link the section number is LK001's finding, not this
+        # gate's; counting it twice would make one rot look like two.
+        page = SPEC / "zh" / "sync" / "api-conventions.md"
+        self.assertIn("](", page.read_text(encoding="utf-8"))
+        with MutateFile(
+            page,
+            "[Contact 写链 §2](../identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round)",
+            "[Contact 写链 §2](../identity/contact-and-direct-conversation.md#99-nope)",
+        ):
+            self.assertEqual([], run_prose_gate())
+
+    def test_only_a_real_page_name_is_read_as_a_citation(self) -> None:
+        """A bare section number after an ordinary word is not a citation.
+
+        The prose is full of "本文 §3" and "详见 §4.2". Reading those as page
+        citations would flood the gate with findings that name no file.
+        """
+        pages = _prose_page_index()
+        self.assertIn("conformance-vectors", pages)
+        for word in ("the", "via", "carry", "handle"):
+            self.assertNotIn(word, pages, word)
+        matches = [
+            (m.group("file"), m.group("section"))
+            for m in _PLAIN_PROSE_SECTION_REF_RE.finditer(
+                "see the §99.99 and conformance-vectors §3.4"
+            )
+        ]
+        self.assertEqual([("the", "99.99"), ("conformance-vectors", "3.4")], matches)
+        # Only the second one names a page, so only it is ever checked.
 
 
 class RestoredPatchPathGrammarTest(unittest.TestCase):

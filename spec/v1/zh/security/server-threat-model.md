@@ -158,7 +158,7 @@ sidebar:
 - **验证角色分工**：首次接纳外部材料、治理 Station和独立审计者按其领域合同验证 snapshot、resolver、checkpoint、policy 与 DID 状态；治理结果消费 Station按 [authority_commit-profiles §9](../sync/authority-commit-log.md) 认证 exact 治理结果证明，不被要求重放无关历史。普通客户端按 [server-trusted-results §1–§3](../sync/server-trusted-results.md) 核对请求、意图、已知身份与 E2EE，不执行泛化二次治理验证。
 - **隔离与缓冲**：异常源先走 `quarantine` 与 `review` 决策，再决定 `allow`、`deny` 或 `reject`。
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
-- **故障收敛策略**：`rate_limited`、`soft_failed`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。
+- **故障收敛策略**：`rate_limited`、`temporarily_unavailable` 与 `closed` 的优先级分层，不以单点服务脆弱性扩散给全域。退避、限流与隔离都是服务面处置，MUST NOT 被表示成共享 Event 的可逆接纳状态：治理方的接纳结果按 [`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md) 封闭，结果未知时只能查询 durable outcome 或 exact retry，不得先推进 typed current 再等验证。
 - **出站网络目标策略**：任何由外部输入导向的 URL、endpoint 或 service discovery 结果都必须在连接前执行 CIDR / 地址类别 / redirect / DNS rebind 检查。
 
 ### 2.4 传输层后量子姿态

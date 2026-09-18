@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.65",
-  "generated_at": "2026-09-19T23:30:00+08:00",
+  "version": "2026-09-16.66",
+  "generated_at": "2026-09-19T23:50:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -781,7 +781,7 @@
     },
     {
       "operation_id": "ak.self.media.read.ice_config.v1",
-      "sha256": "sha256:fd8657ad58044eb4a0ec4b579e0ae58733ab8f759f64f395cec17e6a6d026899"
+      "sha256": "sha256:652bffb978a3126f9674af776cf08c2fbd59ce5084fb9a5b163c4226b648b953"
     },
     {
       "operation_id": "ak.self.media_service_binding.read.resolve.v1",

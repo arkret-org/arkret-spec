@@ -733,7 +733,7 @@ grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_revision`�
 - `ak.capability.revoke`：actor MUST 先通过普通 action authorization，随后 target guard 只接受 `actor == target.issuer`，或 actor 是 **target grant 自身 `realm_id`** 的 current root controller。仅仅控制 `authority_root_refs[]` 中某个跨 Realm 上游 root **不**获得撤销权。后一分支保证 Realm 转让后新 root owner 能治理旧 controller 签出的 grant；普通 co-owner 与 sibling 不能借 `ak.realm.owner` 撤销上游或同级 grant。不满足时 reducer MUST 拒绝，reason=`grant_revoke_not_authorized`。
 - `ak.capability.relinquish`：subject-only self-service state-changing Event，只接受 `actor == target.subject`。它只减少 actor 自身权限，因此 **MUST NOT** 要求 actor 另持 `ak.capability.revoke`——否则一个窄权限持有人可能无权放弃自己持有的东西。不满足时 reducer MUST 拒绝，reason=`grant_relinquish_not_subject`。被放弃 grant 的 descendants 同样按 refs 在读取时失效。
 - authority-root typed current result **不是** grant，不能成为 revoke / relinquish 的 target；root controller 退出只能走 `ak.realm.owner.transfer`。
-- target grant 尚未投影时，revoke / relinquish MUST 进入 dependency pending，**MUST NOT** 预写未经关系校验的 tombstone——target guard 需要 target 才能校验 issuer / root-controller / subject 关系。pending revoke MUST 在 target grant 投影的**同一原子投影步**内生效，不得存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。
+- target guard 需要 target 才能校验 issuer / root-controller / subject 关系，所以 target grant 尚未投影时治理方 **MUST NOT** 接纳该 revoke / relinquish，也 **MUST NOT** 预写未经关系校验的 tombstone。提交方 MAY 把它留在本地队列（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md) 的 `queued` 本地持久态），在 target grant 可见后**重新**检查 target guard 与 exact revision 并重新提交；该本地待发状态不是共享 reducer 状态，也不得被当作已接纳。接纳发生在治理方的单次原子接纳事务内，因此不存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。材料不全时 MUST NOT 反过来伪造终局拒绝——未知不是 rejected。
 
 拒绝 MUST NOT 把 target 是否存在、或属于哪个 Realm，泄漏给无权 actor。
 
@@ -907,13 +907,13 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；MUST NOT 继续用旧 grant 允许新写入。
 - 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现 MUST NOT 只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
 - 已被 GC 的 grant 仍 MUST 保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现 MUST NOT 因为 grant payload 已压缩或归档而让旧 cache 重新生效。
-- `partial_auth_state`、soft-failed auth chain 或无法确认当前撤销状态的状态 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。
+- `partial_auth_state`、授权依赖未能完整验证、或无法确认当前撤销状态时 MUST NOT 生成 allow cache；只能生成 deny / unknown / pending 诊断。这三者都是**本地评估状态**，不是共享 Event 的接纳结果：pending 只描述本站还没判完，MUST NOT 被 fanout、写入 typed current result，或被当作「先接纳、稍后验证」的依据。
 - fast path（capability 快照缓存）**MUST** 只适用于"该 grant 的全部 constraint 的 `evaluation_class` 均为 `stateless` 或 `grant_local`"的 grant；只要 grant 含任一 `external` 或 `realm_state` 类 constraint（见 [`constraint-schema.md` §2.3](./constraint-schema.md) evaluation_class 分类，典型如 `claim_based` / `quota.rate` / `confidentiality` / `field_access` 带 `condition` 等），该 grant 的判定 **MUST** 走完整授权判定，**MUST NOT** 仅凭 fast-path cache 命中放行。该绑定与 §18.1 fast-path cache 的 `auth_state_digest` 失效机制叠加生效，不互相替代。
 - 多 Station 部署中，cache TTL 只是额外保险，MUST NOT 替代 revoke fanout、checkpoint 对账和 `auth_state_digest` 失效。
 
 ### 18.2 撤销传播与当前检查
 
-普通消息、编辑和其它 `execution=data` 操作不以 RealmCommit 年龄、签名缓存 TTL、heartbeat 或在线 revocation 查询为前置。接收站必须已完整验证 Event 引用的授权和依赖，但不要求取得全球最新状态。未知撤销的传播窗口在持续分区中没有固定上界；获知撤销立即阻止新 live 效果，历史按关闭证明重算。
+普通消息、编辑和其它 `execution=data` 操作不以 RealmCommit 年龄、签名缓存 TTL、heartbeat 或在线 revocation 查询为前置。接收站必须已完整验证 Event 引用的授权和依赖，但不要求取得全球最新状态。未知撤销的传播窗口在持续分区中没有固定上界；获知撤销立即阻止新 live 效果。**历史不重算**：每条共享 Event 的 current 检查发生在治理方实际接纳它的那个位置（§12），producer 或消费站的旧缓存都不是接纳权；撤销之前已接纳的 Commit 保持已接纳的审计事实，撤销之后的新依赖写入被阻止，cache 按 §18.1 失效。普通客户端不因此被要求自行在线查询全球撤销状态。
 
 `execution=security` 操作在其唯一确认顺序处重新检查真实权限和前态；治理签署者不可用时 pending，不按 low/medium risk 降级为本地授权。显式有限期资格仍按 §6.1 和 [授权归约 §5](./event-auth-state-resolution.md) 验证，普通无期限聊天不因此引入定期授权续签。
 

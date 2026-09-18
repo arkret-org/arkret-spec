@@ -153,7 +153,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 - 授权（capability check、capability `allowed_morph_kinds`、resource selector）
 - 状态机 transition
 - 排序 / deterministic projection join / state-changing Event precondition
-- reducer 行为（接受 / 拒绝 / soft fail）
+- reducer 行为（接受 / 拒绝）
 - event kind 接受规则
 - wire 互操作（canonical bytes / event digest / signature）
 

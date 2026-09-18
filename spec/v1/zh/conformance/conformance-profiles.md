@@ -177,7 +177,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 - 事件/关系/对象/View 的 `created_at`、`realm_id`、`proofs`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过。Event 不携带 `hlc`、`producer_revision`、`domain_refs` 或 `requirements`（封闭禁用集合见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md)），因此 SDK MUST NOT 为它们保留读取或校验入口；每个 Event kind 绑定的封闭 typed reducer 由 `event-kind-registry.json` 唯一决定。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State / snapshot / projection 进度和 wait-for token MUST 以 `CommittedEventRef`、stream ref 与 RealmCommit position 为语义单位；`operation_id` 只可表示服务 canonical operation。
-- Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
+- Snapshot MUST 绑定 `governance_generation`、调用方获准的全部 `visible_stream_heads[]` 与 `retention_and_history_floor`，并由当前治理 Station 签名；接收方 MUST 按 [`realm-state-snapshot-schema.md` §4](./realm-state-snapshot-schema.md) 逐条验证，任一项失败时整份丢弃，MUST NOT 部分采用 rows。snapshot 本身不证明无遗漏，遗漏只能由逐 stream tail 的连续承接排除。
 - 裸名事件（如 `realm.create`）MUST 被拒绝，不能作为新增标准互操作行为。
 - 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。
 
@@ -939,7 +939,7 @@ Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应
 - Full Client MUST 额外覆盖 snapshot checkpoint、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Station SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
-- Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered event set、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
+- Snapshot bootstrap MUST 覆盖 [`realm-state-snapshot-schema.md` §4](./realm-state-snapshot-schema.md) 的五项接收方验证：治理 Station 的 authority bundle 与 `governance_generation` 绑定、snapshot ID 与 canonical body 匹配、Station proof 的 domain separation、每个可见 head 由同 stream tail 连续承接、tail 中每个 Commit 的 producer / authority proof 与 typed reducer 有效；并 MUST 覆盖 `retention_and_history_floor` 的下界语义与整份丢弃行为。
 
 上述 Minimal Client 与 Chat MVP 的 prose MUST 覆盖项在 `conformance-profiles.json#profile_requirements` 中通过 `required_fixtures` 和 `prose_requirement_coverage` 建立映射；实现声明 profile 时必须同时提供这些 fixture / runner 的通过结果。
 
@@ -1042,14 +1042,14 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`schema-validation-fixture.json`）；"先于消费"的内部顺序为 U |
 | <a id="ak-sdk-002"></a>2 | `proofs`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
-| <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
-| <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
-| <a id="ak-sdk-006"></a>6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
-| <a id="ak-sdk-007"></a>7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
-| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `refs[role=authorized_by]` 与领域 `expected_revision` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
-| <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.1 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
+| <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §3.4 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
+| <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | encoding §8；vector-registry.json（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
+| <a id="ak-sdk-006"></a>6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | encoding §2 | **V**（encoding 负例向量） |
+| <a id="ak-sdk-007"></a>7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | encoding §7.1 | **V** |
+| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `refs[role=authorized_by]` 与领域 `expected_revision` 约束 MUST NOT 放松 | api-conventions §6.2 | **V**（重放向量）；内部重试路径为 U |
+| <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.7 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
-| <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 Event，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |
+| <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 以单条 Event 的本地投影结论替代 `RealmCommit` 接纳，也 MUST NOT 让同批次较早 Event 的投影成为后续 Event 的授权依据，MUST hold pending 或 fail closed | conformance-vectors §3.4 | **V**（以 SDK API 输出为观测点） |
 | <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
 | <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（`schema-validation-fixture.json`） |
 | <a id="ak-sdk-014"></a>14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
@@ -1060,8 +1060,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-019"></a>19 | `retry_safe=false` 的 operation MUST NOT 自动全量重试；请求内容改变时 MUST 换 request key | api-conventions §6.2 | **A/U**（重试 API 与配置审计） |
 | <a id="ak-sdk-020"></a>20 | 客户端 MUST 以 `max(server_hint_delay, jitter(local_backoff_delay))` 组合 `Retry-After` 与本地退避；0/已过期提示不得加速本地梯子，长提示不得按本地上限截断，且不存在忽略服务端提示的配置开关 | api-conventions §9 | **V/U**（注入时钟、配置审计与出向请求观测） |
 | <a id="ak-sdk-021"></a>21 | 客户端 MUST 仅按 `has_more` 决定是否继续分页 | api-conventions §7.1 | **V/A**（分页响应向量与 paginator API） |
-| <a id="ak-sdk-022"></a>22 | SDK MUST 暴露 canonical confusable check 为可调用 utility | encoding §2.1 | **V/A**（confusable test set 与 public API inventory） |
-| <a id="ak-sdk-023"></a>23 | SDK MUST 以 closed types 区分 producer `Event`、authority `RealmCommit` 与 `PlainPayload<T>` / `MlsEncryptedPayload<T>` / 具体 MLS 协议 payload；非法组合必须在网络前 compile-fail/type-error，verified submission 不得再原地修改 | event-and-patch §2.2.1 | **V/A**（`ak.vector.sdk.event_type_axes.v1`、compile-fail suite 与 public API inventory） |
+| <a id="ak-sdk-022"></a>22 | SDK MUST 暴露 canonical confusable check 为可调用 utility | encoding §2.2 | **V/A**（confusable test set 与 public API inventory） |
+| <a id="ak-sdk-023"></a>23 | SDK MUST 以 closed types 区分 producer `Event`、authority `RealmCommit` 与 `PlainPayload<T>` / `MlsEncryptedPayload<T>` / 具体 MLS 协议 payload；非法组合必须在网络前 compile-fail/type-error，verified submission 不得再原地修改 | conformance-vectors §3.14 | **V/A**（`ak.vector.sdk.event_type_axes.v1`、compile-fail suite 与 public API inventory） |
 | <a id="ak-sdk-024"></a>24 | SDK MUST 在构造 typed describe/ping、写入路由缓存、执行 capability 交集或发起业务请求前消费 bootstrap `protocol_version`；形状合法但不等于 `"1.0"` 时 MUST 返回 `unsupported_protocol_version`，缺失、非字符串或非 canonical 字面时 MUST 返回 `schema_violation` | current-contract §3；service-surface §17 | **V/A**（`ak.vector.service.protocol_version_bootstrap.v1` 与 public API inventory；不得暴露跳过 bootstrap 判别直接构造已验证 service 的入口） |
 
 ### 23.3 "仅 API 形状可保证"类的 SDK 实现指引

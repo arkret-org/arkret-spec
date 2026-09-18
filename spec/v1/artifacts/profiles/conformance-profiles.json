@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.14",
-  "generated_at": "2026-09-19T23:55:00+08:00",
+  "version": "2026-09-16.15",
+  "generated_at": "2026-09-20T03:10:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -376,7 +376,6 @@
     },
     "unknown_required_feature_or_critical_extension": {
       "must_fail_closed": true,
-      "processing_disposition": "soft_fail",
       "allowed_results": [
         "unsupported_feature",
         "schema_violation",
