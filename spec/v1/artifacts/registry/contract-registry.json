@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.3",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T12:10:00+08:00",
+  "generated_at": "2026-09-20T12:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8184,8 +8184,8 @@
         "created_skew_seconds": 30,
         "rules": [
           "Same algorithm as ak.http_signature.freshness.v1 with a tighter lifetime ceiling; a signal relay signature may claim at most five seconds of life.",
-          "Tightening the lifetime does not tighten the created skew: a receiver clock may still differ by created_skew_seconds.",
-          "This is the only registered deviation from the shared window. Any further per-operation window MUST be registered here rather than stated inline in prose."
+          "Tightening the lifetime does not change the created skew bound, which stays created_skew_seconds. But the now < expires check binds first once the receiver clock differs from the sender by more than max_signature_lifetime_seconds: under this profile a larger offset rejects every request whatever the skew bound says.",
+          "Two lifetime tightenings are registered: this one and ak.http_signature.freshness.peer_keys_lookup.v1. Any further per-operation window MUST be registered here rather than stated inline in prose."
         ],
         "error_code": "signature_window_invalid"
       },
@@ -8196,8 +8196,8 @@
         "created_skew_seconds": 30,
         "rules": [
           "Same algorithm as ak.http_signature.freshness.v1 with a tighter lifetime ceiling.",
-          "Tightening the lifetime does not tighten the created skew: a receiver clock may still differ by created_skew_seconds.",
-          "This deviation was carried by the cross-Station keys/query prose before the contract existed; it is registered here so the numeral has exactly one editable home."
+          "Tightening the lifetime does not change the created skew bound, which stays created_skew_seconds. But the now < expires check binds first once the receiver clock differs from the sender by more than max_signature_lifetime_seconds: under this profile a larger offset rejects every request whatever the skew bound says.",
+          "This deviation was carried by the cross-Station keys/query prose before the contract existed; it is registered here so the numeral has exactly one editable home. Whether a cross-Station directory read needs a ceiling tighter than the shared one is open."
         ],
         "error_code": "signature_window_invalid"
       }

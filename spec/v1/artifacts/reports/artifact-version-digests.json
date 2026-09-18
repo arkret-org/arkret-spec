@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-20.3",
-      "generated_at": "2026-09-20T12:10:00+08:00",
-      "content_digest": "sha256:f94324b96ffad89e4f8547706b63e7a555e7fc07f8fac0e8a611279c64e4203a"
+      "version": "2026-09-20.4",
+      "generated_at": "2026-09-20T12:40:00+08:00",
+      "content_digest": "sha256:b3a8676b51daf532986c731d751c4a72f3ed2f9f506c4df54ffaac0e17e025af"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
