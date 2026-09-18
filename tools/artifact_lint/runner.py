@@ -137,6 +137,8 @@ from .naming_contracts import (
 
 from .http_signature import check_http_signature_contract_closure
 
+from .security_evidence import check_security_evidence_closure
+
 from .prose import (
     check_account_notification_prose_schema_alignment,
     check_artifact_prose_section_refs,
@@ -528,6 +530,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "normative_clause_registry",
                 lambda: check_normative_clause_registry(lint),
+            ),
+            (
+                "security_evidence_closure",
+                lambda: check_security_evidence_closure(lint),
             ),
             (
                 "canonical_digest_fixtures",

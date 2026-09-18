@@ -87,6 +87,26 @@ python tools/artifact_pipeline.py check      # drift 检查 + lint
 
 CI: [`.github/workflows/artifact-lint.yml`](./.github/workflows/artifact-lint.yml)
 
+## 变更说明义务
+
+删除或替换 canonical 机器契约、fixture，或摘除 `tools/artifact_lint/runner.py`
+阶段调用表里的任何一道门禁时，提交正文 MUST 逐项列出：
+
+1. **被撤掉的对象**：契约 / fixture / 门禁的具体名字，不能只写"清理"或只宣传同一提交里的新增物；
+2. **原因**：为什么这个对象不再成立；
+3. **验收继任者**：这条义务此后由哪个门禁、fixture 或 vector 承担；
+   若该义务本身正式作废，说明依据，并确认没有 registry 条目仍指着它。
+
+触发条件是**契约影响**，不是删除行数：摘掉阶段调用表里的两行也会移除一道完整门禁，
+而机械生成物的大量删行按契约类别概括即可。这是贡献流程约定，不新增协议 MUST，
+也不追改历史提交。
+
+背景：`c473e3c4` 一次提交删掉两份 fixture（6308 行）并摘掉两行阶段注册，
+提交说明只讲同批新增的三个脚本；两个 `check_*` 函数留在 `fixtures.py` 里无人调用，
+其中一个守护的十项安全证据义务随之静默消失，而测试全绿。
+`tools/test_lint_check_reachability.py` 现在会让"摘线但留函数"直接变红，
+但它证明不了删除**是否被说明过**——那由本节负责。
+
 ## 站点
 
 ```

@@ -1,6 +1,6 @@
 {
   "suite": "account_status_issuer_ledger",
-  "version": "2026-09-16",
+  "version": "2026-09-20.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.account_status.issuer_ledger.v1"
@@ -442,5 +442,58 @@
       "deactivated",
       "erasure_pending"
     ]
-  }
+  },
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.account_status.issuer_ledger.v1",
+      "clause_id": "AK-NC-081",
+      "decision_points": [
+        {
+          "id": "genesis_creation",
+          "requirement": "The genesis record is created inside the binding commit transaction, carries no predecessor, and waits for the Station checkpoint and the RealmCommit.",
+          "evidence": [
+            "/genesis_rules"
+          ]
+        },
+        {
+          "id": "cas_successor_chaining",
+          "requirement": "Every successor is written under the CAS key with the required status_seq and predecessor, as one atomic write set.",
+          "evidence": [
+            "/successor_cas",
+            "/ledger/records"
+          ]
+        },
+        {
+          "id": "record_identity_and_proof_binding",
+          "requirement": "The record identity rule and the proof context bind each record to its issuer; a conflicting record is refused rather than merged.",
+          "evidence": [
+            "/ledger/identity_rule",
+            "/ledger/proof_context",
+            "/ledger/conflicting_records"
+          ]
+        },
+        {
+          "id": "replica_classification",
+          "requirement": "The replica classification table is closed: every submitted state against every durable head lands in exactly one registered class.",
+          "evidence": [
+            "/replica_classification_cases"
+          ]
+        },
+        {
+          "id": "idempotency_conflict",
+          "requirement": "The same key with the same canonical body replays, the same key with a different canonical body conflicts, and terminal acks and pending commits are each decided explicitly.",
+          "evidence": [
+            "/idempotency"
+          ]
+        },
+        {
+          "id": "bounded_fanout_outbox",
+          "requirement": "The outbox dedupe key, per-account and per-destination ceilings, transitions and barrier statuses are all bounded and enumerated.",
+          "evidence": [
+            "/fanout_outbox"
+          ]
+        }
+      ]
+    }
+  ]
 }

@@ -141,9 +141,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
-      "version": "2026-09-19.1",
-      "generated_at": "2026-09-19T12:00:00+08:00",
-      "content_digest": "sha256:61509c403ca3ad919ba582722f683839a63e6841e8863cbb29cb163f72f894af"
+      "version": "2026-09-20.1",
+      "generated_at": "2026-09-20T16:20:00+08:00",
+      "content_digest": "sha256:286b7c919943f345e2ef4749dee79662d6a56a13097d4585688f93f61d0b6f55"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-20.2",
-      "generated_at": "2026-09-20T11:30:00+08:00",
-      "content_digest": "sha256:d3b53dac7d4a5885e8c570e6728ada63864b99e9e069208e481bf23c54ee9692"
+      "version": "2026-09-20.4",
+      "generated_at": "2026-09-20T16:20:00+08:00",
+      "content_digest": "sha256:fcf903b642ee7587db5d2058ec578fb52f683d9b22c5b9b0851570c8af8dbc1e"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -363,9 +363,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-20.3",
-      "generated_at": "2026-09-20T12:10:00+08:00",
-      "content_digest": "sha256:cea0d30874f36099aafe29c3d81b8852f5ae081887f66d562a1e9fce75ea95d6"
+      "version": "2026-09-20.4",
+      "generated_at": "2026-09-20T16:20:00+08:00",
+      "content_digest": "sha256:42497456af520591db0e583cc293ff343577b3a64ef21a799529e23c4a4df73a"
     }
   ]
 }

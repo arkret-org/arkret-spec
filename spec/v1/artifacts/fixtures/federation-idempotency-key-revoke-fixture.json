@@ -1,0 +1,127 @@
+{
+  "suite": "federation_idempotency_after_key_revoke",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.federation.idempotency_after_key_revoke.v1"
+  },
+  "version": "2026-09-20.1",
+  "profile": "ak.profile.federation_minimal.v1",
+  "covers_vectors": [
+    "ak.vector.federation.idempotency_after_key_revoke.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json"
+  ],
+  "description": "Executable evidence that a federation idempotency cache hit is never a current authorization: a replay after origin key revocation is historical_only, a removed origin binding denies it, and any change of origin_key_state_digest or authorization basis forces a full re-authorization.",
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.federation.idempotency_after_key_revoke.v1",
+      "clause_id": "AK-NC-074",
+      "decision_points": [
+        {
+          "id": "historical_only_replay",
+          "requirement": "A replay that only hits the historical idempotency cache returns historical_only and is not re-accepted as a current authorized write.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "removed_binding_denies",
+          "requirement": "Once Realm policy removed the origin service binding the replay is denied with capability_denied.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "basis_change_forces_reauthorization",
+          "requirement": "A different origin_key_state_digest or authorization basis forces the receiver to re-run the full authorization decision.",
+          "evidence": [
+            "/cases/2",
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "idempotency_key_is_not_authorization",
+          "requirement": "Matching the Idempotency-Key alone never admits a write.",
+          "evidence": [
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "unchanged_basis_stays_idempotent",
+          "requirement": "With the key active and the basis unchanged the original accepted outcome replays exactly once more.",
+          "evidence": [
+            "/cases/4"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "replay_after_key_revoke_is_historical_only",
+      "given": "a peer batch was accepted under an active origin service key and the destination cached the idempotent outcome",
+      "action": "the origin key is revoked, the destination's accepted authorization prefix advances, and an attacker replays the byte-identical body, signature and Idempotency-Key",
+      "decision": "reject",
+      "reason": "historical_only",
+      "observed": "the replay outcome and whether any new authorized write occurred",
+      "assertions": [
+        "the cache hit is served as a historical diagnostic and is not re-accepted as a current authorized write",
+        "no new Event is admitted and no RealmCommit is issued for the replay",
+        "byte-identical replay material does not by itself carry current authorization"
+      ]
+    },
+    {
+      "name": "removed_origin_binding_denies_the_replay",
+      "given": "Realm policy has removed the origin service binding since the batch was accepted",
+      "action": "replay the same request",
+      "decision": "reject",
+      "reason": "capability_denied",
+      "observed": "the authorization decision for the replay",
+      "assertions": [
+        "the removal of the binding is decisive even though the cached entry still matches",
+        "capability_denied is returned rather than the historical outcome",
+        "the earlier accepted write is not retracted by the denial"
+      ]
+    },
+    {
+      "name": "a_changed_key_state_digest_forces_full_reauthorization",
+      "given": "the cached entry recorded one origin_key_state_digest",
+      "action": "replay with a different origin_key_state_digest",
+      "decision": "reject",
+      "reason": "service_key_revoked",
+      "observed": "whether the receiver re-ran the authorization decision or short-circuited on the cache",
+      "assertions": [
+        "the receiver MUST re-run the full authorization decision whenever the digest or the authorization basis differs from the cached entry",
+        "the cached entry is not evidence about current key state",
+        "the re-run, not the cache, decides the outcome"
+      ]
+    },
+    {
+      "name": "an_idempotency_key_alone_never_admits_a_write",
+      "given": "a valid Idempotency-Key matching a cached accepted entry",
+      "action": "replay with that key after the origin key was revoked",
+      "decision": "reject",
+      "reason": "service_key_revoked",
+      "observed": "the admission path taken for the replay",
+      "assertions": [
+        "the key is a deduplication token, never an authorization token",
+        "current key-state verification runs before any cached outcome is served",
+        "no path exists where matching the key alone produces a current authorized write"
+      ]
+    },
+    {
+      "name": "an_unchanged_basis_replays_the_original_outcome",
+      "given": "the origin key is still active and neither the binding nor the authorization basis changed",
+      "action": "replay the byte-identical request",
+      "decision": "accept",
+      "observed": "the returned outcome and the destination's stream",
+      "assertions": [
+        "the original accepted outcome is returned once more",
+        "no second Event is admitted for the replay",
+        "idempotency remains observable exactly where the authorization basis is unchanged"
+      ]
+    }
+  ]
+}

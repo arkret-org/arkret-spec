@@ -16,7 +16,6 @@ from .core import (
     Path,
     ROOT,
     SCHEMA_ID_TOKEN_RE,
-    SECURITY_CLOSURE_VECTOR_IDS,
     SPEC_ROOT,
     STATED_PREIMAGE_DIGEST_PAIRS,
     STATED_PREIMAGE_KEY_RE,
@@ -1322,119 +1321,6 @@ def check_vector_reference_closure(lint: Lint) -> None:
         for vector_id in sorted(set(VECTOR_ID_TOKEN_RE.findall(text))):
             if vector_id not in known_vectors:
                 lint.fail(path, f"references undefined conformance vector id: {vector_id}")
-
-
-def check_security_closure_fixture(lint: Lint) -> None:
-    path = ARTIFACTS / "fixtures" / "security-closure-fixture.json"
-    data = load_json(lint, path)
-    if not isinstance(data, dict):
-        return
-
-    vectors = data.get("security_closure_fixture")
-    if not isinstance(vectors, list) or not vectors:
-        lint.fail(path, "security_closure_fixture must be a non-empty array")
-        return
-
-    conformance_path = SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md"
-    try:
-        defined_vectors = set(VECTOR_ID_TOKEN_RE.findall(conformance_path.read_text(encoding="utf-8")))
-    except Exception as exc:
-        lint.fail(conformance_path, f"could not read conformance vector definitions: {exc}")
-        defined_vectors = set()
-
-    seen: set[str] = set()
-    for index, vector in enumerate(vectors):
-        label = f"security_closure_fixture[{index}]"
-        if not isinstance(vector, dict):
-            lint.fail(path, f"{label} must be an object")
-            continue
-
-        vector_id = vector.get("vector_id")
-        if not isinstance(vector_id, str) or not VECTOR_ID_TOKEN_RE.fullmatch(vector_id):
-            lint.fail(path, f"{label}.vector_id must be a conformance vector id")
-            continue
-        if vector_id in seen:
-            lint.fail(path, f"{label}.vector_id duplicates {vector_id}")
-        seen.add(vector_id)
-        if vector_id not in defined_vectors:
-            lint.fail(path, f"{label}.vector_id is not defined in conformance-vectors.md: {vector_id}")
-        if vector_id not in SECURITY_CLOSURE_VECTOR_IDS:
-            lint.fail(path, f"{label}.vector_id is not part of the required security closure set: {vector_id}")
-
-        steps = vector.get("steps")
-        if not isinstance(steps, list) or not steps:
-            lint.fail(path, f"{label}.steps must be a non-empty array")
-            continue
-        for step_index, step in enumerate(steps):
-            step_label = f"{label}.steps[{step_index}]"
-            if not isinstance(step, dict):
-                lint.fail(path, f"{step_label} must be an object")
-                continue
-            if not isinstance(step.get("name"), str) or not step["name"]:
-                lint.fail(path, f"{step_label}.name must be a non-empty string")
-            if not isinstance(step.get("input"), dict):
-                lint.fail(path, f"{step_label}.input must be an object")
-            expected = step.get("expected")
-            if not isinstance(expected, dict):
-                lint.fail(path, f"{step_label}.expected must be an object")
-                continue
-            if not isinstance(expected.get("outcome"), str) or not expected["outcome"]:
-                lint.fail(path, f"{step_label}.expected.outcome must be a non-empty string")
-            if not any(key in expected for key in ("reason_code", "invariants", "response")):
-                lint.fail(path, f"{step_label}.expected must include reason_code, invariants, or response")
-            invariants = expected.get("invariants")
-            if "invariants" in expected and (
-                not isinstance(invariants, list)
-                or not invariants
-                or not all(isinstance(item, str) and item for item in invariants)
-            ):
-                lint.fail(path, f"{step_label}.expected.invariants must be a non-empty string array")
-            runner = step.get("runner")
-            if not isinstance(runner, dict):
-                lint.fail(path, f"{step_label}.runner must be an object")
-                continue
-            required_runner_fields = {
-                "given_state",
-                "operation",
-                "transcript",
-                "expected_state_transition",
-                "expected_external_response",
-                "expected_audit_reason",
-            }
-            missing_runner_fields = sorted(required_runner_fields - set(runner))
-            if missing_runner_fields:
-                lint.fail(path, f"{step_label}.runner missing field(s): {', '.join(missing_runner_fields)}")
-                continue
-            for object_field in (
-                "given_state",
-                "transcript",
-                "expected_state_transition",
-                "expected_external_response",
-            ):
-                if not isinstance(runner.get(object_field), dict):
-                    lint.fail(path, f"{step_label}.runner.{object_field} must be an object")
-            for string_field in ("operation", "expected_audit_reason"):
-                if not isinstance(runner.get(string_field), str) or not runner[string_field]:
-                    lint.fail(path, f"{step_label}.runner.{string_field} must be a non-empty string")
-            state_transition = runner.get("expected_state_transition")
-            if isinstance(state_transition, dict) and state_transition.get("outcome") != expected.get("outcome"):
-                lint.fail(
-                    path,
-                    f"{step_label}.runner.expected_state_transition.outcome must match expected.outcome",
-                )
-            external_response = runner.get("expected_external_response")
-            reason_code = expected.get("reason_code")
-            if isinstance(reason_code, str) and reason_code:
-                external_reason = external_response.get("reason_code") if isinstance(external_response, dict) else None
-                if external_reason != reason_code and runner.get("expected_audit_reason") != reason_code:
-                    lint.fail(
-                        path,
-                        f"{step_label}.runner must carry expected.reason_code in external response or audit reason",
-                    )
-
-    missing = SECURITY_CLOSURE_VECTOR_IDS - seen
-    for vector_id in sorted(missing):
-        lint.fail(path, f"missing required security closure vector fixture: {vector_id}")
 
 
 def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, Any]) -> None:

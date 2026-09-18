@@ -152,25 +152,6 @@ GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
 GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 
 
-SECURITY_CLOSURE_VECTOR_IDS = {
-    "ak.vector.account.blocklist_projection.v1",
-    "ak.vector.account_status.issuer_ledger.v1",
-    "ak.vector.federation.idempotency_after_key_revoke.v1",
-    "ak.vector.webrtc.media_plaintext_downgrade.v1",
-    "ak.vector.identity_link.eager_invalidation.v1",
-    "ak.vector.identity_link.policy_tightening_invalidation.v1",
-    "ak.vector.late_key_recovery.removed_actor.v1",
-    "ak.vector.invite.oob_code_entropy.v1",
-    "ak.vector.invite.failure_indistinguishable.v1",
-    "ak.vector.invite.claim_reducer_state_machine.v1",
-    "ak.vector.consent.scope_cascade.v1",
-    "ak.vector.consent.cache_invalidation.v1",
-    "ak.vector.sync.soft_fail_reconcile.v1",
-    "ak.vector.lattice.concurrent_heads_no_winner.v1",
-    "ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
-}
-
-
 REGISTRY_PLANES = {"data", "control", "conditional"}
 
 # zh/conformance/encoding.md 4.1 closes the set of top-level `cell_subject`

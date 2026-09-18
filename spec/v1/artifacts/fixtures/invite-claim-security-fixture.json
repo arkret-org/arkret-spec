@@ -1,0 +1,306 @@
+{
+  "suite": "invite_claim_security",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.invite.claim_security.v1"
+  },
+  "version": "2026-09-20.1",
+  "profile": "ak.profile.station.v1",
+  "covers_vectors": [
+    "ak.vector.invite.claim_reducer_state_machine.v1",
+    "ak.vector.invite.failure_indistinguishable.v1",
+    "ak.vector.invite.oob_code_entropy.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json"
+  ],
+  "description": "Executable evidence for the invite admission obligations: the claim reducer's proof, commitment, allowlist, nonce, proposal and expiry checks; the per-endpoint failure indistinguishability of the claim and locator surfaces; and the out-of-band code entropy, validity and claim-count floors.",
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.invite.claim_reducer_state_machine.v1",
+      "clause_id": "AK-NC-077",
+      "decision_points": [
+        {
+          "id": "proof_transcripts",
+          "requirement": "binding_proof and subject_proof signature transcripts are each verified before admission.",
+          "evidence": [
+            "/cases/0",
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "token_commitment_match",
+          "requirement": "The presented token must open the invite's recorded token_commitment.",
+          "evidence": [
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "verification_id_allowlist_recheck",
+          "requirement": "The verification_id allowlist is re-checked at admission against current state.",
+          "evidence": [
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "claim_nonce_replay",
+          "requirement": "A consumed claim_nonce cannot be reused.",
+          "evidence": [
+            "/cases/4"
+          ]
+        },
+        {
+          "id": "pending_to_claimed_proposal",
+          "requirement": "pending becomes claimed only through the membership proposal conversion, as one admitted unit.",
+          "evidence": [
+            "/cases/5"
+          ]
+        },
+        {
+          "id": "expiry_cleanup_before_admission",
+          "requirement": "Expiry is evaluated before admission and an expired invite cannot be revived.",
+          "evidence": [
+            "/cases/6"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.failure_indistinguishable.v1",
+      "clause_id": "AK-NC-078",
+      "decision_points": [
+        {
+          "id": "claim_endpoint_shared_shape",
+          "requirement": "Every failure class of the third-party claim endpoint shares one external response shape.",
+          "evidence": [
+            "/cases/7"
+          ]
+        },
+        {
+          "id": "locator_endpoint_shared_shape",
+          "requirement": "Every failure class of the invite locator resolve endpoint shares one external response shape, checked separately from the claim endpoint.",
+          "evidence": [
+            "/cases/8"
+          ]
+        },
+        {
+          "id": "bounded_timing_distribution",
+          "requirement": "The per-class timing distributions are bounded and do not separate the classes; comparing response bodies alone is not sufficient.",
+          "evidence": [
+            "/cases/9"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.oob_code_entropy.v1",
+      "clause_id": "AK-NC-079",
+      "decision_points": [
+        {
+          "id": "entropy_floor",
+          "requirement": "An out-of-band code below the production entropy floor is refused by the reducer or the verification service.",
+          "evidence": [
+            "/cases/10"
+          ]
+        },
+        {
+          "id": "validity_and_claim_count_ceilings",
+          "requirement": "A lookup form exceeding the policy validity window or claim count is invalidated before it can become a pending invite or accepted membership.",
+          "evidence": [
+            "/cases/11",
+            "/cases/12"
+          ]
+        },
+        {
+          "id": "compliant_path_stays_open",
+          "requirement": "A compliant code still produces exactly one pending invite.",
+          "evidence": [
+            "/cases/13"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "binding_proof_transcript_must_verify",
+      "given": "an ak.invite.claim whose binding_proof signs a transcript that does not match the claimed binding",
+      "action": "submit the claim to the Realm reducer",
+      "decision": "reject",
+      "reason": "claim_invalid",
+      "observed": "the reducer decision and the resulting Realm state",
+      "assertions": [
+        "the signature transcript is checked before admission, not after a provisional write",
+        "no pending invite advances and no membership proposal is produced",
+        "the refusal is recorded against the claim, leaving the invite in its prior state"
+      ]
+    },
+    {
+      "name": "subject_proof_transcript_must_verify",
+      "given": "a claim whose subject_proof verifies against a different subject than the one being claimed",
+      "action": "submit the claim",
+      "decision": "reject",
+      "reason": "claim_invalid",
+      "observed": "the reducer decision",
+      "assertions": [
+        "both proofs are checked independently; a valid binding_proof does not excuse the subject_proof",
+        "no membership proposal is produced",
+        "the invite remains claimable by the correct subject afterwards"
+      ]
+    },
+    {
+      "name": "token_commitment_mismatch_is_rejected",
+      "given": "a claim whose token does not open the invite's recorded token_commitment",
+      "action": "submit the claim",
+      "decision": "reject",
+      "reason": "claim_invalid",
+      "observed": "the commitment comparison and the reducer decision",
+      "assertions": [
+        "the commitment is matched before any state transition",
+        "the stored commitment is not replaced by the presented token",
+        "the invite is not consumed by the failed attempt"
+      ]
+    },
+    {
+      "name": "verification_id_allowlist_is_rechecked_at_admission",
+      "given": "a verification_id that was on the allowlist when the invite was created and has since been removed",
+      "action": "submit an otherwise valid claim",
+      "decision": "reject",
+      "reason": "capability_denied",
+      "observed": "whether the reducer re-read the allowlist or trusted the creation-time decision",
+      "assertions": [
+        "the allowlist is re-checked at admission against current state",
+        "a creation-time allow is not carried forward",
+        "no membership proposal is produced"
+      ]
+    },
+    {
+      "name": "claim_nonce_replay_is_rejected",
+      "given": "a claim_nonce that was already consumed by an accepted claim",
+      "action": "resubmit a claim carrying the same nonce",
+      "decision": "reject",
+      "reason": "key_replay",
+      "observed": "the nonce ledger and the reducer decision",
+      "assertions": [
+        "the nonce is single-use and the second use is refused",
+        "the first accepted claim is not disturbed by the replay",
+        "the refusal happens before any membership proposal is produced"
+      ]
+    },
+    {
+      "name": "pending_becomes_claimed_only_through_a_membership_proposal",
+      "given": "a fully valid claim against a pending invite",
+      "action": "submit the claim",
+      "decision": "accept",
+      "observed": "the invite state transition and the produced proposal",
+      "assertions": [
+        "the invite moves from pending to claimed only as the result of a membership proposal conversion",
+        "the transition and the proposal are one admitted unit, never two independently observable steps",
+        "re-submitting the same claim does not produce a second proposal"
+      ]
+    },
+    {
+      "name": "expiry_cleanup_runs_before_admission",
+      "given": "an invite whose expires_at has passed",
+      "action": "submit a claim that would otherwise be valid",
+      "decision": "reject",
+      "reason": "expired_invite_token",
+      "observed": "the reducer decision and the invite's terminal state",
+      "assertions": [
+        "expiry is evaluated before admission rather than by a later sweep",
+        "the expired invite cannot be revived by a valid claim",
+        "expired_invite_token stays an internal reason; the external response is the shared failure shape"
+      ]
+    },
+    {
+      "name": "claim_endpoint_failure_classes_share_one_response_shape",
+      "given": "claims failing for an unknown invite, a wrong subject, an expired token, a replayed nonce and a removed allowlist entry",
+      "action": "submit each to the third-party claim endpoint",
+      "decision": "reject",
+      "reason": "not_found",
+      "observed": "the external response body, status and headers for every failure class",
+      "assertions": [
+        "all failure classes on this endpoint share one external response shape",
+        "the specific reason code is written only to the server-side audit log",
+        "no failure class is distinguishable by an extra field, a different status or a different header set"
+      ]
+    },
+    {
+      "name": "locator_resolve_failure_classes_share_one_response_shape",
+      "given": "the same set of failure classes presented to the invite locator resolve endpoint",
+      "action": "resolve each locator",
+      "decision": "reject",
+      "reason": "not_found",
+      "observed": "the external response for every failure class on this endpoint",
+      "assertions": [
+        "this endpoint has its own shared shape and is checked separately from the claim endpoint",
+        "indistinguishability is required within each endpoint, so one endpoint's shape is not evidence for the other",
+        "the reason code is audit-only here as well"
+      ]
+    },
+    {
+      "name": "failure_timing_is_bounded_and_class_independent",
+      "given": "repeated failures of each class on both endpoints",
+      "action": "measure the response time distribution per class",
+      "decision": "accept",
+      "observed": "the timing distribution per failure class per endpoint",
+      "assertions": [
+        "the distributions are bounded and do not separate the classes",
+        "comparing response bodies alone is not sufficient evidence for this vector",
+        "an early return path that skips work for one class is a failure of this obligation"
+      ]
+    },
+    {
+      "name": "an_oob_code_below_the_entropy_floor_is_rejected",
+      "given": "an out-of-band invite code whose entropy is below the production floor",
+      "action": "present it to the reducer and to the verification service",
+      "decision": "reject",
+      "reason": "invite_oob_entropy_too_low",
+      "observed": "both refusals",
+      "assertions": [
+        "either enforcement point refuses it; neither may defer to the other",
+        "the code never becomes a pending invite",
+        "no accepted membership can be derived from it"
+      ]
+    },
+    {
+      "name": "a_lookup_form_past_the_validity_window_is_invalidated",
+      "given": "a lookup form whose validity window exceeds the policy ceiling",
+      "action": "attempt to use it",
+      "decision": "reject",
+      "reason": "expired_invite_token",
+      "observed": "the invalidation point relative to pending-invite creation",
+      "assertions": [
+        "invalidation happens before the form can become a pending invite",
+        "the policy ceiling, not the form's own declared window, decides",
+        "no accepted membership follows"
+      ]
+    },
+    {
+      "name": "a_lookup_form_past_the_claim_count_is_invalidated",
+      "given": "a lookup form whose claim count exceeds the policy ceiling",
+      "action": "attempt the next claim",
+      "decision": "reject",
+      "reason": "quota_exceeded",
+      "observed": "the claim counter and the refusal",
+      "assertions": [
+        "the count is enforced against the policy ceiling at claim time",
+        "the form is invalidated rather than merely rate limited for this attempt",
+        "no pending invite or accepted membership results"
+      ]
+    },
+    {
+      "name": "a_compliant_code_still_reaches_a_pending_invite",
+      "given": "an out-of-band code at or above the entropy floor, inside the validity window and under the claim ceiling",
+      "action": "present it",
+      "decision": "accept",
+      "observed": "the resulting invite state",
+      "assertions": [
+        "the negative cases above do not close the legitimate path",
+        "the code produces exactly one pending invite",
+        "the entropy floor is a floor, not a fixed length"
+      ]
+    }
+  ]
+}

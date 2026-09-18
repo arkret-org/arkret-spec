@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.3",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T12:10:00+08:00",
+  "generated_at": "2026-09-20T16:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -13,7 +13,9 @@
       ],
       "description": "Personal blocklist whole-value CAS updates, target closure, shared-history receive-before-filter behavior, unblock projection rebuild and non-enumerable holder-side filtering.",
       "source_refs": [
-        "spec/v1/zh/discovery/client-preferences.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json"
       ]
     },
     {
@@ -1184,7 +1186,9 @@
       ],
       "description": "Revoking consent immediately invalidates the cached private contact discovery result, invite capability gate and PSI index: directory lookup stops returning the peer, the next invite submission fails its precondition and re-evaluates the gate, an any-scope revoke clears every scope cache, and the next PSI rotation excludes the peer.",
       "source_refs": [
-        "spec/v1/artifacts/registry/error-code-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/registry/error-code-registry.json",
+        "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json"
       ]
     },
     {
@@ -2396,7 +2400,9 @@
       ],
       "description": "Replaying an accepted peer batch after the origin service key is revoked returns historical_only instead of a new authorized write, returns capability_denied once Realm policy removed the origin binding, and forces a full re-authorization whenever origin_key_state_digest or the authorization basis differs from the cached entry.",
       "source_refs": [
-        "spec/v1/artifacts/registry/error-code-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/registry/error-code-registry.json",
+        "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json"
       ]
     },
     {
@@ -2761,7 +2767,9 @@
       ],
       "description": "A ban, leave or remove membership transition, or a capability revoke that drops the link below its visibility gate, immediately invalidates the directory, sync cache, invite cache and local profile projection; later lookups never return the stale link and existing sessions and device claims fail or degrade to minimal disclosure at the next authorization check.",
       "source_refs": [
-        "spec/v1/artifacts/registry/error-code-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/registry/error-code-registry.json",
+        "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json"
       ]
     },
     {
@@ -2785,7 +2793,9 @@
       ],
       "description": "Tightening disclosure policy, historical visibility, minimal-metadata mode, linked Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
       "source_refs": [
-        "spec/v1/artifacts/registry/error-code-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/registry/error-code-registry.json",
+        "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json"
       ]
     },
     {
@@ -2809,7 +2819,9 @@
       ],
       "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_id allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
       "source_refs": [
-        "spec/v1/zh/sync/third-party-invites.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/third-party-invites.md",
+        "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json"
       ]
     },
     {
@@ -2833,8 +2845,10 @@
       ],
       "description": "Failure-indistinguishability vector covering both the third-party claim endpoint and the invite-locator resolve endpoint; each endpoint's failure classes MUST share one external response shape and bounded timing distribution.",
       "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/invite-addressing.md",
-        "spec/v1/zh/sync/third-party-invites.md"
+        "spec/v1/zh/sync/third-party-invites.md",
+        "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json"
       ]
     },
     {
@@ -2894,7 +2908,9 @@
       ],
       "description": "An out-of-band invite code below the production entropy floor is rejected by the reducer or verification service, and a lookup form exceeding the policy validity window or claim count is invalidated before it can become a pending invite or accepted membership.",
       "source_refs": [
-        "spec/v1/zh/sync/third-party-invites.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/third-party-invites.md",
+        "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json"
       ]
     },
     {
@@ -4628,7 +4644,9 @@
       ],
       "description": "Joining a decrypting conference is refused and no media key is published when Realm policy has not authorized media-service decryption, when the SFU service DID is absent from plaintext_visible_services, or when the required plaintext warning was not shown; the first two fail with media_plaintext_service_not_authorised and the third with an equivalent stable code.",
       "source_refs": [
-        "spec/v1/zh/crypto-media/media-service-binding.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
+        "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json"
       ]
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -16,11 +16,6 @@
     ]
   },
   "uncovered_event_kinds": [
-    {
-      "event_kind": "ak.account.blocklist",
-      "priority": "normal",
-      "rationale": "Actor-private account blocklist projection lacks a directly searchable vector."
-    },
     {
       "event_kind": "ak.audit.erasure_receipt",
       "priority": "high",
@@ -157,5 +152,5 @@
       "rationale": "Strand watch-state update lacks a directly searchable vector."
     }
   ],
-  "generated_at": "2026-09-19T12:00:00+08:00"
+  "generated_at": "2026-09-20T16:20:00+08:00"
 }

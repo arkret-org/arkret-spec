@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.2",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T11:30:00+08:00",
+  "generated_at": "2026-09-20T16:20:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -14,13 +14,136 @@
       "distributed_write"
     ],
     "rule": "This registry covers the high-risk observable obligation set named in included_categories. It is deliberately not a numbering of every normative sentence under spec/v1/zh; mechanically numbering prose would manufacture meaningless MUSTs. A green release gate proves that every registered clause has live evidence and that no registered section changed without review. It does NOT prove that every MUST in the specification is registered.",
-    "extension_rule": "Adding or changing a high-risk observable obligation that this registry is intended to evidence requires adding or updating a clause in the same change. Obligations without executable evidence stay explicitly outside this registry rather than pointing at unrelated evidence. Because section_digest pins registered anchors, editing a registered section fails the release gate until its existing clause and evidence are re-reviewed; this rule does not imply exhaustive coverage of every normative sentence in an included category."
+    "extension_rule": "Adding or changing a high-risk observable obligation that this registry is intended to evidence requires adding or updating a clause in the same change. Obligations without executable evidence stay explicitly outside this registry rather than pointing at unrelated evidence. Because section_digest pins registered anchors, editing a registered section fails the release gate until its existing clause and evidence are re-reviewed; this rule does not imply exhaustive coverage of every normative sentence in an included category.",
+    "executable_fixture_categories": [
+      "security",
+      "privacy"
+    ],
+    "executable_fixture_rule": "A clause in one of executable_fixture_categories with testability_grade=vector MUST name vectors that are carried by a fixture declaring a security_evidence entry for them, and that entry MUST map every decision point of the obligation onto resolvable evidence inside the fixture. This is the successor to the deleted aggregate security-closure fixture: the obligation set is whatever is registered here, never a list inside a lint. The remaining categories are outside the rule today because clauses in them still name vectors with no fixture carrier; widening the list is how that gap gets closed, and narrowing it to keep a clause green is not.",
+    "executable_evidence_exemptions": [
+      {
+        "clause_id": "AK-NC-010",
+        "vector_id": "ak.vector.session.pop_presentation.v1",
+        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-010",
+        "vector_id": "ak.vector.session.bare_bearer_rejected_protected.v1",
+        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-010",
+        "vector_id": "ak.vector.session.dpop_target_uri_binding.v1",
+        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-010",
+        "vector_id": "ak.vector.session.device_identity_key_separation.v1",
+        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-010",
+        "vector_id": "ak.vector.session.http_signature_operation_selector_binding.v1",
+        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-011",
+        "vector_id": "ak.vector.e2ee.mls_activation_irreversible.v1",
+        "carrier": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-011",
+        "vector_id": "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
+        "carrier": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-011",
+        "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
+        "reason": "no_fixture_carrier",
+        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
+      },
+      {
+        "clause_id": "AK-NC-013",
+        "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
+        "reason": "no_fixture_carrier",
+        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
+      },
+      {
+        "clause_id": "AK-NC-013",
+        "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
+        "reason": "no_fixture_carrier",
+        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
+      },
+      {
+        "clause_id": "AK-NC-013",
+        "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
+        "reason": "no_fixture_carrier",
+        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
+      },
+      {
+        "clause_id": "AK-NC-013",
+        "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
+        "reason": "no_fixture_carrier",
+        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
+      },
+      {
+        "clause_id": "AK-NC-057",
+        "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
+        "carrier": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-061",
+        "vector_id": "ak.vector.mls.key_access_revision_key_access_only.v1",
+        "carrier": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-063",
+        "vector_id": "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
+        "carrier": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-065",
+        "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
+        "carrier": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      },
+      {
+        "clause_id": "AK-NC-066",
+        "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
+        "carrier": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+        "reason": "carrier_without_decision_point_mapping",
+        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+      }
+    ],
+    "executable_evidence_exemption_rule": "Every (clause_id, vector_id) pair inside executable_fixture_categories that does not yet have executable evidence MUST be enumerated here with its reason. The list only shrinks: once a vector gains a security_evidence carrier its row MUST be removed, and the gate fails while a stale row remains. A pair that is neither evidenced nor enumerated fails the gate, so the open gap stays visible in the canonical registry instead of inside a lint."
   },
   "registry_rules": [
     "clause_id values are stable and MUST NOT be reused after a clause is closed; retire a clause by setting status=inactive instead of deleting the row.",
     "source_anchor MUST be a repository-relative markdown path plus an existing heading slug. section_digest MUST equal the sha256 of that heading's section text as computed by tools/artifact_lint.",
     "testability_grade=vector rows MUST list evidence_refs containing active vector ids from vector-registry.json. testability_grade=api_shape or audit rows MUST instead declare test_plan describing the non-vector proof.",
-    "A clause MUST NOT claim evidence it does not have: an obligation with no executable proof stays out of this registry rather than pointing at an unrelated vector."
+    "A clause MUST NOT claim evidence it does not have: an obligation with no executable proof stays out of this registry rather than pointing at an unrelated vector.",
+    "A clause whose category is listed in coverage_scope.executable_fixture_categories MUST have executable fixture evidence for each of its evidence_refs. Adding such a clause without the fixture entry, or deleting the fixture entry, turns the security evidence gate red."
   ],
   "clauses": [
     {
@@ -606,6 +729,126 @@
       "requirement": "ak.capability.relinquish is subject-only self-service: the reducer accepts it only when the acting actor is the grant's own subject, and it MUST NOT additionally require the actor to hold ak.capability.revoke, because a narrow holder would otherwise be unable to give up what it holds. A relinquish by anyone other than the subject is rejected with reason grant_relinquish_not_subject. Descendants of the relinquished grant fail on read through refs, exactly as they do after a revoke.",
       "testability_grade": "audit",
       "test_plan": "Audited against event-kind-registry.json and error-code-registry.json: the review pass asserts ak.capability.relinquish's admission names the subject identity alone, that no capability action registers as its precondition, and that grant_relinquish_not_subject is the registered rejection reason with this event kind as its only producer. A conformance run submits a relinquish signed by a non-subject holder of ak.capability.revoke and asserts rejection with that reason, then submits one signed by the subject holding no revoke action and asserts acceptance. No vector exists yet because the capability vector group has no relinquish transcript."
+    },
+    {
+      "clause_id": "AK-NC-072",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#31-account-与偏好",
+      "section_digest": "sha256:337b92a104c2079bd02930a3881c7838017f8108e91fdf8f8260af2ef343a094",
+      "requirement": "The personal blocklist is a holder-private whole-value CAS result on one revision counter with a closed target set; shared history is received before it is filtered, unblocking rebuilds the projection from retained material, and no surface lets an outside party tell blocked apart from unauthorized, absent or offline.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.account.blocklist_projection.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-073",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
+      "section_digest": "sha256:37507496ede143edcf5d3d34fc465430eebe2c608e096f750fbe2c155c344d59",
+      "requirement": "Revoking consent immediately invalidates the cached private contact discovery result, the invite capability gate and every scope cache, and the next PSI rotation excludes the peer.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.consent.cache_invalidation.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-074",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#39-federation-与-mimi",
+      "section_digest": "sha256:2f9225980903a70b8887ca920d6865ea341824d63c03b048fbabc74f478a6425",
+      "requirement": "A federation idempotency cache hit is never current authorization: after an origin key revocation the replay is historical_only, a removed origin binding denies it, and any change of origin_key_state_digest or authorization basis forces a full re-authorization.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.federation.idempotency_after_key_revoke.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-075",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
+      "section_digest": "sha256:37507496ede143edcf5d3d34fc465430eebe2c608e096f750fbe2c155c344d59",
+      "requirement": "A ban, leave or remove membership transition, or a capability revoke that drops a link below its visibility gate, immediately invalidates the directory, sync, invite and local profile projections, and existing sessions and device claims fail or degrade to minimal disclosure at the next authorization check.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.identity_link.eager_invalidation.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-076",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
+      "section_digest": "sha256:37507496ede143edcf5d3d34fc465430eebe2c608e096f750fbe2c155c344d59",
+      "requirement": "Tightening disclosure policy, historical visibility, minimal-metadata mode, linked-Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.identity_link.policy_tightening_invalidation.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-077",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#311-邀请",
+      "section_digest": "sha256:3414fb9c950920e241d5f9b7765952e9fbf5a6ae5c79e1bee1371b00a5112f32",
+      "requirement": "The ak.invite.claim reducer verifies both proof transcripts, the token commitment, the verification_id allowlist against current state and the claim nonce, and converts pending to claimed only through a membership proposal, with expiry evaluated before admission.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.invite.claim_reducer_state_machine.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-078",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#311-邀请",
+      "section_digest": "sha256:3414fb9c950920e241d5f9b7765952e9fbf5a6ae5c79e1bee1371b00a5112f32",
+      "requirement": "The third-party claim endpoint and the invite locator resolve endpoint each give every one of their failure classes one external response shape and a bounded, class-independent timing distribution.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.invite.failure_indistinguishable.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-079",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#311-邀请",
+      "section_digest": "sha256:3414fb9c950920e241d5f9b7765952e9fbf5a6ae5c79e1bee1371b00a5112f32",
+      "requirement": "An out-of-band invite code below the production entropy floor is refused, and a lookup form exceeding the policy validity window or claim count is invalidated before it can become a pending invite or accepted membership.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.invite.oob_code_entropy.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-080",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#315-媒体",
+      "section_digest": "sha256:e15166c8393be14f826846af2c53f0a7bda67e3a6a18585035c60cd4529cc8d6",
+      "requirement": "Joining a decrypting conference is refused and no media key is published when Realm policy has not authorized media-service decryption, when the SFU service DID is absent from plaintext_visible_services, or when the required plaintext warning was not shown.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.webrtc.media_plaintext_downgrade.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-081",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/identity/account-lifecycle.md#31-account-authority-issuer-ledger-与复制载体normative",
+      "section_digest": "sha256:f9cc80192c75a9fbc5bf9ea3a45f8aa9fbae184aa8686d3e3f6ce815efb74767",
+      "requirement": "The Account Authority issuer ledger chains genesis and CAS successors inside the binding commit transaction, binds each record to its issuer identity and proof, classifies every replica state through one closed table, and bounds the fanout outbox.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.account_status.issuer_ledger.v1"
+      ]
     }
   ]
 }

@@ -89,8 +89,13 @@ DID route 只是 authority locator 信号；权威身份仍由 genesis 和 old�
 
 ## 3. 向量定义
 
-本节逐条定义 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 登记、且不由 fixture 承载的
-一致性向量。每条给出该向量 MUST 证明的判定点；适用面、profile 与正文依据以 registry 行为准。全部判定按本规范
+本节逐条定义 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 登记的一致性向量，
+其中一部分另有可执行 fixture 证据。每条给出该向量 MUST 证明的判定点；适用面、profile 与正文依据以 registry 行为准。
+`normative-clause-registry.json` 的 `coverage_scope.executable_fixture_categories` 列出的条款类别中，
+每个向量 MUST 有一份 fixture 用 `security_evidence` 把本节的判定点逐条映射到该 fixture 内可解析的 case；
+尚未闭合的 (条款, 向量) 对必须逐条登记在同一 registry 的 `executable_evidence_exemptions` 里，该清单只减不增。
+fixture 存在、suite id 已登记或向量 active 都不等于参考实现已执行：认证器 MUST 拒绝未映射的 suite，
+也 MUST 拒绝缺少逐 case 实际断言结果的运行。全部判定按本规范
 当前的 Event / RealmCommit 边界解释：Event 只承载 producer 意图，接纳由当前治理 Station 的 `RealmCommit` 表达，
 一条 `RealmCommit` 恰好接纳一条 Event，Realm、每个 Circle 与每个 Sidecar 各有独立 commit stream。
 

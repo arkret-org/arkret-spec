@@ -1,0 +1,125 @@
+{
+  "suite": "consent_cache_invalidation",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.consent.cache_invalidation.v1"
+  },
+  "version": "2026-09-20.1",
+  "profile": "ak.profile.station.v1",
+  "covers_vectors": [
+    "ak.vector.consent.cache_invalidation.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json"
+  ],
+  "description": "Executable evidence that revoking consent immediately invalidates the cached private contact discovery result, the invite capability gate and the PSI index, and that the revocation itself stays indistinguishable from never having matched.",
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.consent.cache_invalidation.v1",
+      "clause_id": "AK-NC-073",
+      "decision_points": [
+        {
+          "id": "discovery_cache_invalidation",
+          "requirement": "A cached private contact discovery result stops returning the peer as soon as consent is revoked.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "invite_gate_reevaluation",
+          "requirement": "The next invite submission fails its precondition and re-evaluates the capability gate instead of trusting the cached decision.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "any_scope_revoke_clears_all_scopes",
+          "requirement": "A revoke with scope any invalidates every scope cache.",
+          "evidence": [
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "psi_rotation_exclusion",
+          "requirement": "The next PSI rotation excludes the peer.",
+          "evidence": [
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "revocation_indistinguishable",
+          "requirement": "The requester cannot separate a revoked peer from a peer that never matched.",
+          "evidence": [
+            "/cases/4"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "directory_lookup_stops_returning_the_peer",
+      "given": "a private contact discovery result for the peer was cached while consent was active",
+      "action": "the subject revokes consent, then the same directory lookup runs again",
+      "decision": "reject",
+      "reason": "not_found",
+      "observed": "the directory lookup response before and after the revoke",
+      "assertions": [
+        "the cached discovery entry is invalidated by the revoke itself, not by its own expiry",
+        "the post-revoke response is the same shape the requester would get for a peer that never matched",
+        "no cached entry can be replayed to re-derive the peer"
+      ]
+    },
+    {
+      "name": "cached_invite_gate_is_reevaluated_before_the_next_submission",
+      "given": "the invite capability gate for this subject evaluated to allowed and was cached",
+      "action": "revoke consent, then submit the next invite",
+      "decision": "reject",
+      "reason": "consent_revoked",
+      "observed": "the authorization decision recorded for the submission",
+      "assertions": [
+        "the submission fails its precondition instead of being admitted from the cached decision",
+        "the gate is re-evaluated against current consent state, so a stale cache entry never authorizes the action",
+        "consent_revoked is the recorded authorization outcome"
+      ]
+    },
+    {
+      "name": "an_any_scope_revoke_clears_every_scope_cache",
+      "given": "three separate scopes hold cached decisions derived from the same consent",
+      "action": "revoke with scope any",
+      "decision": "reject",
+      "reason": "consent_revoked",
+      "observed": "each scope cache after the revoke",
+      "assertions": [
+        "every scope cache is invalidated, not only the scope named in the most recent grant",
+        "a per-scope revoke MUST NOT be substituted for the any-scope semantics",
+        "no scope retains an entry that would authorize after the revoke"
+      ]
+    },
+    {
+      "name": "the_next_psi_rotation_excludes_the_peer",
+      "given": "the PSI index built before the revoke still contains the peer",
+      "action": "run the next PSI rotation",
+      "decision": "accept",
+      "observed": "the membership of the rotated PSI index",
+      "assertions": [
+        "the rotated index excludes the peer",
+        "exclusion happens at the rotation boundary and is not deferred to a later one",
+        "the pre-rotation index is not queryable as a fallback once the rotation completes"
+      ]
+    },
+    {
+      "name": "revocation_is_not_distinguishable_from_never_matching",
+      "given": "one peer revoked consent and another never granted it",
+      "action": "run the same lookup for both",
+      "decision": "accept",
+      "observed": "the external response shape and timing for both peers",
+      "assertions": [
+        "both return the same external shape",
+        "consent_revoked is an internal authorization outcome and MUST NOT be the reason the requester sees",
+        "timing does not separate the two"
+      ]
+    }
+  ]
+}

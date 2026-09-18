@@ -1,12 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 326,
+  "audited_occurrence_count": 338,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -779,9 +779,23 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 26,
+      "occurrences": 36,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
+    },
+    {
+      "file": "normative-clause-registry.json",
+      "key": "executable_evidence_exemption_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "States, inside the registry, that the exemption ledger only shrinks."
+    },
+    {
+      "file": "normative-clause-registry.json",
+      "key": "executable_evidence_exemptions",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Enumerates the clause/vector pairs inside the executable-evidence categories that have no fixture evidence yet; it is a shrink-only gap ledger, not wire material."
     },
     {
       "file": "operation-clause-registry.json",
@@ -885,18 +899,6 @@
       "reason": "Conformance clauses may attach executable proof artifacts or externally issued test attestations."
     },
     {
-      "file": "typed-current-result.schema.json",
-      "key": "evidence_ref",
-      "disposition": "polymorphic_container",
-      "occurrences": 1,
-      "material_families": [
-        "proof",
-        "attestation",
-        "receipt"
-      ],
-      "reason": "Projection of consent_grant_payload.evidence_ref into the consent typed current result; the referenced consent material may be a proof, attestation, or receipt."
-    },
-    {
       "file": "sdk-conformance-claim.schema.json",
       "key": "evidence_ref",
       "occurrences": 1,
@@ -937,6 +939,18 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Selects material families from a heterogeneous evidence response."
+    },
+    {
+      "file": "typed-current-result.schema.json",
+      "key": "evidence_ref",
+      "disposition": "polymorphic_container",
+      "occurrences": 1,
+      "material_families": [
+        "proof",
+        "attestation",
+        "receipt"
+      ],
+      "reason": "Projection of consent_grant_payload.evidence_ref into the consent typed current result; the referenced consent material may be a proof, attestation, or receipt."
     }
   ]
 }

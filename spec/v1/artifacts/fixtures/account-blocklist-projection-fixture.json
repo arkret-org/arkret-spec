@@ -1,0 +1,167 @@
+{
+  "suite": "account_blocklist_projection",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.account.blocklist_projection.v1"
+  },
+  "version": "2026-09-20.1",
+  "profile": "ak.profile.full_client.v1",
+  "covers_vectors": [
+    "ak.vector.account.blocklist_projection.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json",
+    "registry/account-data-key-registry.json"
+  ],
+  "description": "Executable evidence for the personal blocklist obligations: whole-value CAS on one shared revision counter, the closed target set, receive-before-filter on shared history, projection rebuild after unblocking, and the non-enumerability of the filtered outcome.",
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.account.blocklist_projection.v1",
+      "clause_id": "AK-NC-072",
+      "decision_points": [
+        {
+          "id": "whole_value_cas",
+          "requirement": "The blocklist is a whole-value CAS result whose version is exactly current + 1, and ak.account_data.set on the same key shares that one counter.",
+          "evidence": [
+            "/cases/0",
+            "/cases/1",
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "target_closure",
+          "requirement": "v1 registers no organization or realm blocklist target; official accounts and services are filtered by their exact ActorId.",
+          "evidence": [
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "receive_before_filter",
+          "requirement": "Shared history is received and retained first and filtered holder-side afterwards; the sender observes nothing.",
+          "evidence": [
+            "/cases/4",
+            "/cases/6"
+          ]
+        },
+        {
+          "id": "unblock_projection_rebuild",
+          "requirement": "The next revision stops the filtering immediately and the holder view is rebuilt from already retained material.",
+          "evidence": [
+            "/cases/5"
+          ]
+        },
+        {
+          "id": "non_enumerable_outcome",
+          "requirement": "No surface lets the sender, the queried party or a federation peer distinguish blocked from unauthorized, absent or offline, including from a device whose blocklist freshness is unknown.",
+          "evidence": [
+            "/cases/6",
+            "/cases/7"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "whole_value_cas_rejects_a_skipped_revision",
+      "given": "the holder's accepted ak.account.blocklist current result is at version 7",
+      "action": "author a whole-value blocklist write declaring version 9",
+      "decision": "reject",
+      "reason": "cas_conflict",
+      "observed": "the authority-committed typed current result and the rejected submission outcome",
+      "assertions": [
+        "version MUST be exactly current + 1; 9 skips 8 and is refused",
+        "the accepted current result still reads version 7 after the refusal",
+        "no partial entry set is written"
+      ]
+    },
+    {
+      "name": "whole_value_cas_rejects_a_stale_concurrent_write",
+      "given": "two holder devices both read version 7 and both author version 8",
+      "action": "commit the first write, then submit the second",
+      "decision": "reject",
+      "reason": "cas_conflict",
+      "observed": "both submission outcomes against one accepted stream",
+      "assertions": [
+        "exactly one version 8 is accepted",
+        "the loser is refused rather than merged entry by entry: the blocklist is a whole-value result",
+        "the loser MUST re-read version 8 and re-author instead of retrying the same body"
+      ]
+    },
+    {
+      "name": "account_data_set_shares_the_one_revision_counter",
+      "given": "ak.account.blocklist is at version 7 for this exact AccountId",
+      "action": "write ak.account_data.set on key ak.account.blocklist declaring version 8 after a concurrent blocklist write already took 8",
+      "decision": "reject",
+      "reason": "cas_conflict",
+      "observed": "the single revision counter shared by both authoring surfaces",
+      "assertions": [
+        "the two surfaces MUST NOT form two independent winner chains",
+        "the counter is per exact AccountId: an account sharing a principal core on another Station shares neither counter nor rules"
+      ]
+    },
+    {
+      "name": "target_closure_rejects_realm_and_organization_targets",
+      "given": "v1 defines no organization or realm blocklist target",
+      "action": "author a blocklist entry whose target names a Realm, then one naming an Organization",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the payload validation outcome for each target form",
+      "assertions": [
+        "an Organization's official account is filtered by its exact account ActorId and a service by its service ActorId",
+        "whole-Realm notification or default-view preferences are a separate per-Realm client preference and MUST NOT be synthesized out of a personal blocklist",
+        "leaving, refusing new writes or revoking sharing use the membership, Contact and capability paths instead"
+      ]
+    },
+    {
+      "name": "shared_history_is_received_then_filtered_by_the_holder",
+      "given": "a blocked peer authors an Event in a Realm both accounts belong to",
+      "action": "sync the Realm stream on a holder device that already holds the blocking revision",
+      "decision": "accept",
+      "observed": "the accepted Realm stream and the holder-side projection built from it",
+      "assertions": [
+        "the Event is received and retained: a personal blocklist does not change the Realm's shared facts",
+        "the holder projection filters it after receipt",
+        "the peer's submission succeeds and receives no blocked_by_user signal, no distinguishable error, no latency difference and no delivery receipt difference"
+      ]
+    },
+    {
+      "name": "unblock_rebuilds_the_projection_from_retained_material",
+      "given": "the holder blocked a peer and then authored the next revision removing that entry",
+      "action": "recompute the holder projection from the material already retained",
+      "decision": "accept",
+      "observed": "the projection before and after the removing revision",
+      "assertions": [
+        "future projections stop filtering immediately at the new revision",
+        "shared Realm and DM history received normally during the block reappears in the holder view",
+        "requests actually refused by a Contact tombstone during the block are not back-filled by unblocking",
+        "hiding old content after an unblock requires a holder-private hide or tombstone, or the erasure flow, and never a re-reading of blocklist removal as history deletion"
+      ]
+    },
+    {
+      "name": "server_side_filtering_stays_indistinguishable",
+      "given": "the holder has explicitly authorized a service to read the blocklist data class",
+      "action": "a blocked sender submits a contact request, a first DM invite and a call invite",
+      "decision": "accept",
+      "observed": "the sender-visible response shape, reason code and timing on each surface",
+      "assertions": [
+        "the filtered outcome MUST NOT let the sender, the queried party or a federation peer separate blocked from unauthorized, absent or offline",
+        "a service without that explicit authorization forwards the encrypted material unchanged for client-side filtering instead of dropping it",
+        "no blocked_by_user reason reaches the sender on either path"
+      ]
+    },
+    {
+      "name": "an_unsynced_device_treats_freshness_as_unknown",
+      "given": "one holder device has not yet synced the newest accepted blocklist revision",
+      "action": "ask that device to render the holder projection and to emit presence and read receipts",
+      "decision": "accept",
+      "observed": "which revision the device filters by and which signals it emits",
+      "assertions": [
+        "the device filters only by the highest accepted revision it actually holds",
+        "it MUST treat blocklist freshness as unknown and withhold read receipt and presence signals that would leak the difference",
+        "it recomputes the holder projection after the actor-private account-data catch-up"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "suite": "webrtc_media_plaintext_downgrade",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.webrtc.media_plaintext_downgrade.v1"
+  },
+  "version": "2026-09-20.1",
+  "profile": "ak.profile.webrtc_media.v1",
+  "covers_vectors": [
+    "ak.vector.webrtc.media_plaintext_downgrade.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json"
+  ],
+  "description": "Executable evidence that joining a decrypting conference is refused and no media key is published when Realm policy has not authorized media-service decryption, when the SFU service DID is absent from plaintext_visible_services, or when the required plaintext warning was not shown.",
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
+      "clause_id": "AK-NC-080",
+      "decision_points": [
+        {
+          "id": "realm_policy_gate",
+          "requirement": "Without Realm policy authorization the join is refused with media_plaintext_service_not_authorised.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "plaintext_visible_services_gate",
+          "requirement": "An SFU service DID absent from plaintext_visible_services is refused with the same stable reason.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "plaintext_warning_gate",
+          "requirement": "A missing required plaintext warning refuses the join with an equivalent stable reason code.",
+          "evidence": [
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "no_key_publication_on_refusal",
+          "requirement": "None of the three refusals publishes a media key.",
+          "evidence": [
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "authorized_path_stays_open",
+          "requirement": "With all three gates satisfied the join succeeds and the media key is published once.",
+          "evidence": [
+            "/cases/4"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "realm_policy_has_not_authorized_media_decryption",
+      "given": "a decrypting conference whose Realm policy does not authorize media-service decryption",
+      "action": "attempt to join and to publish the media key",
+      "decision": "reject",
+      "reason": "media_plaintext_service_not_authorised",
+      "observed": "the join outcome and whether any media key left the client",
+      "assertions": [
+        "the join is refused and no media key is published",
+        "the stable failure reason is the registered media_plaintext_service_not_authorised",
+        "the refusal is evaluated against current Realm policy rather than a cached negotiation result"
+      ]
+    },
+    {
+      "name": "sfu_service_did_absent_from_plaintext_visible_services",
+      "given": "Realm policy authorizes decryption but the SFU service DID is not in plaintext_visible_services",
+      "action": "attempt to join and to publish the media key",
+      "decision": "reject",
+      "reason": "media_plaintext_service_not_authorised",
+      "observed": "the join outcome and the published key set",
+      "assertions": [
+        "policy authorization and service enumeration are two independent gates; passing one does not satisfy the other",
+        "the join is refused and no media key is published",
+        "the same stable reason is used as for the unauthorized-policy case"
+      ]
+    },
+    {
+      "name": "the_required_plaintext_warning_was_not_shown",
+      "given": "both service gates pass but the required plaintext warning was not displayed",
+      "action": "attempt to join",
+      "decision": "reject",
+      "reason": "media_plaintext_warning_required",
+      "observed": "the join outcome and the published key set",
+      "assertions": [
+        "the join is refused with an equivalent stable reason code and no media key is published",
+        "the warning is a precondition of joining, not an advisory shown alongside a successful join",
+        "a client cannot satisfy it by recording that a warning was shown in an earlier call"
+      ]
+    },
+    {
+      "name": "no_media_key_is_published_on_any_of_the_three_refusals",
+      "given": "the three refusal scenarios above",
+      "action": "observe the key publication path in each",
+      "decision": "accept",
+      "observed": "the media key publication attempts across all three refusals",
+      "assertions": [
+        "no media key is published in any of the three cases",
+        "refusing the join and withholding the key are one outcome, not two independently reachable states",
+        "a partially completed negotiation leaves no key material with the service"
+      ]
+    },
+    {
+      "name": "a_fully_authorized_join_publishes_the_media_key",
+      "given": "Realm policy authorizes decryption, the SFU service DID is listed, and the warning was shown",
+      "action": "join the conference",
+      "decision": "accept",
+      "observed": "the join outcome and the published key set",
+      "assertions": [
+        "the three gates together are sufficient; no fourth undeclared condition blocks the join",
+        "the media key is published exactly once for this join",
+        "the negative cases above do not close the authorized path"
+      ]
+    }
+  ]
+}

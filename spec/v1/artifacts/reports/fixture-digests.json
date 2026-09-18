@@ -1,12 +1,16 @@
 {
   "files": [
     {
+      "path": "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json",
+      "sha256": "b45ec09d42747c2b3c31d1f21dd460167e00c8c37c4379e62d691b2e2b93e0fe"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
       "sha256": "e4e114b06169a0f8afb3ed35d25b645a6ff4e1b287919bdef9f844dd76336120"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
-      "sha256": "547186b84136ebd445bf96dc486499f244bc319f619cb89d46a4cae079a72d19"
+      "sha256": "b23cea527a92b56e4482a65cd1ea09c75874ca650385019835571239c11382a8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
@@ -85,6 +89,10 @@
       "sha256": "7296f30270c396ededbfe5910de32b4f76314b8a6473f676c4108a5ca958938c"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
+      "sha256": "dfea8149415afb96ca23bbfd34c47ffb60b00610931950abc42628c83f33257f"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
       "sha256": "58047adbe48fb1a3d09462f66f328deeab83ffc76062a1c714649c47b31d830a"
     },
@@ -141,6 +149,10 @@
       "sha256": "b9a7d7ec7ac85d891faa5d2c67ef920141a33890fed44dc06749d2da06ca28c7"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json",
+      "sha256": "8478c0a5ada53f0ee804254fa1dd1d4869ba01899cda21566cc476daf27fc72a"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json",
       "sha256": "4510c9057e0c3f4fb68414cc22424cb8d12147353311ab2cc4702314f8ee11b4"
     },
@@ -161,12 +173,20 @@
       "sha256": "a2926e6b005676360b374a63455311a873342c23116f035b20b0f05f5864ae73"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json",
+      "sha256": "cf0ed8010f0f8debdc205bc1cbc32de01405533d6a9606f83e3e184072a1aa05"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
       "sha256": "e6117c6833f8a84c6ec8ecafc8a2df4a9f94812f26753b93d012730532673fe7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/independent-admission-fixture.json",
       "sha256": "d9ea1450ff0644481d370f32d680de14abbc3394b46b66f10a77d98c8bf537d4"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json",
+      "sha256": "6752798aacc926c2f9b4f32600d77fcd6f845fc8de87478ab9d29ee91e9d3bcd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
@@ -319,6 +339,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
       "sha256": "e2063d4b96f5414e9bc2cd7566a757241bb1a286c2cfb15ba35e680a3f73fc9e"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json",
+      "sha256": "26617c4b7a486186220e53d388526bba732d145715a754c445ed46a0809c4c19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
