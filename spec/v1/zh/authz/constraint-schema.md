@@ -590,13 +590,13 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
 | --- | --- | --- | --- |
 | 本节 approval signature（`ak.schema.approval_signature.v1`） | detached 签名证据，非 Event | `approval_context` + `approval_target` + 原请求摘要 + 投票资格 | grant 层（§9.1）与 Realm 治理层（§9.3）的通用审批 quorum 证据 |
 | `ak.agent.action_approve` | 已登记的 **Event kind**，`result_writes` 为空 | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令** |
-| `agent_key_approval_signatures` | `ak.agent.key.*` payload 内的 **tagged 引用** | `evidence_ref` 指向一条已接纳 Event 或 grant | 授权 **provenance** 的可解析引用 |
+| `agent_key_approval_evidence` | `ak.agent.key.*` payload 内的 **tagged 引用** | `evidence_ref` 指向一条已接纳 Event 或 grant | 授权 **provenance** 的可解析引用 |
 
 - Agent confirmation 成功**只**满足 Agent draft 的发布 gate，MUST NOT 免除目标 Event 的 grant／
   governance approval 要求；两者都命中时 MUST 都被满足，且 MUST 能**分别**拒绝。
 - 同一个 controller MAY 另签一份本节 evidence，并按各层资格计票；但 MUST NOT 把
-  `agent_key_approval_signatures` 的 `approval_event` 引用直接当成一份 detached 签名。
-- `agent_key_approval_signatures.approval_event` MUST 解析到一条**已登记且已接纳**的 Agent
+  `agent_key_approval_evidence` 的 `approval_event` 引用直接当成一份 detached 签名。
+- `agent_key_approval_evidence.approval_event` MUST 解析到一条**已登记且已接纳**的 Agent
   confirmation Event。只有存在真实 producer 与正文来源的 provenance 支才保留。
 
 #### 9.2.7 审批模式是封闭单值（normative）
