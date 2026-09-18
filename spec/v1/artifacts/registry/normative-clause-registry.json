@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T03:10:00+08:00",
+  "generated_at": "2026-09-20T11:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -151,7 +151,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:acc64c371341b180dc105be061bcbfdedb709f32eb161ccf245e3f754ddff067",
+      "section_digest": "sha256:c5e78c41eb1f004082c475543f2cccc7904b3261d34ceb7b1d3c26b7eec6bc86",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -163,14 +163,15 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:4af33b3d1175f78a06e33e8bce62b45a0c4c66c22e0a8949ac452ed422343f4f",
+      "section_digest": "sha256:78b80c34756324ec888aab9fc30fb92c8c0485de2f71c7cc4b82e30143593bbd",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.session.pop_presentation.v1",
         "ak.vector.session.bare_bearer_rejected_protected.v1",
         "ak.vector.session.dpop_target_uri_binding.v1",
-        "ak.vector.session.device_identity_key_separation.v1"
+        "ak.vector.session.device_identity_key_separation.v1",
+        "ak.vector.session.http_signature_operation_selector_binding.v1"
       ]
     },
     {
@@ -537,7 +538,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#921-双重授权与签名-transcript",
-      "section_digest": "sha256:b809e646d02863250be89872b56b99cabf0e97b2a5a0c159789d383d7aa80729",
+      "section_digest": "sha256:272fb642943e693a0a3e87a14a8e6c8304b1ced27548a73cd7e0f4ac61d15ef6",
       "requirement": "Every peer KeyPackage claim binds the accepted authorization Event id of its closed branch, an independently verifiable unique producer proof and portable signer evidence, and a destination-signed claim_receipt over the exact claim bytes. The requester checks the authorization Event embedded signer evidence, the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome. The wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history.",
       "testability_grade": "vector",
       "evidence_refs": [

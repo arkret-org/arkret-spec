@@ -547,7 +547,22 @@ SHOULD 支持：
 - `ak.profile.sovereign_deployment.v1`（`ak.profile.sovereign_enclave.v1` 经 `inherits` 继承）
 - `ak.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
-这些 profile 下，对所有受保护 `ak.self.*` operation，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §7.2](./encoding.md)）。`ak.self.` 是机器可判定的默认保护面；新增或未知 operation 默认 fail closed。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；operation registry 明确允许匿名 public metadata projection 时，无有效 proof 只能返回该公开 projection，必须按未认证请求处理，不得授予 session / capability 语义。PoP header 形态见 [`../sync/service-http-binding.md` §2.5.2](../sync/service-http-binding.md)。
+这些 profile 下，对所有受保护 `ak.self.*` operation，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为
+`ak.session.grant` 委托的 `session_public_key`。本场景是
+[`../sync/service-http-binding.md` §8](../sync/service-http-binding.md) 的
+`ak.http_signature.scenario.client_session_pop.v1`，适用的必需覆盖项：
+
+<!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.client_session_pop.v1 -->
+- `@method`、`@target-uri`、`@authority`
+- `arkret-operation`
+- `content-digest`（条件项：带 body 时必需）
+- `idempotency-key`（条件项：参与幂等 / replay key 时必需）
+- `x-arkret-wait-for`（条件项：该 header 出现时必需）
+<!-- END ak-http-signature-covered-set -->
+
+`created` / `expires` 判据是 [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md)
+的共享窗口，本页不复制其数值；`encoding.md` §7.2 的 HLC 漂移阈值是另一场景的独立阈值，不得代入。
+`ak.self.` 是机器可判定的默认保护面；新增或未知 operation 默认 fail closed。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §8.2](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；operation registry 明确允许匿名 public metadata projection 时，无有效 proof 只能返回该公开 projection，必须按未认证请求处理，不得授予 session / capability 语义。覆盖集的共同基线与其它签名场景见 [`../sync/service-http-binding.md` §8.1](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 
@@ -798,7 +813,7 @@ Applet v1 家族适用于运行 Applet 集成服务。`ak.profile.applet_service
 - transaction push per-delivery authentication record（`delivery_authentication_record`）
 - idempotency / replay binding across `Source-Service-ID`、`Destination-Service-ID`、`Idempotency-Key`、canonical body digest and source verification method
 - capability enforcement
-- HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `arkret-operation` / `source-service-id` / `destination-service-id` / `idempotency-key`）
+- HTTP message signature verification（RFC 9421；覆盖集的唯一合同是 `ak.http_signature.scenario.applet_transaction.v1`，正文见 [`../extensions/applet-integration.md` §7.3.1](../extensions/applet-integration.md)）
 - event signature verification
 - bot actor attribution
 - `ak.edge.applet.command.transaction.v1` as operation_id only, never as durable Event kind

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T03:10:00+08:00",
+  "generated_at": "2026-09-20T12:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3240,7 +3240,7 @@
       "applies_to_profiles": [
         "ak.profile.mimi_interop.v1"
       ],
-      "description": "Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; the provider-directory read does not inherit this profile.",
+      "description": "Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; a present but unsigned Arkret-Operation header fails the coverage check, and a selector replaced after signing fails signature verification. mimi-room-uri is required whenever the endpoint addresses one MIMI room. The provider-directory read does not inherit this profile.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
@@ -4152,6 +4152,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.service.http_signature_freshness_window_boundaries.v1",
+      "status": "active",
+      "domain": "service",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
+      "description": "The shared RFC 9421 freshness window at every edge it states: an at-ceiling lifetime accepted and an over-ceiling one rejected, zero and negative lifetimes rejected, both created-skew bounds inclusive and one second past either bound rejected, a signature rejected at the moment it reaches expires, and a byte-identical replay rejected by the time checks after the replay cache evicted it. Missing or non-integer created/expires fail before any comparison. The RFC 9449 DPoP iat/jti window is a separate contract with its own bounds and never inherits the RFC 9421 lifetime ceiling.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "spec/v1/zh/sync/service-http-binding.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.service.protocol_version_bootstrap.v1",
       "status": "active",
       "domain": "service",
@@ -4199,6 +4212,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
         "spec/v1/zh/sync/api-conventions.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session.http_signature_operation_selector_binding.v1",
+      "status": "active",
+      "domain": "session",
+      "applies_to_profiles": [
+        "ak.profile.high_security_organization.v1"
+      ],
+      "description": "Client RFC 9421 session PoP binds the operation selector. A request whose Arkret-Operation header is present and valid but absent from Signature-Input fails the coverage check with http_signature_invalid; a request whose covered selector is replaced after signing fails signature verification. The conditional components fail the same way when their trigger holds: content-digest on a request with a body, idempotency-key when the request is idempotency-keyed, x-arkret-wait-for when the header is present.",
+      "source_refs": [
+        "spec/v1/zh/sync/api-conventions.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {

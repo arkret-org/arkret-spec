@@ -135,9 +135,12 @@ from .naming_contracts import (
     check_typed_current_result_naming,
 )
 
+from .http_signature import check_http_signature_contract_closure
+
 from .prose import (
     check_account_notification_prose_schema_alignment,
     check_artifact_prose_section_refs,
+    check_prose_markdown_link_section_refs,
     check_prose_plain_text_section_refs,
     check_canonical_digest_alias,
     check_common_object_field_matrix,
@@ -624,6 +627,14 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "prose_plain_text_section_refs",
                 lambda: check_prose_plain_text_section_refs(lint),
+            ),
+            (
+                "prose_markdown_link_section_refs",
+                lambda: check_prose_markdown_link_section_refs(lint),
+            ),
+            (
+                "http_signature_contract_closure",
+                lambda: check_http_signature_contract_closure(lint),
             ),
             ("cross_source", lambda: check_cross_source_drift(lint, known)),
             ("markdown_links", lambda: check_markdown_links(lint)),

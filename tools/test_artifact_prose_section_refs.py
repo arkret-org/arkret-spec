@@ -20,6 +20,7 @@ from artifact_lint.prose import (
     ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH,
     _artifact_prose_section_citations,
     check_artifact_prose_section_refs,
+    check_prose_markdown_link_section_refs,
     check_prose_plain_text_section_refs,
 )
 from artifact_lint.prose import (
@@ -55,6 +56,12 @@ def run_gate() -> list[str]:
 def run_prose_gate() -> list[str]:
     lint = Lint()
     check_prose_plain_text_section_refs(lint)
+    return lint.errors
+
+
+def run_link_gate() -> list[str]:
+    lint = Lint()
+    check_prose_markdown_link_section_refs(lint)
     return lint.errors
 
 
@@ -249,6 +256,63 @@ class ProsePlainTextSectionRefGateTest(unittest.TestCase):
         ]
         self.assertEqual([("the", "99.99"), ("conformance-vectors", "3.4")], matches)
         # Only the second one names a page, so only it is ever checked.
+
+
+class ProseMarkdownLinkSectionRefGateTest(unittest.TestCase):
+    """The section number inside a markdown link's text was read by nothing.
+
+    The plain-text gate strips markdown links whole and LK001 checks only the
+    href, so `[`federation.md` §3.2](../sync/federation.md)` was true as long as
+    the file existed. Seven pages cited that section for a covered set and a
+    signature window it had not carried since it was reduced to a 39-character
+    anchor; report 0110 is the cleanup.
+    """
+
+    API_CONVENTIONS = SPEC / "zh" / "sync" / "api-conventions.md"
+    CITATION = "[`service-http-binding.md` §8.3](./service-http-binding.md)"
+
+    def test_no_link_text_cites_a_section_that_does_not_exist(self) -> None:
+        self.assertEqual([], run_link_gate())
+
+    def test_a_stale_section_in_a_link_text_turns_the_gate_red(self) -> None:
+        with MutateFile(
+            self.API_CONVENTIONS,
+            self.CITATION,
+            "[`service-http-binding.md` §8.99](./service-http-binding.md)",
+        ):
+            errors = run_link_gate()
+        self.assertEqual(1, len(errors), errors)
+        self.assertIn("§8.99", errors[0])
+        self.assertIn("service-http-binding.md", errors[0])
+
+    def test_a_link_text_naming_another_page_turns_the_gate_red(self) -> None:
+        """A text that names one page while the href points at another.
+
+        This is how a citation survives its target moving: the reader trusts the
+        name, the checker follows the href, and the two stop agreeing.
+        """
+        with MutateFile(
+            self.API_CONVENTIONS,
+            self.CITATION,
+            "[`federation.md` §8.3](./service-http-binding.md)",
+        ):
+            errors = run_link_gate()
+        self.assertEqual(1, len(errors), errors)
+        self.assertIn("federation.md", errors[0])
+        self.assertIn("service-http-binding.md", errors[0])
+
+    def test_a_link_to_a_non_prose_target_is_not_read_as_a_citation(self) -> None:
+        """Artifact links carry no section numbering of their own."""
+        with MutateFile(
+            self.API_CONVENTIONS,
+            self.CITATION,
+            "[`vector-registry.json` §8.99](../../artifacts/registry/vector-registry.json)",
+        ):
+            self.assertEqual([], run_link_gate())
+
+    def test_the_runner_calls_this_gate(self) -> None:
+        source = (ROOT / "tools" / "artifact_lint" / "runner.py").read_text(encoding="utf-8")
+        self.assertIn("check_prose_markdown_link_section_refs(lint)", source)
 
 
 class RestoredPatchPathGrammarTest(unittest.TestCase):

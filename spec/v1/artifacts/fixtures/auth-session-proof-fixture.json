@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.station.v1",
-  "version": "2026-08-20",
+  "version": "2026-09-20",
   "suite": "auth_session_proof",
   "runner": {
     "kind": "named_suite",
@@ -11,7 +11,9 @@
     "ak.vector.session.pop_presentation.v1",
     "ak.vector.session.bare_bearer_rejected_protected.v1",
     "ak.vector.session.dpop_target_uri_binding.v1",
-    "ak.vector.session.device_identity_key_separation.v1"
+    "ak.vector.session.device_identity_key_separation.v1",
+    "ak.vector.session.http_signature_operation_selector_binding.v1",
+    "ak.vector.service.http_signature_freshness_window_boundaries.v1"
   ],
   "cases": [
     {
@@ -234,6 +236,210 @@
         "the same path at a different authority or scheme is rejected",
         "forwarding headers are used only from a configured trusted final proxy after edge scrubbing",
         "an implementation unable to reconstruct the external URI rejects instead of using path-only comparison"
+      ]
+    },
+    {
+      "name": "http_signature_operation_selector_binding",
+      "vector_id": "ak.vector.session.http_signature_operation_selector_binding.v1",
+      "kind": "http_message_signature_pop",
+      "method": "POST",
+      "target_uri": "https://service.example.com/_arkret/self/events",
+      "authority": "service.example.com",
+      "path": "/_arkret/self/events",
+      "body": "{\"hello\":\"world\"}",
+      "content_type": "application/json",
+      "content_encoding": null,
+      "content_digest_placement": "header",
+      "content_digest_algorithm_key": "sha-256",
+      "content_digest_member_count": 1,
+      "exact_http_content_is_arkret_canonical_json": true,
+      "arkret_operation": "ak.self.events.command.submit.v1",
+      "idempotency_key": "idem-selector-0001",
+      "x_arkret_wait_for": "committed",
+      "key_id": "did:webvh:z6mkfixture:alice.example#session-key-1",
+      "created": 1716000000,
+      "expires": 1716000120,
+      "max_window_seconds": 300,
+      "signature_scenario_id": "ak.http_signature.scenario.client_session_pop.v1",
+      "required_components": [
+        "@authority",
+        "@method",
+        "@target-uri",
+        "arkret-operation",
+        "content-digest",
+        "idempotency-key",
+        "x-arkret-wait-for"
+      ],
+      "expected": {
+        "valid_write": "accepted",
+        "arkret_operation_header_present_but_unsigned": "rejected",
+        "arkret_operation_replaced_after_signing": "rejected",
+        "idempotency_key_present_but_unsigned": "rejected",
+        "wait_for_header_present_but_unsigned": "rejected",
+        "content_digest_absent_with_body": "rejected"
+      },
+      "expected_error_code": "http_signature_invalid",
+      "assertions": [
+        "this case triggers every conditional component of ak.http_signature.scenario.client_session_pop.v1, so required_components is the scenario's full applicable set and is compared to the canonical contract by gate",
+        "a request whose Arkret-Operation header is present and valid but absent from Signature-Input fails the coverage check",
+        "a covered selector replaced after signing fails signature verification, not the coverage check",
+        "max_window_seconds projects ak.http_signature.freshness.v1 and carries no independent numeral"
+      ]
+    },
+    {
+      "name": "http_signature_freshness_window_boundaries",
+      "vector_id": "ak.vector.service.http_signature_freshness_window_boundaries.v1",
+      "kind": "http_message_signature_freshness_window",
+      "freshness_profile_id": "ak.http_signature.freshness.v1",
+      "now": 1716000000,
+      "max_signature_lifetime_seconds": 300,
+      "created_skew_seconds": 30,
+      "error_code": "signature_window_invalid",
+      "boundaries": [
+        {
+          "name": "lifetime_at_ceiling",
+          "created": 1716000000,
+          "expires": 1716000300,
+          "expected": "accepted",
+          "reason": "expires - created equals max_signature_lifetime_seconds, which is inclusive"
+        },
+        {
+          "name": "lifetime_over_ceiling",
+          "created": 1716000000,
+          "expires": 1716000301,
+          "expected": "rejected",
+          "reason": "expires - created exceeds max_signature_lifetime_seconds"
+        },
+        {
+          "name": "lifetime_zero",
+          "created": 1716000000,
+          "expires": 1716000000,
+          "expected": "rejected",
+          "reason": "expires - created must be strictly positive"
+        },
+        {
+          "name": "lifetime_negative",
+          "created": 1716000000,
+          "expires": 1715999999,
+          "expected": "rejected",
+          "reason": "expires precedes created"
+        },
+        {
+          "name": "created_past_boundary",
+          "created": 1715999970,
+          "expires": 1716000060,
+          "expected": "accepted",
+          "reason": "now - created equals created_skew_seconds, which is inclusive"
+        },
+        {
+          "name": "created_past_outside",
+          "created": 1715999969,
+          "expires": 1716000060,
+          "expected": "rejected",
+          "reason": "now - created exceeds created_skew_seconds"
+        },
+        {
+          "name": "created_future_boundary",
+          "created": 1716000030,
+          "expires": 1716000060,
+          "expected": "accepted",
+          "reason": "created - now equals created_skew_seconds, which is inclusive"
+        },
+        {
+          "name": "created_future_outside",
+          "created": 1716000031,
+          "expires": 1716000061,
+          "expected": "rejected",
+          "reason": "created - now exceeds created_skew_seconds"
+        },
+        {
+          "name": "expires_reached",
+          "created": 1715999980,
+          "expires": 1716000000,
+          "expected": "rejected",
+          "reason": "reaching expires is expiry; expires gets no skew grace"
+        },
+        {
+          "name": "replay_after_cache_eviction",
+          "created": 1715999600,
+          "expires": 1715999900,
+          "expected": "rejected",
+          "reason": "a byte-identical replay evicted from the replay cache is still rejected by the time checks, which run independently of the cache"
+        }
+      ],
+      "malformed_parameters": [
+        {
+          "name": "created_absent",
+          "expected": "rejected",
+          "reason": "created is not present"
+        },
+        {
+          "name": "expires_absent",
+          "expected": "rejected",
+          "reason": "expires is not present"
+        },
+        {
+          "name": "created_not_integer",
+          "created": "1716000000",
+          "expected": "rejected",
+          "reason": "created is not an integer UNIX second"
+        }
+      ],
+      "dpop": {
+        "freshness_profile_id": "ak.dpop.freshness.v1",
+        "now": 1716000000,
+        "iat_past_seconds": 30,
+        "iat_future_seconds": 30,
+        "jti_retention_seconds": 60,
+        "error_code": "unauthenticated",
+        "boundaries": [
+          {
+            "name": "iat_past_boundary",
+            "iat": 1715999970,
+            "expected": "accepted",
+            "reason": "now - iat equals iat_past_seconds, which is inclusive"
+          },
+          {
+            "name": "iat_past_outside",
+            "iat": 1715999969,
+            "expected": "rejected",
+            "reason": "now - iat exceeds iat_past_seconds"
+          },
+          {
+            "name": "iat_future_boundary",
+            "iat": 1716000030,
+            "expected": "accepted",
+            "reason": "iat - now equals iat_future_seconds, which is inclusive"
+          },
+          {
+            "name": "iat_future_outside",
+            "iat": 1716000031,
+            "expected": "rejected",
+            "reason": "iat - now exceeds iat_future_seconds"
+          },
+          {
+            "name": "rfc9421_ceiling_not_inherited",
+            "iat": 1715999880,
+            "expected": "rejected",
+            "reason": "a DPoP proof carries no expires parameter, so the RFC 9421 lifetime ceiling MUST NOT be substituted for iat_past_seconds"
+          }
+        ],
+        "jti_replay": {
+          "name": "repeated_jti_inside_retention",
+          "iat": 1715999995,
+          "expected": "rejected",
+          "reason": "a repeated jti inside retention fails closed even while iat is still inside the window"
+        },
+        "assertions": [
+          "jti_retention_seconds is at least iat_past_seconds plus iat_future_seconds, so no still-acceptable proof can be replayed after its jti is forgotten",
+          "sharing one holder key with RFC 9421 does not merge the two contracts"
+        ]
+      },
+      "assertions": [
+        "every numeral in this case projects a registered freshness profile and is compared to it by gate; the case states no independent window",
+        "both bounds of the created skew are inclusive, and the lifetime ceiling is inclusive while zero and negative lifetimes are rejected",
+        "reaching expires is expiry, so a signature is never accepted at expires",
+        "the replay cache runs independently: eviction never excuses a time check"
       ]
     }
   ]

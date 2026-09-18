@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.13",
+  "version": "2026-09-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T23:50:00+08:00",
+  "generated_at": "2026-09-20T12:10:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8029,6 +8029,434 @@
       ]
     }
   },
+  "http_signature_contract_registry": {
+    "version": "2026-09-20.1",
+    "generated_at": "2026-09-20T09:40:00+08:00",
+    "source_of_truth": true,
+    "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
+    "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
+    "registry_rules": [
+      "Every request required to carry an RFC 9421 HTTP Message Signature MUST resolve exactly one scenario_id in this registry.",
+      "A covered-component set declared here is a MINIMUM, not a closed set: an implementation MAY cover additional components. Verification MUST fail when any applicable required component is absent from Signature-Input.",
+      "This registry states set membership only. RFC 9421 keeps the actual ordered component list for base-string construction and for audit records; the order of these arrays carries no protocol requirement and MUST NOT be read as one.",
+      "created and expires are RFC 9421 signature parameters. They are never members of a covered-component array.",
+      "No operation, prose page, conformance profile, fixture or vector description carries its own covered-set array or window numeral. They cite a scenario_id and project this block; projections are compared by gate, not maintained by hand.",
+      "An operation contract binds a scenario through auth_requirements.service_signature.signature_scenario_id and MUST NOT restate covered_components or freshness.",
+      "Adding a component to a scenario is a protocol change: the scenario entry, every prose binding block and every declared projection move together or the gate fails.",
+      "A per-operation deviation from a scenario's freshness profile is registered as a freshness profile plus an operation_freshness_overrides entry on that scenario. A window numeral that appears only in one page's prose is a defect, not a contract."
+    ],
+    "component_vocabulary": [
+      {
+        "component": "@method",
+        "kind": "derived",
+        "binds": "The HTTP verb, so a signature cannot be replayed on a different method."
+      },
+      {
+        "component": "@target-uri",
+        "kind": "derived",
+        "binds": "The full request target, so a signature cannot be replayed on a different endpoint."
+      },
+      {
+        "component": "@authority",
+        "kind": "derived",
+        "binds": "The host, so a signature cannot be replayed against a different deployment."
+      },
+      {
+        "component": "arkret-operation",
+        "kind": "header",
+        "header": "Arkret-Operation",
+        "binds": "The exact versioned operation_id this request selected, so the selector cannot be swapped on an already-signed request. Required for every signed canonical request by zh/sync/api-conventions.md section 2.4.1."
+      },
+      {
+        "component": "content-digest",
+        "kind": "header",
+        "header": "Content-Digest",
+        "binds": "The RFC 9530 sha-256 digest of the exact HTTP content bytes."
+      },
+      {
+        "component": "source-service-id",
+        "kind": "header",
+        "header": "Source-Service-ID",
+        "binds": "The calling service identity."
+      },
+      {
+        "component": "destination-service-id",
+        "kind": "header",
+        "header": "Destination-Service-ID",
+        "binds": "The intended receiving service identity."
+      },
+      {
+        "component": "idempotency-key",
+        "kind": "header",
+        "header": "Idempotency-Key",
+        "binds": "The idempotency and replay identity of the request."
+      },
+      {
+        "component": "x-arkret-wait-for",
+        "kind": "header",
+        "header": "X-Arkret-Wait-For",
+        "binds": "The requested completion condition, so it cannot be downgraded on a signed request."
+      },
+      {
+        "component": "provider-id",
+        "kind": "header",
+        "header": "Provider-ID",
+        "binds": "The MIMI provider identity."
+      },
+      {
+        "component": "mimi-room-uri",
+        "kind": "header",
+        "header": "MIMI-Room-URI",
+        "binds": "The MIMI room the request is scoped to."
+      },
+      {
+        "component": "source-trust-domain",
+        "kind": "header",
+        "header": "Source-Trust-Domain",
+        "binds": "The deployment trust domain the request originates from."
+      },
+      {
+        "component": "destination-trust-domain",
+        "kind": "header",
+        "header": "Destination-Trust-Domain",
+        "binds": "The deployment trust domain the request is addressed to, so a cross-domain transaction cannot be replayed into another deployment."
+      },
+      {
+        "component": "destination-service-endpoint-digest",
+        "kind": "header",
+        "header": "Destination-Service-Endpoint-Digest",
+        "binds": "The digest of the addressed service endpoint, so a shared-ingress delivery cannot be replayed onto a different endpoint behind the same ingress."
+      }
+    ],
+    "common_contract": {
+      "standard": "RFC 9421 HTTP Message Signature",
+      "covered_components": [
+        "@method",
+        "@target-uri",
+        "@authority",
+        "arkret-operation"
+      ],
+      "signature_parameters": [
+        "created",
+        "expires",
+        "keyid",
+        "alg"
+      ],
+      "covered_set_semantics": "minimum",
+      "freshness_profile_id": "ak.http_signature.freshness.v1",
+      "bearer_only_allowed": false
+    },
+    "freshness_profiles": [
+      {
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "applies_to": "RFC 9421 signature parameters created and expires",
+        "max_signature_lifetime_seconds": 300,
+        "created_skew_seconds": 30,
+        "rules": [
+          "created and expires MUST both be present as integer UNIX seconds; a missing or non-integer parameter fails.",
+          "0 < expires - created <= max_signature_lifetime_seconds.",
+          "abs(created - now) <= created_skew_seconds, both bounds inclusive, where now is the receiver current Unix second for this verification.",
+          "now < expires. Reaching expires is expiry; expires gets no additional skew grace.",
+          "All three checks MUST hold. The replay cache runs independently; cache eviction never excuses a time check or a coverage check.",
+          "max_signature_lifetime_seconds caps the lifetime a signature may CLAIM. It is not a promise that a receiver accepts any signature for five minutes: the created skew rule rejects an old signature earlier."
+        ],
+        "error_code": "signature_window_invalid"
+      },
+      {
+        "freshness_profile_id": "ak.dpop.freshness.v1",
+        "applies_to": "RFC 9449 DPoP proof JWT iat and jti",
+        "iat_past_seconds": 30,
+        "iat_future_seconds": 30,
+        "jti_retention_seconds": 60,
+        "rules": [
+          "A DPoP proof carries iat and no expires parameter, so it does not and MUST NOT inherit ak.http_signature.freshness.v1.",
+          "Accept only when the receiver current Unix second minus iat lies between minus iat_future_seconds and plus iat_past_seconds, both bounds inclusive.",
+          "jti MUST be retained for at least jti_retention_seconds, which MUST be at least iat_past_seconds plus iat_future_seconds, so no still-acceptable proof can be replayed after its jti is forgotten.",
+          "A repeated jti inside retention fails closed even when iat is still inside the window.",
+          "Sharing one holder key with RFC 9421 does not merge the two contracts; neither profile numerals may be substituted for the other."
+        ],
+        "error_code": "unauthenticated"
+      },
+      {
+        "freshness_profile_id": "ak.http_signature.freshness.signal_relay.v1",
+        "applies_to": "RFC 9421 signature parameters created and expires on ak.peer.signal.command.relay.v1",
+        "max_signature_lifetime_seconds": 5,
+        "created_skew_seconds": 30,
+        "rules": [
+          "Same algorithm as ak.http_signature.freshness.v1 with a tighter lifetime ceiling; a signal relay signature may claim at most five seconds of life.",
+          "Tightening the lifetime does not tighten the created skew: a receiver clock may still differ by created_skew_seconds.",
+          "This is the only registered deviation from the shared window. Any further per-operation window MUST be registered here rather than stated inline in prose."
+        ],
+        "error_code": "signature_window_invalid"
+      },
+      {
+        "freshness_profile_id": "ak.http_signature.freshness.peer_keys_lookup.v1",
+        "applies_to": "RFC 9421 signature parameters created and expires on ak.peer.keys.read.lookup.v1",
+        "max_signature_lifetime_seconds": 5,
+        "created_skew_seconds": 30,
+        "rules": [
+          "Same algorithm as ak.http_signature.freshness.v1 with a tighter lifetime ceiling.",
+          "Tightening the lifetime does not tighten the created skew: a receiver clock may still differ by created_skew_seconds.",
+          "This deviation was carried by the cross-Station keys/query prose before the contract existed; it is registered here so the numeral has exactly one editable home."
+        ],
+        "error_code": "signature_window_invalid"
+      }
+    ],
+    "scenarios": [
+      {
+        "scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+        "label": "General Station-to-Station service signature",
+        "applies_to": "Requests on /_arkret/peer/* and any other registered service-to-service surface that requires an RFC 9421 signature.",
+        "additional_covered_components": [
+          "source-service-id",
+          "destination-service-id"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "content-digest",
+            "condition": "the request carries a body"
+          },
+          {
+            "component": "source-trust-domain",
+            "condition": "the transaction crosses trust domains"
+          },
+          {
+            "component": "destination-trust-domain",
+            "condition": "the transaction crosses trust domains"
+          },
+          {
+            "component": "idempotency-key",
+            "condition": "the request participates in idempotency or replay keying"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Source-Service-ID",
+          "Destination-Service-ID"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/sync/service-http-binding.md",
+          "zh/crypto-media/device-lifecycle.md"
+        ],
+        "machine_projections": [],
+        "operations": [],
+        "vectors": [],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ],
+        "operation_freshness_overrides": [
+          {
+            "operation_id": "ak.peer.keys.read.lookup.v1",
+            "freshness_profile_id": "ak.http_signature.freshness.peer_keys_lookup.v1",
+            "note": "Cross-Station device directory and prekey-bundle fetch. The covered set is this scenario's; only the lifetime ceiling differs."
+          }
+        ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.signal_relay.v1",
+        "label": "Single-hop signal envelope peer relay",
+        "applies_to": "ak.peer.signal.command.relay.v1. It is the service-to-service scenario with the endpoint binding a shared ingress needs and a tighter signature lifetime.",
+        "extends": "ak.http_signature.scenario.service_to_service.v1",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "source-trust-domain",
+          "destination-trust-domain"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "destination-service-endpoint-digest",
+            "condition": "the destination is reached through a shared ingress"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Source-Trust-Domain",
+          "Destination-Trust-Domain"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.signal_relay.v1",
+        "prose_bindings": [
+          "zh/sync/signal.md"
+        ],
+        "machine_projections": [],
+        "operations": [
+          "ak.peer.signal.command.relay.v1"
+        ],
+        "vectors": [],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.applet_transaction.v1",
+        "label": "Applet transaction push, both directions",
+        "applies_to": "The per-delivery source signature on ak.edge.applet.command.transaction.v1, in the node-to-Applet direction and in the Applet-to-arkret-inbound direction.",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "idempotency-key"
+        ],
+        "conditional_covered_components": [],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Idempotency-Key"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/extensions/applet-integration.md"
+        ],
+        "machine_projections": [
+          "profiles/conformance-profiles.json#/profile_requirements/ak.profile.applet_service.v1/additional_requirements/transaction_push_covered_components_must/covered_components",
+          "fixtures/final-conformance-closure-fixture.json#/cases/0/required_components"
+        ],
+        "operations": [
+          "ak.edge.applet.command.transaction.v1"
+        ],
+        "vectors": [
+          "ak.vector.applet.transaction_delivery_authentication_record_digest.v1"
+        ],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.client_session_pop.v1",
+        "label": "Client session proof-of-possession",
+        "applies_to": "RFC 9421 presentation of the ak.session.grant session_public_key on protected ak.self.* operations. The high-security profiles require it; elsewhere it is an optional added layer. It never replaces DPoP.",
+        "additional_covered_components": [],
+        "conditional_covered_components": [
+          {
+            "component": "content-digest",
+            "condition": "the request carries a body"
+          },
+          {
+            "component": "idempotency-key",
+            "condition": "the request participates in idempotency or replay keying"
+          },
+          {
+            "component": "x-arkret-wait-for",
+            "condition": "the header is present on the request"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Authorization",
+          "DPoP"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/sync/api-conventions.md",
+          "zh/conformance/conformance-profiles.md"
+        ],
+        "machine_projections": [
+          "profiles/conformance-profiles.json#/profile_requirements/ak.profile.high_security_organization.v1/additional_requirements/sender_constrained_session_pop_covered_components_must/covered_components",
+          "fixtures/auth-session-proof-fixture.json#/cases/5/required_components"
+        ],
+        "operations": [],
+        "vectors": [
+          "ak.vector.session.http_signature_operation_selector_binding.v1"
+        ],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid",
+          "unauthenticated"
+        ],
+        "freshness_projections": [
+          {
+            "pointer": "fixtures/auth-session-proof-fixture.json#/cases/5/max_window_seconds",
+            "profile_key": "max_signature_lifetime_seconds"
+          },
+          {
+            "pointer": "fixtures/auth-session-proof-fixture.json#/cases/6/max_signature_lifetime_seconds",
+            "profile_key": "max_signature_lifetime_seconds"
+          },
+          {
+            "pointer": "fixtures/auth-session-proof-fixture.json#/cases/6/created_skew_seconds",
+            "profile_key": "created_skew_seconds"
+          },
+          {
+            "pointer": "fixtures/auth-session-proof-fixture.json#/cases/6/dpop/iat_past_seconds",
+            "profile_key": "iat_past_seconds",
+            "profile_id": "ak.dpop.freshness.v1"
+          },
+          {
+            "pointer": "fixtures/auth-session-proof-fixture.json#/cases/6/dpop/iat_future_seconds",
+            "profile_key": "iat_future_seconds",
+            "profile_id": "ak.dpop.freshness.v1"
+          },
+          {
+            "pointer": "fixtures/auth-session-proof-fixture.json#/cases/6/dpop/jti_retention_seconds",
+            "profile_key": "jti_retention_seconds",
+            "profile_id": "ak.dpop.freshness.v1"
+          }
+        ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.mimi_provider.v1",
+        "label": "MIMI provider-to-provider service signature",
+        "applies_to": "The per-request source signature on the individually registered MIMI provider-to-provider operations.",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "provider-id"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "mimi-room-uri",
+            "condition": "the endpoint addresses one MIMI room"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Provider-ID"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/extensions/mimi-interop.md"
+        ],
+        "machine_projections": [],
+        "operations": [],
+        "vectors": [
+          "ak.vector.mimi.identifier_query_source_signature.v1"
+        ],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
+      }
+    ]
+  },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
     "normative_source": "artifacts/registry/contract-registry.json#operation_registry",
@@ -8532,23 +8960,11 @@
         "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
         "auth_requirements": {
           "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.applet_transaction.v1",
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them.",
             "standard": "RFC 9421 HTTP Message Signature",
             "per_delivery": true,
             "bearer_only_allowed": false,
-            "covered_components": [
-              "@method",
-              "@target-uri",
-              "@authority",
-              "content-digest",
-              "arkret-operation",
-              "source-service-id",
-              "destination-service-id",
-              "idempotency-key"
-            ],
-            "freshness": {
-              "created_skew_seconds": 30,
-              "max_signature_lifetime_seconds": 300
-            },
             "delivery_authentication_record": {
               "audit_field": "delivery_authentication_record",
               "digest_field": "delivery_authentication_record_digest",
@@ -10033,6 +10449,14 @@
         "durable_effect": {
           "kind": "none",
           "rationale": "ephemeral_signal_must_not_be_durable_event"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.signal_relay.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
         }
       },
       {

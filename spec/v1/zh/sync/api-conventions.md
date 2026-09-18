@@ -273,16 +273,29 @@ introspection/status。这两个签名域 MUST 分离：DPoP 证明当前 holder
 - 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），其中 session_dpop 表示唯一默认层，session_http_signature 表示可追加的高安全层，不能作为可互换选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
 
-**PoP 出示形态（RFC 9421，与联邦面同栈）**：客户端用 `session_public_key` 对应私钥对请求签名，`Signature-Input` covered components 与联邦 service-to-service 出示对齐（见 [`federation.md` §3.2](./federation.md) 与 [`service-http-binding.md` §2.5](./service-http-binding.md)），至少覆盖：
+**PoP 出示形态（RFC 9421）**：客户端用 `session_public_key` 对应私钥对请求签名。本场景是
+[`service-http-binding.md` §8](./service-http-binding.md) 的
+`ak.http_signature.scenario.client_session_pop.v1`，适用的必需覆盖项：
 
-- `@method`、`@target-uri`、`@authority`（绑定动词、目标 URI 与 host，防止跨 endpoint / 跨 host 复用）；
-- `content-digest`（带 body 的请求必填；exact HTTP content bytes、canonical JSON 要求、RFC 9530 唯一 `sha-256` token 与验签前校验顺序遵循 [`service-http-binding.md` §2.5.1](./service-http-binding.md)）；
-- 关键 header：`Idempotency-Key`（若参与幂等 / replay key）、`X-Arkret-Wait-For`（若出现）；
-- 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` 替代）。
+<!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.client_session_pop.v1 -->
+- `@method`、`@target-uri`、`@authority`（绑定动词、目标 URI 与 host，防止跨 endpoint / 跨 host 复用）
+- `arkret-operation`（header `Arkret-Operation`；按 §2.4.1，凡要求 RFC 9421 签名的 canonical 请求
+  都 MUST 覆盖 operation selector。客户端面不例外：selector 参与业务解释、授权、幂等与审计，
+  MUST 由发起签名的一方绑定。header 合法但未签入的请求 MUST 按 `http_signature_invalid` 拒绝；
+  签入后被替换的请求 MUST 验签失败）
+- `content-digest`（条件项：**带 body 的请求**必需；exact HTTP content bytes、canonical JSON 要求、
+  RFC 9530 唯一 `sha-256` token 与验签前校验顺序遵循 [`service-http-binding.md` §8.2](./service-http-binding.md)）
+- `idempotency-key`（条件项：**该请求参与幂等 / replay key 时**必需）
+- `x-arkret-wait-for`（条件项：**该 header 出现时**必需）
+<!-- END ak-http-signature-covered-set -->
+
+签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` 替代）。覆盖集是下界不是闭集，
+实现 MAY 额外覆盖其它组件。上述判定由 `ak.vector.session.http_signature_operation_selector_binding.v1`
+钉死。
 
 与 session key 的绑定：签名 `kid` MUST 指向当前 `ak.session.grant` 委托的 `session_public_key`，且该 grant 的 principal / device / audience / origin 约束 MUST 与请求一致；grant 已撤销、过期或 audience / origin 不匹配时，服务端 MUST 拒绝（`unauthenticated`）。
 
-Replay window：PoP 出示**复用既有 replay window 机制**——签名时效窗口与联邦面同口径（`expires - created` 上限、`created` 与本地时钟偏差上限，量级见 [`encoding.md` §6](../conformance/encoding.md) 与 [`federation.md` §3.2](./federation.md) 签名时效窗口），过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；幂等 / replay key 复用 §6 与 `Idempotency-Key` 机制。
+Replay window：PoP 出示复用 [`service-http-binding.md` §8.3](./service-http-binding.md) 的共享签名时效窗口，本节不复制其数值。过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；幂等 / replay key 复用 §6 与 `Idempotency-Key` 机制。`encoding.md` §7.2 的 HLC 时钟漂移阈值是**另一个场景的独立阈值**，MUST NOT 被代入本窗口。
 
 公开 metadata surface：若 endpoint 明确被定义为无需认证的 public surface（例如公开 describe 的 public metadata 子集），服务 MAY 在无认证材料或只有裸 bearer 的情况下返回公开响应；该响应 MUST 按未认证请求处理，不得授予 session / capability 语义，不得返回调用者私有 projection、自身 viewer 字段或任何依赖 session grant 的数据。若同一 endpoint 需要返回已认证视图，调用方 MUST 使用 DPoP / PoP / mTLS 绑定；裸 bearer 仍 MUST 被拒绝。
 
@@ -328,7 +341,7 @@ Station 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项判定为不�
 - **principal / device 绑定**：grant 的 subject 与 typed `holder_binding` MUST 与请求 principal / device 一致；
   introspection 若同时返回顶层 device metadata，它也 MUST 与 signed holder binding 逐字一致。
 - **未过期**:grant 与 DPoP proof 均 MUST 未过期。
-- **DPoP 重放防护**:Station MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
+- **DPoP 重放防护**:Station MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放。DPoP proof 只有 `iat`、没有 `expires` parameter，因此该窗口是**独立合同** `ak.dpop.freshness.v1`，正文见 [`service-http-binding.md` §8.4](./service-http-binding.md)；它 MUST NOT 继承 RFC 9421 的 `created` / `expires` 算法，两者共用同一把 grant-binding key 也不合并合同。
 
 **SessionGrant exact-token 内省权威（normative）**：`ak.session.grant` 的状态与权威元数据只有一个来源——签发它的 Account Authority 的 issuer ledger，经 [`service-http-binding.md` §2.2.3](./service-http-binding.md) 的部署内认证通道以 exact-token 内省取得。
 
@@ -412,7 +425,7 @@ Arkret v1 HTTP endpoint 的所有非 2xx 响应 MUST 只使用 [RFC 9457 Problem
 
 ### 5.1 标准错误码
 
-Problem `type` URI 的 `{code}` 尾段与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。**Canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)：所有标准 code、`type_uri`、`title`、HTTP 状态、scope (`response` / `endpoint` / `both`) 与简短描述均以该 registry 为准。新增、修改或删除 problem type MUST 先更新 registry；本文与 `service-http-binding.md` §9 只引用该 registry，不维护并行表格。
+Problem `type` URI 的 `{code}` 尾段与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。**Canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)：所有标准 code、`type_uri`、`title`、HTTP 状态、scope (`response` / `endpoint` / `both`) 与简短描述均以该 registry 为准。新增、修改或删除 problem type MUST 先更新 registry；本文与 [`service-http-binding.md` §6](./service-http-binding.md) 只引用该 registry，不维护并行表格。
 
 实现使用要点（registry 之外的语义协议）：
 
@@ -421,7 +434,7 @@ Problem `type` URI 的 `{code}` 尾段与批处理/联邦响应中的逐项 `rea
 - 格式错误的 cursor 使用 `param_invalid` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
 - `unsupported_feature` 用于两类情形：`Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；以及 active 标准 kind 的 Event 结构合法、但其 wire 特性或 producer 类在 v1 支持矩阵中登记为 unsupported（例如 `rfc9420.proposal` 解码出的 RFC 9420 sender class 或 Proposal 类型，见 [`artifacts/registry/mls-proposal-admission-registry.json`](../sync/authority-commit-log.md)）。后一类 MUST NOT 报成 `schema_violation`。`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ak.*` Event kind。三种情形不得互相替代。
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`revision_stale`、`state_mismatch`。
-- 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
+- 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）的 canonical 定义在 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；它们判定的 AAD 与 payload 绑定见 [`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md) 与 §2.8。
 
 CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `rules.universal_codes` 与每个 `operations[].operation_specific[]` 不引用 registry 外的 code。
 
@@ -462,7 +475,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 ### 6.1 幂等记录保留窗口（normative）
 
 - 对请求级 identity 机制的 operation，接收方 MUST 自幂等记录创建时刻起保留该记录**至少 24 小时**。`object_id` / `protocol_sequence` 的状态保留由对象生命周期或协议状态机决定，不受本段请求去重记录窗口约束。
-- 该保留窗口 MUST ≥ 对应请求面的签名时效 replay window（`expires - created` 上限，见 §3.2 与 [`federation.md` §3.2](./federation.md)）加最大允许时钟偏移。
+- 该保留窗口 MUST ≥ 对应请求面的签名寿命上限（见 §3.2 与 [`service-http-binding.md` §8.3](./service-http-binding.md) 的共享窗口）加最大允许时钟偏移。
 - 保留窗口内，同一请求级幂等键 + 相同 canonical request body 的重放 MUST 返回与首次请求语义等价的原 outcome；同一请求级幂等键 + 不同 canonical request body 仍按本节上文规则返回 `duplicate_conflict`。
 - 保留窗口过后的重放行为由实现自定（MAY 按新请求处理或拒绝），但实现 MUST NOT 对窗口外的重放声称幂等保证。
 - 在 24 小时下限之上，服务端 SHOULD 记录幂等结果至少到相关 Event 被最终同步或过期。

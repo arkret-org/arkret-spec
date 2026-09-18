@@ -36,7 +36,7 @@ Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 - `ak.device.authorize`：把新设备公钥加入当前设备集合。
 - 满足 `recovery_policy` 的 `recover` / key-log event。
 
-`session_public_key` 不仅是会话身份标记，还是会话请求的 proof-of-possession 出示密钥：日常受保护请求 MUST 使用 grant + RFC 9449 DPoP proof；高安全 profile 在此基础上追加 RFC 9421 HTTP Message Signature，使会话出示与该 key 绑定，仅截获 `ak.session.grant` 不足以重放。行使该 key 出示的具体形态、覆盖的 components 与 replay window 见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md) 与 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)；高安全 deployment profile 下该 PoP 出示对所有受保护 `ak.self.*` operation 升为 MUST。
+`session_public_key` 不仅是会话身份标记，还是会话请求的 proof-of-possession 出示密钥：日常受保护请求 MUST 使用 grant + RFC 9449 DPoP proof；高安全 profile 在此基础上追加 RFC 9421 HTTP Message Signature，使会话出示与该 key 绑定，仅截获 `ak.session.grant` 不足以重放。行使该 key 出示的具体形态、覆盖的 components 与 replay window 见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md) 与 [`../sync/service-http-binding.md` §8](../sync/service-http-binding.md)；高安全 deployment profile 下该 PoP 出示对所有受保护 `ak.self.*` operation 升为 MUST。
 
 资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Realm policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
 
@@ -681,7 +681,10 @@ origin Station MUST 在签发时从该 exact account-device 的 current accepted
 `ak.peer.keys.read.lookup.v1`（`POST /_arkret/peer/keys/query`）向该 exact `station_id` 取材，验证后把受限
 typed 结果放进同一个 `keys_query_outcome`。客户端 MUST NOT 直接调用任何 peer 面，本 Station MUST NOT 转发
 客户端的 SessionGrant、DPoP 或任何本地 bearer；peer 调用只使用本 Station 自己的 RFC 9421 service signature 与
-`Source-Service-ID` / `Destination-Service-ID` / `Content-Digest` header profile（signature `expires-created` ≤5s）。
+`Source-Service-ID` / `Destination-Service-ID` / `Content-Digest` header profile；
+该 operation 的签名时效窗口是 canonical 合同登记的收紧例外
+`ak.http_signature.freshness.peer_keys_lookup.v1`，判据与数值见
+[`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md)，本节不复制。
 
 **既有操作已覆盖的范围（normative 盘点）**：`ak.peer.current_signer_evidence.read.resolve.v1` 只在一个具名
 非 minimal-metadata Realm 内交付 signer evidence，既不给设备目录也不给 prekey bundle；
@@ -929,11 +932,25 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
    上例是 `kind=device` 分支。`service_binding` 是闭合的 `{source_id, destination_id}`；客户端从业务已钉的 target ActorId routing projection 取得 destination DID，不得从 endpoint URL 或 DID 字符串猜测。部署态 trust domain 只由 source Station 验证 ServiceResolution + ServiceDescribe 后写入外层已签 HTTP headers，peer receiver 逐字复核。`signature.kid` MUST 等于 `verification_method`。`requester_authorization` 是 closed XOR：human principal 必须且只能携带 `kind=device + requester_device_id + device_authorize_event_id`，并由该 accepted、未撤销设备的 `device_public_key_did` 签名；Agent 必须且只能携带 `kind=agent + requester_agent_id + agent_key_authorize_event_id`，并由 accepted current Agent runtime method 签名。Agent id、verification method 与 authorization Event 必须逐字绑定 current AgentSignerEvidence、claim requester、repair author actor 与随后生成的 MLS Event/KeyPackage signer，且不得借用 `ak:device` 身份。来源 Station MUST 独立解析本地 exact requester Account 的对应 authority chain；目标服务 MUST 验证下述来源 Station 的完整 service attestation，不得把未认证的 participant key 裸断言作为授权。
 
    客户端/Agent runtime 签名后，来源 Station MUST 在本地验证 account pair、当前 device/runtime authorization、generation 与 revoke/pending 状态，再签发 peer command。body 不携带 PCR/device/Agent signer history sidecar；目标服务验证 authenticated source service、request transcript 与来源服务签名。该 service attestation 提供可验证归责，不声称在密码学上阻止恶意 Station 作恶。目标服务 MUST NOT 以本机同 principal 的 Account、设备目录或 Agent signer 状态替代来源 Station 的 requester authority；也不得从 DID 或 endpoint 猜测其 Station。来源服务的 authority 必须由 §9.2.2 的当前 Realm membership routing 或精确 Contact/account pair 独立约束；仅有有效服务签名而没有该业务范围授权仍 MUST 拒绝。
-2. **service authorization**：外层请求 MUST 使用 RFC 9421 HTTP Message Signature，绑定 `@method`、`@target-uri`、`@authority`、`Content-Digest`、`Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain` 与 `Idempotency-Key`。`Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
+2. **service authorization**：外层请求 MUST 使用 RFC 9421 HTTP Message Signature。跨部署 KeyPackage
+   claim 是 [`../sync/service-http-binding.md` §8.1](../sync/service-http-binding.md) 一般 service-to-service
+   场景的一个实例，且其三个条件项同时成立（带 body、跨 trust domain、参与幂等），因此本次适用的
+   必需覆盖项为：
+
+   <!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.service_to_service.v1 -->
+   - `@method`、`@target-uri`、`@authority`
+   - `arkret-operation`
+   - `source-service-id`、`destination-service-id`
+   - `content-digest`（本 operation 总是带 body）
+   - `source-trust-domain`、`destination-trust-domain`（本 operation 跨 trust domain）
+   - `idempotency-key`（本 operation 参与幂等）
+   <!-- END ak-http-signature-covered-set -->
+
+   `Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
 
 成功响应的反方向也必须闭合。每条 `keypackage_claim_record` MUST 携带与分支一致的 principal/device 或 Agent endpoint、authorization Event id、KeyPackage digest 与 signature；目标 Station 的签名 `claim_receipt` 对 exact claim bytes 可验证归责。requester MUST 核对 authorization Event 的内嵌 可携带 producer signer evidence、claim receipt、KeyPackage 签名与所有 selector，任一不匹配都不得安装 KeyPackage 或 author Welcome。wire 不得携 PCR/control-history/device/Agent signer-evidence sidecar，外部 verifier 不重放 PCR genesis、RealmCommit 或完整控制历史。
 
-`claim_request_id` MUST 由 CSPRNG 生成并含至少 128 bits 不可预测熵。它是同一 claim transaction 的唯一随机值：HTTP `Idempotency-Key`、durable ledger key 以及 Welcome `claim_envelope` canonical 签名 transcript 中的 `claim_request_id` MUST 是同一值。该 transcript 值 MUST 从同一 Welcome 的 destination-signed `claim_receipt.claim_request_id` 取得，且不得在 `claim_envelope` wire 中重复。byte-identical replay 必须复用同一值；新尝试必须生成新值；同一 `(source_id, claim_request_id)` 下任何其它 request bytes 均为 `duplicate_conflict`。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 窗口同样 MUST 不超过 300 秒。participant signature 绑定 source / destination service DID；外层 service signature 另绑定双方 trust domain，合并阻断转发到另一目标或另一部署的重放。
+`claim_request_id` MUST 由 CSPRNG 生成并含至少 128 bits 不可预测熵。它是同一 claim transaction 的唯一随机值：HTTP `Idempotency-Key`、durable ledger key 以及 Welcome `claim_envelope` canonical 签名 transcript 中的 `claim_request_id` MUST 是同一值。该 transcript 值 MUST 从同一 Welcome 的 destination-signed `claim_receipt.claim_request_id` 取得，且不得在 `claim_envelope` wire 中重复。byte-identical replay 必须复用同一值；新尝试必须生成新值；同一 `(source_id, claim_request_id)` 下任何其它 request bytes 均为 `duplicate_conflict`。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 判据是 [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md) 的共享窗口，本节不另定数值。participant signature 绑定 source / destination service DID；外层 service signature 另绑定双方 trust domain，合并阻断转发到另一目标或另一部署的重放。
 
 #### 9.2.2 目标 authority 的独立准入
 

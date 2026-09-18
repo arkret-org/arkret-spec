@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.1",
-  "generated_at": "2026-09-20T03:10:00+08:00",
+  "version": "2026-09-20.2",
+  "generated_at": "2026-09-20T11:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -298,7 +298,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. Applies to Applet transaction push and to MIMI provider-to-provider writes (zh/extensions/mimi-interop.md §5). See zh/extensions/applet-integration.md §7.3.1.",
+      "description": "An RFC 9421 HTTP Message Signature failed the freshness window: created/expires missing or not integers, the claimed lifetime outside the registered ceiling, created outside the registered receiver skew, or expires already reached. It also covers byte-identical replays after the bounded replay cache evicted the entry. The window algorithm and its numerals are owned by http_signature_contract_registry in registry/contract-registry.json and stated in zh/sync/service-http-binding.md section 8.3; no other page or artifact carries those numerals. Scenario-specific tightening is registered as a freshness profile there, currently only for ak.peer.signal.command.relay.v1. Applies to every registered signing scenario, including Applet transaction push (zh/extensions/applet-integration.md section 7.3.1) and MIMI provider-to-provider writes (zh/extensions/mimi-interop.md section 5).",
       "type_uri": "https://arkret.org/problems/signature_window_invalid",
       "title": "Signature window invalid"
     },

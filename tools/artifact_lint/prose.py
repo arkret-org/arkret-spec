@@ -2280,6 +2280,68 @@ def check_prose_plain_text_section_refs(lint: Lint) -> None:
             )
 
 
+_MARKDOWN_LINK_PARTS_RE = re.compile(r"\[(?P<text>[^\]]*)\]\((?P<href>[^)]*)\)")
+_LINK_TEXT_SECTION_RE = re.compile(r"\u00a7\s*(?P<section>\d+(?:\.\d+)*)")
+_LINK_TEXT_PAGE_RE = re.compile(r"(?P<name>[a-z][a-z0-9-]{2,})\.md")
+
+
+def check_prose_markdown_link_section_refs(lint: Lint) -> None:
+    """Every ``[`page.md` \u00a7N](./page.md)`` must name a section that exists.
+
+    This is the third citation shape, and the one report 0110 found rotting: the
+    plain-text gate strips markdown links whole, so the \u00a7N inside a link's
+    text was read by nothing, and LK001 checks only the href. Seven pages cited
+    `federation.md` \u00a73.2 for a covered set and a window that section had not
+    carried for years. The link text also has to name the page the href points
+    at, because a text naming another page is how a citation keeps reading true
+    after its target moved.
+    """
+    exemptions = _load_prose_section_ref_exemptions()
+    section_cache: dict[Path, set[str]] = {}
+    for path in sorted((SPEC_ROOT / "zh").rglob("*.md")):
+        citing = f"zh/{path.relative_to(SPEC_ROOT / 'zh').as_posix()}"
+        seen: set[tuple[str, str]] = set()
+        for match in _MARKDOWN_LINK_PARTS_RE.finditer(path.read_text(encoding="utf-8")):
+            text, href = match.group("text"), match.group("href").strip()
+            sections = [hit.group("section") for hit in _LINK_TEXT_SECTION_RE.finditer(text)]
+            named = [hit.group("name") for hit in _LINK_TEXT_PAGE_RE.finditer(text)]
+            if not sections and not named:
+                continue
+            file_part = href.split("#", 1)[0]
+            if not file_part.endswith(".md"):
+                continue
+            target = (path.parent / file_part).resolve()
+            try:
+                target.relative_to((SPEC_ROOT / "zh").resolve())
+            except ValueError:
+                continue
+            if not target.is_file():
+                continue  # file existence is LK001's finding, not a second one
+            if named and target.stem not in named:
+                lint.fail(
+                    path,
+                    f"link text names {named[0]}.md but the link points at "
+                    f"{target.relative_to(SPEC_ROOT).as_posix()}",
+                )
+                continue
+            headings = _prose_numbered_sections(target, section_cache)
+            target_rel = target.relative_to(SPEC_ROOT).as_posix()
+            for section in sections:
+                key = (target_rel, section)
+                if key in seen or section in headings:
+                    continue
+                seen.add(key)
+                if (citing, f"zh/{target_rel}", section) in exemptions:
+                    continue
+                if (citing, target_rel, section) in exemptions:
+                    continue
+                lint.fail(
+                    path,
+                    f"cites {target.stem} \u00a7{section}, "
+                    f"which is not a section heading in {target_rel}",
+                )
+
+
 def check_artifact_prose_section_refs(lint: Lint) -> None:
     """Every `<file>.md §N` a canonical artifact cites must name a real section.
 

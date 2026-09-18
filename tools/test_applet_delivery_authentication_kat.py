@@ -202,20 +202,44 @@ class AppletDeliveryAuthenticationKatTests(unittest.TestCase):
             self._check(fixture=fixture),
         )
 
-    def test_a_contract_without_a_required_covered_set_turns_the_kat_red(self) -> None:
-        """The required floor is read from service_signature, not from the record.
+    def _service_signature(self, contract: dict) -> dict:
+        return next(
+            operation
+            for operation in contract["operation_registry"]["operations"]
+            if operation.get("operation_id") == kat.OPERATION_ID
+        )["auth_requirements"]["service_signature"]
 
-        Reading it off the record contract instead silently yields an empty
-        floor, and every covered_components list passes for free.
+    def test_an_operation_that_names_no_signature_scenario_turns_the_kat_red(self) -> None:
+        """The required floor is resolved through the canonical signature contract.
+
+        Report 0110 moved the covered set off the operation: if the binding is
+        gone the floor is empty, and every covered_components list would pass
+        for free.
         """
         contract = copy.deepcopy(self.contract)
-        for operation in contract["operation_registry"]["operations"]:
-            if operation.get("operation_id") == kat.OPERATION_ID:
-                operation["auth_requirements"]["service_signature"].pop(
-                    "covered_components"
-                )
+        self._service_signature(contract).pop("signature_scenario_id")
         self.assertRedWith(
-            self._check(contract=contract), "declares no service_signature covered_components"
+            self._check(contract=contract), "names no signature_scenario_id"
+        )
+
+    def test_an_unregistered_signature_scenario_turns_the_kat_red(self) -> None:
+        contract = copy.deepcopy(self.contract)
+        self._service_signature(contract)["signature_scenario_id"] = (
+            "ak.http_signature.scenario.does_not_exist.v1"
+        )
+        self.assertRedWith(
+            self._check(contract=contract), "names unregistered signature scenario"
+        )
+
+    def test_a_component_added_to_the_scenario_turns_the_kat_red(self) -> None:
+        """The floor follows the contract, so widening it must fail the fixture."""
+        contract = copy.deepcopy(self.contract)
+        scenario_id = self._service_signature(contract)["signature_scenario_id"]
+        for scenario in contract["http_signature_contract_registry"]["scenarios"]:
+            if scenario.get("scenario_id") == scenario_id:
+                scenario["additional_covered_components"].append("x-arkret-wait-for")
+        self.assertRedWith(
+            self._check(contract=contract), "omits required component(s)"
         )
 
     # -------------------------------------------------- replay equality is digest

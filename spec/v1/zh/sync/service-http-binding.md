@@ -138,7 +138,142 @@ ACK 才提交。Station 只验证 RFC 9420 公开 transition、roster、sender �
 gRPC、WebSocket 和 MQ 可以复用同一 operation 和 schema，但不得创造 HTTP 不具有的 accepted 状态、
 跨 stream 总序或更弱的 proof 验证。所有 transport 的幂等、字节上限、错误语义和权限必须等价。
 
-## 8. 稳定引用锚点
+## 8. HTTP Message Signature
+
+Arkret 的 RFC 9421 HTTP Message Signature 有五个签名场景：一般 Station-to-Station 服务签名、
+单跳 signal envelope peer relay、Applet transaction push 的逐次投递来源签名、客户端会话 PoP 出示，
+以及 MIMI provider-to-provider 服务签名。五者共用同一份 canonical 合同——[`contract-registry.json`](../../artifacts/registry/contract-registry.json)
+的 `http_signature_contract_registry`。共同覆盖基线、各场景扩展项与其触发条件、必需 signature
+parameters 与时效窗口数值都**只在那里编辑**；本页与其它正文、conformance profile、向量描述都是它的
+投影，MUST NOT 各自维护自己的覆盖集数组或窗口常量。本节是这些投影的唯一正文归宿，
+`signature_window_invalid` 的判据也在这里，而不在任何稳定引用锚点下。
+
+### 8.1 覆盖集（normative）
+
+凡按合同要求携带 RFC 9421 签名的请求，其 `Signature-Input` MUST 恰好解析到一个已登记的签名场景，
+并覆盖该场景**对本次请求适用的全部必需项**。
+
+- 覆盖集是**下界，不是闭集**：实现 MAY 额外覆盖其它组件；缺任何一个适用必需项 MUST 验签失败，
+  返回 `http_signature_invalid`。
+- `created` / `expires` 是 RFC 9421 signature parameters，不是覆盖项成员，MUST NOT 被写进覆盖集。
+- RFC 9421 的有序组件列表仍用于构造基串并写入审计记录；本页给出的是**集合**语义，
+  MUST NOT 被读成对顺序的额外协议要求。需要限定顺序时 MUST 另有明确合同。
+- 五个场景共有的必需项由 canonical 合同的 `common_contract` 持有，并已逐条展开进下面
+  每个场景块；本页不另列一份摘要清单，避免出现第二份可独立漂移的副本。
+  其中 `arkret-operation` 的全局义务来自 [`api-conventions.md` §2.4.1](./api-conventions.md)：
+  凡要求 RFC 9421 签名的 canonical 请求，签名基串 MUST 覆盖 operation selector；
+  未覆盖 selector 的签名，即使 header 本身合法也 MUST 按 `http_signature_invalid` 拒绝。
+  合同要求覆盖 selector，是为了让「换掉一个已签名请求的 selector」不能通过验签——
+  selector 参与业务解释、授权、幂等与审计，MUST 由发起签名的一方绑定。
+
+一般 Station-to-Station 服务签名（`/_arkret/peer/*` 与其它登记的 service-to-service 面）
+适用的必需项：
+
+<!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.service_to_service.v1 -->
+- `@method`、`@target-uri`、`@authority`
+- `arkret-operation`（header `Arkret-Operation`，值为 exact versioned `operation_id`）
+- `source-service-id`（header `Source-Service-ID`，调用方 service identity）
+- `destination-service-id`（header `Destination-Service-ID`，预期接收方 service identity）
+- `content-digest`（条件项：**请求带 body 时**必需）
+- `source-trust-domain`、`destination-trust-domain`（条件项：**跨 trust domain 的 transaction**
+  必需，使一份签名不能被重放进另一个部署）
+- `idempotency-key`（条件项：**该请求参与幂等 / replay key 时**必需）
+<!-- END ak-http-signature-covered-set -->
+
+条件项的触发条件本身是合同的一部分：条件成立时该项就是必需项，漏签与漏签无条件项同罪。
+
+其余四个场景在各自正文声明同形的覆盖集块，并同样由门禁逐项比对 canonical 合同：
+单跳 signal relay 见 [`signal.md` §4.2](./signal.md)，
+Applet transaction push 见 [`../extensions/applet-integration.md` §7.3.1](../extensions/applet-integration.md)，
+客户端会话 PoP 见 [`api-conventions.md` §3.2](./api-conventions.md)，
+MIMI provider-to-provider 见 [`../extensions/mimi-interop.md` §5](../extensions/mimi-interop.md)。
+跨部署 KeyPackage claim 的外层服务签名是本场景的一个实例，见
+[`../crypto-media/device-lifecycle.md` §9.2.1](../crypto-media/device-lifecycle.md)。
+
+目前登记了两个签名寿命收紧例外：单跳 signal relay（`ak.http_signature.freshness.signal_relay.v1`）
+与跨站设备目录取材（`ak.http_signature.freshness.peer_keys_lookup.v1`，经 canonical 合同的
+`operation_freshness_overrides` 绑定到 `ak.peer.keys.read.lookup.v1`）。两者都只收紧签名寿命上限，
+不改覆盖集、不改时钟偏差。任何新的逐 operation 窗口 MUST 按同一形态登记进 canonical 合同，
+MUST NOT 只写在某一页正文里。
+
+### 8.2 Peer signature 与 content-digest（normative）
+
+接收方先验证 transport signature、DID freshness 和 trust relationship，再验证内层
+Event/Commit/handoff proof。transport signature 只认证请求来源与传输完整性，
+MUST NOT 替代任何一层内层 proof，也 MUST NOT 成为 Event authority。
+
+带 body 的签名请求 MUST 按下列顺序处理，且顺序本身是规范性的：
+
+1. sender MUST 把 `canonical_json(request_body)` 的结果**逐字节**作为 exact HTTP message content，
+   且 MUST NOT 对其应用 `Content-Encoding`。
+2. `Content-Digest` MUST 是 RFC 9530 结构化字段，且 MUST 恰好携带一个 `sha-256` member：
+   `sha-256=:base64(SHA-256(exact_http_content_bytes)):`。多 member、其它算法 token
+   或重复 member MUST 被拒绝。
+3. receiver MUST 先对 exact HTTP content bytes 重算并校验 `Content-Digest`，
+   **再**严格解析并确认收到的 wire 本身就是 canonical JSON，**最后**验证签名 transcript。
+   receiver MUST NOT parse arbitrary JSON 之后只对 canonicalized value 求 digest——
+   那会让非 canonical wire 通过校验。
+4. 业务层从这些已校验的 bytes 内部计算任何 Arkret request digest；
+   header 与 body 的交叉绑定（例如 `Source-Service-ID` 与 body 内 `source_id`）
+   MUST 在验签通过后逐项比对，任一不一致 MUST fail closed。
+
+无 body 的请求 MUST NOT 伪造 `Content-Digest` member；此时 `content-digest` 不是适用必需项。
+
+### 8.3 时效窗口与重放（normative）
+
+`created` / `expires` 的判据由 canonical 合同的 `ak.http_signature.freshness.v1` 持有，
+四个签名场景共用同一份。令 `now` 为接收方本次校验使用的当前 Unix 秒：
+
+<!-- BEGIN ak-http-signature-freshness ak.http_signature.freshness.v1 -->
+- `created` 与 `expires` MUST 同时存在且为整数 UNIX 秒；缺失或类型不合法即失败。
+- `0 < expires - created ≤ 300` 秒。
+- `|created - now| ≤ 30` 秒，前后边界均包含。
+- `now < expires`；到达 `expires` 即过期，MUST NOT 为 `expires` 另加 skew 宽限。
+<!-- END ak-http-signature-freshness -->
+
+三项 MUST 同时满足，任一不满足返回 `signature_window_invalid`。边界判定由
+`ak.vector.service.http_signature_freshness_window_boundaries.v1` 钉死：
+上限与两侧偏差边界取等号时接受、越界一秒即拒绝，寿命为零或为负拒绝，
+到达 `expires` 即拒绝，replay cache evict 后的逐字节重放仍由时间检查拒绝，
+缺参或非整数参数在任何比较之前失败。
+
+两个登记的收紧例外沿用同一算法，只把签名寿命上限改短：
+
+<!-- BEGIN ak-http-signature-freshness ak.http_signature.freshness.signal_relay.v1 -->
+- `ak.peer.signal.command.relay.v1`：签名寿命上限 5 秒。
+- `created` 偏差上限仍为 30 秒——收紧寿命 MUST NOT 被读成同时收紧时钟偏差。
+<!-- END ak-http-signature-freshness -->
+
+<!-- BEGIN ak-http-signature-freshness ak.http_signature.freshness.peer_keys_lookup.v1 -->
+- `ak.peer.keys.read.lookup.v1`：签名寿命上限 5 秒。
+- `created` 偏差上限仍为 30 秒。
+<!-- END ak-http-signature-freshness -->
+
+- 上限 300 秒是**签名可以声明的寿命上限**，不是「服务器承诺接受每份签名五分钟」：
+  `created` 的 ±30 秒规则会更早拒绝一份旧签名。
+- 重放 cache 独立执行，与本节的时间检查并列。cache eviction MUST NOT 使过期签名重新有效，
+  也 MUST NOT 豁免 §8.1 的覆盖检查——落在窗口外的逐字节重放即便 cache 已 evict，
+  仍 MUST 因 `created` / `expires` 校验失败而拒绝。
+- 每次投递都是一份**新的** transport signature；它与内层 immutable Event 的重签是两件事，
+  业务 exact retry 仍遵守其自身合同（见 [`api-conventions.md` §6](./api-conventions.md)）。
+
+### 8.4 DPoP 新鲜度是独立合同（normative）
+
+RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST NOT** 继承 §8.3 的
+`created` / `expires` 算法；「与联邦面同口径」不适用于 DPoP。DPoP 的判据由 canonical 合同的
+`ak.dpop.freshness.v1` 独立持有：
+
+<!-- BEGIN ak-http-signature-freshness ak.dpop.freshness.v1 -->
+- 接受条件为 `now - iat` 落在 `[-30, 30]` 秒内，前后边界均包含。
+- `jti` MUST 至少保留 60 秒，且该保留时长 MUST NOT 短于 `iat` 接受窗口的总跨度，
+  否则仍可接受的 proof 会在其 `jti` 被遗忘后被重放。
+<!-- END ak-http-signature-freshness -->
+
+保留期内 `jti` 重复 MUST fail closed，即使 `iat` 仍在窗口内。DPoP 与 RFC 9421 PoP
+共用同一把 grant-binding key（见 [`api-conventions.md` §3.3](./api-conventions.md)），
+但**共用密钥不合并合同**：两份 profile 的数值 MUST NOT 互相代入。
+
+## 9. 稳定引用锚点
 
 下列章节号供其他领域规范稳定引用；具体 operation 始终以 machine registry 为准。
 
@@ -425,18 +560,6 @@ MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文�
 send-ready 且已持有目标 epoch 的本地 MLS state。prepare MUST NOT 授予权限、MUST NOT 预留 sequence、
 MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT 建立、修复或代替本地 MLS state；
 缺少这些前提时失败发生在客户端加密阶段，而不是由准备接口补齐。
-
-### 2.5 HTTP Message Signature
-
-所有 peer 写入和高风险读取使用绑定 operation 与 canonical body digest 的服务签名。
-
-#### 2.5.1 Peer signature
-
-接收方先验证 transport signature、DID freshness 和 trust relationship，再验证内层 Event/Commit/handoff proof。
-
-#### 2.5.2 Replay window
-
-重放 cache 与有界 signature window 必须同时执行；cache eviction 不得使过期签名重新有效。
 
 ### 3.3 站间操作
 

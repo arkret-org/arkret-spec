@@ -293,19 +293,28 @@ request 是闭合对象：
 | `signals[]` | 128 |
 | canonical request body | 1 MiB（1,048,576 bytes） |
 | 单个 `SignalEnvelope` | §2 的 64 KiB |
-| HTTP Message Signature `expires-created` | 5 seconds |
+| HTTP Message Signature 签名寿命 | `ak.http_signature.freshness.signal_relay.v1` |
 
 这些上限合取生效；128 个接近单 envelope 上限的 item 不承诺能装入一个 request。source
 加入下一项将使 count 或 canonical bytes 任一超限时 MUST 在 signal 边界拆批。destination
 对 count/schema 超限拒绝整个 request，不得 partial accept；byte overflow 固定
 `payload_too_large`。
 
-本 operation 复用 [`federation.md` §3.2](./federation.md) 的 service-to-service HTTP Message
-Signature profile。带 body 的 request MUST 携带并签名覆盖 `Content-Digest`，并覆盖
-`@method`、`@target-uri`、`@authority`、
-`Source-Service-ID`、`Destination-Service-ID`、两个 trust domain，以及 shared ingress
-时的 `Destination-Service-Endpoint-Digest`。本 operation 把通用签名窗口进一步收紧为
-`expires-created ≤ 5 seconds`；其它 clock-skew、endpoint、canonical body 与最小披露规则不变。
+本 operation 的签名场景是 [`service-http-binding.md` §8](./service-http-binding.md) 的
+`ak.http_signature.scenario.signal_relay.v1`。适用的必需覆盖项：
+
+<!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.signal_relay.v1 -->
+- `@method`、`@target-uri`、`@authority`
+- `arkret-operation`
+- `content-digest`（relay request 总是带 body）
+- `source-service-id`、`destination-service-id`
+- `source-trust-domain`、`destination-trust-domain`
+- `destination-service-endpoint-digest`（条件项：经 shared ingress 抵达 destination 时必需）
+<!-- END ak-http-signature-covered-set -->
+
+本 operation 是 canonical 合同中**唯一**登记的签名寿命收紧例外，使用 freshness profile
+`ak.http_signature.freshness.signal_relay.v1`；数值只在合同里编辑，本页不复制。
+clock skew、endpoint、canonical body 与最小披露规则与 §8.3 相同。
 
 ### 4.3 Source 与 destination admission
 
@@ -321,7 +330,8 @@ membership/scope/class action、TTL 与 MLS basis，并重算 destination 集；
 destination 在任何 local fanout 前 MUST：
 
 1. 验证 peer HTTP Message Signature、source/destination service DID、trust domain、endpoint、
-   canonical body digest 与 5 秒窗口；
+   canonical body digest，以及 [`service-http-binding.md` §8.3](./service-http-binding.md) 中
+   `ak.http_signature.freshness.signal_relay.v1` 的时效窗口；
 2. 要求所有 `signals[].realm_id == request.realm_id` 且
    `signals[].scope_ref.realm_id == request.realm_id`；
 3. 验证 `Source-Service-ID` 等于每个 sender ActorId 的 routing-service projection；不成立的 item

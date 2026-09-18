@@ -316,8 +316,20 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 HTTP Message Signature profile（仅适用于上述逐条登记的 provider-to-provider operation）：
 
 - 请求 MUST 携带 `Signature`、`Signature-Input`、`Content-Digest`、`Source-Service-ID`、`Destination-Service-ID` 和 `Provider-ID`；room-scoped endpoint 还 MUST 携带 `MIMI-Room-URI`。
-- sender MUST 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 把 `canonical_json(request_body)` 的结果逐字节作为 exact HTTP message content，且不得应用 `Content-Encoding`；`Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(SHA-256(exact_http_content_bytes)):`。receiver MUST 先校验 exact content bytes 的 `Content-Digest`，再严格解析并确认 wire 本身就是 canonical JSON，并从这些 bytes 内部计算 Arkret request digest；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。
-- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`provider-id`；room-scoped endpoint MUST additionally cover `mimi-room-uri`。`created`、`expires`、`keyid` 和 `alg="ed25519"` 参数 MUST 存在，且 `expires-created <= 300s`、`created` 在接收方时钟 ±30s 内、`expires` 未过期。
+- sender MUST 按 [`../sync/service-http-binding.md` §8.2](../sync/service-http-binding.md) 把 `canonical_json(request_body)` 的结果逐字节作为 exact HTTP message content，且不得应用 `Content-Encoding`；`Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(SHA-256(exact_http_content_bytes)):`。receiver MUST 先校验 exact content bytes 的 `Content-Digest`，再严格解析并确认 wire 本身就是 canonical JSON，并从这些 bytes 内部计算 Arkret request digest；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。
+- 本场景是 [`../sync/service-http-binding.md` §8](../sync/service-http-binding.md) 的
+  `ak.http_signature.scenario.mimi_provider.v1`。`Signature-Input` 适用的必需覆盖项：
+
+  <!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.mimi_provider.v1 -->
+  - `@method`、`@target-uri`、`@authority`
+  - `arkret-operation`
+  - `content-digest`
+  - `source-service-id`、`destination-service-id`、`provider-id`
+  - `mimi-room-uri`（条件项：room-scoped endpoint 必需）
+  <!-- END ak-http-signature-covered-set -->
+
+  `created`、`expires`、`keyid` 与 `alg="ed25519"` 参数 MUST 存在；时效窗口判据是
+  [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md) 的共享窗口，本节不复制其数值。
 - `keyid` MUST 是 `Source-Service-ID` 所控制的 Ed25519 verification method；接收方 MUST 用已接受的 service key binding 或已配置信任根取得它。只有新 service / key、binding invalidation 或显式 freshness 失效时才做 DID authority resolution，普通请求不得逐次在线解析。HTTP signature 只认证 provider service source，不替代 Actor DID/device 签名、MLS transcript、capability 或 Realm policy 校验。
 
 本 profile 的失败码与 [`applet-integration.md` §7.3.1](./applet-integration.md) 的逐次投递来源签名同源，按

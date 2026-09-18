@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.15",
-  "generated_at": "2026-09-20T03:10:00+08:00",
+  "version": "2026-09-16.16",
+  "generated_at": "2026-09-20T11:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2891,7 +2891,21 @@
       },
       "additional_requirements": {
         "transaction_push_per_delivery_signature_must": "ak.edge.applet.command.transaction.v1 MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->arkret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
-        "transaction_push_covered_components_must": "Signature-Input covered components MUST include @method, @target-uri, @authority, content-digest, arkret-operation, source-service-id, destination-service-id and idempotency-key; created/expires MUST satisfy the federation.md section 3.2 replay window.",
+        "transaction_push_covered_components_must": {
+          "signature_scenario_id": "ak.http_signature.scenario.applet_transaction.v1",
+          "covered_components": [
+            "@authority",
+            "@method",
+            "@target-uri",
+            "arkret-operation",
+            "content-digest",
+            "destination-service-id",
+            "idempotency-key",
+            "source-service-id"
+          ],
+          "freshness_profile_id": "ak.http_signature.freshness.v1",
+          "statement": "Signature-Input MUST cover every component listed here. The list is a projection of http_signature_contract_registry in contract-registry.json and is compared to it by gate; it is a minimum, not a closed set. created/expires MUST satisfy the shared window in zh/sync/service-http-binding.md section 8.3. A request whose Arkret-Operation header is present but not signed MUST be rejected with http_signature_invalid."
+        },
         "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery_authentication_record.v1; neither value is caller supplied.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
         "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
@@ -3702,7 +3716,7 @@
         "ak.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
-        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §8.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
         "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed.",
         "realm_hosting_boundary_must": "This deployment profile is advertised only through ServiceDescribe.supported_profiles and MUST NOT be written into Realm genesis, schema_refs or any Realm facet. It creates no primary_server, hosted_on, home_server, canonical mirror or complete-history authority.",
@@ -4370,9 +4384,37 @@
         "ak.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
-        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, every protected ak.self.* operation MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. The ak.self. prefix is the machine-enforceable default-protected surface; new or unknown operations default to fail closed. The operation registry may explicitly allow an unauthenticated public-metadata projection, but without valid proof it MUST return only that public projection and MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §8.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
-        "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed."
+        "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed.",
+        "sender_constrained_session_pop_covered_components_must": {
+          "signature_scenario_id": "ak.http_signature.scenario.client_session_pop.v1",
+          "covered_components": [
+            "@authority",
+            "@method",
+            "@target-uri",
+            "arkret-operation",
+            "content-digest",
+            "idempotency-key",
+            "x-arkret-wait-for"
+          ],
+          "conditional_covered_components": [
+            {
+              "component": "content-digest",
+              "condition": "the request carries a body"
+            },
+            {
+              "component": "idempotency-key",
+              "condition": "the request participates in idempotency or replay keying"
+            },
+            {
+              "component": "x-arkret-wait-for",
+              "condition": "the header is present on the request"
+            }
+          ],
+          "freshness_profile_id": "ak.http_signature.freshness.v1",
+          "statement": "For every protected ak.self.* operation the RFC 9421 presentation MUST cover each listed component that applies to the request, including arkret-operation. The list is a projection of http_signature_contract_registry and is compared to it by gate. created/expires MUST satisfy the shared window in zh/sync/service-http-binding.md section 8.3; the RFC 9449 DPoP iat/jti window is a separate contract (ak.dpop.freshness.v1) and MUST NOT be substituted."
+        }
       },
       "identity": {
         "principal_method_default": "did:webvh",

@@ -268,6 +268,45 @@ def check_record(
     return errors
 
 
+def _scenario_components(
+    contract_registry: dict[str, Any],
+    signature: dict[str, Any],
+) -> tuple[list[str], list[str]]:
+    """Resolve the required covered set through the canonical signature contract.
+
+    Report 0110 moved the array off the operation: the operation names a scenario
+    and the scenario owns the components, so this checker resolves the same way a
+    receiver does instead of reading a copy that no longer exists.
+    """
+    scenario_id = signature.get("signature_scenario_id")
+    if not isinstance(scenario_id, str):
+        return [], [f"{OPERATION_ID} service_signature names no signature_scenario_id"]
+    registry = contract_registry.get("http_signature_contract_registry")
+    if not isinstance(registry, dict):
+        return [], ["contract-registry.json carries no http_signature_contract_registry"]
+    scenario = next(
+        (
+            row
+            for row in registry.get("scenarios", [])
+            if isinstance(row, dict) and row.get("scenario_id") == scenario_id
+        ),
+        None,
+    )
+    if scenario is None:
+        return [], [f"{OPERATION_ID} names unregistered signature scenario {scenario_id}"]
+    components = set(registry.get("common_contract", {}).get("covered_components", []))
+    components.update(scenario.get("additional_covered_components", []))
+    components.update(
+        row.get("component")
+        for row in scenario.get("conditional_covered_components", [])
+        if isinstance(row, dict)
+    )
+    components.discard(None)
+    if not components:
+        return [], [f"{scenario_id} resolves to an empty covered set"]
+    return sorted(components), []
+
+
 def check_fixture(
     contract: dict[str, Any],
     fixture: dict[str, Any],
@@ -281,10 +320,8 @@ def check_fixture(
         if signature:
             errors.append(f"{OPERATION_ID} declares no {RECORD_KEY} contract")
         return errors
-    required_components = signature.get("covered_components")
-    if not isinstance(required_components, list) or not required_components:
-        errors.append(f"{OPERATION_ID} declares no service_signature covered_components")
-        required_components = []
+    required_components, resolve_errors = _scenario_components(contract, signature)
+    errors.extend(resolve_errors)
 
     algorithms = {
         row.get("http_message_signature_algorithm")

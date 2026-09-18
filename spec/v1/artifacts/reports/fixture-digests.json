@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-      "sha256": "5acb1e36dbd9c7c383b68fbbd84d1638f61f9b0ed5df8c2374dae52e33809b5a"
+      "sha256": "3cb6e2e5bfefcc6b7e66f3617154a2e93659faa654a728fa50a239a357b20b67"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",

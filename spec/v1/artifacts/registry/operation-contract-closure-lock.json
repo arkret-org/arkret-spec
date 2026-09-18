@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.66",
-  "generated_at": "2026-09-19T23:50:00+08:00",
+  "version": "2026-09-16.68",
+  "generated_at": "2026-09-20T11:30:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,7 +17,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:7624ecc8066e6c6e4c165a491943c4e5845a4872b63c15324172246b2cc5c04a"
+      "sha256": "sha256:5e815410866ce5d760408b4c190b4a178e179e7d489d4f39cbaba960e8be79fd"
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -229,39 +229,39 @@
     },
     {
       "operation_id": "ak.open.mimi.command.notify.v1",
-      "sha256": "sha256:6979d560498b25fba4feffec6cdb143ef065ebde47986b3c183bd763be1285f9"
+      "sha256": "sha256:7adfcb81e8366832bb25b533fc240c3afd81fb0a1c03f9cde09697af8b4f1b73"
     },
     {
       "operation_id": "ak.open.mimi.command.proxy_download.v1",
-      "sha256": "sha256:ad37582665ec1a88ca75babafc80fff1f287c876f925f46e2194511199f0a9d5"
+      "sha256": "sha256:b9c42b88c77a144ea9b01891bf4484d91f9ebc32da06d09213d70312d3b88f0e"
     },
     {
       "operation_id": "ak.open.mimi.command.report_abuse.v1",
-      "sha256": "sha256:8d113140351e926bd63b05e5c9d8d2cf283a787d84e23c9a687342cf3654fe08"
+      "sha256": "sha256:805906d8f2785802443c12c613f9e62569e5d4fb744704b44f86b00d36daf47b"
     },
     {
       "operation_id": "ak.open.mimi.command.request_consent.v1",
-      "sha256": "sha256:2b7a21f34751d91749d8014daf505e68dd00d5106ec2cb4aff671e540befa540"
+      "sha256": "sha256:df11c2fd7e34f30514df7b636a32350f5b3f98e03f82b2432601c645940610c7"
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message.v1",
-      "sha256": "sha256:df33adf43fd466b89153355a2262345709bcb55d601141398412150b1b9b62a9"
+      "sha256": "sha256:a51ce9c06cf76570fe792ca9c1b095614c38cea0239a48a341678750d150dd81"
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
-      "sha256": "sha256:2fa6aa8b7caa2cf7db30669a96f60d68816b432aa1200a7120eac9bef362bc39"
+      "sha256": "sha256:c07600e3cadba4dac527fc52a9af7e28fa709681e8aa13b32609b07b0b1c0d45"
     },
     {
       "operation_id": "ak.open.mimi.command.update_room.v1",
-      "sha256": "sha256:9bcdc94435d3cd712bec7785ddeecd058987fec80881a849e468831816c4909d"
+      "sha256": "sha256:225c357e8f231bcd05b7c22ede5395e0ab297409d25ac3fc4dd47332f737bcd8"
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
-      "sha256": "sha256:e3f5a120da8c679e4b53ce374b7476b0ca72bbb2cb426a3131fe569a5c568f35"
+      "sha256": "sha256:52f4863348395368a4cbdedaaa25c51199b84b0848ef4ffae57b689f1208b600"
     },
     {
       "operation_id": "ak.open.mimi.read.identifiers.v1",
-      "sha256": "sha256:52ccd7bfec8b4e0c5e833888a3c9e242a14f22d0de5ce0240aad3ca5442d235d"
+      "sha256": "sha256:d0ffb5a49f3032bacb4baab897703ed5a71265dae654e1ba04b9665bc510e73b"
     },
     {
       "operation_id": "ak.open.mimi.read.provider_directory.v1",
@@ -369,7 +369,7 @@
     },
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
-      "sha256": "sha256:a2f419441bb4a4d626745be2fc597a0b1cca4f6b993317bd9c10e3f2b42478f0"
+      "sha256": "sha256:38251544f18ae81991a34bf49875ff9b3fdc113049d5b626079c2f059489618a"
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",

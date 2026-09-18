@@ -283,7 +283,9 @@ cipher suite、content profile 或 room policy 组件、proof controller 不等�
 过期的 `created_at`、以开发摘要冒充签名，以及 HTTP 签名有效但 directory JWS 无效（及其反向）一律 MUST 拒绝。
 
 `ak.vector.mimi.identifier_query_source_signature.v1` MUST 证明：每个 identifiers PSI 查询携带 per-request
-的 RFC 9421 provider-source 签名；缺失或无效签名在 PSI 求值之前失败；provider directory 读取不继承该 profile。
+的 RFC 9421 provider-source 签名；缺失或无效签名在 PSI 求值之前失败；`Arkret-Operation` header 存在但未签入
+MUST 在覆盖集检查处失败，签入后被替换 MUST 在签名验证处失败；端点指向某一个 MIMI room 时 `mimi-room-uri`
+为必需项；provider directory 读取不继承该 profile。
 
 `ak.vector.mimi.room_update_branched_effect.v1` MUST 证明：语义化的 update kind 判别式恰好选中一个分支——
 `ak.mimi.room_binding` 要求一条匹配的、caller 自行作者化且原样接纳的 Event，其余每个 kind 都是 receipt-only
