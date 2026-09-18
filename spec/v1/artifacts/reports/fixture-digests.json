@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
-      "sha256": "9b0e63171187da0bf46cab6d0e5d57c3136c0693e5676cf02ebc6ba3b490426b"
+      "sha256": "8d4a9a80cc2c3b417c452e541d8f860772d022c1c2158c0fed6e6c5659320561"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "0e1909562c59bd3527da48bff281e63a0396f9d9fff3914706416bae941ba20c"
+      "sha256": "5c17bac2dce3876052e382247fbc66b2b9839e0a146447e4ca2aecde6dc7c871"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",

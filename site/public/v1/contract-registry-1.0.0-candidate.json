@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.11",
+  "version": "2026-09-19.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T22:00:00+08:00",
+  "generated_at": "2026-09-19T23:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -905,7 +905,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_provisioning_value",
-            "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. The provisioning fact itself, keyed by the Agent DID alone. It is deliberately NOT keyed by the Agent's full account ActorId: models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, and this Event's own envelope actor_id is the CONTROLLER, so an ActorId subject would be unconstructible here. The line in section 3.6 that forbids a bare DidCoreId subject governs the LIFECYCLE family, whose reason -- one principal on two Stations is two accounts -- is discharged in this family by the Realm component plus the same-Station rule of section 3.6.3. Every member is a plain signed-payload copy; requested_scope itself stays controller-private and only its digest is projected. A second provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared) -- that rejection is admission semantics, not pre_state_requirements[], because every registered predicate is positive over a stored field and \"no row for this subject\" has no spelling."
+            "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. The provisioning fact itself, keyed by the Agent DID alone. It is deliberately NOT keyed by the Agent's full account ActorId: models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, and this Event's own envelope actor_id is the CONTROLLER, so an ActorId subject would be unconstructible here. The line in identity/key-management.md section 3.6 that forbids a bare DidCoreId subject governs the LIFECYCLE family, whose reason -- one principal on two Stations is two accounts -- is discharged in this family by the Realm component plus the same-Station rule of section 3.6.3. Every member is a plain signed-payload copy; requested_scope itself stays controller-private and only its digest is projected. A second provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared) -- that rejection is admission semantics, not pre_state_requirements[], because every registered predicate is positive over a stored field and \"no row for this subject\" has no spelling."
           },
           {
             "result_family": "identity_accountability",
@@ -3502,7 +3502,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_asset_privacy_policy_payload/properties/value",
-            "notes": "crypto-media/media-and-blob.md section 12 names the family and says this kind is its own sole carrier rather than a policy_bundle component. The same section treats an omitted direct_download_allowed as false, which is a read-side default and MUST NOT be materialized by the projection."
+            "notes": "crypto-media/media-and-blob.md section 6 names the family and says this kind is its own sole carrier rather than a policy_bundle component. The same section treats an omitted direct_download_allowed as false, which is a read-side default and MUST NOT be materialized by the projection."
           }
         ],
         "id_source": "not_an_object_id"
@@ -4972,7 +4972,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
-            "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.4, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection."
+            "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.1, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection."
           }
         ],
         "id_source": "reference"
@@ -5445,8 +5445,8 @@
         }
       }
     },
-    "version": "2026-09-18.17",
-    "generated_at": "2026-09-19T22:00:00+08:00",
+    "version": "2026-09-18.18",
+    "generated_at": "2026-09-19T23:30:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -5634,7 +5634,7 @@
         "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
         "file": "schemas/agent-sidecar-event-exchange-binding.schema.json",
         "status": "active",
-        "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm/Circle events. See zh/models/sidecar.md section 7.2.1."
+        "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm/Circle events. See zh/models/sidecar.md section 8."
       },
       {
         "schema_id": "ak.schema.agent_sidecar_exchange_control.v1",
@@ -7101,8 +7101,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-16.13",
-    "generated_at": "2026-09-19T20:00:00+08:00"
+    "version": "2026-09-16.14",
+    "generated_at": "2026-09-19T23:30:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -16471,6 +16471,6 @@
       }
     ],
     "version": "2026-09-18.12",
-    "generated_at": "2026-09-19T22:00:00+08:00"
+    "generated_at": "2026-09-19T23:30:00+08:00"
   }
 }

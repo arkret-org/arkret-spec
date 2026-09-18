@@ -2134,3 +2134,120 @@ def check_account_notification_prose_schema_alignment(lint: Lint) -> None:
             prose_path,
             "NotificationDelta discriminators are forbidden on the single-family v1 wire shape",
         )
+
+
+ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH = (
+    ROOT / "tools" / "artifact-prose-section-ref-exemptions.json"
+)
+
+_ARTIFACT_PROSE_SECTION_REF_RE = re.compile(
+    r"(?P<file>[A-Za-z0-9_./-]+\.mdx?)"
+    r"|(?:\u00a7\s*|section\s+)(?P<section>\d+(?:\.\d+)*)"
+)
+
+_PROSE_NUMBERED_HEADING_RE = re.compile(
+    r"^#{1,6}\s+(\d+(?:\.\d+)*)(?:[.\uff0e]\s+|\s+|$)"
+)
+
+
+def _prose_numbered_sections(path: Path, cache: dict[Path, set[str]]) -> set[str]:
+    resolved = path.resolve()
+    cached = cache.get(resolved)
+    if cached is not None:
+        return cached
+    sections: set[str] = set()
+    try:
+        lines = resolved.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        match = _PROSE_NUMBERED_HEADING_RE.match(line)
+        if match:
+            sections.add(match.group(1))
+    cache[resolved] = sections
+    return sections
+
+
+def _resolve_prose_citation_target(name: str) -> Path | None:
+    """Artifact citations name a prose page relative to spec/v1 or spec/v1/zh."""
+    for candidate in (SPEC_ROOT / name, SPEC_ROOT / "zh" / name):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _artifact_json_strings(value: Any, pointer: str = ""):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield from _artifact_json_strings(item, f"{pointer}/{key}")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from _artifact_json_strings(item, f"{pointer}/{index}")
+    elif isinstance(value, str):
+        yield pointer, value
+
+
+def _artifact_prose_section_citations(text: str):
+    """Yield (prose file name, section number) for every citation in one string.
+
+    A bare ``§N`` / ``section N`` inherits the last file named earlier in the
+    same string, which is how a reader resolves it; a string that names no file
+    yields nothing.
+    """
+    current: str | None = None
+    for match in _ARTIFACT_PROSE_SECTION_REF_RE.finditer(text):
+        named = match.group("file")
+        if named is not None:
+            current = named
+            continue
+        if current is not None:
+            yield current, match.group("section")
+
+
+def check_artifact_prose_section_refs(lint: Lint) -> None:
+    """Every `<file>.md §N` a canonical artifact cites must name a real section.
+
+    Artifact ``description`` / ``$comment`` / ``notes`` prose is plain text, so
+    the markdown-link section check (LK001) never reads it: the same assertion is
+    blocked in prose and waved through in a canonical artifact. This closes the
+    artifact-to-prose direction. Generated views are skipped so that one stale
+    citation in contract-registry.json is one finding, not four.
+    """
+    exemptions: set[tuple[str, str, str]] = set()
+    if ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.is_file():
+        ledger = json.loads(
+            ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH.read_text(encoding="utf-8")
+        )
+        for entry in ledger.get("exemptions", []):
+            exemptions.add(
+                (entry["artifact"], entry["target"], str(entry["section"]))
+            )
+
+    section_cache: dict[Path, set[str]] = {}
+    for path in raw_artifact_files():
+        if path.suffix != ".json":
+            continue
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if isinstance(document, dict) and document.get("source_of_truth") is False:
+            continue  # generated view; attribute to its source of truth instead
+        artifact_rel = path.relative_to(ARTIFACTS).as_posix()
+        for pointer, text in _artifact_json_strings(document):
+            for name, section in _artifact_prose_section_citations(text):
+                target = _resolve_prose_citation_target(name)
+                if target is None:
+                    continue  # file existence is check_text_reference_targets
+                if section in _prose_numbered_sections(target, section_cache):
+                    continue
+                target_rel = target.relative_to(SPEC_ROOT).as_posix()
+                if (artifact_rel, f"zh/{target_rel}", section) in exemptions:
+                    continue
+                if (artifact_rel, target_rel, section) in exemptions:
+                    continue
+                lint.fail(
+                    path,
+                    f"{pointer or '/'}: cites {name} \u00a7{section}, "
+                    f"which is not a section heading in {target_rel}",
+                )

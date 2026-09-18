@@ -508,7 +508,7 @@
     },
     "message_reactions_value": {
       "type": "object",
-      "description": "Closed value of the message_reactions typed current result: the canonically sorted dot set of reaction assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because section 9.8.3 requires the audit view to rebuild them.",
+      "description": "Closed value of the message_reactions typed current result: the canonically sorted dot set of reaction assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which stays commutative, associative and idempotent; remove-wins convergence is a default-view fold above it and MUST NOT be implemented as a sixth state model. The set keeps both sides of a concurrent (add, remove) pair because models/strand-and-message.md section 9.8.3 requires the audit view to rebuild them.",
       "required": [
         "assertions"
       ],
@@ -1500,7 +1500,7 @@
     },
     "realm_asset_privacy_policy_result": {
       "type": "object",
-      "description": "The Realm asset metadata and download policy (crypto-media/media-and-blob.md section 12). It is deliberately not a policy_bundle component and is excluded from key_access_revision.",
+      "description": "The Realm asset metadata and download policy (crypto-media/media-and-blob.md section 6). It is deliberately not a policy_bundle component and is excluded from key_access_revision.",
       "required": [
         "selector",
         "revision",
@@ -2250,7 +2250,7 @@
     },
     "agent_provisioning_result": {
       "type": "object",
-      "description": "One Agent provisioning fact (family agent_provisioning), the first of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative. The subject is the Agent DID alone and deliberately not the Agent's full account ActorId: zh/models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, so an ActorId subject would be unconstructible at the moment this write happens. The reason line 594 of section 3.6 forbids a bare DidCoreId for the LIFECYCLE subject -- one principal on two Stations is two accounts -- is already discharged here: this result lives in the controller PCR, and the same-Station rule of section 3.6.3 pins the Agent PCR to that same Station. It is a commit-ordered projection, and a second ak.agent.provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared): the immutable requested_scope ceiling of section 3.6.1 can only be changed by provisioning a new Agent principal, so re-declaring one agent_id is the widening that section forbids.",
+      "description": "One Agent provisioning fact (family agent_provisioning), the first of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative. The subject is the Agent DID alone and deliberately not the Agent's full account ActorId: zh/models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, so an ActorId subject would be unconstructible at the moment this write happens. The reason zh/identity/key-management.md section 3.6 forbids a bare DidCoreId for the LIFECYCLE subject -- one principal on two Stations is two accounts -- is already discharged here: this result lives in the controller PCR, and the same-Station rule of section 3.6.3 pins the Agent PCR to that same Station. It is a commit-ordered projection, and a second ak.agent.provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared): the immutable requested_scope ceiling of section 3.6.1 can only be changed by provisioning a new Agent principal, so re-declaring one agent_id is the widening that section forbids.",
       "required": [
         "selector",
         "revision",

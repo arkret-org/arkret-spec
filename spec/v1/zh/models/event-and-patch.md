@@ -68,6 +68,43 @@ predecessor/position、Commit signature、Event ID 和 producer proof。消费�
 连续，不能从 Realm stream 推断隐藏 Circle 或 Sidecar 的活动。
 
 
+### 4.2 patch path 规则
+
+#### 4.2.1 Grammar（normative）
+
+patch path 严格遵循下面 ABNF：
+
+```text
+path           = segment *( "." segment )
+segment        = identifier
+identifier     = ALPHA-LOWER *( ALPHA-LOWER / DIGIT / "_" )
+ALPHA-LOWER    = %x61-7A                       ; a-z
+```
+
+具体约束：
+
+- `identifier` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`（snake_case，首字符必须小写字母，长度 ≤ 64）；
+- v1 只接受 snake_case `identifier` segment；quoted identifier、selector segment
+  （`field[key=value]`）与数字数组下标都不属于 v1 grammar，MUST 以 `schema_violation`、
+  `reason_code=patch_path_invalid` 拒绝；
+- path 最多 16 段，UTF-8 编码后最多 1024 bytes；
+- [`patch.schema.json`](../../artifacts/schemas/patch.schema.json) 的
+  `propertyNames.pattern` 与 `propertyNames.maxLength` 是上述 grammar、16 段上限与
+  1024-byte 上限的 canonical 机读投影；schema 与本节 MUST 同批更新。
+
+#### 4.2.2 Parser 责任
+
+reducer 与 SDK 实现 MUST 使用确定性 parser。遇到任何不匹配 §4.2.1 grammar 的 path、UTF-8
+编码后超过 1024 bytes 的 path 或超过 16 段的 path 时，MUST 返回 `schema_violation`、
+`reason_code=patch_path_invalid`。Parser MUST NOT 走 fallback 路径；空 segment、非法字符、
+selector 形态与数组下标形态都不得在跳过无效部分后继续解析。
+
+#### 4.2.3 无 stable-key 列表元素
+
+v1 的 patch path 只寻址对象成员。要更新没有 stable key 的列表元素，MUST 把该对象重建为
+map（key 即成员名，例如 Strand `tracks`）、使用 profile 注册的 move / update Event，或用明确的
+API 约束字段表示更新目标；不得把数字数组下标或 selector segment 写入 path。
+
 #### 4.2.4 Redactable content slots (normative)
 
 - Message: `content`、`encrypted_content`

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.2",
-  "generated_at": "2026-09-19T01:40:00+08:00",
+  "version": "2026-09-19.3",
+  "generated_at": "2026-09-19T23:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -586,7 +586,7 @@
       "code": "recovery_policy_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "A recovery session or proof does not satisfy the principal's declared recovery policy. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md §9.5.",
+      "description": "A recovery session or proof does not satisfy the principal's declared recovery policy. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md §8.",
       "type_uri": "https://arkret.org/problems/recovery_policy_mismatch",
       "title": "Recovery policy mismatch"
     },
@@ -2306,7 +2306,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an Agent principal whose current `agent_status` typed current result is `deactivated` (terminal). The endpoint MUST fail closed and no resume path exists. The accepted parent lifecycle witness is sufficient to make all subordinate authorization ineffective; asynchronous cleanup need not synthesize key/grant revoke Events and cannot restore authority. Callers MUST NOT treat this as transient. See zh/identity/key-management.md §3.6 §4.11."
+      "description": "A request targeted an Agent principal whose current `agent_status` typed current result is `deactivated` (terminal). The endpoint MUST fail closed and no resume path exists. The accepted parent lifecycle witness is sufficient to make all subordinate authorization ineffective; asynchronous cleanup need not synthesize key/grant revoke Events and cannot restore authority. Callers MUST NOT treat this as transient. See zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "agent_grant_constraint_missing",
@@ -2369,7 +2369,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an agent principal whose current `agent_status` typed current result is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6 §4.11."
+      "description": "A request targeted an agent principal whose current `agent_status` typed current result is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ak.self.agent.command.resume.v1` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "agent_pcr_genesis_declaration_conflict",
@@ -2699,7 +2699,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Reducer rejected a `ak.circle.create` exceeding the per-Realm active Circle cap, or a `ak.circle.member.state -> join` that would exceed the per-actor active MLS-backed Circle cap. Caps bound cascade/delivery fanout and the M+R MLS-rotation amplification of a single membership change (zh/conformance/scalability-constraints.md §5, zh/models/circle.md §10.3)."
+      "description": "Reducer rejected a `ak.circle.create` exceeding the per-Realm active Circle cap, or a `ak.circle.member.state -> join` that would exceed the per-actor active MLS-backed Circle cap. Caps bound cascade/delivery fanout and the M+R MLS-rotation amplification of a single membership change (zh/conformance/scalability-constraints.md §5, zh/models/circle.md §10)."
     },
     {
       "code": "circle_member_must_be_realm_member",
@@ -2745,7 +2745,7 @@
         "crypto",
         "auth_decision"
       ],
-      "description": "An MLS Welcome / KeyPackage claim binds a device generation that does not equal the receiver's current accepted generation. Receivers MUST reject before admitting the Welcome or key material. See zh/crypto-media/encryption-and-audit.md §2.6 and zh/crypto-media/device-lifecycle.md §14.4."
+      "description": "An MLS Welcome / KeyPackage claim binds a device generation that does not equal the receiver's current accepted generation. Receivers MUST reject before admitting the Welcome or key material. See zh/crypto-media/encryption-and-audit.md §2.6 and zh/crypto-media/device-lifecycle.md §14."
     },
     {
       "code": "claim_invalid",
@@ -2760,7 +2760,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Authorization outcome when a cached consent decision is re-evaluated and the underlying consent has been revoked; the stale cache entry MUST NOT authorize the action. See zh/conformance/conformance-vectors.md §9 (ak.vector.consent.cache_invalidation.v1)."
+      "description": "Authorization outcome when a cached consent decision is re-evaluated and the underlying consent has been revoked; the stale cache entry MUST NOT authorize the action. See zh/conformance/conformance-vectors.md §3.5 (ak.vector.consent.cache_invalidation.v1)."
     },
     {
       "code": "consent_withdrawn",
@@ -3264,7 +3264,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Handle resolution returned an AccountId that does not match the expected applicant, member, or invitee account. Clients and reducers MUST reject the candidate before building invite or join material. See zh/identity/identity-handles.md §3.7 and zh/conformance/conformance-vectors.md §8."
+      "description": "Handle resolution returned an AccountId that does not match the expected applicant, member, or invitee account. Clients and reducers MUST reject the candidate before building invite or join material. See zh/identity/identity-handles.md §3.7."
     },
     {
       "code": "harassment",
@@ -3324,14 +3324,14 @@
       "applies_to": [
         "identity_resolution"
       ],
-      "description": "An identity-link resolution was invalidated because the linked identity is no longer visible to the requester after a membership transition or capability revoke; directory / sync / invite caches MUST drop the stale link. See zh/conformance/conformance-vectors.md §9 (ak.vector.identity_link.eager_invalidation.v1)."
+      "description": "An identity-link resolution was invalidated because the linked identity is no longer visible to the requester after a membership transition or capability revoke; directory / sync / invite caches MUST drop the stale link. See zh/conformance/conformance-vectors.md §3.5 (ak.vector.identity_link.eager_invalidation.v1)."
     },
     {
       "code": "identity_link_policy_tightened",
       "applies_to": [
         "identity_resolution"
       ],
-      "description": "An identity-link resolution was invalidated because the governing visibility / link policy was tightened after the link was cached. See zh/conformance/conformance-vectors.md §9 (ak.vector.identity_link.policy_tightening_invalidation.v1)."
+      "description": "An identity-link resolution was invalidated because the governing visibility / link policy was tightened after the link was cached. See zh/conformance/conformance-vectors.md §3.5 (ak.vector.identity_link.policy_tightening_invalidation.v1)."
     },
     {
       "code": "identity_method_evidence_invalid",
@@ -3420,7 +3420,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "An out-of-band invite code attempt was invalidated because the per-code attempt rate limit was exceeded. See zh/conformance/conformance-vectors.md §9 (ak.vector.invite.oob_code_entropy.v1)."
+      "description": "An out-of-band invite code attempt was invalidated because the per-code attempt rate limit was exceeded. See zh/conformance/conformance-vectors.md §3.11 (ak.vector.invite.oob_code_entropy.v1)."
     },
     {
       "code": "invite_already_terminal",
@@ -3465,7 +3465,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "An out-of-band invite code was rejected because its entropy is below the required floor. See zh/conformance/conformance-vectors.md §9 (ak.vector.invite.oob_code_entropy.v1)."
+      "description": "An out-of-band invite code was rejected because its entropy is below the required floor. See zh/conformance/conformance-vectors.md §3.11 (ak.vector.invite.oob_code_entropy.v1)."
     },
     {
       "code": "join_policy_duplicate_gate_id",
@@ -3712,7 +3712,7 @@
         "event_envelope",
         "identity_resolution"
       ],
-      "description": "A minimal-metadata content Event proof could not be bound to exactly one active MLS LeafNode whose basic credential identity equals Event.actor_id and whose signature_key matches proof.verification_method at the encrypted envelope epoch/group-state reference. The receiver MUST fail closed without querying a principal-scoped device directory. See zh/crypto-media/encryption-and-audit.md §2.10.3."
+      "description": "A minimal-metadata content Event proof could not be bound to exactly one active MLS LeafNode whose basic credential identity equals Event.actor_id and whose signature_key matches proof.verification_method at the encrypted envelope epoch/group-state reference. The receiver MUST fail closed without querying a principal-scoped device directory. See zh/crypto-media/encryption-and-audit.md §2.7."
     },
     {
       "code": "minimal_metadata_presign_forbidden",
@@ -3857,7 +3857,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A `ak.gate.account.command.pair_agent_key.v1` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been closed). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md §3.6 §4.5."
+      "description": "A `ak.gate.account.command.pair_agent_key.v1` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been closed). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md §3.6.2."
     },
     {
       "code": "partial_auth_state",
@@ -3887,7 +3887,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Event. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md §4.4."
+      "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Event. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md §4.3.1."
     },
     {
       "code": "patch_path_invalid",
@@ -4009,7 +4009,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A Realm claiming ak.profile.principal_control_realm.v1 received a collaboration / media / content event kind outside its allowlist-only control-plane event policy. Reducers MUST reject instead of treating the Realm as ordinary collaboration history. See zh/identity/key-management.md §4.2 and artifacts/profiles/conformance-profiles.json#profile_requirements."
+      "description": "A Realm claiming ak.profile.principal_control_realm.v1 received a collaboration / media / content event kind outside its allowlist-only control-plane event policy. Reducers MUST reject instead of treating the Realm as ordinary collaboration history. See zh/models/realm-and-space.md §2.8.1 and artifacts/profiles/conformance-profiles.json#profile_requirements."
     },
     {
       "code": "principal_deactivated",
@@ -4019,7 +4019,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "The account status checkpoint contains a deactivation for the exact AccountId acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, membership writes targeting that account, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md §7.1 and zh/sync/federation.md §4.4.1."
+      "description": "The account status checkpoint contains a deactivation for the exact AccountId acting as actor, subject, issuer, recipient, or device owner. New device/session grants, KeyPackage operations, capability delegation, membership writes targeting that account, push routes, and to-device enqueue MUST fail closed. See zh/identity/account-lifecycle.md §7.1 and the federation propagation rules of zh/identity/account-lifecycle.md §7."
     },
     {
       "code": "private_attachment",
@@ -4073,7 +4073,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime key-pairing or session-grant proof (DID `assertionMethod` signature, agent_key_proof transcript, etc.) failed signature verification, transcript binding, or `proof_kind` check. Distinct from `signature_invalid` in that the wire shape was syntactically valid but the proof semantics did not bind to the expected principal / nonce / audience. See zh/identity/key-management.md §3.6 §4.5."
+      "description": "A runtime key-pairing or session-grant proof (DID `assertionMethod` signature, agent_key_proof transcript, etc.) failed signature verification, transcript binding, or `proof_kind` check. Distinct from `signature_invalid` in that the wire shape was syntactically valid but the proof semantics did not bind to the expected principal / nonce / audience. See zh/identity/key-management.md §3.6.2."
     },
     {
       "code": "push_gateway_unreachable",
@@ -4685,7 +4685,7 @@
         "federation_transaction",
         "auth_decision"
       ],
-      "description": "Federation idempotency replay outcome: a cached federated request was re-evaluated and the origin service's signing key is now revoked, so the cache hit is treated as historical_only and MUST NOT bypass current key-state verification. See zh/conformance/conformance-vectors.md §9 (ak.vector.federation.idempotency_after_key_revoke.v1)."
+      "description": "Federation idempotency replay outcome: a cached federated request was re-evaluated and the origin service's signing key is now revoked, so the cache hit is treated as historical_only and MUST NOT bypass current key-state verification. See zh/conformance/conformance-vectors.md §3.9 (ak.vector.federation.idempotency_after_key_revoke.v1)."
     },
     {
       "code": "service_not_plaintext_visible",
@@ -4747,7 +4747,7 @@
         "service_call",
         "client_sync"
       ],
-      "description": "Sub-reason for failed_precondition when any plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
+      "description": "Sub-reason for failed_precondition when any plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/sync/signal.md §1 and §3."
     },
     {
       "code": "soft_failed",
@@ -4999,7 +4999,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Current parser rejected an Event carrying a top-level or payload field not declared by the closed schema for its kind (including removed / renamed fields in artifacts/registry/forbidden-wire-fields.json). Distinct from `schema_violation` in that it pinpoints an unrecognized field rather than a constraint violation on a known field. See zh/spec-map.md §1.2.1."
+      "description": "Current parser rejected an Event carrying a top-level or payload field not declared by the closed schema for its kind (including removed / renamed fields in artifacts/registry/forbidden-wire-fields.json). Distinct from `schema_violation` in that it pinpoints an unrecognized field rather than a constraint violation on a known field. See zh/overview/current-contract.md §1."
     },
     {
       "code": "unknown_focus_type",
@@ -5014,7 +5014,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Current parser rejected an Event whose `kind` is not an active registered v1 kind. Sync, federation, snapshot, SDK, and conformance paths MUST fail closed and MUST NOT perform payload-shape disambiguation or alias lookup. See zh/spec-map.md §1.2.1 and zh/overview/current-contract.md."
+      "description": "Current parser rejected an Event whose `kind` is not an active registered v1 kind. Sync, federation, snapshot, SDK, and conformance paths MUST fail closed and MUST NOT perform payload-shape disambiguation or alias lookup. See zh/overview/current-contract.md §1."
     },
     {
       "code": "unresolved_basis",

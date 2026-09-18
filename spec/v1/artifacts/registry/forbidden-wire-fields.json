@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 61,
+  "version": 62,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-17T15:00:00+08:00",
+  "generated_at": "2026-09-19T23:30:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -4809,7 +4809,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §7.2.",
+      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §8.",
       "match": {
         "kind": "field",
         "values": [

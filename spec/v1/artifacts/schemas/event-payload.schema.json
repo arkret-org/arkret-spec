@@ -5046,7 +5046,7 @@
     },
     "membership_state": {
       "type": "string",
-      "description": "Canonical materialized membership state enum shared by ak.member.state (Realm) and ak.circle.member.state (Circle). Invite is a separate pending workflow and is never a member state. `knock` denotes a pending self-authored join request; see governance/join-policy.md §9 and models/circle.md §9.1.",
+      "description": "Canonical materialized membership state enum shared by ak.member.state (Realm) and ak.circle.member.state (Circle). Invite is a separate pending workflow and is never a member state. `knock` denotes a pending self-authored join request; see governance/join-policy.md §5 and models/circle.md §9.1.",
       "enum": [
         "join",
         "knock",
