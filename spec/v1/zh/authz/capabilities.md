@@ -517,7 +517,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
 | `resource_limit` | `quota` | `resource` | `max_resources`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
-| `approval_required` | `claim_based` | `approval` | `approval_required` |
+| `approval_required` | `claim_based` | `approval` | `approval_required`（grant 层开关；与 Realm 治理面 `policy_action.value.approval_required` 是两个独立开关，取严相交的裁决见 [`../models/governance-objects.md` §3.5](../models/governance-objects.md)） |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
 | `approval_actor_ids` | `claim_based` | `approval` | `approval_actor_ids` |
 | `approval_relation` | `claim_based` | `approval` | `approval_relation` |
@@ -865,7 +865,7 @@ profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员�
 8. 若 grant 或 constraint 要求 claim，拉取并验证 claim / attestation。
 9. 判断 claim issuer 是否可信。
 10. 判断 claim 是否有效、未过期、未撤销。
-11. 若需要 approval，校验 responsible / guardian / controller approval 证据。
+11. 若需要 approval，校验 responsible / guardian / controller approval 证据。**「是否需要」有两个独立来源，MUST 都求值**：命中 grant 上的 approval constraint（[`constraint-schema.md` §9](./constraint-schema.md)），以及 Realm 治理面登记的审批配置（[`../models/governance-objects.md` §3.5](../models/governance-objects.md)）。后者在第 7 步判定为 ALLOWED 之后求值，只能收紧不能授予；两层要求 MUST 各自被满足，任一层写 `approval_required=false` MUST NOT 取消另一层的要求。
 12. 应用 revoke 和 superseding 规则。
 
 Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机 或 policy 条件；MUST NOT 把 facets 本身当作状态机、动作或授权规则。
@@ -941,7 +941,7 @@ Arkret v1 固定：
 - Constraint schema 由 `constraint-schema.md` 固定。
 - 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交：deny / quarantine / require_review 跨**全部**命中 grant 全局生效（全局 deny 优先），任一命中 grant 的 deny 不得被另一无 deny 命中 grant 绕过；allow 仍按"每个满足的依赖 grant 内 allow 全满足"判定。确定性跨 grant 入口算法见 [`constraint-schema.md` §15.4](./constraint-schema.md)。
 - Moderation policy MUST NOT 凭空授予 capability。
-- Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
+- Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。审批**要求**的第二个来源是 Realm 治理面的 `policy_action` 配置；它与 grant constraint 上的同名字段是两个独立开关，命中、计票、拒绝形态与默认由 [`../models/governance-objects.md` §3.5](../models/governance-objects.md) 固定，两层按取严相交且各自满足。
 - Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof 与 `../identity/identity-handles.md` 的 claim / VC 规则；Agent requested-scope 的私有披露路径见 [`../identity/identity-handles.md` §16](../identity/identity-handles.md)。
 
 ## 附录 B. 可携带授权与撤销（informative）

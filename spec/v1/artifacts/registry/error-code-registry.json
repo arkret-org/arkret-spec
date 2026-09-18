@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.3",
-  "generated_at": "2026-09-20T17:45:00+08:00",
+  "version": "2026-09-21.1",
+  "generated_at": "2026-09-21T15:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2488,7 +2488,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Event was rejected because the active capability constraint requires approval evidence (per zh/authz/capabilities.md §6 / §8) and none was supplied."
+      "description": "Event was rejected because approval evidence is required and what was supplied does not meet the requirement. Two independent layers can raise that requirement and both are evaluated: an approval constraint on a matched capability grant (zh/authz/capabilities.md §6 / §8, zh/authz/constraint-schema.md §9), and the Realm governance approval configuration registered as the policy_action typed current result (zh/models/governance-objects.md §3.5), which hangs off an (action token, scope) pair rather than off one grant. Either layer alone is enough to produce this reason code, and a layer writing approval_required=false only withdraws its own demand -- it never cancels the other's. The top-level error is claim_required. This is a require_review-class outcome, not a deny: supplying the missing approval signatures and retrying is the defined path."
     },
     {
       "code": "audience_mismatch",

@@ -501,6 +501,27 @@ quota authority MUST 同时满足：
 
 > **理由**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名，把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的必要条件。
 
+### 9.4 与 Realm 治理面审批配置的关系（normative）
+
+本节 §9.1–§9.3 定义的是**挂在一份具体 grant 上**的审批要求：它随该 grant 的签发与撤销进出，
+`approval_actor_ids` / `approval_relation` / `approval_threshold` 由该 grant 自己携带。
+
+v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `policy_action` 配置，它挂在
+`(action token, scope)` 上，对所有持 grant 的 actor 一律生效。两者的字段同名
+（都叫 `approval_required`），但**不是**同一个开关的两处写法，也不存在冗余关系。
+命中条件、多配置合并、计票规则、拒绝形态与默认由
+[`../models/governance-objects.md` §3.5](../models/governance-objects.md) 固定，本节不重复。
+
+对本节实现者只有三条后果：
+
+1. 两层 MUST 按取严相交，且 MUST **各自**被满足——本节按 `approval_actor_ids` /
+   `approval_threshold` 判定，治理面层按它自己的 quorum 判定；MUST NOT 用一层的满足替代另一层，
+   也 MUST NOT 把两层的票数合并成一个阈值。
+2. 本节 constraint 写 `approval_required=false` 的含义是「**本层**不施加要求」，
+   MUST NOT 被读成「该操作不需要审批」，MUST NOT 取消治理面层的要求；反向同样。
+3. 治理面层复用 §9.3 的 approval signature 作为唯一证据类型，字段绑定与 replay 规则原样适用，
+   MUST NOT 为它另造第二种审批证据。一份签名若同时满足两层的资格条件，MAY 同时计入两层。
+
 ## 10. 基于声明的约束（claim_based, constraint_subkind=claim）
 
 ### 10.1 声明要求

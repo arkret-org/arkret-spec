@@ -174,6 +174,113 @@ Policy 文档内部的 rule 或 action 标识，MUST NOT 按这三者中的任�
 名称或文档内局部符号（如 `PolicyRule.rule_id`）充当 subject。`value.policy_scope` MUST 解析到本 Realm 内一个
 **精确的**已授权 scope：非空字符串检查不是这项校验，合法的子 scope 也 MUST NOT 被放宽成 RealmId。
 
+### 3.5 审批配置的消费合同（normative）
+
+[§3.4](#34-policy-action-审批配置) 只定义了这份配置怎么写进来。本节定义它怎么被读——
+一份没有读者的配置对系统行为没有可观察后果，任何实现只能自己发明一套仲裁规则，
+然后在跨实现处分歧。本节是 `policy_action` 在 v1 的**唯一**消费点。
+
+本节的层次定位：`policy_action` 是叠加在 capability 判定**之上**的收紧层。
+它对应 [`../authz/capabilities.md` §18](../authz/capabilities.md) 判定链路第 11 步
+「若需要 approval，校验 approval 证据」里「是否需要」的第二个来源——第一个来源是 grant 上的
+approval constraint。它 MUST 在跨 grant 合并
+（[`../authz/constraint-schema.md` §15.4](../authz/constraint-schema.md)
+的 `evaluate_constraints_across_grants`）判定为 ALLOWED **之后**求值：
+配置不能把一次本来 DENIED 的操作变成可执行，这是 [§3.3](#33-policy-与-capability-决策)
+「policy 不能授予权限」在本节的直接后果。
+
+**命中条件**：设待准入操作的 capability action token 为 `A`、目标资源为 `T`、所在 Realm 为 `R`。
+一条 `policy_action` 的**当前值** `C` 命中该操作，当且仅当以下全部成立：
+
+1. `C.value.action` 与 `A` **逐字相等**。MUST NOT 用前缀、通配或
+   [`../authz/capabilities.md` §5.0.1](../authz/capabilities.md) 的聚合 admin 覆盖集展开来扩大命中：
+   为 `ak.realm.admin` 配置的审批只作用于 action token 恰为 `ak.realm.admin` 的操作，
+   MUST NOT 自动施加到它覆盖集内的具体动作上，反向也一样。
+2. `T` 落在 `C.value.policy_scope` 所指的 scope 内，按该 scope 自身的包含语义判定。
+3. 分支 `policy_ref` 另需其 `policy_id` 指向的 Policy 文档在本次准入时刻对该操作**有效**：
+   在 `R` 内可解析，且落在该文档的 `not_before` / `expires_at` 窗口内。挂在已过期或已不可解析的
+   Policy 文档下的配置 MUST NOT 命中。分支 `realm_action` 没有这一项，它在 `R` 内直接生效。
+
+只有每个 `(分支, composite key)` 的**当前值**参与求值；被替换的历史版本 MUST NOT 参与。
+
+**多条配置同时命中的裁决**：MUST 确定，且 MUST NOT 依赖读取顺序、写入顺序或分支顺序。
+设命中集合为 `H`，有效要求按下式合并：
+
+- `effective_approval_required` = `H` 中各 `value.approval_required` 的**逻辑或**；
+- `effective_approval_quorum` = `H` 中 `approval_required=true` 的那些配置的
+  `value.approval_quorum` 的**最大值**（当 `effective_approval_required=false` 时无定义，也不使用）。
+
+或与最大值都满足交换律与结合律，因此任意读取顺序得到同一结果；这与
+[§3.2](#32-schema-与字段) 同 `priority` 的 deny-overrides 和
+[`../authz/capabilities.md` §20](../authz/capabilities.md)「约束按最严格规则相交」是同一种取严姿态。
+两支之间 **MUST NOT** 存在任何优先级：`policy_ref` 支的配置 MUST NOT 覆盖 `realm_action` 支的要求，
+反向同样禁止；「后写覆盖先写」「更具体的 scope 覆盖更宽的 scope」都 MUST NOT 被用作跨配置的裁决规则。
+
+**满足证据**：本层复用
+[`../authz/constraint-schema.md` §9.3](../authz/constraint-schema.md) 的 **approval signature**，
+**MUST NOT** 另造第二种审批证据类型。一份 approval signature 对本层的 quorum 计一票，
+当且仅当它同时满足：
+
+- 按 §9.3 的全部字段绑定与 replay 规则有效（canonical signing input 完整、`approved_at` 在该节规定的
+  freshness 边界内、`(approver_did, nonce)` 未复用、签名由 `approver_did` 在 `approved_at` 时刻
+  未被撤销的 verification method 签发）；
+- `request_canonical_digest` 等于**本次**请求 body 的 JCS SHA-256 摘要，`action` 等于 `A`，
+  `realm_id` 等于 `R`；
+- 其 `grant_id` 是本次操作的某个**满足的依赖 grant**（§15.4 第 2 步的定义）。§9.3 的字段集要求
+  `grant_id` 与 `proposal_id` 恰有其一，本层不为此增设第三种取值：走 grant 路径即绑 `grant_id`，
+  走提案路径即绑 `proposal_id`；
+- `approver_did` **不是**本次操作的发起者。自签名 MUST NOT 计票，否则 `approval_quorum=1` 等于没有要求；
+- `approver_did` 自身持有一份对 `(A, T)` 有效的 capability grant。`policy_action.value` 不携带
+  `approval_actor_ids`，所以有资格投票的集合由这一条定义，MUST NOT 放宽成「任意 Realm 成员」——
+  否则任何人都能凑齐 quorum。
+
+**一票 = 一个互不相同的 `approver_did`**。同一 actor 的多份签名（无论 nonce 是否不同）计一票。
+当计入本层的不同 `approver_did` 数量 `>= effective_approval_quorum` 时，本层的要求被满足。
+
+因为每份签名绑定的是**本次**请求 body 的摘要，一次批准 MUST NOT 被复用到之后的任何操作，
+即便 action token 与目标完全相同；实现 MUST NOT 把满足过一次的 quorum 记成对该 `(action, scope)`
+的长期授权。`policy_action.value` 不携带 `timeout`，本层也 MUST NOT 自造一个：签名的时效边界
+只由 §9.3 的 `approved_at` 规则给出，而跨请求的累积本就不成立——换一次请求就换一个
+`request_canonical_digest`。
+
+**未满足时的拒绝形态**：`effective_approval_required=true` 而计票不足时，该操作 MUST NOT 被接受。
+准入返回既有的 `error.code=claim_required`，`error.details.reason_code=approval_required`；
+v1 **不**为本层新造错误码或 reason code。该判定属 `require_review` 类而非 `deny` 类：
+补齐证据后重试是规范给出的路径，实现 MUST NOT 把它记成对该 actor 的永久拒绝，
+也 MUST NOT 降级成 `quarantine`。
+
+`error.details` MUST 携带足以让调用方行动的信息：本次的 action token 与
+`effective_approval_quorum`，以及已计入的票数。它 **MUST NOT** 枚举命中了哪些配置的 subject
+（`policy_id` / `action_id`），否则一个没有 Policy 读权限的调用方会从错误信封里推断出
+Realm 内 Policy 对象的存在与命名。
+
+**没有命中配置时的默认**：`H` 为空时本层**不施加任何审批要求**，MUST NOT fail closed。
+本层只能收紧、不能授予（[§3.3](#33-policy-与-capability-决策)），
+一个只能收紧的层，其「无配置」的语义就是它的单位元；若在此 fail closed，
+则每个未被配置过的 action 都不可执行。这一条是显式默认，不是隐式约定。
+
+与之**互补**的是求值失败：某条配置命中了，但它的 `policy_scope` 或 `policy_id` 在本次准入时刻
+无法解析，则本次判定 MUST fail closed（按未满足审批拒绝），**MUST NOT** 把不可解析的配置
+当成不存在而放行。「无配置」与「配置读不出来」是两件事。
+
+**与 grant constraint 上同名字段的关系（normative）**：`policy_action.value.approval_required` 与
+capability grant constraint 的 `approval_required`
+（[`../authz/capabilities.md` §6](../authz/capabilities.md)、
+[`../authz/constraint-schema.md` §9](../authz/constraint-schema.md)）是**两个独立开关**，
+不是同一个开关的两处写法，也不存在冗余关系。两者的判定层次不同：前者挂在
+`(action token, scope)` 上、由 Realm 治理面配置、对所有持 grant 的 actor 一律生效；
+后者挂在**一份具体 grant** 上、随该 grant 的签发与撤销进出。
+
+两层 MUST 按取严相交：任一层要求审批，该操作就需要审批；两层都要求时，两层的要求
+MUST **各自**被满足——grant constraint 侧按 §9 的 `approval_actor_ids` / `approval_threshold`
+判定，本层按上文的 quorum 判定；不取最大值，也不用一层的满足替代另一层。
+一份 approval signature 若同时满足两层的资格条件，MAY 同时计入两层。
+
+任一层的 `approval_required=false` 的含义是「**本层**不施加要求」，
+**MUST NOT** 被读成「该操作不需要审批」：它 MUST NOT 取消另一层的要求。
+一个 grant constraint 写 `approval_required=false` 不能绕过 Realm 的 `policy_action` 配置，
+反向也一样。
+
 ## 4. Capability Grant
 
 ### 4.1 概念

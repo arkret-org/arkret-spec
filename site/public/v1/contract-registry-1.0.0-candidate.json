@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.7",
+  "version": "2026-09-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T14:50:00+08:00",
+  "generated_at": "2026-09-21T15:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -16637,254 +16637,686 @@
     "generated_at": "2026-09-16T21:30:00+08:00"
   },
   "current_result_registry": {
-    "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
+    "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
+    "consumption_classes": {
+      "admission_input": "Reading the current value can change whether an Event or request is accepted or authorized.",
+      "delivery_input": "Reading the current value shapes what a service surface returns or delivers, or what a conforming client must do, but never decides admission.",
+      "record_only": "No v1 prose reads this value to decide anything; it exists as an audit or display record. This class MUST be declared explicitly -- a family nobody happens to mention is not thereby record_only."
+    },
     "result_kinds": [
       {
         "result_kind": "realm_authority_root",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "authz/capabilities.md §3.2",
+            "authz/capabilities.md §10"
+          ],
+          "note": "A first grant's issuer ceiling and the whole issuer-authority chain are computed from the current authority root, so reading it decides whether a grant is accepted."
+        }
       },
       {
         "result_kind": "realm_profile",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_profile_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_profile_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "discovery/discovery-directory.md §3.2"
+          ],
+          "note": "Directory results and exact resolve draw the Realm metadata they may disclose from this projection; the preview policy bounds which of its fields are released."
+        }
       },
       {
         "result_kind": "realm_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "governance/join-policy.md §2"
+          ],
+          "note": "Entry-rule evaluation resolves the Realm's current policy reference before deciding whether a join is admissible."
+        }
       },
       {
         "result_kind": "member_state",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-and-space.md §2.7"
+          ],
+          "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted."
+        }
       },
       {
         "result_kind": "strand",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/strand-and-message.md §8.3"
+          ],
+          "note": "Writes against a Strand take its current projection as their basis, so admission of Strand-scoped Events reads it."
+        }
       },
       {
         "result_kind": "message_reactions",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_reactions_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_reactions_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/strand-and-message.md §9.8.3",
+            "models/strand-and-message.md §9.8.4"
+          ],
+          "note": "Remove-wins folding and the anti-abuse rules both evaluate against the current reaction set."
+        }
       },
       {
         "result_kind": "mls_group",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/contact-and-direct-conversation.md §7.3"
+          ],
+          "note": "The single-group and repair rules read the current MLS group projection to decide whether a commit or welcome is accepted."
+        }
       },
       {
         "result_kind": "agent_key",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/key-management.md §3.6.1"
+          ],
+          "note": "Agent runtime pairing and session authorization are decided against the currently authorized agent keys."
+        }
       },
       {
         "result_kind": "agent_status",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_status_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_status_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/account-lifecycle.md §9.1"
+          ],
+          "note": "A paused or deactivated agent principal is rejected on the admission path, which reads this projection."
+        }
       },
       {
         "result_kind": "realm_genesis",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_genesis_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_genesis_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-and-space.md §2.5.0"
+          ],
+          "note": "The realm_id is derived from the genesis Event and self-certifying; resolvers check the claim against this projection."
+        }
       },
       {
         "result_kind": "realm_history_access",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_history_access_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_history_access_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-and-space.md §2.3.A"
+          ],
+          "note": "The cross-field rule admits a scope's first history-bearing write only while the current history_access is since_join."
+        }
       },
       {
         "result_kind": "identity_resolution",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_resolution_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_resolution_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/identity-did.md §4.2.3"
+          ],
+          "note": "The current principal and unique PCR of an authenticated account are read from this projection when admitting identity-bound operations."
+        }
       },
       {
         "result_kind": "identity_accountability",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_accountability_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/identity_accountability_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/actor.md §3.3.1"
+          ],
+          "note": "accountable_principal_ids is verifiable only through this endorsement projection; without it the dependent Actor operations are not admissible."
+        }
       },
       {
         "result_kind": "capability_grant",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/capability_grant_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/capability_grant_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "authz/capabilities.md §11"
+          ],
+          "note": "The effective permission set is computed from the current grant projection on every authorization decision."
+        }
       },
       {
         "result_kind": "call_state",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_state_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_state_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/call-state.md §4.2"
+          ],
+          "note": "The state machine decides each next call Event against the current call state."
+        }
       },
       {
         "result_kind": "call_focus",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_focus_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_focus_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/media-service-binding.md §5"
+          ],
+          "note": "Focus selection and session persistence read the committed focus before a media token is issued."
+        }
       },
       {
         "result_kind": "call_recording_state",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_state_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/call-state.md §5"
+          ],
+          "note": "Whether a recording start or stop is admissible is decided against the current recording state."
+        }
       },
       {
         "result_kind": "call_recording_artifact",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_artifact_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_recording_artifact_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/call-state.md §7"
+          ],
+          "note": "The summary's recording_state is mirrored from this projection and the reducer validates the summary against it."
+        }
       },
       {
         "result_kind": "call_transcript_state",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_state_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/call-state.md §5"
+          ],
+          "note": "Whether a transcript start or stop is admissible is decided against the current transcript state."
+        }
       },
       {
         "result_kind": "call_transcript_artifact",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_artifact_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_transcript_artifact_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/call-state.md §7"
+          ],
+          "note": "The summary's transcript_state is mirrored from this projection and the reducer validates the summary against it."
+        }
       },
       {
         "result_kind": "call_moderation",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_moderation_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_moderation_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/webrtc-signaling.md §3a"
+          ],
+          "note": "restore_participant may only lift an active ban of the same actor, which is decided against the current moderation projection."
+        }
       },
       {
         "result_kind": "call_roster",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_roster_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_roster_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/media-service-binding.md §7"
+          ],
+          "note": "Participant identity cross-checking on the media side resolves against the current roster."
+        }
       },
       {
         "result_kind": "call_mute_override",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_mute_override_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_mute_override_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "crypto-media/call-state.md §4.1"
+          ],
+          "note": "A moderator's forced mute drives server-side media permissions through this durable projection rather than through ephemeral signaling."
+        }
       },
       {
         "result_kind": "call_summary",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_summary_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_summary_result",
+        "consumption": {
+          "class": "record_only",
+          "consumed_by": [],
+          "note": "crypto-media/call-state.md §7 states its purpose: a durable record of a finished call that a client can read without replaying ephemeral signaling. No v1 rule is conditioned on it -- the reducer checks the summary against call_state, never the other way round."
+        }
       },
       {
         "result_kind": "realm_schema",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_schema_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_schema_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/morph.md §4"
+          ],
+          "note": "morph_kind_profiles narrows a Morph's facets, writable fields and required capability, and validation reads it."
+        }
       },
       {
         "result_kind": "realm_link",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_link_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_link_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-links.md §4"
+          ],
+          "note": "Link state decides whether cross-Realm derivation and propagation hold."
+        }
       },
       {
         "result_kind": "realm_join_rule",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_join_rule_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_join_rule_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "governance/join-policy.md §2"
+          ],
+          "note": "Entry-rule evaluation reads the current join rule."
+        }
       },
       {
         "result_kind": "realm_discovery",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_discovery_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_discovery_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "discovery/discovery-directory.md §3"
+          ],
+          "note": "Whether the directory indexes and returns a Realm is decided by its current discoverability declaration."
+        }
       },
       {
         "result_kind": "realm_alias",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_alias_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_alias_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "discovery/object-addressing.md §3.3"
+          ],
+          "note": "resolve_realm and the namespace-occupancy check both resolve against the current alias projection."
+        }
       },
       {
         "result_kind": "realm_policy_bundle",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_bundle_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_bundle_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/media-service-binding.md §8.2"
+          ],
+          "note": "The governance binding decides media-service authority against the bundle's current value."
+        }
       },
       {
         "result_kind": "realm_asset_privacy_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_asset_privacy_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_asset_privacy_policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/media-and-blob.md §6"
+          ],
+          "note": "Whether a presign, a server-side thumbnail or a proxy download is permitted is decided against this policy."
+        }
       },
       {
         "result_kind": "realm_plaintext_visible_services",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_plaintext_visible_services_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_plaintext_visible_services_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/media-service-binding.md §8.2"
+          ],
+          "note": "A service DID that decrypts media MUST appear in this projection; otherwise the request fails with media_plaintext_service_not_authorised."
+        }
       },
       {
         "result_kind": "realm_media_service",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_media_service_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_media_service_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "crypto-media/media-service-binding.md §2"
+          ],
+          "note": "Token exchange and focus selection read the declared media services before issuing anything."
+        }
       },
       {
         "result_kind": "realm_read_receipt_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_read_receipt_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_read_receipt_policy_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "discovery/read-receipts.md §2.5"
+          ],
+          "note": "disclosure and visibility decide whether a conforming client sends a read receipt and whether a receiver discards one."
+        }
       },
       {
         "result_kind": "realm_preview_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_preview_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_preview_policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "discovery/object-addressing.md §4.3"
+          ],
+          "note": "Preview-token acceptance runs against the effective policy digest allowlist, and the response is trimmed to the fields this policy allows."
+        }
       },
       {
         "result_kind": "realm_inheritance_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_inheritance_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_inheritance_policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/governance-objects.md §4.3"
+          ],
+          "note": "A derived capability Event MUST satisfy the target Realm's current inheritance declaration."
+        }
       },
       {
         "result_kind": "realm_tombstone",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_tombstone_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_tombstone_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-and-space.md §2.6.1"
+          ],
+          "note": "The terminal state decides what the Realm still admits after it is reached."
+        }
       },
       {
         "result_kind": "realm_destroy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_destroy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_destroy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-and-space.md §2.6.1"
+          ],
+          "note": "The terminal state decides what the Realm still admits after it is reached."
+        }
       },
       {
         "result_kind": "realm_set_default_strand",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_set_default_strand_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_set_default_strand_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "models/strand-and-message.md §2.1"
+          ],
+          "note": "A client MUST identify the default discussion Strand through this pointer or its derived is_default flag, never through an implementation detail."
+        }
       },
       {
         "result_kind": "strand_position",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "authz/constraint-schema.md §6.3"
+          ],
+          "note": "The structural container move constraint decides a move against the Strand's current from/to container refs."
+        }
       },
       {
         "result_kind": "invite_lifecycle",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/governance-objects.md §5.3"
+          ],
+          "note": "The invite state machine decides accept, claim, cancel and revoke against the current lifecycle value."
+        }
       },
       {
         "result_kind": "invite_live_target",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_live_target_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_live_target_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/governance-objects.md §5.3"
+          ],
+          "note": "Whether an invite still has a live target is a precondition the same behaviour rules read."
+        }
       },
       {
         "result_kind": "invite_directed_invitee",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_directed_invitee_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_directed_invitee_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/governance-objects.md §5.3"
+          ],
+          "note": "A directed invite may only be accepted by the recorded invitee, which those rules resolve from this projection."
+        }
       },
       {
         "result_kind": "pin",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/pin_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/pin_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "models/pins.md §4.1"
+          ],
+          "note": "A reader folds the dot set into the current pin list and reads asserter and polarity from each dot's signed envelope."
+        }
       },
       {
         "result_kind": "space_parent",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_parent_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_parent_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/realm-and-space.md §3.5"
+          ],
+          "note": "The causal parent edge decides whether a Space-hierarchy write holds."
+        }
       },
       {
         "result_kind": "space_child_scope_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_child_scope_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_child_scope_policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/circle.md §7.1"
+          ],
+          "note": "Whether a child Space's scope narrowing is admissible is decided against this policy."
+        }
       },
       {
         "result_kind": "agent_provisioning",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_provisioning_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_provisioning_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/key-management.md §3.6.3"
+          ],
+          "note": "The Agent PCR genesis construction order is checked against the provisioning facts recorded here."
+        }
       },
       {
         "result_kind": "agent_pcr_genesis_declaration",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/key-management.md §3.6.3"
+          ],
+          "note": "It is the reverse index of the same fact: entry-1 admission starts from a serviceEndpoint realm_id and resolves the agent_id through this projection."
+        }
       },
       {
         "result_kind": "mimi_room_binding",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mimi_room_binding_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mimi_room_binding_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "extensions/mimi-interop.md §7"
+          ],
+          "note": "Message submission through the MIMI facade is admitted against the current room binding."
+        }
       },
       {
         "result_kind": "moderation_franking_proof",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_franking_proof_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_franking_proof_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "governance/content-moderation.md §3.4"
+          ],
+          "note": "Validating an E2EE abuse report's evidence package reads the franking proof."
+        }
       },
       {
         "result_kind": "agent_selector_claim",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/actor.md §3.3"
+          ],
+          "note": "The (controller principal, agent_slug) binding resolves agent identity, which Actor-scoped admission depends on."
+        }
       },
       {
         "result_kind": "consent",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "sync/invite-addressing.md §5"
+          ],
+          "note": "The receiving policy decides whether a DM or invite may be delivered and accepted against the holder's current consent record."
+        }
       },
       {
         "result_kind": "moderation_state",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_state_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_state_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "governance/content-moderation.md §2.6"
+          ],
+          "note": "The hard_deny / quarantine / require_review fold over active records participates in the authorization decision; capabilities.md 18.1 binds fast-path cache invalidation to the same value."
+        }
       },
       {
         "result_kind": "object_redaction",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "models/event-and-patch.md §4.2.4"
+          ],
+          "note": "The redaction assertion set folds into which content slots are still visible; it does not change admission."
+        }
       },
       {
         "result_kind": "organization_discovery",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "discovery/discovery-directory.md §4"
+          ],
+          "note": "The directory only indexes an Organization that has self-declared discoverability here."
+        }
       },
       {
         "result_kind": "organization_moderation_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "governance/content-moderation.md §7"
+          ],
+          "note": "Organization-level moderation policy participates in the Realm-internal moderation state boundary."
+        }
       },
       {
         "result_kind": "view",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "models/views.md §3.2"
+          ],
+          "note": "Query surfaces render against the current View value; a View grants no permission and never decides admission."
+        }
       },
       {
         "result_kind": "policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/governance-objects.md §3.2"
+          ],
+          "note": "rules[] evaluation and default_effect run inside this document's current value, and deny / quarantine / require_review change admission directly."
+        }
       },
       {
         "result_kind": "policy_action",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_action_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_action_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/governance-objects.md §3.5"
+          ],
+          "note": "The approval configuration's hit conditions, vote counting, rejection shape and default are defined there; it can only tighten a decision that is already ALLOWED, never grant."
+        }
       },
       {
         "result_kind": "direct_conversation_binding",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "identity/contact-and-direct-conversation.md §8.3"
+          ],
+          "note": "The current binding is the authority basis for day-to-day Events inside a direct conversation."
+        }
       },
       {
         "result_kind": "relation_conflict_resolution",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_result"
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/relation.md §6.5"
+          ],
+          "note": "Concurrent adjudication and re-resolution are decided against the current resolution value."
+        }
       }
     ],
-    "version": "2026-09-18.12",
-    "generated_at": "2026-09-19T23:30:00+08:00"
+    "version": "2026-09-21.1",
+    "generated_at": "2026-09-21T15:30:00+08:00"
   }
 }

@@ -3,7 +3,7 @@ title: 服务器当前结果与有界基线
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-18
+updated: 2026-09-21
 sidebar:
   label: 当前结果与基线
 ---
@@ -209,6 +209,40 @@ MUST NOT 拆成两份各自独立的权威副本。`capability_grant` 与 `conse
 二分推出。三种形态同样禁止把状态放在两处：一个 family 只有一个状态真源。
 
 该合同缺失时 MUST 视为失败，不得当作「该轴无约束」：读不到转换表的检查只能证明没有人检查过。
+
+### 2.2 消费清单（normative）
+
+写入方向已经封闭：每个 family MUST 至少有一个 Event kind 在 `result_writes[]` 里写它，这条由
+`check_every_result_family_has_a_writer` 强制。读取方向此前既无门禁也无记录——一个 family 可以有写者、
+有投影、有 schema，却没有任何一节正文把判断条件挂在它的当前值上。这种 family 在注册表里与真正被消费的
+family 完全无法区分，正文读起来像是「该状态存在」，而实际上没有任何行为依赖它。
+
+因此 `current-result-registry.json` 的每一行 MUST 携带 `consumption`，三个成员都 MUST 给出：
+
+- `class`：取自该文件 `consumption_classes` 的封闭词表，见下；
+- `consumed_by[]`：读取该 family **当前值**的正文小节引用，形如 `<page>.md §N`，
+  由 `check_artifact_prose_section_refs` 解析校验；
+- `note`：说明读到的是什么、用来决定什么。
+
+词表封闭为三类，MUST NOT 扩充：
+
+| `class` | 含义 |
+| --- | --- |
+| `admission_input` | 读当前值会改变某个 Event 或请求是否被接纳／授权。 |
+| `delivery_input` | 读当前值决定某个服务面返回或投递什么、或合规客户端必须怎么做，但**不**参与准入判定。 |
+| `record_only` | v1 没有任何正文依据该值做判断；它只作为审计或展示记录存在。 |
+
+三条判定规则：
+
+1. `record_only` MUST 被**显式声明**，MUST NOT 由「没人提起」推出。没有正文引用该 family 不等于它是纯记录
+   用途，只等于没有人查过；两者在注册表里长得一样，正是本清单要消除的歧义。
+2. 除 `record_only` 外，`consumed_by[]` MUST 非空；`record_only` 行的 `consumed_by[]` MUST 为空，
+   且其 `note` MUST 指名声明该 family 用途的那一小节，使该判定本身可查。
+3. 一个 family 的 class MUST 取其**最强**的消费方式：只要存在任何一处准入判定读它，就是 `admission_input`，
+   即便它同时也参与投递。`delivery_input` 的含义是「v1 全文没有任何准入判定读它」，而不是「主要用于投递」。
+
+清单只登记「谁读」，MUST NOT 被读成授权或可见性声明：某一节被列入 `consumed_by[]`，不意味着调用者有权读取该
+selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
 
 ## 3. 当前结果响应
 
