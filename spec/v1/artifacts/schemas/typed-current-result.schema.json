@@ -107,6 +107,15 @@
       "$ref": "#/$defs/realm_read_receipt_policy_result"
     },
     {
+      "$ref": "#/$defs/realm_preview_policy_result"
+    },
+    {
+      "$ref": "#/$defs/mimi_room_binding_result"
+    },
+    {
+      "$ref": "#/$defs/moderation_franking_proof_result"
+    },
+    {
       "$ref": "#/$defs/realm_inheritance_policy_result"
     },
     {
@@ -1514,6 +1523,104 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mimi_room_binding_result": {
+      "type": "object",
+      "description": "One MIMI room binding (extensions/mimi-interop.md section 3). The subject is the MIMI room URI, not an Arkret id: the family records how one external room is bound, and the same Realm or Strand may be bound into more than one room. The binding is a projection into MIMI and is never canonical truth about the Arkret side.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "mimi_room_uri"
+          ],
+          "properties": {
+            "kind": {
+              "const": "mimi_room_binding"
+            },
+            "mimi_room_uri": {
+              "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload/properties/mimi_room_uri"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_franking_proof_result": {
+      "type": "object",
+      "description": "The receiving-service proof that one encrypted target Event was received (governance/content-moderation.md section 6). The subject is the proven Event id. A proof exists independently of any later report, so nothing about a report is part of the subject or the value.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "moderation_franking_proof"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./moderation-evidence.schema.json#/$defs/franking_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_preview_policy_result": {
+      "type": "object",
+      "description": "The Realm preview / peek policy (models/realm-and-space.md section 2.3). It is the projected source of the query field preview_policy_id and is a per-Realm singleton like every sibling facet in that sentence. The value is payload.value only: payload.reason is audit provenance carried by the Event, not projected state.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_preview_policy"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload/properties/value"
         }
       },
       "additionalProperties": false

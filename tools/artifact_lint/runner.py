@@ -204,6 +204,7 @@ from .ref_overlay_closure import check_schema_ref_overlay_closure
 from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
+    check_asserted_result_families_are_registered,
     check_proof_context_object_family_schemas,
     check_proof_context_carrier_family_anchors,
     check_domain_separation_binding_fields_are_carriable,
@@ -324,6 +325,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "registered_families_are_listed_in_prose",
                 lambda: check_registered_families_are_listed_in_prose(lint),
+            ),
+            (
+                "asserted_result_families_are_registered",
+                lambda: check_asserted_result_families_are_registered(lint),
             ),
             ("forbidden_wire_contexts", lambda: check_forbidden_wire_contexts(lint)),
             ("pcr_exposures", lambda: check_pcr_exposure_registry(lint)),

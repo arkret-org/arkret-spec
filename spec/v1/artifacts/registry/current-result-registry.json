@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.3",
+  "version": "2026-09-18.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T21:00:00+08:00",
+  "generated_at": "2026-09-19T00:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -143,6 +143,10 @@
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_read_receipt_policy_result"
     },
     {
+      "result_kind": "realm_preview_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_preview_policy_result"
+    },
+    {
       "result_kind": "realm_inheritance_policy",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_inheritance_policy_result"
     },
@@ -193,6 +197,14 @@
     {
       "result_kind": "agent_pcr_genesis_declaration",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_result"
+    },
+    {
+      "result_kind": "mimi_room_binding",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/mimi_room_binding_result"
+    },
+    {
+      "result_kind": "moderation_franking_proof",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_franking_proof_result"
     },
     {
       "result_kind": "agent_selector_claim",

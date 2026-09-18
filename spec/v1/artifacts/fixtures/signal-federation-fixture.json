@@ -250,7 +250,6 @@
             "controller_membership_generation_ended",
             "same_principal_other_station",
             "stale_agent_leaf",
-            "leaf_authorization_ref_mismatch",
             "concurrent_different_agent_keys",
             "pairwise_actor_without_sender_device_id"
           ]
@@ -393,7 +392,6 @@
             "expired_device_attestation",
             "device_generation_mismatch",
             "leaf_signature_key_mismatch",
-            "leaf_authorization_event_mismatch",
             "scope_group_mismatch",
             "mls_state_not_current_winner",
             "synthetic_agent_or_pairwise_device"

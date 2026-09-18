@@ -40,6 +40,7 @@ from __future__ import annotations
 import json
 import posixpath
 import re
+from pathlib import Path
 from typing import Any
 
 from .core import ARTIFACTS, Lint, SPEC_ROOT, TOOLS_ROOT, load_json, read_text, resolve_json_pointer
@@ -1447,6 +1448,113 @@ def check_every_result_family_has_a_writer(lint: Lint) -> None:
 
 
 
+ASSERTED_FAMILY_EXEMPTIONS = TOOLS_ROOT / "asserted-result-family-exemptions.json"
+EVENT_PAYLOAD_SCHEMA = ARTIFACTS / "schemas" / "event-payload.schema.json"
+_ASSERTED_FAMILY_RE = re.compile(
+    r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+) typed current result\b"
+)
+
+
+def check_asserted_result_families_are_registered(lint: Lint) -> None:
+    """A description that names a typed current result family must name a registered one.
+
+    ``artifacts/**`` descriptions are a normative surface, not commentary: they
+    are the text ``zh`` prose defers to for closed field sets, subjects and write
+    contracts, and implementers read them as binding. So a payload description
+    saying "rule_id is the stable policy_rule typed current result subject" is a
+    registration claim. Nothing checked it. ``check_result_write_contracts`` and
+    ``check_every_result_family_has_a_writer`` both start from the registry, so
+    neither can see a family that was only ever asserted in prose -- and seven of
+    them accumulated exactly that way, including one
+    (``mimi_room_binding_payload``) whose description told the reader to consult a
+    ``result_selector`` in ``event-kind-registry.json`` that the registry does not
+    contain.
+
+    The matcher is deliberately narrow: a snake_case token carrying at least one
+    underscore, immediately before the words "typed current result". Single-word
+    claims ("the policy typed current result subject") are NOT caught, because at
+    one word the same position holds ordinary English -- "the", "this", "entire",
+    "registered" -- and a matcher wide enough to catch the family names would
+    mostly catch those. That is a stated limit of this gate, not a judgement that
+    single-word assertions are safe: the fix for one of those is to write the
+    registered family name, which then falls inside this matcher.
+
+    ``tools/asserted-result-family-exemptions.json`` is a ratchet in the same
+    shape as the proof-context anchor ledger: entries may only be removed, and an
+    exempted name that becomes registered is itself an error.
+    """
+    registered = _registered_result_families(lint)
+    if registered is None:
+        return
+
+    exemptions: dict[str, str] = {}
+    if ASSERTED_FAMILY_EXEMPTIONS.is_file():
+        document = load_json(lint, ASSERTED_FAMILY_EXEMPTIONS)
+        entries = (
+            document.get("unregistered_families") if isinstance(document, dict) else None
+        )
+        if not isinstance(entries, list):
+            lint.fail(
+                ASSERTED_FAMILY_EXEMPTIONS, "unregistered_families[] must be an array"
+            )
+            entries = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                lint.fail(
+                    ASSERTED_FAMILY_EXEMPTIONS,
+                    "unregistered_families[] entries must be objects",
+                )
+                continue
+            family = entry.get("result_family")
+            reason = entry.get("reason")
+            if not isinstance(family, str) or not family:
+                lint.fail(
+                    ASSERTED_FAMILY_EXEMPTIONS, "every entry must name a result_family"
+                )
+                continue
+            if not isinstance(reason, str) or not reason:
+                lint.fail(ASSERTED_FAMILY_EXEMPTIONS, f"{family} must state a reason")
+                continue
+            exemptions[family] = reason
+
+    sources = [EVENT_PAYLOAD_SCHEMA, ARTIFACTS / "registry" / "contract-registry.json"]
+    asserted: dict[str, Path] = {}
+    for path in sources:
+        if not path.is_file():
+            continue
+        for match in _ASSERTED_FAMILY_RE.finditer(path.read_text(encoding="utf-8")):
+            asserted.setdefault(match.group(1), path)
+
+    for family, path in sorted(asserted.items()):
+        if family in registered:
+            if family in exemptions:
+                lint.fail(
+                    ASSERTED_FAMILY_EXEMPTIONS,
+                    f"{family} is exempted but is now registered; remove the exemption",
+                )
+            continue
+        if family in exemptions:
+            continue
+        lint.fail(
+            path,
+            f"a description asserts the {family!r} typed current result, but "
+            "current-result-registry.json registers no such family. An artifact "
+            "description is normative, so this either registers the family (a "
+            "result_kinds[] row, a typed-current-result.schema.json $defs entry, a "
+            "result_writes[] row on its writer and a line in the "
+            "zh/sync/current-results.md section 2 list) or rewrites the sentence to "
+            "stop asserting one. Record a deliberate lag in "
+            "tools/asserted-result-family-exemptions.json with a reason",
+        )
+
+    for family in sorted(set(exemptions) - set(asserted)):
+        lint.fail(
+            ASSERTED_FAMILY_EXEMPTIONS,
+            f"{family} is exempted but no description asserts it any more; "
+            "remove the exemption",
+        )
+
+
 CURRENT_RESULTS_PROSE = ARTIFACTS.parent / "zh" / "sync" / "current-results.md"
 CURRENT_RESULTS_PROSE_HEADING = "## 2. 领域 selector 与 revision"
 _PROSE_FAMILY_TOKEN_RE = re.compile(r"`([a-z][a-z0-9_]*)`")
@@ -1464,14 +1572,21 @@ def check_registered_families_are_listed_in_prose(lint: Lint) -> None:
     because no gate connected the two. That is what happened when fifteen Realm
     facet families landed against a list still naming twenty-three.
 
-    Only this direction is mechanized. The reverse -- a listed name that is not
-    registered -- cannot be read off the section reliably, because the same
-    backtick spelling carries payload fields, subject kinds and Event kinds; a
-    matcher loose enough to catch it would mostly catch those. The reverse
-    direction is also the less dangerous one: an unregistered family name in
-    prose has no schema and no writer, so ``check_typed_current_result_naming``
-    and ``check_every_result_family_has_a_writer`` both bite the moment anyone
-    tries to make it real.
+    This gate mechanizes one direction only: registry -> this list. The reverse
+    on THIS file still is not mechanized, because a backticked token in section 2
+    also spells payload fields, subject kinds and Event kinds, so a matcher loose
+    enough to catch a stray family name would mostly catch those.
+
+    The reverse direction is NOT the harmless one, and the claim that used to sit
+    here -- that an unregistered family name "has no schema and no writer" so the
+    naming and writer gates "bite the moment anyone tries to make it real" -- was
+    false. Both of those gates start from the registry, so neither can see a name
+    that was never registered. The wording asserted a safety property nothing
+    implemented, and under it seven families were asserted as registered inside
+    ``artifacts/**`` descriptions while no ``result_kinds[]`` row existed for any
+    of them. ``check_asserted_result_families_are_registered`` below closes that
+    hole for the machine-artifact surface, which is where the assertions actually
+    live; this file stays one-directional on purpose and says so.
     """
     registered = _registered_result_families(lint)
     if registered is None:

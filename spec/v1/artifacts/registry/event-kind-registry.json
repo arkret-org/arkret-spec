@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.5",
+  "version": "2026-09-18.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T21:20:00+08:00",
+  "generated_at": "2026-09-19T00:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,7 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 56 of the 140 reducer_input kinds declare it; the remaining 84 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 59 of the 140 reducer_input kinds declare it; the remaining 81 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -2349,6 +2349,23 @@
       "admission": "capability_gated",
       "payload": "MIMI room binding state",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/mimi_room_binding_payload",
+      "result_writes": [
+        {
+          "result_family": "mimi_room_binding",
+          "result_selector": {
+            "kind": "uri",
+            "field": "payload.mimi_room_uri"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/mimi_room_binding_payload",
+          "notes": "extensions/mimi-interop.md section 3 is the authoritative field set and the payload def already asserted this family and this subject, pointing the reader at a result_selector that did not exist -- the registry named a row in itself that it did not carry. The payload is a closed flat object with no value wrapper, so the projection is the identity on it, exactly as for realm_read_receipt_policy. mimi_room_uri stays a member of the projected value as well as the subject: the binding is a projection of an Arkret discussion track into a MIMI room and is explicitly not canonical truth, so a reader holding only the value must still be able to name the room it describes."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {
@@ -2493,6 +2510,23 @@
       "admission": "crypto_verifiable",
       "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-evidence.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the moderation_franking_proof typed current result subject. verification_method selects the exact service key, whose controller must project to received_by and be authorized at received_at. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
       "payload_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
+      "result_writes": [
+        {
+          "result_family": "moderation_franking_proof",
+          "result_selector": {
+            "kind": "id:event",
+            "field": "payload.event_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/moderation-evidence.schema.json#/$defs/franking_proof",
+          "notes": "governance/content-moderation.md section 6 defines the proof and the payload def already asserted this family and payload.event_id as its subject. The payload is the closed franking_proof object itself, so the projection is the identity on it. One proof per proven Event is the whole family: a proof is created independently of any later report, which is why report_id and target_ref are neither payload fields nor part of the subject."
+        }
+      ],
       "id_source": "reference"
     },
     {
@@ -3515,6 +3549,20 @@
       "reducer_input": true,
       "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/preview_policy_payload",
+      "result_writes": [
+        {
+          "result_family": "realm_preview_policy",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/preview_policy_payload/properties/value",
+          "notes": "models/realm-and-space.md section 2.3 names ak.realm.preview_policy as the sole carrier of the query field preview_policy_id, which makes the projected state a registered typed current result like every other Realm facet in that sentence. It was the one facet in the group that never acquired a result_kinds[] row; the omission was an oversight, not a decision to keep preview policy as a service-side read model. payload.reason is audit provenance on the Event and is deliberately outside the projected value, exactly as in the sibling facets."
+        }
+      ],
       "id_source": "not_an_object_id"
     },
     {

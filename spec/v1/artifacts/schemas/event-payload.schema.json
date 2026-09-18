@@ -6140,7 +6140,7 @@
     },
     "organization_discovery_state_payload": {
       "type": "object",
-      "description": "State payload for an Organization discovery declaration. organization_id is the stable did_core_id typed current result subject.",
+      "description": "State payload for an Organization discovery declaration. organization_id is a did_core_id and is the stable subject of the organization_discovery typed current result.",
       "required": [
         "organization_id",
         "value"
