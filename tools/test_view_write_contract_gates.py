@@ -317,6 +317,106 @@ class ValueMemberClosureTest(_Harness):
         )
 
 
+class AuthorWritableStateAxisTest(_Harness):
+    """The third lifecycle carrier, and the price the section charges for it.
+
+    ``sync/current-results.md`` section 2.1 said a stored lifecycle axis had
+    exactly two carriers and that one field name -- ``expected_revision`` --
+    decided which. The registry it described disagreed twice:
+    ``ak.moderation.decision.lift`` carries that field and writes a keyed set,
+    and ``view`` carries none while its ``state`` sits in ``allowed_paths``.
+    Nothing went red, because the binary was prose no gate read. These probes
+    are the reason the corrected section is not prose again.
+    """
+
+    check = staticmethod(gate.check_author_writable_state_axis_contract)
+
+    VIEW_SCHEMA = gate.ARTIFACTS / "schemas" / "view.schema.json"
+    FIXTURE = gate.ARTIFACTS / "fixtures" / "view-write-contract-fixture.json"
+
+    def test_the_live_registry_is_clean(self) -> None:
+        self.assertEqual(self._run(), [])
+
+    def test_the_transition_time_producer_cannot_be_dropped(self) -> None:
+        """Whoever writes the state MUST NOT also get to write when it happened."""
+
+        def drop_the_derivation(document: dict) -> None:
+            write = _write(document, VIEW_UPDATE)
+            write["derived_members"] = [
+                member
+                for member in write["derived_members"]
+                if member.get("derivation") != "object_state_transition_time"
+            ]
+
+        self.assertNewFailure(
+            {EVENT_KINDS: drop_the_derivation}, "object_state_transition_time"
+        )
+
+    def test_the_transition_time_member_may_not_also_be_author_writable(self) -> None:
+        """A derivation the author may overwrite is a default, not a rule.
+
+        The registry would still declare the derivation, every schema would
+        still validate, and the fixture's own timestamps would still order --
+        the object would simply be reporting its own transition time.
+        """
+
+        def open_the_path(document: dict) -> None:
+            projection = _write(document, VIEW_UPDATE)["result_projection"]
+            projection["allowed_paths"] = [*projection["allowed_paths"], "state_changed_at"]
+
+        self.assertNewFailure({EVENT_KINDS: open_the_path}, "state_changed_at")
+
+    def test_the_state_value_set_must_stay_closed(self) -> None:
+        """No transition table means the enum is the only refusal vocabulary."""
+
+        def open_the_enum(document: dict) -> None:
+            document["properties"]["state"].pop("enum")
+
+        self.assertNewFailure({self.VIEW_SCHEMA: open_the_enum}, "close that member with an enum")
+
+    def test_a_family_may_not_carry_two_state_sources(self) -> None:
+        def add_a_machine(document: dict) -> None:
+            document["transition_contracts"]["view"] = {
+                "axis": "state",
+                "states": ["active", "tombstoned"],
+                "initial_state": "active",
+                "terminal_states": ["tombstoned"],
+                "allowed_transitions": [{"from": "active", "to": "tombstoned"}],
+                "idempotent_replay": "same_event_identity_replay_noop",
+            }
+
+        self.assertNewFailure({EVENT_KINDS: add_a_machine}, "exactly one state source")
+
+    def test_the_carrier_needs_a_vector_a_fixture_actually_executes(self) -> None:
+        """A vector row nobody runs is the state this domain was in.
+
+        ``ak.vector.view.terminal_state_patch.v1`` sat ``active`` and
+        description-only while the write it describes could not be registered at
+        all. Dropping the fixture's ``covers_vectors`` restores exactly that.
+        """
+
+        def stop_executing_the_vector(document: dict) -> None:
+            document["covers_vectors"] = []
+
+        self.assertNewFailure({self.FIXTURE: stop_executing_the_vector}, "covers_vectors")
+
+    def test_losing_the_only_carrier_is_reported_rather_than_passing(self) -> None:
+        """The gate MUST NOT report success over an empty sweep.
+
+        ``ak.view.update`` is the carrier's one v1 use. If it stops patching
+        ``state``, the section that registers the carrier has lost its subject
+        -- and a gate that walks nothing would call that clean.
+        """
+
+        def close_the_path(document: dict) -> None:
+            projection = _write(document, VIEW_UPDATE)["result_projection"]
+            projection["allowed_paths"] = [
+                path for path in projection["allowed_paths"] if path != "state"
+            ]
+
+        self.assertNewFailure({EVENT_KINDS: close_the_path}, "success over nothing")
+
+
 class ViewWriteContractFixtureTest(unittest.TestCase):
     """The vector's two faces, and the trap between them.
 

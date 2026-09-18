@@ -154,21 +154,40 @@ schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达
   `from` / `to` 对没有任何可校验的对象。
 - 终态 MUST NOT 带出边。终态性只由转换表本身承载；实现不得以约定、服务端表或默认值补充。
 
-**生命周期轴有且只有两种登记载体，新增 family MUST 二选一**（本节此前只写了第一种，使
+**存储的生命周期轴有三种登记载体，带此类轴的 family MUST 恰取其一**（本节此前只写了第一种，使
 [`authz/capabilities.md` §12.1](../authz/capabilities.md) 的 `capability_grant` 读起来像违例，
-并让"稳定 ID + 不可变 body + 终态"这一类 family 无处登记）：
+并让"稳定 ID + 不可变 body + 终态"这一类 family 无处登记；随后补上的「二选一」又反过来把
+`view` 的作者状态路径判成违例）：
 
 1. **`transition_contracts` 轴 + `transition` 投影**：result value 只承载状态名本身（`invite_lifecycle`
    即此形），该 family 的其它事实各自另立 family。
 2. **封闭 reducer 派生成员**：status 是 value body 内与其它字段同层的一个成员，由
    `result_writes[].derived_members[].derivation` 中一个封闭派生名物化，MUST NOT 由 producer 自填；
-   该 family MUST NOT 出现在 `transition_contracts` 中（`capability_grant` 即此形）。
+   该 family MUST NOT 出现在 `transition_contracts` 中（`capability_grant`、`consent` 即此形）。
+3. **有界的作者状态路径**：status 是 value body 内的一个成员，由作者在已登记的
+   `apply_patch` `allowed_paths[]` 内直接写入；该 family MUST NOT 出现在 `transition_contracts` 中，
+   取值集合 MUST 由该成员的 value schema 封闭，终态、禁止复活与转换边 MUST 由该领域正文逐条写死
+   （`view` 即此形，见 [`models/views.md` §3.1](../models/views.md)）。这一形态的代价是转换边不被
+   机读件封闭，只有准入实现在读正文，因此新增此形 MUST 同批登记一条覆盖该终态的 conformance vector，
+   并在该 family 的 reducer-managed 路径上把状态转换时间之类的派生成员钉住，
+   使作者无法连同状态一起自填转换事实。
 
-判据不是风格偏好，而是 `expected_revision`：该 family 的写入方若用 `expected_revision` 做 CAS，
-则 body 与 status MUST 在同一个 result 内——`expected_revision` 是单个
-`{commit_id, stream_position}`，拆成两个 family 就有两条独立 revision，CAS 失去唯一比较对象。
-因此**凡 payload 带 `expected_revision` 的 family MUST 取形态 2**；其余取形态 1。
-两种形态都禁止把状态同时放在两处：一个 family 只有一个状态真源。
+**keyed-set family 不在这三种之内**：它没有存储的状态轴，生命周期是读侧 fold
+（[`models/common-fields.md` §2](../models/common-fields.md)），`moderation_state` 即此形——
+`ak.moderation.decision` 与 `ak.moderation.decision.lift` 都只能 `keyed_set_add`，
+当前效力由读侧折叠得出。MUST NOT 为了形式统一再存第二份权威 status。
+
+**`expected_revision` 不决定 value 形状。** 它要求的只是目标 typed result 存在可比较的 exact
+revision：scalar 状态轴、keyed set 与 body+status 组合对象都可以被它保护，也都可以不被它保护。
+`ak.moderation.decision.lift` 带着它却写 keyed set，`view` 不带它却有作者可写的 `state`，
+两者都合法。决定 body 与 status 是否必须同处一个 result 的是**原子不变量**：若一个逻辑对象的
+body 与 status 之间有必须原子保持的不变量，整对象 CAS MUST 绑定同一条 result revision，
+MUST NOT 拆成两份各自独立的权威副本。`capability_grant` 与 `consent` 取形态 2 是这个理由，
+不是因为它们的 payload 里出现了 `expected_revision` 这个字段名。
+
+无论取哪一形态，该 family MUST 逐项登记：每个 value 成员的来源与维护闭包、终态与禁止复活规则、
+准入 guards，以及 revision 的比较方式。这四项都 MUST NOT 由「payload 有没有 `expected_revision`」
+二分推出。三种形态同样禁止把状态放在两处：一个 family 只有一个状态真源。
 
 该合同缺失时 MUST 视为失败，不得当作「该轴无约束」：读不到转换表的检查只能证明没有人检查过。
 

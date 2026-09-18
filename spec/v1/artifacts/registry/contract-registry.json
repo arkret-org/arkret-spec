@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.5",
+  "version": "2026-09-19.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T12:00:00+08:00",
+  "generated_at": "2026-09-19T14:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -1806,7 +1806,7 @@
               }
             ],
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_value",
-            "notes": "identity/consent-model.md section 3.2 revokes an existing consent_id in place, so the projection is a merge over the already-projected grant rather than a set -- the grant body survives the close and section 4.1.2 introduction evidence still resolves against it. revoked_at comes from the signed envelope and never from payload.revoked_at, for the same reason authz/capabilities.md section 12.1 takes it from the envelope: the authority that closed this consent is this Event's signer, and an author-declared close time would be backdatable. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. That CAS is also why status stays inside this value instead of a transition_contracts axis (sync/current-results.md section 2.1)."
+            "notes": "identity/consent-model.md section 3.2 revokes an existing consent_id in place, so the projection is a merge over the already-projected grant rather than a set -- the grant body survives the close and section 4.1.2 introduction evidence still resolves against it. revoked_at comes from the signed envelope and never from payload.revoked_at, for the same reason authz/capabilities.md section 12.1 takes it from the envelope: the authority that closed this consent is this Event's signer, and an author-declared close time would be backdatable. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. Status stays inside this value instead of a transition_contracts axis because a consent's body and its active/revoked status carry an atomic invariant -- revoked_at and revoked_reason are the close, and a status that could be read one revision apart from them would let a reader honour a consent the same result already closed. That is the carrier rule of sync/current-results.md section 2.1, form 2; the presence of payload.expected_revision does not by itself decide the value shape (ak.moderation.decision.lift carries one and writes a keyed set)."
           }
         ]
       },
@@ -5367,8 +5367,8 @@
         }
       }
     },
-    "version": "2026-09-18.11",
-    "generated_at": "2026-09-19T05:20:00+08:00",
+    "version": "2026-09-18.12",
+    "generated_at": "2026-09-19T14:00:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

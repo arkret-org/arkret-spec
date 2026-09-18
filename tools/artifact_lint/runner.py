@@ -206,6 +206,7 @@ from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
+    check_author_writable_state_axis_contract,
     check_proof_context_object_family_schemas,
     check_proof_context_carrier_family_anchors,
     check_domain_separation_binding_fields_are_carriable,
@@ -301,6 +302,10 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
             ("result_value_member_closure", lambda: check_result_value_member_closure(lint)),
+            (
+                "author_writable_state_axis_contract",
+                lambda: check_author_writable_state_axis_contract(lint),
+            ),
             (
                 "result_write_target_uniqueness",
                 lambda: check_result_write_target_uniqueness(lint),

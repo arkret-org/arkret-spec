@@ -2748,3 +2748,233 @@ def check_result_write_target_uniqueness(lint: Lint) -> None:
             "the registry either lost its writes or spells the array under another key, and "
             "either way this gate's silence means nothing",
         )
+
+
+# `models/common-fields.md` section 5 names `state` as the one shared spelling
+# for an object's current lifecycle state, so it is the registry's own
+# vocabulary rather than a guess about field names.
+AUTHOR_STATE_AXIS_MEMBER = "state"
+VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
+
+
+def _executed_vector_domains(lint: Lint) -> set[str]:
+    """Domains of active vectors some fixture actually runs.
+
+    A vector row on its own is a sentence in a registry. What makes it a check
+    is a fixture naming it in `covers_vectors`, which is the link
+    `ak.vector.view.terminal_state_patch.v1` did not have until
+    `view-write-contract-fixture.json` was written -- it sat `active` and
+    description-only while the write it describes could not even be registered.
+    """
+
+    registry = load_json(lint, VECTOR_REGISTRY)
+    rows = registry.get("vectors") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(VECTOR_REGISTRY, "vectors[] must be an array")
+        return set()
+    domain_of: dict[str, str] = {}
+    for row in rows:
+        if not isinstance(row, dict) or row.get("status") != "active":
+            continue
+        vector_id = row.get("vector_id")
+        domain = row.get("domain")
+        if isinstance(vector_id, str) and isinstance(domain, str):
+            domain_of[vector_id] = domain
+    executed: set[str] = set()
+    for path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        document = load_json(lint, path)
+        if not isinstance(document, dict):
+            continue
+        for vector_id in document.get("covers_vectors") or []:
+            if isinstance(vector_id, str) and vector_id in domain_of:
+                executed.add(domain_of[vector_id])
+    return executed
+
+
+def _member_subschema(lint: Lint, reference: Any, member: str) -> dict | None:
+    """The subschema a reference declares for one top-level member."""
+
+    if not isinstance(reference, str) or not reference:
+        return None
+    seen: set[str] = set()
+
+    def visit(file_ref: str, fragment: str) -> dict | None:
+        key = f"{file_ref}#{fragment}"
+        if key in seen:
+            return None
+        seen.add(key)
+        path = ARTIFACTS / file_ref
+        document = load_json(lint, path) if path.is_file() else None
+        if document is None:
+            return None
+        try:
+            node = resolve_json_pointer(document, fragment)
+        except (KeyError, IndexError, ValueError):
+            return None
+        return descend(node, file_ref)
+
+    def descend(node: Any, file_ref: str) -> dict | None:
+        if not isinstance(node, dict):
+            return None
+        properties = node.get("properties")
+        if isinstance(properties, dict) and isinstance(properties.get(member), dict):
+            found = properties[member]
+            inner = found.get("$ref")
+            if isinstance(inner, str) and "enum" not in found:
+                target_file, separator, body = inner.partition("#")
+                target_file = target_file.lstrip("./") or file_ref
+                if target_file and not target_file.startswith("schemas/"):
+                    target_file = f"schemas/{target_file}"
+                resolved = visit(target_file, f"#{body}" if separator else "")
+                if isinstance(resolved, dict):
+                    return resolved
+            return found
+        nested = node.get("$ref")
+        if isinstance(nested, str):
+            target_file, separator, body = nested.partition("#")
+            target_file = target_file.lstrip("./") or file_ref
+            if not target_file.startswith("schemas/"):
+                target_file = f"schemas/{target_file}"
+            found = visit(target_file, f"#{body}" if separator else "")
+            if found is not None:
+                return found
+        for branch in node.get("allOf") or []:
+            found = descend(branch, file_ref)
+            if found is not None:
+                return found
+        return None
+
+    file_ref, separator, body = reference.partition("#")
+    return visit(file_ref, f"#{body}" if separator else "")
+
+
+def check_author_writable_state_axis_contract(lint: Lint) -> None:
+    """The third lifecycle carrier has to pay for itself.
+
+    ``sync/current-results.md`` section 2.1 used to say a stored lifecycle axis
+    had exactly two registered carriers, and that the choice between them
+    followed from one field name: *every family whose payload carries
+    ``expected_revision`` MUST take form 2, the rest take form 1*. Both halves
+    were wrong against the registry they described.
+    ``ak.moderation.decision.lift`` carries ``expected_revision`` and writes a
+    keyed set -- neither form -- and ``view`` carries none while its ``state``
+    is an author-written member inside ``allowed_paths``: a third carrier the
+    binary said could not exist. Nothing failed, because no gate ever read the
+    rule; the two carriers were prose, and prose that contradicts the registry
+    loses silently.
+
+    The corrected section registers that third carrier and prices it. An author
+    writes the state directly, so the transition table is NOT closed by a
+    machine artifact -- only the domain prose has it. Everything that keeps
+    that affordable is checked here:
+
+    * the value schema MUST close the state's value set, or the reducer has no
+      registered vocabulary to refuse an unknown state against;
+    * the write MUST register ``object_state_transition_time``, and the member
+      it produces MUST be reducer-managed on this write's own target. Without
+      it an author who can set ``state`` can also author *when* the transition
+      happened, and the object's own audit trail becomes self-reported;
+    * the family MUST NOT also appear in ``transition_contracts`` -- two state
+      sources in one family is the one thing all three carriers forbid;
+    * the domain MUST have an active vector some fixture actually executes,
+      because the terminal state and the non-resurrection rule live in prose
+      and a vector is the only thing that reads them back.
+    """
+
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(EVENT_KIND_REGISTRY, "event_kinds[] must be an array")
+        return
+    transition_contracts = registry.get("transition_contracts")
+    if not isinstance(transition_contracts, dict):
+        transition_contracts = {}
+    executed_domains = _executed_vector_domains(lint)
+
+    carriers = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        category = row.get("category")
+        for index, write in enumerate(row.get("result_writes") or []):
+            if not isinstance(write, dict):
+                continue
+            projection = write.get("result_projection")
+            if not isinstance(projection, dict) or projection.get("kind") != "apply_patch":
+                continue
+            allowed_paths = projection.get("allowed_paths")
+            if not isinstance(allowed_paths, list):
+                continue
+            if AUTHOR_STATE_AXIS_MEMBER not in allowed_paths:
+                continue
+
+            carriers += 1
+            where = f"{kind}.result_writes[{index}]"
+            family = write.get("result_family")
+
+            if family in transition_contracts:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} lets the author patch {AUTHOR_STATE_AXIS_MEMBER!r} while "
+                    f"transition_contracts.{family} also declares a machine for it; a family has "
+                    "exactly one state source (sync/current-results.md section 2.1)",
+                )
+
+            state_schema = _member_subschema(
+                lint, write.get("value_schema_ref"), AUTHOR_STATE_AXIS_MEMBER
+            )
+            enum_values = state_schema.get("enum") if isinstance(state_schema, dict) else None
+            if not isinstance(enum_values, list) or not enum_values:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} lets the author patch {AUTHOR_STATE_AXIS_MEMBER!r}, so "
+                    f"{write.get('value_schema_ref')!r} MUST close that member with an enum: the "
+                    "author-writable carrier has no transition table, so the value set is the only "
+                    "registered thing an unknown state can be refused against",
+                )
+
+            transition_time_members = {
+                member.get("name")
+                for member in write.get("derived_members") or []
+                if isinstance(member, dict)
+                and member.get("derivation") == "object_state_transition_time"
+                and isinstance(member.get("name"), str)
+            }
+            if not transition_time_members:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} lets the author patch {AUTHOR_STATE_AXIS_MEMBER!r} but registers no "
+                    "object_state_transition_time derived member; an author who writes the state "
+                    "would also be writing when the transition happened",
+                )
+                continue
+
+            forbidden = _effective_forbidden_paths(lint, where, write, kind)
+            if forbidden is not None:
+                for member_name in sorted(transition_time_members):
+                    if member_name in allowed_paths or not _names_a_forbidden_path(
+                        member_name, forbidden
+                    ):
+                        lint.fail(
+                            EVENT_KIND_REGISTRY,
+                            f"{where} derives {member_name!r} from the transition but the member is "
+                            "not reducer-managed on this write's own target; a derivation an author "
+                            "may also patch is a default, not a rule",
+                        )
+
+            if not isinstance(category, str) or category not in executed_domains:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} takes the author-writable state carrier, whose terminal states and "
+                    f"non-resurrection rule live only in prose, but domain {category!r} has no "
+                    "active vector that any fixture executes via covers_vectors",
+                )
+
+    if carriers == 0:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            "no registered write lets an author patch a lifecycle state, so this gate reported "
+            "success over nothing; sync/current-results.md section 2.1 registers the carrier and "
+            "ak.view.update is its one v1 use -- if that write is gone, the section goes with it",
+        )
