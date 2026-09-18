@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-08-13",
+  "version": "2026-09-21",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -327,7 +327,10 @@
         "different_body": "duplicate_conflict",
         "other_scope": "independent",
         "minimum_retention_ms": 86400000
-      }
+      },
+      "covers_decision_points": [
+        "AK-SDK-008/a_changed_body_cannot_reuse_the_request_key"
+      ]
     },
     {
       "name": "retry_after",

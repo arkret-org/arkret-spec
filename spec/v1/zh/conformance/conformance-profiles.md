@@ -1040,6 +1040,12 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 **证据映射（normative）**：`sdk_conformance_contract` 中 `required_evidence` 含 `vector_result` 的条款 MUST 携带 `vector_evidence`，其余条款 MUST NOT 携带。`vector_evidence.vectors` 点名承载该条款的已登记向量；以 `.*` 结尾的条目只是书写便利，MUST 在当前 spec revision 的 `vector-registry.json` 下展开为非空且不含失活成员的集合。`vector_evidence.decision_points` 逐条登记该义务中可分别观测的判定点，每个判定点 MUST 有条款内唯一的 `id`、一句 `requirement`，以及至少一个取自展开后集合的精确 vector id。门禁只证明这层映射可解析；它不读 `requirement` 的自然语言，也不证明任一向量的语义足以覆盖该判定点——因此判定点在登记或变更时 MUST 经复核，且 MUST NOT 为迁就某份 fixture 现有的 case 把判定点写窄。SDK claim 中 `kind=vector_result` 的证据 MUST 携带 `covers_vectors`，其并集 MUST 是该条款展开后向量集合的子集，并 MUST 覆盖其每个判定点点名的向量；结果 MUST 与 claim 同一 `spec_revision` 并携带不可变摘要。本映射只服务于 SDK claim 的证据记账，MUST NOT 被当作部署 profile 的适用性 selector，也不改变 `evidence_coverage_semantics` 的 acceptable-set 语义。
 
+**判定点到 case（normative）**：判定点映射到向量还不是可执行证据——一份 fixture 可以只有一条 case，而条款声明五个判定点。因此每个判定点 MUST 被至少一条 fixture case 点名。case 即 `artifacts/fixtures/` 下携带 `covers_decision_points` 的对象，其值是非空的 `"<clause_id>/<decision_point_id>"` 列表；该对象 MUST 另带非空 `name` 与非空 `expected`，并 MUST 位于承载该判定点自身向量的 fixture 内——把判定点 id 放进无关 fixture 不成立。承载 fixture MUST 声明 `runner`；`runner.kind=named_suite` 时 MUST 声明工具中立的 `ak.suite.*.v1` entrypoint，未知或未映射的 suite MUST fail closed。一条 case MAY 覆盖多个判定点，一个判定点 MAY 被多条 case 覆盖。
+
+尚无 case 的判定点 MUST 逐条登记进 `decision_point_case_ratchet`，每行携带 owner 报告；登记使门禁放行，但只表示该缺口已被点名，MUST NOT 被当作已闭合。ratchet 只减不增：已有 case 的行、契约不再声明的行，以及 `decision_point_case_ratchet_ceiling` 未冻结的新行，门禁 MUST 报红。ceiling 是该 ratchet 曾被允许持有的冻结集合，位于 `sdk_conformance_contract` 内，故扩大它会改变 `contract_digest` 并使既有签名 claim 失效。`vector_evidence_carrier_ratchet` 与其 ceiling 同理，当前均为空：任何条款都 MUST NOT 在无 fixture 承载的向量上接受 `vector_result`。
+
+门禁只证明 `clause → decision point → active vector → 承载 fixture → case → runner` 这条链可解析，**不读 `requirement` 句子、也不读 case 正文的含义**；一条 `expected` 断言错了东西的 case 照样能让门禁变绿。case 是否真的观测了该义务 MUST 在登记与变更时经人工复核，门禁绿 MUST NOT 被作为语义已覆盖的证据。
+
 **收录规则（normative）**：任何约束客户端/SDK 内部行为、公开 API 形状或自动网络行为，且部署黑盒 profile 不能完整证明的 MUST / MUST NOT，MUST 在本节分配稳定 clause ID；新增或修改此类条款时 reviewer MUST 同步评估并更新 `sdk_conformance_contract`。未列入本契约的 prose 条款不在 SDK claim 的签名覆盖范围内，但其规范力不因此降低；不得用未知私有 clause ID扩展封闭 claim。
 
 ### 23.1 可测性三级

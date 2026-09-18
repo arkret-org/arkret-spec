@@ -1,0 +1,151 @@
+{
+  "suite": "sdk_event_type_axes",
+  "profile": "ak.profile.full_client.v1",
+  "version": "2026-09-21.1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.sdk.event_type_axes.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.sdk.event_type_axes.v1"
+  ],
+  "description": "Tool-neutral compile-and-serialize contract for ak.vector.sdk.event_type_axes.v1. Each case declares a language-neutral program fragment, the expected compile outcome and, where it compiles, the expected canonical serialization. A language adapter binds fragment_bindings to the exact published SDK artifact, compiles each fragment against it and executes the declared assertion. The verdict is only whether the fragment compiles and what a compiling fragment serializes to; a compiler's private diagnostic code or wording is never a protocol error code and MUST NOT be asserted.",
+  "axis_sources": {
+    "outer_submission_types": "spec/v1/artifacts/registry/contract-registry.json and the event-kind-registry.json it generates, plus the Event and RealmCommit schemas",
+    "payload_protection_types": "the payload schemas referenced by event_kinds[].payload_schema_ref",
+    "rule": "The adapter MUST read the axis values from these canonical contracts at build time. Transcribing a second event classification or axis enumeration into this fixture is non-conformant, which is why no case below hard-codes a kind list."
+  },
+  "fragment_bindings": {
+    "OuterEvent": "the SDK's closed producer Event submission type",
+    "OuterRealmCommit": "the SDK's closed authority RealmCommit type",
+    "PlainPayload": "the SDK's plaintext payload-protection wrapper type",
+    "MlsEncryptedPayload": "the SDK's MLS-encrypted payload-protection wrapper type",
+    "MlsProtocolPayload": "a concrete MLS protocol payload type exposed by the SDK",
+    "submit": "the SDK submission entry point that accepts only verified values",
+    "verify": "the SDK verification constructor that turns wire bytes into a verified value",
+    "AnyDurableKind": "any durable event kind read from the canonical registry at build time",
+    "AnyKindWhosePayloadIsMlsProtected": "a durable kind whose registered payload schema is MLS protected",
+    "AnyKindWhosePayloadIsPlaintext": "a durable kind whose registered payload schema is plaintext"
+  },
+  "cases": [
+    {
+      "name": "the_outer_types_are_not_interchangeable",
+      "covers_decision_points": [
+        "AK-SDK-023/the_outer_and_payload_types_are_distinct_closed_types"
+      ],
+      "fragment": "let commit: OuterRealmCommit = <an OuterEvent value>;",
+      "expected": {
+        "compiles": false,
+        "reason": "producer Event and authority RealmCommit are distinct closed types with no implicit conversion",
+        "assert_compiler_diagnostic_code": false
+      }
+    },
+    {
+      "name": "the_payload_protection_types_are_not_interchangeable",
+      "covers_decision_points": [
+        "AK-SDK-023/the_outer_and_payload_types_are_distinct_closed_types"
+      ],
+      "fragment": "let encrypted: MlsEncryptedPayload<AnyDurableKind> = PlainPayload::<AnyDurableKind>::new(<payload>);",
+      "expected": {
+        "compiles": false,
+        "reason": "PlainPayload, MlsEncryptedPayload and the concrete MLS protocol payload types are distinct closed types",
+        "assert_compiler_diagnostic_code": false
+      }
+    },
+    {
+      "name": "an_invalid_outer_by_payload_combination_fails_before_the_network",
+      "covers_decision_points": [
+        "AK-SDK-023/an_invalid_axis_combination_fails_at_compile_time"
+      ],
+      "fragment": "submit(OuterEvent::new(AnyKindWhosePayloadIsMlsProtected, PlainPayload::new(<payload>)));",
+      "expected": {
+        "compiles": false,
+        "reason": "the kind's registered payload protection and the payload wrapper type disagree, and the disagreement is rejected at compile time rather than at admission",
+        "network_call_emitted": false,
+        "assert_compiler_diagnostic_code": false
+      }
+    },
+    {
+      "name": "an_mls_protocol_payload_cannot_be_submitted_as_a_plaintext_kind",
+      "covers_decision_points": [
+        "AK-SDK-023/an_invalid_axis_combination_fails_at_compile_time"
+      ],
+      "fragment": "submit(OuterEvent::new(AnyKindWhosePayloadIsPlaintext, MlsProtocolPayload::new(<payload>)));",
+      "expected": {
+        "compiles": false,
+        "reason": "the second axis value is not admissible for this kind",
+        "network_call_emitted": false,
+        "assert_compiler_diagnostic_code": false
+      }
+    },
+    {
+      "name": "unverified_wire_bytes_cannot_reach_the_submission_entry_point",
+      "covers_decision_points": [
+        "AK-SDK-023/a_verified_submission_cannot_be_mutated_in_place"
+      ],
+      "fragment": "submit(<raw wire bytes or a draft value that has not passed verify>);",
+      "expected": {
+        "compiles": false,
+        "reason": "submit accepts only the verified value type; there is no public constructor that produces it without verification",
+        "assert_compiler_diagnostic_code": false
+      }
+    },
+    {
+      "name": "a_verified_submission_cannot_be_mutated_in_place",
+      "covers_decision_points": [
+        "AK-SDK-023/a_verified_submission_cannot_be_mutated_in_place"
+      ],
+      "fragment": "let verified = verify(<wire bytes>); verified.payload = <another payload>;",
+      "expected": {
+        "compiles": false,
+        "reason": "the public type and API surface expose no in-place mutation of a verified submission",
+        "public_mutation_entry_point_exists": false,
+        "assert_compiler_diagnostic_code": false
+      }
+    },
+    {
+      "name": "a_legal_combination_compiles_and_serializes_through_the_canonical_contract",
+      "covers_decision_points": [
+        "AK-SDK-023/a_verified_value_serializes_through_the_canonical_contract",
+        "AK-SDK-023/the_outer_and_payload_types_are_distinct_closed_types"
+      ],
+      "fragment": "let verified = verify(<wire bytes of an OuterEvent carrying AnyKindWhosePayloadIsPlaintext with PlainPayload>); serialize(verified);",
+      "expected": {
+        "compiles": true,
+        "serialization_contract": "the same canonical schema and transcript the service uses for admission",
+        "serialized_bytes_match_the_admission_input": true,
+        "second_serialization_is_byte_identical": true
+      },
+      "note": "This positive case exists to exclude the false pass in which every fragment fails to compile because the adapter is misconfigured. A run whose compile-fail cases are red while this case does not compile is not a pass."
+    },
+    {
+      "name": "a_legal_mls_protected_combination_compiles_and_serializes",
+      "covers_decision_points": [
+        "AK-SDK-023/a_verified_value_serializes_through_the_canonical_contract"
+      ],
+      "fragment": "let verified = verify(<wire bytes of an OuterEvent carrying AnyKindWhosePayloadIsMlsProtected with MlsEncryptedPayload>); serialize(verified);",
+      "expected": {
+        "compiles": true,
+        "serialization_contract": "the same canonical schema and transcript the service uses for admission",
+        "serialized_bytes_match_the_admission_input": true
+      }
+    },
+    {
+      "name": "a_realm_commit_value_serializes_through_its_own_canonical_contract",
+      "covers_decision_points": [
+        "AK-SDK-023/a_verified_value_serializes_through_the_canonical_contract"
+      ],
+      "fragment": "let verified = verify(<wire bytes of an OuterRealmCommit>); serialize(verified);",
+      "expected": {
+        "compiles": true,
+        "serialization_contract": "the RealmCommit canonical body with the signature removed for commit_id derivation, as the authority log defines it",
+        "serialized_bytes_match_the_admission_input": true
+      }
+    }
+  ],
+  "runner_notes": [
+    "A verifier maps ak.suite.sdk.event_type_axes.v1 to a local adapter; an unknown or unmapped suite id fails closed.",
+    "The adapter compiles each fragment against the exact published SDK artifact named in the conformance claim, not against a rebuilt or patched copy.",
+    "public_api_inventory remains the A-grade supplement for this clause with acceptable-set semantics; it is evidence that the mutation and bypass entry points are absent, not a substitute for having run the compile-fail cases."
+  ]
+}

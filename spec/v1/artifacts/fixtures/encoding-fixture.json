@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-14.1",
+  "version": "2026-09-21.1",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
@@ -778,6 +778,194 @@
         "sort unordered_participant_ids by unsigned RFC 8785 JCS bytes and authorization_basis.event_refs by unsigned UTF-8 bytes before constructing the closed binding object",
         "created_at and Event author/proof are absent from the binding object and therefore cannot affect the digest",
         "the core OR-Set tag remains the canonical Event dot; (binding_digest, actor_id) is the domain-view endorsement identity only"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.extension_slot_roundtrip.v1",
+      "kind": "extension_slot_roundtrip",
+      "subject_schema": "spec/v1/artifacts/schemas/key-backup.schema.json",
+      "subject_schema_slots": [
+        "^x_[a-z][a-z0-9_]{0,63}$ at the envelope root",
+        "^x_[a-z][a-z0-9_]{0,63}$ under auth_data",
+        "^x_[a-z][a-z0-9_]{0,63}$ under encryption and encryption.aead"
+      ],
+      "subject_note": "The subject is the extension-carrying projection of a concrete canonical schema that explicitly declares x_* slots; it is a partial envelope, kept to the members the slot rule is about. An x_* positive on an arbitrary container MUST NOT be generalized into “every schema admits extensions”; the schema-undeclared-field rejection case below is part of the same vector for exactly that reason.",
+      "input": {
+        "auth_data": {
+          "device_id": "ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42",
+          "x_vendor_note": "kéép me",
+          "x_vendor_tree": {
+            "z_last": [
+              3,
+              1,
+              2
+            ],
+            "a_first": {
+              "deep": "value"
+            }
+          }
+        },
+        "encryption": {
+          "recipient_method": "passphrase_kdf",
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "x_vendor_rounds": 3
+          }
+        },
+        "x_vendor_top": "top-level slot"
+      },
+      "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+      "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af",
+      "rules": [
+        "unrecognised members inside a declared x_* slot MUST survive decode and encode byte for byte",
+        "nested values, array order and string content inside the slot MUST NOT be dropped, defaulted or normalized",
+        "slot content MUST keep entering canonical bytes, so changing it changes the applicable digest and signature verification",
+        "byte comparison follows the existing canonical contract: JSON whitespace and written member order carry no preservation obligation",
+        "a field the schema does not declare is still rejected; the extension-slot rule does not admit it",
+        "an unsupported critical extension still fails closed as a whole; roundtrip preservation of critical_extensions[].parameters is required only once that critical feature is supported"
+      ],
+      "cases": [
+        {
+          "name": "decode_encode_roundtrip_preserves_the_slot_byte_for_byte",
+          "covers_decision_points": [
+            "AK-SDK-017/extension_slot_content_survives_the_canonical_round_trip"
+          ],
+          "input": {
+            "auth_data": {
+              "device_id": "ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42",
+              "x_vendor_note": "kéép me",
+              "x_vendor_tree": {
+                "z_last": [
+                  3,
+                  1,
+                  2
+                ],
+                "a_first": {
+                  "deep": "value"
+                }
+              }
+            },
+            "encryption": {
+              "recipient_method": "passphrase_kdf",
+              "aead": {
+                "name": "xchacha20_poly1305",
+                "x_vendor_rounds": 3
+              }
+            },
+            "x_vendor_top": "top-level slot"
+          },
+          "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+          "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af",
+          "expected": {
+            "unknown_members_present_after_roundtrip": [
+              "x_vendor_top",
+              "auth_data.x_vendor_note",
+              "auth_data.x_vendor_tree",
+              "encryption.aead.x_vendor_rounds"
+            ],
+            "nested_value_preserved": true,
+            "array_order_preserved": [
+              3,
+              1,
+              2
+            ],
+            "string_content_preserved": "kéép me",
+            "defaults_injected": false,
+            "unicode_renormalized": false
+          }
+        },
+        {
+          "name": "storage_forwarding_and_backfill_each_return_the_same_bytes",
+          "covers_decision_points": [
+            "AK-SDK-017/extension_slot_content_survives_storage_forwarding_and_backfill"
+          ],
+          "paths": [
+            {
+              "path": "storage_read_back",
+              "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+              "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af"
+            },
+            {
+              "path": "federation_forward_then_peer_read",
+              "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+              "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af"
+            },
+            {
+              "path": "backfill_replay",
+              "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[3,1,2]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+              "expected_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af"
+            }
+          ],
+          "expected": {
+            "every_path_observed_separately": true,
+            "one_path_may_not_stand_in_for_the_others": true,
+            "all_three_paths_return_the_same_bytes": true
+          }
+        },
+        {
+          "name": "changing_the_slot_changes_the_canonical_digest_and_the_signature_verdict",
+          "covers_decision_points": [
+            "AK-SDK-017/extension_content_enters_canonical_bytes_and_binds_the_signature"
+          ],
+          "input": {
+            "auth_data": {
+              "device_id": "ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42",
+              "x_vendor_note": "kéép me",
+              "x_vendor_tree": {
+                "z_last": [
+                  1,
+                  2,
+                  3
+                ],
+                "a_first": {
+                  "deep": "value"
+                }
+              }
+            },
+            "encryption": {
+              "recipient_method": "passphrase_kdf",
+              "aead": {
+                "name": "xchacha20_poly1305",
+                "x_vendor_rounds": 3
+              }
+            },
+            "x_vendor_top": "top-level slot"
+          },
+          "expected_canonical_bytes_utf8": "{\"auth_data\":{\"device_id\":\"ak:device:018f2c1a-4c7e-7b3d-9a21-5c8e7f0b1d42\",\"x_vendor_note\":\"kéép me\",\"x_vendor_tree\":{\"a_first\":{\"deep\":\"value\"},\"z_last\":[1,2,3]}},\"encryption\":{\"aead\":{\"name\":\"xchacha20_poly1305\",\"x_vendor_rounds\":3},\"recipient_method\":\"passphrase_kdf\"},\"x_vendor_top\":\"top-level slot\"}",
+          "expected_digest": "sha256:a4c07d60d9a2bfcb57a276334cee357a050ebc567ea4433384edd5e4e94c8ced",
+          "expected": {
+            "digest_differs_from_the_unmutated_subject": true,
+            "unmutated_digest": "sha256:4a0118d1d11e27cc741b74e0e2e50c166854ad054338cd9bdf0e5c2c3c3006af",
+            "signature_over_the_unmutated_bytes_verifies_against_the_mutated_object": false,
+            "observation_point": "the digest and the signature verdict, not merely that the object still parses"
+          }
+        },
+        {
+          "name": "a_field_the_schema_does_not_declare_is_still_rejected",
+          "covers_decision_points": [
+            "AK-SDK-017/a_schema_undeclared_field_is_still_rejected"
+          ],
+          "mutation": "add a top-level member vendor_top that matches no declared property and no declared x_* pattern",
+          "expected": {
+            "outcome": "rejected",
+            "top_level_code": "schema_violation",
+            "admitted_by_the_extension_slot_rule": false
+          }
+        },
+        {
+          "name": "an_unsupported_critical_feature_is_not_admitted_by_the_roundtrip_rule",
+          "covers_decision_points": [
+            "AK-SDK-017/an_unsupported_critical_feature_is_not_admitted_by_the_roundtrip_rule"
+          ],
+          "mutation": "declare requirements.critical_extensions[0].id as a feature this build does not support, carrying well-formed unknown parameters",
+          "expected": {
+            "outcome": "rejected",
+            "top_level_code": "unsupported_feature",
+            "decided_from": "the criticality declaration, not from whether the parameters parse",
+            "parameters_preserved_instead_of_rejecting": false,
+            "cross_reference_vector": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
+          }
+        }
       ]
     }
   ],

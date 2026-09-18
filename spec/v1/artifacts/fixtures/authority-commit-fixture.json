@@ -76,7 +76,14 @@
     "ak.vector.authority_commit.independent_streams.v1",
     "ak.vector.authority_commit.stream_continuity_negative.v1",
     "ak.vector.authority_commit.equivocation_freeze.v1",
-    "ak.vector.authority_commit.post_handoff_write_rejected.v1"
+    "ak.vector.authority_commit.post_handoff_write_rejected.v1",
+    "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1",
+    "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+    "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+    "ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1",
+    "ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1",
+    "ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1",
+    "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
   ],
   "rejected_commits": [
     {
@@ -226,5 +233,951 @@
       "previous_commit_ref": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
       "expected": "accepted"
     }
-  }
+  },
+  "projection_admission_contract": "Ordered transcript cases for the authority_commit_projection vectors. Every case fixes the initial committed state, the exact Events and their order, whether a covering RealmCommit exists and what it binds, the applicable domain CAS, the retry input, and the result observed through the SDK API. The absence of a shared effect is asserted explicitly (no accepted result, no shared current update, no fanout, no authorization basis) rather than encoded as a single pending flag. Each case names the SDK clause decision points it carries as \"<clause_id>/<decision_point_id>\".",
+  "projection_admission_cases": [
+    {
+      "name": "ordinary_event_without_a_covering_commit_has_no_shared_effect",
+      "vector_id": "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/ordinary_event_has_no_shared_effect_before_its_commit",
+        "AK-SDK-011/an_ordinary_event_is_not_admitted_from_a_local_projection_either"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_ordinary",
+          "state_changing": false,
+          "authorization_ref": "grant_writer_active",
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "observe_through_sdk_api",
+          "after_step": 1
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed"
+      },
+      "note": "authorization_ref resolving in committed typed state is necessary, not sufficient; without a covering RealmCommit there is no accepted result and no shared effect"
+    },
+    {
+      "name": "ordinary_event_becomes_committed_under_its_own_commit",
+      "vector_id": "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/ordinary_event_has_no_shared_effect_before_its_commit"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_ordinary",
+          "state_changing": false,
+          "authorization_ref": "grant_writer_active",
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_ordinary",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2
+        }
+      ],
+      "expected": {
+        "reported_write_state": "committed",
+        "shared_current_updated": true,
+        "fanout_emitted": true,
+        "usable_as_authorization_basis": true
+      },
+      "note": "the positive contrast: the same Event is consumable once, and only once, its Commit arrives"
+    },
+    {
+      "name": "state_changing_event_waits_without_a_covering_commit",
+      "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/state_change_waits_locally_until_a_covering_commit",
+        "AK-SDK-011/the_client_waits_or_fails_closed_rather_than_deciding_locally"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "observe_through_sdk_api",
+          "after_step": 1
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed",
+        "shared_pending_result_offered": false
+      },
+      "note": "waiting is observable only as the local queued/forwarding result; the protocol offers no shared pending value and the client MUST NOT substitute its own projection"
+    },
+    {
+      "name": "state_changing_event_commits_under_a_valid_commit",
+      "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/state_change_waits_locally_until_a_covering_commit"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_state",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2
+        }
+      ],
+      "expected": {
+        "reported_write_state": "committed",
+        "shared_current_updated": true,
+        "domain_current_revision": {
+          "commit_id": "commit_at_position_2",
+          "stream_position": 2
+        }
+      },
+      "note": "the decision rests on the Commit itself: the verifier recomputes commit_id and checks the previous_commit_ref/stream_position link"
+    },
+    {
+      "name": "a_commit_for_another_event_does_not_admit_this_one",
+      "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/state_change_waits_locally_until_a_covering_commit"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_other",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2,
+          "subject": "E_state"
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed"
+      },
+      "note": "one RealmCommit accepts exactly one Event; a neighbouring Commit on the same stream is not a covering Commit for this Event"
+    },
+    {
+      "name": "a_commit_on_another_stream_does_not_admit_this_one",
+      "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/state_change_waits_locally_until_a_covering_commit"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_state",
+          "stream": "circle_side",
+          "stream_position": 0,
+          "previous_commit_ref": null,
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2,
+          "subject": "E_state"
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed"
+      },
+      "note": "stream_ref is derived from the Event's effective scope and registered kind; a Commit on a different stream never covers it"
+    },
+    {
+      "name": "expected_revision_is_required_only_where_the_kind_defines_cas",
+      "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/expected_revision_is_scoped_to_kinds_that_define_cas"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state_no_cas_kind",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": null,
+          "kind_defines_domain_cas": false,
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_state_no_cas_kind",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2
+        }
+      ],
+      "expected": {
+        "reported_write_state": "committed",
+        "rejected_for_missing_expected_revision": false,
+        "later_legal_typed_event_overwrites_the_same_target": true
+      },
+      "note": "a kind whose domain payload defines no CAS is not required to carry a generic one; demanding a universal expected_revision fails this case"
+    },
+    {
+      "name": "a_top_level_expected_revision_is_still_a_schema_violation",
+      "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/expected_revision_is_scoped_to_kinds_that_define_cas"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state_top_level_cas",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "envelope_top_level_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        }
+      ],
+      "expected": {
+        "reported_write_state": "rejected",
+        "top_level_code": "schema_violation",
+        "writes_nothing": true
+      },
+      "note": "scoping expected_revision to the domain payload does not readmit it at the envelope root"
+    },
+    {
+      "name": "same_batch_uncommitted_projection_is_not_an_authorization_basis",
+      "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/same_batch_projection_is_not_an_authorization_basis",
+        "AK-SDK-011/an_earlier_events_projection_is_not_the_later_events_authority"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit_ordered_batch",
+          "batch": "ordinary",
+          "slots": [
+            {
+              "slot": 0,
+              "event": "E_grant_issue",
+              "state_changing": true
+            },
+            {
+              "slot": 1,
+              "event": "E_dependent",
+              "state_changing": true,
+              "authorization_ref": "grant_issued_in_slot_0"
+            }
+          ]
+        },
+        {
+          "step": 2,
+          "action": "observe_through_sdk_api",
+          "after_step": 1,
+          "subject": "E_dependent"
+        }
+      ],
+      "expected": {
+        "slot_0": "queued",
+        "slot_1_outcome": "rejected",
+        "reason": "the slot 0 write has no RealmCommit yet, so it is not an authorization instance",
+        "shared_current_updated": false,
+        "writes_nothing_for_slot_1": true
+      },
+      "note": "the obligation is that in-batch projection cannot create authority, not that a batch may carry no authority source at all"
+    },
+    {
+      "name": "the_same_dependent_request_is_admitted_after_the_predecessor_commits",
+      "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/same_batch_projection_is_not_an_authorization_basis"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_grant_issue",
+          "state_changing": true
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_grant_issue",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "submit",
+          "event": "E_dependent",
+          "state_changing": true,
+          "authorization_ref": "grant_issued_in_slot_0"
+        },
+        {
+          "step": 4,
+          "action": "deliver_commit",
+          "event_ref": "E_dependent",
+          "stream": "realm_main",
+          "stream_position": 3,
+          "previous_commit_ref": "position_2",
+          "governance_generation": 1,
+          "signature": "valid"
+        }
+      ],
+      "expected": {
+        "slot_1_outcome": "committed",
+        "authorization_instance": "the committed grant from step 2"
+      },
+      "note": "the positive contrast that keeps the negative case from being satisfied by refusing everything"
+    },
+    {
+      "name": "a_registered_staged_founding_unit_is_admitted_atomically",
+      "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/a_registered_staged_founding_unit_is_still_admitted"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": null,
+        "authorization_instance": null,
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit_ordered_batch",
+          "batch": "genesis_founding_unit",
+          "slots": [
+            {
+              "slot": 0,
+              "event": "ak.realm.create",
+              "state_changing": true
+            },
+            {
+              "slot": 1,
+              "event": "registered_follow_up",
+              "state_changing": true,
+              "authorization": "staged_authority_root_proof",
+              "bound_create_slot": 0,
+              "controller_actor_id": "equals_signed_envelope_actor_id"
+            }
+          ]
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "slot_0",
+          "stream": "realm_main",
+          "stream_position": 0,
+          "previous_commit_ref": null,
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "deliver_commit",
+          "event_ref": "slot_1",
+          "stream": "realm_main",
+          "stream_position": 1,
+          "previous_commit_ref": "position_0",
+          "governance_generation": 1,
+          "signature": "valid"
+        }
+      ],
+      "expected": {
+        "unit_outcome": "committed",
+        "commits_per_event": 1,
+        "waits_for_a_further_external_request": false
+      },
+      "note": "each Event still gets its own consecutive RealmCommit inside one admission transaction; an implementation that rejects this unit as in-batch privilege escalation fails here"
+    },
+    {
+      "name": "a_founding_unit_with_slot_or_actor_drift_is_rejected_atomically",
+      "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/a_registered_staged_founding_unit_is_still_admitted"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": null,
+        "authorization_instance": null,
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit_ordered_batch",
+          "batch": "genesis_founding_unit",
+          "slots": [
+            {
+              "slot": 0,
+              "event": "unregistered_facet",
+              "state_changing": true
+            },
+            {
+              "slot": 1,
+              "event": "ak.realm.create",
+              "state_changing": true
+            },
+            {
+              "slot": 2,
+              "event": "registered_follow_up",
+              "state_changing": true,
+              "authorization": "staged_authority_root_proof",
+              "bound_create_slot": 1,
+              "controller_actor_id": "differs_from_signed_envelope_actor_id"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "unit_outcome": "rejected",
+        "writes_nothing": true,
+        "partial_commits": 0,
+        "reason": "the bound create Event is not slot 0 and controller_actor_id does not equal the signed envelope actor_id"
+      },
+      "note": "the staged exception is closed: slot, actor and follow-up whitelist are all constrained and the unit fails as a whole"
+    },
+    {
+      "name": "an_unresolvable_causal_predecessor_fails_closed",
+      "vector_id": "ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/causal_predecessor_unavailable_fails_closed"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_dependent",
+          "state_changing": true,
+          "refs": [
+            {
+              "role": "causal",
+              "target": "E_predecessor"
+            }
+          ],
+          "predecessor_state": "not_resolvable_locally"
+        },
+        {
+          "step": 2,
+          "action": "observe_through_sdk_api",
+          "after_step": 1
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed",
+        "predecessor_synthesized": false,
+        "decided_by_arrival_order": false
+      },
+      "note": "fail closed or wait; neither silent acceptance nor a locally synthesized predecessor is admissible"
+    },
+    {
+      "name": "the_dependant_is_admitted_once_its_causal_predecessor_commits",
+      "vector_id": "ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/causal_predecessor_unavailable_fails_closed"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "absent"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_dependent",
+          "state_changing": true,
+          "refs": [
+            {
+              "role": "causal",
+              "target": "E_predecessor"
+            }
+          ],
+          "predecessor_state": "not_resolvable_locally"
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_predecessor",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 3,
+          "action": "deliver_commit",
+          "event_ref": "E_dependent",
+          "stream": "realm_main",
+          "stream_position": 3,
+          "previous_commit_ref": "position_2",
+          "governance_generation": 1,
+          "signature": "valid"
+        }
+      ],
+      "expected": {
+        "reported_write_state": "committed",
+        "order_preserved": true
+      },
+      "note": "positive contrast for the causal branch"
+    },
+    {
+      "name": "authorization_revoked_during_the_wait_still_rejects",
+      "vector_id": "ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/revoked_authorization_fails_closed",
+        "AK-SDK-008/authorization_revoked_during_the_wait_still_rejects"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "accept_revoke",
+          "target": "grant_writer_active",
+          "stream": "realm_main",
+          "stream_position": 2
+        },
+        {
+          "step": 3,
+          "action": "retry",
+          "event": "E_state",
+          "bytes": "exact_same_canonical_bytes",
+          "request_key": "unchanged"
+        }
+      ],
+      "expected": {
+        "reported_write_state": "rejected",
+        "writes_nothing": true,
+        "revived_by_queueing": false,
+        "revived_by_local_projection": false,
+        "revived_by_same_request_key": false
+      },
+      "note": "a revoked grant_id is terminal; queueing, local projection and request-key reuse are not revival paths"
+    },
+    {
+      "name": "an_invalid_commit_signature_leaves_dependent_state_unchanged",
+      "vector_id": "ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/invalid_proof_fails_closed"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_state",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "invalid"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed",
+        "commit_accepted": false,
+        "plausible_content_acceptance_path": false
+      },
+      "note": "the observation is the absence of the state change, not the signature verdict alone"
+    },
+    {
+      "name": "a_commit_bound_to_the_wrong_governance_generation_is_rejected",
+      "vector_id": "ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-004/invalid_proof_fails_closed"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "deliver_commit",
+          "event_ref": "E_state",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 2,
+          "signature": "valid_under_generation_1_key"
+        },
+        {
+          "step": 3,
+          "action": "observe_through_sdk_api",
+          "after_step": 2
+        }
+      ],
+      "expected": {
+        "reported_write_state": "queued",
+        "shared_current_updated": false,
+        "fanout_emitted": false,
+        "usable_as_authorization_basis": false,
+        "local_display": "draft_distinguishable_from_committed",
+        "commit_accepted": false
+      },
+      "note": "the signature MUST come from the service key of the generation the Commit names"
+    },
+    {
+      "name": "an_exact_retry_preserves_the_authorization_ref_and_the_cas",
+      "vector_id": "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1",
+      "covers_decision_points": [
+        "AK-SDK-008/exact_retry_preserves_the_authorization_ref_and_the_cas",
+        "AK-SDK-008/expected_revision_and_commit_requirements_survive_retry"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "submit",
+          "event": "E_state",
+          "state_changing": true,
+          "authorization_ref": "grant_writer_active",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          },
+          "covering_commit": null
+        },
+        {
+          "step": 2,
+          "action": "observe_result",
+          "after_step": 1,
+          "result": "retryable_unavailable"
+        },
+        {
+          "step": 3,
+          "action": "retry",
+          "event": "E_state",
+          "bytes": "exact_same_canonical_bytes",
+          "request_key": "unchanged"
+        }
+      ],
+      "expected": {
+        "authorized_by_ref_on_the_wire": "byte_identical_to_step_1",
+        "payload_expected_revision_on_the_wire": {
+          "commit_id": "commit_at_position_1",
+          "stream_position": 1
+        },
+        "authorization_rechecked_on_retry": true,
+        "cas_rewritten_to_current": false,
+        "authorization_ref_stripped": false
+      },
+      "note": "waiting relaxes neither constraint, and 'already tried once' is not a reason to skip the current authorization check"
+    },
+    {
+      "name": "a_stale_cas_retry_still_rejects_and_writes_nothing",
+      "vector_id": "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1",
+      "covers_decision_points": [
+        "AK-SDK-008/exact_retry_preserves_the_authorization_ref_and_the_cas"
+      ],
+      "initial_committed_state": {
+        "stream": "realm_main",
+        "committed_head": {
+          "stream_position": 1
+        },
+        "authorization_instance": "grant_writer_active",
+        "domain_cas": "target_revision_commit_1_position_1"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "action": "deliver_commit",
+          "event_ref": "E_unrelated_write",
+          "stream": "realm_main",
+          "stream_position": 2,
+          "previous_commit_ref": "position_1",
+          "governance_generation": 1,
+          "signature": "valid"
+        },
+        {
+          "step": 2,
+          "action": "retry",
+          "event": "E_state",
+          "bytes": "exact_same_canonical_bytes",
+          "request_key": "unchanged",
+          "payload_expected_revision": {
+            "commit_id": "commit_at_position_1",
+            "stream_position": 1
+          }
+        }
+      ],
+      "expected": {
+        "reported_write_state": "rejected",
+        "writes_nothing": true,
+        "commit_produced": false,
+        "cas_silently_advanced": false
+      },
+      "note": "the comparison is field-by-field equality against the current revision; a retry never refreshes a stale CAS on the caller's behalf"
+    }
+  ]
 }

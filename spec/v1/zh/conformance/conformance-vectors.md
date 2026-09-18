@@ -148,16 +148,49 @@ profile 作用域内的非 grant 来源，跨 root generation 变更仍然成立
 
 ### 3.4 Authority-commit 投影
 
-`ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1` MUST 证明：
-非状态变更 Event 的 `authorization_ref` 若能在当前治理 Station 已提交的 typed 状态中解析，则可被接受并在本地投影，
-无需等待覆盖它的 `RealmCommit`。
+`ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1` MUST 证明：
+非状态变更的共享 Event 与状态变更 Event 一样，只有在取得覆盖它的有效 `RealmCommit` 之后才成为共享事实。
+在此之前，Account Station MUST NOT 报告 accepted、MUST NOT 更新共享 current、MUST NOT 向其它成员 fanout，
+也 MUST NOT 让它成为任何后续 Event 的授权依据；此时唯一允许的是本地排队或草稿显示，且该本地显示 MUST 与
+committed 结果可区分，不具备协议接纳效力。有效 `RealmCommit` 到达后，同一条 Event 正常进入 `committed` 并可被消费。
+`authorization_ref` 能在已提交 typed 状态中解析只是接纳的必要条件之一，MUST NOT 被当作免除 Commit 的理由。
 
 `ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1` MUST 证明：
-同一次有序提交批次中较早 Event 的投影写入，绝不成为同批次后续 Event 的授权依据；依赖方必须等待随后的 `RealmCommit`。
+普通有序提交批次中较早 Event 的投影写入，不得成为同批次后续 Event 的授权依据；依赖方必须等待随后的 `RealmCommit`。
+该义务约束的是**批内投影不得自行创造授权**，而不是禁止全部批内授权来源：
+[`../models/realm-and-space.md` §2.5.1](../models/realm-and-space.md#251-bootstrap-步骤) 登记的 genesis batch
+staged authority-root proof 是封闭例外，其 create Event MUST 是同批 slot 0、`controller_actor_id` MUST 等于 signed
+envelope `actor_id`、follow-up MUST 在登记白名单内、整个 unit 原子成败。因此本向量 MUST 同时给出三组对照：
+普通批次借前序未提交投影提权被拒、该前序 Event 取得 Commit 之后同一后续请求被接纳、
+以及合法 staged founding unit 被接纳而槽位或 actor 漂移的 unit 被整体拒绝。
+把合法 founding unit 一并拒掉的实现在此失败。每条 Event 仍各自对应一条 `RealmCommit`，
+合法原子 unit 不需要等待下一次外部请求才能完成。
 
 `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1` MUST 证明：
-状态变更 Event 在其自身 stream 上出现有效 `RealmCommit` 接纳之前保持 pending；判定依据是该 Commit 本身，
-因为 v1 不提供可重算的共享状态根可供申诉。
+状态变更 Event 在其自身 stream 上出现有效 `RealmCommit` 接纳之前不得进入 `committed`；判定依据是该 Commit 本身，
+因为 v1 不提供可重算的共享状态根可供申诉。`expected_revision` 的适用范围是**该 kind 的领域 payload 定义了 CAS 时**
+（见 [`../sync/authority-commit-log.md` §5](../sync/authority-commit-log.md#5-typed-reducer-与并发)），
+不是所有状态变更都必须携带通用 CAS；Event 顶层携带 `expected_revision` 仍 MUST `schema_violation`。
+所携带的 `revision` 是 `{commit_id, stream_position}` 二元组，比较是逐字段相等，MUST NOT 退化成裸 Commit ID 或计数器。
+等待期间的可观测结果只能是本地的 `queued` / `forwarding` 或明确失败，协议不新增共享 pending 返回值。
+
+`ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1` MUST 证明：
+`refs[role=causal]` 指向的前驱在本地不可解析或尚未取得有效 `RealmCommit` 时，依赖它的 Event MUST fail closed 或保持本地等待，
+MUST NOT 被静默接受、补造前驱或按到达顺序自行判定成立；前驱取得 Commit 后同一 Event 才可被接纳。
+
+`ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1` MUST 证明：
+Event 提交与其 `RealmCommit` 之间授权被撤销时，该 Event MUST 以确定性失败被拒，MUST NOT 因为已经排队、
+已经本地投影或使用同一 request key 重试而被放行；已 revoked 的授权 MUST NOT 在重试路径上复活。
+
+`ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1` MUST 证明：
+producer proof 或 `RealmCommit` 签名无效、绑定错误 `governance_generation`、或 `previous_commit_ref` /
+`stream_position` 链接不成立时，消费方 MUST 拒绝该 Commit 并保持依赖它的状态未变更，
+MUST NOT 降级为“签名可疑但内容看起来合理”的接受路径。
+
+`ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1` MUST 证明：
+以 exact 相同 canonical bytes 重试等待中的 Event 时，`refs[role=authorized_by]` 与领域 `expected_revision`
+MUST 逐字保留：重试 MUST NOT 剥除授权引用、MUST NOT 把陈旧 CAS 改写成当前值、也 MUST NOT 因为“已经试过一次”而跳过
+当前授权重判。陈旧 CAS 的重试仍 MUST 以确定性失败被拒，不产生 Commit。
 
 ### 3.5 Consent 与 identity link
 
@@ -238,7 +271,21 @@ canonical 展示顺序——对一组互不排序的候选 Event，排序键是*
 
 `ak.vector.encoding.extension_slot_roundtrip.v1` MUST 证明：schema 明示的 `x_*` 槽位与
 `critical_extensions[].parameters` 中未识别的内容，在 decode 与 encode、存储、联邦转发与 backfill 之后逐字节保留，
-并继续进入 canonical bytes。
+并继续进入 canonical bytes。该向量的输入 MUST 是**具体 canonical schema 明示允许扩展槽**的合法对象；
+任意容器上的 `x_*` 正例 MUST NOT 被推广成“所有 schema 都允许扩展”。向量 MUST 固定扩展值与 canonical 输出
+bytes／digest，并逐项证明往返后未知成员、嵌套值、数组顺序与字符串内容都没有被丢弃、补默认或归一化。
+
+路径 MUST 逐条给出观测，不得以其中一条代表全部：decode／encode 往返、存储读回、联邦转发后的对端读取、
+backfill 重放，以及 canonical bytes／digest／签名校验。字节比较沿用
+[`encoding.md` §2](./encoding.md) 的既有 canonical 合同，MUST NOT 把 JSON 空白或对象成员的书写顺序
+引入新的保留义务。改变扩展槽内容 MUST 改变适用的 canonical digest 与签名校验结果，
+从而把观测点钉在“扩展内容确实进入了 canonical bytes”而不是“对象仍能解析”。
+
+同一向量 MUST 保留两组负向对照：schema 未声明的字段仍 MUST 被拒绝，不得借扩展槽规则放行；
+声明了本构建不支持的 critical extension 的对象仍 MUST 整体 fail closed
+（判定见 `ak.vector.sdk.unknown_critical_feature_fail_closed.v1`），
+MUST NOT 为了让 roundtrip 正例通过而绕过 criticality 验证。未知
+`critical_extensions[].parameters` 的逐字节保留只在该 critical feature 已被支持时才被要求。
 
 `ak.vector.encoding.result_selector_uri.v1` MUST 证明：canonical MIMI room URI 是 typed current result 的
 subject 来源；哈希化 subject、URI fragment 截断与 caller 自行分配的备用 room 标识符一律拒绝。
@@ -404,7 +451,23 @@ capability revoke 之后该 actor 的新 reaction fail closed，既有 reaction 
 ### 3.14 SDK 与 to-device
 
 `ak.vector.sdk.event_type_axes.v1` MUST 证明：官方 SDK 暴露正交且封闭的外层提交类型与 payload 保护类型，
-非法组合在编译期失败，已验证的值通过与服务准入相同的 canonical schema 与 transcript 序列化。
+非法组合在编译期失败，已验证的值通过与服务准入相同的 canonical schema 与 transcript 序列化。该向量的执行合同是
+工具中立的 `named_suite`：fixture 登记可解析的程序片段或构造步骤、预期的成功或类型错误、以及各自对应的判定点，
+由各语言实现的 adapter 对 exact SDK 发布物编译并执行。向量 MUST NOT 把某一语言编译器的私有错误号或诊断措辞
+当作协议错误码，判定只看“该片段是否编译通过”。
+
+四个判定点 MUST 分开观测：（a）producer `Event`、authority `RealmCommit` 与
+`PlainPayload<T>` / `MlsEncryptedPayload<T>` / 具体 MLS 协议 payload 是彼此不可互换的封闭类型；
+（b）非法的 outer × payload 组合在网络提交前编译失败；（c）未经验证的 wire 字节或草稿值不能直接交给只接受
+verified 值的 submit API，且 verified submission 在公开类型／API 面上不可原地修改；
+（d）合法组合成功构造，并以与服务准入相同的 canonical schema／transcript 序列化出固定输出。
+（d）同时用于排除“任何片段都编译失败”的伪通过——只有 compile-fail 用例而没有成功对照的实现在此失败。
+
+取值来源 MUST 是 canonical 合同本身：[`contract-registry.json`](../../artifacts/registry/contract-registry.json)、
+由它生成的 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)，以及 Event／RealmCommit
+与相关 payload schema。fixture MUST NOT 手抄另一套事件分类或轴枚举。
+`ak.vector.encoding.open_registry_unknown_roundtrip.v1` 证明的是开放注册集保留未知字符串，
+MUST NOT 被当作本向量的替代证据。
 
 `ak.vector.sync.to_device_message_idempotency.v1` MUST 证明：`DeviceMessageEnvelope` 要求发送方分配的
 `device_message_id`；未被确认的字节相同重投只执行一次 durable handler 副作用；

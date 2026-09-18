@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-20.5",
-      "generated_at": "2026-09-20T18:00:00+08:00",
-      "content_digest": "sha256:665a665bd527e28dc13cfb423b8bd2473d3e2c381e9ddeee35933ae9baae6b1a"
+      "version": "2026-09-21.2",
+      "generated_at": "2026-09-21T11:00:00+08:00",
+      "content_digest": "sha256:babf71540fc2397e9fa24faee8386fb57eddc1d97901f90d308b57453b94e215"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-20.5",
-      "generated_at": "2026-09-20T17:40:00+08:00",
-      "content_digest": "sha256:2d6c2ba441deeca44e912dadac5c2a1582e3437def62204bce57d09b2c83dbd7"
+      "version": "2026-09-21.1",
+      "generated_at": "2026-09-21T10:00:00+08:00",
+      "content_digest": "sha256:f1f41ee2659b8f9b5b73fbb9f5b209e66c6cc79e4c8ba2a18f90d92a5ee5d3d7"
     }
   ]
 }

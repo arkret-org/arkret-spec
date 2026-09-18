@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "f6abff069761e2468d6d7e490b52362ccb123cc0ec3843c85ee96b78b5ad782d"
+      "sha256": "423f4a5eae130e9c5ba6e311c58dee29a6cb7f77c003f55b43c7f06429e10d60"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "ff8c8f1a4c2aa8fc8c3767d0cb95985d594dd372df68fa5b47f885e800a46b0f"
+      "sha256": "2932aa4b650b1bbfefcea7790d77f9fd3d2a6f2bbed676bf21843c4b7fe84fb5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -266,7 +266,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "a9b6414a454a6221169119dd232c8915429298d15e344a7345dbc1cfb3572e6a"
+      "sha256": "d801b9f235d043421112a7d9202c1f314c3c2cd13a34f882842ea5225f56be58"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -302,7 +302,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "a8b06cd34cf68f7a19f85569c24c4544677aedcdc43099006c2644d69ffda496"
+      "sha256": "e5347d52ef5bc8d7038db9df4dc82ed61a042903724a3bbc8369bb99e7ecc052"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",
+      "sha256": "0816428bf892de2318c5600e6bb05afe655c66c8a6f27bdf7ae0acb81bcdd8b3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json",

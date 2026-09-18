@@ -111,19 +111,30 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             self.assertEqual(len(body), 33, value)
             self.assertEqual(body[0], sha256_suite_code, value)
 
-    def test_fixture_covers_every_registered_authority_commit_vector(self):
-        fixture = read("fixtures/authority-commit-fixture.json")
-        registered = {
-            row["vector_id"]
-            for row in read("registry/vector-registry.json")["vectors"]
-            if row["domain"] == "authority_commit" and row["status"] == "active"
-        }
-        self.assertEqual(set(fixture["covers_vectors"]), registered)
-        for row in read("registry/vector-registry.json")["vectors"]:
-            if row["vector_id"] in registered:
-                self.assertEqual(
-                    row["applies_to_fixtures"], ["authority-commit-fixture.json"]
-                )
+    def test_fixture_covers_every_vector_the_registry_says_it_carries(self):
+        # covers_vectors is the fixture's own claim; the registry's carrier
+        # indexing is the independent one. Comparing them as sets keeps both
+        # directions: a registered vector that names this fixture but is absent
+        # from covers_vectors has no case here, and a covers_vectors entry the
+        # registry does not route here is a claim nothing backs. The check is
+        # domain-agnostic on purpose, because this fixture now carries the
+        # authority_commit_projection admission transcripts as well.
+        name = "authority-commit-fixture.json"
+        fixture = read(f"fixtures/{name}")
+        rows = read("registry/vector-registry.json")["vectors"]
+        carried = set()
+        for row in rows:
+            if row["status"] != "active":
+                continue
+            refs = [ref for ref in row.get("source_refs", []) if isinstance(ref, str)]
+            if name in row.get("applies_to_fixtures", []) or any(
+                ref.endswith(f"/artifacts/fixtures/{name}") for ref in refs
+            ):
+                carried.add(row["vector_id"])
+        self.assertEqual(set(fixture["covers_vectors"]), carried)
+        for row in rows:
+            if row["domain"] == "authority_commit" and row["status"] == "active":
+                self.assertEqual(row["applies_to_fixtures"], [name])
 
     def test_broken_chain_and_position_gap_are_rejected_without_writes(self):
         fixture = read("fixtures/authority-commit-fixture.json")

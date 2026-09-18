@@ -145,6 +145,8 @@ from .test_material import (
     check_test_material_registry,
 )
 
+from .decision_point_cases import check_sdk_decision_point_cases
+
 from .section_identity import (
     check_artifact_fragment_targets,
     check_linked_page_section_refs,
@@ -557,6 +559,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "sdk_clause_vector_evidence",
                 lambda: check_sdk_clause_vector_evidence(lint),
+            ),
+            (
+                "sdk_decision_point_cases",
+                lambda: check_sdk_decision_point_cases(lint),
             ),
             (
                 "sdk_claim_contract_binding",

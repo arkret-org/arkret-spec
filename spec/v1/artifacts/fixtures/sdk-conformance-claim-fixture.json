@@ -1,7 +1,7 @@
 {
   "suite": "sdk_conformance_claim",
   "profile": "ak.vector_group.schema_validation.v1",
-  "version": "2026-09-20.1",
+  "version": "2026-09-21.1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -32,7 +32,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:1e901399d0eb0f90a7b2fc7058c20a1c03bf3ddf913b148102d64c65799b3ceb",
+        "contract_digest": "sha256:3aa4bc90ff0ad6c77646236e70cbd4b0c8e823d5355cfbd624ed56a472c1c33c",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -56,7 +56,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "kE46Xlyo_tnPD12TRhxjMhtChV8v-zii_AIOBzeESdPfGPgbyY7CKEopCYJcqNB56WjAvT8O0xA3PJg6IZGXAQ",
+          "signature": "OcqfJ4S5oWbzAs2q0XasBn8ZOaQkXHUBjzENBvCsOCcR8vzO6aCikR5jvcs__WeF5b6wcw3slEZVFVF5dyvDDw",
           "signature_algorithm": "Ed25519"
         }
       }

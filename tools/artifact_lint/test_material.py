@@ -416,9 +416,41 @@ def check_sdk_clause_vector_evidence(lint: Lint) -> None:
         if isinstance(entry, dict) and isinstance(entry.get("vector_id"), str)
     }
 
-    for key in ("vector_evidence_rule", "vector_evidence_carrier_ratchet_rule"):
+    for key in (
+        "vector_evidence_rule",
+        "vector_evidence_carrier_ratchet_rule",
+        "vector_evidence_carrier_ratchet_ceiling_rule",
+    ):
         if not isinstance(contract.get(key), str) or not contract[key].strip():
             lint.fail(_contract_path(), f"sdk_conformance_contract.{key} must state the rule")
+
+    # The ratchet prose says the list only shrinks, but prose cannot tell a
+    # removed row from a newly added one. The ceiling is the controlled
+    # baseline that can: it is the frozen set of pairs the ratchet was ever
+    # allowed to hold, so a new gap cannot be made to disappear by writing one
+    # more row with a plausible owner. Widening it is possible and deliberately
+    # expensive -- the ceiling is inside sdk_conformance_contract, so editing it
+    # moves contract_digest and invalidates the signed claim fixture.
+    ceiling = contract.get("vector_evidence_carrier_ratchet_ceiling")
+    ceiling_pairs: set[tuple[str, str]] = set()
+    if not isinstance(ceiling, list):
+        lint.fail(
+            _contract_path(),
+            "vector_evidence_carrier_ratchet_ceiling must be a list, even when it is empty",
+        )
+    else:
+        for index, entry in enumerate(ceiling):
+            where = f"vector_evidence_carrier_ratchet_ceiling[{index}]"
+            if not isinstance(entry, dict):
+                lint.fail(_contract_path(), f"{where} must be an object")
+                continue
+            pair = (entry.get("clause_id"), entry.get("vector_id"))
+            if not isinstance(pair[0], str) or not isinstance(pair[1], str):
+                lint.fail(_contract_path(), f"{where} must name a clause_id and a vector_id")
+                continue
+            if pair in ceiling_pairs:
+                lint.fail(_contract_path(), f"{where} duplicates {pair[0]}/{pair[1]}")
+            ceiling_pairs.add(pair)  # type: ignore[arg-type]
 
     ratchet = contract.get("vector_evidence_carrier_ratchet")
     if not isinstance(ratchet, list):
@@ -440,6 +472,14 @@ def check_sdk_clause_vector_evidence(lint: Lint) -> None:
         owner = entry.get("owner_report")
         if not isinstance(owner, str) or not owner.strip():
             lint.fail(_contract_path(), f"{where} must name the report that owns the gap")
+        if isinstance(ceiling, list) and pair not in ceiling_pairs:
+            lint.fail(
+                _contract_path(),
+                f"{where} adds {pair[0]}/{pair[1]}, which the frozen "
+                f"vector_evidence_carrier_ratchet_ceiling does not contain; the ratchet only "
+                f"shrinks, so a new gap needs the ceiling widened and the claim re-signed, not "
+                f"one more row",
+            )
 
     used_ratchet_pairs: set[tuple[str, str]] = set()
 

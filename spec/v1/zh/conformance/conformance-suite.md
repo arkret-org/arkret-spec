@@ -103,15 +103,23 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
-- `ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1`
-  - 输入一条 Event，其 `authorization_ref` 在当前治理 Station 的已提交 typed state 中解析为有效授权实例。
-  - 期望 reducer 输出：本地接受、可投影、无需被 RealmCommit 覆盖。
+- `ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1`
+  - 输入一条非状态变更的共享 Event，其 `authorization_ref` 在当前治理 Station 的已提交 typed state 中解析为有效授权实例；分别在无覆盖 Commit 与取得有效 Commit 两种情形下观测。
+  - 期望输出：无 Commit 时不报告 accepted、不更新共享 current、不 fanout、不成为后续授权依据，只允许与 committed 可区分的本地排队或草稿显示；取得有效 Commit 后进入 `committed`。
 - `ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1`
-  - 输入带有效 `expected_revision` 的 state-changing Event 及缺失/错误 basis 的负向样例。
-  - 期望输出：state-changing Event 先 pending，只有取得该 stream 上有效的 RealmCommit 后进入 `committed`。判据是该 Commit 本身：验证方重算 Commit ID 并校验 `previous_commit_ref` 与 `stream_position` 链接，除此之外没有可供申诉的第二判据，因此缺少覆盖它的 Commit 时 MUST 保持 pending 而不是自行判定已生效。
+  - 输入带有效领域 CAS 的 state-changing Event，及缺失／错误 basis 的负向样例；`expected_revision` 只在该 kind 的领域 payload 定义 CAS 时出现，Event 顶层携带它仍被拒。
+  - 期望输出：取得该 stream 上有效的 RealmCommit 后才进入 `committed`。判据是该 Commit 本身：验证方重算 Commit ID 并校验 `previous_commit_ref` 与 `stream_position` 链接，除此之外没有可供申诉的第二判据，因此缺少覆盖它的 Commit 时 MUST 保持本地 `queued` / `forwarding` 或明确失败，而不是自行判定已生效。
 - `ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1`
-  - 输入同一 ordered submit batch 内相互依赖的 state-changing Event。
-  - 期望输出：同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 RealmCommit。
+  - 输入同一 ordered submit batch 内相互依赖的 state-changing Event，以及一组合法与非法的 genesis founding unit。
+  - 期望输出：普通批次的同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 RealmCommit；登记的 staged authority-root proof founding unit 仍被整体接纳，槽位或 actor 漂移的 unit 被整体拒绝。
+- `ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1`、
+  `ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1` 与
+  `ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1`
+  - 输入 causal 前驱不可解析、等待期间授权被撤销、以及 proof／Commit 签名或链接无效三组样例。
+  - 期望输出：三者各自以确定性失败或本地等待收口，依赖状态不变更，不存在“看起来合理就接受”的降级路径。
+- `ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1`
+  - 输入等待中 Event 的 exact canonical bytes 重试，含陈旧 CAS 的一组。
+  - 期望输出：`refs[role=authorized_by]` 与领域 `expected_revision` 逐字保留，陈旧 CAS 重试仍确定性失败且不产生 Commit。
 
 ### 4.3 Redaction 向量
 

@@ -164,6 +164,15 @@ def contract_body() -> dict:
         "vector_evidence_rule": "every vector_result clause carries vector_evidence",
         "vector_evidence_carrier_ratchet_rule": "the ratchet only shrinks",
         "vector_evidence_carrier_ratchet": [],
+        "vector_evidence_carrier_ratchet_ceiling_rule": (
+            "the frozen set of pairs the ratchet was ever allowed to hold"
+        ),
+        # Wide enough that the ratchet tests below exercise the rule each is
+        # named for; the ceiling itself gets its own test.
+        "vector_evidence_carrier_ratchet_ceiling": [
+            {"clause_id": CLAUSE, "vector_id": VECTOR},
+            {"clause_id": "AK-SDK-778", "vector_id": "ak.vector.probe.absent.v1"},
+        ],
         "rules": [],
         "clauses": [
             {
@@ -541,6 +550,52 @@ class TestMaterialGateTest(unittest.TestCase):
         self.assertRedWith(
             self.run_gates(vectors=registry, contract_document=contract(body), which="evidence"),
             "must name the report that owns the gap",
+        )
+
+    def test_a_ratchet_row_outside_the_frozen_ceiling_turns_the_gate_red(self) -> None:
+        # The prose says the list only shrinks; this is what makes that a check
+        # rather than a promise. A brand new uncarried pair cannot be silenced
+        # by writing one more row, because the row is not in the baseline.
+        registry = vector_registry()
+        registry["vectors"][0].pop("applies_to_fixtures")
+        registry["vectors"][0]["source_refs"] = ["spec/v1/zh/conformance/conformance-vectors.md"]
+        body = contract_body()
+        body["vector_evidence_carrier_ratchet_ceiling"] = []
+        body["vector_evidence_carrier_ratchet"] = [
+            {"clause_id": CLAUSE, "vector_id": VECTOR, "owner_report": "report.md"}
+        ]
+        self.assertRedWith(
+            self.run_gates(vectors=registry, contract_document=contract(body), which="evidence"),
+            "the frozen vector_evidence_carrier_ratchet_ceiling does not contain",
+        )
+
+    def test_a_ratchet_row_inside_the_frozen_ceiling_passes(self) -> None:
+        registry = vector_registry()
+        registry["vectors"][0].pop("applies_to_fixtures")
+        registry["vectors"][0]["source_refs"] = ["spec/v1/zh/conformance/conformance-vectors.md"]
+        body = contract_body()
+        body["vector_evidence_carrier_ratchet"] = [
+            {"clause_id": CLAUSE, "vector_id": VECTOR, "owner_report": "report.md"}
+        ]
+        self.assertEqual(
+            self.run_gates(vectors=registry, contract_document=contract(body), which="evidence"),
+            [],
+        )
+
+    def test_dropping_the_ceiling_turns_the_gate_red(self) -> None:
+        body = contract_body()
+        del body["vector_evidence_carrier_ratchet_ceiling"]
+        self.assertRedWith(
+            self.run_gates(contract_document=contract(body), which="evidence"),
+            "vector_evidence_carrier_ratchet_ceiling must be a list",
+        )
+
+    def test_dropping_the_ceiling_rule_turns_the_gate_red(self) -> None:
+        body = contract_body()
+        del body["vector_evidence_carrier_ratchet_ceiling_rule"]
+        self.assertRedWith(
+            self.run_gates(contract_document=contract(body), which="evidence"),
+            "vector_evidence_carrier_ratchet_ceiling_rule must state the rule",
         )
 
     def test_a_carrier_fixture_without_a_runner_turns_the_gate_red(self) -> None:

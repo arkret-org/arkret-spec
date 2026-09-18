@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.5",
+  "version": "2026-09-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T17:40:00+08:00",
+  "generated_at": "2026-09-21T10:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -517,15 +517,73 @@
       ]
     },
     {
-      "vector_id": "ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1",
+      "vector_id": "ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1",
       "status": "active",
       "domain": "authority_commit_projection",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "A non-state-changing Event whose authorization_ref resolves in the committed typed state of the current governance Station is accepted and projected locally without waiting for a covering RealmCommit.",
+      "description": "An Event whose refs[role=causal] predecessor is unresolvable or not yet committed fails closed or waits locally instead of being silently accepted, synthesized or decided by arrival order.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1",
+      "status": "active",
+      "domain": "authority_commit_projection",
+      "applies_to_profiles": [
+        "ak.profile.core_event_store.v1"
+      ],
+      "description": "An exact canonical-bytes retry of a waiting Event preserves refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, and still deterministically rejects a stale CAS without producing a Commit.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1",
+      "status": "active",
+      "domain": "authority_commit_projection",
+      "applies_to_profiles": [
+        "ak.profile.core_event_store.v1"
+      ],
+      "description": "An invalid producer proof or RealmCommit signature, a wrong governance_generation binding, or a broken previous_commit_ref/stream_position link rejects the Commit and leaves dependent state unchanged, with no plausible-content acceptance path.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1",
+      "status": "active",
+      "domain": "authority_commit_projection",
+      "applies_to_profiles": [
+        "ak.profile.core_event_store.v1"
+      ],
+      "description": "A non-state-changing shared Event becomes a shared fact only under a covering valid RealmCommit: before it there is no accepted result, no shared current update, no fanout and no authorization basis, only a local queued or draft display that stays distinguishable from a committed result.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1",
+      "status": "active",
+      "domain": "authority_commit_projection",
+      "applies_to_profiles": [
+        "ak.profile.core_event_store.v1"
+      ],
+      "description": "An authorization revoked between submission and RealmCommit deterministically rejects the dependent Event; queueing, local projection and same-request-key retry do not revive it.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
       ]
     },
     {
@@ -535,9 +593,11 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Projected writes earlier in one ordered submit batch never become the authorization basis for later Events in the same batch; dependants wait for the subsequent RealmCommit.",
+      "description": "Projected writes earlier in one ordinary ordered submit batch never create the authorization basis for later Events in that batch; the only in-batch authority source is the registered genesis staged authority-root proof, whose slot, actor and follow-up whitelist are constrained and whose unit fails atomically.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
       ]
     },
     {
@@ -547,9 +607,11 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "A state-changing Event stays pending until a valid RealmCommit on its own stream accepts it; the decision rests on the Commit itself, because v1 has no recomputed state root to appeal to.",
+      "description": "A state-changing Event does not become committed until a valid RealmCommit on its own stream accepts it; expected_revision applies exactly when the kind's domain payload defines CAS, is the {commit_id, stream_position} pair compared field by field, and waiting is observable only as the local queued/forwarding results, never as a shared pending value.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json"
       ]
     },
     {
@@ -2015,9 +2077,11 @@
       "status": "active",
       "domain": "encoding",
       "scope": "universal",
-      "description": "Schema-declared x_* slots and unrecognised critical_extensions[].parameters survive decode, encode, storage, federation forwarding and backfill byte for byte, and keep participating in canonical bytes.",
+      "description": "Schema-declared x_* slots and unrecognised critical_extensions[].parameters survive decode, encode, storage, federation forwarding and backfill byte for byte on a legal object of a concrete schema that declares them, keep entering canonical bytes so that changing them changes the digest and the signature verdict, and neither admit a schema-undeclared field nor bypass criticality validation.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-profiles.md"
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
@@ -4118,9 +4182,11 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "Official SDKs expose orthogonal closed outer submission and payload-protection types, compile-fail invalid combinations, and serialize verified values through the same canonical schema/transcript used by service admission.",
+      "description": "Official SDKs expose orthogonal closed outer submission and payload-protection types, compile-fail invalid combinations before any network call, keep a verified submission immutable in place, and serialize verified values through the same canonical schema/transcript used by service admission; the axis values come from the canonical contract registries, never from a transcribed list.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-profiles.md"
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json"
       ]
     },
     {

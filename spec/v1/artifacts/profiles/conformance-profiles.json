@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.5",
-  "generated_at": "2026-09-20T18:00:00+08:00",
+  "version": "2026-09-21.2",
+  "generated_at": "2026-09-21T11:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -155,24 +155,59 @@
           ],
           "decision_points": [
             {
-              "id": "state_change_holds_pending_until_a_covering_commit",
-              "requirement": "A state-changing Event stays pending until a valid RealmCommit on its own stream accepts it; the decision rests on the Commit itself.",
+              "id": "ordinary_event_has_no_shared_effect_before_its_commit",
+              "requirement": "A non-state-changing shared Event produces no accepted result, no shared current update, no fanout and no authorization basis until a covering RealmCommit exists; only a local display distinguishable from a committed result is allowed.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1"
+              ]
+            },
+            {
+              "id": "state_change_waits_locally_until_a_covering_commit",
+              "requirement": "A state-changing Event does not become committed until a valid RealmCommit on its own stream accepts it; the decision rests on that Commit, and waiting is observable only as the local queued or forwarding result.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+              ]
+            },
+            {
+              "id": "expected_revision_is_scoped_to_kinds_that_define_cas",
+              "requirement": "expected_revision is required exactly when the kind's domain payload defines CAS, is the {commit_id, stream_position} pair compared field by field, and is still a schema_violation at the Event envelope root.",
               "vectors": [
                 "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
               ]
             },
             {
               "id": "same_batch_projection_is_not_an_authorization_basis",
-              "requirement": "Projected writes earlier in one ordered submit batch never become the authorization basis for later Events in the same batch.",
+              "requirement": "Projected writes earlier in one ordinary ordered submit batch never become the authorization basis for later Events in the same batch; the same request is admitted once the predecessor holds a Commit.",
               "vectors": [
                 "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1"
               ]
             },
             {
-              "id": "non_state_changing_event_projects_without_commit_finality",
-              "requirement": "A non-state-changing Event whose authorization_ref resolves in committed typed state is accepted and projected without waiting for a covering RealmCommit, so fail-closed is scoped rather than universal.",
+              "id": "a_registered_staged_founding_unit_is_still_admitted",
+              "requirement": "The registered genesis staged authority-root proof stays admissible as a whole, with its create Event at slot 0, controller_actor_id equal to the signed envelope actor_id and a whitelisted follow-up; slot or actor drift rejects the unit atomically.",
               "vectors": [
-                "ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1"
+                "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1"
+              ]
+            },
+            {
+              "id": "causal_predecessor_unavailable_fails_closed",
+              "requirement": "An Event whose refs[role=causal] predecessor is unresolvable or uncommitted fails closed or waits locally, and is never silently accepted, synthesized or decided by arrival order.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1"
+              ]
+            },
+            {
+              "id": "revoked_authorization_fails_closed",
+              "requirement": "An authorization revoked between submission and RealmCommit deterministically rejects the dependent Event; queueing, local projection and request-key reuse do not revive it.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1"
+              ]
+            },
+            {
+              "id": "invalid_proof_fails_closed",
+              "requirement": "An invalid producer proof or Commit signature, a wrong governance_generation binding or a broken stream link leaves dependent state unchanged, with no plausible-content acceptance path.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1"
               ]
             }
           ]
@@ -286,7 +321,9 @@
         "vector_evidence": {
           "vectors": [
             "ak.vector.api.request_idempotency.v1",
-            "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+            "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+            "ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1",
+            "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
           ],
           "decision_points": [
             {
@@ -298,9 +335,23 @@
             },
             {
               "id": "expected_revision_and_commit_requirements_survive_retry",
-              "requirement": "A retried state-changing Event still requires its expected_revision and a covering RealmCommit; waiting does not relax either constraint.",
+              "requirement": "A retried state-changing Event still requires a covering RealmCommit and, where its kind defines CAS, the same expected_revision; waiting relaxes neither constraint.",
               "vectors": [
-                "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+                "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
+              ]
+            },
+            {
+              "id": "exact_retry_preserves_the_authorization_ref_and_the_cas",
+              "requirement": "An exact canonical-bytes retry carries refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, never rewrites a stale CAS to the current value, and still deterministically rejects a stale CAS without producing a Commit.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
+              ]
+            },
+            {
+              "id": "authorization_revoked_during_the_wait_still_rejects",
+              "requirement": "An authorization that becomes invalid while the Event waits still rejects the retry; having already been queued is not a reason to skip the current authorization check.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1"
               ]
             }
           ]
@@ -398,6 +449,7 @@
         ],
         "vector_evidence": {
           "vectors": [
+            "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1",
             "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
             "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
           ],
@@ -410,10 +462,17 @@
               ]
             },
             {
-              "id": "the_client_holds_pending_or_fails_closed_rather_than_deciding_locally",
-              "requirement": "A light client observed only through the SDK API holds the Event pending or fails closed instead of substituting its own local projection for RealmCommit admission.",
+              "id": "the_client_waits_or_fails_closed_rather_than_deciding_locally",
+              "requirement": "A light client observed only through the SDK API waits or fails closed instead of substituting its own local projection for RealmCommit admission.",
               "vectors": [
                 "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+              ]
+            },
+            {
+              "id": "an_ordinary_event_is_not_admitted_from_a_local_projection_either",
+              "requirement": "The same rule covers non-state-changing shared Events: a local projection of one is not an admission, is not fanned out and is not an authorization basis.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.ordinary_event_requires_commit_before_shared_effect.v1"
               ]
             }
           ]
@@ -608,7 +667,35 @@
           "decision_points": [
             {
               "id": "extension_slot_content_survives_the_canonical_round_trip",
-              "requirement": "Unrecognised x_* and critical_extensions[].parameters content is preserved byte for byte through decode, encode, storage, federation forwarding and backfill, and continues to enter canonical bytes.",
+              "requirement": "On a legal object of a concrete schema that declares the slot, unrecognised x_* and critical_extensions[].parameters content survives decode and encode byte for byte, with nested values, array order and string content neither dropped, defaulted nor normalized.",
+              "vectors": [
+                "ak.vector.encoding.extension_slot_roundtrip.v1"
+              ]
+            },
+            {
+              "id": "extension_slot_content_survives_storage_forwarding_and_backfill",
+              "requirement": "Storage read-back, federation forwarding read by the peer, and backfill replay are each observed separately and each return the same bytes; one path does not stand in for the others.",
+              "vectors": [
+                "ak.vector.encoding.extension_slot_roundtrip.v1"
+              ]
+            },
+            {
+              "id": "extension_content_enters_canonical_bytes_and_binds_the_signature",
+              "requirement": "Changing slot content changes the applicable canonical digest and invalidates a signature made over the unchanged bytes, so the observation is the digest and the signature verdict rather than that the object still parses.",
+              "vectors": [
+                "ak.vector.encoding.extension_slot_roundtrip.v1"
+              ]
+            },
+            {
+              "id": "a_schema_undeclared_field_is_still_rejected",
+              "requirement": "A member matching no declared property and no declared extension pattern is still rejected with schema_violation; the extension-slot rule does not admit it.",
+              "vectors": [
+                "ak.vector.encoding.extension_slot_roundtrip.v1"
+              ]
+            },
+            {
+              "id": "an_unsupported_critical_feature_is_not_admitted_by_the_roundtrip_rule",
+              "requirement": "An object declaring an unsupported critical extension is refused as a whole even though its parameters would round-trip; preservation of unknown parameters is required only once the critical feature is supported.",
               "vectors": [
                 "ak.vector.encoding.extension_slot_roundtrip.v1"
               ]
@@ -753,8 +840,29 @@
           ],
           "decision_points": [
             {
-              "id": "the_outer_and_payload_type_axes_are_orthogonal_and_closed",
-              "requirement": "Producer Event, authority RealmCommit and the payload-protection types are distinct closed types; an invalid combination fails at compile time and a verified submission cannot be mutated in place.",
+              "id": "the_outer_and_payload_types_are_distinct_closed_types",
+              "requirement": "Producer Event, authority RealmCommit and the payload-protection types are distinct closed types with no implicit conversion between them.",
+              "vectors": [
+                "ak.vector.sdk.event_type_axes.v1"
+              ]
+            },
+            {
+              "id": "an_invalid_axis_combination_fails_at_compile_time",
+              "requirement": "An outer type combined with a payload protection the kind's registered contract does not admit fails to compile, so no network call is emitted; the verdict is the compile outcome, never a compiler's private diagnostic code.",
+              "vectors": [
+                "ak.vector.sdk.event_type_axes.v1"
+              ]
+            },
+            {
+              "id": "a_verified_submission_cannot_be_mutated_in_place",
+              "requirement": "Raw wire bytes or a draft value cannot reach the submission entry point, and the public type and API surface expose no in-place mutation of a verified submission.",
+              "vectors": [
+                "ak.vector.sdk.event_type_axes.v1"
+              ]
+            },
+            {
+              "id": "a_verified_value_serializes_through_the_canonical_contract",
+              "requirement": "A legal combination compiles and serializes through the same canonical schema and transcript the service uses for admission; this positive case excludes the false pass in which every fragment fails to compile.",
               "vectors": [
                 "ak.vector.sdk.event_type_axes.v1"
               ]
@@ -799,49 +907,323 @@
     ],
     "vector_evidence_rule": "Every clause whose required_evidence contains vector_result MUST carry vector_evidence, and no other clause may. vector_evidence.vectors names the registered conformance vectors that carry the clause; an entry ending in .* is a writing convenience that MUST expand, against the vector-registry.json of the current spec revision, to a non-empty set containing no inactive member. vector_evidence.decision_points enumerates the separately observable decisions of the obligation; each decision point MUST have an id unique within the clause, a requirement sentence, and at least one exact vector id drawn from the expanded clause set. The gate proves that this mapping resolves; it does not read the requirement sentences and does not prove that any vector's semantics are sufficient, which is why every decision point is reviewed when it is registered or changed. A decision point MUST NOT be widened to fit the cases a fixture happens to contain. This mapping is evidence bookkeeping for SDK claims only: it is never an applicability selector for a deployment profile, and it does not change evidence_coverage_semantics from acceptable_set.",
     "vector_evidence_carrier_ratchet_rule": "Each entry below names a (clause, vector) pair whose vector is registered and active but is carried by no fixture, so the SDK claiming that clause has no fixture case to run. The list is shrink-only: a pair MUST be removed in the change that gives the vector a fixture carrier, and the gate fails both on an unlisted uncarried pair and on a listed pair that now has a carrier. It is a ratchet, not an exemption: nothing may be added without moving the owner report.",
-    "vector_evidence_carrier_ratchet": [
+    "vector_evidence_carrier_ratchet": [],
+    "contract_digest_computation": "contract_digest is sha256 over the RFC 8785 JCS bytes of this sdk_conformance_contract object exactly as it appears in artifacts/profiles/conformance-profiles.json, rendered as \"sha256:\" followed by lowercase hex. The digest therefore covers this rule, the clause set, every clause's vector_evidence and the ratchet: any edit to the contract changes it, and a claim that binds a stale digest MUST be rejected. Nothing outside sdk_conformance_contract is covered.",
+    "decision_point_case_rule": "A decision point counts as reached only when some fixture carries a case that names it. A case is any object inside a fixture under artifacts/fixtures/ that carries covers_decision_points: a non-empty list of \"<clause_id>/<decision_point_id>\" strings. Such an object MUST also carry a non-empty name and a non-empty expected result, and MUST live in a fixture that carries one of that decision point's own vectors, so that dropping the id into an unrelated fixture does not count. The carrier MUST declare a runner, and a runner.kind of named_suite MUST declare a tool-neutral ak.suite.*.v1 entrypoint, so an unloadable suite is not a pass. The gate proves reachability of clause -> decision point -> active vector -> carrier -> case -> runner and nothing more: it does not read the requirement sentence or the case body for meaning, so a case whose expected result asserts the wrong thing still passes here. Judging whether the case actually exercises the obligation is review work at registration time, and a green gate MUST NOT be reported as evidence that it does.",
+    "decision_point_case_ratchet_rule": "Each entry below names a (clause, decision point) pair the contract declares but no fixture case reaches, so an SDK claiming that clause has nothing to run for that point. The list is shrink-only: a pair MUST be removed in the change that gives the point a case, and the gate fails both on an unreached pair that is not listed and on a listed pair that now has a case. A row whose clause or decision point the contract no longer declares also fails, so renaming a point cannot silently orphan its row. It is a ratchet, not an exemption: nothing may be added without moving the owner report.",
+    "decision_point_case_ratchet": [
       {
-        "clause_id": "AK-SDK-004",
-        "vector_id": "ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-001",
+        "decision_point_id": "envelope_schema_failure_refused",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-004",
-        "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-001",
+        "decision_point_id": "payload_class_failure_refused",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-004",
-        "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-001",
+        "decision_point_id": "no_effect_reaches_the_reducer",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-008",
-        "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-002",
+        "decision_point_id": "forbidden_top_level_members_refused",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-011",
-        "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-002",
+        "decision_point_id": "authorization_members_cannot_be_omitted_or_defaulted",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-011",
-        "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "duplicate_key_is_refused_not_last_wins",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-017",
-        "vector_id": "ak.vector.encoding.extension_slot_roundtrip.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "malformed_json_is_refused_without_repair",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
-        "clause_id": "AK-SDK-023",
-        "vector_id": "ak.vector.sdk.event_type_axes.v1",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "non_nfc_input_is_refused_not_silently_normalized",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "noncanonical_numbers_are_refused",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "invisible_character_injection_is_refused",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-007",
+        "decision_point_id": "malformed_hlc_is_refused_without_normalization",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "decision_point_id": "governance_binding_mismatch_stops_the_commit",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "decision_point_id": "keypackage_did_authorization_precedes_encryption",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "decision_point_id": "envelope_context_mismatch_fails_closed_without_partial_write",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-010",
+        "decision_point_id": "search_and_bridge_surfaces_receive_no_private_plaintext",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-010",
+        "decision_point_id": "no_media_key_is_published_to_an_unauthorized_service",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-012",
+        "decision_point_id": "history_before_the_join_floor_is_not_decrypted",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-012",
+        "decision_point_id": "an_unauthorized_key_source_is_refused_before_decryption",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "decision_point_id": "unknown_critical_extension_is_refused_as_a_whole",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "decision_point_id": "unmet_requirement_is_a_distinct_refusal",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "decision_point_id": "unknown_non_critical_extension_is_still_admitted",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "a_valid_signature_over_published_material_does_not_admit_it",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "the_fingerprint_survives_renaming_and_re_encoding",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "the_refusal_leaves_no_state_and_no_weaker_path",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "the_three_reserved_identifier_rules_are_independent",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "unlisted_material_is_still_verified_normally",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-016",
+        "decision_point_id": "an_unknown_open_registry_value_does_not_fail_the_object",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "decision_point_id": "the_delay_is_the_max_of_the_hint_and_jittered_local_backoff",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "decision_point_id": "a_zero_or_elapsed_hint_never_accelerates_the_local_ladder",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "decision_point_id": "a_long_hint_is_never_clamped_into_an_earlier_retry",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-021",
+        "decision_point_id": "pagination_continues_solely_from_has_more",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-022",
+        "decision_point_id": "the_canonical_confusable_check_is_callable_from_the_public_api",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-024",
+        "decision_point_id": "the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+      },
+      {
+        "clause_id": "AK-SDK-024",
+        "decision_point_id": "unsupported_and_malformed_discriminators_stay_distinct",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       }
     ],
-    "contract_digest_computation": "contract_digest is sha256 over the RFC 8785 JCS bytes of this sdk_conformance_contract object exactly as it appears in artifacts/profiles/conformance-profiles.json, rendered as \"sha256:\" followed by lowercase hex. The digest therefore covers this rule, the clause set, every clause's vector_evidence and the ratchet: any edit to the contract changes it, and a claim that binds a stale digest MUST be rejected. Nothing outside sdk_conformance_contract is covered."
+    "vector_evidence_carrier_ratchet_ceiling_rule": "The frozen set of (clause, vector) pairs vector_evidence_carrier_ratchet was ever allowed to hold. Every ratchet row MUST appear here, so removing a row is the only edit the gate accepts and a newly uncarried pair cannot be made to disappear by writing one more row with a plausible owner_report. It is empty because report 1955 closed the whole carrier gap: no clause may accept vector_result on a vector nothing carries. Widening it is possible and deliberately expensive -- the ceiling lives inside sdk_conformance_contract, so editing it moves contract_digest and invalidates every signed conformance claim bound to the old one.",
+    "vector_evidence_carrier_ratchet_ceiling": [],
+    "decision_point_case_ratchet_ceiling_rule": "The frozen set of (clause, decision point) pairs decision_point_case_ratchet was ever allowed to hold, recorded when report 1955 introduced the case-level gate and found 34 declared decision points that no fixture case reached. Every ratchet row MUST appear here, so removing a row is the only edit the gate accepts and a newly unreached decision point cannot be made to disappear by writing one more row with a plausible owner_report. Widening it is possible and deliberately expensive -- the ceiling lives inside sdk_conformance_contract, so editing it moves contract_digest and invalidates every signed conformance claim bound to the old one.",
+    "decision_point_case_ratchet_ceiling": [
+      {
+        "clause_id": "AK-SDK-001",
+        "decision_point_id": "envelope_schema_failure_refused"
+      },
+      {
+        "clause_id": "AK-SDK-001",
+        "decision_point_id": "payload_class_failure_refused"
+      },
+      {
+        "clause_id": "AK-SDK-001",
+        "decision_point_id": "no_effect_reaches_the_reducer"
+      },
+      {
+        "clause_id": "AK-SDK-002",
+        "decision_point_id": "forbidden_top_level_members_refused"
+      },
+      {
+        "clause_id": "AK-SDK-002",
+        "decision_point_id": "authorization_members_cannot_be_omitted_or_defaulted"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "duplicate_key_is_refused_not_last_wins"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "malformed_json_is_refused_without_repair"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "non_nfc_input_is_refused_not_silently_normalized"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "noncanonical_numbers_are_refused"
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "decision_point_id": "invisible_character_injection_is_refused"
+      },
+      {
+        "clause_id": "AK-SDK-007",
+        "decision_point_id": "malformed_hlc_is_refused_without_normalization"
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "decision_point_id": "governance_binding_mismatch_stops_the_commit"
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "decision_point_id": "keypackage_did_authorization_precedes_encryption"
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "decision_point_id": "envelope_context_mismatch_fails_closed_without_partial_write"
+      },
+      {
+        "clause_id": "AK-SDK-010",
+        "decision_point_id": "search_and_bridge_surfaces_receive_no_private_plaintext"
+      },
+      {
+        "clause_id": "AK-SDK-010",
+        "decision_point_id": "no_media_key_is_published_to_an_unauthorized_service"
+      },
+      {
+        "clause_id": "AK-SDK-012",
+        "decision_point_id": "history_before_the_join_floor_is_not_decrypted"
+      },
+      {
+        "clause_id": "AK-SDK-012",
+        "decision_point_id": "an_unauthorized_key_source_is_refused_before_decryption"
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "decision_point_id": "unknown_critical_extension_is_refused_as_a_whole"
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "decision_point_id": "unmet_requirement_is_a_distinct_refusal"
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "decision_point_id": "unknown_non_critical_extension_is_still_admitted"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "a_valid_signature_over_published_material_does_not_admit_it"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "the_fingerprint_survives_renaming_and_re_encoding"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "the_refusal_leaves_no_state_and_no_weaker_path"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "the_three_reserved_identifier_rules_are_independent"
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "decision_point_id": "unlisted_material_is_still_verified_normally"
+      },
+      {
+        "clause_id": "AK-SDK-016",
+        "decision_point_id": "an_unknown_open_registry_value_does_not_fail_the_object"
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "decision_point_id": "the_delay_is_the_max_of_the_hint_and_jittered_local_backoff"
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "decision_point_id": "a_zero_or_elapsed_hint_never_accelerates_the_local_ladder"
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "decision_point_id": "a_long_hint_is_never_clamped_into_an_earlier_retry"
+      },
+      {
+        "clause_id": "AK-SDK-021",
+        "decision_point_id": "pagination_continues_solely_from_has_more"
+      },
+      {
+        "clause_id": "AK-SDK-022",
+        "decision_point_id": "the_canonical_confusable_check_is_callable_from_the_public_api"
+      },
+      {
+        "clause_id": "AK-SDK-024",
+        "decision_point_id": "the_bootstrap_discriminator_is_consumed_before_any_typed_claim"
+      },
+      {
+        "clause_id": "AK-SDK-024",
+        "decision_point_id": "unsupported_and_malformed_discriminators_stay_distinct"
+      }
+    ]
   },
   "default_unsupported_behavior": {
     "write_receiver_unknown_active_standard_kind": {
