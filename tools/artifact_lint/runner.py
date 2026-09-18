@@ -117,6 +117,7 @@ from .fixtures import (
     check_operation_selector_fixture,
     check_producer_allocated_identity_vectors,
     check_schema_fixture_canonical_public_material,
+    check_stated_event_preimage_is_a_valid_event,
     check_stated_preimage_matches_stated_digest,
     check_string_profile_format_vectors,
     check_view_write_contract_fixture,
@@ -596,6 +597,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "stated_preimage_matches_stated_digest",
                 lambda: check_stated_preimage_matches_stated_digest(lint),
+            ),
+            (
+                "stated_event_preimage_is_a_valid_event",
+                lambda: check_stated_event_preimage_is_a_valid_event(lint),
             ),
             (
                 "string_profile_format_vectors",

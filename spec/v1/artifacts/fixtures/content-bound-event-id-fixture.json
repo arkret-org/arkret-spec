@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-10",
+  "version": "2026-09-19",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
@@ -48,12 +48,12 @@
     {
       "name": "realm_genesis_id_is_derived_and_self_certifying",
       "vector_id": "ak.vector.object_identity.event_derived.v1",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkfixture\",\"default_discoverability\":\"invite_only\",\"default_join_rule\":\"invite\",\"fields\":{},\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"history_access\":\"since_join\",\"schema\":\"ak.schema.realm.v1\",\"schema_refs\":[\"ak.schema.realm.v1\"],\"title\":\"Vector Realm\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"refs\":[],\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:6b1acf36458b25ff24086109d807e77363c7d9399d4b429169db49730475cc89",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"invite_only\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"invite\",\"purpose\":\"collaboration\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"standard\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:387b3962cba54753558b0a769eab902952714a63609945d58ddbca37b21d2f09",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "016b1acf36458b25ff24086109d807e77363c7d9399d4b429169db49730475cc89",
-      "derived_event_id": "ak:event:AWsazzZFiyX_JAhhCdgH53Njx9k5nUtCkWnbSXMEdcyJ",
-      "derived_realm_id": "ak:realm:AWsazzZFiyX_JAhhCdgH53Njx9k5nUtCkWnbSXMEdcyJ",
+      "event_id_bytes_hex": "01387b3962cba54753558b0a769eab902952714a63609945d58ddbca37b21d2f09",
+      "derived_event_id": "ak:event:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+      "derived_realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -74,12 +74,12 @@
       "realm_purpose": "agent_control",
       "step": 1,
       "note": "Constructibility proof for the encoding.md 6.0.1 class C exemption, step 1: the controller freezes the Agent PCR genesis envelope and derives its realm id before anything is submitted. Nothing in this preimage names the provision Event.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkagent\",\"authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"executed_by\":\"ak:did_core:webvh:z6mkcontroller\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkagent\",\"digest_algorithm\":\"sha256\",\"genesis_salt\":\"Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMDA\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"purpose\":\"agent_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"schema_refs\":[\"ak.profile.principal_control_realm.v1\"],\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"refs\":[],\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:c824bafb37f8103365b5c657623abc326ae64d47e968c12c681f45cb98a7c441",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"genesis_salt\":\"Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMDA\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkagent:agent.example\",\"method_history_head\":\"sha256:8888888888888888888888888888888888888888888888888888888888888888\",\"version_id\":\"1-QmAgentPcrGenesisFixture\"},\"purpose\":\"agent_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:a2835a9b933f0dd7ea4b2fa158cdb8a9bff2c9e193de0e89bae5dda3889c3312",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "01c824bafb37f8103365b5c657623abc326ae64d47e968c12c681f45cb98a7c441",
-      "derived_event_id": "ak:event:Acgkuvs3-BAzZbXGV2I6vDJq5k1H6WjBLGgfRcuYp8RB",
-      "derived_realm_id": "ak:realm:Acgkuvs3-BAzZbXGV2I6vDJq5k1H6WjBLGgfRcuYp8RB",
+      "event_id_bytes_hex": "01a2835a9b933f0dd7ea4b2fa158cdb8a9bff2c9e193de0e89bae5dda3889c3312",
+      "derived_event_id": "ak:event:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS",
+      "derived_realm_id": "ak:realm:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -99,12 +99,12 @@
       "exemption_id": "ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1",
       "step": 2,
       "note": "Constructibility proof step 2: the provision payload carries the realm id derived in step 1 and still hashes to a well-defined event_id. The dependency is one-way, so both Events exist; the pair is submitted in two separate submissions, never one unit or batch.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkcontroller\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.agent.provision\",\"payload\":{\"accountability_scope\":\"agent_operator\",\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"agent_slug\":\"summary\",\"controller_authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"principal_control_realm_id\":\"ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV\",\"requested_scope_digest\":\"sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042\",\"schema\":\"ak.schema.agent_provision.v1\",\"selector_visibility\":\"private\"},\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\"}}",
-      "event_digest": "sha256:86eacfdb5b6990fe6350515f90cb20b8d7daf5b4af46e0cd87a4dd37bb8247d9",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.agent.provision\",\"payload\":{\"accountability_scope\":\"agent_operator\",\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"agent_slug\":\"summary\",\"controller_authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"principal_control_realm_id\":\"ak:realm:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS\",\"requested_scope_digest\":\"sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042\",\"schema\":\"ak.schema.agent_provision.v1\",\"selector_visibility\":\"private\"},\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\"}}",
+      "event_digest": "sha256:54395036ecf6072887ef17852c7815c37b24ae6907f31bfc60b570570805edb1",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "0186eacfdb5b6990fe6350515f90cb20b8d7daf5b4af46e0cd87a4dd37bb8247d9",
-      "derived_event_id": "ak:event:AYbqz9tbaZD-Y1BRX5DLILjX2vW0r0bgzYek3Te7gkfZ",
-      "declared_principal_control_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+      "event_id_bytes_hex": "0154395036ecf6072887ef17852c7815c37b24ae6907f31bfc60b570570805edb1",
+      "derived_event_id": "ak:event:AVQ5UDbs9gcoh-8XhSx4FcN7JK5pB_Mb_GC1cFcIBe2x",
+      "declared_principal_control_realm_id": "ak:realm:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS",
       "expected": {
         "outcome": "accepted",
         "no_event_id_digest_mismatch": true,
@@ -149,12 +149,12 @@
     {
       "name": "strand_object_id_is_retyped_event_id",
       "vector_id": "ak.vector.object_identity.event_derived.v1",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":\"ak:did_core:webvh:z6mkfixture\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":\"ak:did_core:webvh:z6mkfixture\",\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true,\"name\":\"discussion\"}}}},\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\"}}",
-      "event_digest": "sha256:0cb41641de3edd90ff2f4810aff00654cd9e6a5ce9f116907b2b8eaafa9fa7fe",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true}}}},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\"}}",
+      "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "010cb41641de3edd90ff2f4810aff00654cd9e6a5ce9f116907b2b8eaafa9fa7fe",
-      "derived_event_id": "ak:event:AQy0FkHePt2Q_y9IEK_wBlTNnmpc6fEWkHsrjqr6n6f-",
-      "derived_object_id": "ak:strand:AQy0FkHePt2Q_y9IEK_wBlTNnmpc6fEWkHsrjqr6n6f-",
+      "event_id_bytes_hex": "012a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
+      "derived_event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+      "derived_object_id": "ak:strand:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
       "expected": {
         "outcome": "accepted",
         "object_id_source": "retype(event_id)"

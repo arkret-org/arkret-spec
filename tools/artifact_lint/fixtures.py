@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+import textwrap
 
 from .core import (
     ARTIFACTS,
@@ -15,6 +16,8 @@ from .core import (
     PROFILE_ID_TOKEN_RE,
     Path,
     ROOT,
+    Registry,
+    Resource,
     SCHEMA_ID_TOKEN_RE,
     SPEC_ROOT,
     STATED_PREIMAGE_DIGEST_PAIRS,
@@ -35,6 +38,7 @@ from .core import (
     hashlib,
     json,
     load_json,
+    load_json_schema_for_uri,
     load_schema_document,
     markdown_files,
     markdown_section_digest,
@@ -43,6 +47,7 @@ from .core import (
     read_text,
     resolve_artifact_schema_ref,
     resolve_json_pointer,
+    schema_format_checker,
     unicodedata,
     urllib,
     walk_json,
@@ -223,6 +228,49 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
             path,
             "Agent PCR vector realm_id and event_id tokens must be byte-identical",
         )
+
+    # The class C exemption is a two-step constructibility proof, and the two
+    # steps live in separate cases. 914279c0 recomputed step 1 and left step 2
+    # declaring the previous realm id, so the pair claimed
+    # declaration_equals_step_1_derived_realm_id while naming two different
+    # Realms. Each half stayed internally consistent, which is why every digest
+    # check passed; only the cross-case comparison can see it.
+    declaration = cases_by_name.get("agent_provision_declares_the_frozen_genesis_realm_id")
+    if isinstance(declaration, dict) and isinstance(agent_pcr, dict):
+        expected_realm_id = agent_pcr.get("derived_realm_id")
+        if declaration.get("expected", {}).get(
+            "declaration_equals_step_1_derived_realm_id"
+        ) is not True:
+            lint.fail(
+                path,
+                "the provision declaration case must assert that it equals the step 1 "
+                "derived realm id; without that assertion the exemption has no vector",
+            )
+        declared = declaration.get("declared_principal_control_realm_id")
+        if declared != expected_realm_id:
+            lint.fail(
+                path,
+                f"provision declares principal_control_realm_id={declared} but step 1 "
+                f"derives {expected_realm_id}",
+            )
+        preimage = declaration.get("digest_preimage_canonical_bytes_utf8")
+        if isinstance(preimage, str):
+            try:
+                envelope = json.loads(preimage)
+            except json.JSONDecodeError:
+                envelope = None
+            carried = (
+                envelope.get("payload", {}).get("principal_control_realm_id")
+                if isinstance(envelope, dict)
+                else None
+            )
+            if carried != expected_realm_id:
+                lint.fail(
+                    path,
+                    f"the provision preimage carries principal_control_realm_id="
+                    f"{carried} but step 1 derives {expected_realm_id}; the declared "
+                    "value and the hashed value must be one value",
+                )
 
     single_bit_case = next(
         (
@@ -2639,6 +2687,160 @@ def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
         fixture = load_json(lint, fixture_path)
         if fixture is not None:
             walk(fixture, fixture_path, fixture_path.name in PLACEHOLDER_DIGEST_FIXTURES)
+
+
+EVENT_PREIMAGE_RELAXED_ENVELOPE_MEMBERS = ("event_id", "proofs", "unsigned")
+
+EVENT_PREIMAGE_ENVELOPE_SCHEMA_ID = (
+    "https://arkret.org/v1/schemas/event-envelope-preimage.internal.json"
+)
+
+
+def _event_preimage_envelope_validator(lint: Lint) -> Any:
+    """event-envelope.schema.json with exactly the §5 preimage omissions relaxed.
+
+    zh/conformance/encoding.md §5 and §6.0.2(a) define the Event digest preimage
+    as the signed Event body: the envelope with `event_id`, `proofs` and
+    `unsigned` deleted. Nothing else about the envelope is relaxed, so a stated
+    preimage stays subject to every closed-schema rule the wire Event obeys.
+    """
+    if Draft202012Validator is None or Registry is None or Resource is None:
+        return None
+    schema_path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
+    document = load_json(lint, schema_path)
+    if not isinstance(document, dict):
+        return None
+    required = document.get("required")
+    if not isinstance(required, list) or not {"event_id", "proofs"} <= set(required):
+        lint.fail(
+            schema_path,
+            "the Event envelope must still require event_id and proofs; the preimage "
+            "gate relaxes exactly those members and would otherwise relax nothing",
+        )
+        return None
+    relaxed = copy.deepcopy(document)
+    relaxed["required"] = [
+        member
+        for member in required
+        if member not in EVENT_PREIMAGE_RELAXED_ENVELOPE_MEMBERS
+    ]
+    relaxed["$id"] = EVENT_PREIMAGE_ENVELOPE_SCHEMA_ID
+
+    def retrieve(uri: str) -> Any:
+        return Resource.from_contents(load_json_schema_for_uri(uri))
+
+    registry = Registry(retrieve=retrieve).with_resource(
+        EVENT_PREIMAGE_ENVELOPE_SCHEMA_ID,
+        Resource.from_contents(relaxed),
+    )
+    return Draft202012Validator(
+        relaxed,
+        registry=registry,
+        format_checker=schema_format_checker(),
+    )
+
+
+def check_stated_event_preimage_is_a_valid_event(lint: Lint) -> None:
+    """A stated Event preimage MUST be an Event the closed schemas accept.
+
+    `check_stated_preimage_matches_stated_digest` proves the bytes hash to the
+    digest beside them. That is only half a known-answer vector: it says nothing
+    about whether the bytes are an Event anyone could ever submit. The other
+    half went unchecked, and every preimage in the content-bound Event-ID family
+    drifted through the hole at once — a bare `ak:did_core:` string where the
+    envelope requires the composite `actor_id`, an empty `refs` array the
+    envelope forbids, a materialized `ak.schema.realm.v1` object standing in for
+    a realm genesis, `schema_refs` on a closed genesis schema that has no such
+    member, and an `agent_id` in DID form where the payload requires a
+    `did_core_id`. Each digest agreed with its preimage throughout, so the whole
+    family read as green while pinning Events that are unconstructible.
+
+    Both halves run here: the envelope under the §5 preimage relaxation, and the
+    payload under the `payload_schema_ref` the contract registry binds to that
+    kind. Negative material lives under the registered `rejected_form` path
+    segments and is skipped, because those preimages are meant to be invalid.
+    """
+    validator = _event_preimage_envelope_validator(lint)
+    if validator is None:
+        return
+    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    contract = load_json(lint, registry_path)
+    payload_refs: dict[str, str] = {}
+    rows = (
+        contract.get("event_kind_registry", {}).get("event_kinds")
+        if isinstance(contract, dict)
+        else None
+    )
+    for row in rows if isinstance(rows, list) else ():
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        ref = row.get("payload_schema_ref")
+        if isinstance(kind, str) and isinstance(ref, str) and ref:
+            payload_refs[kind] = ref
+
+    checked = 0
+    for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        fixture = load_json(lint, fixture_path)
+        if fixture is None:
+            continue
+        for json_path, node, key in walk_json(fixture):
+            if not isinstance(node, str) or not isinstance(key, str):
+                continue
+            if not STATED_PREIMAGE_KEY_RE.search(key):
+                continue
+            if any(
+                segment in json_path for segment in NEGATIVE_TOKEN_PATH_SEGMENTS
+            ):
+                continue
+            try:
+                envelope = json.loads(node)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(envelope, dict):
+                continue
+            kind = envelope.get("kind")
+            if not isinstance(kind, str) or not kind.startswith("ak."):
+                continue
+            if not isinstance(envelope.get("payload"), dict):
+                continue
+            checked += 1
+            errors = sorted(
+                validator.iter_errors(envelope), key=lambda error: list(error.path)
+            )
+            if errors:
+                detail = "; ".join(
+                    ".".join(["$", *(str(bit) for bit in error.path)])
+                    + ": "
+                    + textwrap.shorten(error.message, width=200, placeholder=" ...")
+                    for error in errors[:3]
+                )
+                lint.fail(
+                    fixture_path,
+                    f"{json_path} states an Event preimage that the Event envelope "
+                    f"rejects: {detail}",
+                )
+            payload_ref = payload_refs.get(kind)
+            if payload_ref is None:
+                lint.fail(
+                    fixture_path,
+                    f"{json_path} states a preimage for {kind}, which the contract "
+                    "registry binds to no payload_schema_ref",
+                )
+                continue
+            check_json_instance_against_schema(
+                lint,
+                fixture_path,
+                f"{json_path}.payload",
+                payload_ref,
+                envelope["payload"],
+            )
+    if checked == 0:
+        lint.fail(
+            registry_path,
+            "no fixture states an Event digest preimage any more; the content-bound "
+            "Event-ID family must keep its constructibility vectors",
+        )
 
 
 def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:

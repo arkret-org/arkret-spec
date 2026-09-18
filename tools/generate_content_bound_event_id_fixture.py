@@ -4,12 +4,107 @@
 from __future__ import annotations
 
 import base64
+import copy
+import functools
 import hashlib
 import json
+import textwrap
 from pathlib import Path
+from typing import Any
+
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
+ARTIFACTS = ROOT / "spec/v1/artifacts"
+SCHEMAS = ARTIFACTS / "schemas"
+FIXTURE = ARTIFACTS / "fixtures/content-bound-event-id-fixture.json"
+
+# zh/conformance/encoding.md 5 and 6.0.2(a): the Event digest preimage is the
+# signed Event body, which is the envelope with these three members deleted.
+# Everything else about the envelope still holds, so a preimage that the closed
+# envelope schema rejects is not a preimage any implementation can produce.
+PREIMAGE_RELAXED_ENVELOPE_MEMBERS = ("event_id", "proofs", "unsigned")
+PREIMAGE_ENVELOPE_SCHEMA_ID = (
+    "https://arkret.org/v1/schemas/event-envelope-preimage.internal.json"
+)
+
+
+@functools.cache
+def schema_registry() -> Registry:
+    resources = []
+    for path in sorted(SCHEMAS.glob("*.schema.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        schema_id = document.get("$id")
+        if isinstance(schema_id, str):
+            resources.append((schema_id, Resource.from_contents(document)))
+    return Registry().with_resources(resources)
+
+
+@functools.cache
+def envelope_validator() -> Draft202012Validator:
+    document = json.loads((SCHEMAS / "event-envelope.schema.json").read_text(encoding="utf-8"))
+    relaxed = copy.deepcopy(document)
+    relaxed["required"] = [
+        member
+        for member in relaxed["required"]
+        if member not in PREIMAGE_RELAXED_ENVELOPE_MEMBERS
+    ]
+    relaxed["$id"] = PREIMAGE_ENVELOPE_SCHEMA_ID
+    return Draft202012Validator(relaxed, registry=schema_registry())
+
+
+@functools.cache
+def payload_validators() -> dict[str, Draft202012Validator]:
+    registry_path = ARTIFACTS / "registry/contract-registry.json"
+    rows = json.loads(registry_path.read_text(encoding="utf-8"))
+    validators: dict[str, Draft202012Validator] = {}
+    for row in rows["event_kind_registry"]["event_kinds"]:
+        kind = row.get("event_kind")
+        ref = row.get("payload_schema_ref")
+        if not isinstance(kind, str) or not isinstance(ref, str) or not ref:
+            continue
+        relative, _, pointer = ref.partition("#")
+        document = json.loads((ARTIFACTS / relative).read_text(encoding="utf-8"))
+        node: Any = document
+        for token in pointer.strip("/").split("/"):
+            if token:
+                node = node[token.replace("~1", "/").replace("~0", "~")]
+        schema = dict(node)
+        schema.setdefault("$schema", "https://json-schema.org/draft/2020-12/schema")
+        schema["$id"] = document["$id"]
+        validators[kind] = Draft202012Validator(schema, registry=schema_registry())
+    return validators
+
+
+def schema_errors(validator: Draft202012Validator, instance: Any) -> list[str]:
+    errors = sorted(validator.iter_errors(instance), key=lambda error: list(error.path))
+    return [
+        ".".join(["$", *(str(bit) for bit in error.path)])
+        + ": "
+        + textwrap.shorten(error.message, width=200, placeholder=" ...")
+        for error in errors
+    ]
+
+
+def validate_preimage(name: str, preimage: Any) -> list[str]:
+    """The hashed bytes must be an Event, not merely bytes that hash correctly."""
+    if not isinstance(preimage, dict):
+        return [f"{name}: digest preimage is not a JSON object"]
+    errors = [
+        f"{name}: preimage rejected by the Event envelope: {message}"
+        for message in schema_errors(envelope_validator(), preimage)[:3]
+    ]
+    kind = preimage.get("kind")
+    validator = payload_validators().get(kind) if isinstance(kind, str) else None
+    if validator is None:
+        errors.append(f"{name}: kind {kind!r} has no registered payload_schema_ref")
+        return errors
+    errors.extend(
+        f"{name}: preimage payload rejected by {kind}: {message}"
+        for message in schema_errors(validator, preimage.get("payload"))[:3]
+    )
+    return errors
 
 
 def derive(suite_code: int, digest_hex: str) -> tuple[str, str]:
@@ -55,15 +150,7 @@ def main() -> int:
             except json.JSONDecodeError:
                 errors.append(f"{case['name']}: digest preimage is not valid canonical JSON")
             else:
-                realm_object = preimage.get("payload", {}).get("object")
-                if preimage.get("kind") == "ak.realm.create" and isinstance(realm_object, dict):
-                    if "notary_profile" in realm_object:
-                        errors.append(f"{case['name']}: Realm create retains forbidden notary_profile")
-                    for removed in ("notary", "content_scheme", "encryption_profile"):
-                        if removed in realm_object:
-                            errors.append(
-                                f"{case['name']}: Realm create retains removed member {removed}"
-                            )
+                errors.extend(validate_preimage(case["name"], preimage))
         body_hex, event_id = derive(suite_code, digest_hex)
         if case.get("event_id_bytes_hex") != body_hex:
             errors.append(f"{case['name']}: body bytes mismatch")

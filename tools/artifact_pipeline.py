@@ -61,6 +61,9 @@ FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SESSION_GRANT_KAT_SCRIPT = Path(__file__).with_name("check_session_grant_kat.py")
 CONTACT_ROUND_KAT_SCRIPT = Path(__file__).with_name("check_contact_round_kat.py")
 HANDLE_CLAIM_KAT_SCRIPT = Path(__file__).with_name("check_handle_claim_kat.py")
+CONTENT_BOUND_EVENT_ID_SCRIPT = Path(__file__).with_name(
+    "generate_content_bound_event_id_fixture.py"
+)
 APPLET_DELIVERY_AUTH_KAT_SCRIPT = Path(__file__).with_name(
     "check_applet_delivery_authentication_kat.py"
 )
@@ -1175,6 +1178,11 @@ def run_handle_claim_kat_check() -> int:
     return result.returncode
 
 
+def run_content_bound_event_id_check() -> int:
+    result = subprocess.run([sys.executable, str(CONTENT_BOUND_EVENT_ID_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def run_applet_delivery_authentication_kat_check() -> int:
     result = subprocess.run(
         [sys.executable, str(APPLET_DELIVERY_AUTH_KAT_SCRIPT)], cwd=ROOT
@@ -1375,6 +1383,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         ("session grant KAT", run_session_grant_kat_check),
         ("contact round KAT", run_contact_round_kat_check),
         ("handle claim KAT", run_handle_claim_kat_check),
+        ("content-bound Event-ID KAT", run_content_bound_event_id_check),
         (
             "applet delivery authentication KAT",
             run_applet_delivery_authentication_kat_check,
