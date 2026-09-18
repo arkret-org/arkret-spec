@@ -5796,7 +5796,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes an keyed-set projection add effect onto the moderation_state typed current result whose subject is target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
+      "description": "Payload for ak.moderation.decision. A committed moderation decision that writes a keyed_set_add effect onto the moderation_state typed current result whose subject is the canonical string of target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
       "required": [
         "target_ref",
         "decision",
@@ -5820,11 +5820,11 @@
         },
         "issuer_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Actor or service DID issuing the committed moderation decision. Reducers use it as part of the keyed-set projection add tag."
+          "description": "Actor or service DID issuing the committed moderation decision. It is part of the projected element VALUE, not of the element tag: a keyed_set_add tag is exactly the canonical <event_id>:<write_index> dot (models/event-and-patch.md section 2.4.2), so no payload member ever enters set identity. content-moderation.md section 5.3 folds several issuers' active records together, which is why the issuer has to survive in the value."
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/digest",
-          "description": "JCS SHA-256 digest of the moderated request or Event preview. Part of the moderation_state keyed-set projection add tag."
+          "description": "JCS SHA-256 digest of the moderated request or Event preview. It is part of the projected element VALUE, not of the element tag: a keyed_set_add tag is exactly the canonical <event_id>:<write_index> dot, so no payload member ever enters set identity."
         },
         "action": {
           "type": "string",

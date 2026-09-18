@@ -63,6 +63,12 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   （见 [`../identity/consent-model.md` §2](../identity/consent-model.md)）；value 同层承载 grant body 与
   reducer 派生的 `status`（`active | revoked`），`expired` 不是投影状态而是 §5 的验证时窗口判定；
   peer 永不可读该结果（§8）；
+- `moderation_state`：以被裁决对象 `payload.target_ref` 的 canonical string 选择该 target 的
+  committed moderation 断言集合（见 [`../governance/content-moderation.md` §5.3](../governance/content-moderation.md)）；
+  值是 `keyed-set projection` 的 dot 集合，`ak.moderation.decision` 与 `ak.moderation.decision.lift`
+  **都是 `keyed_set_add`**——lift 是再加一条断言而不是删掉原 dot，因为多个 issuer 的 record 可以同时 active
+  （[`../models/common-fields.md` §2](../models/common-fields.md) 的 join 是唯一真源）；
+  active record 筛选与 `hard_deny > quarantine > require_review > none` 折叠都是读侧折叠，不是存储状态；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——

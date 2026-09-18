@@ -1,14 +1,10 @@
 {
   "kind": "asserted_result_family_exemptions",
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T00:40:00+08:00",
+  "version": "2026-09-19.2",
+  "generated_at": "2026-09-19T02:10:00+08:00",
   "description": "Typed current result families that an artifacts/** description asserts as registered while current-result-registry.json carries no result_kinds[] row for them. The gate tools/artifact_lint:asserted_result_families_are_registered refuses any such name that is not listed here, so this file is the visible ledger of assertions that outran the registry. It is a ratchet: entries may only be removed, and a listed family that becomes registered is itself an error.",
   "adjudication": "Opened 2026-09-19 with the gate. chris adjudicated on 2026-09-19 that artifacts/** descriptions are a normative surface, which is what makes an assertion here a registration claim rather than commentary. Seven names were asserted and none was registered. did_core_id was not a family at all -- the sentence meant that organization_id is a did_core_id -- and was rewritten to name the family it actually intends. mimi_room_binding and moderation_franking_proof were registered in the same batch because their subject and their value were both fully determined by the payload schema. The four below are not deletable and not mechanically derivable: each needs one design decision that the descriptions do not contain, so each is listed with the exact missing decision rather than guessed at. Do not add an entry to defer work that is derivable.",
   "unregistered_families": [
-    {
-      "result_family": "moderation_state",
-      "reason": "ak.moderation.decision asserts a keyed-set add onto subject target_ref with the fold hard_deny > quarantine > require_review. The element value is not derivable from moderation_decision_payload: the payload carries decision, action, reason_code, reason, effective_at and expires_at, and the description does not say which of those are part of the dot and which are audit provenance, nor what the dot key is. Registering it with the whole payload as the element would make expires_at part of set identity, which would fork one decision into two elements on any re-issue. Needs the dot shape decided in governance/content-moderation.md first."
-    },
     {
       "result_family": "object_redaction",
       "reason": "Asserted by two writers with different closed payloads: ak.message.redact (message_id, track_name, preserve, mimi_provenance) and ak.redaction (target_ref, preserve), which the description says deliberately excludes Message. A shared family needs one subject spelling that both can produce -- message_id is not target_ref and target_ref MUST NOT spell ak:message: -- and one value shape that is not the union of two payloads. Needs models/event-and-patch.md to state the shared subject first."

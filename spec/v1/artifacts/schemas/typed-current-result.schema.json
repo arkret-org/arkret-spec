@@ -159,6 +159,9 @@
     },
     {
       "$ref": "#/$defs/consent_result"
+    },
+    {
+      "$ref": "#/$defs/moderation_state_result"
     }
   ],
   "$defs": {
@@ -2394,6 +2397,81 @@
         },
         "value": {
           "$ref": "#/$defs/consent_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_decision_entry": {
+      "type": "object",
+      "description": "One tagged entry of the moderation_state typed current result. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete decision or lift payload of that Event, unassembled. The asserting issuer and the polarity are read from the dot's signed envelope and from which of the two payload branches matched, per models/common-fields.md section 2.",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/moderation_decision_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/moderation_decision_lift_payload"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_state_value": {
+      "type": "object",
+      "description": "Closed value of the moderation_state typed current result: the canonically sorted dot set of committed moderation assertions on one target. The join is the keyed-set union of models/common-fields.md section 2, which that section makes commutative, associative, idempotent and order-independent. Both writers project keyed_set_add and NEITHER removes a dot: that section says a family carrying concurrent assertions MUST express revocation as one more assertion, and governance/content-moderation.md section 5.3 has several issuers' records active at once, so a lift that deleted the decision dot would silently drop one side of a concurrent (decision, lift) pair and make the audit view unrebuildable. The active decision set and the hard_deny > quarantine > require_review > none fold of that section are read-side folds above this set and MUST NOT be stored as a second state.",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/moderation_decision_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_state_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one moderated target. governance/content-moderation.md section 5.3 keys the set per target and folds several issuers' active records into one effective decision at read time; dismiss closes a report queue item and folds to none. payload.expected_revision of ak.moderation.decision.lift names this result's revision, which is why the lift is stale-checkable without the set carrying a lifecycle axis.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "target_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "moderation_state"
+            },
+            "target_ref": {
+              "$ref": "./event-payload.schema.json#/$defs/object_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/moderation_state_value"
         }
       },
       "additionalProperties": false
