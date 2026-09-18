@@ -84,7 +84,7 @@
         "directory_visibility": {
           "type": "string",
           "enum": [
-            "member_ids",
+            "members",
             "realm_members"
           ]
         },

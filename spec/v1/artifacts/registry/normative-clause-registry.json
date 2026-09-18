@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.4",
+  "version": "2026-09-18.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T22:45:00+08:00",
+  "generated_at": "2026-09-18T23:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -380,7 +380,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:9f39278298199af17660dda5a97e2238c46abcef96eb87ec8d8c6b33d1fe7685",
+      "section_digest": "sha256:393f633aa31ff3a7ca134f4283f83b41d479bdc8547289e19ac5f7b2ce949e36",
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
@@ -430,7 +430,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:9f39278298199af17660dda5a97e2238c46abcef96eb87ec8d8c6b33d1fe7685",
+      "section_digest": "sha256:393f633aa31ff3a7ca134f4283f83b41d479bdc8547289e19ac5f7b2ce949e36",
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The closed delegated producer branch carries delegated_actor_did exactly for legal Agent controller-device Events with executed_by; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. Production acceptance must include a first stranger controller-device Agent Contact with no cached Agent locator and no private PCR disclosure."

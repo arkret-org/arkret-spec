@@ -184,6 +184,17 @@ def _anchor_corpus() -> list[tuple[str, str]]:
     paths = sorted((SPEC_ROOT / "zh").rglob("*.md"))
     paths += sorted((ARTIFACTS / "schemas").glob("*.json"))
     paths += sorted((ARTIFACTS / "fixtures").glob("*.json"))
+    # A conformance profile states the MUST that a receiver recompute a digest
+    # under a named domain, which is as strong a definition as prose gives. The
+    # first version of this corpus left profiles out, and the applet delivery
+    # record paid for it: prose and conformance-profiles.json agreed on one
+    # domain spelling while two registries carried two others, and no gate could
+    # see the fork because the only two files holding the normative spelling were
+    # one that was scanned and one that was not.
+    paths += sorted((ARTIFACTS / "profiles").glob("*.json"))
+    # registry/ stays out by design: a registry row must not anchor itself, and
+    # the rest of registry/ is generated from contract-registry.json. The vector
+    # registry is the exception because its vectors are inputs, not restatements.
     paths.append(ARTIFACTS / "registry" / "vector-registry.json")
     return [(str(path), read_text(path)) for path in paths if path.is_file()]
 

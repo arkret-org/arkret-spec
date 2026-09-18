@@ -7095,7 +7095,7 @@
           "type": "string",
           "enum": [
             "public",
-            "member_ids",
+            "members",
             "private"
           ]
         },

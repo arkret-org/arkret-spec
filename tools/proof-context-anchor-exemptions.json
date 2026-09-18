@@ -1,27 +1,8 @@
 {
   "kind": "proof_context_anchor_exemptions",
-  "version": "2026-09-18.2",
+  "version": "2026-09-18.3",
   "generated_at": "2026-09-18T23:30:00+08:00",
   "description": "Carrier-bound domain_separations[] rows of proof-context-registry.json whose object_family and domain literals occur nowhere outside that registry. The gate tools/artifact_lint:proof_context_carrier_family_anchors refuses any such row that is not listed here, so this file is the visible ledger of families that were registered before the gate existed and have not yet been adjudicated. It is a ratchet: entries may only be removed, and a listed family that acquires an anchor is itself an error.",
-  "adjudication": "Every entry below is canonical_json_sha256 -- a digest computed over fields of an enclosing carrier rather than a standalone wire object -- so none of them is an unimplementable promise of the ak.events.checkpoint.* kind, which bound a forbidden Event field and contradicted zh/sync/authority-commit-log.md section 7. They are listed as unadjudicated rather than withdrawn because deciding each one requires locating the carrier that computes it, which is per-family work and not part of the checkpoint retraction.",
-  "unanchored_families": [
-    {
-      "object_family": "contact_glare_unconsumed_slot",
-      "domain": "ak.contact.glare_unconsumed_slot.v1",
-      "disposition": "unadjudicated",
-      "reason": "Contact glare resolution slot key over (contact_pair, slot). Carrier-bound dedup key; the contact glare prose does not spell the domain literal."
-    },
-    {
-      "object_family": "contact_request_acceptance_core",
-      "domain": "ak.contact.request_acceptance_core.v1",
-      "disposition": "unadjudicated",
-      "reason": "Digest over the (request, acceptance) pair. Carrier-bound; the contact prose describes the pairing without naming this separator."
-    },
-    {
-      "object_family": "contact_request_source_checkpoint",
-      "domain": "ak.contact.request_source_checkpoint.v1",
-      "disposition": "unadjudicated",
-      "reason": "Digest over (request, source_checkpoint). Unrelated to the withdrawn Merkle checkpoint family despite the shared word: source_checkpoint here is a carrier field, not a tree root."
-    }
-  ]
+  "adjudication": "Closed on 2026-09-18. All six original entries were adjudicated one by one against the carriers that actually compute them. Three were withdrawn from proof-context-registry.json because no consumer recomputes them: applet_delivery_authentication_record duplicated an object already defined in zh/extensions/applet-integration.md under a different domain spelling; peer_event_submit_service_binding had no verifier at all; realm_state_snapshot_auth_state_issuer_local is an issuer-local opaque commitment that zh/authz/capabilities.md forbids verifiers from treating as a recomputable authorization check. The other three acquired prose anchors in zh/identity/contact-and-direct-conversation.md, which now spells out the closed transcript and the prefix-form digest for request_acceptance_receipt_core, request_source_checkpoint and glare_unconsumed_slot. The ledger is kept at zero rather than deleted so the ratchet stays visible: any new carrier-bound row must be defined, not listed here.",
+  "unanchored_families": []
 }

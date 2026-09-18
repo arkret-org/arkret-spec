@@ -129,6 +129,45 @@ holder source service **MUST** 以本地 `(holder, peer)` admission slot CAS 串
 source checkpoint、accepted-at 与 issuer；receipt 不得反向承诺尚未存在的 future round。
 `request_acceptance_receipt_digest` 是 exact closed signed receipt 的 RFC 8785/JCS UTF-8 bytes 的 SHA-256。
 
+每张 `request_acceptance_receipt` 内嵌的 `receipt_digest` 绑定的**不是**签名后的整张收据，而是该收据的
+closed core，计算固定为 `H("ak.contact.request_acceptance_core.v1", request_acceptance_receipt_core)`，即
+`"sha256:" + lowerhex(SHA256(UTF8("ak.contact.request_acceptance_core.v1\n") || RFC8785_JCS(core)))`。
+与 `contact_round` 同理，domain label 不是 core 的 wire 字段，实现不得把它插入 object 后改算
+`SHA256(JCS(core))`：
+
+```text
+request_acceptance_receipt_core = {
+  holder, peer, slot_version,
+  slot_predecessor?, previous_terminal_contact_round_id?,
+  request_event_ref, producer_signer,
+  source_checkpoint, accepted_at, issuer_id
+}
+```
+
+`holder` / `peer` 是完整 `ContactPeer`，`slot_version` 是本次 CAS 接纳的 slot 序号。带 `?` 的两个成员
+**缺省即整体省略**：`slot_predecessor` 只在非 genesis slot 出现，`previous_terminal_contact_round_id`
+只在前一轮 accepted Contact round 已 terminal 的 recontact 时出现；两者 **MUST NOT** 编码为 JSON `null`、
+空字符串或零摘要。此处的省略规则与本节后面 `outgoing_slot_absence_transcript` 里
+「`slot_predecessor` 字段永远存在、genesis 用 JSON `null`」**相反**，两个 transcript 各按本节各自的文字执行，
+不得互相套用。`request_acceptance_receipt_digest` 与 `receipt_digest` 是两个不同摘要，**不可互换**：
+前者无 domain 且覆盖签名，后者带 domain 且只覆盖 core。逐字节 vectors 见
+[`contact-round-kat.json`](../../artifacts/fixtures/contact-round-kat.json)。
+
+core 里的 `source_checkpoint` 不是裸 Event ref，而是以下 closed transcript 的摘要，计算固定为
+`H("ak.contact.request_source_checkpoint.v1", request_source_checkpoint_transcript)`：
+
+```text
+request_source_checkpoint_transcript = {
+  event_ref: accepted_request_event_id,
+  event_digest: content_digest_decoded_from_that_event_id
+}
+```
+
+`event_ref` 是该 request Event 完整、已通过 typed EventId 校验的 wire 字符串；`event_digest` **MUST** 由
+同一 suite-tagged full-digest `event_ref` 自身解码得到，不得另行取值，二者不一致一律拒绝。字段集封闭为这两个
+成员。该 domain 与已撤销的 `ak.events.checkpoint.*` Merkle 家族无关：此处的 checkpoint 是 carrier 字段，
+不是树根。
+
 永久 `contact_round_id` 只从以下 stable semantics 计算。`contact_round` 是该轮次的短名，也是下列 immutable closed 建轮核心；后续 directional scope replacement / tombstone 只推进该 ID 下的 lineages，不改写此对象。计算固定为
 `H("ak.contact.round.v1", contact_round)`，即
 `"sha256:" + lowerhex(SHA256(UTF8("ak.contact.round.v1\n") || RFC8785_JCS(contact_round)))`。
@@ -189,6 +228,34 @@ evidence，证明两 request 在任一方消费 request ref 前因果并发。�
 不足以建立 glare。证据足够时双方机械派生同一 round，禁止 respond/reject且不合成 `ak.contact.accepted`
 Event；若双方 current directional full-set scope允许，则直接投影 effective/UI accepted。normal accepted 后晚到的
 reverse request 必须由 slot CAS 拒绝，不得改判 glare。
+
+该 evidence 的载体是双方各自签发的 `GlareConcurrencyAttestation`，其 `unconsumed_slot_checkpoint` 只允许
+使用以下 closed transcript，计算固定为
+`H("ak.contact.glare_unconsumed_slot.v1", glare_unconsumed_slot_transcript)`。domain label 不是该
+transcript 的 wire 字段，实现不得把它插入 object 后改算 `SHA256(JCS(object))`：
+
+```text
+glare_unconsumed_slot_transcript = {
+  subject_id: attesting_participant_actor_id,
+  peer_id: opposite_participant_actor_id,
+  contact_round_id: derived_glare_contact_round_id,
+  request_receipt_digests: [d0, d1],
+  observed_commit_event_ids: [event_ref, ...],
+  complete_through: accepted_local_slot_version,
+  slot_state: "pending_unconsumed"
+}
+```
+
+该 checkpoint 是**有方向的**：`subject_id` 必须恰为签发这张 attestation 的一方、`peer_id` 恰为对面一方，
+两者都是完整 `ActorId`。**MUST NOT** 用 `sorted_pair_member_ids` 替换这两个成员——那会让双方算出同一个
+checkpoint，从而丢失「各自独立观察到自己的 slot 未被消费」这一被证明的事实。
+`contact_round_id` 必须由同一对 request receipts 按本节 glare 公式重算。
+`request_receipt_digests` 恰含两项，排序键与 `contact_round` 的 `requests` 相同：按各自
+`request_event_ref` 的 UTF-8 bytes 无符号严格升序，**不是**按摘要本身排序。
+`observed_commit_event_ids` 非空、无重复，并按 EventId UTF-8 bytes 无符号严格升序；它精确表示该 Station 在
+判定并发时观察到的 commit 前缀，不得替换为数据库行号、map iteration 顺序或事后的 checkpoint。
+`complete_through` 是被本次 CAS 接纳的本地 slot 序号。`slot_state` 唯一合法值是字符串
+`"pending_unconsumed"`，不存在 null、false、空对象或省略编码。字段名、字段集合与 JCS bytes 必须精确匹配。
 
 `ContactRoundEvidenceBundle` 是唯一无签名 deterministic bundle，只容纳 derived `contact_round_id`、exact request
 acceptance receipts、normal response receipt（normal 分支）、双方 glare concurrency attestations（glare 分支）
