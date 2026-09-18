@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8793,
+    "total_properties": 8798,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2299,
       "optional_defaulted": 50,
-      "required": 6002,
+      "required": 6007,
       "required_nullable": 288,
       "tristate": 154
     },
@@ -11567,6 +11567,11 @@
         "/$defs/realm_tombstone_result/properties/selector": "required",
         "/$defs/realm_tombstone_result/properties/selector/properties/kind": "required",
         "/$defs/realm_tombstone_result/properties/value": "required",
+        "/$defs/relation_conflict_resolution_result/properties/revision": "required",
+        "/$defs/relation_conflict_resolution_result/properties/selector": "required",
+        "/$defs/relation_conflict_resolution_result/properties/selector/properties/conflict_domain": "required",
+        "/$defs/relation_conflict_resolution_result/properties/selector/properties/kind": "required",
+        "/$defs/relation_conflict_resolution_result/properties/value": "required",
         "/$defs/revision/properties/commit_id": "required",
         "/$defs/revision/properties/stream_position": "required",
         "/$defs/space_child_scope_policy_result/properties/revision": "required",

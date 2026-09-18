@@ -65,7 +65,7 @@ updated: 2026-07-03
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
 | `agent_slug` | string | 可选 | Agent 的 controller-scoped selector projection。必须由当前有效 `ak.schema.agent_selector_claim.v1` 支撑；只与 controller handle 组合为 `@<controller-handle>/<agent_slug>` 输入别名；不是全局 handle 或公开目录发现键。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
-| `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
+| `status` | enum | 可选 | `active`、`soft_logged_out`、`locked`、`suspended`、`deactivated` 或 `erasure_pending`——即 [`../identity/account-lifecycle.md` §3](../identity/account-lifecycle.md) 的 `AccountStatusRecord` 状态集在 profile 上的**公开投影**，实现 MAY 隐藏或粗化。没有 `deleted` 这个值：不可逆终态是 `erasure_pending`。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |
 | `created_at` | timestamp | MUST | 创建时间。 |

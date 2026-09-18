@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.10",
+  "version": "2026-09-19.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T20:30:00+08:00",
+  "generated_at": "2026-09-19T22:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -448,7 +448,7 @@
       "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 73 of the 139 reducer_input kinds declare it; the remaining 66 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 74 of the 139 reducer_input kinds declare it; the remaining 65 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
     ],
     "payload_schema_contract": {
@@ -4381,7 +4381,29 @@
           "the actor independently holds the registered ak.relation.resolve capability over every candidate in the covered group and its scope; holding ak.relation.update on one member never authorizes adjudicating the others",
           "Relation conflict resolution is an ordinary causal successor. It observes the complete intended domain candidate set and does not reset security state or invoke an unregistered recovery authority."
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_writes": [
+          {
+            "result_family": "relation_conflict_resolution",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.conflict_domain"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_value",
+            "notes": "models/relation.md section 6.2 is normative on every part of this row: ak.relation.resolve is the single registered resolution carrier, it writes the current-value projection family relation_conflict_resolution, and the subject is determined entirely by payload.conflict_domain with the Realm taken from the envelope. The subject is therefore a single-component canonical_json composite over a structured payload member, exactly as ak.pin.add keys on pin_scope: relation_conflict_domain is a closed object whose own schema excludes realm_id and Circle, so encoding.md section 9.5.1 is satisfied without a second spelling of the same domain. The projection is the identity on the whole closed payload. Keeping baseline inside the value is what section 6.5 needs: a Relation candidate discovered later and NOT covered by this frozen baseline re-triggers require_review without rewriting this adjudication, and that comparison is unmakeable from the outcome alone. Two things this row deliberately does not do: it does not touch Relation content, which stays on the create / update data-plane result, and it does not write any security-permission result, because authz/event-auth-state-resolution.md section 3 forbids an ordinary data-plane write from carrying a single-winner authority decision."
+          }
+        ]
       },
       {
         "event_kind": "ak.relation.tombstone",
@@ -5423,8 +5445,8 @@
         }
       }
     },
-    "version": "2026-09-18.16",
-    "generated_at": "2026-09-19T20:30:00+08:00",
+    "version": "2026-09-18.17",
+    "generated_at": "2026-09-19T22:00:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -16442,9 +16464,13 @@
       {
         "result_kind": "direct_conversation_binding",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_result"
+      },
+      {
+        "result_kind": "relation_conflict_resolution",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_result"
       }
     ],
-    "version": "2026-09-18.11",
-    "generated_at": "2026-09-19T18:00:00+08:00"
+    "version": "2026-09-18.12",
+    "generated_at": "2026-09-19T22:00:00+08:00"
   }
 }

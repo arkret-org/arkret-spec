@@ -2888,6 +2888,43 @@
         }
       },
       "additionalProperties": false
+    },
+    "relation_conflict_resolution_value": {
+      "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
+    },
+    "relation_conflict_resolution_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "The current adjudication of one Relation primary conflict domain (models/relation.md section 6.2). ak.relation.resolve is the single registered carrier and this is the only family it writes: Relation CONTENT stays on the data-plane result the create / update kinds produce, and the active-edge projection reads the two together. The subject is the closed relation_conflict_domain, whose own schema excludes the Realm (the Event takes it from its envelope) and excludes Circle, so one domain can never be spelled two ways. The value is the whole accepted payload rather than the outcome alone, for the same reason mimi_room_binding keeps its subject inside its value: section 6.5 makes a later candidate that is NOT inside this adjudication's frozen baseline re-trigger require_review, so a reader that cannot see baseline from the current result cannot decide the one question the family exists to answer. Nothing here confers authority: section 6.2 is normative that the Event writes no security-permission typed current result and overwrites no historical Event.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "conflict_domain"
+          ],
+          "properties": {
+            "kind": {
+              "const": "relation_conflict_resolution"
+            },
+            "conflict_domain": {
+              "$ref": "./relation.schema.json#/$defs/relation_conflict_domain"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/relation_conflict_resolution_value"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

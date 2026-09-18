@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.10",
+  "version": "2026-09-18.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T16:00:00+08:00",
+  "generated_at": "2026-09-19T22:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -245,6 +245,10 @@
     {
       "result_kind": "direct_conversation_binding",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_result"
+    },
+    {
+      "result_kind": "relation_conflict_resolution",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_result"
     }
   ]
 }
