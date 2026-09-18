@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.3",
+  "version": "2026-09-19.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T20:00:00+08:00",
+  "generated_at": "2026-09-19T23:55:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -418,7 +418,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Applet transaction push delivery authentication record: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-id/destination-service-id/idempotency-key, receiver-derived delivery_authentication_record and its domain-separated digest are persisted into the idempotency/replay record, duplicate body/record conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
+      "description": "Applet transaction push delivery authentication record: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/arkret-operation/source-service-id/destination-service-id/idempotency-key, receiver-derived delivery_authentication_record and its domain-separated digest are persisted into the idempotency/replay record, duplicate body/record conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
       ]
