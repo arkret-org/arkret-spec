@@ -86,7 +86,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
   因而 Event Envelope 的唯一事件 discriminator 是 `kind`；`morph_kind`、`service_kind` 与 `claim_kind` 均为 Arkret 自有分派。MLS `proposal_type`、WebRTC session description `type`、W3C DID/Data Integrity raw object `type` 与 IANA/HTTP `media_type` / `content_type` 只在 registry 登记的精确路径保留，不形成全局例外。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。**已登记外部标准命名例外**：[`calendar-event.md` §4.2](./calendar-event.md) 的 recurrence 终止字段名为 `until`，不是 `expires_at`。它不是绝对 instant，也不是对象级有效期上界，而是 RFC 8984 `RecurrenceRule.until` 的 snake_case 映射——按事件 `timezone` + `tzdb_version` 解释的 local 终止界，与 occurrence 的 local start 做 `<=` 比较。沿用外部标准名是有意取舍，MUST NOT 改名为 `expires_at`；反之，新增的对象级有效期上界字段仍 MUST 使用 `expires_at`，MUST NOT 借用 `until`。新增的 date-time wire 字段一律 MUST 使用 `_at` 形态；v1 不保留裸 `timestamp` 字段名的 interop 例外。
-- `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Strand / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
+- `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Strand / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload **MUST NOT** 携带目标 `state`：§5.2 由 event kind 本身确定目标值，reducer 按 `object_lifecycle_state` 产出，payload 只指名目标对象与可选理由。`target_state` 这个字段名保留给 kind 本身**不能**确定终态的 FSM 型 lifecycle（v1 只有 Invite 一例：一条 `ak.invite.revoke` 可落 6 个不同终态），不得用于物理 `state` 轴。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只保留给外部协议或加密 transcript 自身的创建者 tuple，不得作为 object 创建主体字段的别名；v1 未登记任何 `creator_*` wire 字段，新增字段不得引入该形态。
 - 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；算法选择器只能使用 `<noun>_algorithm`，字节输出只能使用 `<noun>_digest`。复合 commitment 对象使用 `<noun>_commitment`：外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
 - 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `sig` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
@@ -395,7 +395,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 每条写入声明的名字 MUST 是该 value schema 已声明的成员；value schema 的每个必填成员 MUST 被三者之一恰好覆盖一次。
 可选成员 MAY 按合同缺席，但**规范要求出现或要求随写入变化的成员若没有生产／维护规则，门禁 MUST 转红**。
 
-公共元数据的派生规则本身是可复用的，不是某个对象的专用字符串。v1 登记八个公共派生名。
+公共元数据的派生规则本身是可复用的，不是某个对象的专用字符串。v1 登记九个公共派生名。
 
 **更新元数据（三个）：**
 
@@ -423,7 +423,17 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 - `object_initial_state`：`state` = 该对象 kind 登记的初始生命周期状态。create MUST NOT 创建出非初始状态的对象，
   因此也 MUST NOT 产出 `state_changed_at`；离开初始状态只能由已登记的转换承载写入完成。
 
-八个名字与 [`../authz/capabilities.md` §10](../authz/capabilities.md) 登记的 capability / consent / authority-root 派生名同属**一个**封闭集合；
+**生命周期终态（一个）**：
+
+- `object_lifecycle_state`：`state` = §5.2 为本次已接受的专用 lifecycle event kind 登记的目标状态
+  （`ak.<kind>.archive` → `archived`，`ak.<kind>.restore` → `active`，`ak.<kind>.tombstone` → `tombstoned`）。
+  它只能由该 family 已登记为转换承载者的 lifecycle kind 产出，且只作用于本 Event 指名的那一个目标对象；
+  它**不是**作者 patch 权限——`state` 仍在 `universal_forbidden_patch_paths` 里，本派生不改变 patch 面。
+  产出它的同一次写入 MUST 同时产出 `object_state_transition_time`。前态 guard 按 §5.2 与各对象正文执行：
+  same-state 转换、对已终态对象的任何 lifecycle 写入、以及 `restore` 试图复活 `tombstoned` 对象，
+  MUST 以 `failed_precondition` 拒绝，不得静默 no-op。
+
+九个名字与 [`../authz/capabilities.md` §10](../authz/capabilities.md) 登记的 capability / consent / authority-root 派生名同属**一个**封闭集合；
 新增任何一个等同新增 normative reducer 规则，MUST 先在正文定义其规范输入、适用写入、条件与确定性输出，再登记到写入行。
 
 以上双向闭包由 [`registry/reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json)
@@ -586,7 +596,26 @@ common 只定义 `state` 与 `stage` 两个共享概念。`state` 是所属对�
 
 ### 5.2 操作与组合约束
 
-可归档对象使用独立 archive/restore Event；terminal/redaction 不被 restore 清除。Realm freeze/unfreeze 是独立写 gate，解冻不解除 archive、终止标记或权限限制。每个 effect/FSM 保留其现有 projection、冲突策略与 plane；对象定义负责组合这些事实，不建立通用对象总状态机。
+可归档对象使用独立 archive/restore Event；terminal/redaction 不被 restore 清除。
+
+**kind → 目标 state 映射（normative）**：这三类专用 lifecycle kind 是对象 `state` 轴在 create 之后的**唯一**
+承载者，其目标值由 kind 本身确定，不由 payload 携带：
+
+| event kind 形状 | 目标 `state` | 合法前态 | 终态? |
+| --- | --- | --- | --- |
+| `ak.<kind>.archive` | `archived` | `active` | 否 |
+| `ak.<kind>.restore` | `active` | `archived` | 否 |
+| `ak.<kind>.tombstone` | `tombstoned` | `active` 或 `archived` | **是** |
+
+reducer 按 §3.3 的 `object_lifecycle_state` 产出该值，同时按 `object_state_transition_time` 产出
+`state_changed_at`；两者 MUST 在同一次写入内一起产出。作者 MUST NOT 在 payload 里携带目标 state：
+payload 只指名目标对象与可选理由。前态不符（same-state archive、restore 一个 `tombstoned` 对象、
+对已 `tombstoned` 对象的任何 lifecycle 写入）MUST 以 `failed_precondition` 拒绝并零写入。
+没有专用 lifecycle kind 的对象是例外而不是通则：v1 只有 View 一个，见
+[`views.md` §3.1](./views.md) 与 `reducer-managed-path-registry.json` 唯一一条 `universal_exemptions`。
+Realm 没有 materialized `state` 字段（§5.1 表末），因此 `ak.realm.archive` / `ak.realm.restore`
+不产出本派生，它们按 [`realm-and-space.md` §2](./realm-and-space.md) 的既有合同写 per-Realm 的
+`realm_archive` facet。Realm freeze/unfreeze 是独立写 gate，解冻不解除 archive、终止标记或权限限制。每个 effect/FSM 保留其现有 projection、冲突策略与 plane；对象定义负责组合这些事实，不建立通用对象总状态机。
 
 生命周期 payload 不接受 `effective_at` 或 `freeze_expires_at`。状态按正式 state-changing Event/RealmCommit 接受规则推进，时钟自身不产生解冻或恢复 Event。产品调度在实际执行时走普通 author/sign/submit。claim expiry、retention 和既有 revocation fence 仍按各自合同执行。
 

@@ -3189,6 +3189,269 @@
         }
       },
       "additionalProperties": false
+    },
+    "circle_result": {
+      "type": "object",
+      "description": "Registered projection of one Circle object (zh/models/circle.md). ak.circle.create writes the whole object and the dedicated ak.circle.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "circle_id": {
+              "type": "string",
+              "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./circle.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "morph_result": {
+      "type": "object",
+      "description": "Registered projection of one Morph object (zh/models/morph.md). ak.morph.create writes the whole object and the dedicated ak.morph.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "morph_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "morph"
+            },
+            "morph_id": {
+              "type": "string",
+              "pattern": "^ak:morph:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./morph.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "relation_result": {
+      "type": "object",
+      "description": "Registered projection of one Relation object (zh/models/relation.md). ak.relation.create writes the whole object and the dedicated ak.relation.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "relation_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "relation"
+            },
+            "relation_id": {
+              "type": "string",
+              "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./relation.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_result": {
+      "type": "object",
+      "description": "Registered projection of one Space object (zh/models/realm-and-space.md). ak.space.create writes the whole object and the dedicated ak.space.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "space_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space"
+            },
+            "space_id": {
+              "type": "string",
+              "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./space.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_archive_value": {
+      "type": "object",
+      "description": "Closed value of the realm_archive typed current result. zh/models/realm-and-space.md section 2.6.0 fixes the effect on the event kind itself, so realm_archive_payload carries only an optional reason and MUST NOT carry the flag, an effective_at or an expiry. The value is a one-member object rather than a bare boolean for the same reason space_parent is: a bare scalar leaves the family's pre_state predicates with no stored field to name.",
+      "required": [
+        "archived"
+      ],
+      "properties": {
+        "archived": {
+          "type": "boolean",
+          "description": "T.rue after an accepted ak.realm.archive, false after an accepted ak.realm.restore"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_archive_result": {
+      "type": "object",
+      "description": "Per-Realm singleton gate written by the reversible pair in the zh/models/realm-and-space.md section 2.6.0 table. Commit-ordered; the two kinds write the same family with opposite constants, and neither lifts a terminal, a redaction, another gate or a capability limit.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_archive"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_archive_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_freeze_value": {
+      "type": "object",
+      "description": "Closed value of the realm_freeze typed current result. zh/models/realm-and-space.md section 2.6.0 fixes the effect on the event kind itself, so realm_freeze_payload carries only an optional reason and MUST NOT carry the flag, an effective_at or an expiry. The value is a one-member object rather than a bare boolean for the same reason space_parent is: a bare scalar leaves the family's pre_state predicates with no stored field to name.",
+      "required": [
+        "frozen"
+      ],
+      "properties": {
+        "frozen": {
+          "type": "boolean",
+          "description": "T.rue after an accepted ak.realm.freeze, false after an accepted ak.realm.unfreeze"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_freeze_result": {
+      "type": "object",
+      "description": "Per-Realm singleton gate written by the reversible pair in the zh/models/realm-and-space.md section 2.6.0 table. Commit-ordered; the two kinds write the same family with opposite constants, and neither lifts a terminal, a redaction, another gate or a capability limit.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_freeze"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/realm_freeze_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_profile_result": {
+      "type": "object",
+      "description": "Registered projection of one global Actor Profile (zh/discovery/profiles-presence.md section 2.3). ak.profile.create and ak.profile.update write ONE family: section 2.3 is normative that the two kinds share a typed current result, and it used to name it profile_create:<target_actor_profile_id> -- a create-only spelling for a value the update kind also writes, and a third spelling beside the registry's and the owning report's. The one registered name is actor_profile. create derives the subject from its own event_id; update names it in payload.target_ref.",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_profile_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "actor_profile"
+            },
+            "actor_profile_id": {
+              "type": "string",
+              "pattern": "^ak:actor_profile:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./actor-profile.schema.json"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

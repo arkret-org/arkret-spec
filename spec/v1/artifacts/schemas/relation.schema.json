@@ -442,6 +442,45 @@
         }
       },
       "additionalProperties": false
+    },
+    "relation_definition": {
+      "type": "object",
+      "description": "The author-editable Relation definition: the edge itself and its metadata, and nothing else. It is deliberately NOT relation.schema.json. A materialized object schema used as an authoring input hands the author the schema identifier, the Realm binding, the creation metadata, the most-recent-update metadata and the lifecycle state -- the create-locked members every later write retains verbatim, so a self-reported creator or a Realm the Event was never committed into becomes permanent truth. The old relation_create_object banned only id, type and effective_scope and left the rest to a prose sentence asking semantic validation to cross-check created_by and created_at against the envelope; a prose cross-check is not a gate, and there is nothing left to cross-check once the reducer is the only writer. Those members now come from the registered create-lock derivations of zh/models/common-fields.md section 3.3, and the lifecycle state from object_initial_state. `type` stays absent because the object kind comes from the typed-id prefix, `id` because it is derived from the create Event's own event_id, and `effective_scope` because it is the reducer-materialized projection of the verified Event.scope_ref (zh/models/circle.md section 6.2).",
+      "required": [
+        "relation_kind",
+        "from_ref",
+        "to_ref"
+      ],
+      "properties": {
+        "scope_circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id",
+          "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For confidential_discussion_of it points to the private Strand's Circle. For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1). Sidecar context mappings are native sidecar.context typed results, not Relation objects."
+        },
+        "relation_kind": {
+          "type": "string",
+          "description": "Relation semantic. The standard kind vocabulary (kind list, cardinality class, truth-source class, weak_semantic flag) is machine-indexed in artifacts/registry/relation-kind-registry.json; detailed dedupe/scope/conflict semantics in models/relation.md §3-§6. Cross-Realm constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Realm (resolved from_ref and to_ref MUST share the same realm_id); weak_semantic=true kinds per the registry MAY cross Realm subject to two-sided authorization. Stays a free string so extension profiles can add kinds; unregistered kinds are opaque edges (unknown_relation_kind), never container/visibility semantics."
+        },
+        "from_ref": {
+          "$ref": "#/$defs/relation_endpoint"
+        },
+        "to_ref": {
+          "$ref": "#/$defs/relation_endpoint"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank",
+          "description": "Top-level rank string for ordered relations (e.g. contains-list-strand position). Encoding follows the ak.rank.lexofractional.v1 grammar in zh/conformance/encoding.md section 9.1. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
+        },
+        "fields": {
+          "type": "object",
+          "description": "Edge metadata. MUST NOT contain a 'rank' key — rank moved to the top level in v1 to align with Space.rank.",
+          "not": {
+            "required": [
+              "rank"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "unevaluatedProperties": false

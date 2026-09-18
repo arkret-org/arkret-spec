@@ -81,15 +81,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-21.5",
-      "generated_at": "2026-09-21T19:00:00+08:00",
-      "content_digest": "sha256:fcd5fc8133a83eefc910d2b9998891b757a250aa4f04a3b0d04a33d6b946e772"
+      "version": "2026-09-21.6",
+      "generated_at": "2026-09-21T20:00:00+08:00",
+      "content_digest": "sha256:6ba5a35032c40f98f44d8fffbe7ede856ca224a155b037bb809517ec4700c4e7"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
-      "version": "2026-09-21.3",
-      "generated_at": "2026-09-21T17:10:00+08:00",
-      "content_digest": "sha256:43ac84f65c8f8a556607c591690fff18482110170d86e59ab29ada7e66104e8c"
+      "version": "2026-09-21.4",
+      "generated_at": "2026-09-21T19:00:00+08:00",
+      "content_digest": "sha256:23746b23298c07c7e1b54b2a52040b37f90e996c2cdeb9db8e51a8c0a5fba524"
     },
     {
       "path": "spec/v1/artifacts/registry/derived-wire-field-removal-lock.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-21.3",
-      "generated_at": "2026-09-21T19:00:00+08:00",
-      "content_digest": "sha256:4221cfdd2482a5fba282f09a008ef6ae49d80fad92a86f1342f67351d03bfbc8"
+      "version": "2026-09-21.4",
+      "generated_at": "2026-09-21T20:00:00+08:00",
+      "content_digest": "sha256:67d6187ab5a6c100d06bfd2de4fc24167c5898e726faf9db7a1ec501d3d31e02"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.74",
-      "generated_at": "2026-09-21T19:00:00+08:00",
-      "content_digest": "sha256:0841a7eb55d502a47521bc463981b350ca2d82a0f9ab0b8d98ee801e2c12748f"
+      "version": "2026-09-16.76",
+      "generated_at": "2026-09-21T19:00:02+08:00",
+      "content_digest": "sha256:3cfae516c202b940e1debf30e8482daac48a258582420a36136dabce0531ed5b"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -297,9 +297,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-managed-path-registry.json",
-      "version": "2026-09-19.2",
-      "generated_at": "2026-09-19T12:00:00+08:00",
-      "content_digest": "sha256:ed686eddd64ede7a2f3730dbadc5f2c9ccfcb08115b89b6dfcad1485d8fff8fa"
+      "version": "2026-09-21.1",
+      "generated_at": "2026-09-21T20:00:00+08:00",
+      "content_digest": "sha256:329875daf53af12c1436e2bbc45479eb3ab77c1831f822d3893b36da822547f2"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",

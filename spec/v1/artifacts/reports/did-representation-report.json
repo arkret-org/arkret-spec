@@ -632,6 +632,16 @@
       ]
     },
     {
+      "schema_path": "actor-profile-operations.schema.json#/$defs/account_status_projection/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "actor-profile-operations.schema.json#/$defs/resolve_failure/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -659,6 +669,26 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "actor-profile.schema.json#/$defs/actor_profile_definition/properties/accountable_principal_ids",
+      "property_name": "accountable_principal_ids",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "actor-profile.schema.json#/$defs/actor_profile_definition/properties/principal_id",
+      "property_name": "principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {

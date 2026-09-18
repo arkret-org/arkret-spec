@@ -298,50 +298,20 @@
     },
     "actor_profile_create_payload": {
       "type": "object",
-      "description": "Initial actor profile payload. The materialized resolution projection is reducer-managed from the PCR resolution typed current result and is forbidden on this authoring surface. id/updated_by/updated_at are likewise materialized fields, not create input.",
+      "description": "Initial actor profile payload. payload.object is the closed authoring region of actor-profile.schema.json, not the materialized object; see that definition for which members the reducer produces and why.",
       "required": [
         "object"
       ],
       "properties": {
         "object": {
-          "allOf": [
-            {
-              "$ref": "./actor-profile.schema.json"
-            },
-            {
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "resolution"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "updated_by"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "updated_at"
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
+          "$ref": "./actor-profile.schema.json#/$defs/actor_profile_definition"
         }
       },
       "additionalProperties": false
     },
     "actor_profile_update_payload": {
       "type": "object",
-      "description": "Actor Profile patch payload. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution typed current result and are forbidden on this generic profile write surface.",
+      "description": "Actor Profile patch payload. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution typed current result. principal_id and actor_kind are create-locked by ak.profile.create: zh/discovery/profiles-presence.md section 2.3 decides which principal a profile is for at create, and nothing said an update could not move it, so this surface could rebind a profile to another principal or retype a user as an agent. All three are forbidden here; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "required": [
         "target_ref",
         "patch"
@@ -359,6 +329,20 @@
               "propertyNames": {
                 "not": {
                   "pattern": "^resolution(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^principal_id(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^actor_kind(?:\\.|$)"
                 }
               }
             }
@@ -6094,17 +6078,13 @@
     },
     "object_lifecycle_payload": {
       "type": "object",
-      "description": "Generic lifecycle payload for Strand / Circle / Morph archive-restore-tombstone style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
+      "description": "Generic lifecycle payload for the Strand / Circle / Morph archive-restore-tombstone kinds. The target object is single-sourced by target_ref. The payload does NOT carry the target state: zh/models/common-fields.md section 5.2 maps the event kind itself to the state -- archive -> archived, restore -> active, tombstone -> tombstoned -- and the reducer produces it through the object_lifecycle_state derivation. An author-suppliable target state would put the object's `state` member, which universal_forbidden_patch_paths reserves for the reducer, back inside the author region through a second door, and would make ak.circle.archive able to spell a restore.",
       "required": [
         "target_ref"
       ],
       "properties": {
         "target_ref": {
           "$ref": "#/$defs/object_ref"
-        },
-        "target_state": {
-          "type": "string",
-          "minLength": 1
         },
         "reason": {
           "type": "string"
@@ -6944,7 +6924,7 @@
     },
     "profile_realm_override_payload": {
       "type": "object",
-      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution and every resolution.* descendant path are reducer-managed projections of the PCR resolution typed current result and are forbidden here for the same reason they are forbidden on the generic profile write surface; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
+      "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies. resolution, principal_id and actor_kind are forbidden here for the same reasons they are forbidden on the generic profile write surface -- a per-Realm override is still not a place to rebind identity; the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
       "required": [
         "target_ref",
         "target_realm_id",
@@ -6966,6 +6946,20 @@
               "propertyNames": {
                 "not": {
                   "pattern": "^resolution(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^principal_id(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^actor_kind(?:\\.|$)"
                 }
               }
             }
@@ -9295,34 +9289,8 @@
       "additionalProperties": false
     },
     "relation_create_object": {
-      "allOf": [
-        {
-          "$ref": "./relation.schema.json"
-        },
-        {
-          "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived. `type` stays banned because the object kind comes from the typed-id prefix. `effective_scope` is the reducer-materialized projection of the verified Event.scope_ref (zh/models/circle.md §6.2) and MUST NOT be actor-supplied: reason effective_scope_reducer_managed, machine-indexed in registry/reducer-managed-path-registry.json.",
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "id"
-                ]
-              },
-              {
-                "required": [
-                  "type"
-                ]
-              },
-              {
-                "required": [
-                  "effective_scope"
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "description": "Relation create input: the full Relation object schema minus the id, the banned `type` name, and the reducer-managed `effective_scope`. Reusing relation.schema.json makes the Relation create shape decidable by schema exactly like the Strand / Morph / Space create shapes, while relation.schema.json's own `fields` property keeps the free edge-metadata surface open. Semantic validation MUST require payload.relation.created_by to match the top-level actor_id and payload.relation.created_at to match the top-level created_at before acceptance."
+      "$ref": "./relation.schema.json#/$defs/relation_definition",
+      "description": "Relation create input: the closed authoring region of relation.schema.json, not the materialized object. See that definition for why the five reducer-owned members are gone."
     },
     "realm_governance_station_change_payload": {
       "type": "object",

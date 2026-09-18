@@ -406,13 +406,26 @@ EXEMPTION_ROW_FIELDS = ("path", "owner_kind", "owner", "justification")
 def _check_row_value_coverage(
     lint: Lint, path: Path, label: str, row: dict, result_families: set[str]
 ) -> None:
-    """A row declares its result family, and either its value schema or its gap owner.
+    """A row declares its result family, its value schema and its open frontier.
 
     `value_member_maintenance` is what makes the member-source closure gate
     measure a family at all, so an undeclared row is an unmeasured family. That
     is defensible -- one report cannot close ten object kinds -- but only when
     the frontier is written down. An optional field with no rule would let the
     frontier grow back silently, one quiet row at a time.
+
+    The first version of this rule made `value_schema_ref` and
+    `value_schema_open_gap_owner` mutually exclusive, which made naming the
+    family value and naming the owner of what is still open the same slot. That
+    held only while an unregistered family was the only kind of gap. Registering
+    the five object families closed the family half for Circle, Morph, Space and
+    Strand while leaving members with no producer -- `mls_group_id`,
+    `stage`, `schema_refs`, `scope_circle_id` -- and under the old rule the only
+    way to name the value was to delete the sentence that said so. So the rule
+    is now three cases rather than two: a closed family carries
+    `value_member_maintenance` and no gap owner; a family whose value is named
+    but whose members are not yet closed MUST carry the gap owner; a row with no
+    family at all MUST carry it too. Silence is refused in every case.
     """
     family = row.get("result_family")
     has_family = isinstance(family, str) and bool(family)
@@ -430,12 +443,26 @@ def _check_row_value_coverage(
         )
     gap_owner = row.get("value_schema_open_gap_owner")
     has_gap = isinstance(gap_owner, str) and gap_owner
-    if has_value == has_gap:
+    has_maintenance = isinstance(row.get("value_member_maintenance"), dict)
+    if not has_value and not has_gap:
         lint.fail(
             path,
-            f"{label} must declare exactly one of value_schema_ref (the family value whose members its "
-            "ownership rules are solved against) or value_schema_open_gap_owner (the report that closes "
-            "it); declaring both, or neither, leaves the coverage frontier unstated",
+            f"{label} declares neither value_schema_ref (the family value whose members its ownership "
+            "rules are solved against) nor value_schema_open_gap_owner (the report that closes it), so "
+            "the coverage frontier is unstated",
+        )
+    elif has_maintenance and has_gap:
+        lint.fail(
+            path,
+            f"{label} declares value_member_maintenance, so the member sources are closed and measured; "
+            "it MUST NOT also name a gap owner for them",
+        )
+    elif has_value and not has_maintenance and not has_gap:
+        lint.fail(
+            path,
+            f"{label} names a value schema but declares no value_member_maintenance, so "
+            "check_result_value_member_closure does not measure this family; it MUST name the "
+            "value_schema_open_gap_owner that closes the member sources",
         )
     if not has_family and not has_gap:
         lint.fail(

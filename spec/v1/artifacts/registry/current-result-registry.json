@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T17:10:00+08:00",
+  "generated_at": "2026-09-21T19:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -729,6 +729,87 @@
           "crypto-media/device-lifecycle.md §14.1"
         ],
         "note": "The revocation-pending gate on new live authorization reads this set, and the SecurityRotationTransaction of §2.2 resumes from the element it created. Folding it against the covering command result is what yields revoked / rejected."
+      }
+    },
+    {
+      "result_kind": "circle",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "zh/models/circle.md",
+          "zh/models/common-fields.md section 5.2"
+        ],
+        "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
+      }
+    },
+    {
+      "result_kind": "morph",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/morph_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "zh/models/morph.md",
+          "zh/models/common-fields.md section 5.2"
+        ],
+        "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
+      }
+    },
+    {
+      "result_kind": "relation",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "zh/models/relation.md",
+          "zh/models/common-fields.md section 5.2"
+        ],
+        "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
+      }
+    },
+    {
+      "result_kind": "space",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "zh/models/realm-and-space.md",
+          "zh/models/common-fields.md section 5.2"
+        ],
+        "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
+      }
+    },
+    {
+      "result_kind": "realm_archive",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_archive_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "zh/models/realm-and-space.md section 2.6.0"
+        ],
+        "note": "While true, every non-exempt ordinary write into the Realm is refused with realm_frozen (HTTP 403); the closed exemption set is in the same section. A archived Realm still accepts the exempt kinds, and lifting this gate lifts nothing else."
+      }
+    },
+    {
+      "result_kind": "realm_freeze",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_freeze_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "zh/models/realm-and-space.md section 2.6.0"
+        ],
+        "note": "While true, every non-exempt ordinary write into the Realm is refused with realm_frozen (HTTP 403); the closed exemption set is in the same section. A frozen Realm still accepts the exempt kinds, and lifting this gate lifts nothing else."
+      }
+    },
+    {
+      "result_kind": "actor_profile",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_profile_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "zh/discovery/profiles-presence.md section 2.3"
+        ],
+        "note": "The global display value the authorized read operation ak.self.actor_profile.read.resolve.v1 serves beside the exact signed profile Event. It is ordinary causal state with no covering RealmCommit and grants no identity, capability or membership authority."
       }
     }
   ]

@@ -121,7 +121,27 @@ class PartialUpdateBaseProducerTest(_GateHarness):
             # and the registry consumer that flattened every object's paths into
             # one set turned red on the one write the spec cannot do without.
             # Its base producer is `ak.view.create`'s whole-value `set`.
-            {"capability_grant", "consent", "mls_group", "realm_authority_root", "view"},
+            #
+            # The six object families joined in the 2200 landing, which stopped
+            # them at `result_writes: []` -- every one of them had an `update`
+            # kind that was a reducer_input writing nothing, so the patch
+            # surface these gates measure did not exist to be measured. Each
+            # one's base producer is its own `ak.<kind>.create` whole-value
+            # `set` of the closed authoring region, so the pairing this gate
+            # asks for holds by construction rather than by coincidence.
+            {
+                "actor_profile",
+                "capability_grant",
+                "circle",
+                "consent",
+                "mls_group",
+                "morph",
+                "realm_authority_root",
+                "relation",
+                "space",
+                "strand",
+                "view",
+            },
         )
         self.assertLessEqual(updated, produced)
 

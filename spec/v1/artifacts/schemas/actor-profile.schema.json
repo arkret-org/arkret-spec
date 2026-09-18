@@ -53,18 +53,6 @@
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "soft_logged_out",
-        "locked",
-        "suspended",
-        "deactivated",
-        "erasure_pending"
-      ],
-      "description": "Public projection of the AccountStatusRecord lifecycle values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views."
-    },
     "accountable_principal_ids": {
       "type": "array",
       "items": {
@@ -105,6 +93,85 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "actor_profile_definition": {
+      "type": "object",
+      "description": "The author-editable Actor Profile definition: the identity binding the create Event declares and the display members its owner maintains, and nothing else. It is deliberately NOT actor-profile.schema.json. A materialized object schema used as an authoring input hands the author the schema identifier, the Realm binding, the creation timestamp and the most-recent-update metadata, and those members are then retained verbatim by every later write, so a self-reported Realm or creation time becomes permanent truth. They now come from the registered create-lock derivations of zh/models/common-fields.md section 3.3. principal_id and actor_kind stay author input because no derivation can produce them -- the create Event declares which principal the profile is for -- but they are create-locked: zh/discovery/profiles-presence.md section 2.3 pins principal_id to the submitter or an explicitly authorized target at create, and rebinding a profile to another principal, or retyping a user as an agent, is a new object rather than a patch. id and resolution stay out for the reasons actor_profile_create_payload already gave, and status is gone from the durable object entirely: it projected an AccountStatusRecord, which zh/identity/account-lifecycle.md section 3 keeps out of every reducer.",
+      "required": [
+        "principal_id",
+        "actor_kind",
+        "display_name"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "actor_kind": {
+          "type": "string",
+          "enum": [
+            "user",
+            "organization",
+            "team",
+            "agent",
+            "bot",
+            "service",
+            "integration"
+          ],
+          "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
+        },
+        "display_name": {
+          "$ref": "string-profiles.schema.json#/$defs/display_text_128"
+        },
+        "handle": {
+          "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
+          "description": "Arkret canonical handle string: <localpart>:<domain>. The @ mention sigil is not part of the handle."
+        },
+        "agent_slug": {
+          "$ref": "string-profiles.schema.json#/$defs/agent_slug",
+          "description": "Projection hint for a controller-scoped selector slug backed by ak.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle and MUST NOT be used for authorization, attribution, or Directory discovery. The mention input token @<controller-handle>/<agent_slug> resolves to this actor's principal_id before persistence only after selector claim validation."
+        },
+        "avatar_blob_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+        },
+        "accountable_principal_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did_core_id"
+          }
+        },
+        "profile_fields": {
+          "type": "object",
+          "properties": {
+            "bio": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "status_message": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "agent_slug"
+            ]
+          },
+          "then": {
+            "properties": {
+              "actor_kind": {
+                "const": "agent"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
     }
   },
   "allOf": [

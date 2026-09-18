@@ -43,16 +43,20 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `realm_profile`：当前 Realm profile；
 - `realm_policy`：当前 Realm policy，值是 `ak.realm.policy` 选定的封闭引用 `{policy_id}`，
   **不是** Policy 文档本体（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)）；
-- 以下十三个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
+- 以下十五个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
   （[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 禁止把 envelope 的
   `realm_id` 再写进 subject），各由同名 facet Event kind 单独承载：
   `realm_schema`、`realm_join_rule`、`realm_discovery`、`realm_alias`、`realm_policy_bundle`、
   `realm_asset_privacy_policy`、`realm_plaintext_visible_services`、`realm_media_service`、
   `realm_read_receipt_policy`、`realm_preview_policy`、`realm_tombstone`、`realm_destroy`、
-  `realm_set_default_strand`。
-  [`../models/realm-and-space.md` §2.6.0](../models/realm-and-space.md) 另以同一形态命名了
-  `realm_archive` 与 `realm_freeze`，但二者尚未登记为 `result_kinds[]` 行，故**不在**本清单内；
-  在它们登记之前，本清单的数目以本行为准；
+  `realm_set_default_strand`、`realm_archive`、`realm_freeze`。
+  最后两个是**可逆对**：`realm_archive` 由 `ak.realm.archive` / `ak.realm.restore` 写
+  `{archived}` 的 true / false，`realm_freeze` 由 `ak.realm.freeze` / `ak.realm.unfreeze` 写
+  `{frozen}` 的 true / false，效果由 event kind 本身确定，payload 只带可选 `reason`
+  （[`../models/realm-and-space.md` §2.6.0](../models/realm-and-space.md) 的表为 normative）。
+  值是单成员对象而不是裸布尔，理由与 `space_parent` 相同：裸标量没有字段可供 CAS 谓词指名。
+  这两条**不解除**终态、redaction、另一道 gate 或任何 capability 上限；Realm 没有 materialized
+  `state` 成员，所以 archive 不是对象 lifecycle 而是一条 facet；
 - `mimi_room_binding`：以 MIMI room URI `payload.mimi_room_uri` 选择一条 MIMI 房间绑定
   （见 [`../extensions/mimi-interop.md` §3](../extensions/mimi-interop.md)）；subject 是外部 room URI
   而**不是** Arkret id——同一 Realm / Strand 可被绑进多个 room，该值是向 MIMI 的投影，从不是 Arkret 侧的真相；
@@ -112,7 +116,21 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——
   继承是 per-parent 的，单例 subject 会让一个父 Realm 的继承覆盖另一个；
 - `member_state`：以完整 `actor_id` 选择成员状态；
+- `actor_profile`：以 `actor_profile_id` 选择一个全局 Actor Profile，由 `ak.profile.create` 与 `ak.profile.update` 共写
+  （[`../discovery/profiles-presence.md` §2.3](../discovery/profiles-presence.md) 对此为 normative）；create 整体置换作者区域并派生 `schema` / `realm_id` / `created_at` / `updated_by` / `updated_at`，
+  update 对冻结前态 `apply_patch`，六条 `allowed_paths` 只覆盖展示成员；`principal_id` 与 `actor_kind` create-locked，
+  `resolution` 由 `identity_resolution` 投影、`status` 已完全移出 durable 对象（改为读取响应的可选 `account_status`，见该节）；
 - `strand`：以 `strand_id` 选择 Strand；
+- `circle`、`morph`、`relation`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
+  封闭 schema。四族与 `strand`、`view` 是同一形态：`ak.<kind>.create` 整体置换，
+  后续写入按引用指名 subject。带物理 lifecycle 的五族（`circle` / `morph` / `relation` / `space` /
+  `strand`）的 `state` 成员**只由**专用 `ak.<kind>.archive` / `.restore` / `.tombstone` 写入，
+  reducer 按 [`../models/common-fields.md` §5.2](../models/common-fields.md) 的 kind → state 映射
+  以 `object_lifecycle_state` 产出，payload 不携带目标状态；普通 update MUST NOT 复活终态。
+  `relation` 一族的成员来源已按 `value_member_maintenance` 逐项封闭
+  （create 七个派生、update 六条 `allowed_paths`、tombstone 零 `allowed_paths`）；
+  其余四族的成员来源闭包尚未完成，未闭合的成员与其 owner 记在
+  `reducer-managed-path-registry.json` 各自行的 `value_schema_open_gap_owner` 里；
 - `strand_position`：以 `typed_pair(id:space(board_space_id), id:strand(strand_id))` 选择一条
   Strand 在某个 Board 上的位置，值为 `{list_space_id, rank}` 或 `null`（尚未上板）
   （见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md)）；

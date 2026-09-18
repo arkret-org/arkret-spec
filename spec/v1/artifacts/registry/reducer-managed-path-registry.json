@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.2",
-  "generated_at": "2026-09-19T12:00:00+08:00",
+  "version": "2026-09-21.1",
+  "generated_at": "2026-09-21T20:00:00+08:00",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
@@ -11,7 +11,8 @@
     "schema_enforced=true means the named update payload already rejects the path through its own propertyNames guard, so a conforming implementation gets schema_violation from artifact validation alone. schema_enforced=false means only the reducer can decide it. The flag is an assertion about the shipped schema, not a preference: it is verified in both directions, so a guard can neither register a path it does not forbid nor forbid a path it did not register.",
     "This registry does not classify create payloads. A create payload names its object shape directly, so it expresses its own bans in schema (see event-payload.schema.json#/$defs/relation_create_object); only the generic patch surface needs an external table.",
     "A registered partial-update write names its target through value_schema_ref, and this file answers for that target only. An objects[] row carries result_family and value_schema_ref so the target resolves without guessing from a family name or a field spelling, and the row's value schema MUST be built on the row's object_schema_ref, so Event payload, result value schema and object registry are checked against each other instead of assumed to agree. A partial-update write whose value is not a materialized canonical object resolves through non_object_results[] instead, which carries that value's own field-ownership contract. A write that resolves to neither, or to both, is a gate failure: there is no fallback to a flattened set and no fallback to an empty one.",
-    "value_member_maintenance closes the other direction. Declaring it on a row means every registered write into that result_family is measured member by member: each required member of the value schema MUST be accounted for exactly once, as author input (a patch allowed_path, or a property of the closed author payload region a whole-value projection reads), as a derived_members[] production, or as a retained_members[] carry-over from the frozen pre-state; every name a write declares MUST be a declared member of that value schema; and the three roles are disjoint. always_maintained members MUST be produced by every write into the family, which is what stops object metadata from being supplied once at create and then silently frozen on every later write. conditional_producers names the writes that MAY produce a member whose presence is conditional, and forbids any other write from producing it. The frontier is explicit: a family without value_member_maintenance is not covered, and each uncovered row names the owner that closes it. That is a declared coverage boundary, not an exemption -- no row here excuses an assertion that is false."
+    "value_member_maintenance closes the other direction. Declaring it on a row means every registered write into that result_family is measured member by member: each required member of the value schema MUST be accounted for exactly once, as author input (a patch allowed_path, or a property of the closed author payload region a whole-value projection reads), as a derived_members[] production, or as a retained_members[] carry-over from the frozen pre-state; every name a write declares MUST be a declared member of that value schema; and the three roles are disjoint. always_maintained members MUST be produced by every write into the family, which is what stops object metadata from being supplied once at create and then silently frozen on every later write. conditional_producers names the writes that MAY produce a member whose presence is conditional, and forbids any other write from producing it. The frontier is explicit: a family without value_member_maintenance is not covered, and each uncovered row names the owner that closes it. That is a declared coverage boundary, not an exemption -- no row here excuses an assertion that is false.",
+    "A row states its coverage frontier in every case. value_member_maintenance is what makes check_result_value_member_closure measure a family at all, so a row carrying value_schema_ref without it is an unmeasured family -- which is defensible while one report cannot close ten object kinds, but only while the frontier is written down. Before the 2200 landing the two fields were mutually exclusive, so naming the family value and naming the owner of what is still open were the same slot: registering the value silently deleted the frontier statement. They are now three cases. A row with value_member_maintenance carries value_schema_ref and no gap owner, because nothing is open. A row with a value schema and no maintenance MUST carry value_schema_open_gap_owner naming the report that closes the member sources. A row with neither a value schema nor a family MUST carry the gap owner for the whole family. Declaring neither field is refused in all three."
   ],
   "reason_codes": [
     "patch_path_reducer_managed",
@@ -95,7 +96,8 @@
     {
       "object_kind": "actor_profile",
       "object_schema_ref": "schemas/actor-profile.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'actor_profile', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
+      "result_family": "actor_profile",
+      "value_schema_ref": "schemas/actor-profile.schema.json",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
         "schemas/event-payload.schema.json#/$defs/profile_realm_override_payload"
@@ -110,13 +112,74 @@
           "owner": "identity_resolution",
           "schema_enforced": true,
           "description": "Read-only current principal did projection derived from the PCR identity resolution typed current result. The typed current result is the sole write authority, and the projection is not an authorization root."
+        },
+        {
+          "path": "principal_id",
+          "basis": "create_locked",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.profile.create",
+          "schema_enforced": true,
+          "description": "The stable principal the profile is for. zh/discovery/profiles-presence.md section 2.3 pins it at create to the submitting actor or an explicitly authorized target and no clause ever allowed an update to move it, so the generic patch surface could rebind a profile to another principal while every later write retained the new value verbatim."
+        },
+        {
+          "path": "actor_kind",
+          "basis": "create_locked",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "event_kind",
+          "owner": "ak.profile.create",
+          "schema_enforced": true,
+          "description": "The closed Actor classification. It is decided at create with principal_id; the agent_slug cross-field guard only requires actor_kind=agent when agent_slug is present and does nothing to stop a user being retyped as an agent in place. Changing the subject or the kind is a new object."
         }
-      ]
+      ],
+      "value_member_maintenance": {
+        "owner": "zh/discovery/profiles-presence.md section 2.3 and zh/models/common-fields.md section 3.3",
+        "always_maintained": [
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "zh/models/common-fields.md section 1 defines updated_by as the accepted Event's actor_id. It sits in universal_forbidden_patch_paths, so no author may supply it; if no write produces it the member names an actor who did not author the current value."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "zh/models/common-fields.md section 3 defines updated_at as the accepted Event's canonical lifecycle timestamp. Reducer-owned for the same reason as updated_by."
+          }
+        ],
+        "create_locked": [
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.profile.create"
+            ],
+            "justification": "The schema identifier is a constant of the object kind, fixed by the schema-registry row for ak.schema.actor_profile.v1."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.profile.create"
+            ],
+            "justification": "The Realm binding comes from the stream that accepted the Event, which section 2.3 requires to be the owner's Principal Control Realm. A payload-supplied realm_id is a claim by the author about where the profile lives."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.profile.create"
+            ],
+            "justification": "Creation time is the canonical lifecycle timestamp of the create Event, not a client wall clock the author sends."
+          }
+        ]
+      }
     },
     {
       "object_kind": "circle",
       "object_schema_ref": "schemas/circle.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'circle', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
+      "result_family": "circle",
+      "value_schema_ref": "schemas/circle.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and circle still has two without one: mls_group_id is produced by an accepted ak.mls.genesis for the Circle scope, which is a different Event writing into this object, and history_access has no registered writer at all. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/circle_patch_payload"
       ],
@@ -136,7 +199,9 @@
     {
       "object_kind": "morph",
       "object_schema_ref": "schemas/morph.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'morph', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
+      "result_family": "morph",
+      "value_schema_ref": "schemas/morph.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and morph still has four without one: morph_kind and schema_refs are create-locked but the create payload hands them to the author, and stage / stage_changed_at belong to ak.morph.stage.set, which declares no write. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/morph_update_payload"
       ],
@@ -183,7 +248,8 @@
     {
       "object_kind": "relation",
       "object_schema_ref": "schemas/relation.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'relation', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
+      "result_family": "relation",
+      "value_schema_ref": "schemas/relation.schema.json",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/relation_update_payload"
       ],
@@ -198,12 +264,89 @@
           "schema_enforced": true,
           "description": "Relation is the only patch-surface object whose schema declares effective_scope, so the generic patch surface is the only place an actor could still supply it. The materialized value is immutable across any later scope rebind."
         }
-      ]
+      ],
+      "value_member_maintenance": {
+        "owner": "zh/models/relation.md sections 6.2-6.5 and zh/models/common-fields.md sections 3.3 and 5.2",
+        "always_maintained": [
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "zh/models/common-fields.md section 1 defines updated_by as the accepted Event's actor_id. It sits in universal_forbidden_patch_paths, so no author may supply it; if no write produces it the member is supplied once at create and afterwards names an actor who did not author the current value."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "zh/models/common-fields.md section 3 defines updated_at as the accepted Event's canonical lifecycle timestamp. Reducer-owned for the same reason as updated_by, so only a registered production can maintain it."
+          }
+        ],
+        "conditional_producers": [
+          {
+            "path": "state",
+            "derivation": "object_initial_state",
+            "producer_kinds": [
+              "ak.relation.create"
+            ],
+            "condition": "Every accepted ak.relation.create installs the registered initial state. A Relation has a dedicated terminal kind, so unlike View it gets no universal_exemptions row and no patch may reach the member."
+          },
+          {
+            "path": "state",
+            "derivation": "object_lifecycle_state",
+            "producer_kinds": [
+              "ak.relation.tombstone"
+            ],
+            "condition": "An accepted ak.relation.tombstone, which zh/models/common-fields.md section 5.2 maps to tombstoned. Relation has no archive or restore kind, so tombstoned is the only state this derivation can produce here and it is terminal: a later update or a second tombstone MUST fail with failed_precondition."
+          },
+          {
+            "path": "state_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.relation.tombstone"
+            ],
+            "condition": "The same accepted tombstone, in the same write. section 3.3 requires the two members of the state axis to be produced together, and forbids a create from producing this one at all, so its absence on a live Relation is the contract rather than a missing producer."
+          }
+        ],
+        "create_locked": [
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.relation.create"
+            ],
+            "justification": "The schema identifier is a constant of the object kind, fixed by the schema-registry row for ak.schema.relation.v1. An author region that declares it lets a signed create claim a different contract for the value it is writing."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.relation.create"
+            ],
+            "justification": "The Realm binding comes from the stream that accepted the Event. A payload-supplied realm_id is a cross-Realm claim made by the author about where the edge lives."
+          },
+          {
+            "path": "created_by",
+            "derivation": "object_create_actor",
+            "producer_kinds": [
+              "ak.relation.create"
+            ],
+            "justification": "The creator is the accepted Event actor_id. relation_create_object used to declare this member and a prose sentence asked semantic validation to cross-check it against the envelope; a prose cross-check is not a gate."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.relation.create"
+            ],
+            "justification": "Creation time is the canonical lifecycle timestamp of the create Event, not a client wall clock the author sends."
+          }
+        ]
+      }
     },
     {
       "object_kind": "space",
       "object_schema_ref": "schemas/space.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'space', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
+      "result_family": "space",
+      "value_schema_ref": "schemas/space.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and space still has three without one: scope_circle_id has no registered writer, while parent_space_id and child_scope_policy are owned by the separate space_parent and space_child_scope_policy families and are excluded from this object's own projection. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/space_patch_payload"
       ],
@@ -242,7 +385,8 @@
       "object_kind": "strand",
       "object_schema_ref": "schemas/strand.schema.json",
       "result_family": "strand",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract: it has no registered result_writes[] yet, so no value schema binds its family and value_member_maintenance has nothing to measure.",
+      "value_schema_ref": "schemas/strand.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and strand still has two without one: stage and stage_changed_at belong to the Strand stage axis, whose event kind declares no write. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/strand_patch_payload"
       ],

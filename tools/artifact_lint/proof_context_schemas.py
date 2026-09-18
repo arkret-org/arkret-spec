@@ -885,6 +885,28 @@ def _authored_members(lint: Lint, where: str, payload_schema_ref: Any, field: An
     return members - _forbidden_member_names(node)
 
 
+def _create_locked_author_paths(lint: Lint, where: str, write: dict, kind: Any) -> set[str]:
+    """Paths this very event kind is the registered create-lock owner of.
+
+    `_effective_forbidden_paths` returns strings, so the basis and the owner of
+    each row are gone by the time the whole-value check reads it. This re-reads
+    the same row and keeps only the `create_locked` bans whose owner is the kind
+    doing the writing.
+    """
+    target = _patch_target(lint, where, write)
+    if target is None:
+        return set()
+    return {
+        entry["path"]
+        for entry in target["row"].get("forbidden_patch_paths") or []
+        if isinstance(entry, dict)
+        and isinstance(entry.get("path"), str)
+        and entry.get("basis") == "create_locked"
+        and entry.get("owner_kind") == "event_kind"
+        and entry.get("owner") == kind
+    }
+
+
 def check_result_value_member_closure(lint: Lint) -> None:
     """Every member of a covered result value has a registered source on every write.
 
@@ -1119,8 +1141,27 @@ def check_result_value_member_closure(lint: Lint) -> None:
                     produced[family].setdefault(name, set()).add(where)
             forbidden = _effective_forbidden_paths(lint, where, write, kind)
             if forbidden is not None:
+                # A `create_locked` ban owned by THIS event kind is not a ban on
+                # this write. The basis says the member is decided once, at
+                # create, and may never be patched afterwards -- and for a member
+                # no derivation can produce, deciding it once IS author input on
+                # the create kind. `actor_profile.principal_id` is the case that
+                # made this explicit: nothing can derive which principal a
+                # profile is for, `profiles-presence.md` section 2.3 has the
+                # create declare it, and closing the patch surface against it
+                # would otherwise have closed the create surface too, leaving a
+                # required member with no source at all. The carve-out is as
+                # narrow as the universal_exemptions one above it: the row's
+                # `owner_kind` must be `event_kind` and its `owner` must be the
+                # kind now writing, so a create-lock owned by another kind stays
+                # forbidden here, and the patch surface is untouched in every
+                # case -- `_check_result_apply_patch_projection` solves against
+                # the full set.
+                exempt = _create_locked_author_paths(lint, where, write, kind)
                 reserved = sorted(
-                    path for path in authored if _names_a_forbidden_path(path, forbidden)
+                    path
+                    for path in authored
+                    if _names_a_forbidden_path(path, forbidden - exempt)
                 )
                 if reserved:
                     lint.fail(
@@ -1213,6 +1254,26 @@ def check_result_value_member_closure(lint: Lint) -> None:
                     "nor are registered creators: a create-locked member MUST be carried verbatim by "
                     "every other write",
                 )
+        # A path may carry more than one conditional_producers row, because one
+        # member can have two producers with two different derivations: after
+        # `object_lifecycle_state` was registered, `state` is produced by the
+        # create kind through `object_initial_state` AND by the lifecycle kind
+        # through `object_lifecycle_state`. A row names exactly one derivation,
+        # so the two cases are two rows -- and the "no other write produces this"
+        # check has to be solved against the union of the rows for that path,
+        # not against one row at a time, or each row would report the other row's
+        # producer as an intruder.
+        conditional_expected: dict[str, set[str]] = {}
+        for item in maintenance.get("conditional_producers") or []:
+            if not isinstance(item, dict):
+                continue
+            path = item.get("path")
+            allowed_kinds = item.get("producer_kinds")
+            if not isinstance(path, str) or not isinstance(allowed_kinds, list):
+                continue
+            conditional_expected.setdefault(path, set()).update(
+                where for where in writes if where.split(".result_writes[")[0] in allowed_kinds
+            )
         for item in maintenance.get("conditional_producers") or []:
             if not isinstance(item, dict):
                 continue
@@ -1254,12 +1315,13 @@ def check_result_value_member_closure(lint: Lint) -> None:
                     f"family {family!r} registers {allowed_kinds} as the producer(s) of {path!r}, but "
                     f"{missing} declare no such derived member",
                 )
-            extra = sorted(actual - expected)
+            extra = sorted(actual - conditional_expected.get(path, expected))
             if extra:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
                     f"{extra} produce {path!r} for family {family!r}, which "
-                    f"reducer-managed-path-registry.json assigns to {allowed_kinds} alone",
+                    "reducer-managed-path-registry.json assigns to the producer_kinds of its "
+                    "conditional_producers row(s) alone",
                 )
 
 

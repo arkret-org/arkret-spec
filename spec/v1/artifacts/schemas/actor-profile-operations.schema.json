@@ -67,6 +67,9 @@
         },
         "profile_event": {
           "$ref": "#/$defs/profile_event"
+        },
+        "account_status": {
+          "$ref": "#/$defs/account_status_projection"
         }
       },
       "additionalProperties": false
@@ -114,6 +117,42 @@
           "items": {
             "$ref": "#/$defs/resolve_failure"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_status_projection": {
+      "type": "object",
+      "description": "Optional AccountStatusRecord projection served beside the profile. The durable Actor Profile object used to carry a status member, which was unwritable by construction: zh/identity/account-lifecycle.md section 3 keeps AccountStatusRecord out of every authority stream, RealmCommit, Control Proposal and reducer, so no registered result_writes[] row could ever produce it and no author could be allowed to. It is a read-side projection and lives here. The Station MUST have verified the exact record it is projecting -- the same account_id, the record's own proof, and the status_seq against its durable monotonic replica head -- and MUST omit this member entirely when it holds no verified record. Omission means unknown. A caller MUST NOT read a missing member as active, and MUST NOT cache a status across a profile revision: the record changes on the Account Authority's clock, not on the profile's.",
+      "required": [
+        "account_id",
+        "status",
+        "status_seq",
+        "account_status_record_id"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "soft_logged_out",
+            "locked",
+            "suspended",
+            "deactivated",
+            "erasure_pending"
+          ],
+          "description": "The closed AccountStatusRecord lifecycle value of zh/identity/account-lifecycle.md section 3. Implementations MAY coarsen or withhold the projection, but MUST NOT invent a value."
+        },
+        "status_seq": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "status_seq of the exact record projected, so the caller can order and re-check it."
+        },
+        "account_status_record_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_status_record_id"
         }
       },
       "additionalProperties": false

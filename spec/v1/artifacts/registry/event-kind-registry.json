@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T19:00:00+08:00",
+  "generated_at": "2026-09-21T20:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -96,7 +96,7 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 78 of the 134 reducer_input kinds declare it; the remaining 56 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 99 of the 134 reducer_input kinds declare it; the remaining 35 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -1309,7 +1309,46 @@
       "reducer_input": true,
       "payload": "Circle archive lifecycle facet (active -> archived).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "circle",
+          "result_selector": {
+            "kind": "id:circle",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/circle.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.circle.create",
@@ -1321,7 +1360,23 @@
       "payload": "Circle create (intra-Realm scoped event/message boundary). The Circle scope stays plaintext until its own ak.mls.genesis is accepted.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
       "id_source": "event_derived",
-      "id_kind": "circle"
+      "id_kind": "circle",
+      "result_writes": [
+        {
+          "result_family": "circle",
+          "result_selector": {
+            "kind": "id:circle"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          },
+          "value_schema_ref": "schemas/circle.schema.json",
+          "notes": "zh/models/circle.md. The selector carries no field because ak.circle.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and circle_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
+        }
+      ]
     },
     {
       "event_kind": "ak.circle.history_access",
@@ -1354,7 +1409,46 @@
       "reducer_input": true,
       "payload": "Circle restore lifecycle facet (archived -> active).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "circle",
+          "result_selector": {
+            "kind": "id:circle",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/circle.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.circle.tombstone",
@@ -1365,7 +1459,46 @@
       "reducer_input": true,
       "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "circle",
+          "result_selector": {
+            "kind": "id:circle",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/circle.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.circle.update",
@@ -2829,7 +2962,46 @@
       "reducer_input": true,
       "payload": "Morph archive",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "morph",
+          "result_selector": {
+            "kind": "id:morph",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/morph.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.morph.create",
@@ -2841,7 +3013,23 @@
       "payload": "Morph create",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_create_payload",
       "id_source": "event_derived",
-      "id_kind": "morph"
+      "id_kind": "morph",
+      "result_writes": [
+        {
+          "result_family": "morph",
+          "result_selector": {
+            "kind": "id:morph"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          },
+          "value_schema_ref": "schemas/morph.schema.json",
+          "notes": "zh/models/morph.md. The selector carries no field because ak.morph.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and morph_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
+        }
+      ]
     },
     {
       "event_kind": "ak.morph.restore",
@@ -2852,7 +3040,46 @@
       "reducer_input": true,
       "payload": "Morph restore",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "morph",
+          "result_selector": {
+            "kind": "id:morph",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/morph.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.morph.stage.set",
@@ -3137,7 +3364,45 @@
       "payload": "Actor profile create",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_create_payload",
       "id_source": "event_derived",
-      "id_kind": "actor_profile"
+      "id_kind": "actor_profile",
+      "result_writes": [
+        {
+          "result_family": "actor_profile",
+          "result_selector": {
+            "kind": "id:actor_profile"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          },
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "value_schema_ref": "schemas/actor-profile.schema.json",
+          "notes": "zh/discovery/profiles-presence.md section 2.3. The selector carries no field because the profile id IS this create Event's own event_id retyped to ak:actor_profile:, which is why payload.object.id MUST be omitted. payload.object is the closed authoring region actor_profile_definition. principal_id and actor_kind are author input here and create-locked afterwards: no derivation can produce which principal a profile is for, so the create declares it under section 2.3's rule that it equals the submitter or an explicitly authorized target, and the patch surface is closed against both."
+        }
+      ]
     },
     {
       "event_kind": "ak.profile.realm_override",
@@ -3161,7 +3426,49 @@
       "admission": "self_authored_proof",
       "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution typed current result is the sole write authority for that materialized projection.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
-      "id_source": "reference"
+      "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "actor_profile",
+          "result_selector": {
+            "kind": "id:actor_profile",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "display_name",
+              "handle",
+              "agent_slug",
+              "avatar_blob_ref",
+              "accountable_principal_ids",
+              "profile_fields"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "principal_id",
+            "actor_kind",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/actor-profile.schema.json",
+          "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them."
+        }
+      ]
     },
     {
       "event_kind": "ak.reaction.add",
@@ -3274,7 +3581,27 @@
       "reducer_input": true,
       "payload": "Explicit archive operation; no caller-supplied state or scheduling fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_archive",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "archived",
+                  "literal": true
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_archive_value",
+          "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; restore only lifts the archive and lifts no terminal, redaction, other gate or capability limit."
+        }
+      ]
     },
     {
       "event_kind": "ak.realm.asset_privacy_policy",
@@ -3648,7 +3975,27 @@
       "reducer_input": true,
       "payload": "Explicit freeze operation; no caller-supplied state or scheduling fields.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_freeze",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "frozen",
+                  "literal": true
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_freeze_value",
+          "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; unfreeze only lifts the freeze and lifts no terminal, redaction, other gate or capability limit."
+        }
+      ]
     },
     {
       "event_kind": "ak.realm.governance_station.change",
@@ -4007,7 +4354,27 @@
       "reducer_input": true,
       "payload": "Explicit restore operation on the same registered facet; other gates remain unchanged.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_archive",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "archived",
+                  "literal": false
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_archive_value",
+          "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; restore only lifts the archive and lifts no terminal, redaction, other gate or capability limit."
+        }
+      ]
     },
     {
       "event_kind": "ak.realm.schema",
@@ -4110,7 +4477,27 @@
       "reducer_input": true,
       "payload": "Explicit unfreeze operation on the same registered facet; other gates remain unchanged.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_freeze",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "frozen",
+                  "literal": false
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_freeze_value",
+          "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; unfreeze only lifts the freeze and lifts no terminal, redaction, other gate or capability limit."
+        }
+      ]
     },
     {
       "event_kind": "ak.redaction",
@@ -4155,7 +4542,53 @@
       "payload": "Relation create",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
       "id_source": "event_derived",
-      "id_kind": "relation"
+      "id_kind": "relation",
+      "result_writes": [
+        {
+          "result_family": "relation",
+          "result_selector": {
+            "kind": "id:relation"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.relation"
+            }
+          },
+          "value_schema_ref": "schemas/relation.schema.json",
+          "notes": "zh/models/relation.md sections 6.2-6.5. relation_id is event-derived, so the id:relation selector retypes this create Event's own id and relation_create_object forbids a payload-carried id. payload.relation is now relation.schema.json#/$defs/relation_definition -- the edge and its metadata -- rather than the materialized object, so the seven members the reducer owns are produced here instead of being authored and then retained verbatim forever. state_changed_at is NOT produced: zh/models/common-fields.md section 3.3 forbids a create from leaving the initial state, so the member is absent until a lifecycle Event moves it.",
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "created_by",
+              "derivation": "object_create_actor"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "state",
+              "derivation": "object_initial_state"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ]
+        }
+      ]
     },
     {
       "event_kind": "ak.relation.resolve",
@@ -4208,7 +4641,49 @@
       "reducer_input": true,
       "payload": "Irreversible Relation lifecycle transition. payload.relation_id is the sole target carrier; payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
-      "id_source": "reference"
+      "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "relation",
+          "result_selector": {
+            "kind": "id:relation",
+            "field": "payload.relation_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at",
+            "relation_kind",
+            "from_ref",
+            "to_ref"
+          ],
+          "value_schema_ref": "schemas/relation.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.relation.update",
@@ -4219,7 +4694,49 @@
       "reducer_input": true,
       "payload": "Relation patch",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_update_payload",
-      "id_source": "reference"
+      "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "relation",
+          "result_selector": {
+            "kind": "id:relation",
+            "field": "payload.relation_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "scope_circle_id",
+              "relation_kind",
+              "from_ref",
+              "to_ref",
+              "rank",
+              "fields"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at",
+            "state"
+          ],
+          "value_schema_ref": "schemas/relation.schema.json",
+          "notes": "zh/models/relation.md section 6.2. The six allowed paths are exactly the members relation_definition hands the author; everything else relation.schema.json declares is either universal_forbidden_patch_paths or the object's own effective_scope ban, which relation_update_payload already enforces through its propertyNames guard. state is retained rather than patched: an ordinary update MUST NOT resurrect a tombstoned Relation or tombstone a live one, and the state axis belongs to ak.relation.tombstone alone."
+        }
+      ]
     },
     {
       "event_kind": "ak.rsvp.set",
@@ -4495,7 +5012,46 @@
       "reducer_input": true,
       "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "space",
+          "result_selector": {
+            "kind": "id:space",
+            "field": "payload.space_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/space.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.space.create",
@@ -4590,6 +5146,20 @@
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/space_child_scope_policy_value",
           "notes": "models/circle.md section 7.1 makes the policy optional, so the undeclared state is a real state and gets written explicitly as null rather than left as an absent register. The reducer MUST NOT synthesize the allow_any object here: a projection may only write what the signed Event or the envelope supplies, and null is the one registered spelling of the absent state. models/circle.md section 7.1 is authoritative for the enum and the reducer obligations; section 6.3 for why it is not interchangeable with Space.scope_circle_id. The write is conditional on the dedicated top-level child_scope_policy member of space_patch_payload, never on the generic patch: that payload forbids the patch from reaching the path at all and its own description makes a policy member select security execution, so the two branches of the payload's anyOf are two different admission paths rather than two spellings of one. An absent member means the Event is the metadata-patch branch and writes nothing here; it does not mean allow_any."
+        },
+        {
+          "result_family": "space",
+          "result_selector": {
+            "kind": "id:space"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          },
+          "value_schema_ref": "schemas/space.schema.json",
+          "notes": "zh/models/realm-and-space.md. The selector carries no field because ak.space.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and space_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
         }
       ],
       "id_source": "event_derived",
@@ -4656,7 +5226,46 @@
       "reducer_input": true,
       "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "space",
+          "result_selector": {
+            "kind": "id:space",
+            "field": "payload.space_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/space.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.space.tombstone",
@@ -4667,7 +5276,46 @@
       "reducer_input": true,
       "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_object_tombstone_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "space",
+          "result_selector": {
+            "kind": "id:space",
+            "field": "payload.space_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/space.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.space.update",
@@ -4710,7 +5358,46 @@
       "reducer_input": true,
       "payload": "Strand archive",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "strand",
+          "result_selector": {
+            "kind": "id:strand",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/strand.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.strand.create",
@@ -4843,7 +5530,46 @@
       "reducer_input": true,
       "payload": "Strand restore",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "strand",
+          "result_selector": {
+            "kind": "id:strand",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "allowed_paths": []
+          },
+          "derived_members": [
+            {
+              "name": "state",
+              "derivation": "object_lifecycle_state"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/strand.schema.json",
+          "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+        }
+      ]
     },
     {
       "event_kind": "ak.strand.stage.set",

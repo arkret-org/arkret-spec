@@ -481,6 +481,22 @@ CELL_WRITE_DERIVATIONS = {
     "object_create_actor",
     "object_create_time",
     "object_initial_state",
+    # The terminal half of the same axis. `state` is in
+    # `universal_forbidden_patch_paths` with basis `dedicated_event_owned`, so no
+    # author may patch it and `object_initial_state` only ever produces the
+    # initial value -- which left every `ak.<kind>.archive` / `.restore` /
+    # `.tombstone` kind with nothing it could legally declare, and all eleven of
+    # them sat at `result_writes: []` while the five object families they close
+    # could not be registered at all. `object_lifecycle_state` is that missing
+    # producer: on an accepted lifecycle Event it yields the state
+    # zh/models/common-fields.md section 5.2 maps the kind to -- archive ->
+    # archived, restore -> active, tombstone -> tombstoned -- for the one target
+    # object the Event names. It is a reducer rule and not an author permission:
+    # nothing about the patch surface changes, and only a kind registered as a
+    # transition carrier for that family may declare it. The View exemption stays
+    # the single `universal_exemptions` row it always was, because a shared View
+    # has no dedicated lifecycle kind to carry this derivation.
+    "object_lifecycle_state",
 }
 
 
