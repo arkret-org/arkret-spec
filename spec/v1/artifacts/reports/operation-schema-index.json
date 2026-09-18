@@ -3450,20 +3450,30 @@
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "stream_ref",
-          "after_position",
-          "limit"
-        ],
-        "properties": [
-          "realm_id",
-          "stream_ref",
-          "after_position",
-          "limit"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_kind": null,
+            "required": [
+              "after_position"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_kind": null,
+            "required": [
+              "before_position"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
@@ -7022,20 +7032,30 @@
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "stream_ref",
-          "after_position",
-          "limit"
-        ],
-        "properties": [
-          "realm_id",
-          "stream_ref",
-          "after_position",
-          "limit"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_kind": null,
+            "required": [
+              "after_position"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
+            "schema_kind": null,
+            "required": [
+              "before_position"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",

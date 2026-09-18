@@ -1073,7 +1073,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
 - SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
 - SHOULD 将开放注册集建模为可保留未知字符串的 non-exhaustive 类型，并为 schema 明示扩展位保留 raw canonical value；不得用封闭 enum 或丢弃未知字段的通用反序列化默认破坏条款 16、17。
-- SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。
+- SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。条款 21 的 `has_more` 合同只覆盖列表分页：`ak.self.events.read.scan.v1` / `ak.peer.events.read.scan.v1` 既无 cursor 也无 `has_more`，续页由调用方从本批的 `stream_position` 自行推进（[api-conventions §7.2](../sync/api-conventions.md)），SDK 不得把列表 paginator 套到该面上。
 - SHOULD 提供不依赖 UI 的 confusable-check public utility，并以 canonical test set 固定输出（对应条款 22）。
 - MUST 让 outer shape 与 payload shape 的非法组合无法通过公开构造器产生；raw wire Event 只能进入解析/草稿态，必须显式转换成 immutable verified submission 后才可交给 publication evidence 或 submit API（对应条款 23）。
 - SHOULD 让 describe/ping 的公开消费 API 从 raw JSON bootstrap 判别开始，并只在版本精确匹配后产出 typed service 值；不得提供跳过该判别而直接写入已验证路由缓存的公开入口（对应条款 24）。

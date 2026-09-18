@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-18.2",
-      "generated_at": "2026-09-18T23:10:00+08:00",
-      "content_digest": "sha256:3e126b628e6941be535687fdb0f1fa5c41a8badfa583f917acbab6d5d82afd84"
+      "version": "2026-09-19.1",
+      "generated_at": "2026-09-19T00:20:00+08:00",
+      "content_digest": "sha256:c1d3440c2ee99d4bebb3b1664480ab802f9fadeeb416bcc3aed8715abf172498"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-18.3",
-      "generated_at": "2026-09-18T22:40:00+08:00",
-      "content_digest": "sha256:575521b02edab3c9ce14f378362cb0dd65bf1faa04e6fb8bffe38b201ff1d364"
+      "version": "2026-09-18.4",
+      "generated_at": "2026-09-18T22:45:00+08:00",
+      "content_digest": "sha256:133bf4b96c9f72855313e4ebbc14345bfd395604acc04e3e8cd349e494fa1e04"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.40",
-      "generated_at": "2026-09-18T21:20:01+08:00",
-      "content_digest": "sha256:ee24a3ca696a6edcfcf31b862965972d6fc062f5d2ecd418fac7bf3efce09204"
+      "version": "2026-09-16.45",
+      "generated_at": "2026-09-18T21:25:01+08:00",
+      "content_digest": "sha256:c95811da9c9d47eb13346e7ce5d05fcd28b5047e6f87e92f1b17de1adf1cbd16"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -279,9 +279,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-09-16.18",
-      "generated_at": "2026-09-17T02:00:00+08:00",
-      "content_digest": "sha256:ea6c7f8ade184df9469eca12309c2cd4b75065f1e8ab56b2cb139b8ec1d1805f"
+      "version": "2026-09-18.2",
+      "generated_at": "2026-09-18T23:50:00+08:00",
+      "content_digest": "sha256:d437261ffe67d6f77af9bad950a54886b0694079fef16e9f0c196cfd029f9f99"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",

@@ -229,7 +229,7 @@ frame，不依赖 WebSocket reason string 传递完整诊断。
 `open` 是按 operation discriminator 闭合的 union：
 
 - account：`parameters={after?,catchup?,filter?,wait_for?}`；`filter` 只有
-  `realms/timeline_limit/lazy_load_members/include_redundant_members/event_kinds/not_event_kinds`；
+  `realms/window_limit/lazy_load_members/include_redundant_members/event_kinds/not_event_kinds`；
 - events：`parameters={realm_ids?,actor_ids?,after?,catchup?}`，`realm_ids` / `actor_ids` 至少一个出现；`actor_ids` 为完整 canonical `ActorId` 对象数组，不接受裸 DID；
 - signal：`parameters={}`。
 

@@ -100,7 +100,7 @@ see_also:
 | Historical completeness | 历史完整性 | Arkret v1 不提供“source 未隐藏任何 Event”的证明。cursor、分页结束、checkpoint/root、receipt、Snapshot、RealmCommit listed-set commitment 或 witness 对已见视图的签名都不得升级为无遗漏保证。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 checkpoint。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，固定格式 `<unix_ms_hex(12)>-<logical_hex(4)>-<node_id_hash(8)>`（hex 字段宽度依次 12 / 4 / 8）；canonical 规则见 [`../conformance/encoding.md` §7](../conformance/encoding.md)。 |
-| Cursor | 同步游标 | `ak:cursor:<base64url>` 形态的不透明 token，`purpose ∈ {stream, barrier}`；只表示某一读取或订阅 rail 的分页/续传位置，不声明因果、RealmCommit、安全或可见性边界，**不得**与任何 Checkpoint 互换。内部结构与验证规则的单一真相源见 [`../conformance/encoding.md` §8](../conformance/encoding.md)。 |
+| Cursor | 同步游标 | `ak:cursor:<base64url>` 形态的不透明 token，`purpose ∈ {stream, barrier}`；只表示某一读取或订阅 rail 的分页/续传位置，不声明因果、RealmCommit、安全或可见性边界，**不得**与任何 Checkpoint 互换。只用于 account 聚合流续传、列表分页与写后读屏障三处；**单条 stream 的扫描不用 cursor**，用 `stream_position` 整数（[`../sync/api-conventions.md` §7.2](../sync/api-conventions.md)）。内部结构与验证规则的单一真相源见 [`../conformance/encoding.md` §8](../conformance/encoding.md)。 |
 | Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，所有签名/哈希/对账输入必须使用；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
 | View | 投影定义 | 查询 + kind + renderer + config 的共享可签名对象，定义“怎么看”。 |
 | View.kind | 投影族类 | `collection / timeline / graph / document / composite`。 |

@@ -841,12 +841,33 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             # One scan request selects exactly one authority stream and walks it
             # by continuous stream_position, so the body names a single
             # (realm_id, stream_ref) pair instead of a multi-target selector.
-            expected_required = ["realm_id", "stream_ref", "after_position", "limit"]
+            expected_required = ["realm_id", "stream_ref", "limit"]
             if schema.get("required") != expected_required:
                 lint.fail(
                     openapi_path,
                     "ak.self.events.read.scan.v1 requestBody must require exactly "
                     f"{expected_required}",
+                )
+            # Direction is carried by which position parameter is present, not by
+            # a separate direction field: after_position walks toward newer
+            # commits, before_position backfills older history. Exactly one of
+            # them, enforced structurally so a request can never name both or
+            # neither.
+            expected_direction_choice = [
+                {
+                    "required": ["after_position"],
+                    "not": {"required": ["before_position"]},
+                },
+                {
+                    "required": ["before_position"],
+                    "not": {"required": ["after_position"]},
+                },
+            ]
+            if schema.get("oneOf") != expected_direction_choice:
+                lint.fail(
+                    openapi_path,
+                    "ak.self.events.read.scan.v1 requestBody must require exactly one of "
+                    "after_position / before_position",
                 )
             if schema.get("additionalProperties") is not False:
                 lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must be closed")
@@ -866,16 +887,17 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                         property_schema, ref.rsplit("/", 1)[-1]
                     ):
                         lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must reference {ref}")
-                after_position = properties.get("after_position")
-                if not isinstance(after_position, dict) or after_position.get("oneOf") != [
-                    {"type": "integer", "minimum": 0},
-                    {"type": "null"},
-                ]:
-                    lint.fail(
-                        openapi_path,
-                        "ak.self.events.read.scan.v1.after_position must be a non-negative "
-                        "stream position or null",
-                    )
+                for position_name in ("after_position", "before_position"):
+                    position_schema = properties.get(position_name)
+                    if not isinstance(position_schema, dict) or position_schema.get("oneOf") != [
+                        {"type": "integer", "minimum": 0},
+                        {"type": "null"},
+                    ]:
+                        lint.fail(
+                            openapi_path,
+                            f"ak.self.events.read.scan.v1.{position_name} must be a non-negative "
+                            "stream position or null",
+                        )
                 limit = properties.get("limit")
                 if not isinstance(limit, dict) or limit.get("type") != "integer" or limit.get("minimum") != 1:
                     lint.fail(openapi_path, "ak.self.events.read.scan.v1.limit must be a bounded positive integer")

@@ -42,7 +42,7 @@ import posixpath
 import re
 from typing import Any
 
-from .core import ARTIFACTS, Lint, TOOLS_ROOT, load_json, resolve_json_pointer
+from .core import ARTIFACTS, Lint, SPEC_ROOT, TOOLS_ROOT, load_json, read_text, resolve_json_pointer
 
 PROOF_CONTEXT_REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMA_REGISTRY = ARTIFACTS / "registry" / "schema-registry.json"
@@ -171,6 +171,191 @@ def check_proof_context_object_family_schemas(lint: Lint) -> None:
                     PROOF_CONTEXT_REGISTRY,
                     f"{where} object_family {label!r} reference {reference} is not covered by any "
                     "registered schema id",
+                )
+
+
+ANCHOR_EXEMPTIONS = TOOLS_ROOT / "proof-context-anchor-exemptions.json"
+FORBIDDEN_WIRE_FIELDS = ARTIFACTS / "registry" / "forbidden-wire-fields.json"
+FORBIDDEN_EVENT_CONTEXT = "producer_event_envelope_root"
+
+
+def _anchor_corpus() -> list[tuple[str, str]]:
+    """Every place a carrier-bound family may legitimately be defined."""
+    paths = sorted((SPEC_ROOT / "zh").rglob("*.md"))
+    paths += sorted((ARTIFACTS / "schemas").glob("*.json"))
+    paths += sorted((ARTIFACTS / "fixtures").glob("*.json"))
+    paths.append(ARTIFACTS / "registry" / "vector-registry.json")
+    return [(str(path), read_text(path)) for path in paths if path.is_file()]
+
+
+def _row_is_anchored(row: dict[str, Any], corpus: list[tuple[str, str]]) -> bool:
+    if isinstance(row.get("schema_ref"), str) and row["schema_ref"]:
+        return True
+    transcript_refs = row.get("transcript_schema_refs")
+    if isinstance(transcript_refs, list) and any(
+        isinstance(item, str) and item for item in transcript_refs
+    ):
+        return True
+    if isinstance(row.get("defined_in"), str) and row["defined_in"]:
+        return True
+    literals = [
+        value
+        for value in (row.get("object_family"), row.get("domain"))
+        if isinstance(value, str) and value
+    ]
+    return any(literal in text for literal in literals for _, text in corpus)
+
+
+def check_proof_context_carrier_family_anchors(lint: Lint) -> None:
+    """A carrier-bound domain separation must be defined somewhere, not only here.
+
+    ``check_proof_context_object_family_schemas`` deliberately exempts the
+    primitives that bind bytes assembled from an enclosing carrier -- they have
+    no standalone wire object to point a ``schema_ref`` at. That exemption left
+    the whole carrier half of ``domain_separations[]`` with no reachability
+    requirement at all, and ``ak.events.checkpoint.leaf/node/root.v1`` lived
+    there for exactly that reason: three registered Merkle separators whose
+    producer, verifier, commitment and failure mode appeared in no prose, no
+    schema, no vector and no fixture, while ``zh/sync/authority-commit-log.md``
+    section 7 states that a v1 Snapshot carries no state root and no sparse
+    Merkle proof. A registered domain separation is a promise that some byte
+    string is computed under that label; when nothing defines it the promise is
+    unimplementable, and the next reader cannot tell a live separator from a
+    fossil.
+
+    So each carrier-bound row must either declare a reference of its own
+    (``schema_ref``, ``transcript_schema_refs`` or ``defined_in``) or have its
+    ``object_family`` or ``domain`` literal occur in zh prose, a schema, a
+    fixture or the vector registry. Rows that predate this gate and have not
+    been adjudicated are named one by one in
+    ``tools/proof-context-anchor-exemptions.json``; that file is a ratchet, so a
+    listed row that has since acquired an anchor is itself an error and must be
+    removed from the list rather than left as cover for the next orphan.
+    """
+    data = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    if not isinstance(data, dict):
+        lint.fail(PROOF_CONTEXT_REGISTRY, "proof context registry must be an object")
+        return
+    rows = data.get("domain_separations")
+    if not isinstance(rows, list):
+        return
+
+    exemptions: dict[str, str] = {}
+    if ANCHOR_EXEMPTIONS.is_file():
+        document = load_json(lint, ANCHOR_EXEMPTIONS)
+        entries = document.get("unanchored_families") if isinstance(document, dict) else None
+        if not isinstance(entries, list):
+            lint.fail(ANCHOR_EXEMPTIONS, "unanchored_families[] must be an array")
+            entries = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                lint.fail(ANCHOR_EXEMPTIONS, "unanchored_families[] entries must be objects")
+                continue
+            family = entry.get("object_family")
+            reason = entry.get("reason")
+            if not isinstance(family, str) or not family:
+                lint.fail(ANCHOR_EXEMPTIONS, "every entry must name an object_family")
+                continue
+            if not isinstance(reason, str) or not reason:
+                lint.fail(ANCHOR_EXEMPTIONS, f"{family} must state a reason")
+                continue
+            exemptions[family] = reason
+
+    corpus = _anchor_corpus()
+    seen: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict) or row.get("primitive") in OBJECT_BEARING_PRIMITIVES:
+            continue
+        family = row.get("object_family")
+        label = family if isinstance(family, str) and family else f"domain_separations[{index}]"
+        if isinstance(family, str):
+            seen.add(family)
+        anchored = _row_is_anchored(row, corpus)
+        exempted = isinstance(family, str) and family in exemptions
+        if anchored and exempted:
+            lint.fail(
+                ANCHOR_EXEMPTIONS,
+                f"{family} is exempted but now has an anchor; remove the exemption",
+            )
+            continue
+        if anchored or exempted:
+            continue
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"domain_separations[{index}] object_family {label!r} is defined nowhere: neither the "
+            "object_family nor the domain literal occurs in zh prose, a schema, a fixture or the "
+            "vector registry, and the row declares no schema_ref, transcript_schema_refs or "
+            "defined_in. Define it, withdraw it, or record it in "
+            "tools/proof-context-anchor-exemptions.json with a reason",
+        )
+
+    for family in sorted(set(exemptions) - seen):
+        lint.fail(
+            ANCHOR_EXEMPTIONS,
+            f"{family} is exempted but is no longer a carrier-bound domain separation; "
+            "remove the exemption",
+        )
+
+
+def check_domain_separation_binding_fields_are_carriable(lint: Lint) -> None:
+    """No proof context may bind a field the Event wire forbids.
+
+    ``ak.events.checkpoint.leaf.v1`` hashed ``producer_revision`` into its Merkle
+    leaf while ``zh/models/event-and-patch.md`` and
+    ``zh/sync/authority-commit-log.md`` both place that field in the closed
+    forbidden set for ``producer_event_envelope_root``. A binding field that can
+    never appear leaves an implementer two bad choices: derive no digest at all,
+    or silently skip the missing member, which discards the very separation the
+    row exists to provide. Either way the registry states a commitment nobody can
+    reproduce.
+
+    This rule is independent of whether any particular family survives: binding a
+    forbidden field is wrong whether the family is withdrawn or fleshed out.
+    """
+    forbidden = load_json(lint, FORBIDDEN_WIRE_FIELDS)
+    entries = forbidden.get("entries") if isinstance(forbidden, dict) else None
+    if not isinstance(entries, list) or not entries:
+        lint.fail(FORBIDDEN_WIRE_FIELDS, "entries[] must be a non-empty array")
+        return
+    names: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, dict) or entry.get("context") != FORBIDDEN_EVENT_CONTEXT:
+            continue
+        match = entry.get("match")
+        if not isinstance(match, dict) or match.get("kind") != "field":
+            continue
+        names.update(value for value in (match.get("values") or []) if isinstance(value, str))
+    if not names:
+        lint.fail(
+            FORBIDDEN_WIRE_FIELDS,
+            f"no field entries registered for context {FORBIDDEN_EVENT_CONTEXT}; "
+            "the proof-context binding gate would silently pass",
+        )
+        return
+
+    data = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    if not isinstance(data, dict):
+        lint.fail(PROOF_CONTEXT_REGISTRY, "proof context registry must be an object")
+        return
+    for array_name in ("contexts", "domain_separations"):
+        rows = data.get(array_name)
+        if not isinstance(rows, list):
+            continue
+        for index, row in enumerate(rows):
+            if not isinstance(row, dict):
+                continue
+            fields = row.get("binding_fields")
+            if not isinstance(fields, list):
+                continue
+            offending = sorted(
+                {item.removesuffix("?") for item in fields if isinstance(item, str)} & names
+            )
+            if offending:
+                lint.fail(
+                    PROOF_CONTEXT_REGISTRY,
+                    f"{array_name}[{index}] binds {', '.join(offending)}, which the Event wire "
+                    f"forbids in the {FORBIDDEN_EVENT_CONTEXT} context; a binding field that can "
+                    "never appear makes the separation unimplementable",
                 )
 
 

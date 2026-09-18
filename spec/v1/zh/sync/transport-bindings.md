@@ -83,11 +83,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.root.identity.command.submit_did_operation.v1` | 提交 DID 更新操作。 |
 | `ak.self.events.command.submit.v1` | 提交 signed Event Envelope。 |
 | `ak.self.events.resource.get.v1` | 按 ID 读取单个 Event。 |
-| `ak.self.events.read.scan.v1` | 按获准的单个 authority stream 与 cursor 连续查询 Event。 |
+| `ak.self.events.read.scan.v1` | 按获准的单个 authority stream 与 `stream_position` 连续查询 Event；不使用 cursor。 |
 | `ak.self.events.stream.subscribe.v1` | 订阅获准 stream 的增量流，可选 bounded catch-up replay。 |
 | `ak.peer.events.command.submit.v1` | federation peer 推送 signed Event Envelope 批次。 |
 | `ak.peer.events.read.resolve_committed.v1` | federation peer 按 `CommittedEventRef` 精确读取 Event 与对应 RealmCommit。 |
-| `ak.peer.events.read.scan.v1` | federation peer 按获准的单个 authority stream 与 cursor 拉取或回填 Event。 |
+| `ak.peer.events.read.scan.v1` | federation peer 按获准的单个 authority stream 与 `stream_position` 拉取或回填 Event；不使用 cursor。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
 | `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
 | `ak.self.agent.participation.resource.replace.v1` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |

@@ -29,7 +29,7 @@ Client Sync 是 own Account Station 向客户端提供的受信账号聚合流�
 
 ## 2. Endpoint
 
-`ak.self.account.stream.subscribe.v1` 是账号聚合主入口。`ak.self.events.read.scan.v1` 与 `ak.self.events.stream.subscribe.v1` 用于读取一个或多个**明确获准的独立 stream**。字段、cursor 与 frame schema 见 [service-http-binding.md](./service-http-binding.md)。
+`ak.self.account.stream.subscribe.v1` 是账号聚合主入口。`ak.self.events.read.scan.v1` 与 `ak.self.events.stream.subscribe.v1` 用于读取一个或多个**明确获准的独立 stream**。字段、分页参数（subscribe 用 cursor，scan 用 `stream_position`）与 frame schema 见 [service-http-binding.md](./service-http-binding.md)。
 
 ### 2.1 多账号上下文 UX 指引（SHOULD）
 
@@ -75,7 +75,11 @@ Agent signer material 按需返回并绑定 exact Agent、controller、account �
 
 ## 4. Realm Buckets
 
-每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。每个子项分别携带 head/cursor；不得存在一个覆盖全部 scope 的 `realm_position`。看不到某 private stream 时，客户端不能从 position gap推断其存在或活动。
+每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `window_limit` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `commits[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
+
+看不到某 private stream 时，客户端不能从 position gap推断其存在或活动。**这条同时是 account 聚合 cursor 保持不透明的理由**：明文位置向量会把 caller 可见流集合的形状暴露出去，而单条 stream 的扫描因为位置本身不跨越可见性边界，才可以位置化（[`api-conventions.md` §7.2](./api-conventions.md)）。
+
+`streams[]` 有条目上限。caller 获准可见的流超过上限时，服务端 MUST 置 `streams_limited=true`，且截断规则只依赖 caller 自己的可见流集合：Realm stream 只要可见就必须保留，其余按 `JCS(stream_ref)` 的 unsigned 字节序升序填满剩余名额。客户端 MUST 用 per-stream surface 补齐其余流，MUST NOT 把未出现在 `streams[]` 里的流判定为不存在。服务端不得静默丢流。
 
 ## 5. 当前结果与历史展示上下文
 
@@ -89,7 +93,9 @@ Typed current result至少绑定 selector、value/status、领域 revision，以
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
-有限历史窗口 MAY 返回签名 snapshot slice 或明确 `preview_only=true`。窗口起点状态来自 authority-signed typed snapshot和对应 stream head，不从首个可见 Event的前驱或 producer 时间推导。
+有限历史窗口 MAY 返回签名 snapshot slice 或明确 `preview_only=true`。两条路径都是**逐流**判定：某条流 `limited=true` 而服务端不返回 `state_at_window_start` 时，该流的 `streams[].preview_only` MUST 为 true。窗口起点状态来自 authority-signed typed snapshot和对应 stream head，不从首个可见 Event的前驱或 producer 时间推导。
+
+窗口起点之上的历史回填走 [`ak.self.events.read.scan.v1`](./service-http-binding.md) 的 `before_position`，逐流进行。subscribe 面不保留第二套分页机制。
 
 ## 6. Event Ordering
 
@@ -97,9 +103,11 @@ Typed current result至少绑定 selector、value/status、领域 revision，以
 
 不同 Realm/Circle/Sidecar stream 之间没有 protocol total order。UI需要混排时 MAY 使用 `created_at`/arrival time 做展示排序，但该顺序不得进入授权、current、MLS epoch或审计完整性判断。
 
+**本节是跨流展示序的唯一定义点（normative）**：同一 stream 按 `stream_position`，跨 stream 无 protocol 序，混排序只是展示选择。[`conformance/encoding.md` §3.4](../conformance/encoding.md) 的 canonical digest comparator 是 scope restriction（规定该序可以用在哪里），不是任何展示面的默认序；其它章节 MUST NOT 另行定义跨流展示序。
+
 ## 7. Large Account and Large Realm Sync
 
-大账号按 Realm bucket分页，大 Realm按单 stream cursor分页。snapshot + tail 是推荐恢复方式；不得为了打开首屏默认下载全历史。每页必须有 byte/item上限，截断必须返回明确 continuation cursor。
+大账号按 Realm bucket分页；大 Realm**逐条 stream**分页，续传凭据按面区分：subscribe 聚合面用 cursor，单 stream 扫描用 `stream_position`（[`api-conventions.md` §7.2](./api-conventions.md)）。snapshot + tail 是推荐恢复方式；不得为了打开首屏默认下载全历史。每页必须有 byte/item上限，截断必须返回明确的续传依据——cursor 面返回 continuation cursor，scan 面置 `truncated=true` 并由调用方从本批位置推进。
 
 ## 8. Lazy Loading Members
 

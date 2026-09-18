@@ -967,7 +967,7 @@ MLS authoring state 只能由本机已验证 state 延续，或由当前成员�
 
 ### 7.2 Backup Envelope
 
-`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。上传设备必须用当前 accepted device key 签署完整 metadata 与 ciphertext digest，并携带 `device_authorize_event_id`。`source_commit_ref` 只有 `device_generation_ref` 分支；该字段是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。该值、`source_commit_ref` 与可选 `commit_ref` 必须指向创建时可验证的 PCR checkpoint。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced/conflicted device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
+`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。上传设备必须用当前 accepted device key 签署完整 metadata 与 ciphertext digest，并携带 `device_authorize_event_id`。`source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced/conflicted device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
 
 `domain_separation` 只携带 producer 选择的 `subdomain` 与可选 `aead_aad_extensions`；不得携带 `hkdf_info` 或固定 AAD 成员的 wire 镜像。`hkdf_info` 的唯一派生式是 `arkret-key-backup/<backup_kind>/<subdomain>/v1`。AEAD/HPKE AAD 的唯一构造过程如下，sealer 与 opener MUST 使用同一过程，任一输入缺失、扩展名非法或扩展与固定字段冲突时 MUST 在解密前 fail closed：
 
@@ -1104,7 +1104,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption
 
 ### 7.6 Backup Series & Freshness
 
-每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_seq` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 auth_data.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；普通客户端使用下述自己 Station 的当前指针结果，不验证 PCR 历史或要求列表携 completeness/witness evidence。
+每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_seq` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 auth_data.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；**陈旧判据（normative）**：envelope、active-series record 与已冻结的 backup 清单只在 `source_commit_ref.device_generation_ref` 不再等于当前活动 `current_device_generation_ref` 时陈旧（`backup_revision_stale`），或在所绑 series pointer / 清单内容本身改变时失效；**同一 stream 上此后出现更晚的 RealmCommit 本身不使其陈旧**，因此不得以流头前进作废一份已冻结清单。普通客户端使用下述自己 Station 的当前指针结果，不验证 PCR 历史或要求列表携 completeness/witness evidence。
 
 #### 7.6.1 自己 Station 的 active series 与有界列表
 
@@ -1251,7 +1251,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 
 - Receiver MUST 对未知 `encryption.kdf.name`、`encryption.aead.name`、`encryption.aead.aead_profile`、`encryption.recipient_method` fail closed（不得回退到默认）。未知或未激活 `aead_profile`（含 reserved 但未发布的 `ak.aead.hybrid_kem.*`）的 reason code 为 `unsupported_aead_profile`；禁止仅凭 `aead.name` 推断参数。
 - PQ / hybrid KEM agility MUST 通过 `encryption.hpke_suite` 选择子 + [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 声明，不得塞进 AEAD profile。PQ hybrid（X25519+ML-KEM-768）已在该 registry 预留 `ak.hpke_xwing_aead_chacha20poly1305.v1`（status=reserved，profile `ak.profile.kem.hybrid_xwing.v1`），与 `ak.aead.hybrid_kem.*` 预留 namespace 对齐；只有该 registry row 的 activation requirements 全部满足并翻为 active 后才可出现在 wire 上。`ak.aead.*` 只描述 AEAD 算法、nonce/tag/key 长度和 AAD 构造；receiver 收到把 KEM 语义编码进 `encryption.aead.aead_profile` 的 envelope MUST fail closed。
-- 当 `source_commit_ref` 携带 `commit_ref` 时，client 可以用 RealmCommit inclusion proof 来证明 envelope 创建时刻不晚于 RealmCommit commit；receiver MAY 在 sovereign / high_security_organization profile 中要求该证明。
+- 当 `source_commit_ref` 出现时，client 可以用其 `realm_commit_id` 所指的 signed RealmCommit 证明 envelope 创建时刻不晚于该 Commit；receiver MAY 在 sovereign / high_security_organization profile 中要求该证明。该 Commit 本身即承诺，MUST NOT 要求附加的聚合摘要、leaf digest/index/count 或 Merkle inclusion proof。
 - 实现 MUST 在 envelope metadata 中保留 `additionalProperties` 与 `x_*` 前缀作为 forward-compat 扩展槽；MUST NOT 在 wire 上接受未知顶层字段（已由 schema `additionalProperties: false` 强制）。
 
 ### 7.10 自动持续备份

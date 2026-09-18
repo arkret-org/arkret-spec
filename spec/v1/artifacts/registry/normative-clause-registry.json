@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.3",
+  "version": "2026-09-18.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T22:40:00+08:00",
+  "generated_at": "2026-09-18T22:45:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -53,7 +53,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-digest-suite",
-      "section_digest": "sha256:69d9e0ad49d924c22d056e35d7b4440f1448ae127380d4302f34f2197276e9e2",
+      "section_digest": "sha256:65522464cdb4b5017362ba3ec55788e421c2332c3bdf03f72155990d51f6c323",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -100,7 +100,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:1d0b5d94ee0e1afab063f8da2a4511fd8f39355ba7895626218d05f870b012c3",
+      "section_digest": "sha256:f24cd529264e122fd3078f32dc64a8b7f438c1b0c0eeff7054da72bb52a36f10",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -126,7 +126,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:88106e2c7cef1495addb138564d151b2cd1a6fa258b8711a8b05d4e3b7a41d3d",
+      "section_digest": "sha256:846c41e5cd42bbe435323bc01ad4c7150441b539f82fca13d4fde29b206057a9",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -141,7 +141,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:c61ffbe8f4bffe0ba241c2bed4a15d1bffecac71fcbb3d78ba0252005ef9ce3b",
+      "section_digest": "sha256:588f88bfa24f22825438fd84c61db63149942f34dab327d3b5ea1c6e839b5c5b",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/artifact_lint: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."

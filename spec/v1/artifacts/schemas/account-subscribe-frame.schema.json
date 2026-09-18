@@ -22,11 +22,11 @@
     },
     "cursor": {
       "$ref": "#/$defs/cursor_value",
-      "description": "Stream cursor (purpose='stream'). On `delta` / `catchup_complete` / `checkpoint` frames it points to the position covered by this frame; pass back as `after=` on the next subscribe call to resume. REQUIRED on `dropped` frames as the account-aggregate catch-up start for `GET /account/subscribe?after=<cursor>&catchup=true`. MUST be present on `delta` / `catchup_complete` / `checkpoint` / `dropped`; absent on `heartbeat` / `resync_required` / `unauthorized`."
+      "description": "Stream cursor (purpose='stream'). On `delta` / `catchup_complete` / `checkpoint` frames it points to the position covered by this frame; pass back as `after=` on the next subscribe call to resume. REQUIRED on `dropped` frames as the account-aggregate catch-up start for `GET /account/subscribe?after=<cursor>&catchup=true`. MUST be present on `delta` / `catchup_complete` / `checkpoint` / `dropped`; absent on `heartbeat` / `resync_required` / `unauthorized`. This one stays opaque even though each individual stream now has a total order: the account aggregate spans N independent streams so there is no scalar position to state in the clear, a cleartext position vector would let the caller infer private streams it cannot see from the gaps (zh/sync/client-sync.md §4), and the server-side handle also binds filter_digest and device so a changed filter cannot silently skip events. Single-stream reads do NOT use a cursor — see zh/sync/api-conventions.md §7.2."
     },
     "realms": {
       "type": "object",
-      "description": "Per-Realm map on `delta` frames. Keys are `ak:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership state (`join` / `knock` / `leave` / `ban`) is carried by the events inside the Realm entry; pending Invite lifecycle remains a caller-private inbox projection and is not membership.",
+      "description": "Per-Realm map on `delta` frames. Keys are `ak:realm:*`; values are that Realm's aggregate entry: per-stream window boundaries (streams[]), delivered commit rows (commits[]), projection state and account data. Membership state (`join` / `knock` / `leave` / `ban`) is carried by the events inside the Realm entry; pending Invite lifecycle remains a caller-private inbox projection and is not membership.",
       "patternProperties": {
         "^ak:realm:[A-Za-z0-9_-]{44}$": {
           "$ref": "#/$defs/realm_sync_entry"
@@ -53,7 +53,7 @@
     },
     "partial": {
       "type": "boolean",
-      "description": "This frame contains a limited timeline window. Missing older history is loaded on user demand; partial does not describe account baseline completion."
+      "description": "This frame contains at least one limited stream window (some streams[].limited is true). Missing older history is loaded on user demand through ak.self.events.read.scan.v1 with before_position; partial does not describe account baseline completion."
     },
     "priority": {
       "type": "string",
@@ -497,68 +497,105 @@
       ],
       "additionalProperties": true
     },
-    "timeline": {
+    "realm_stream_window": {
       "type": "object",
+      "description": "Per-stream delivery window for one visible authority stream of this Realm bucket. Realm, each Circle and each Sidecar are independent commit streams, so every window boundary marker is per stream: a bucket-level 'there is more history' boolean has no referent once the bucket spans N streams, and a bucket-level one would make one stream's window a function of activity on streams the caller cannot see (zh/sync/client-sync.md §4).",
       "required": [
-        "commits",
-        "limited"
+        "stream_ref",
+        "head_commit_ref",
+        "next_position",
+        "limited",
+        "window_limit",
+        "complete"
       ],
       "properties": {
-        "commits": {
-          "type": "array",
-          "items": {
-            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
-          },
-          "maxItems": 100
+        "stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "head_commit_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Current head commit of this stream as known to the server at window freeze. Same {head_commit_ref, next_position} progress shape as zh/sync/service-surface.md §4.6."
+        },
+        "next_position": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Next stream_position this stream expects, i.e. head stream_position + 1. Positions are never compared across streams."
         },
         "limited": {
           "type": "boolean",
-          "description": "Window-level gap marker: earlier history exists beyond this window. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items."
-        },
-        "prev_cursor": {
-          "$ref": "#/$defs/cursor_value",
-          "description": "Stream cursor pointing backward in the timeline for backfilling history before this batch. Within a frozen baseline window it points before the whole window, not before the current segment, and is repeated identically in every segment of that window."
-        },
-        "preview_only": {
-          "type": "boolean",
-          "description": "Fallback path of client-sync.md §5.2: when timeline.limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events as preview only. Window-level: repeated identically in every segment of a frozen baseline window; the server must not switch between the two §5.2 paths because one segment ran out of budget."
-        }
-      },
-      "additionalProperties": true
-    },
-    "realm_timeline_baseline": {
-      "type": "object",
-      "properties": {
-        "snapshot_cursor": {
-          "$ref": "#/$defs/cursor_value",
-          "description": "Identifies and binds the frozen timeline window generation for this Realm. Repeated identically in every segment of that window. Never used as the account `after` parameter and never parsed or compared as an ordered token."
+          "description": "Gap marker for THIS stream: earlier history exists beyond this stream's window start. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items. Backfill goes through ak.self.events.read.scan.v1 with before_position — there is no second pagination mechanism on the subscribe surface."
         },
         "window_limit": {
           "type": "integer",
           "minimum": 0,
           "maximum": 100,
-          "description": "Cumulative item ceiling of the frozen window for this Realm after merging the request targets, not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it."
+          "description": "Cumulative item ceiling of the frozen window for THIS stream after merging the request targets (sync_filter.window_limit), not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it. Per stream, so one stream being limited never depends on how much budget the other streams consumed."
         },
         "complete": {
           "type": "boolean",
-          "description": "The server has delivered every segment of this frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission."
+          "description": "The server has delivered every segment of this stream's frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission."
+        },
+        "preview_only": {
+          "type": "boolean",
+          "description": "Fallback path of client-sync.md §5.2, per stream: when this stream's limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events of this stream as preview only. Repeated identically in every segment of a frozen window; the server must not switch between the two §5.2 paths because one segment ran out of budget."
+        },
+        "e2ee_epoch": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "epoch",
+                "key_ref"
+              ],
+              "properties": {
+                "epoch": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "key_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2048
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Projection-only MLS epoch of THIS stream at its window start. Each Circle and each Sidecar owns an independent MLS group and epoch, so this cannot be a Realm-level scalar. null when the stream has no MLS group. Not part of any state hash, checkpoint or causal graph."
         }
       },
-      "required": [
-        "snapshot_cursor",
-        "window_limit",
-        "complete"
-      ],
       "additionalProperties": false
     },
     "realm_sync_entry": {
       "type": "object",
       "properties": {
-        "timeline": {
-          "$ref": "#/$defs/timeline"
+        "streams": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/realm_stream_window"
+          },
+          "description": "Per-stream window boundaries for the streams of this Realm bucket that the caller is authorized to see. Entries MUST be sorted by unsigned bytes of RFC 8785 JCS(stream_ref) and stream_ref MUST be unique. Delivery rows live in commits[]; this array carries only the window scalars, which are per stream because Realm / each Circle / each Sidecar are independent commit streams. The caller MUST NOT infer anything about streams absent from this array other than what streams_limited states: an authorized-but-absent stream and a stream the caller cannot see are indistinguishable here by construction."
         },
-        "timeline_baseline": {
-          "$ref": "#/$defs/realm_timeline_baseline"
+        "streams_limited": {
+          "type": "boolean",
+          "description": "True when the caller is authorized to see more streams in this Realm than the 64-entry streams[] ceiling admits. Truncation is deterministic and depends only on the caller's own visible stream set: the Realm stream (stream_ref.kind='realm') MUST be retained whenever the caller can see it, and the remaining slots are filled in ascending unsigned-byte order of JCS(stream_ref). The server MUST NOT silently drop streams — a client that reads this as false may treat streams[] as the complete visible set, while true means it MUST fetch the remainder through the per-stream surfaces (ak.self.events.read.scan.v1 and Realm detail) and MUST NOT conclude that an absent stream does not exist. Omitted means false."
+        },
+        "commits": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
+          },
+          "description": "Committed rows delivered by this segment for this Realm bucket, flat across streams. Each row carries its own stream_ref and stream_position (realm-commit.schema.json), which is the only ordering information: there is no cross-stream protocol order and a delivery batch never needs one (zh/sync/client-sync.md §6). Rows MUST belong to a stream present in streams[]. This is a delivery channel, not a sort structure; the field is named commits[] to match stream_scan_outcome.commits[], which carries the same row type."
+        },
+        "window_snapshot_cursor": {
+          "$ref": "#/$defs/cursor_value",
+          "description": "Identifies and binds the frozen window generation of this Realm bucket. Repeated identically in every segment of that window. It is an identity, not a position: never used as the account `after` parameter, never parsed, never compared as an ordered token. Distinct from realm_detail_baseline.snapshot_cursor, which freezes a different generation."
         },
         "state_at_window_start": {
           "$ref": "#/$defs/state_at_window_start"
@@ -580,7 +617,7 @@
         },
         "event_states": {
           "type": "array",
-          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary current-value projection concurrency is resolved by the fixed (depth, EventId) order. See zh/sync/service-surface.md §5.3.",
+          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. Ordinary current-value projection concurrency is resolved by the governance Station's {commit_id, stream_ref, stream_position} plus the domain revision — within one stream stream_position is a total order, and there is no cross-stream order to resolve. See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [
@@ -648,12 +685,22 @@
               "anyOf": [
                 {
                   "required": [
-                    "timeline"
+                    "streams"
                   ]
                 },
                 {
                   "required": [
-                    "timeline_baseline"
+                    "streams_limited"
+                  ]
+                },
+                {
+                  "required": [
+                    "commits"
+                  ]
+                },
+                {
+                  "required": [
+                    "window_snapshot_cursor"
                   ]
                 },
                 {
@@ -703,12 +750,12 @@
         {
           "if": {
             "required": [
-              "timeline_baseline"
+              "window_snapshot_cursor"
             ]
           },
           "then": {
             "required": [
-              "timeline"
+              "streams"
             ]
           }
         }
@@ -716,11 +763,10 @@
     },
     "state_at_window_start": {
       "type": "object",
-      "description": "Derived projection-only state at the timeline window start. NOT part of state hash, checkpoint, or causal graph.",
+      "description": "Derived projection-only state at the window start, Realm-level display context only. NOT part of state hash, checkpoint, or causal graph. The MLS epoch is NOT here: each Circle and each Sidecar has its own group and epoch, so e2ee_epoch lives on realm_sync_entry.streams[] instead.",
       "required": [
         "actor_profiles",
-        "realm_metadata",
-        "e2ee_epoch"
+        "realm_metadata"
       ],
       "properties": {
         "actor_profiles": {
@@ -772,32 +818,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "e2ee_epoch": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "object",
-              "required": [
-                "epoch",
-                "key_ref"
-              ],
-              "properties": {
-                "epoch": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "key_ref": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 2048
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
         }
       },
       "additionalProperties": false
@@ -1056,12 +1076,12 @@
             "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
           }
         },
-        "timeline_limit": {
+        "window_limit": {
           "type": "integer",
           "minimum": 0,
           "maximum": 100,
           "default": 20,
-          "description": "Per-Realm item ceiling after merging the request targets. For a frozen baseline window it is the cumulative ceiling across every segment of that window (surfaced as realm_timeline_baseline.window_limit); for live delta it applies per frame. Byte budgets only decide segmentation and never lower it."
+          "description": "Per-VISIBLE-STREAM item ceiling after merging the request targets, same name and same meaning as the response-side realm_sync_entry.streams[].window_limit. For a frozen baseline window it is the cumulative ceiling across every segment of that window; for live delta it applies per frame. Byte budgets only decide segmentation and never lower it. It is deliberately not a per-Realm budget: a bucket-level quota would force the server to divide it across N streams, so one stream being marked limited could mean only that another stream consumed the budget."
         },
         "lazy_load_members": {
           "type": "boolean",

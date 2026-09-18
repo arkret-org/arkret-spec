@@ -51,8 +51,17 @@ exact Event retry 必须返回同一 committed outcome；同 Event ID 但 canoni
 ### 3.1 Stream scan
 
 `POST /_arkret/self/streams/scan` 一次只扫描一条 caller 获准的 Realm、Circle 或 Sidecar stream。
-request 明确指定 `stream_ref`、起始 position、limit 和方向；response 返回连续 RealmCommit
-及其可见 Event。页内和跨页都必须检查 position 严格递增和 `previous_commit_ref` 连续。
+request 指定 `stream_ref`、`limit` 与**恰好一个**位置参数——`after_position`（朝更新）或
+`before_position`（朝更旧，历史回填）——方向由选用哪个参数给出，没有独立的方向字段；
+取 `null` 分别表示从流首、从流头起。response 返回连续 RealmCommit 及其可见 Event。
+页内和跨页都必须检查 position 严格递增和 `previous_commit_ref` 连续。
+
+该面**不使用 cursor**：单条 stream 内 `stream_position` 是严格 +1 全序，位置本身就是续传凭据，
+续页由客户端取本批的最大 / 最小 `stream_position` 得到。响应不返回 `prev_cursor` / `next_cursor` /
+`has_more`，服务端也不得在此接受 `ak:cursor:` 值（[`api-conventions.md` §7.2](./api-conventions.md)）。
+目标 Realm policy 对该 caller 拒绝 reference disclosure 时，`commits[].event` 返回
+`RedactedEventView` 或 `ReferenceLockedEventStub`（[`models/relation.md` §4.5](../models/relation.md)）；
+这两种形态是 projection-only 证据，不得作 reducer 输入。
 
 `POST /_arkret/peer/streams/scan` 使用相同 schema，但要求调用 Station 对该具体 stream 具有复制权。
 

@@ -94,11 +94,33 @@
     },
     "stream_scan_request": {
       "type": "object",
+      "description": "Positional single-stream scan request. Pagination is by stream_position, not by an opaque cursor: within one stream the governance Station's stream_position is a strict +1 total order, so the position IS the continuation token. Exactly one of after_position / before_position MUST be present; null means 'from the stream start' (after_position) or 'from the stream head' (before_position). Continuation is the caller's job: take the largest stream_position of this batch for after_position, the smallest for before_position.",
       "required": [
         "realm_id",
         "stream_ref",
-        "after_position",
         "limit"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "after_position"
+          ],
+          "not": {
+            "required": [
+              "before_position"
+            ]
+          }
+        },
+        {
+          "required": [
+            "before_position"
+          ],
+          "not": {
+            "required": [
+              "after_position"
+            ]
+          }
+        }
       ],
       "properties": {
         "realm_id": {
@@ -108,6 +130,19 @@
           "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
         },
         "after_position": {
+          "description": "Scan toward newer commits: return commits whose stream_position is strictly greater than this value, ascending. null starts at the stream start (position 0 included).",
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "before_position": {
+          "description": "Scan toward older commits (history backfill): return commits whose stream_position is strictly smaller than this value, descending. null starts at the current stream head. This is the successor of the withdrawn timeline.prev_cursor backfill surface.",
           "oneOf": [
             {
               "type": "integer",
@@ -137,13 +172,15 @@
           "$ref": "./realm-commit.schema.json"
         },
         "event": {
-          "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
+          "description": "Committed event as delivered to this caller. A full EventEnvelope is the only reducer input shape; when the target Realm policy denies reference disclosure to this caller the row carries RedactedEventView or ReferenceLockedEventStub instead (zh/models/relation.md §4.5 Raw Event API boundary), which are projection-only evidence and MUST NOT be fed to a reducer.",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventReadRow"
         }
       },
       "additionalProperties": false
     },
     "stream_scan_outcome": {
       "type": "object",
+      "description": "Positional scan result. There is no cursor and no has_more here: the caller continues from the largest (after_position) or smallest (before_position) stream_position of commits[].",
       "required": [
         "commits",
         "truncated"
@@ -152,12 +189,14 @@
         "commits": {
           "type": "array",
           "maxItems": 1000,
+          "description": "Contiguous commits of the requested stream, ordered by stream_position: ascending for after_position, descending for before_position. Callers MUST verify strictly consecutive positions and previous_commit_ref linkage within and across pages.",
           "items": {
             "$ref": "#/$defs/stream_row"
           }
         },
         "truncated": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "True when more commits exist beyond this page in the requested direction, i.e. the scan stopped on limit rather than on the end of the stream (stream start for before_position, current head for after_position)."
         }
       },
       "additionalProperties": false

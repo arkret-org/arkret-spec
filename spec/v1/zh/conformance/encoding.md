@@ -105,6 +105,9 @@ Event digest 只是 producer 可控内容的摘要：producer 要击败一个已
   只有 `proofs` 或 `unsigned` 不同的两个输入 MUST NOT 被报成 collision。
 
 该顺序只允许用于 canonical set 序列化、审计列表与 timeline/展示的稳定排列，并且全部候选 MUST 保持完整可见。
+**本节只定义一个 comparator，不是任何展示面的默认序**：这是 scope restriction（允许用在哪里），不是
+「timeline 必须用此序」的义务。跨流展示序的唯一定义点是
+[`../sync/client-sync.md` §6](../sync/client-sync.md)——同流按 `stream_position`，跨流无 protocol 序。
 它 MUST NOT 决定授权、admission、finality、`stream_position`、`previous_commit_ref` 或任何不可逆副作用，也
 MUST NOT 从互斥候选中选出唯一 winner。需要单值语义的领域 MUST 使用已登记的 `expected_revision` compare-and-set
 或该领域自己的 validator，不得把本节 comparator 包装成领域规则重新引入 winner。
@@ -246,13 +249,30 @@ Arkret 自有时刻使用 UTC 毫秒 spelling；时间只用于展示、过期�
 
 ## 8. Cursor
 
-Cursor 是服务端签名或认证的不透明 continuation token。它必须绑定 operation、调用方、授权范围、单一
-stream、方向、page limit 与到期时间。客户端不得解析 cursor 来推导 position，也不得把一个 stream 的
-cursor 用于另一个 stream。Cursor 不是 authority、Commit 或 snapshot 的替代品。
+Cursor 是签发服务端可验证的不透明 continuation token。v1 core 只使用 stateful opaque handle 形态：wire body
+是 `{v, purpose, issued_at, expires_at, h}`，`h` 由签发服务端解析成它绑定的
+`(account_id, device_id, filter_digest, purpose, positions, target?, expiry)`——**句柄查表本身就是完整性检查**，
+没有内联 MAC 或签名可验。字段 schema 与 TTL 硬上限的唯一 canonical 数值定义点是
+[`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，本节不重复数值。客户端不得解析 cursor 来
+推导 position。Cursor 不是 authority、Commit 或 snapshot 的替代品。
+
+**cursor 的适用面（normative）**：v1 只有两处用 cursor——account 聚合流的续传（`purpose=stream`）与列表分页，
+外加写后读屏障（`purpose=barrier`）。**单条 stream 的扫描不用 cursor**：治理 Station 在每条 stream 上给出严格
++1 的 `stream_position`，位置本身就是完整续传凭据，`ak.self.events.read.scan.v1` 与
+`ak.peer.events.read.scan.v1` 因此收 `after_position` / `before_position` 整数而不是 token，见
+[`../sync/api-conventions.md` §7.2](../sync/api-conventions.md)。
 
 ### 8.3 Cursor 范围绑定
 
-Cursor 必须绑定单个 Realm/Circle/Sidecar stream 与调用者授权范围，不得跨 stream 重放。
+Cursor 必须绑定调用方（完整 `AccountId` 与 device）、purpose、operation 与 filter digest，不得跨调用方、
+跨 operation、跨过滤条件或跨签发服务重放；任一项变化都要求新 cursor。
+
+**stream 绑定按面区分**：列表分页 cursor 绑定它那一个列表；account 聚合 cursor 绑定的是一**组**获准 stream 的
+位置（`positions` 是复数），服务端把它解析成每条流各自的位置后逐流推进——这不构成跨流位置比较，也不得被
+实现折叠成任何单一聚合位置。聚合 cursor 之所以必须保持不透明，理由不是"事件没有确定顺序"，而是：N 条独立
+stream 没有可明文表达的标量位置；明文位置向量会让调用方从 gap 推断它看不见的 private stream
+（[`../sync/client-sync.md` §4](../sync/client-sync.md)）；句柄还绑定 `filter_digest` 与 device，换了过滤条件
+复用位置会静默漏事件。这三条都不随全序 commit 消失。
 
 ### 8.6 Resource selector 投影
 

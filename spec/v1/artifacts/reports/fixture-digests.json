@@ -266,7 +266,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "79b22f234ac7c438e5af5cb5b8084b3aa638d0fc05947ab5c620f6652dee3122"
+      "sha256": "acd43b5421f22dec232585d79ae56465109687ee5f7cee7f5899cb7b81e82db7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",

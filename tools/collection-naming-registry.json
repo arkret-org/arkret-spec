@@ -103,12 +103,12 @@
     },
     {
       "file": "account-subscribe-frame.schema.json",
-      "pointer": "/$defs/timeline",
-      "collection_field": "commits",
+      "pointer": "/$defs/realm_sync_entry",
+      "collection_field": "streams",
       "companion_fields": [
-        "limited"
+        "streams_limited"
       ],
-      "reason": "timeline.limited reports truncation of authority commits"
+      "reason": "streams_limited reports truncation of the adjacent streams projection; the delivered commits[] rows in the same entry carry no pagination companion of their own because window boundaries are per stream"
     },
     {
       "file": "account-subscribe-frame.schema.json",

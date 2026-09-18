@@ -851,7 +851,7 @@ Message timeline 的同步与 reducer 行为：
 
 | 场景 | 收敛规则 |
 | --- | --- |
-| Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为该 Event 所在 stream 的 `RealmCommit.stream_position`；跨 stream 合并展示时按 `(stream_ref, stream_position)` 稳定分组，不得输入 canonical state、授权或 winner 选择。 |
+| Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为该 Event 所在 stream 的 `RealmCommit.stream_position`；跨 stream 合并展示时按 `(stream_ref, stream_position)` 稳定分组——元组字典序只在 `stream_ref` 相同时才比较 position，永不做跨流位置比较，故不违反 [`../conformance/encoding.md` §3.3](../conformance/encoding.md)；跨流展示序的定义点见 [`../sync/client-sync.md` §6](../sync/client-sync.md)。不得输入 canonical state、授权或 winner 选择。 |
 | Message 编辑 | 同一 revision chain 的全部 revise 落在同一条 authority stream，canonical revision 由下文 §9.5.1 的 `stream_position` 最大者唯一决定；历史 revision 全部保留在普通 branch 读取面。 |
 | Message 撤回 | 若 revision 与 redaction 同时存在，默认视图 redaction 优先；审计视图保留完整历史。 |
 | 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `ak.message.redact` 的 `payload.message_id`。 |

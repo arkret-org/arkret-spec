@@ -205,6 +205,8 @@ from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
     check_proof_context_object_family_schemas,
+    check_proof_context_carrier_family_anchors,
+    check_domain_separation_binding_fields_are_carriable,
     check_every_result_family_has_a_writer,
     check_partial_update_base_producers,
     check_pre_state_requirement_closure,
@@ -285,6 +287,14 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "proof_context_object_family_schemas",
                 lambda: check_proof_context_object_family_schemas(lint),
+            ),
+            (
+                "proof_context_carrier_family_anchors",
+                lambda: check_proof_context_carrier_family_anchors(lint),
+            ),
+            (
+                "domain_separation_binding_fields_are_carriable",
+                lambda: check_domain_separation_binding_fields_are_carriable(lint),
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
             (

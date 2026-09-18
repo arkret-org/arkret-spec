@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-18.2",
-  "generated_at": "2026-09-18T23:10:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T00:20:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2568,7 +2568,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "`ak.schema.key_backup.v1.source_commit_ref.source_commit_ref` does not match the current principal control stream checkpoint, or `device_generation_ref` does not equal the active `current_device_generation_ref`. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md §7.6."
+      "description": "`ak.schema.key_backup.v1.source_commit_ref.realm_commit_id` does not resolve to an accepted RealmCommit on the principal control stream, or `device_generation_ref` does not equal the active `current_device_generation_ref`. A later RealmCommit on the same stream does not by itself make the envelope stale. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md §7.6."
     },
     {
       "code": "blob_redacted",
@@ -5235,7 +5235,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); two byte-distinct signed RealmCommit objects name the same (stream_ref, stream_position); or a profile declares the observed combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Two different accepted Events by one actor are not by themselves disagreement: an actor may author any number of Events and event-and-patch.md section 2.6 gives ordering precedence to the RealmCommit alone, so only one stream position carrying two distinct commits is equivocation. Raw commit_prefix_root / heads differences across different replication or disclosure scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
+      "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); two byte-distinct signed RealmCommit objects name the same (stream_ref, stream_position); or a profile declares the observed combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Two different accepted Events by one actor are not by themselves disagreement: an actor may author any number of Events and event-and-patch.md section 2.6 gives ordering precedence to the RealmCommit alone, so only one stream position carrying two distinct commits is equivocation. Raw stream head differences observed across different replication or disclosure scopes also are not disagreement: a consumer only ever observes the heads of the streams it is granted. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
     },
     {
       "code": "invite_directed_invitee_mismatch",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.18",
+  "version": "2026-09-18.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T02:00:00+08:00",
+  "generated_at": "2026-09-18T23:50:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -20,7 +20,9 @@
     "domain_separations rows MUST have unique domain and object_family values, MUST NOT reuse a label or object_family already registered in contexts[], and MUST declare a primitive from the closed set canonical_json_sha256, merkle_leaf_sha256, merkle_node_sha256, merkle_root_sha256, detached_signature, http_message_signature, hpke_info, replay_cache_namespace",
     "Every contexts[].context and domain_separations[].domain MUST match ak.<dot-separated snake_case symbol path>.v1. A dot separates naming levels, an underscore joins words inside one level, and a label MUST occur in exactly one array; the array and primitive, not delimiter spelling, determine its semantics. The ak.<kebab-case>-proof-v1 spelling is invalid and is not an alias",
     "A replay_cache_namespace row MUST declare defined_in, and the normative document it names MUST contain the domain literal. Every fixture field named replay_cache_namespace MUST carry a registered replay_cache_namespace domain, and every fixture field named proof_context MUST carry a registered proof context",
-    "Every contexts[] row, and every domain_separations[] row whose primitive is detached_signature, names an object_family that some producer signs and some receiver verifies as a wire object, so it MUST resolve to a registered schema: the row declares schema_ref or a non-empty transcript_schema_refs, every referenced file is an active row of registry/schema-registry.json, every reference resolves to a real schema object, and that node is covered by a registered ak.schema.*.v1 id. Primitives that bind bytes assembled from an enclosing carrier (merkle_*, hpke_info, replay_cache_namespace, canonical_json_sha256, http_message_signature) are outside this rule by construction. machine gate: tools/artifact_lint:proof_context_object_family_schemas"
+    "Every contexts[] row, and every domain_separations[] row whose primitive is detached_signature, names an object_family that some producer signs and some receiver verifies as a wire object, so it MUST resolve to a registered schema: the row declares schema_ref or a non-empty transcript_schema_refs, every referenced file is an active row of registry/schema-registry.json, every reference resolves to a real schema object, and that node is covered by a registered ak.schema.*.v1 id. Primitives that bind bytes assembled from an enclosing carrier (merkle_*, hpke_info, replay_cache_namespace, canonical_json_sha256, http_message_signature) are outside this rule by construction. machine gate: tools/artifact_lint:proof_context_object_family_schemas",
+    "Those carrier-bound rows are still not free-floating: each MUST either declare schema_ref, transcript_schema_refs or defined_in, or have its object_family or domain literal occur in zh prose, a schema, a fixture or vector-registry.json. A row that nothing defines states a commitment no implementer can reproduce. Rows registered before this rule and not yet adjudicated are named in tools/proof-context-anchor-exemptions.json, which is a ratchet: a listed family that acquires an anchor MUST be removed from it. machine gate: tools/artifact_lint:proof_context_carrier_family_anchors",
+    "No binding_fields entry of either array may name a field that forbidden-wire-fields.json forbids in the producer_event_envelope_root context. A field that can never appear on the wire cannot be hashed into a commitment, and skipping it silently discards the separation the row exists to provide. machine gate: tools/artifact_lint:domain_separation_binding_fields_are_carriable"
   ],
   "contexts": [
     {
@@ -957,20 +959,6 @@
       ]
     },
     {
-      "domain": "ak.applet.delivery_authentication_record_digest.v1",
-      "object_family": "applet_delivery_authentication_record",
-      "primitive": "canonical_json_sha256",
-      "binding_fields": [
-        "operation_id",
-        "direction",
-        "source_id",
-        "destination_id",
-        "idempotency_key",
-        "content_digest",
-        "request_digest"
-      ]
-    },
-    {
       "domain": "ak.applet_managed_actor_authoring_request_proof.v1",
       "object_family": "applet_managed_actor_authoring_request",
       "primitive": "detached_signature",
@@ -1329,35 +1317,6 @@
       ]
     },
     {
-      "domain": "ak.events.checkpoint.leaf.v1",
-      "object_family": "events_checkpoint_leaf",
-      "primitive": "merkle_leaf_sha256",
-      "binding_fields": [
-        "kind",
-        "event_id",
-        "actor_id",
-        "producer_revision"
-      ]
-    },
-    {
-      "domain": "ak.events.checkpoint.node.v1",
-      "object_family": "events_checkpoint_node",
-      "primitive": "merkle_node_sha256",
-      "binding_fields": [
-        "left",
-        "right"
-      ]
-    },
-    {
-      "domain": "ak.events.checkpoint.root.v1",
-      "object_family": "events_commit_prefix_root",
-      "primitive": "merkle_root_sha256",
-      "binding_fields": [
-        "empty",
-        "root"
-      ]
-    },
-    {
       "domain": "ak.franking_proof.signature.v1",
       "object_family": "moderation_franking_proof",
       "primitive": "detached_signature",
@@ -1564,16 +1523,6 @@
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/recipient_mls_durable_receipt"
     },
     {
-      "domain": "ak.peer.events.command.submit.v1.service_binding.v1",
-      "object_family": "peer_event_submit_service_binding",
-      "primitive": "canonical_json_sha256",
-      "binding_fields": [
-        "realm_id",
-        "event_ids",
-        "canonical_digests"
-      ]
-    },
-    {
       "domain": "ak.peer_contact.control_receipt.v1",
       "object_family": "peer_contact_control_receipt",
       "primitive": "detached_signature",
@@ -1628,17 +1577,6 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload/properties/authorization",
       "transcript_schema_refs": [
         "schemas/event-payload.schema.json#/$defs/realm_organization_payload"
-      ]
-    },
-    {
-      "domain": "ak.realm_state_snapshot.auth_state.issuer_local.v1",
-      "object_family": "realm_state_snapshot_auth_state_issuer_local",
-      "primitive": "canonical_json_sha256",
-      "binding_fields": [
-        "issuer",
-        "realm_id",
-        "commit_prefix_event_ids",
-        "checked_at"
       ]
     },
     {

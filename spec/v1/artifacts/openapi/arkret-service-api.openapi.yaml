@@ -43,7 +43,8 @@ info:
 
     `EventFederationSubmission`, `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
 
-    `CommittedEventResolveRequest` / `CommittedEventResolveOutcome`, `EventsQueryOutcome` / `PeerEventsQueryOutcome`,
+    `CommittedEventResolveRequest` / `CommittedEventResolveOutcome`, `stream_scan_request` / `stream_scan_outcome`
+    (authority-commit-operations.schema.json),
 
     `RealmCommit`, `SignalSubmitOutcome`,
 

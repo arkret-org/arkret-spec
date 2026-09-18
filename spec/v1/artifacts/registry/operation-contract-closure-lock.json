@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.40",
-  "generated_at": "2026-09-18T21:20:01+08:00",
+  "version": "2026-09-16.45",
+  "generated_at": "2026-09-18T21:25:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -321,11 +321,11 @@
     },
     {
       "operation_id": "ak.peer.events.read.resolve_committed.v1",
-      "sha256": "sha256:96bb26d8b988b1186f98607a256d7a1cd295acb14d6e49a10d009eff48e9795a"
+      "sha256": "sha256:d233e3a2f664ed8337e67fe24444d9d5fe59a72b964767c29fcfb64e3129a101"
     },
     {
       "operation_id": "ak.peer.events.read.scan.v1",
-      "sha256": "sha256:de62b5444b25a5e397f44bdb3530a11e7bda1150926adf2c42e2a79686176300"
+      "sha256": "sha256:2ded12116a63a6f3df13de126864922ecd28b69de6ea612380d0c3a9be2d7e60"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -461,7 +461,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:39a0cc8ec44fa7f69e4fd62ee01dc7a02baff0be2666b800d39344d5c51869ba"
+      "sha256": "sha256:a83029a14d2fb6cb18996ae037a051f6c5a069b30ea75c7f484667685f610c83"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -685,7 +685,7 @@
     },
     {
       "operation_id": "ak.self.events.read.scan.v1",
-      "sha256": "sha256:3b90db0f0b3ace79cd8376a70a3f422598e2f86afb1756a586da66175d18cf5e"
+      "sha256": "sha256:ec6c870c6d7dfcc3445ad79a25cf3052ca13c1a4741bf50a8496c037c1e2eda5"
     },
     {
       "operation_id": "ak.self.events.resource.get.v1",
@@ -725,7 +725,7 @@
     },
     {
       "operation_id": "ak.self.keys.backup_series.command.erase.v1",
-      "sha256": "sha256:d6a5d39621974d6ef3166d575cad24f1d7f84154e13c72b34528ef346ca29fbd"
+      "sha256": "sha256:b0a60eebb72ffb5cc192caf963a05d524db6efea4e0af852d01f775791445b1e"
     },
     {
       "operation_id": "ak.self.keys.backups.command.issue_delete_challenge.v1",
@@ -737,7 +737,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
-      "sha256": "sha256:9caeaa1f50c248709a803082d3c4341bdb204fea41e41341dd9572216472bc8e"
+      "sha256": "sha256:d477aa2185bf9f92b089fedb4dd4e2ecbd6a2e6c2288f8fa5d4581cd026a80a3"
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",

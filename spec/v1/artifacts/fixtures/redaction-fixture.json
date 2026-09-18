@@ -470,7 +470,6 @@
           "note": "payload pruned after snapshot checkpoint per retention policy"
         },
         "snapshot": {
-          "commit_prefix_root": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "verification_stub": {
             "stub_schema": "ak.schema.erasure_verification_stub.v1",
             "subject": {

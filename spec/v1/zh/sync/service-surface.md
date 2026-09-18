@@ -151,7 +151,7 @@ Describe 至少声明 self submit/read/subscribe 能力；承担 federation 的 
 
 ### 4.4 批量获取 Event
 
-跨 Station 精确取证统一使用 `ak.peer.events.read.resolve_committed.v1`。selector 是 `{event_id, commit_id, stream_ref, stream_position}`；响应必须让调用方逐项核对，不接受 caller-supplied Event、裸 Event ID 或 scan cursor 作为完整性证明。
+跨 Station 精确取证统一使用 `ak.peer.events.read.resolve_committed.v1`。selector 是 `{event_id, commit_id, stream_ref, stream_position}`；响应必须让调用方逐项核对，不接受 caller-supplied Event、裸 Event ID 或 scan 分页结果作为完整性证明。
 
 ### 4.5 列出 / 回填 Event
 
