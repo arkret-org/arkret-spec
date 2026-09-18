@@ -131,7 +131,7 @@ evidence 解析，`RealmCommit` 签名按对应 generation 的治理 Station his
 `ak.vector.capability.revoke_downstream_recheck.v1` MUST 证明：grant G 授权的 Event E 与由 G 派生的 child grant C
 授权的 pending Event P，在 `ak.capability.revoke` 撤销 G 被接纳后，P MUST fail closed 或隔离并给出稳定
 reason code；allow cache 与 policy decision cache 中依赖 G 或 C 的条目 MUST 在同一 reducer 事务内失效；
-历史 E 保留审计事实，但后续 snapshot 与导出不得把 G 当作当前有效授权。
+历史 E 保留审计事实，MUST NOT 被重算成另一个结论；后续 snapshot 与导出不得把 G 当作当前有效授权。已 revoked 的 `grant_id` 是终态：同 id 的 re-add 或 re-grant MUST NOT 使它复活，新授权只能是新的 `grant_id`。
 
 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` MUST 证明：profile 声明的 non-event grant
 authority 只允许 Realm admin 对 active bridge registration 签发的 exact `ak.applet.ghost.provision` grant；
