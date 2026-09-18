@@ -841,6 +841,16 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     # Snapshot state_digest KAT: the section 6.2.1 cell leaf H(0x00 || preimage),
     # spelled as canonical JSON text beside the leaf it must hash to.
     ("leaf_preimage", "leaf", "utf8", "sha256_hex", "\x00"),
+    # Applet delivery-authentication record: the domain separates only as a
+    # UTF-8 prefix, so pinning the pair is what proves the record itself carries
+    # no `domain` / `profile` member (applet-integration.md section 7.3.1).
+    (
+        "delivery_authentication_record_canonical_bytes_utf8",
+        "delivery_authentication_record_digest",
+        "utf8",
+        "sha256_hex",
+        "ak.applet.delivery_authentication_record.v1\n",
+    ),
     (
         "identity_link_proof_preimage_hex",
         "identity_link_proof_payload_digest",

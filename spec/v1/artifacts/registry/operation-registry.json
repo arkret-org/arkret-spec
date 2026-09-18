@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.1",
+  "version": "2026-09-16.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T21:00:00+08:00",
+  "generated_at": "2026-09-19T23:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -514,6 +514,7 @@
             "@target-uri",
             "@authority",
             "content-digest",
+            "arkret-operation",
             "source-service-id",
             "destination-service-id",
             "idempotency-key"

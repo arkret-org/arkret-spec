@@ -608,6 +608,7 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 
 - `@method`、`@target-uri`、`@authority`
 - `content-digest`（按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；transaction push 总是带 body，故 MUST 携带唯一 `sha-256` member 的 `Content-Digest`）
+- `arkret-operation`（header `Arkret-Operation`，值为 exact versioned `ak.edge.applet.command.transaction.v1`；按 [`../sync/api-conventions.md` §2.4.1](../sync/api-conventions.md)，凡要求 RFC 9421 签名的 canonical 请求，签名基串 MUST 覆盖该 operation selector，未覆盖 selector 的签名 MUST 按 `http_signature_invalid` 拒绝）
 - `source-service-id`（header `Source-Service-ID`，等于 body `source_id`）
 - `destination-service-id`（header `Destination-Service-ID`，等于接收方 service `did_core_id`）
 - `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）

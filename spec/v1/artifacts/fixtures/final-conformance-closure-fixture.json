@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-10",
+  "version": "2026-09-19",
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
@@ -82,7 +82,33 @@
           "expected": {
             "decision": "accept",
             "delivery_authentication_record_persisted": true,
-            "delivery_authentication_record_digest": "sha256:0d2d8acbe611f612165ad14b313ecb05a9f1ca72b31c05649dfca35a4696d9c6",
+            "delivery_authentication_record": {
+              "operation_id": "ak.edge.applet.command.transaction.v1",
+              "direction": "applet_to_arkret_inbound",
+              "source_id": "ak:did_core:webvh:z6mkfixturebridgeexample",
+              "destination_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+              "signature_label": "sig1",
+              "verification_method": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+              "verification_key_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "signature_algorithm": "ed25519",
+              "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "idempotency_key": "tx-001",
+              "content_digest": "sha-256=:u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=:",
+              "covered_components": [
+                "@method",
+                "@target-uri",
+                "@authority",
+                "content-digest",
+                "arkret-operation",
+                "source-service-id",
+                "destination-service-id",
+                "idempotency-key"
+              ],
+              "created": 1786550400,
+              "expires": 1786550700
+            },
+            "delivery_authentication_record_canonical_bytes_utf8": "{\"content_digest\":\"sha-256=:u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"created\":1786550400,\"destination_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"direction\":\"applet_to_arkret_inbound\",\"expires\":1786550700,\"idempotency_key\":\"tx-001\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixturebridgeexample\",\"verification_key_digest\":\"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"verification_method\":\"did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1\"}",
+            "delivery_authentication_record_digest": "sha256:8639a66a3a306cbd3d01a2284f0b817d84b1437719af35feb4125cd1d9cc78c3",
             "side_effects_applied": true
           }
         },
@@ -141,7 +167,7 @@
           "replay_of": "valid_inbound",
           "idempotency_key": "tx-001",
           "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "delivery_authentication_record_digest": "sha256:0d2d8acbe611f612165ad14b313ecb05a9f1ca72b31c05649dfca35a4696d9c6",
+          "delivery_authentication_record_digest": "sha256:8639a66a3a306cbd3d01a2284f0b817d84b1437719af35feb4125cd1d9cc78c3",
           "expected": {
             "decision": "accept_cached",
             "side_effects_applied": false
@@ -153,7 +179,33 @@
           "idempotency_key": "tx-001",
           "body_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "content_digest": "sha-256=:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d0=:",
-          "delivery_authentication_record_digest": "sha256:80988c1a014d4e10c172cf02370dd6c6c08fda8fc8977884b88ffed6d1015586",
+          "delivery_authentication_record": {
+            "operation_id": "ak.edge.applet.command.transaction.v1",
+            "direction": "applet_to_arkret_inbound",
+            "source_id": "ak:did_core:webvh:z6mkfixturebridgeexample",
+            "destination_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+            "signature_label": "sig1",
+            "verification_method": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+            "verification_key_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "signature_algorithm": "ed25519",
+            "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "idempotency_key": "tx-001",
+            "content_digest": "sha-256=:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d0=:",
+            "covered_components": [
+              "@method",
+              "@target-uri",
+              "@authority",
+              "content-digest",
+              "arkret-operation",
+              "source-service-id",
+              "destination-service-id",
+              "idempotency-key"
+            ],
+            "created": 1786550400,
+            "expires": 1786550700
+          },
+          "delivery_authentication_record_canonical_bytes_utf8": "{\"content_digest\":\"sha-256=:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d0=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"created\":1786550400,\"destination_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"direction\":\"applet_to_arkret_inbound\",\"expires\":1786550700,\"idempotency_key\":\"tx-001\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixturebridgeexample\",\"verification_key_digest\":\"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"verification_method\":\"did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1\"}",
+          "delivery_authentication_record_digest": "sha256:19357199501f491943ec9454a0d4a2d6caa0b6637d97c6da4b8f0be370b23da6",
           "expected": {
             "decision": "reject",
             "reason": "duplicate_conflict"

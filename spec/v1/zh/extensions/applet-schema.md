@@ -301,7 +301,7 @@ Idempotency-Key: <opaque-string>
 | `Source-Service-ID` | header | `did_core_id` | required | 推送来源 service `did_core_id`；MUST 等于 body `source_id`，并进入 HTTP Message Signature transcript。来源 VM 的 bare `did` 必须经 adapter 投影到该值。 |
 | `Destination-Service-ID` | header | `did_core_id` | required | 接收方 service `did_core_id`；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
 | `Content-Digest` | header | `sha-256=:...:` | required | 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算，拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。 |
-| `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
+| `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`arkret-operation`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
 | `Signature` | header | `string` | required | 来源 service 已验证 `did` / VM 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
 | `applet_id` | body | `applet_id` | required | 精确选择 active install；必须与来源 service、当前 registration epoch/key 唯一交叉绑定，不得按同 service 任取首条安装。 |
 | `source_id` | body | `did_core_id` | required | 推送来源 service 的稳定 `did_core_id`。 |

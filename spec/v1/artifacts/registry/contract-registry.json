@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.12",
+  "version": "2026-09-19.13",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T23:30:00+08:00",
+  "generated_at": "2026-09-19T23:50:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8540,6 +8540,7 @@
               "@target-uri",
               "@authority",
               "content-digest",
+              "arkret-operation",
               "source-service-id",
               "destination-service-id",
               "idempotency-key"
@@ -12078,8 +12079,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-16.13",
-    "generated_at": "2026-09-17T15:00:00+08:00",
+    "version": "2026-09-16.14",
+    "generated_at": "2026-09-19T23:50:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

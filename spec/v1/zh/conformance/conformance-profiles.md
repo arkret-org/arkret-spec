@@ -798,7 +798,7 @@ Applet v1 家族适用于运行 Applet 集成服务。`ak.profile.applet_service
 - transaction push per-delivery authentication record（`delivery_authentication_record`）
 - idempotency / replay binding across `Source-Service-ID`、`Destination-Service-ID`、`Idempotency-Key`、canonical body digest and source verification method
 - capability enforcement
-- HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `source-service-id` / `destination-service-id` / `idempotency-key`）
+- HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `arkret-operation` / `source-service-id` / `destination-service-id` / `idempotency-key`）
 - event signature verification
 - bot actor attribution
 - `ak.edge.applet.command.transaction.v1` as operation_id only, never as durable Event kind
