@@ -69,6 +69,26 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   **都是 `keyed_set_add`**——lift 是再加一条断言而不是删掉原 dot，因为多个 issuer 的 record 可以同时 active
   （[`../models/common-fields.md` §2](../models/common-fields.md) 的 join 是唯一真源）；
   active record 筛选与 `hard_deny > quarantine > require_review > none` 折叠都是读侧折叠，不是存储状态；
+- `object_redaction`：以被裁剪对象 `payload.message_id`（`ak.message.redact`）或 `payload.target_ref`
+  （`ak.redaction`）选择该对象上的 redaction 断言集合
+  （见 [`../models/event-and-patch.md` §4.2.4](../models/event-and-patch.md)）；两种拼法各自成 subject，
+  从不合并；值是 `keyed-set projection` 的 dot 集合，两个 kind **都只能 `keyed_set_add`**——
+  同一对象上可以并存多条 redaction，协议不为它们定义任何排序或择一规则，
+  因此这里既没有"最后一条生效"也没有单值 `redaction_ref`；`ak:event:` 目标只裁剪该 Event 自身；
+- `organization_discovery`：以 `payload.organization_id` 选择一个 Organization 的 discovery 设置；
+- `organization_moderation_policy`：以 `payload.organization_id` 选择一个 Organization 的 moderation 策略；
+  与上一条是两个独立 family——同一 subject 上的两类值由两个 Event kind 各自整体置换，互不覆盖；
+- `policy`：以 `payload.policy_id` 选择一份 Policy 文档整体，由 `ak.policy.set` 单一写者整体置换
+  （见 [`../models/governance-objects.md` §3.2](../models/governance-objects.md)）；
+  `rules[]` 是该值的必填非空成员，优先级与 `default_effect` 求值全在这份文档内进行，
+  因此单条 rule **不是**自己的 subject——`ak.policy.rule` 的 `rule_id` 是文档内局部符号，不命名任何结果；
+- `view`：以 `view_id` 选择一个 View，由 `ak.view.create`、`ak.view.update`、`ak.view.reconcile`
+  三个 kind 写同一个 family（[`../models/views.md` §3.2](../models/views.md) 对此为 normative）；
+  `create` 与 `reconcile` 整体置换，`update` 对冻结前态 `apply_patch`；
+  自报的 `id` 不进值内——subject 已经是它；三者中 `ak.view.update` 尚未登记 `result_writes[]`
+  （它的 `apply_patch` 还缺 §3.1 canonical state 那句话隐含但未枚举的 `allowed_paths`
+  与 `state_changed_at` / `updated_by` / `updated_at` 三个 reducer 派生成员的注册名），
+  这不改变 family 的数目：本条登记的是 selector kind，写者清单以 views.md §3.2 为准；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——

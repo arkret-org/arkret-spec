@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.7",
+  "version": "2026-09-18.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T02:10:00+08:00",
+  "generated_at": "2026-09-19T04:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs.",
@@ -217,6 +217,26 @@
     {
       "result_kind": "moderation_state",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_state_result"
+    },
+    {
+      "result_kind": "object_redaction",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_result"
+    },
+    {
+      "result_kind": "organization_discovery",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_result"
+    },
+    {
+      "result_kind": "organization_moderation_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_result"
+    },
+    {
+      "result_kind": "view",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_result"
+    },
+    {
+      "result_kind": "policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_result"
     }
   ]
 }

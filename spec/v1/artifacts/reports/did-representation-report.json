@@ -7632,6 +7632,26 @@
       ]
     },
     {
+      "schema_path": "typed-current-result.schema.json#/$defs/organization_discovery_result/properties/selector/properties/organization_id",
+      "property_name": "organization_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/organization_moderation_policy_result/properties/selector/properties/organization_id",
+      "property_name": "organization_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "typed-current-result.schema.json#/$defs/realm_authority_root_value/properties/controller_actor_id",
       "property_name": "controller_actor_id",
       "semantic_category": "responsibility_identity_material",

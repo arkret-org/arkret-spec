@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.9",
+  "version": "2026-09-18.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T02:10:00+08:00",
+  "generated_at": "2026-09-19T04:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,7 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 63 of the 140 reducer_input kinds declare it; the remaining 77 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 70 of the 140 reducer_input kinds declare it; the remaining 70 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -2366,7 +2366,29 @@
       ],
       "payload": "Message-scoped redaction; does not grant generic redaction authority",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_redact_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "object_redaction",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.message_id"
+            ]
+          },
+          "result_projection": {
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_value",
+          "notes": "models/event-and-patch.md section 4.2.4: Message is the only object with its own registered redact kind, so the cross-object ak.redaction schema mechanically excludes ak:message: and this row owns every ak:message: subject. The subject is the canonical typed-id string taken verbatim from payload.message_id, which is why the selector is a one-component composite rather than a coalesce over the two carriers. The projection is keyed_set_add because that section registers no rule for choosing among several redactions of one subject and states that adding a single-valued redaction_ref to Strand or Morph would invent one; message.schema.json materialises redaction_ref only because Message has exactly one redacting kind."
+        }
+      ]
     },
     {
       "event_kind": "ak.message.revise",
@@ -2695,7 +2717,24 @@
       "admission": "self_authored_proof",
       "payload": "Organization discoverability state",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_discovery_state_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "organization_discovery",
+          "result_selector": {
+            "kind": "did",
+            "field": "payload.organization_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_value",
+          "notes": "discovery/discovery-directory.md: ak.organization.discovery is an active discovery state event in the same ingest group as ak.actor.discovery, ak.applet.discovery and ak.handle.discovery. The resource self-signs its own discoverability and a Directory MUST NOT re-sign for it or widen the disclosure, so each accepted declaration replaces the whole closed value under the declaring organization_id."
+        }
+      ]
     },
     {
       "event_kind": "ak.organization.moderation_policy",
@@ -2707,7 +2746,24 @@
       "admission": "capability_gated",
       "payload": "Organization moderation policy state",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_moderation_policy_state_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "organization_moderation_policy",
+          "result_selector": {
+            "kind": "did",
+            "field": "payload.organization_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_value",
+          "notes": "Sibling of organization_discovery on the same did_core_id subject, registered in the same batch so the Organization surface does not carry one registered family and one unregistered one. The payload's value is a single closed moderation policy document, so the projection is a whole-value set."
+        }
+      ]
     },
     {
       "event_kind": "ak.pin.add",
@@ -2848,7 +2904,24 @@
       "reducer_input": true,
       "payload": "Policy object set",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
-      "id_source": "reference"
+      "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "policy",
+          "result_selector": {
+            "kind": "id:policy",
+            "field": "payload.policy_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_value",
+          "notes": "models/governance-objects.md section 3.2: the payload is exactly {policy_id, value}, value.schema picks the generic Policy or the RecoveryPolicy root directly in the payload schema, and semantic admission requires policy_id to equal value.id (generic) or value.policy_id (recovery) verbatim -- so the subject is the payload's own policy_id and the projection replaces the whole document. state / reason are not wire fields of this Event."
+        }
+      ]
     },
     {
       "event_kind": "ak.profile.create",
@@ -3838,7 +3911,29 @@
       "reducer_input": true,
       "payload": "Cross-object redaction envelope for non-Message objects/events and profile-declared content trimming. Message is excluded: it has its own registered ak.message.redact.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/cross_object_redaction_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "object_redaction",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.target_ref"
+            ]
+          },
+          "result_projection": {
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_value",
+          "notes": "models/event-and-patch.md section 4.2.4: target_ref is the single target carrier and its lexical space covers both object targets and ak:event: targets, so the subject is well defined without a coalesce. The two spellings of one event-derived token land on two independent subjects of this family that never merge, and a reducer MUST NOT canonicalize the ak:event: spelling into the derived object's typed id; answering whether a piece of content is still there therefore means reading both subjects. The projection is keyed_set_add for the same reason as the Message row."
+        }
+      ]
     },
     {
       "event_kind": "ak.relation.create",
@@ -4556,7 +4651,23 @@
       "payload": "View create",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_payload",
       "id_source": "event_derived",
-      "id_kind": "view"
+      "id_kind": "view",
+      "result_writes": [
+        {
+          "result_family": "view",
+          "result_selector": {
+            "kind": "id:view"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+          "notes": "models/views.md section 3.2 table row 1. The selector carries no field because ak.view.create is id_source=event_derived: the View id IS this Event's own event_id retyped, so naming a payload field would claim a second, forgeable source. The projection is the whole payload.object snapshot; the value MUST NOT keep the self-reportable id."
+        }
+      ]
     },
     {
       "event_kind": "ak.view.reconcile",
@@ -4567,7 +4678,24 @@
       "reducer_input": true,
       "payload": "View schema or definition sync",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_reconcile_payload",
-      "id_source": "not_an_object_id"
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "view",
+          "result_selector": {
+            "kind": "id:view",
+            "field": "payload.view_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.definition"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+          "notes": "models/views.md section 3.2 table row 3 and the normative paragraph under it: reconcile is neither create's snapshot nor update's patch, it replaces the definition wholesale, and it writes the SAME family as the other two kinds -- definition is the complete view.schema.json object, not a second business object. It MUST reject a tombstoned target with failed_precondition reason_code=view_already_terminal, MUST NOT resurrect a terminal View and MUST NOT carry an id. ak.view.update writes this family too but is not declared here yet: its apply_patch needs the allowed_paths set that section 3.1's canonical-state sentence implies but does not enumerate, so it stays one of the reducer_input kinds the result_writes coverage note tracks."
+        }
+      ]
     },
     {
       "event_kind": "ak.view.update",

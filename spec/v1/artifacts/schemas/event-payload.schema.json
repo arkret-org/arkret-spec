@@ -6780,7 +6780,7 @@
     },
     "policy_rule_state_payload": {
       "type": "object",
-      "description": "Policy rule state payload. rule_id is the stable policy_rule typed current result subject and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape is defined by policy.schema.json #/$defs/policy_rule (zh/models/governance-objects.md section 5). rule_id matches ^[a-z][a-z0-9_]{0,63}$ and is a document-local symbol, so it is only a stable subject inside one addressing scope; see tools/identifier-classification-registry.json. This payload carries no state or reason member, per the whole-value state wrapper rule in zh/models/common-fields.md section 5.",
+      "description": "Policy rule state payload. rule_id has the same lexical form as policy.schema.json #/$defs/policy_rule rule_id and MUST equal the rule_id of the PolicyRule this event asserts, whose closed shape that $def defines (zh/models/governance-objects.md section 5). It is NOT a typed current result subject: tools/identifier-classification-registry.json classifies it as a document_local_symbol, resolvable only inside the containing Policy, and this payload carries no policy_id to name that Policy. The one registered policy family is written by ak.policy.set over the whole Policy object, whose required non-empty rules[] carries every rule and over which governance-objects.md section 3.2 defines the entire priority / default_effect evaluation. This payload carries no state or reason member, per the whole-value state wrapper rule in zh/models/common-fields.md section 5.",
       "required": [
         "rule_id",
         "value"
@@ -9339,7 +9339,7 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. contract-registry.json registers nothing for it: apply_patch is not in the v1 result_projection closed set and no expected_prestate member has ever existed, so this is an admission rule outside the projection grammar."
+          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. contract-registry.json registers nothing for it: the v1 result_projection grammar has no expected_prestate member, so this is an admission rule beside the projection rather than part of it."
         },
         "object": {
           "allOf": [
@@ -9378,7 +9378,7 @@
     },
     "view_reconcile_payload": {
       "type": "object",
-      "description": "Payload for ak.view.reconcile. view_id is the view_reconcile typed current result subject; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
+      "description": "Payload for ak.view.reconcile. view_id is the view typed current result subject -- zh/models/views.md section 3.2 is normative that all three View kinds write ONE family, so the family is named for the View, not for this payload; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
       "required": [
         "view_id",
         "definition"

@@ -820,7 +820,7 @@
       },
       "assertions": [
         "Welcome claim_ref.keypackage_digest must match the digest recomputed from the claimed KeyPackage bytes",
-        "published ak.resource.mls_keypackage payload digest participates in the same recomputed equality check",
+        "claim_ref digests are compared only against the values recomputed from the claim record; KeyPackage publication writes no durable Event, so there is no third published digest to compare",
         "the claim signer is an accepted current-generation requester device",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]

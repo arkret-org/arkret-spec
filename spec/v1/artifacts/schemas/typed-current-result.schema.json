@@ -162,6 +162,21 @@
     },
     {
       "$ref": "#/$defs/moderation_state_result"
+    },
+    {
+      "$ref": "#/$defs/object_redaction_result"
+    },
+    {
+      "$ref": "#/$defs/organization_discovery_result"
+    },
+    {
+      "$ref": "#/$defs/organization_moderation_policy_result"
+    },
+    {
+      "$ref": "#/$defs/view_result"
+    },
+    {
+      "$ref": "#/$defs/policy_result"
     }
   ],
   "$defs": {
@@ -2472,6 +2487,242 @@
         },
         "value": {
           "$ref": "#/$defs/moderation_state_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "object_redaction_entry": {
+      "type": "object",
+      "description": "One tagged entry of the object_redaction typed current result. The tag is the canonical dot of the accepted Event write that produced it; the value is the complete redact payload of that Event, unassembled. models/event-and-patch.md section 4.2.4 says several redactions may stand on one subject and deliberately registers no rule for choosing among them, which is why each one keeps its own dot instead of replacing the previous value.",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/message_redact_payload"
+            },
+            {
+              "$ref": "./event-payload.schema.json#/$defs/cross_object_redaction_payload"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "object_redaction_value": {
+      "type": "object",
+      "description": "Closed value of the object_redaction typed current result: the canonically sorted dot set of committed redaction assertions on one subject. The join is the keyed-set union of models/common-fields.md section 2. Both writers project keyed_set_add and neither removes a dot, because redaction is terminal and audit-sealed and a removal would erase the audit record of the redaction itself. models/event-and-patch.md section 4.2.4 fixes what this value depends on: the two target spellings of one event-derived token are two independent subjects that never merge, the ak:event: spelling trims that Event by preserve[] and MUST NOT move any object state, and several assertions may stand on one subject with no ordering rule. The object's own state=redacted and message.redaction_ref stay where they are and MUST NOT be mirrored here.",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/object_redaction_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "object_redaction_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one redaction subject. The subject is the canonical typed-id string of the redaction target, taken verbatim: ak.message.redact carries it in payload.message_id and the cross-object ak.redaction in payload.target_ref, whose schema mechanically excludes ak:message:. A reducer MUST NOT canonicalize an ak:event: spelling into the typed id of the object that Event derived.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "target_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "object_redaction"
+            },
+            "target_ref": {
+              "$ref": "./event-payload.schema.json#/$defs/object_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/object_redaction_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_discovery_value": {
+      "$ref": "./event-payload.schema.json#/$defs/organization_discovery_state_payload/properties/value"
+    },
+    "organization_discovery_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one Organization's discovery declaration. discovery/discovery-directory.md puts ak.organization.discovery in the same active discovery state event group as ak.actor.discovery, ak.applet.discovery and ak.handle.discovery: the resource self-signs its own discoverability and a Directory only indexes resources its directory_ids[] names, so each accepted declaration replaces the whole closed value.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "organization_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "organization_discovery"
+            },
+            "organization_id": {
+              "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/organization_discovery_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_moderation_policy_value": {
+      "$ref": "./event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/value"
+    },
+    "organization_moderation_policy_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one Organization's moderation policy document. It is the sibling of organization_discovery on the same did_core_id subject and is registered beside it so the Organization surface never carries one registered family and one unregistered one.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "organization_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "organization_moderation_policy"
+            },
+            "organization_id": {
+              "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/organization_moderation_policy_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "view_value": {
+      "allOf": [
+        {
+          "$ref": "./view.schema.json"
+        },
+        {
+          "not": {
+            "required": [
+              "id"
+            ]
+          }
+        }
+      ],
+      "description": "Closed value of the view typed current result: the whole View definition object. models/views.md section 3.2 forbids storing the self-reportable id here -- the reader derives it from the subject -- so that ak.view.create's object snapshot and ak.view.reconcile's definition leave exactly one value shape in one family."
+    },
+    "view_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one View. models/views.md section 3.2 is normative that ak.view.create, ak.view.update and ak.view.reconcile write ONE family: definition is the complete view.schema.json object and not a second business object, and three authority chains for one View would leave ak.view.update's apply_patch writing onto a result that was never written, which the current-value contract forbids filling with a registered initial_value. create derives the subject from its own event_id; update and reconcile name it in payload.view_id.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "view_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "view"
+            },
+            "view_id": {
+              "type": "string",
+              "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/view_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_value": {
+      "$ref": "./event-payload.schema.json#/$defs/policy_set_state_payload/properties/value"
+    },
+    "policy_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is exactly {policy_id, value}, value.schema selects the generic Policy or the RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own -- ak.policy.rule's rule_id is a document-local symbol and names no result.",
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "policy_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "policy"
+            },
+            "policy_id": {
+              "$ref": "./event-payload.schema.json#/$defs/policy_set_state_payload/properties/policy_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/policy_value"
         }
       },
       "additionalProperties": false
