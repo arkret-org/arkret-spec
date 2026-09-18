@@ -243,8 +243,72 @@ class HttpSignatureContractClosureTest(unittest.TestCase):
         prose = PROSE + "\n窗口是 `expires - created ≤ 300` 秒。\n"
         self.assertRedWith(self.run_gate(prose=prose), "states the signature window outside")
 
-    def test_an_override_naming_an_unknown_operation_turns_the_gate_red(self) -> None:
+    # ------------------------------------------------- no per-operation deviation
+
+    def test_an_unregistered_scenario_key_turns_the_gate_red(self) -> None:
+        """The successor to the deviation mechanism report 1240 removed.
+
+        `operation_freshness_overrides` used to be a registered scenario key. It was
+        removed with the two five-second ceilings it existed to carry. A key nobody
+        reads is how a second window contract grows back, so the scenario key set is
+        closed and anything outside it is a protocol change, not a comment.
+        """
         data = catalog()
+        data["http_signature_contract_registry"]["scenarios"][0][
+            "operation_freshness_overrides"
+        ] = [{"operation_id": "ak.probe.command.v1", "freshness_profile_id": PROFILE}]
+        self.assertRedWith(self.run_gate(data=data), "unregistered key")
+
+    def test_a_profile_no_scenario_resolves_turns_the_gate_red(self) -> None:
+        data = catalog()
+        data["http_signature_contract_registry"]["freshness_profiles"].append(
+            {
+                "freshness_profile_id": "ak.probe.freshness.tight.v1",
+                "max_signature_lifetime_seconds": 5,
+                "created_skew_seconds": 30,
+            }
+        )
+        self.assertRedWith(self.run_gate(data=data), "named by no scenario")
+
+    # ---------------------------------------------------------------- boundary vector
+
+    def boundary_catalog(self, **overrides) -> dict:
+        data = catalog()
+        registry = data["http_signature_contract_registry"]
+        binding = {
+            "vector_id": "ak.probe.vector.v1",
+            "fixture_pointer": "fixtures/probe-fixture.json#/cases/0",
+            "resolved_by_operations": ["ak.probe.command.v1"],
+        }
+        binding.update(overrides)
+        registry["freshness_profiles"][0]["boundary_vector"] = binding
+        return data
+
+    BOUNDARY_FIXTURE = {
+        "cases": [
+            {
+                "vector_id": "ak.probe.vector.v1",
+                "freshness_profile_id": PROFILE,
+            }
+        ]
+    }
+
+    def run_boundary_gate(self, data: dict, fixture: dict | None = None) -> list[str]:
+        return self.run_gate(
+            data=data,
+            projections={
+                "fixtures/probe-fixture.json": self.BOUNDARY_FIXTURE
+                if fixture is None
+                else fixture
+            },
+        )
+
+    def test_a_boundary_vector_bound_to_its_operations_passes(self) -> None:
+        self.assertEqual(self.run_boundary_gate(self.boundary_catalog()), [])
+
+    def test_an_operation_that_resolves_another_profile_turns_the_gate_red(self) -> None:
+        """Restoring a per-operation ceiling has to break the evidence that denies it."""
+        data = self.boundary_catalog()
         registry = data["http_signature_contract_registry"]
         registry["freshness_profiles"].append(
             {
@@ -253,33 +317,41 @@ class HttpSignatureContractClosureTest(unittest.TestCase):
                 "created_skew_seconds": 30,
             }
         )
-        registry["scenarios"][0]["operation_freshness_overrides"] = [
-            {
-                "operation_id": "ak.probe.command.absent.v1",
-                "freshness_profile_id": "ak.probe.freshness.tight.v1",
-            }
-        ]
-        self.assertRedWith(self.run_gate(data=data), "names unknown operation")
+        registry["scenarios"][0]["freshness_profile_id"] = "ak.probe.freshness.tight.v1"
+        self.assertRedWith(self.run_boundary_gate(data), "resolves ak.probe.freshness.tight.v1")
 
-    def test_an_override_repeating_the_scenario_profile_turns_the_gate_red(self) -> None:
-        """An override that changes nothing hides that the deviation was dropped."""
-        data = catalog()
-        data["http_signature_contract_registry"]["scenarios"][0][
-            "operation_freshness_overrides"
-        ] = [{"operation_id": "ak.probe.command.v1", "freshness_profile_id": PROFILE}]
-        self.assertRedWith(self.run_gate(data=data), "is not a deviation")
+    def test_an_operation_with_no_scenario_binding_turns_the_gate_red(self) -> None:
+        data = self.boundary_catalog(resolved_by_operations=["ak.probe.command.other.v1"])
+        data["operation_registry"]["operations"].append(
+            {"operation_id": "ak.probe.command.other.v1", "auth_requirements": {}}
+        )
+        self.assertRedWith(self.run_boundary_gate(data), "resolves no window at all")
 
-    def test_an_override_naming_an_unregistered_profile_turns_the_gate_red(self) -> None:
-        data = catalog()
-        data["http_signature_contract_registry"]["scenarios"][0][
-            "operation_freshness_overrides"
-        ] = [
-            {
-                "operation_id": "ak.probe.command.v1",
-                "freshness_profile_id": "ak.probe.freshness.absent.v1",
-            }
-        ]
-        self.assertRedWith(self.run_gate(data=data), "unregistered profile")
+    def test_a_boundary_vector_naming_no_operation_turns_the_gate_red(self) -> None:
+        data = self.boundary_catalog(resolved_by_operations=[])
+        self.assertRedWith(self.run_boundary_gate(data), "must name the operations it decides")
+
+    def test_a_boundary_pointer_that_does_not_resolve_turns_the_gate_red(self) -> None:
+        data = self.boundary_catalog(fixture_pointer="fixtures/probe-fixture.json#/cases/7")
+        self.assertRedWith(self.run_boundary_gate(data), "does not resolve")
+
+    def test_a_case_carrying_another_vector_turns_the_gate_red(self) -> None:
+        fixture = {"cases": [{"vector_id": "ak.probe.vector.other.v1", "freshness_profile_id": PROFILE}]}
+        self.assertRedWith(
+            self.run_boundary_gate(self.boundary_catalog(), fixture=fixture),
+            "but the profile claims",
+        )
+
+    def test_a_case_stating_another_profile_turns_the_gate_red(self) -> None:
+        fixture = {
+            "cases": [
+                {"vector_id": "ak.probe.vector.v1", "freshness_profile_id": "ak.probe.freshness.other.v1"}
+            ]
+        }
+        self.assertRedWith(
+            self.run_boundary_gate(self.boundary_catalog(), fixture=fixture),
+            "states profile 'ak.probe.freshness.other.v1'",
+        )
 
     # ---------------------------------------------------------------- machine projections
 
@@ -491,6 +563,79 @@ class FreshnessWindowBoundaryVectorTest(unittest.TestCase):
         )
         malformed = {row["name"] for row in self.case["malformed_parameters"]}
         self.assertLessEqual({"created_absent", "expires_absent", "created_not_integer"}, malformed)
+
+    def test_every_shared_window_row_follows_from_the_profile(self) -> None:
+        """The rows added when the two five-second ceilings were removed.
+
+        Each row carries its own ``now`` because the point of the group is the
+        relationship between the receiver clock and a declared lifetime, which a
+        single case-level ``now`` cannot express.
+        """
+        profile = self.profiles[self.case["freshness_profile_id"]]
+        ceiling = profile["max_signature_lifetime_seconds"]
+        skew = profile["created_skew_seconds"]
+        for row in self.case["removed_tightening_boundaries"]:
+            created, expires, now = row["created"], row["expires"], row["now"]
+            accepted = (
+                0 < expires - created <= ceiling
+                and abs(created - now) <= skew
+                and now < expires
+            )
+            self.assertEqual(
+                "accepted" if accepted else "rejected", row["expected"], row["name"]
+            )
+
+    def test_the_rows_prove_the_old_ceiling_no_longer_decides(self) -> None:
+        """At least one accepted row must be one the removed ceiling would have rejected."""
+        old_ceiling = 5
+        witnesses = [
+            row
+            for row in self.case["removed_tightening_boundaries"]
+            if row["expected"] == "accepted" and row["now"] - row["created"] > old_ceiling
+        ]
+        self.assertTrue(witnesses, "the group proves nothing about the removal")
+
+    def test_a_short_declared_lifetime_still_expires(self) -> None:
+        """Removing the ceiling did not turn every signature into a 300-second one."""
+        rows = {row["name"]: row for row in self.case["removed_tightening_boundaries"]}
+        self.assertEqual("rejected", rows["short_declared_lifetime_at_expires"]["expected"])
+        self.assertEqual("rejected", rows["short_declared_lifetime_past_expires"]["expected"])
+        self.assertEqual("accepted", rows["short_declared_lifetime_receiver_behind"]["expected"])
+
+    def test_v1_registers_exactly_one_rfc9421_window(self) -> None:
+        rfc9421 = {
+            profile_id
+            for profile_id, row in self.profiles.items()
+            if "max_signature_lifetime_seconds" in row
+        }
+        self.assertEqual({"ak.http_signature.freshness.v1"}, rfc9421)
+
+    def test_the_two_operations_that_carried_a_ceiling_resolve_the_shared_window(self) -> None:
+        registry = json.loads(
+            (ROOT / "spec/v1/artifacts/registry/contract-registry.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        scenarios = {
+            row["scenario_id"]: row
+            for row in registry["http_signature_contract_registry"]["scenarios"]
+        }
+        operations = {
+            row["operation_id"]: row
+            for row in registry["operation_registry"]["operations"]
+        }
+        for operation_id in (
+            "ak.peer.signal.command.relay.v1",
+            "ak.peer.keys.read.lookup.v1",
+        ):
+            signature = operations[operation_id]["auth_requirements"]["service_signature"]
+            scenario = scenarios[signature["signature_scenario_id"]]
+            self.assertEqual(
+                "ak.http_signature.freshness.v1",
+                scenario["freshness_profile_id"],
+                operation_id,
+            )
+            self.assertIn(operation_id, self.case["resolved_by_operations"])
 
     def test_the_vector_is_registered_and_carried_by_the_fixture(self) -> None:
         registry = json.loads(

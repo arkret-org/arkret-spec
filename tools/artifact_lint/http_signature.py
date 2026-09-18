@@ -103,6 +103,30 @@ def _resolve_pointer(data: Any, pointer: str) -> Any:
     return current
 
 
+_SCENARIO_KEYS = frozenset(
+    {
+        "scenario_id",
+        "label",
+        "applies_to",
+        "extends",
+        "additional_covered_components",
+        "conditional_covered_components",
+        "required_headers",
+        "freshness_profile_id",
+        "prose_bindings",
+        "machine_projections",
+        "freshness_projections",
+        "operations",
+        "vectors",
+        "error_codes",
+    }
+)
+
+# A profile that no scenario resolves, and that is deliberately so: DPoP is a separate
+# standard with its own carrier, not an RFC 9421 signing scenario.
+_STANDALONE_PROFILES = frozenset({"ak.dpop.freshness.v1"})
+
+
 def check_http_signature_contract_closure(lint: Lint) -> None:
     catalog = load_json(lint, CONTRACT_REGISTRY)
     if not isinstance(catalog, dict):
@@ -168,24 +192,13 @@ def check_http_signature_contract_closure(lint: Lint) -> None:
         if profile_id not in profiles:
             lint.fail(CONTRACT_REGISTRY, f"{scenario_id} names unregistered freshness profile {profile_id}")
 
-        for override in scenario.get("operation_freshness_overrides", []):
-            if not isinstance(override, dict):
-                lint.fail(CONTRACT_REGISTRY, f"{scenario_id}: every freshness override must be an object")
-                continue
-            override_id = override.get("freshness_profile_id")
-            if override_id not in profiles:
+        for key in scenario:
+            if key not in _SCENARIO_KEYS:
                 lint.fail(
                     CONTRACT_REGISTRY,
-                    f"{scenario_id}: freshness override names unregistered profile {override_id}",
+                    f"{scenario_id} declares unregistered key {key!r}; a new deviation mechanism "
+                    "is a protocol change, not a key nobody reads",
                 )
-            elif override_id == profile_id:
-                lint.fail(
-                    CONTRACT_REGISTRY,
-                    f"{scenario_id}: freshness override for {override.get('operation_id')} repeats "
-                    "the scenario profile, so it is not a deviation",
-                )
-            if not isinstance(override.get("operation_id"), str):
-                lint.fail(CONTRACT_REGISTRY, f"{scenario_id}: a freshness override must name an operation")
 
         bindings = scenario.get("prose_bindings")
         if not isinstance(bindings, list) or not bindings:
@@ -201,23 +214,21 @@ def check_http_signature_contract_closure(lint: Lint) -> None:
         lint.fail(CONTRACT_REGISTRY, "the registry declares no signing scenario")
         return
 
-    known_operations = {
-        operation.get("operation_id")
-        for operation in catalog.get("operation_registry", {}).get("operations", [])
-        if isinstance(operation, dict)
-    }
-    for scenario_id, scenario in scenarios.items():
-        for override in scenario.get("operation_freshness_overrides", []):
-            if isinstance(override, dict) and override.get("operation_id") not in known_operations:
-                lint.fail(
-                    CONTRACT_REGISTRY,
-                    f"{scenario_id}: freshness override names unknown operation "
-                    f"{override.get('operation_id')}",
-                )
+    named_profiles = {scenario.get("freshness_profile_id") for scenario in scenarios.values()}
+    for profile_id in profiles:
+        if profile_id in named_profiles or profile_id in _STANDALONE_PROFILES:
+            continue
+        lint.fail(
+            CONTRACT_REGISTRY,
+            f"freshness profile {profile_id} is named by no scenario. Report 1240 retired the two "
+            "lifetime tightenings this guard replaces: a window nobody resolves is a numeral "
+            "waiting to be cited from prose.",
+        )
 
     _check_prose(lint, scenarios, applicable, profiles, registry)
     _check_machine_projections(lint, scenarios, applicable, profiles)
     _check_operations(lint, catalog, scenarios)
+    _check_boundary_vectors(lint, catalog, scenarios, profiles)
 
 
 def _check_prose(
@@ -426,6 +437,85 @@ def _check_freshness_projections(
                     target,
                     f"{scenario_id}: {fragment} is {value!r}, but {key} of "
                     f"{profile_id} is {profile[key]!r}",
+                )
+
+
+def _check_boundary_vectors(
+    lint: Lint,
+    catalog: dict[str, Any],
+    scenarios: dict[str, dict[str, Any]],
+    profiles: dict[str, dict[str, Any]],
+) -> None:
+    """Boundary evidence is bound to the operations that really resolve the profile.
+
+    Report 1240 retired two per-operation lifetime tightenings. Testing a profile
+    nobody calls would not have caught either of them, so a profile that declares a
+    boundary vector also names the operations whose requests it decides, and this
+    gate resolves operation -> scenario -> profile to check the claim.
+    """
+    resolved: dict[str, str] = {}
+    for operation in catalog.get("operation_registry", {}).get("operations", []):
+        if not isinstance(operation, dict):
+            continue
+        signature = operation.get("auth_requirements", {}).get("service_signature")
+        if not isinstance(signature, dict):
+            continue
+        scenario = scenarios.get(signature.get("signature_scenario_id"))
+        if isinstance(scenario, dict):
+            resolved[operation.get("operation_id")] = scenario.get("freshness_profile_id")
+
+    for profile_id, profile in profiles.items():
+        binding = profile.get("boundary_vector")
+        if binding is None:
+            continue
+        if not isinstance(binding, dict):
+            lint.fail(CONTRACT_REGISTRY, f"{profile_id}: boundary_vector must be an object")
+            continue
+        pointer = str(binding.get("fixture_pointer", ""))
+        if "#" not in pointer:
+            lint.fail(CONTRACT_REGISTRY, f"{profile_id}: boundary_vector needs a fixture pointer")
+        else:
+            rel, fragment = pointer.split("#", 1)
+            target = ARTIFACTS / rel
+            case = _resolve_pointer(load_json(lint, target), fragment) if target.is_file() else None
+            if not isinstance(case, dict):
+                lint.fail(
+                    CONTRACT_REGISTRY,
+                    f"{profile_id}: boundary_vector pointer does not resolve: {pointer}",
+                )
+            else:
+                if case.get("vector_id") != binding.get("vector_id"):
+                    lint.fail(
+                        target,
+                        f"{profile_id}: {fragment} carries vector {case.get('vector_id')!r}, "
+                        f"but the profile claims {binding.get('vector_id')!r}",
+                    )
+                if case.get("freshness_profile_id") != profile_id:
+                    lint.fail(
+                        target,
+                        f"{profile_id}: {fragment} states profile "
+                        f"{case.get('freshness_profile_id')!r}",
+                    )
+
+        operations = binding.get("resolved_by_operations")
+        if not isinstance(operations, list) or not operations:
+            lint.fail(
+                CONTRACT_REGISTRY,
+                f"{profile_id}: boundary_vector must name the operations it decides",
+            )
+            continue
+        for operation_id in operations:
+            if operation_id not in resolved:
+                lint.fail(
+                    CONTRACT_REGISTRY,
+                    f"{profile_id}: boundary_vector names {operation_id}, which binds no "
+                    "signature scenario, so it resolves no window at all",
+                )
+            elif resolved[operation_id] != profile_id:
+                lint.fail(
+                    CONTRACT_REGISTRY,
+                    f"{profile_id}: boundary_vector claims {operation_id}, but that operation "
+                    f"resolves {resolved[operation_id]}",
                 )
 
 

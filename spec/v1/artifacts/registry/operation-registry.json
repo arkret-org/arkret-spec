@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.15",
+  "version": "2026-09-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T11:30:00+08:00",
+  "generated_at": "2026-09-20T14:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1888,7 +1888,15 @@
       "max_items": 16,
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome"
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+        }
+      }
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",

@@ -682,9 +682,9 @@ origin Station MUST 在签发时从该 exact account-device 的 current accepted
 typed 结果放进同一个 `keys_query_outcome`。客户端 MUST NOT 直接调用任何 peer 面，本 Station MUST NOT 转发
 客户端的 SessionGrant、DPoP 或任何本地 bearer；peer 调用只使用本 Station 自己的 RFC 9421 service signature 与
 `Source-Service-ID` / `Destination-Service-ID` / `Content-Digest` header profile；
-该 operation 的签名时效窗口是 canonical 合同登记的收紧例外
-`ak.http_signature.freshness.peer_keys_lookup.v1`，判据与数值见
-[`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md)，本节不复制。
+该 operation 绑定 canonical 合同的 `ak.http_signature.scenario.service_to_service.v1`，
+覆盖集与时效窗口（共享的 `ak.http_signature.freshness.v1`）的判据与数值见
+[`../sync/service-http-binding.md` §8.1 / §8.3](../sync/service-http-binding.md)，本节不复制。
 
 **既有操作已覆盖的范围（normative 盘点）**：`ak.peer.current_signer_evidence.read.resolve.v1` 只在一个具名
 非 minimal-metadata Realm 内交付 signer evidence，既不给设备目录也不给 prekey bundle；

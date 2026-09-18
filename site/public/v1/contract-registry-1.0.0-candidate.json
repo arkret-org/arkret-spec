@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T12:40:00+08:00",
+  "generated_at": "2026-09-20T14:50:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8030,8 +8030,8 @@
     }
   },
   "http_signature_contract_registry": {
-    "version": "2026-09-20.1",
-    "generated_at": "2026-09-20T09:40:00+08:00",
+    "version": "2026-09-20.7",
+    "generated_at": "2026-09-20T14:50:00+08:00",
     "source_of_truth": true,
     "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
     "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
@@ -8043,7 +8043,7 @@
       "No operation, prose page, conformance profile, fixture or vector description carries its own covered-set array or window numeral. They cite a scenario_id and project this block; projections are compared by gate, not maintained by hand.",
       "An operation contract binds a scenario through auth_requirements.service_signature.signature_scenario_id and MUST NOT restate covered_components or freshness.",
       "Adding a component to a scenario is a protocol change: the scenario entry, every prose binding block and every declared projection move together or the gate fails.",
-      "A per-operation deviation from a scenario's freshness profile is registered as a freshness profile plus an operation_freshness_overrides entry on that scenario. A window numeral that appears only in one page's prose is a defect, not a contract."
+      "There is no per-operation deviation mechanism. v1 registers exactly one RFC 9421 freshness profile, and every scenario names it. A surface that genuinely needs a different window is registered as its own scenario with its own profile, prose block and projections, so the deviation carries the same evidence as everything else here. A window numeral that appears only in one page's prose is a defect, not a contract."
     ],
     "component_vocabulary": [
       {
@@ -8160,7 +8160,17 @@
           "All three checks MUST hold. The replay cache runs independently; cache eviction never excuses a time check or a coverage check.",
           "max_signature_lifetime_seconds caps the lifetime a signature may CLAIM. It is not a promise that a receiver accepts any signature for five minutes: the created skew rule rejects an old signature earlier."
         ],
-        "error_code": "signature_window_invalid"
+        "error_code": "signature_window_invalid",
+        "boundary_vector": {
+          "vector_id": "ak.vector.service.http_signature_freshness_window_boundaries.v1",
+          "fixture_pointer": "fixtures/auth-session-proof-fixture.json#/cases/6",
+          "resolved_by_operations": [
+            "ak.edge.applet.command.transaction.v1",
+            "ak.peer.keys.read.lookup.v1",
+            "ak.peer.signal.command.relay.v1"
+          ],
+          "note": "The boundary evidence is bound to operations that actually resolve this profile, not to a profile nobody calls. Two per-operation tightenings were removed in favour of this one window; restoring one, or dropping an operation's scenario binding, changes what these operations resolve and turns this gate red."
+        }
       },
       {
         "freshness_profile_id": "ak.dpop.freshness.v1",
@@ -8176,30 +8186,6 @@
           "Sharing one holder key with RFC 9421 does not merge the two contracts; neither profile numerals may be substituted for the other."
         ],
         "error_code": "unauthenticated"
-      },
-      {
-        "freshness_profile_id": "ak.http_signature.freshness.signal_relay.v1",
-        "applies_to": "RFC 9421 signature parameters created and expires on ak.peer.signal.command.relay.v1",
-        "max_signature_lifetime_seconds": 5,
-        "created_skew_seconds": 30,
-        "rules": [
-          "Same algorithm as ak.http_signature.freshness.v1 with a tighter lifetime ceiling; a signal relay signature may claim at most five seconds of life.",
-          "Tightening the lifetime does not change the created skew bound, which stays created_skew_seconds. But the now < expires check binds first once the receiver clock differs from the sender by more than max_signature_lifetime_seconds: under this profile a larger offset rejects every request whatever the skew bound says.",
-          "Two lifetime tightenings are registered: this one and ak.http_signature.freshness.peer_keys_lookup.v1. Any further per-operation window MUST be registered here rather than stated inline in prose."
-        ],
-        "error_code": "signature_window_invalid"
-      },
-      {
-        "freshness_profile_id": "ak.http_signature.freshness.peer_keys_lookup.v1",
-        "applies_to": "RFC 9421 signature parameters created and expires on ak.peer.keys.read.lookup.v1",
-        "max_signature_lifetime_seconds": 5,
-        "created_skew_seconds": 30,
-        "rules": [
-          "Same algorithm as ak.http_signature.freshness.v1 with a tighter lifetime ceiling.",
-          "Tightening the lifetime does not change the created skew bound, which stays created_skew_seconds. But the now < expires check binds first once the receiver clock differs from the sender by more than max_signature_lifetime_seconds: under this profile a larger offset rejects every request whatever the skew bound says.",
-          "This deviation was carried by the cross-Station keys/query prose before the contract existed; it is registered here so the numeral has exactly one editable home. Whether a cross-Station directory read needs a ceiling tighter than the shared one is open."
-        ],
-        "error_code": "signature_window_invalid"
       }
     ],
     "scenarios": [
@@ -8242,25 +8228,20 @@
           "zh/crypto-media/device-lifecycle.md"
         ],
         "machine_projections": [],
-        "operations": [],
+        "operations": [
+          "ak.peer.keys.read.lookup.v1"
+        ],
         "vectors": [],
         "error_codes": [
           "http_signature_required",
           "http_signature_invalid",
           "signature_window_invalid"
-        ],
-        "operation_freshness_overrides": [
-          {
-            "operation_id": "ak.peer.keys.read.lookup.v1",
-            "freshness_profile_id": "ak.http_signature.freshness.peer_keys_lookup.v1",
-            "note": "Cross-Station device directory and prekey-bundle fetch. The covered set is this scenario's; only the lifetime ceiling differs."
-          }
         ]
       },
       {
         "scenario_id": "ak.http_signature.scenario.signal_relay.v1",
         "label": "Single-hop signal envelope peer relay",
-        "applies_to": "ak.peer.signal.command.relay.v1. It is the service-to-service scenario with the endpoint binding a shared ingress needs and a tighter signature lifetime.",
+        "applies_to": "ak.peer.signal.command.relay.v1. It is the service-to-service scenario with the endpoint binding a shared ingress needs; its freshness window is the shared one.",
         "extends": "ak.http_signature.scenario.service_to_service.v1",
         "additional_covered_components": [
           "content-digest",
@@ -8285,7 +8266,7 @@
           "Source-Trust-Domain",
           "Destination-Trust-Domain"
         ],
-        "freshness_profile_id": "ak.http_signature.freshness.signal_relay.v1",
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
         "prose_bindings": [
           "zh/sync/signal.md"
         ],
@@ -10342,7 +10323,15 @@
         "max_items": 16,
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome"
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome",
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
       },
       {
         "operation_id": "ak.peer.mls.read.group_state_material.v1",
@@ -12503,8 +12492,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-16.14",
-    "generated_at": "2026-09-19T23:50:00+08:00",
+    "version": "2026-09-20.1",
+    "generated_at": "2026-09-20T14:10:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

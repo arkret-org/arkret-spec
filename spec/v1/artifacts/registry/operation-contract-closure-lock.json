@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.68",
-  "generated_at": "2026-09-20T11:30:00+08:00",
+  "version": "2026-09-16.69",
+  "generated_at": "2026-09-20T14:10:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -341,7 +341,7 @@
     },
     {
       "operation_id": "ak.peer.keys.read.lookup.v1",
-      "sha256": "sha256:e628ca7911073355d88571daf7ec2b5d59795e224ddecaf643a08fa7d76ca4c5"
+      "sha256": "sha256:bb7748bf49fe13817ac949d2c4e76787df3d0fae27dbf0bba3698e5277fd86c2"
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",

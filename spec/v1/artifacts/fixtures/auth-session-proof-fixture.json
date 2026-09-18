@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.station.v1",
-  "version": "2026-09-20",
+  "version": "2026-09-20.1",
   "suite": "auth_session_proof",
   "runner": {
     "kind": "named_suite",
@@ -439,7 +439,95 @@
         "every numeral in this case projects a registered freshness profile and is compared to it by gate; the case states no independent window",
         "both bounds of the created skew are inclusive, and the lifetime ceiling is inclusive while zero and negative lifetimes are rejected",
         "reaching expires is expiry, so a signature is never accepted at expires",
-        "the replay cache runs independently: eviction never excuses a time check"
+        "the replay cache runs independently: eviction never excuses a time check",
+        "the rows under removed_tightening_boundaries are the evidence for the window consolidation: the two operations that carried a five-second lifetime ceiling now resolve this profile, and the ceiling is an upper bound on what a signature may claim, never a clock-agreement bound"
+      ],
+      "removed_tightening_boundaries": [
+        {
+          "name": "declared_lifetime_at_shared_ceiling_five_seconds_in",
+          "now": 1005,
+          "created": 1000,
+          "expires": 1300,
+          "expected": "accepted",
+          "reason": "the removed five-second ceiling rejected this; the shared profile accepts it"
+        },
+        {
+          "name": "declared_lifetime_at_shared_ceiling_six_seconds_in",
+          "now": 1006,
+          "created": 1000,
+          "expires": 1300,
+          "expected": "accepted",
+          "reason": "one second past the removed ceiling is no longer a boundary at all"
+        },
+        {
+          "name": "created_skew_past_boundary",
+          "now": 970,
+          "created": 1000,
+          "expires": 1300,
+          "expected": "accepted",
+          "reason": "receiver thirty seconds behind the sender: created skew bound is inclusive"
+        },
+        {
+          "name": "created_skew_future_boundary",
+          "now": 1030,
+          "created": 1000,
+          "expires": 1300,
+          "expected": "accepted",
+          "reason": "receiver thirty seconds ahead: the other created skew bound is inclusive"
+        },
+        {
+          "name": "created_skew_past_outside",
+          "now": 969,
+          "created": 1000,
+          "expires": 1300,
+          "expected": "rejected",
+          "reason": "one second outside the created skew bound"
+        },
+        {
+          "name": "created_skew_future_outside",
+          "now": 1031,
+          "created": 1000,
+          "expires": 1300,
+          "expected": "rejected",
+          "reason": "one second outside the other created skew bound"
+        },
+        {
+          "name": "short_declared_lifetime_receiver_behind",
+          "now": 990,
+          "created": 1000,
+          "expires": 1005,
+          "expected": "accepted",
+          "reason": "a signature that declares a short life is still valid ten seconds on the other side of the sender clock; a short lifetime is not a symmetric clock bound"
+        },
+        {
+          "name": "short_declared_lifetime_inside",
+          "now": 1004,
+          "created": 1000,
+          "expires": 1005,
+          "expected": "accepted",
+          "reason": "a sender MAY still declare a short lifetime; the ceiling is an upper bound"
+        },
+        {
+          "name": "short_declared_lifetime_at_expires",
+          "now": 1005,
+          "created": 1000,
+          "expires": 1005,
+          "expected": "rejected",
+          "reason": "reaching the declared expires is expiry even though the shared ceiling is far away"
+        },
+        {
+          "name": "short_declared_lifetime_past_expires",
+          "now": 1006,
+          "created": 1000,
+          "expires": 1005,
+          "expected": "rejected",
+          "reason": "past the declared expires; removing the ceiling did not remove expiry"
+        }
+      ],
+      "resolved_by_operations": [
+        "ak.edge.applet.command.transaction.v1",
+        "ak.peer.keys.read.lookup.v1",
+        "ak.peer.signal.command.relay.v1"
       ]
     }
   ]

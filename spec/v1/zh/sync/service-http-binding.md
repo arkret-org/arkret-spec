@@ -190,11 +190,8 @@ MIMI provider-to-provider 见 [`../extensions/mimi-interop.md` §5](../extension
 跨部署 KeyPackage claim 的外层服务签名是本场景的一个实例，见
 [`../crypto-media/device-lifecycle.md` §9.2.1](../crypto-media/device-lifecycle.md)。
 
-目前登记了两个签名寿命收紧例外：单跳 signal relay（`ak.http_signature.freshness.signal_relay.v1`）
-与跨站设备目录取材（`ak.http_signature.freshness.peer_keys_lookup.v1`，经 canonical 合同的
-`operation_freshness_overrides` 绑定到 `ak.peer.keys.read.lookup.v1`）。两者都只收紧签名寿命上限，
-不改覆盖集、不改时钟偏差。任何新的逐 operation 窗口 MUST 按同一形态登记进 canonical 合同，
-MUST NOT 只写在某一页正文里。
+五个场景的时效窗口是同一份，见 §8.3；canonical 合同**不提供**逐 operation 收紧机制。
+新的窗口 MUST 登记为自己的场景，MUST NOT 只写在某一页正文里。
 
 ### 8.2 Peer signature 与 content-digest（normative）
 
@@ -222,7 +219,7 @@ MUST NOT 替代任何一层内层 proof，也 MUST NOT 成为 Event authority。
 ### 8.3 时效窗口与重放（normative）
 
 `created` / `expires` 的判据由 canonical 合同的 `ak.http_signature.freshness.v1` 持有，
-四个签名场景共用同一份。令 `now` 为接收方本次校验使用的当前 Unix 秒：
+**五个签名场景无一例外地共用这一份**。令 `now` 为接收方本次校验使用的当前 Unix 秒：
 
 <!-- BEGIN ak-http-signature-freshness ak.http_signature.freshness.v1 -->
 - `created` 与 `expires` MUST 同时存在且为整数 UNIX 秒；缺失或类型不合法即失败。
@@ -237,17 +234,16 @@ MUST NOT 替代任何一层内层 proof，也 MUST NOT 成为 Event authority。
 到达 `expires` 即拒绝，replay cache evict 后的逐字节重放仍由时间检查拒绝，
 缺参或非整数参数在任何比较之前失败。
 
-两个登记的收紧例外沿用同一算法，只把签名寿命上限改短：
-
-<!-- BEGIN ak-http-signature-freshness ak.http_signature.freshness.signal_relay.v1 -->
-- `ak.peer.signal.command.relay.v1`：签名寿命上限 5 秒。
-- `created` 偏差上限仍为 30 秒——收紧寿命 MUST NOT 被读成同时收紧时钟偏差。
-<!-- END ak-http-signature-freshness -->
-
-<!-- BEGIN ak-http-signature-freshness ak.http_signature.freshness.peer_keys_lookup.v1 -->
-- `ak.peer.keys.read.lookup.v1`：签名寿命上限 5 秒。
-- `created` 偏差上限仍为 30 秒。
-<!-- END ak-http-signature-freshness -->
+**v1 不设逐 operation 的窗口收紧，也没有登记这种机制**：曾有两处更短的寿命上限
+（单跳 signal relay 与跨站设备目录取材）只写在各自页面的正文里，没有记录过理由，
+现已取消，两条链路改用本节这一份。理由是 transport 签名时效只限制**这一跳被截获的
+已签请求还能用多久**，它不承担、也无法承担业务新鲜度与重放判据：Signal 的旧包边界由
+已签 envelope 的 `sent_at` / `expires_at`、class TTL、current membership／scope 与
+recipient 的去重共同执行；跨站目录取材的新鲜度由 attestation、generation、状态与
+有效期判断，短寿命签名证明不了目录响应仍然新鲜。把这些职责压给一个没有依据的
+transport 上限，只会在时钟偏移与排队耗时下把合法请求判死。
+将来若某个面确需不同窗口，MUST 登记为**自己的场景**（连同 profile、正文块与投影），
+MUST NOT 以逐 operation 例外或某一页的散文常量存在。
 
 - 上限 300 秒是**签名可以声明的寿命上限**，不是「服务器承诺接受每份签名五分钟」：
   `created` 的 ±30 秒规则会更早拒绝一份旧签名。
