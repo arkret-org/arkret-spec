@@ -2381,3 +2381,235 @@ def check_artifact_prose_section_refs(lint: Lint) -> None:
                     f"{pointer or '/'}: cites {name} \u00a7{section}, "
                     f"which is not a section heading in {target_rel}",
                 )
+
+
+RESOLVER_POLICY_SECTION_HEADING = "### 4.1 Resolver Policy"
+RESOLVER_POLICY_HUMAN_ANCHOR_SENTENCE = "human anchor 当前"
+RESOLVER_POLICY_ADMISSION_KEY = "human_anchor_admission"
+RESOLVER_POLICY_ADMISSION_VALUE = "unsupported_did_method"
+RESOLVER_POLICY_FORBIDDEN_POLICY_KEYS = (
+    "account_registration",
+    "principal_control_realm",
+    "long_lived_principal",
+    "did_root_recovery",
+    "relocation",
+)
+
+
+def _adapter_satisfies_role(adapter: dict, requirement: Any) -> bool:
+    """Apply one role_requirements row to one adapter row.
+
+    Same evaluation as the registry-derived allowlists in
+    ``check_did_and_device_constraints``; registry shape failures are reported
+    there, so this helper only decides eligibility.
+    """
+    if not isinstance(requirement, dict):
+        return False
+    required = requirement.get("required_adapter_properties")
+    if not isinstance(required, dict) or not required:
+        return False
+    if any(adapter.get(field) != expected for field, expected in required.items()):
+        return False
+    for condition in requirement.get("conditional_adapter_properties", []) or []:
+        if not isinstance(condition, dict):
+            return False
+        when = condition.get("when")
+        require = condition.get("require")
+        if not isinstance(when, dict) or not isinstance(require, dict):
+            return False
+        if all(adapter.get(field) == expected for field, expected in when.items()) and any(
+            adapter.get(field) != expected for field, expected in require.items()
+        ):
+            return False
+    return True
+
+
+def check_resolver_policy_matches_did_method_adapter_registry(lint: Lint) -> None:
+    """The section 4.1 resolver-policy example must restate the adapter registry.
+
+    ``identity-did.md`` section 4.1 already requires every role method set to be
+    derived from ``did-method-adapter-registry.json`` ``role_requirements``. Its
+    own example used a private role vocabulary instead
+    (``human_anchor_immutable``, ``service_no_history``, ``interop_principal``)
+    and granted ``did:key`` both ``account_registration`` and
+    ``principal_control_realm`` as ``allow_for_human_anchor`` while the registry
+    carries ``human_principal_anchor=false`` for that adapter and section 10
+    requires an ``unsupported_did_method`` fail-closed. The example also used the
+    one key the bullet above it names as forbidden (``long_lived_principal``).
+    Nothing aligned the two, so the example drifted for as long as it took
+    someone to read both.
+
+    This gate pins the example to the registry: role tokens are
+    ``role_requirements`` keys, each method declares exactly the roles its active
+    adapter properties satisfy, a non-anchor method carries the single
+    ``human_anchor_admission`` entry and no synonym of it, a method with no
+    active adapter row declares no role at all, and the prose sentence naming the
+    current human anchor methods counts the same set the registry does.
+    """
+    path = SPEC_ROOT / "zh" / "identity" / "identity-did.md"
+    registry_path = ARTIFACTS / "registry" / "did-method-adapter-registry.json"
+    text = read_text(path)
+    registry = load_json(lint, registry_path)
+    if not text or not isinstance(registry, dict):
+        return
+
+    role_requirements = registry.get("role_requirements")
+    adapters = registry.get("adapters")
+    if not isinstance(role_requirements, dict) or not isinstance(adapters, list):
+        return  # shape is owned by check_did_method_adapter_evidence_kind_routing
+    active = {
+        adapter["method"]: adapter
+        for adapter in adapters
+        if isinstance(adapter, dict)
+        and adapter.get("status") == "active"
+        and isinstance(adapter.get("method"), str)
+    }
+    if not active:
+        lint.fail(registry_path, "no active adapter row to derive resolver policy roles from")
+        return
+
+    eligible_roles = {
+        method: sorted(
+            role
+            for role, requirement in role_requirements.items()
+            if _adapter_satisfies_role(adapter, requirement)
+        )
+        for method, adapter in active.items()
+    }
+    human_anchor_methods = sorted(
+        method
+        for method, adapter in active.items()
+        if adapter.get("human_principal_anchor") is True
+    )
+
+    start = text.find(RESOLVER_POLICY_SECTION_HEADING)
+    if start < 0:
+        lint.fail(path, f"missing heading {RESOLVER_POLICY_SECTION_HEADING!r}")
+        return
+    end = text.find("\n### ", start + len(RESOLVER_POLICY_SECTION_HEADING))
+    section = text[start:] if end < 0 else text[start:end]
+    section_line = text.count("\n", 0, start) + 1
+
+    anchor_lines = [
+        line
+        for line in section.splitlines()
+        if RESOLVER_POLICY_HUMAN_ANCHOR_SENTENCE in line
+    ]
+    if len(anchor_lines) != 1:
+        lint.fail(
+            path,
+            "section 4.1 must state the current human anchor method set exactly once "
+            f"('{RESOLVER_POLICY_HUMAN_ANCHOR_SENTENCE}...'); found {len(anchor_lines)}",
+        )
+    else:
+        named = sorted(set(re.findall(r"`(did:[a-z0-9]+)`", anchor_lines[0])))
+        if named != human_anchor_methods:
+            lint.fail(
+                path,
+                f"section 4.1 names human anchor methods {named} but the registry derives "
+                f"{human_anchor_methods}",
+            )
+
+    checked_methods = 0
+    for match in JSON_FENCE_RE.finditer(section):
+        try:
+            block = json.loads(match.group("body"))
+        except Exception:
+            continue
+        if not isinstance(block, dict):
+            continue
+        line_no = section_line + section.count("\n", 0, match.start())
+        where = f"section 4.1 json block at line {line_no}"
+
+        policy = block.get("method_policy")
+        if isinstance(policy, dict):
+            allowed = block.get("allowed_methods")
+            if allowed is not None:
+                if sorted(allowed) != sorted(active):
+                    lint.fail(
+                        path,
+                        f"{where}: allowed_methods {sorted(allowed)} must be the active adapter "
+                        f"method set {sorted(active)}",
+                    )
+                if sorted(policy) != sorted(allowed):
+                    lint.fail(
+                        path,
+                        f"{where}: method_policy keys {sorted(policy)} must cover exactly "
+                        f"allowed_methods {sorted(allowed)}",
+                    )
+            default_method = block.get("default_principal_method")
+            if default_method is not None and [default_method] != human_anchor_methods:
+                lint.fail(
+                    path,
+                    f"{where}: default_principal_method {default_method!r} must be the sole "
+                    f"registry-derived human anchor method {human_anchor_methods}",
+                )
+        elif block and all(isinstance(key, str) and key.startswith("did:") for key in block):
+            policy = block
+        else:
+            continue
+
+        for method, entry in policy.items():
+            if not isinstance(entry, dict):
+                lint.fail(path, f"{where}: method_policy.{method} must be an object")
+                continue
+            checked_methods += 1
+            roles = entry.get("role")
+            if not isinstance(roles, list):
+                lint.fail(path, f"{where}: {method}.role must be an array")
+                continue
+            adapter = active.get(method)
+            if adapter is None:
+                if roles:
+                    lint.fail(
+                        path,
+                        f"{where}: {method} has no active adapter row, so role must be [] "
+                        f"rather than {roles}",
+                    )
+                if RESOLVER_POLICY_ADMISSION_KEY in entry:
+                    lint.fail(
+                        path,
+                        f"{where}: {method} has no active adapter row, so it has no "
+                        f"{RESOLVER_POLICY_ADMISSION_KEY} branch either",
+                    )
+            else:
+                unknown = [role for role in roles if role not in role_requirements]
+                if unknown:
+                    lint.fail(
+                        path,
+                        f"{where}: {method}.role carries {unknown}, which are not "
+                        "did-method-adapter-registry.json role_requirements keys "
+                        f"{sorted(role_requirements)}",
+                    )
+                elif sorted(roles) != eligible_roles[method]:
+                    lint.fail(
+                        path,
+                        f"{where}: {method}.role is {sorted(roles)} but its adapter properties "
+                        f"satisfy exactly {eligible_roles[method]}",
+                    )
+                admission = entry.get(RESOLVER_POLICY_ADMISSION_KEY)
+                if adapter.get("human_principal_anchor") is True:
+                    if admission is not None:
+                        lint.fail(
+                            path,
+                            f"{where}: {method} is the human anchor method, so it must not carry "
+                            f"{RESOLVER_POLICY_ADMISSION_KEY}",
+                        )
+                elif admission != RESOLVER_POLICY_ADMISSION_VALUE:
+                    lint.fail(
+                        path,
+                        f"{where}: {method} carries human_principal_anchor=false, so "
+                        f"{RESOLVER_POLICY_ADMISSION_KEY} must be "
+                        f"{RESOLVER_POLICY_ADMISSION_VALUE!r}, not {admission!r}",
+                    )
+            forbidden = [key for key in RESOLVER_POLICY_FORBIDDEN_POLICY_KEYS if key in entry]
+            if forbidden:
+                lint.fail(
+                    path,
+                    f"{where}: {method} restates role admission through {forbidden}; the derived "
+                    f"role array and {RESOLVER_POLICY_ADMISSION_KEY} are the only entries allowed "
+                    "to carry it",
+                )
+
+    if checked_methods == 0:
+        lint.fail(path, "section 4.1 carries no resolver-policy method_policy example to check")

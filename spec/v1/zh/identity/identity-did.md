@@ -510,8 +510,11 @@ Resolver policy MUST 至少定义：
 - allowed methods：当前部署接受哪些 DID method。
 - role method：可注册 human anchor、启用 DID-root recovery、启用 same-core relocation、持续 DID
   governance 与 service 的 method 集 MUST 分别从 registry 对应 `role_requirements` 推导，不能由
-  一个 `long_lived_principal` 条件代替。human anchor 当前为 `did:webvh` + `did:web` + `did:key`；
-  MTI 仍只有 `did:webvh`。deployment policy 只能收紧，不能增加任何角色的 method。
+  一个 `long_lived_principal` 条件代替。`method_policy[*].role` MUST 逐字取
+  `did-method-adapter-registry.json` 的 `role_requirements` 键名，且 MUST 恰好等于该 method 的
+  active adapter 属性所满足的那组角色——policy 不得声明 adapter 属性不支持的角色，也不得省略
+  adapter 属性已经满足的角色。没有 active adapter row 的 method（如 `did:plc`）`role` MUST 是空数组。
+  human anchor 当前只有 `did:webvh`，它同时是 default 与 MTI。deployment policy 只能收紧，不能增加任何角色的 method。
 - trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。
@@ -526,7 +529,13 @@ Resolver policy MUST 至少定义：
   "allowed_methods": ["did:webvh", "did:web", "did:key"],
   "method_policy": {
     "did:webvh": {
-      "role": ["human_anchor", "organization", "service"],
+      "role": [
+        "human_principal_anchor",
+        "human_did_root_recovery",
+        "human_relocatable",
+        "ongoing_did_governance",
+        "service"
+      ],
       "history_chain_required": true,
       "require_witness": "required",
       "witness_threshold": 1,
@@ -538,35 +547,45 @@ Resolver policy MUST 至少定义：
       "outage_max_duration_ms": 86400000
     },
     "did:web": {
-      "role": ["service_no_history"],
+      "role": ["service"],
       "https_required": true,
       "human_anchor_admission": "unsupported_did_method"
     },
     "did:key": {
-      "role": ["human_anchor_immutable", "local_verifiable_material"],
-      "account_registration": "allow_for_human_anchor",
-      "principal_control_realm": "allow_for_human_anchor",
-      "did_root_recovery": "unsupported",
-      "relocation": "unsupported"
+      "role": [],
+      "human_anchor_admission": "unsupported_did_method"
     }
   }
 }
 ```
+
+上面三条 `role` 都不是自由文本：`did:webvh` 满足全部五个 `role_requirements`；
+`did:web` 只满足 `service`（`native_history=false` 命中该角色的 conditional，要求
+`history_evidence_kind="none"`，adapter 正好如此）；`did:key` 的
+`network_resolved_document=false`，因此它连 `service` 都不满足，`role` 是**空数组**。
+`did:key` 在设备密钥、Agent／service evidence 与 deterministic local expansion 上的用途
+属于各自封闭合同，不是 resolver role，不得借 `role` 或任何 `allow_for_*` 条目回到 human 准入面；
+`human_anchor_admission` 是 `human_principal_anchor=false` 的 method **唯一**允许写的准入条目，
+不得再用 `account_registration`、`principal_control_realm` 这类同义键各写一遍。
+角色缺席已由 `role` 数组表达，policy 不得另写 `did_root_recovery: "unsupported"` 之类的重复条目。
 
 声明 AT Protocol interop profile 的部署 MAY 在同一 policy 中加入 `did:plc` 适配器：
 
 ```json
 {
   "did:plc": {
-    "role": ["interop_principal"],
+    "role": [],
     "directory": ["https://web.plc.directory"],
     "operation_history_required": true,
-    "long_lived_principal": "interop_only"
+    "interop_claim_boundary": "atproto"
   }
 }
 ```
 
-`role: "interop_principal"` 表示该 DID 只在 AT 互通边界内被当作 principal；Arkret 自身的默认创建路径不签发 `did:plc`。
+`did:plc` 在 v1 没有 active adapter row，因此它的 `role` MUST 是空数组：该 DID 只在 AT 互通边界内
+被当作外部 claim，不承担任何 registered role，Arkret 自身的默认创建路径也不签发 `did:plc`。
+要让它进入任何角色集合，必须先按 §10 登记 adapter 与 bootstrap trust，而不是在 policy 里写一个
+`long_lived_principal` 之类的单一条件把 role 推导绕过去。
 
 > **关于 `did:webvh` outage policy 字段命名**：v1 resolver policy MUST NOT 接受 `fallback_to_did_web`。`did:web` human anchor 是独立注册选择，不是 webvh outage 时可切换的信任根。任何把已有 webvh principal 临时按 did:web 解析的配置都 MUST `schema_violation`。
 

@@ -172,6 +172,7 @@ from .prose import (
     check_event_log_operations_carry_a_signed_event,
     check_event_proof_digest_shape,
     check_join_policy_gate_id_uniqueness,
+    check_resolver_policy_matches_did_method_adapter_registry,
     check_keypackage_claim_proof_shape,
     check_legacy_announce_id_form,
     check_markdown_examples,
@@ -733,6 +734,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_event_log_operations_carry_a_signed_event(lint),
             ),
             ("join_policy_ids", lambda: check_join_policy_gate_id_uniqueness(lint)),
+            (
+                "resolver_policy_adapter_registry",
+                lambda: check_resolver_policy_matches_did_method_adapter_registry(lint),
+            ),
             ("composite_parts", lambda: check_content_composite_uses_parts(lint)),
             ("release_counts", lambda: check_release_readiness_counts(lint, known)),
             ("cross_doc_anchors", lambda: check_cross_doc_anchors(lint)),
