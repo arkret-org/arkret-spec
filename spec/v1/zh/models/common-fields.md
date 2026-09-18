@@ -754,9 +754,9 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 
 ## 7. Reducer 总则
 
-Reducer 总则的 normative 表述以 [`event-and-patch.md` §6](./event-and-patch.md) 为唯一权威；本节不再重复列出验证步骤，避免两份独立维护的清单漂移。
+Reducer 总则的 normative 表述以 [`event-and-patch.md` §3](./event-and-patch.md#3-typed-reducer) 为唯一权威，验证步骤以 [`event-and-patch.md` §4](./event-and-patch.md#4-验证边界) 为唯一权威；本节不再重复列出验证步骤，避免两份独立维护的清单漂移。
 
-§5 state-transition 表与 §5.1 `failed_precondition` reason-code 族属于本节关注的"对象 lifecycle 层 reducer 行为"; 它们与 §6 (Event-level reducer 总则) 形成"对象层 ↔ 事件层"两个互补侧面，均受 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 统一约束。
+§5 state-transition 表与 §5.1 `failed_precondition` reason-code 族属于本节关注的"对象 lifecycle 层 reducer 行为"; 它们与 `event-and-patch.md` §3—§4 (Event-level reducer 总则与验证边界) 形成"对象层 ↔ 事件层"两个互补侧面，均受 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 统一约束。
 
 ## 8. 规范性引用
 

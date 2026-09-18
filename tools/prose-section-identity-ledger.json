@@ -1,0 +1,250 @@
+{
+  "version": "2026-09-20.1",
+  "generated_at": "2026-09-20T19:45:00+08:00",
+  "description": "Register of the section identities that the three 'stable reference anchor' layers used to hold, and of what happened to each. Zero inbound citations found by a search is not proof that nothing cites a section, so an anchor is never simply deleted: its identity, what it meant and where that meaning now lives are recorded here. check_prose_section_identity_ledger resolves every recorded target on each run.",
+  "dispositions": {
+    "promoted": "The section carried a real obligation and was moved into the page's prose keeping its number.",
+    "pointer": "The section is a pure reference alias and names exactly one explicit target that carries the obligation.",
+    "moved": "The section's identity changed (renumbered out of a collision, or moved to an independent generated-index identity)."
+  },
+  "sections": [
+    {
+      "page": "sync/federation.md",
+      "section": "3.2",
+      "meaning": "Peer 服务签名验证的稳定引用点，12 处入站引用全部在说服务签名。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#32-服务签名验证"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "3.4",
+      "meaning": "Peer policy 的稳定引用点。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#34-peer-policy"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "4.1",
+      "meaning": "Event forwarding 的稳定引用点。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#41-event-forwarding"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "4.5",
+      "meaning": "Stream replication 的稳定引用点。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#45-stream-replication"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "4.5.1",
+      "meaning": "查询抗枚举义务。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#451-查询抗枚举"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "4.5.3",
+      "meaning": "有界分页义务；本次之前零入站引用。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#453-有界分页"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "5.0",
+      "meaning": "Authority locator 的稳定引用点。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#50-authority-locator"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "5.3",
+      "meaning": "Authority bundle 的稳定引用点。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#53-authority-bundle"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "5.3.1",
+      "meaning": "有界加入引导，标题自带 normative；本次之前零入站引用。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#531-有界加入引导normative"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "6.3",
+      "meaning": "DID route privacy 义务。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#63-did-route-privacy"
+    },
+    {
+      "page": "sync/federation.md",
+      "section": "8.5",
+      "meaning": "Failure normalization；原在 §7 锚点层内，现归入新的 §8 失败归一化。",
+      "disposition": "promoted",
+      "target": "sync/federation.md#85-failure-normalization"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "2.2",
+      "meaning": "Event 提交边界。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#22-event-提交边界"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "2.4.1",
+      "meaning": "Signer regime。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#241-signer-regime"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "2.4.2",
+      "meaning": "Typed reducer contract，含 canonical Event dot 的 MUST NOT。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#242-typed-reducer-contract"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "2.6",
+      "meaning": "关系与业务前驱。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#26-关系与业务前驱"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "2.7",
+      "meaning": "内容对象。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#27-内容对象"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "2.8",
+      "meaning": "加密 payload。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#28-加密-payload"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "3.1",
+      "meaning": "引用可见性。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#31-引用可见性"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "3.2",
+      "meaning": "可变对象修订与 expected_revision。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#32-可变对象修订"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "section": "4.3.1",
+      "meaning": "Patch 原子性与冲突正文，按 0140 §8.2 归入 Patch 正文并保留全部义务。",
+      "disposition": "promoted",
+      "target": "models/event-and-patch.md#431-patch-冲突"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.1",
+      "meaning": "REST API 命名空间组织；与旧 §2.1「Self 提交」重号，本节保留该编号身份。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#21-rest-api-命名空间组织"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.1.2",
+      "meaning": "Account authentication 边界。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#212-account-authentication"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.2",
+      "meaning": "端点契约规则；与旧 §2.2「Peer 转发」重号，本节保留该编号身份。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#22-端点契约规则"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.2.2",
+      "meaning": "Service authentication 绑定项。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#222-service-authentication"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.2.3",
+      "meaning": "Deployment-internal channel 的逐项登记要求。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#223-deployment-internal-channel"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.4",
+      "meaning": "上传与二进制传输；与生成索引的「2.4 字段级 Schema 索引」重号，本节保留该编号身份。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#24-上传与二进制传输"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.4.1",
+      "meaning": "Content digest；保留编号身份，改为唯一显式指向 §8.2 的 normative pointer。",
+      "disposition": "pointer",
+      "target": "sync/service-http-binding.md#241-content-digest"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.4-index",
+      "meaning": "字段级 Schema 索引（生成区），按 0140 §8.4 移出占位层并取独立编号。",
+      "disposition": "moved",
+      "target": "sync/service-http-binding.md#91-字段级-schema-索引"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.4.1-index",
+      "meaning": "Binding completeness index（生成区），移出占位层并取独立编号；artifact_lint/bindings.py 同步更新。",
+      "disposition": "moved",
+      "target": "sync/service-http-binding.md#911-binding-completeness-index"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "普通消息的完整 authoring 准备",
+      "meaning": "原为无编号小节，AK-NC-070 的 source_anchor；现取编号身份 §2.8。",
+      "disposition": "moved",
+      "target": "sync/service-http-binding.md#28-普通消息的完整-authoring-准备"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "3.3",
+      "meaning": "站间操作；原在锚点层，现归入 §3 读取与同步，并成为已存在的 §3.3.1.1／§3.3.3 的父节。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#33-站间操作"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "5.1",
+      "meaning": "MLS／Directory exact-resolve 运输要求，按 0140 §8.2 迁入 MLS 正文并保留访问与失败前提。",
+      "disposition": "promoted",
+      "target": "sync/service-http-binding.md#51-mls-运输"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.1-self",
+      "meaning": "Self 提交；原 §2.1，与 REST 命名空间组织重号，按 0140 §8.4 改取未占用编号 §2.6。",
+      "disposition": "moved",
+      "target": "sync/service-http-binding.md#26-self-提交"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "section": "2.2-peer",
+      "meaning": "Peer 转发；原 §2.2，与端点契约规则重号，按 0140 §8.4 改取未占用编号 §2.7。",
+      "disposition": "moved",
+      "target": "sync/service-http-binding.md#27-peer-转发"
+    }
+  ]
+}

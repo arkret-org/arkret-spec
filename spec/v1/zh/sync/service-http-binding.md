@@ -16,6 +16,10 @@ see_also:
 和错误映射的唯一机器真相源是 `operation-registry.json`、`arkret-service-api.openapi.yaml` 和
 `operations-error-mapping.json`。本页只规定 authority-commit 切换后的绑定边界，不维护一份并行端点全表。
 
+**章节编号是稳定引用身份（normative）**：本页的编号小节都是正文，各自承载自己的完整义务。
+编号是供其它领域页稳定引用的身份，不表达阅读顺序，MUST NOT 被理解为「只保留号、内容在别处」的占位别名。
+引用本页某节即引用该节正文。
+
 ## 1. Surface 分层
 
 - `/_arkret/gate/*` 是无 Realm 会话前置流程；它不能接纳 Realm Event。
@@ -26,25 +30,79 @@ see_also:
 所有非 `open` 端点必须在解析大型 body 之前执行身份、audience、重放窗口和字节上限检查。
 未授权的 hidden Realm/Circle/Sidecar 必须使用不可枚举的统一失败形态。
 
-## 2. Event 提交
+## 2. HTTP 端点与 Event 提交
 
-### 2.1 Self 提交
+### 2.1 REST API 命名空间组织
+
+`gate/self/peer/open/root/edge/find/server` 前缀只表达认证与网络边界，不改变同一 operation 的 typed schema 和 authority-commit 语义。
+
+#### 2.1.2 Account authentication
+
+Account 认证和 session grant 在 gate/self 边界完成，不因其成功而绕过 Realm Event 的 authority commit。
+
+### 2.2 端点契约规则
+
+每个端点必须绑定唯一 operation ID、request/response schema、auth profile、body class 和错误集。
+
+#### 2.2.2 Service authentication
+
+Station-to-Station 请求必须绑定 exact source/destination service identity、operation ID、body digest 和重放窗口。
+
+#### 2.2.3 Deployment-internal channel
+
+部署内通道可使用独立认证 profile，但必须在 operation registry 逐项登记，不得作为通用 peer 降级路径。
+
+### 2.3 幂等与不确定结果
+
+exact Event retry 必须返回同一 committed outcome；同 Event ID 但 canonical bytes 不同必须
+`duplicate_conflict` 且零写入。请求者在 response 丢失后重放原字节，不得重签或生成新幂等身份。
+
+### 2.4 上传与二进制传输
+
+Blob 和其它 binary operation 使用各自登记的 streaming/binary body contract，不与 Event submit 共用 JSON 上限。
+
+#### 2.4.1 Content digest
+
+> **引用别名（normative pointer）**：本节不独立新增义务；Content-Digest 的全部规范内容见
+> [§8.2 Peer signature 与 content-digest](#82-peer-signature-与-content-digestnormative)。
+
+### 2.6 Self 提交
 
 `POST /_arkret/self/events` 接受 `authority-commit-operations.schema.json#/$defs/submit_request`。Account
 Station 必须先耐久保存 exact producer-signed Event，再解析 current authority bundle 并转发。
 它只能返回 `queued`、`forwarding`、`committed`、`rejected` 或 `temporarily_unavailable` 的 schema 登记分支。
 没有验证到 RealmCommit 时不得返回 `committed`或对其它成员 fanout。
 
-### 2.2 Peer 转发
+### 2.7 Peer 转发
 
 `POST /_arkret/peer/events` 只把 exact Event 转发给已验证的 current governance Station。请求必须使用
 service-to-service authentication 绑定 source/destination service identity、operation、body digest 与有界时间窗。
 非当前 authority 的接收方只能重定位或转发，不能签发 RealmCommit。
 
-### 2.3 幂等与不确定结果
+### 2.8 普通消息的完整 authoring 准备
 
-exact Event retry 必须返回同一 committed outcome；同 Event ID 但 canonical bytes 不同必须
-`duplicate_conflict` 且零写入。请求者在 response 丢失后重放原字节，不得重签或生成新幂等身份。
+普通消息必须在客户端形成 immutable producer-signed Event，再使用统一 Event submit 进入 current authority；准备接口不保留位置也不产生 accepted 结果。
+
+**本地明文意图与加密 wire 请求是两件事（normative）**：`ak.self.messages.command.prepare.v1` 的
+`intent.content` 是一个封闭 `oneOf`——`kind="plaintext"` 承载**本地**明文意图，`kind="mls"` 承载已经加密好的
+wire 请求（`encrypted_content` 与 `encryption_context`）。两者 MUST NOT 混用或互相回退。在已由 accepted
+`ak.mls.genesis` 激活的 effective scope 中，`kind="plaintext"` 的 prepare 请求 MUST 被拒绝
+（[`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）；准备接口
+MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文。
+
+**加密与校验都在客户端（normative）**：客户端 MUST 先按 §2.3 冻结该条消息的 AAD 输入并在本地完成加密，
+再发出 prepare 请求。收到 `draft` 后，客户端 MUST 把 draft 中的 ciphertext、加密 metadata 与全部绑定
+（effective scope、Event kind、`encryption_context`、引用的 public group revision）与自己冻结、送出的那份
+**逐字节**比对，任一不符 MUST 丢弃该 draft 并 fail closed，MUST NOT 就地改写 draft 后签名。
+
+**精确重试不消耗第二个 sender counter（normative）**：prepare 结果不明确时，客户端 MUST 重放 byte-identical
+的同一请求。该重试 MUST NOT 重新加密，因此 MUST NOT 推进 RFC 9420 sender ratchet 的 generation，也 MUST NOT
+产生第二份 ciphertext。为同一条消息生成第二份 ciphertext 会使已冻结的 AAD 与已送出的那份不再唯一对应。
+
+**两请求路径假定发送就绪与本地 MLS state（normative）**：prepare + submit 这条两请求路径**假定**调用方已经
+send-ready 且已持有目标 epoch 的本地 MLS state。prepare MUST NOT 授予权限、MUST NOT 预留 sequence、
+MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT 建立、修复或代替本地 MLS state；
+缺少这些前提时失败发生在客户端加密阶段，而不是由准备接口补齐。
 
 ## 3. 读取与同步
 
@@ -83,6 +141,10 @@ Typed current operation 只接受封闭 selector union。响应中的 revision �
 stream head 的下一 position 拉取 tail。Snapshot 不包含 typed current result chunk、通用 state root 或隐藏 stream
 的 position。历史可见性仍由 join/history/retention policy 决定，不默认拉全历史。
 
+### 3.3 站间操作
+
+站间操作只包含 registry 已登记的 Event 转发、逐 stream 复制、authority bundle 与计划 handoff。
+
 #### 3.3.1.1 Discovery 投影
 
 Directory、Invite 和分享链接只能提供 `realm_id`、authority locator candidate 和必要的 bootstrap hint。
@@ -120,6 +182,15 @@ Commit 成功后立即成为 winning epoch，Welcome 由治理 Station 的 recip
 ACK 才提交。Station 只验证 RFC 9420 公开 transition、roster、sender 和 `key_access_revision`，
 不持有 MLS private group state。
 
+### 5.1 MLS 运输
+
+MLS private bytes 保持端到端加密；Station 只处理公开 transition 和 recipient-addressed Welcome ciphertext。
+`ak.peer.events.read.resolve_committed.v1` 是 Directory ingest 的专用 exact-resolve，不是通用 peer
+读取入口。其 body 必须包含 `realm_id`、`source_ref_access` 和 `refs[]`。服务在读任何 Event 前
+MUST 验证 authenticated caller 等于 carrier `directory_id`，carrier 的 source/Realm/proof/expiry 与
+当前 announce 有效，并确认每个 `{event_id, commit_id, stream_ref, stream_position}` 都逐字属于
+carrier `source_refs`。它只返回 exact match；任何缺失或越界必须 fail closed，且不得退化为 scan。
+
 ## 6. 错误与缓存
 
 - `schema_violation`：closed schema、canonical encoding 或 typed ID 失败。
@@ -146,7 +217,7 @@ Arkret 的 RFC 9421 HTTP Message Signature 有五个签名场景：一般 Statio
 的 `http_signature_contract_registry`。共同覆盖基线、各场景扩展项与其触发条件、必需 signature
 parameters 与时效窗口数值都**只在那里编辑**；本页与其它正文、conformance profile、向量描述都是它的
 投影，MUST NOT 各自维护自己的覆盖集数组或窗口常量。本节是这些投影的唯一正文归宿，
-`signature_window_invalid` 的判据也在这里，而不在任何稳定引用锚点下。
+`signature_window_invalid` 的判据也在这里，MUST NOT 从本页其它编号小节重新推导。
 
 ### 8.1 覆盖集（normative）
 
@@ -269,43 +340,15 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 共用同一把 grant-binding key（见 [`api-conventions.md` §3.3](./api-conventions.md)），
 但**共用密钥不合并合同**：两份 profile 的数值 MUST NOT 互相代入。
 
-## 9. 稳定引用锚点
+## 9. 生成索引（informative）
 
-下列章节号供其他领域规范稳定引用；具体 operation 始终以 machine registry 为准。
+本节的表格由 operation registry 生成，不承载独立义务；编号只是本页内的稳定身份，规范内容以被引用的 registry 与 schema 为准。
 
-### 2.1 REST API 命名空间组织
-
-`gate/self/peer/open/root/edge/find/server` 前缀只表达认证与网络边界，不改变同一 operation 的 typed schema 和 authority-commit 语义。
-
-#### 2.1.2 Account authentication
-
-Account 认证和 session grant 在 gate/self 边界完成，不因其成功而绕过 Realm Event 的 authority commit。
-
-#### 2.2.2 Service authentication
-
-Station-to-Station 请求必须绑定 exact source/destination service identity、operation ID、body digest 和重放窗口。
-
-#### 2.2.3 Deployment-internal channel
-
-部署内通道可使用独立认证 profile，但必须在 operation registry 逐项登记，不得作为通用 peer 降级路径。
-
-### 2.2 端点契约规则
-
-每个端点必须绑定唯一 operation ID、request/response schema、auth profile、body class 和错误集。
-
-### 2.4 上传与二进制传输
-
-Blob 和其它 binary operation 使用各自登记的 streaming/binary body contract，不与 Event submit 共用 JSON 上限。
-
-#### 2.4.1 Content digest
-
-带 body 的服务请求按登记 profile 绑定 Content-Digest；无 body 请求不得伪造 digest member。
-
-### 2.4 字段级 Schema 索引
+### 9.1 字段级 Schema 索引
 
 下表是 operation registry 的生成索引，只用于确保每个 operation 的 schema ref 在正文可检索；规范字段仍以被引用 schema 为准。
 
-#### 2.4.1 Binding completeness index
+#### 9.1.1 Binding completeness index
 
 <!-- BEGIN GENERATED OPERATION FIELD TABLE -->
 | Operation | HTTP | Required | Optional | Constraints |
@@ -531,41 +574,3 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 | `ak.self.third_party_invite.read.acceptance_attestation.v1` | `POST /_arkret/self/third-party-invites/acceptance-attestation` | - | - | request_schema_ref=schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body; response_schema_ref=schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome |
 | `ak.server.read.describe.v1` | `GET /_arkret/describe` | - | - | response_schema_ref=schemas/service-describe.schema.json |
 <!-- END GENERATED OPERATION FIELD TABLE -->
-
-### 普通消息的完整 authoring 准备
-
-普通消息必须在客户端形成 immutable producer-signed Event，再使用统一 Event submit 进入 current authority；准备接口不保留位置也不产生 accepted 结果。
-
-**本地明文意图与加密 wire 请求是两件事（normative）**：`ak.self.messages.command.prepare.v1` 的
-`intent.content` 是一个封闭 `oneOf`——`kind="plaintext"` 承载**本地**明文意图，`kind="mls"` 承载已经加密好的
-wire 请求（`encrypted_content` 与 `encryption_context`）。两者 MUST NOT 混用或互相回退。在已由 accepted
-`ak.mls.genesis` 激活的 effective scope 中，`kind="plaintext"` 的 prepare 请求 MUST 被拒绝
-（[`../crypto-media/encryption-and-audit.md` §2.3](../crypto-media/encryption-and-audit.md)）；准备接口
-MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文。
-
-**加密与校验都在客户端（normative）**：客户端 MUST 先按 §2.3 冻结该条消息的 AAD 输入并在本地完成加密，
-再发出 prepare 请求。收到 `draft` 后，客户端 MUST 把 draft 中的 ciphertext、加密 metadata 与全部绑定
-（effective scope、Event kind、`encryption_context`、引用的 public group revision）与自己冻结、送出的那份
-**逐字节**比对，任一不符 MUST 丢弃该 draft 并 fail closed，MUST NOT 就地改写 draft 后签名。
-
-**精确重试不消耗第二个 sender counter（normative）**：prepare 结果不明确时，客户端 MUST 重放 byte-identical
-的同一请求。该重试 MUST NOT 重新加密，因此 MUST NOT 推进 RFC 9420 sender ratchet 的 generation，也 MUST NOT
-产生第二份 ciphertext。为同一条消息生成第二份 ciphertext 会使已冻结的 AAD 与已送出的那份不再唯一对应。
-
-**两请求路径假定发送就绪与本地 MLS state（normative）**：prepare + submit 这条两请求路径**假定**调用方已经
-send-ready 且已持有目标 epoch 的本地 MLS state。prepare MUST NOT 授予权限、MUST NOT 预留 sequence、
-MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT 建立、修复或代替本地 MLS state；
-缺少这些前提时失败发生在客户端加密阶段，而不是由准备接口补齐。
-
-### 3.3 站间操作
-
-站间操作只包含 registry 已登记的 Event 转发、逐 stream 复制、authority bundle 与计划 handoff。
-
-### 5.1 MLS 运输
-
-MLS private bytes 保持端到端加密；Station 只处理公开 transition 和 recipient-addressed Welcome ciphertext。
-`ak.peer.events.read.resolve_committed.v1` 是 Directory ingest 的专用 exact-resolve，不是通用 peer
-读取入口。其 body 必须包含 `realm_id`、`source_ref_access` 和 `refs[]`。服务在读任何 Event 前
-MUST 验证 authenticated caller 等于 carrier `directory_id`，carrier 的 source/Realm/proof/expiry 与
-当前 announce 有效，并确认每个 `{event_id, commit_id, stream_ref, stream_position}` 都逐字属于
-carrier `source_refs`。它只返回 exact match；任何缺失或越界必须 fail closed，且不得退化为 scan。

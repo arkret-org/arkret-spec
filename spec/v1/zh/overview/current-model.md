@@ -136,4 +136,4 @@ SDK 已持有可携带授权、历史 signer evidence 与 authoring checkpoint �
 
 可选的 `ak.self.messages.command.prepare.v1` 帮助缺少 authoring 上下文的客户端准备 unsigned Event：本地加密 → prepare → SDK 核对/签名 → submit。它增加一次准备请求，不构成所有普通消息必经的网络路径。首次治理同步、MLS 入组及附件上传另计；回复与 mention 沿 Message payload 表达，不暗中产生其它 Relation Event。
 
-prepare 不授予权限或预留 sequence。提交时已知的相关撤销和安全关闭按既有 gate 求值；单纯无关 RealmCommit/MLS epoch 前进不得一概拒绝仍满足历史资格及已登记 epoch 规则的消息。结果不明确时精确重放同一 signed submission，不能重新加密或签名掩盖不确定结果。完整合同见 [普通消息 authoring](../sync/service-http-binding.md#普通消息的完整-authoring-准备)。
+prepare 不授予权限或预留 sequence。提交时已知的相关撤销和安全关闭按既有 gate 求值；单纯无关 RealmCommit/MLS epoch 前进不得一概拒绝仍满足历史资格及已登记 epoch 规则的消息。结果不明确时精确重放同一 signed submission，不能重新加密或签名掩盖不确定结果。完整合同见 [普通消息 authoring](../sync/service-http-binding.md#28-普通消息的完整-authoring-准备)。

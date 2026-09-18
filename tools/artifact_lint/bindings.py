@@ -1421,10 +1421,10 @@ def check_binding_completeness_index(lint: Lint) -> None:
     except Exception as exc:
         lint.fail(binding_path, f"unable to read binding completeness index: {exc}")
         return
-    if "#### 2.4.1 Binding completeness index" not in text:
-        lint.fail(binding_path, "missing §2.4.1 Binding completeness index")
+    if "#### 9.1.1 Binding completeness index" not in text:
+        lint.fail(binding_path, "missing §9.1.1 Binding completeness index")
         return
-    section = text.split("#### 2.4.1 Binding completeness index", 1)[1].split("\n#### ", 1)[0]
+    section = text.split("#### 9.1.1 Binding completeness index", 1)[1].split("\n#### ", 1)[0]
     listed = {
         match.group(1)
         for match in re.finditer(r"^\|\s*`([^`]+)`\s*\|\s*`migration_required`\s*\|", section, re.MULTILINE)

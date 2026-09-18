@@ -138,7 +138,7 @@ POST /_arkret/edge/push/registrations:apply
 Arkret-Operation: ak.edge.push.command.apply_registration.v1
 ```
 
-请求必须使用 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) §3 的 HTTP Message Signature；签名覆盖 exact `Source-Service-ID`、`Destination-Service-ID` 与 `Content-Digest`。来源必须是完成 §3.1 exact AccountId 认证并预先与 Gateway 建立 tenant trust 的 Station；目标必须是该 Station 选择并验证的 exact Gateway service DID。用户 session grant、AccountId、principal、Realm、Circle、Strand、Message、Event、handle 与设备 DID URL 均不得进入请求或收据。
+请求必须使用 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) §8 的 HTTP Message Signature；签名覆盖 exact `Source-Service-ID`、`Destination-Service-ID` 与 `Content-Digest`。来源必须是完成 §3.1 exact AccountId 认证并预先与 Gateway 建立 tenant trust 的 Station；目标必须是该 Station 选择并验证的 exact Gateway service DID。用户 session grant、AccountId、principal、Realm、Circle、Strand、Message、Event、handle 与设备 DID URL 均不得进入请求或收据。
 
 active desired state 是闭合 whole-value：`registration_id`、`push_target_id`、`device_id`、`state="active"`、`push_key`、可选 `platform` / `app_id`、显式 `visible_notification_opt_in`、可选 `expires_at`，以及替代时的 `supersedes_registration_id`。revoked desired state 只携 `registration_id`、`push_target_id`、`device_id` 与 `state="revoked"`；不得回携 token、app、opt-in 或替代值。此最小合同只授权 authenticated `Source-Service-ID` Station 为该 installation 调用 notify；不得从 profile、相同运营方、目的 header 或 body 字段推导其它 delegated notification source。
 

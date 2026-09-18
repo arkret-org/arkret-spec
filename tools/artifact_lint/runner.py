@@ -145,6 +145,15 @@ from .test_material import (
     check_test_material_registry,
 )
 
+from .section_identity import (
+    check_artifact_fragment_targets,
+    check_linked_page_section_refs,
+    check_markdown_fragment_targets,
+    check_normative_pointer_aliases,
+    check_numbered_heading_identity,
+    check_prose_section_identity_ledger,
+)
+
 from .prose import (
     check_account_notification_prose_schema_alignment,
     check_artifact_prose_section_refs,
@@ -662,6 +671,30 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("cross_source", lambda: check_cross_source_drift(lint, known)),
             ("markdown_links", lambda: check_markdown_links(lint)),
+            (
+                "numbered_heading_identity",
+                lambda: check_numbered_heading_identity(lint),
+            ),
+            (
+                "markdown_fragment_targets",
+                lambda: check_markdown_fragment_targets(lint),
+            ),
+            (
+                "linked_page_section_refs",
+                lambda: check_linked_page_section_refs(lint),
+            ),
+            (
+                "artifact_fragment_targets",
+                lambda: check_artifact_fragment_targets(lint),
+            ),
+            (
+                "normative_pointer_aliases",
+                lambda: check_normative_pointer_aliases(lint),
+            ),
+            (
+                "prose_section_identity_ledger",
+                lambda: check_prose_section_identity_ledger(lint),
+            ),
             ("markdown_examples", lambda: check_markdown_examples(lint, known)),
             ("naming_predicates", lambda: check_naming_predicates(lint)),
             ("naming_rule_coverage", lambda: check_naming_rule_coverage_matrix(lint)),

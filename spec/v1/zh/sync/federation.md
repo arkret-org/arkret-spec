@@ -17,6 +17,10 @@ see_also:
 Arkret v1 的每条 Realm、Circle 或 Sidecar stream 由其 current governance Station 唯一接纳 Event，并通过连续 RealmCommit
 chain 提供完整性与顺序。每个 Realm 在某一 authority generation 只有一个 current governance Station。
 
+**章节编号是稳定引用身份（normative）**：本页的编号小节都是正文，各自承载自己的完整义务。
+编号是供其它领域页稳定引用的身份，不表达阅读顺序，MUST NOT 被理解为「只保留号、内容在别处」的占位别名。
+引用本页某节即引用该节正文。
+
 ## 1. 信任边界
 
 Peer request 使用 service-to-service authentication，绑定 source/destination service DID、operation、body digest、
@@ -42,35 +46,6 @@ handoff proof 必须分别验证。
 
 消费 Station 可以投影和缓存 current state，但不能用本地重放产生另一种 accepted 判决。
 
-## 4. 完整性与故障
-
-消费方可以证明自己获准的某条 stream 从已知 head 到新 head 连续，但不能证明 authority 在接纳前
-没有审查或扣留 Event。同一 `(realm, stream, generation, position)` 出现两个不同且有效的 authority
-signature 是 equivocation evidence；消费方必须冻结该 stream 并进入人工审计，base v1 不自动选择 winner。
-
-Authority 离线时可继续读已缓存字节，但整个 Realm 不能生成新 committed Event。
-
-## 5. Authority discovery 与 handoff
-
-Invite、Directory、DID route 和缓存 endpoint 只提供 locator candidate。治理身份由 Realm genesis 和连续的 old→new
-双签 handoff chain 证明。
-
-计划 handoff 前，new Station 必须导入 typed snapshot、所有 stream heads/tails、idempotency index、outbox 和公开
-MLS state。Handoff transition 绑定私有 full-stream-head manifest digest，但公开 bundle 只暴露 Realm stream head。
-旧方在 cut 后永久拒写，新方从每条 stream 的各自直接后继位置开始。
-
-没有完成 handoff 且旧方永久丢失时，同一 Realm 不允许自动选主或备份 takeover；只能保持可验证只读，
-或创建新 successor Realm。
-
-## 6. 隐私
-
-Circle 和 Sidecar 使用独立 stream，Realm 成员身份不自动授权这些 stream。复制 API 不返回隐藏
-stream 的存在、head、position 或 timing 差异。治理 Station 仍可见全部 scope metadata；这是单 authority 模型的明确信任代价。
-
-## 7. 稳定引用锚点
-
-下列章节号保留给领域页引用，全部按上述单 authority、逐 stream 复制语义解释。
-
 ### 3.2 服务签名验证
 
 服务签名先于任何内层对象处理，但不替代 Event/Commit proof。
@@ -78,6 +53,14 @@ stream 的存在、head、position 或 timing 差异。治理 Station 仍可见�
 ### 3.4 Peer policy
 
 Peer allow/deny 只控制转发与复制入口，不能授予 governance authority。
+
+## 4. 完整性与故障
+
+消费方可以证明自己获准的某条 stream 从已知 head 到新 head 连续，但不能证明 authority 在接纳前
+没有审查或扣留 Event。同一 `(realm, stream, generation, position)` 出现两个不同且有效的 authority
+signature 是 equivocation evidence；消费方必须冻结该 stream 并进入人工审计，base v1 不自动选择 winner。
+
+Authority 离线时可继续读已缓存字节，但整个 Realm 不能生成新 committed Event。
 
 ### 4.1 Event forwarding
 
@@ -95,6 +78,18 @@ Event forwarding 始终保留 exact producer bytes，并只将 current authority
 
 每页同时受 item count 和 canonical byte 上限约束，cursor 绑定 exact stream 与 caller。
 
+## 5. Authority discovery 与 handoff
+
+Invite、Directory、DID route 和缓存 endpoint 只提供 locator candidate。治理身份由 Realm genesis 和连续的 old→new
+双签 handoff chain 证明。
+
+计划 handoff 前，new Station 必须导入 typed snapshot、所有 stream heads/tails、idempotency index、outbox 和公开
+MLS state。Handoff transition 绑定私有 full-stream-head manifest digest，但公开 bundle 只暴露 Realm stream head。
+旧方在 cut 后永久拒写，新方从每条 stream 的各自直接后继位置开始。
+
+没有完成 handoff 且旧方永久丢失时，同一 Realm 不允许自动选主或备份 takeover；只能保持可验证只读，
+或创建新 successor Realm。
+
 ### 5.0 Authority locator
 
 Locator 是候选网络位置，不是 authority proof。
@@ -107,9 +102,16 @@ Bundle 从 genesis 起返回连续 generation chain 和 current Station。
 
 Invite 和 Directory 只携带 locator candidate；客户端必须自行请求并验证 nonce-bound bundle。
 
+## 6. 隐私
+
+Circle 和 Sidecar 使用独立 stream，Realm 成员身份不自动授权这些 stream。复制 API 不返回隐藏
+stream 的存在、head、position 或 timing 差异。治理 Station 仍可见全部 scope metadata；这是单 authority 模型的明确信任代价。
+
 ### 6.3 DID route privacy
 
 DID route 更新不得泄露隐藏 stream inventory，也不得取代已签 handoff。
+
+## 8. 失败归一化
 
 ### 8.5 Failure normalization
 
