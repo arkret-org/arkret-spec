@@ -72,9 +72,7 @@ Realm 与 Circle 的 committer 权限来自 current capability、membership 与 
 
 MLS leaf 的归属与 Proposal 的 target MUST 使用完整 ActorId。两者 MUST NOT collapse 到签名 principal：同一
 principal 在不同 Station 上的 Account 是不同 Actor，remove/update 的目标因此 MUST 按完整 ActorId 匹配。
-minimal-metadata Realm 的 Realm-local pairwise actor 不是例外：它在 Realm 内的状态同样以完整 ActorId 为键，
-只有两处封闭的 Realm 外匹配点（consent peer 与 KeyPackage claim）使用 `(realm_id, principal_id)`，因为该分支
-的 `did:key` principal 已经把这一对固定下来。
+v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf 归属或 Proposal target 的分支。
 
 #### 2.2.2 公开握手契约
 
@@ -102,9 +100,8 @@ minimal-metadata Realm 的 Realm-local pairwise actor 不是例外：它在 Real
 5. **application 与 Welcome 的保护不变**：握手面公开不改变应用内容与 Welcome 的保护形态。
    应用内容仍按 §2.3 的 RFC 9420 encrypted envelope 发送，Welcome 仍是 §2.2 的加密 recipient
    object。实现 MUST NOT 以「握手已公开」为由降低这两者中任何一者的保护。
-6. **minimal-metadata 身份不新增披露**：在 minimal-metadata Realm 中，公开握手只使用 §2.7 已有的
-   Realm-local pairwise 身份，MUST NOT 为了让 Station 读懂握手而额外披露 Principal、Account、
-   Device 或 Realm 外 locator。
+6. **握手不新增披露**：公开握手只使用本节已经列出的公开量，MUST NOT 为了让 Station 读懂
+   握手而额外披露 Principal、Account、Device 或 Realm 外 locator。
 7. **Sidecar 走独立契约**：`sidecar` 形态的 effective scope **不适用**本节契约，它按
    [`../models/sidecar.md`](../models/sidecar.md) §6 保持自己独立的 MLS 绑定与握手契约。
    实现 MUST NOT 把本节的 wire 形态、provenance 持久化义务或验证角色默认套到 sidecar scope 上。
@@ -228,28 +225,22 @@ claim ref与ciphertext digest。Station在 Commit transaction中验签；recipie
 每个 package全局单次使用。实现 SHOULD短期发布并及时补充 inventory；复用 init key 或把 package当长期身份凭据均不合规。
 package私钥泄露可能暴露对应 Welcome，不能靠过期时间撤销已捕获 ciphertext。
 
-### 2.7 Minimal-Metadata E2EE Realm
-
-minimal-metadata scope可使用 Realm-local pairwise Actor与method，但不得为了 public tracker额外披露 Principal、Account、
-Device或Realm外 locator。pairwise identity、credential与leaf必须由该 profile既有证明验证；这不改变 Commit/Welcome
-原子事务与 key-access revision。
-
-### 2.8 AAD 与 current checkpoint 的唯一性
+### 2.7 AAD 与 current checkpoint 的唯一性
 
 AAD只绑定 exact signed Event与其引用的 public group revision。客户端不得以当前时间、当前UI状态或另一个 stream head
 替代该 revision；同一 ciphertext在不同 scope、Event kind、sender或group state下验证必须失败。
 
-### 2.9 Reaction routing window
+### 2.8 Reaction routing window
 
 encrypted reaction可携带已登记的最小 routing context，使 Station在不解密正文时路由到目标 Event。routing token必须
 绑定 target、scope、sender与有界时间窗；它不授予读取或写入权限。
 
-### 2.10 内容 scheme
+### 2.9 内容 scheme
 
 v1 只有 standard RFC 9420 application encryption。每个 application ciphertext由当前 epoch secret按 RFC 9420生成；
 协议不保存或分发额外 epoch content root。
 
-### 2.11 Agent Event 双绑定
+### 2.10 Agent Event 双绑定
 
 Agent发送 encrypted Event时，同时验证 Agent current runtime authorization与其 MLS leaf credential。两项必须指向同一
 Agent actor与current method；任一撤销都会推进相关 scope的 `key_access_revision` 并阻塞旧 epoch新写入。

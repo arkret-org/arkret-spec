@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T10:00:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2867,25 +2867,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.identity_link.minimal_metadata_author_credential.v1",
-      "status": "active",
-      "domain": "identity_link",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Minimal-metadata author verification binds Event.actor_id and proof.verification_method to exactly one active MLS basic credential / LeafNode signature_key at the envelope epoch, rejects rollback/removal/duplicate/key-mismatch cases, and forbids principal-scoped keys/query fallback. The same vector pins the IdentityLink proof preimage that binds the independent Ed25519 history response-signing method, key, and key digest so signer evidence cannot self-select a proof key.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.identity_link.policy_tightening_invalidation.v1",
       "status": "active",
       "domain": "identity_link",
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "Tightening disclosure policy, historical visibility, minimal-metadata mode, linked Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
+      "description": "Tightening disclosure policy, historical visibility, linked Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/registry/error-code-registry.json",
@@ -3153,18 +3141,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
-      "status": "active",
-      "domain": "keypackage",
-      "applies_to_fixtures": [
-        "keypackage-lifecycle-fixture.json"
-      ],
-      "description": "Realm-local minimal-metadata pairwise endpoint completes publish, exact claim, Welcome, recipient durable receipt and singular consume without an Account, Device, Agent or transport-session identity carrier; every stage binds the exact did:key method, current joined Realm delivery authority and intended Realm, and all mixed branches fail closed.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
       "status": "active",
       "domain": "keypackage",
@@ -3195,7 +3171,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Self and peer KeyPackage claim share one closed device|agent|minimal_metadata_pairwise requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
+      "description": "Self and peer KeyPackage claim share one closed device|agent requester authorization bound to exact claim fields and stable source/destination service DIDs. The source service admits current durable requester authority before local CAS or durable remote relay; uncertain remote outcomes are queried by the original claim id and request digest before any exact resend. The destination-authority ledger atomically binds request digest, KeyPackage CAS and signed receipt; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
@@ -4644,7 +4620,7 @@
       "applies_to_fixtures": [
         "signal-federation-fixture.json"
       ],
-      "description": "Signal source and recipient authenticate current exact-account device authority independently of the Realm/scope seal_ref; destination authenticates peer source/body, sender routing and outer proof transcript/digest, scope/membership/action/TTL/MLS basis without a remote device directory or producer signature check. Cover source/recipient rejection of revoked/fenced/conflicted authority even before leaf Remove, wrong Station or key/authorization leaf binding, missing/stale recipient trust, source outbound freshness, and well-formed forged producer signatures relayed by a malicious source but rejected by the recipient. Destination with no remote directory still relays eligible items; wrong source projection and malformed transcript/digest fail closed with the proper opaque item versus request error boundary. No synthetic device identity is allowed for Agent/minimal endpoints.",
+      "description": "Signal source and recipient authenticate current exact-account device authority independently of the Realm/scope seal_ref; destination authenticates peer source/body, sender routing and outer proof transcript/digest, scope/membership/action/TTL/MLS basis without a remote device directory or producer signature check. Cover source/recipient rejection of revoked/fenced/conflicted authority even before leaf Remove, wrong Station or key/authorization leaf binding, missing/stale recipient trust, source outbound freshness, and well-formed forged producer signatures relayed by a malicious source but rejected by the recipient. Destination with no remote directory still relays eligible items; wrong source projection and malformed transcript/digest fail closed with the proper opaque item versus request error boundary. No synthetic device identity is allowed for Agent endpoints.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
         "spec/v1/zh/sync/signal.md"

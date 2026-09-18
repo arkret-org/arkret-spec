@@ -31,17 +31,17 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 147 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 219 | `artifacts/registry/schema-registry.json` |
+| Schema | 218 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 50 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 220 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 60 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 81 | `artifacts/profiles/conformance-profiles.json` |
+| Claimable conformance profile | 59 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 79 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数由 pipeline 单独核验；bundle schema id 可登记到现有 schema artifact 的 `$defs`，因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含三项 wire 约束：(1) `ak.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ak.member.identity.update` payload 不重复可从 `identity_payload` 本体推导的 carrier digest，roster cache 使用独立的 `member_display_state_digest`；(3) 直接 DID 邀请（`ak.schema.invite.v1` 中出现 `invitee_account_id` 且不属于 `third_party_invite` 分支）MUST 携带 exact `invitee_account_id` 与 `introduction_evidence_digest`，route material 仅在私有投递链路消费，不进入 durable Invite，使 base invite 不依赖 handle resolve 作为投递授权。current parser 只接受当前 registry/schema 中存在的 canonical 形态，不运行草案迁移层。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（81）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（79）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/artifact_lint/` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
@@ -61,7 +61,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | `chat_mvp` | Strand discussion track、Message create/revise/redact、reaction、redaction、client sync、history visibility、基础 capability check。 | Board/List、advanced View renderer、MIMI、auditable E2EE、agent runtime。 |
 | `kanban_mvp` | Strand create/update/move/reorder、Relation create、container rebalance、View collection projection、rank conflict handling。 | Discussion track、message timeline、E2EE、push、federation。 |
 | `full_client` | chat + kanban、blob/media、account-private data、read cursor、notification projection、offline queue 和 conflict records。 | Enterprise governance、MIMI、agent interop、高安全 witness。 |
-| `e2ee_client` | MLS KeyPackage lifecycle、proposal/commit/welcome/epoch、decryption_pending、encrypted payload、key withholding/share audit。 | 固定 MLS GroupContext binding、minimal-metadata 和 MIMI E2EE interop。 |
+| `e2ee_client` | MLS KeyPackage lifecycle、proposal/commit/welcome/epoch、decryption_pending、encrypted payload、key withholding/share audit。 | 固定 MLS GroupContext binding 和 MIMI E2EE interop。 |
 
 任何服务或客户端若只实现上表前几阶段，MUST 在 describe / profile discovery 中明确声明不支持的 event kind 和 optional extension，并按 `unsupported_feature`、`unsupported_event_kind`、`projection_incomplete` 或 fail-closed 语义处理，而不是接受后静默丢弃。这些标准状态 / 错误标识的 canonical 语义详见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。
 

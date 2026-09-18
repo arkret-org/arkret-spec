@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.11",
-  "generated_at": "2026-09-19T23:30:00+08:00",
+  "version": "2026-09-21.1",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8.",
   "labels": [
@@ -8,7 +8,7 @@
       "label": "ak.reaction-routing-root-v1",
       "primitive": "MLS-Exporter",
       "purpose": "Non-deliverable standard-MLS reaction routing root",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.8",
       "context_fields": [
         "effective_scope"
       ],
@@ -27,7 +27,7 @@
       "primitive": "ExpandWithLabel",
       "parent_secret": "ak.reaction-routing-root-v1",
       "purpose": "One-hour target-bound reaction routing HMAC key",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.9",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.8",
       "context_fields": [
         "effective_scope",
         "target_ref",

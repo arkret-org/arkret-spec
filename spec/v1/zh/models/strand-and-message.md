@@ -897,7 +897,7 @@ canonical event log 不因此改变：全部历史 revision 仍保留在 revisio
 
 ### 9.8 表情回复（Reaction）
 
-Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 authority-ordered keyed set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`artifacts/fixtures/reaction-fixture.json`](../sync/authority-commit-log.md)。
+Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 authority-ordered keyed set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`artifacts/fixtures/reaction-fixture.json`](../sync/authority-commit-log.md)。
 
 #### 9.8.1 事件与 payload
 
@@ -995,7 +995,7 @@ Reaction 不是 mention。`ak.reaction.add` / `ak.reaction.remove` 仅对 effect
 - Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/strand_stage_set_payload`。
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
 - Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。
-- Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)。
+- Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)。
 - 编辑窗口 / 撤回窗口约束：[`../authz/constraint-schema.md` §14.2](../authz/constraint-schema.md)（`message_edit_window` / `message_redact_window` / `redact_after_window_allowed`）。
 
 

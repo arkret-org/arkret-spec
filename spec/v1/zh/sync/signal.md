@@ -30,7 +30,7 @@ Signal 始终是短 TTL encrypted-only transport，不是 Event 或 durable obje
 （proof-context registry 该行的 `binding_field_sources`），proof 本身不携带第二个时间戳。sender 是 closed XOR：ordinary
 account-device MUST 携带 `sender_device_id: DeviceId`；Agent MUST 省略该字段，且 `null`/空值非法。
 字段存在性只选择候选分支，不能证明 actor 是 Agent；source 与 recipient 自己的 Station MUST 从 accepted principal
-classification 和 current authority 独立确认。minimal-metadata pairwise endpoint 没有 Signal carrier，
+classification 和 current authority 独立确认。
 MUST NOT 冒入 Agent 分支。两分支均不得合成 DeviceId、借用 controller device 或 ordinary
 directory；不具备匹配 carrier/authority 的 endpoint/scope MUST NOT 广告 Signal 可用。本节不新增
 endpoint、profile、版本或 runtime-epoch 字段。
@@ -202,7 +202,7 @@ sender/proof 逐字相等，并以 exact key 和 authorization_ref 核对本地�
 没有有效可信材料时只可在 Signal TTL 内有界等待；未验证不得展示、更新 high-water 或执行业务，过期即丢弃。
 
 foreign evidence authority 必须在签发前同时验证 authenticated requester Station、requester exact
-recipient 与 target 在指定非 minimal-metadata Realm 的 current effective joined membership，以及
+recipient 与 target 在指定 Realm 的 current effective joined membership，以及
 target Actor 的 routing Station 等于自身。ordinary fresh gate 同时检查 exact generation、active
 authorization/time/status；Agent fresh gate严格 fold 全部 current authorize dots，并把 controller
 account active 与 controller exact Realm membership generation 作为两个独立 AND gate。unknown、

@@ -207,7 +207,7 @@ Account Authority 的公开证明 key 不由这条内部通道承载：它继续
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
 - v1 human registration anchor 只有 `did:webvh`；默认/MTI human 与默认 service DID method 均为 `did:webvh`。`did:key` 只保留在设备/Agent/service evidence 与显式 ephemeral pairwise 等非注册角色，`did:web` 只可作为显式 no-history service method。deployment profile 只能收紧集合。`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。cache-only 的完整阈值与 TTL 耗尽后的 fail-closed 不变量只由 [`identity/identity-did.md` §3.4](../identity/identity-did.md) 定义。
-- 服务 DID 默认使用 `did:webvh`（可审计控制历史）；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，且 MUST 在 describe / resolver evidence 中声明无历史信任强度（权威源见 [`identity/identity-did.md` §3](../identity/identity-did.md)）。测试 / bootstrap 可使用 `did:key` 自描述密钥材料；它只有在 minimal-metadata Realm 的显式 profile 下才是短期 pairwise actor。设备自身没有 DID；KERI 等可作为辅助 root / trust binding（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
+- 服务 DID 默认使用 `did:webvh`（可审计控制历史）；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，且 MUST 在 describe / resolver evidence 中声明无历史信任强度（权威源见 [`identity/identity-did.md` §3](../identity/identity-did.md)）。测试 / bootstrap 可使用 `did:key` 自描述密钥材料；它不投影为任何 Realm actor principal。设备自身没有 DID；KERI 等可作为辅助 root / trust binding（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
 - Station 的内部认证组件与 Identity Resolution Infrastructure 不必同源部署：前者只验证登录因子并向 Account Authority capability 提供认证结果，identity resolver 返回或验证 DID 控制密钥、key state、method history / KERI log 和服务委托；Station policy 再完成账号绑定与授权判定。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 

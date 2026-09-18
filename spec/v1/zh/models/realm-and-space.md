@@ -113,7 +113,7 @@ Schema id: `ak.schema.realm.v1`
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organization_ids` | no | `array<did_core_id>` | 每项是 Organization Principal 的稳定身份；仅是 create/update 中的声明或投影，已验证归属必须有 active `ak.realm.organization`。 | 官方或治理组织。 |
-| `schema_refs` | yes | `array<string>` | MUST 包含 `ak.schema.realm.v1`；除 genesis 封闭 allowlist 内的结构角色 profile 外，只允许 `ak.schema.*.vN`。 | 启用 schema，并在 genesis 中承载封闭的结构角色判别式；不是通用 conformance / policy profile 激活面。 |
+| `schema_refs` | yes | `array<string>` | reducer 初始化；MUST 始终包含核心 schema `ak.schema.realm.v1`，其余成员只允许已注册 `ak.schema.*.vN`。 | 当前激活 schema 集合；唯一作者入口是 `ak.realm.schema` 的完整替换。**不承载结构角色**，也不是通用 conformance / policy profile 激活面。 |
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
@@ -137,6 +137,8 @@ Schema id: `ak.schema.realm.v1`
 | 字段组 | 唯一 canonical carrier |
 | --- | --- |
 | `trust_domain`、`security_class`、`governance_station_id`、`initial_join_rule`、`initial_history_access`、`initial_discoverability` | `ak.realm.create` 的 closed `ak.schema.realm_genesis.v1` object；这些 generation-0 identity、authority 与初始策略坐标进入 Realm ID preimage。 |
+| `fields.purpose`、`fields.collaboration_role` | `ak.realm.create` 的 closed genesis `purpose`；reducer 按本节映射表确定性投影，无独立作者入口。 |
+| `schema_refs` | genesis reducer 初始化核心 schema；后续唯一作者入口是 `ak.realm.schema` → `realm_schema` 的完整替换。 |
 | `title`、`summary`、`avatar_blob_ref` | `ak.realm.profile` → `realm_profile`。 |
 | `default_discoverability` | `ak.realm.discovery`。 |
 | `default_join_rule` | `ak.realm.join_rule`。 |
@@ -150,12 +152,26 @@ Schema id: `ak.schema.realm.v1`
 | lifecycle、其它已有专用 facet | 对应 registered event/typed current result。 |
 | `id`、`created_by`、`created_at`、`updated_by`、`updated_at` 与其它 query-only 字段 | 分别由 Realm identity、signed envelope 与 reducer history 派生，不由 producer 在 Realm object 中重复写入。 |
 
-Realm 结构角色 profile 只允许出现在 `ak.realm.create.payload.object.schema_refs` 的封闭三项 allowlist 中，并随 genesis create-lock。后续 `ak.realm.schema.payload.value.schema_refs` 只接受 `ak.schema.*.vN`；它不能新增、删除或替换结构角色 profile。两条写入路径的接受面有意不对称，receiver MUST NOT 用 profile 字符串的通用匹配、默认补齐或私有 active-profile 集合抹平该边界。
+**结构角色只由签名 genesis `purpose` 决定（normative）**：Realm 类别的唯一 authority 是已验证的 closed `ak.schema.realm_genesis.v1` 的 `purpose`（见 [§2.5](#25-akrealmcreate-reducer-bootstrapnormative)）。`schema_refs` **MUST NOT** 承载结构角色 profile；两条写入路径（genesis 与 `ak.realm.schema`）的接受面因此完全对称，都只接受已注册 `ak.schema.*.vN`。receiver MUST NOT 从 `schema_refs`、`fields`、私有 active-profile 集合、`ServiceDescribe` 或任何可编辑投影反推 Realm 类别；判定前 MUST 先验证 genesis 及其接受记录。
+
+genesis `purpose` 到 materialized 字段的投影是完全确定的，MUST 逐字相等；两个投影字段只读，不得由 producer 写入或 patch：
+
+| genesis `purpose` | materialized `fields.purpose` | materialized `fields.collaboration_role` |
+| --- | --- | --- |
+| `collaboration` | 无 | 无 |
+| `direct_conversation` | 无 | `direct_conversation` |
+| `principal_control` | `principal_control` | 无 |
+| `agent_control` | `agent_control` | 无 |
+| `applet_managed_control` | `applet_managed_control` | 无 |
+
+genesis 的五值 `purpose` 枚举与 materialized `fields.purpose` 的三值枚举**不是同一个枚举**；普通 Collaboration 不发明新的 `fields.purpose` 取值，也不得仅凭字段缺省就认定类别。
+
+**核心 schema 与激活集合（normative）**：materialized Realm 的 `schema_refs` 必填，由 genesis reducer 初始化为唯一已注册核心 schema `["ak.schema.realm.v1"]`。不存在 `ak.realm.schema` facet 时，有效集合就是该核心 schema，**不得为未注册 schema 发明默认值**。`ak.realm.schema.payload.value.schema_refs` 是后续激活集合的唯一作者入口，采用**完整替换**语义：每次更新 MUST 显式包含核心 schema，其它成员 MUST 是已注册 `ak.schema.*.vN`；未知 / 未注册 id 与缺核心 schema 均 fail closed。materialized `schema_refs` MUST 与当前 accepted `realm_schema` 集合精确一致，不存在 genesis 集合与 facet 集合的不透明 union。`realm_schema.value` 的 `morph_kind_profiles` 等其它配置仍按各自已有闭合合同验证。
 
 v1 不定义 monolithic `ak.realm.update` 或 `realm_metadata`。实现 MUST 拒绝这些形态，
 所有实现只读写上述唯一 carrier，不得把完整 Realm create object 缓存为第二真相源。
 
-`owning_organization_ids`、`fields`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
+`owning_organization_ids`、`fields`、`policy_id`、`preview_policy_id`、`default_strand_id` 与 `retention_policy_id` 不构成遗漏的自由写入面：它们分别由已接受的 `ak.realm.organization` 关系、registered extension projection、`ak.policy.set`、`ak.realm.preview_policy`、`ak.realm.set_default_strand` 与 retention Policy 投影。`fields.purpose` 与 `fields.collaboration_role` 是其中的特例：它们不是 extension 字段，而是上述映射表从签名 genesis `purpose` 确定性投影的只读字段，`ak.realm.create` 之外无作者入口。producer MUST NOT 在 profile 或 policy bundle 中重复声明这些 query 字段。
 
 跨字段约束（normative）：`history_access` 只有 `since_join` 与 `all_history_for_current_members`。治理 Station 仅在 current `history_access=since_join` 时接纳该 scope 的首个 `ak.mls.genesis`；激活后任何放宽历史范围的更新均以 `failed_precondition` 拒绝。
 
@@ -469,12 +485,12 @@ Realm（ak.schema.realm.v1，schema 层统一）
 - 与 principal DID **1:1 绑定**，由 `principal_control_realm_id` 标识，由 DID method 的 inception 证据钉死（参见 [`identity/key-management.md` §4.1 与 §5.0](../identity/key-management.md)）。
 - Genesis discriminator 与 effective projection MUST：
   - human / organization PCR create genesis `purpose = "principal_control"`；Agent PCR create genesis `purpose = "agent_control"`；Applet-managed Bot / Ghost PCR create genesis `purpose = "applet_managed_control"`（见 [`../extensions/applet-integration.md` §3.3 / §9.1](../extensions/applet-integration.md)）。三者是该 discriminator 的完整取值集合，`realm.schema.json` 与 `realm-genesis.schema.json` 的 enum 与本表逐字相等
-  - `schema_refs` 包含 `ak.profile.principal_control_realm.v1`
+  - 该 discriminator 的唯一权威是已验证 genesis 自身；`schema_refs` 与 materialized `fields.purpose` 都不是判定依据（[§2.3.A](#23a-字段-carrier-inventorynormative)）
   - PCR MUST 在任何控制内容写入之前接受自己的 `ak.mls.genesis`；该 accepted RealmCommit 把 PCR scope 不可逆激活为 standard RFC 9420。v1 不存在"明文 PCR"：激活后的明文控制内容写入 MUST fail closed。
    - `created_by` 从 create envelope 的完整 `actor_id` 派生；`governance_station_id` 明确指定 generation-0 治理 Station。RealmCommit 必须由该 generation 的治理 Station service identity 签署，并通过 service DID 的 historical method evidence 验证。
   - genesis `security_class = "high_assurance"`；effective `federation_policy ∈ {closed, restricted, quarantine}` 来自 profile/policy projection。
   - effective `history_access = "since_join"`。新 endpoint 从自己的 initial Add/Welcome admission 起读取密文，durable device-list / normalized principal view 提供必要控制 baseline，解密只使用该 endpoint 本地持有的 MLS state。
-- 事件类型由 `ak.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 identity resolution / device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。allowlist 是**闭合**的：正文要求写入 PCR 的每个 kind MUST 出现在其中，反之亦然；`ak.identity.resolution.update`（[`../identity/identity-did.md` §4.2](../identity/identity-did.md)）与 `ak.contact.scope.update`（[`../identity/contact-and-direct-conversation.md` §3](../identity/contact-and-direct-conversation.md)）同属该 allowlist。
+- 事件类型由 `ak.profile.principal_control_realm.v1` 的 allowlist 约束（该 profile 的适用条件是 genesis `purpose ∈ {principal_control, agent_control, applet_managed_control}`，不是它出现在某个可编辑集合里）：只接受 identity resolution / device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。allowlist 是**闭合**的：正文要求写入 PCR 的每个 kind MUST 出现在其中，反之亦然；`ak.identity.resolution.update`（[`../identity/identity-did.md` §4.2](../identity/identity-did.md)）与 `ak.contact.scope.update`（[`../identity/contact-and-direct-conversation.md` §3](../identity/contact-and-direct-conversation.md)）同属该 allowlist。
 - Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；Agent lifecycle 的 `actor_id` 必须是 exact account variant，service variant、同 principal 异 Station 的替代或 payload principal mirror 不匹配均 fail closed。realm id 本身按 §2.5.0 通则从 genesis Event 派生，**实现私有的 deterministic id 派生不是验证证据**。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist + 外露注册表** 共同锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
@@ -489,7 +505,7 @@ Realm（ak.schema.realm.v1，schema 层统一）
 承载多方业务协作。除 PCR 之外的所有 Realm 都属于这一类。
 
 - create genesis `purpose` MUST 为 `"collaboration"` 或 `"direct_conversation"`，不得省略或藏入通用 `fields` map。
-- 不引用 `ak.profile.principal_control_realm.v1`。
+- 不适用 `ak.profile.principal_control_realm.v1`；判定依据是 genesis `purpose`，不是任何对象字段。
 - 按 `federation_policy` 与实际成员构成进一步分为 Internal / External 两种。
 
 ##### Internal Collaboration Realm
@@ -521,7 +537,7 @@ Direct Conversation Realm 是 Collaboration Realm 的受约束形态，不是新
 Direct Conversation Realm MUST：
 
 - 在 founding unit 之后提交该 scope 唯一的 `ak.mls.genesis`；其 accepted RealmCommit 把 Realm scope 不可逆激活为 standard RFC 9420，之后不存在明文内容写入分支。
-- `schema_refs` 同时包含 `ak.schema.realm.v1` 与 `ak.profile.direct_conversation_realm.v1`，并设置 `fields.collaboration_role="direct_conversation"`；两者受 schema 双向 guard 约束。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
+- genesis `purpose="direct_conversation"`；reducer 据此投影只读的 `fields.collaboration_role="direct_conversation"`（[§2.3.A](#23a-字段-carrier-inventorynormative)）。`schema_refs` 不承载该角色，`ak.profile.direct_conversation_realm.v1` 的适用条件是该 genesis `purpose`。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于身份控制类 Realm。
 - `found` 且可发送时 active member count 等于 2；任一 participant 离开、被移除或其它 gate 失败时，同一稳定 DM 投影为 `suspended`，恢复时仍使用原 Realm。向 DM Realm 加第三人 MUST 被拒绝。binding 或 membership 投影不能解析为恰好两个 distinct principal participant 时，新写入 MUST fail closed，reason 为 `direct_conversation_member_count_invalid`；既有稳定会话投影为 `suspended` 而不是被替换。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy。**这里必须区分两件事（normative）**：（a）**bootstrap peer join**——Realm bootstrap batch 内由 creator 写入的第二个成员（pair 的另一方）是 DM Realm 成立的必要步骤，MUST 被接受；它走 authorized-writer 分支（creator 在同批 genesis unit 内使用 staged authority-root proof 取得的 effective `ak.realm.owner`，见 [§2.5](#25-akrealmcreate-reducer-bootstrapnormative)），属于 [`../governance/join-policy.md` §4](../governance/join-policy.md) `closed` 行的封闭豁免列表第 3 项。（b）**向已 active 的 DM Realm 加第三人**——任何第三方 invite / member_add MUST 以 `direct_conversation_invite_forbidden` 被拒绝。实现 MUST NOT 把（a）当成（b）拒掉，否则 1:1 私聊永远只有 1 个成员，违反“active member count 等于 2”。
 - `ak.space.*` Event MUST 以 `direct_conversation_space_forbidden` 拒绝；额外普通 Strand MAY 存在，但不改变 binding 指定的默认 main Strand。

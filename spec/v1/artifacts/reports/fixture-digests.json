@@ -138,7 +138,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "5e0e7e6521df69fe55e44ac464652aae1420d74fe0cd97034c643fb070d4f4d4"
+      "sha256": "69acc625db29687d45f72327e39bb8e4695341ccf9874ec366720bc1143a8e94"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json",
-      "sha256": "cf0ed8010f0f8debdc205bc1cbc32de01405533d6a9606f83e3e184072a1aa05"
+      "sha256": "07fc18a322b157bda81b51861b94ad5553ae0b97aa6ee9b11e692e95e466cbfa"
     },
     {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "0d3acb86fb4c1e859cb51cd1213be3a76f29e05a15dc15fd238d90b42ccbaa43"
+      "sha256": "0b5e208c6659f1bbd595d928a3f19dc7c7292799e710e3dedff2ff6f585c26f8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -230,7 +230,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
-      "sha256": "18c50c3fe5f98ace377e89b2a5108addf0c52c3f525deb23a62f601c122607ff"
+      "sha256": "b81146f32665c7d134e56697f76a226b89eb7ece6943717eda21e302135c9d61"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
@@ -250,7 +250,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "15d7faad908311d9718d433eadf6c64b338b60c1d49d941312ab9631774a676e"
+      "sha256": "cec5e0d217c6659afa8bc17ddc779d50d6a69877434bd73654ac7b7b3e63bb30"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "35c09493726ca3ebcb16858220a04422c2bf7faf6c6136d35cc4c3b67d00034d"
+      "sha256": "f1e1ffc426b28971bfbb627c006e3002ac651ee70db3ef986e0847c2f0741493"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

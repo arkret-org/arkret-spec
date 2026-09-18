@@ -40,7 +40,6 @@
     "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
     "ak.vector.identity.internationalized_identifier_profiles.v1",
     "ak.vector.identity.authority_local_skeleton_collision.v1",
-    "ak.vector.identity_link.minimal_metadata_author_credential.v1",
     "ak.vector.actor.accountability_grant_required.v1",
     "ak.vector.device.peer_directory_lookup_blinding.v1",
     "ak.vector.device.directory_unavailable_not_empty.v1"
@@ -879,127 +878,6 @@
         "reducer never accepts a field-stripped Actor Profile value",
         "accepted typed current result value preserves the signed payload exactly",
         "unverified presentation state applies only after a previously valid grant expires or is revoked"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.identity_link.minimal_metadata_author_credential.v1",
-      "name": "minimal_metadata_author_credential_is_the_only_author_trust_anchor",
-      "runner": "cotest::conformance::privacy_security::run_minimal_metadata_author_credential_vector",
-      "base": {
-        "actor_id": {
-          "kind": "service",
-          "service_id": "ak:did_core:key:z6MkpairwiseAlice"
-        },
-        "transport_session_actor": "ak:did_core:webvh:z6mkfixtureAlice",
-        "realm_declares_minimal_metadata_profile": true,
-        "pairwise_actor_current_member": true,
-        "group_id": "Zml4dHVyZS1yZWFsbQ",
-        "epoch": 7,
-        "group_state_ref": "ak:event:AeokPrzFQ8NLAFkDrZpaSc1OWCv-2K-iqs7fkp0OHo3W",
-        "leaf": {
-          "leaf_index": 3,
-          "credential_type": "basic",
-          "credential_identity_utf8": "ak:did_core:key:z6MkpairwiseAlice",
-          "signature_key": "z6MkpairwiseAuthorKey"
-        },
-        "proof": {
-          "verification_method": "did:key:z6MkpairwiseAlice#z6MkpairwiseAuthorKey",
-          "resolved_public_key": "z6MkpairwiseAuthorKey",
-          "signature_valid": true
-        }
-      },
-      "cases": [
-        {
-          "name": "active_unique_leaf",
-          "mutation": "none",
-          "expected": {
-            "result": "accept_pairwise_author",
-            "transport_session_is_not_authority": true
-          }
-        },
-        {
-          "name": "actor_not_current_realm_member",
-          "mutation": "pairwise_actor_current_member_false",
-          "expected": {
-            "result": "reject",
-            "reason_code": "capability_denied"
-          }
-        },
-        {
-          "name": "actor_session_mismatch_outside_minimal_metadata",
-          "mutation": "realm_declares_minimal_metadata_profile_false",
-          "expected": {
-            "result": "reject",
-            "reason_code": "actor_session_mismatch"
-          }
-        },
-        {
-          "name": "proof_did_projects_to_other_actor",
-          "mutation": "verification_method_base_projection_mismatch",
-          "expected": {
-            "result": "reject",
-            "reason_code": "minimal_metadata_author_credential_invalid"
-          }
-        },
-        {
-          "name": "same_pairwise_key_reused_in_another_realm",
-          "mutation": "local_pairwise_key_scope_points_to_other_realm",
-          "expected": {
-            "result": "reject_local_authoring",
-            "network_submission_count": 0
-          }
-        },
-        {
-          "name": "duplicate_pairwise_identity",
-          "mutation": "duplicate_active_leaf_identity",
-          "expected": {
-            "result": "reject",
-            "reason_code": "minimal_metadata_author_credential_invalid"
-          }
-        },
-        {
-          "name": "removed_leaf",
-          "mutation": "leaf_removed_at_epoch",
-          "expected": {
-            "result": "reject",
-            "reason_code": "minimal_metadata_author_credential_invalid"
-          }
-        },
-        {
-          "name": "group_state_rollback",
-          "mutation": "group_state_ref_not_winning_for_epoch",
-          "expected": {
-            "result": "reject",
-            "reason_code": "minimal_metadata_author_credential_invalid"
-          }
-        },
-        {
-          "name": "signature_key_mismatch",
-          "mutation": "proof_key_differs_from_leaf_signature_key",
-          "expected": {
-            "result": "reject",
-            "reason_code": "minimal_metadata_author_credential_invalid"
-          }
-        },
-        {
-          "name": "principal_directory_fallback",
-          "mutation": "attempt_keys_query_principal_lookup",
-          "expected": {
-            "result": "reject",
-            "principal_directory_queries": 0
-          }
-        }
-      ],
-      "assertions": [
-        "credential identity equals Event.actor_id byte for byte",
-        "the did:key verification-method base projects to Event.actor_id",
-        "exactly one active leaf matches at the envelope epoch",
-        "proof key equals LeafNode signature_key",
-        "the pairwise actor itself is a current Realm member while the different transport session actor is never author authority",
-        "one pairwise did:key is scoped to exactly one Realm and is never reused across Realms",
-        "actor/session mismatch remains forbidden outside minimal-metadata encrypted content",
-        "author verification never queries principal-scoped keys/query",
-        "identity_link disclosure is separate from pairwise author verification"
       ]
     },
     {

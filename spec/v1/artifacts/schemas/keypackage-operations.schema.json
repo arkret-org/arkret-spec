@@ -216,11 +216,6 @@
                 "required": [
                   "agent_verification_method"
                 ]
-              },
-              {
-                "required": [
-                  "pairwise_verification_method"
-                ]
               }
             ]
           }
@@ -241,45 +236,6 @@
               {
                 "required": [
                   "device_id"
-                ]
-              },
-              {
-                "required": [
-                  "pairwise_verification_method"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "pairwise_verification_method"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "device_id"
-                ]
-              },
-              {
-                "required": [
-                  "device_authorize_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
                 ]
               }
             ]
@@ -314,10 +270,6 @@
           "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "Agent runtime method that signed the exact KeyPackage; MUST match agent_key_authorize_event_id and the KeyPackage signature byte for byte."
         },
-        "pairwise_verification_method": {
-          "type": "string",
-          "pattern": "^did:key:([^#]+)#\\1$"
-        },
         "keypackage": {
           "$ref": "#/$defs/base64url"
         },
@@ -350,7 +302,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed KeyPackage claim record. Human-device, Agent, and Realm-local minimal-metadata pairwise branches are an exact XOR. In the pairwise branch principal_id is the Realm-local actor projected from the exact did:key method; no account, Device, PCR, Agent evidence, or mirrored actor field is carried."
+      "description": "Closed KeyPackage claim record. The human-device and Agent branches are an exact XOR; no third identity branch exists and no mirrored actor field is carried."
     },
     "keypackages_upload_request_body": {
       "type": "object",
@@ -368,37 +320,7 @@
             "anyOf": [
               {
                 "required": [
-                  "pairwise_verification_method"
-                ]
-              },
-              {
-                "required": [
                   "intended_realm_id"
-                ]
-              },
-              {
-                "required": [
-                  "agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "pairwise_verification_method",
-            "intended_realm_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "device_id"
                 ]
               },
               {
@@ -428,11 +350,6 @@
               },
               {
                 "required": [
-                  "pairwise_verification_method"
-                ]
-              },
-              {
-                "required": [
                   "intended_realm_id"
                 ]
               }
@@ -446,11 +363,6 @@
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
-        },
-        "pairwise_verification_method": {
-          "type": "string",
-          "pattern": "^did:key:([^#]+)#\\1$",
-          "description": "Minimal-metadata branch only. principal_id MUST equal ak:did_core:key:<same multibase>; no durable Device or account identity is created."
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -470,7 +382,7 @@
         },
         "endpoint_signature": {
           "$ref": "#/$defs/signature",
-          "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device, Agent runtime, or minimal-metadata pairwise did:key endpoint signs the same transcript."
+          "description": "Required authoritative batch signature over the complete typed upload request with only this top-level signature omitted, using the ak.self.keys.keypackages.upload.create.v1 domain. The selected human device or Agent runtime endpoint signs the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -508,7 +420,7 @@
       "additionalProperties": false
     },
     "requester_authorization": {
-      "description": "Closed human-device, Agent, or Realm-local minimal-metadata pairwise detached authorization by the requesting participant. The pairwise branch signs with the exact did:key method projected by requester and carries no account-local authorization Event.",
+      "description": "Closed human-device or Agent detached authorization by the requesting participant.",
       "oneOf": [
         {
           "type": "object",
@@ -573,30 +485,6 @@
             }
           },
           "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "verification_method",
-            "signed_at",
-            "signature"
-          ],
-          "properties": {
-            "kind": {
-              "const": "minimal_metadata_pairwise"
-            },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
-            },
-            "signed_at": {
-              "$ref": "#/$defs/timestamp"
-            },
-            "signature": {
-              "$ref": "#/$defs/signature"
-            }
-          },
-          "additionalProperties": false
         }
       ]
     },
@@ -618,11 +506,11 @@
         },
         "target_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact cross-Station AccountId for the human-device target branch. It is forbidden for Agent and minimal-metadata pairwise targets."
+          "description": "Exact cross-Station AccountId for the human-device target branch. It is forbidden for Agent targets."
         },
         "requester_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact cross-Station AccountId for the human-device requester branch. It is forbidden for Agent and minimal-metadata pairwise requesters."
+          "description": "Exact cross-Station AccountId for the human-device requester branch. It is forbidden for Agent requesters."
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -666,11 +554,6 @@
         "target_agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
           "description": "Agent exact-target branch current accepted ak.agent.key.authorize Event."
-        },
-        "target_pairwise_verification_method": {
-          "type": "string",
-          "pattern": "^did:key:([^#]+)#\\1$",
-          "description": "Minimal-metadata exact-target branch. The Realm-local ak:did_core:key actor is projected from this method; no parallel principal field is carried."
         },
         "timeout_ms": {
           "type": "integer",
@@ -734,11 +617,6 @@
                     "required": [
                       "target_agent_key_authorize_event_id"
                     ]
-                  },
-                  {
-                    "required": [
-                      "target_pairwise_verification_method"
-                    ]
                   }
                 ]
               }
@@ -759,45 +637,6 @@
                   {
                     "required": [
                       "target_device_ids"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_pairwise_verification_method"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
-                "target_pairwise_verification_method"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "target_account_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_device_ids"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_agent_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_agent_verification_method"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_agent_key_authorize_event_id"
                     ]
                   }
                 ]
@@ -862,11 +701,11 @@
         },
         "target_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact cross-Station AccountId for the human-device target branch. It is forbidden for Agent and minimal-metadata pairwise targets."
+          "description": "Exact cross-Station AccountId for the human-device target branch. It is forbidden for Agent targets."
         },
         "requester_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact cross-Station AccountId for the human-device requester branch. It is forbidden for Agent and minimal-metadata pairwise requesters."
+          "description": "Exact cross-Station AccountId for the human-device requester branch. It is forbidden for Agent requesters."
         },
         "intended_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -910,11 +749,6 @@
         "target_agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
           "description": "Agent exact-target branch current accepted ak.agent.key.authorize Event."
-        },
-        "target_pairwise_verification_method": {
-          "type": "string",
-          "pattern": "^did:key:([^#]+)#\\1$",
-          "description": "Minimal-metadata exact-target branch. The Realm-local ak:did_core:key actor is projected from this method; no parallel principal field is carried."
         },
         "timeout_ms": {
           "type": "integer",
@@ -984,11 +818,6 @@
                     "required": [
                       "target_agent_key_authorize_event_id"
                     ]
-                  },
-                  {
-                    "required": [
-                      "target_pairwise_verification_method"
-                    ]
                   }
                 ]
               }
@@ -1009,45 +838,6 @@
                   {
                     "required": [
                       "target_device_ids"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_pairwise_verification_method"
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "required": [
-                "target_pairwise_verification_method"
-              ],
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "target_account_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_device_ids"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_agent_id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_agent_verification_method"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "target_agent_key_authorize_event_id"
                     ]
                   }
                 ]
@@ -1488,11 +1278,6 @@
                 "required": [
                   "agent_key_authorize_event_id"
                 ]
-              },
-              {
-                "required": [
-                  "recipient_pairwise_verification_method"
-                ]
               }
             ]
           }
@@ -1519,50 +1304,6 @@
                 "required": [
                   "device_verification_method"
                 ]
-              },
-              {
-                "required": [
-                  "recipient_pairwise_verification_method"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "recipient_pairwise_verification_method"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "recipient_account_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_device_id"
-                ]
-              },
-              {
-                "required": [
-                  "device_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_agent_id"
-                ]
-              },
-              {
-                "required": [
-                  "recipient_agent_verification_method"
-                ]
-              },
-              {
-                "required": [
-                  "agent_key_authorize_event_id"
-                ]
               }
             ]
           }
@@ -1582,7 +1323,7 @@
         },
         "recipient_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Exact cross-Station recipient AccountId for the human-device signer branch. Agent and minimal-metadata pairwise branches carry only their branch-specific identity."
+          "description": "Exact cross-Station recipient AccountId for the human-device signer branch. The Agent branch carries only its branch-specific identity."
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id"
@@ -1598,10 +1339,6 @@
         },
         "agent_key_authorize_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "recipient_pairwise_verification_method": {
-          "type": "string",
-          "pattern": "^did:key:([^#]+)#\\1$"
         },
         "recipient_id": {
           "$ref": "#/$defs/did_core_id"
@@ -1631,7 +1368,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device carries recipient_account_id plus device evidence; Agent carries recipient_agent_id plus current authorization; Realm-local minimal-metadata pairwise carries only its exact did:key method, from which the actor is projected. No branch carries a parallel principal mirror.",
+      "description": "The exact recipient signer signs every field except signature only after durably storing and opening the Welcome. Closed XOR: human device carries recipient_account_id plus device evidence; Agent carries recipient_agent_id plus current authorization. Neither branch carries a parallel principal mirror.",
       "x-arkret-signature-domain": "ak.mls.recipient_durable_receipt.v1"
     },
     "keypackage_consume_receipt": {
@@ -1695,7 +1432,7 @@
         },
         "recipient_durable_receipt": {
           "$ref": "#/$defs/recipient_mls_durable_receipt",
-          "description": "Sole consume authority and coordinate carrier. Its closed device, Agent, or minimal-metadata pairwise signer branch authorizes the command and binds the owner, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service."
+          "description": "Sole consume authority and coordinate carrier. Its closed device or Agent signer branch authorizes the command and binds the owner, KeyPackage, Welcome, Realm, MLS group, epoch, and recipient service."
         },
         "signature": {
           "$ref": "#/$defs/signature",

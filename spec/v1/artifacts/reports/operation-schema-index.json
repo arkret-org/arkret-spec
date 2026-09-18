@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T17:10:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1398,7 +1398,6 @@
           "dpop_binding_proof",
           "applet_authority",
           "proof",
-          "pairwise_endpoint_possession_proof",
           "credential_class"
         ],
         "closed": true,
@@ -1444,27 +1443,6 @@
               "dpop_binding_proof",
               "applet_authority",
               "proof"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PairwiseEndpointSessionGrantRequest",
-            "schema_kind": "object",
-            "required": [
-              "request_id",
-              "principal_id",
-              "device_id",
-              "audience_id",
-              "accepted_device_possession_proof",
-              "pairwise_endpoint_possession_proof"
-            ],
-            "properties": [
-              "request_id",
-              "principal_id",
-              "device_id",
-              "audience_id",
-              "accepted_device_possession_proof",
-              "pairwise_endpoint_possession_proof"
             ],
             "closed": true
           },
@@ -3560,7 +3538,6 @@
           "target_agent_id",
           "target_agent_verification_method",
           "target_agent_key_authorize_event_id",
-          "target_pairwise_verification_method",
           "timeout_ms",
           "strand_id",
           "pair_key",
@@ -7828,7 +7805,6 @@
           "target_agent_id",
           "target_agent_verification_method",
           "target_agent_key_authorize_event_id",
-          "target_pairwise_verification_method",
           "timeout_ms",
           "strand_id",
           "pair_key",
@@ -7931,16 +7907,6 @@
             "schema_kind": null,
             "required": [
               "device_id"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body",
-            "schema_kind": null,
-            "required": [
-              "pairwise_verification_method",
-              "intended_realm_id"
             ],
             "properties": [],
             "closed": false

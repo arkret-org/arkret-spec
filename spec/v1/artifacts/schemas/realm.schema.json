@@ -74,27 +74,19 @@
     "schema_refs": {
       "type": "array",
       "items": {
-        "oneOf": [
-          {
-            "type": "string",
-            "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
-          },
-          {
-            "enum": [
-              "ak.profile.principal_control_realm.v1",
-              "ak.profile.direct_conversation_realm.v1",
-              "ak.profile.mls.minimal_metadata_realm.v1"
-            ]
-          }
-        ]
+        "type": "string",
+        "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
       },
       "minItems": 1,
       "uniqueItems": true,
-      "description": "Union of registered ak.schema.*.vN ids and the closed Realm structural-role profile allowlist. Only the structural-role half is create-locked: zh/models/realm-and-space.md section 2.3 says ak.realm.schema updates the schema-id half and can neither add, remove nor replace a structural-role profile, so calling the whole union create-locked contradicts the one Event that writes it. Third-party namespaces are not accepted: zh/models/realm-and-space.md section 2.3 closes this member to ak.schema.*.vN outside the genesis allowlist, realm_schema_payload closes the update path to the same pattern, and no registered Event mints a non-ak. schema id. Policy, deployment conformance and operation-local profiles are forbidden here."
+      "contains": {
+        "const": "ak.schema.realm.v1"
+      },
+      "description": "Currently activated registered schema id set. It carries no Realm structural role: the signed ak.schema.realm_genesis.v1 purpose is the only authority for Realm class (zh/models/realm-and-space.md section 2.3), so a profile id here would be a second, editable class discriminator. The core member ak.schema.realm.v1 is initialised by the genesis reducer, is always present and can never be removed. Every other member MUST be a registered ak.schema.*.vN id; third-party namespaces are not accepted and no registered Event mints a non-ak. schema id. ak.realm.schema replaces this whole set (realm_schema_payload); policy, deployment conformance and operation-local profiles have their own carriers and are forbidden here."
     },
     "fields": {
       "type": "object",
-      "description": "Product/profile fields. Security-relevant discriminators such as purpose in {principal_control, agent_control} and collaboration_role=direct_conversation are schema constrained below; other product fields remain extension-defined.",
+      "description": "Product/profile fields. purpose and collaboration_role are reducer-managed read-only projections of the signed genesis purpose and MUST equal it (zh/models/realm-and-space.md section 2.3); they are schema constrained below so a producer cannot mint a Realm class here. Other product fields remain extension-defined.",
       "properties": {
         "purpose": {
           "type": "string",
@@ -102,13 +94,15 @@
             "principal_control",
             "agent_control",
             "applet_managed_control"
-          ]
+          ],
+          "description": "Projection of genesis purpose for the three identity-control classes. genesis purpose=collaboration and purpose=direct_conversation project no value here. Authorization MUST verify the genesis, never this field."
         },
         "collaboration_role": {
           "type": "string",
           "enum": [
             "direct_conversation"
-          ]
+          ],
+          "description": "Projection of genesis purpose=direct_conversation. No other genesis purpose projects this field, and authorization MUST verify the genesis rather than this projection."
         }
       },
       "additionalProperties": true

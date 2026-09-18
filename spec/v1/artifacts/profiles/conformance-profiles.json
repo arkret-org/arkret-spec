@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.2",
-  "generated_at": "2026-09-21T11:00:00+08:00",
+  "version": "2026-09-21.3",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1341,8 +1341,7 @@
       "ak.profile.sovereign_client.v1",
       "ak.profile.franking.v1",
       "ak.profile.webrtc_media.v1",
-      "ak.profile.circle_conformance.v1",
-      "ak.profile.ephemeral_pairwise_principal.v1"
+      "ak.profile.circle_conformance.v1"
     ],
     "v1_minimal_interop_floor": [
       "ak.profile.core_event_store.v1"
@@ -1377,7 +1376,6 @@
   "identity_extension_profiles": [
     "ak.profile.public_network_identity.v1",
     "ak.profile.organization_high_assurance_identity.v1",
-    "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.principal_control_realm.v1",
     "ak.profile.direct_conversation_realm.v1",
     "ak.profile.key_transparency.v1"
@@ -1468,7 +1466,6 @@
     "ak.profile.franking.v1": "server",
     "ak.profile.webrtc_media.v1": "gateway",
     "ak.profile.circle_conformance.v1": "interop",
-    "ak.profile.ephemeral_pairwise_principal.v1": "admin",
     "ak.profile.personal_node.v1": "admin",
     "ak.profile.small_team.v1": "admin",
     "ak.profile.organization.v1": "admin",
@@ -1492,7 +1489,6 @@
     "ak.profile.signature.pqc.v1": "admin",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": "interop",
     "ak.profile.mls_ciphersuite.pq_auth.v1": "interop",
-    "ak.profile.mls.minimal_metadata_realm.v1": "admin",
     "ak.profile.traffic_metadata_hardened.v1": "admin",
     "ak.profile.key_backup.memory_hard.v1": "admin",
     "ak.profile.personal_productivity.v1": "client",
@@ -1512,7 +1508,6 @@
   ],
   "e2ee_hardening": [
     "keypackage_claim_lifecycle",
-    "ak.profile.mls.minimal_metadata_realm.v1",
     "e2ee_report_framed_franking"
   ],
   "privacy_hardening": [
@@ -1536,7 +1531,6 @@
     "unsupported_draft_fail_closed"
   ],
   "hardening_profiles": [
-    "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.traffic_metadata_hardened.v1",
     "ak.profile.key_backup.memory_hard.v1"
   ],
@@ -2658,8 +2652,7 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ak.profile.agent_signer_evidence.v1",
-        "ak.profile.mls.minimal_metadata_realm.v1"
+        "ak.profile.agent_signer_evidence.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -4959,53 +4952,6 @@
         "unsupported_optional": "mark remote Realm unavailable"
       }
     },
-    "ak.profile.ephemeral_pairwise_principal.v1": {
-      "description": "Closed identity profile for an unlinkable, short-lived Realm-local pairwise actor principal. It is the only v1 principal profile that admits did:key, and only inside a Realm that has already declared ak.profile.mls.minimal_metadata_realm.v1. A fresh key MUST be generated per Realm and MUST NOT be reused across Realms. Authority comes exclusively from one accepted MLS group state whose active LeafNode credential identity equals the Event pairwise actor_id, while the Event proof verification-method base is a did:key did that projects to that actor_id and its public key equals the LeafNode signature_key. It creates no account, PCR, device-directory entry, Contact, capability, recovery state or cross-Realm identity, and cannot be enabled by deployment-local resolver policy alone.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.identity_link.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "ephemeral_pairwise_principal",
-          "realm_pairwise_author_state"
-        ],
-        "unsupported_optional": "reject minimal-metadata pairwise authors"
-      },
-      "identity": {
-        "actor_method_default": "did:key",
-        "allowed_actor_methods": [
-          "did:key"
-        ],
-        "long_lived_principal": false,
-        "principal_method_upgrade_allowed": false,
-        "account_registration_allowed": false,
-        "principal_control_realm_allowed": false,
-        "device_directory_allowed": false,
-        "author_trust_anchor": "accepted_exact_epoch_mls_leafnode",
-        "key_scope": "one_realm_no_reuse"
-      }
-    },
     "ak.profile.personal_node.v1": {
       "enforcement_phases": [
         "build",
@@ -5356,54 +5302,6 @@
           "manual_bridge_policy"
         ],
         "unsupported_optional": "deny cross-boundary operation"
-      }
-    },
-    "ak.profile.mls.minimal_metadata_realm.v1": {
-      "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
-      "enforcement_phases": [
-        "build",
-        "conformance"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [
-        "ak.profile.e2ee_client.v1"
-      ],
-      "required_event_kinds": [
-        "ak.mls.commit",
-        "ak.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.event.v1",
-        "ak.schema.encrypted_envelope.v1",
-        "ak.schema.identity_link.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json",
-        "push-rule-core-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "pairwise_actor_id",
-          "identity_link_schema",
-          "identity_link_eager_invalidation",
-          "minimal_metadata_author_credential",
-          "principal_disclosure_policy",
-          "minimal_metadata_presign_forbidden"
-        ],
-        "unsupported_optional": "fail closed before joining minimal-metadata encrypted Realm"
       }
     },
     "ak.profile.traffic_metadata_hardened.v1": {

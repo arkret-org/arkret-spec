@@ -79,7 +79,7 @@ Arkret 的身份与发布模型借鉴 atprotocol 的几个方向：
 但 Arkret 不等同于 atprotocol：
 
 - atprotocol 主要面向公开 record 与 PDS；Arkret 面向多方协作 Realm、授权状态、私有内容、E2EE 和企业治理。
-- Arkret v1 唯一可注册长期用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷）；`did:web` 只用于显式 no-history service，`did:key` 只用于声明 `ak.profile.ephemeral_pairwise_principal.v1`、且由 exact accepted MLS LeafNode 约束的 Realm-local 临时 actor。后者不创建账号/PCR/设备目录。设备自身没有 DID；设备公钥可以使用 `did:key` 作自描述 key material。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 只作为外部 interop claim，不属于 v1 principal 创建面。
+- Arkret v1 唯一可注册长期用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷）；`did:web` 只用于显式 no-history service，`did:key` 只用于 deterministic local expansion 与 service evidence。设备自身没有 DID；设备公钥可以使用 `did:key` 作自描述 key material。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 只作为外部 interop claim，不属于 v1 principal 创建面。
 - Arkret 的 Event 记录协作事实，不是公开内容分发 record。
 - Arkret 把 Realm policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
 

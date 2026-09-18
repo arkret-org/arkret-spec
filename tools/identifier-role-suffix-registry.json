@@ -714,14 +714,6 @@
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
     },
     {
-      "file": "identity-link.schema.json",
-      "pointer": "/properties/pairwise_actor_id",
-      "terminal_categories": [
-        "did_core_id"
-      ],
-      "reason": "pairwise_actor is the complete protocol role for the stable pairwise principal core; the _id suffix is the carrier marker"
-    },
-    {
       "file": "event-payload.schema.json",
       "pointer": "/$defs/device_authorize_payload/properties/authorized_by",
       "terminal_categories": [

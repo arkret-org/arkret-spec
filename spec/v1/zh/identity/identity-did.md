@@ -154,7 +154,6 @@ did:webvh:<scid>:<host-and-path>
 | human principal | `did:webvh`（唯一、default/MTI） | 只有 `did:webvh:1.0` 声明 `registration_anchor_kind=webvh_registration`；`did:key` 与 `did:web` 均不进入 human 注册。额外 relocation/history/DID-root 能力按 adapter 属性分别启用。 |
 | 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
 | Service DID | `did:webvh` SHOULD / default；`did:web` MAY 显式声明 no-history profile | 服务发现虽依赖域名和 HTTPS endpoint，但 service DID 同样签发协议交易、describe、HTTP Message Signature 与 delegation；默认需要可审计历史。低风险或外部互通服务 MAY 使用 `did:web`，但 MUST 在 ServiceDescribe / resolver evidence 中声明无历史信任强度。 |
-| 显式 ephemeral pairwise actor principal | `did:key` | 必须声明 `ak.profile.ephemeral_pairwise_principal.v1`；只在已声明 minimal-metadata profile 的 Realm 内由 exact accepted MLS LeafNode 约束，不创建账号/PCR/设备目录，不可升级为长期 principal。 |
 | 钱包、AT Protocol 或其它 interop identity | interop extension 自有 method | 可以作为外部 claim/bridge identity，但不进入 v1 principal 创建 allowlist；需要 Arkret principal 时必须另建 `did:webvh` principal 并走显式业务绑定。 |
 | 高安全或隔离部署 | `did:webvh` | sovereign / enclave / 内网部署可以收紧 resolver trust roots 与 witness 集合，不得本地扩展长期 principal method allowlist。 |
 
@@ -493,7 +492,7 @@ Arkret 把身份解析抽象为 `Identity Resolution Infrastructure`，而不是
 | --- | --- | --- |
 | `did:webvh` | 不需要公共 registry（high-trust profile 默认 method）。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
 | `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。无历史链——只能反映"当前 DID Document 状态"。 |
-| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合作为测试、一次性邀请、bootstrap 或设备公钥的自描述 key material。只有显式 ephemeral pairwise profile 可在 minimal-metadata Realm 中把它投影为 LeafNode-bound 短期 actor；该 actor 无账号/PCR/设备目录。设备身份仍由 `device_id` + 长期 principal 下的 authorization 表达。 |
+| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合作为测试、一次性邀请、bootstrap 或设备公钥的自描述 key material。它不投影为任何 Realm actor principal。设备身份仍由 `device_id` + 长期 principal 下的 authorization 表达。 |
 | `did:pkh` | 不需要 Arkret registry。 | CAIP-10 / chain-specific account validation、wallet proof、chain namespace policy；通常不支持 DID document update / deactivation。 |
 | `did:plc` | 需要可接受的 PLC directory / mirror / audit source（AT Protocol interop adapter）。 | 验证 PLC operation chain、genesis / previous op hash、rotation keys、recovery state、DID Document、service bindings 和 directory transparency evidence。仅在声明 AT 互通 profile 的部署中需要。 |
 | 其他现有 DID method（KERI 等） | 取决于 method。 | extension MAY 保留 raw DID Document 与 method-specific proof 并映射为外部 claim view；不得据此创建 v1 principal。 |
@@ -510,15 +509,9 @@ Resolver policy MUST 至少定义：
 
 - allowed methods：当前部署接受哪些 DID method。
 - role method：可注册 human anchor、启用 DID-root recovery、启用 same-core relocation、持续 DID
-  governance、service 与 Realm-local ephemeral pairwise actor 的 method 集 MUST 分别从 registry
-  对应 `role_requirements` 推导，不能由一个 `long_lived_principal` 条件代替。human anchor 当前为
-  `did:webvh` + `did:web` + `did:key`；MTI 仍只有 `did:webvh`。
-  ephemeral actor 必须声明 `ak.profile.ephemeral_pairwise_principal.v1` 并以 exact accepted MLS
-  LeafNode 为唯一 authority；它作者 Event 时 envelope `actor_id` 的 `station_id` 分量是当次
-  hosting Station。Realm 内状态仍按完整 `ActorId` 定址；只有 Realm 之外的持有方（consent peer 匹配、
-  KeyPackage claim 授权两处）改用 `(realm_id, principal_id)` 作匹配键，判据与封闭列举见
-  [`../crypto-media/encryption-and-audit.md` §2.7](../crypto-media/encryption-and-audit.md)。
-  deployment policy 只能收紧，不能增加任何角色的 method。
+  governance 与 service 的 method 集 MUST 分别从 registry 对应 `role_requirements` 推导，不能由
+  一个 `long_lived_principal` 条件代替。human anchor 当前为 `did:webvh` + `did:web` + `did:key`；
+  MTI 仍只有 `did:webvh`。deployment policy 只能收紧，不能增加任何角色的 method。
 - trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。
@@ -550,13 +543,11 @@ Resolver policy MUST 至少定义：
       "human_anchor_admission": "unsupported_did_method"
     },
     "did:key": {
-      "role": ["human_anchor_immutable", "realm_local_ephemeral_pairwise_actor", "local_verifiable_material"],
-      "principal_allowed_profiles": ["ak.profile.ephemeral_pairwise_principal.v1"],
+      "role": ["human_anchor_immutable", "local_verifiable_material"],
       "account_registration": "allow_for_human_anchor",
       "principal_control_realm": "allow_for_human_anchor",
       "did_root_recovery": "unsupported",
-      "relocation": "unsupported",
-      "author_trust_anchor": "accepted_exact_epoch_mls_leafnode"
+      "relocation": "unsupported"
     }
   }
 }
@@ -933,7 +924,7 @@ Organization principal 是一个可控制的 DID principal，有 DID Document、
 
 组织 PCR genesis 只能由下列授权之一创建或接受：
 
-1. 组织 DID method inception / controller key 的证明，且证明绑定 `principal_control_realm_id`、`fields.purpose="principal_control"` 和 `ak.profile.principal_control_realm.v1`。
+1. 组织 DID method inception / controller key 的证明，且证明绑定 `principal_control_realm_id` 与该 Realm **已签名 genesis** 的 exact `purpose="principal_control"`。比较项 MUST 取自作者签名的 closed `ak.schema.realm_genesis.v1` 原文，MUST NOT 取 materialized `fields.purpose` 投影或任何 profile 字符串。
 2. 组织 DID Document / governance profile 显式委派的 Account Authority 或 `ArkretGovernanceService`，其 delegation purpose MUST 覆盖 `principal_control_realm_bootstrap`，事件 MUST 记录实际执行主体（例如 `executed_by` 或组织侧 governance decision id），且接收方必须按事件时间解析该 delegation。
 
 OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `ak.session.grant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ak.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
@@ -1156,8 +1147,7 @@ Arkret v1 对 DID 实现要求如下：
 - v1 human principal DID 创建 MUST 使用满足 registry `human_principal_anchor` 角色要求的 active adapter；当前
   集合只有 `did:webvh`，其 v1 core MTI/default adapter `did:webvh:1.0` MUST 声明
   `registration_anchor_kind=webvh_registration`，并且 human 注册、PCR genesis 与 portable
-  `account_device_control` root 只接受该分支。显式
-  `ak.profile.ephemeral_pairwise_principal.v1` 同样使用 `did:key`，但它是由 exact accepted MLS LeafNode 约束的 Realm-local 临时 pairwise actor，且不得创建账号/PCR/设备目录或升级为 human 注册锚。default service
+  `account_device_control` root 只接受该分支。default service
   DID method 是 `did:webvh`，显式 no-history service profile MAY 使用 registry-derived service
   allowlist 中的 `did:web`。deployment policy 只能收紧这些集合，不能增加任何角色的 method；
   `did:webvh` outage 只允许 cache-only degraded mode。

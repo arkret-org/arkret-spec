@@ -17,7 +17,7 @@
     },
     "account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id",
-      "description": "Exact account whose private invite receive policy this object configures. The authenticated holder and the account-data typed current result owner MUST equal both components; another account with the same principal core MUST NOT share this policy. The separate ephemeral pairwise principal role remains Realm-local and has no account/PCR/device directory."
+      "description": "Exact account whose private invite receive policy this object configures. The authenticated holder and the account-data typed current result owner MUST equal both components; another account with the same principal core MUST NOT share this policy."
     },
     "holder_allowed_introduction_kinds": {
       "type": "array",

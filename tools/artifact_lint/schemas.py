@@ -216,7 +216,6 @@ _DID_REF_TARGETS = {
     "did",
     "webvh_did",
     "human_principal_did",
-    "ephemeral_pairwise_principal_did",
     "did_key_did",
 }
 
@@ -416,7 +415,6 @@ def check_stable_identity_fields_use_core_id(lint: Lint) -> None:
                         "did",
                         "webvh_did",
                         "human_principal_did",
-                        "ephemeral_pairwise_principal_did",
                         "did_key_did",
                     }
                 ]
@@ -1393,14 +1391,13 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
         return
     fixture = load_json(lint, fixture_path)
     rows = fixture.get("unsigned_selector_transcripts", []) if isinstance(fixture, dict) else []
-    expected_branches = {"device", "agent", "minimal_metadata_pairwise"}
+    expected_branches = {"device", "agent"}
     seen_branches: set[str] = set()
     selector_fields = {
         "target_device_ids",
         "target_agent_id",
         "target_agent_verification_method",
         "target_agent_key_authorize_event_id",
-        "target_pairwise_verification_method",
     }
     for index, row in enumerate(rows if isinstance(rows, list) else []):
         if not isinstance(row, dict):
@@ -1420,7 +1417,6 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
                 "target_agent_verification_method",
                 "target_agent_key_authorize_event_id",
             },
-            "minimal_metadata_pairwise": {"target_pairwise_verification_method"},
         }[branch]
         if present != required_by_branch:
             lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}] does not preserve its exact selector branch")
@@ -1431,7 +1427,7 @@ def check_keypackage_claim_unsigned_projection(lint: Lint) -> None:
         if row.get("request_digest") != digest:
             lint.fail(fixture_path, f"unsigned_selector_transcripts[{index}].request_digest drifted")
     if seen_branches != expected_branches:
-        lint.fail(fixture_path, "unsigned selector transcripts must cover device, agent, and minimal_metadata_pairwise exactly")
+        lint.fail(fixture_path, "unsigned selector transcripts must cover device and agent exactly")
 
 
 def check_sdk_conformance_contract(lint: Lint) -> None:
@@ -4032,7 +4028,6 @@ def check_did_and_device_constraints(lint: Lint) -> None:
 
     principal_methods = methods_eligible_for("human_principal_anchor")
     service_methods = methods_eligible_for("service")
-    actor_methods = methods_eligible_for("realm_local_ephemeral_actor")
 
     human_principal_pattern = str(human_principal.get("pattern", "")) if isinstance(human_principal, dict) else ""
     principal_schema_matches_registry = bool(principal_methods) and (
@@ -4088,34 +4083,6 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     if not isinstance(profiles, dict):
         lint.fail(profiles_path, "profiles must be an object")
         profiles = {}
-    actor_profile_ids = sorted(
-        profile_id
-        for profile_id, profile in profiles.items()
-        if isinstance(profile, dict)
-        and isinstance(profile.get("identity"), dict)
-        and "allowed_actor_methods" in profile["identity"]
-    )
-    if not actor_profile_ids:
-        lint.fail(profiles_path, "at least one profile must declare allowed_actor_methods")
-    realm_profile_allowlist = {
-        value
-        for branch in (
-            schema_docs.get("realm.schema.json", {})
-            .get("properties", {})
-            .get("schema_refs", {})
-            .get("items", {})
-            .get("oneOf", [])
-        )
-        if isinstance(branch, dict)
-        for value in branch.get("enum", [])
-        if isinstance(value, str)
-    }
-    for actor_profile_id in actor_profile_ids:
-        if actor_profile_id in realm_profile_allowlist:
-            lint.fail(
-                realm_genesis_path,
-                f"actor-method profile {actor_profile_id} must not enter the closed Realm structural-profile allowlist",
-            )
     for profile_id, profile in profiles.items():
         if not isinstance(profile, dict):
             continue
@@ -4143,41 +4110,6 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                     profiles_path,
                     f"{profile_id}.identity.service_method_default must be in the registry-derived service allowlist {service_methods!r}",
                 )
-        if "allowed_actor_methods" not in identity:
-            continue
-        if identity.get("allowed_actor_methods") != actor_methods:
-            lint.fail(
-                profiles_path,
-                f"{profile_id}.identity.allowed_actor_methods must equal the registry-derived Realm-local ephemeral actor allowlist {actor_methods!r}",
-            )
-        if identity.get("actor_method_default") not in actor_methods:
-            lint.fail(
-                profiles_path,
-                f"{profile_id}.identity.actor_method_default must be in the registry-derived Realm-local ephemeral actor allowlist {actor_methods!r}",
-            )
-        if identity.get("long_lived_principal") is not False:
-            lint.fail(
-                profiles_path,
-                f"{profile_id}.identity.long_lived_principal must be false for an actor-method profile",
-            )
-        expected_closed_flags = {
-            "account_registration_allowed": False,
-            "principal_control_realm_allowed": False,
-            "device_directory_allowed": False,
-            "author_trust_anchor": "accepted_exact_epoch_mls_leafnode",
-            "key_scope": "one_realm_no_reuse",
-        }
-        for field, expected in expected_closed_flags.items():
-            if identity.get(field) != expected:
-                lint.fail(
-                    profiles_path,
-                    f"{profile_id}.identity.{field} must equal {expected!r} for an actor-method profile",
-                )
-        if profile.get("required_event_kinds") != []:
-            lint.fail(
-                profiles_path,
-                f"{profile_id} must not require PCR/device lifecycle Event kinds when it declares allowed_actor_methods",
-            )
 
     freshness_path = ARTIFACTS / "registry" / "did-freshness-profile-registry.json"
     freshness_doc = load_json(lint, freshness_path)

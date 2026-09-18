@@ -832,13 +832,6 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
         "sha256_hex",
         "ak.applet.delivery_authentication_record.v1\n",
     ),
-    (
-        "identity_link_proof_preimage_hex",
-        "identity_link_proof_payload_digest",
-        "hex",
-        "sha256_hex",
-        "",
-    ),
 )
 
 
@@ -1108,7 +1101,6 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "review_receipt",
         "cancel_receipt",
         "AcceptedDevicePossessionProof",
-        "PairwiseEndpointPossessionProof",
         "AgentSessionRefreshProof",
         "keypackages_claim_service_binding",
         "security_rotation_local_commit",

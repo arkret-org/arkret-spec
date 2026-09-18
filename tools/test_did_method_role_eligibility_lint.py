@@ -62,18 +62,6 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
             errors,
         )
 
-    def test_ephemeral_profile_cannot_admit_an_open_actor_method_set(self) -> None:
-        def mutate(profiles, _adapters):
-            profiles["profile_requirements"][
-                "ak.profile.ephemeral_pairwise_principal.v1"
-            ]["identity"]["allowed_actor_methods"] = ["did:key", "did:web"]
-
-        errors = self._run(mutate)
-        self.assertTrue(
-            any("registry-derived Realm-local ephemeral actor allowlist ['did:key']" in error for error in errors),
-            errors,
-        )
-
     def test_service_profile_cannot_admit_did_key(self) -> None:
         def mutate(profiles, _adapters):
             profiles["profile_requirements"]["ak.profile.personal_node.v1"][
@@ -104,24 +92,6 @@ class PrincipalMethodAllowlistLintTest(unittest.TestCase):
                 "registry-derived human principal anchor allowlist ['did:webvh', 'did:key']" in error
                 for error in errors
             ),
-            errors,
-        )
-
-    def test_ephemeral_profile_cannot_enable_pcr_or_device_directory(self) -> None:
-        def mutate(profiles, _adapters):
-            identity = profiles["profile_requirements"][
-                "ak.profile.ephemeral_pairwise_principal.v1"
-            ]["identity"]
-            identity["principal_control_realm_allowed"] = True
-            identity["device_directory_allowed"] = True
-
-        errors = self._run(mutate)
-        self.assertTrue(
-            any("principal_control_realm_allowed" in error for error in errors),
-            errors,
-        )
-        self.assertTrue(
-            any("device_directory_allowed" in error for error in errors),
             errors,
         )
 

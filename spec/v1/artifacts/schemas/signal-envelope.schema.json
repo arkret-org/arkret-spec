@@ -152,7 +152,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account). Ordinary requires fragment == sender_device_id. Agent requires the complete method byte-identical to the current accepted Agent signing-key binding and forbids sender_device_id. Constructing a method by appending to did_core_id is forbidden. The projection does not establish Station, Agent classification, or authority. Source and recipient independently bind current exact endpoint authority; destination validates projection and transcript structure but does not query remote authority or verify the producer signature as a relay prerequisite. Minimal-metadata endpoints cannot use either branch."
+          "description": "The DID URL bare DID component MUST project through its registered adapter to the signing principal component of sender_actor_id (account_id.principal_id for account). Ordinary requires fragment == sender_device_id. Agent requires the complete method byte-identical to the current accepted Agent signing-key binding and forbids sender_device_id. Constructing a method by appending to did_core_id is forbidden. The projection does not establish Station, Agent classification, or authority. Source and recipient independently bind current exact endpoint authority; destination validates projection and transcript structure but does not query remote authority or verify the producer signature as a relay prerequisite."
         },
         "envelope_digest": {
           "$ref": "#/$defs/digest"

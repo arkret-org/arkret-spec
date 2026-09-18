@@ -84,7 +84,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ("agent-sidecar-event-exchange-binding.schema.json", "request_context", ("completion_policy",)),
             ("agent-sidecar.schema.json", None, ("encryption_profile",)),
             ("call-recording-artifact.schema.json", None, ("artifact_kind",)),
-            ("identity-link.schema.json", None, ("response_signing_algorithm",)),
             ("message.schema.json", None, ("track_name",)),
             ("signal-typing.schema.json", None, ("track_name",)),
             ("recovery-session.schema.json", "publication_authority_context", ("identity_model",)),

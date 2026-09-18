@@ -211,7 +211,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 | 轴 | 唯一协议 carrier | 明确不授予的含义 |
 | --- | --- | --- |
 | deployment profile | 服务通过 `ak.server.read.describe.v1` 的 `supported_profiles[]` 发布，并由对应 conformance evidence 支撑 | 不得写入 Realm genesis、`schema_refs` 或任何 Realm facet；不产生 `primary_server`、`hosted_on` 或完整历史权威 |
-| Realm structural role | closed `ak.schema.realm_genesis.v1` 的 `purpose`，以及 `schema_refs` 中封闭的 structural profile | 不表示物理部署位置、组织所有权或 federation peer |
+| Realm structural role | 只有 closed `ak.schema.realm_genesis.v1` 的 `purpose` | 不表示物理部署位置、组织所有权或 federation peer；`schema_refs` 不承载它 |
 | organization relationship | active `ak.realm.organization`，且同时通过 Realm-side admin authority 与 organization-side authorization | `relationship=owner` 仍不自动授予 `ak.realm.owner` / `ak.realm.admin` capability、governance-Station handoff、recovery key、Station hosting 或历史完整性 |
 | governance Station | genesis `governance_station_id` 与连续 verified `RealmAuthorityHandoff` chain | 只决定各独立 stream 的 RealmCommit authority；不证明该 Station 永久保存或可向任意 caller 提供全部 Event |
 | Station routing | 当前 `join` member 的完整 `ActorId` 所携 `station_id`，再结合 deployment peer allowlist | 只是实际路由候选；不产生 Realm owner、home server、canonical mirror 或唯一数据源 |

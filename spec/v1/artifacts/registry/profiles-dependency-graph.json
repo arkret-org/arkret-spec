@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-16.10",
+  "version": "2026-09-21.1",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/artifact_lint#check_profile_dependency_graph",
@@ -45,7 +45,6 @@
     "ak.profile.e2ee_client.v1",
     "ak.profile.encoding.cbor.v1",
     "ak.profile.enterprise_client.v1",
-    "ak.profile.ephemeral_pairwise_principal.v1",
     "ak.profile.federation_minimal.v1",
     "ak.profile.file_transfer.v1",
     "ak.profile.franking.v1",
@@ -66,7 +65,6 @@
     "ak.profile.membership_join_compensation.v1",
     "ak.profile.mimi_interop.v1",
     "ak.profile.minimal_client.v1",
-    "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1",
     "ak.profile.mls_ciphersuite.pq_auth.v1",
     "ak.profile.organization.v1",
@@ -168,11 +166,6 @@
       "kind": "inherits"
     },
     {
-      "from": "ak.profile.ephemeral_pairwise_principal.v1",
-      "to": "ak.profile.e2ee_client.v1",
-      "kind": "inherits"
-    },
-    {
       "from": "ak.profile.federation_minimal.v1",
       "to": "ak.profile.core_event_store.v1",
       "kind": "inherits"
@@ -226,11 +219,6 @@
       "from": "ak.profile.media_service_binding.v1",
       "to": "ak.profile.webrtc_media.v1",
       "kind": "depends_on"
-    },
-    {
-      "from": "ak.profile.mls.minimal_metadata_realm.v1",
-      "to": "ak.profile.e2ee_client.v1",
-      "kind": "inherits"
     },
     {
       "from": "ak.profile.organization.v1",

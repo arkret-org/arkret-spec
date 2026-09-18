@@ -113,7 +113,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
 - v1 human registration anchor 只有 `did:webvh`，它也是默认/MTI 与默认 service DID method；`did:key` 只保留在设备/Agent/service evidence 与显式 ephemeral pairwise 等非注册合同中，后者不创建账号/PCR/设备目录；service 另可用显式 no-history `did:web`。deployment profile 只能收紧这些集合。`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`；缓存有效期 / TTL 耗尽后 MUST fail closed（见 [`identity/identity-did.md` §3.4](./identity/identity-did.md)），不得无限期缓存信任旧 DID 文档。
-- 测试、一次性邀请与 bootstrap 可使用 `did:key` 作为自描述密钥材料；只有 minimal-metadata Realm 的显式 profile 可把它投影为短期 pairwise actor，且该 actor 无账号/PCR/设备目录。设备自身没有 DID。
+- 测试、一次性邀请与 bootstrap 可使用 `did:key` 作为自描述密钥材料；它不投影为任何 Realm actor principal。设备自身没有 DID。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
 - 当进入 DID 权威验证路径时，DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验；普通读取、主体比较与命中既有 accepted key binding 的 Event 验签不重复解析 DID。
 

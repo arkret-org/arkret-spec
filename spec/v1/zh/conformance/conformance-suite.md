@@ -66,7 +66,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 **hardening profile**（overlay,`role=admin`,非独立实现角色；权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
 
-- `ak.profile.mls.minimal_metadata_realm.v1`
 - `ak.profile.traffic_metadata_hardened.v1`
 - `ak.profile.key_backup.memory_hard.v1`
 - 安全域 checkpoint 维护

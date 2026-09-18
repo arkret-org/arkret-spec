@@ -34,28 +34,11 @@
       "name": "agent_runtime",
       "upload_entry_jcs": "{\"capabilities\":[\"ak.content.v1\",\"mimi.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-08-25T17:33:02.937Z\",\"expires_at\":\"2026-09-01T17:33:02.937Z\",\"keypackage\":\"AAEAASC_cJLU8bB42TnDS3OvcD5_avIlPjn5ZSOGcUH7ngw0USAtvqjzA0W0h55Ey_eOufxqhjqbr5HTKDuMpjPWQyCacyCgmqX0emdZgC_5VfjcLSoUpcmdI76X-GQSf_k4NFWk8AABIWFrOmRpZF9jb3JlOndlYjprYXQtYWdlbnQuZXhhbXBsZQIAAQgAAQACAAMATQbxwPHB8cIAAgABAQAAAABqjcO-AAAAAGr8j84i8cEfgm1hay5jb250ZW50LnYxb21pbWkuY29udGVudC52MUBAgCIdC-8S_k-89rHvu0IzI0ZpvMFtaLEgYzXFtre62k0hnYf9OaGTfx6yYrskXlpMmBrwoEL5VzxMyrTD4d8zAgBAQNq7YpYlvI91SqhQUrQUitx4TnlTSXH1k-sO25gNQ_48R_XHIuM0-KnRQN08QSi01xYs9ybF3cN6e0EnpZ_cFwE\",\"keypackage_id\":\"ak:mls:kp:01a039fb-9059-7971-a7f1-6c1776f4ebf4\",\"keypackage_ref\":\"sha256:f89b5281f6cd6ff94d3b0e3a7cfa250d3436c4e69ac59b615f5ede87c93ee1b6\"}",
       "upload_entry_sha256": "sha256:ff4b4b9adc40e6862008d30507e86b26c619784aa6f7b28bd9e74e60da280aa9"
-    },
-    {
-      "batch_signature_public_key": "F8t5-ytBIPKx7GXkGY1uCLKOgT_rAeSkAIObheGAgM4",
-      "endpoint": {
-        "kind": "minimal_metadata_pairwise",
-        "pairwise_actor_id": "ak:did_core:key:z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5",
-        "verification_method": "did:key:z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5#z6Mkg49NtQR2LyYRDCQFK4w1VVHqhypZSSRo7HsyuN7SV7v5"
-      },
-      "keypackage": "AAEAASDPfQa8LblxlCHkXCUnKCBwrigSWesBPDZ4ZzIUri02MSCybkVc7HAWomfLn8VUkQXp2945PAc7YoBQGyYhazNCeyAXy3n7K0Eg8rHsZeQZjW4Iso6BP-sB5KQAg5uF4YCAzgABQEBhazpkaWRfY29yZTprZXk6ejZNa2c0OU50UVIyTHlZUkRDUUZLNHcxVlZIcWh5cFpTU1JvN0hzeXVON1NWN3Y1AgABCAABAAIAAwBNBvHA8cHxwgACAAEBAAAAAGqNw74AAAAAavyPziLxwR-CbWFrLmNvbnRlbnQudjFvbWltaS5jb250ZW50LnYxQEB-prwxPTGXQWtTLAIT3mV1upxP-KQbS73g0hXfSqPQfUMwTBvVi6iS1DUqXGDYLFF03DsBc4SUWiDyN4fFo80KAEBAsrq3bloFJJhbkRgU2et5fqXPR0gRXUh86_OyXnib1BDqmySPsopiiKWL47Aoz-bRXVOpOpFKTbneXitR1SYvDA",
-      "keypackage_ref": "sha256:9325a529310e78178c7c84447de85cc098df3859d52bec491d989c92d9aed375",
-      "keypackage_sha256": "sha256:9325a529310e78178c7c84447de85cc098df3859d52bec491d989c92d9aed375",
-      "leaf_credential": "YWs6ZGlkX2NvcmU6a2V5Ono2TWtnNDlOdFFSMkx5WVJEQ1FGSzR3MVZWSHFoeXBaU1NSbzdIc3l1TjdTVjd2NQ",
-      "leaf_node_sha256": "sha256:f31cbe8178667bc3e7e7b1a1dcafbc0600a2b651fd8456dd025ff64d19408e68",
-      "leaf_signature_key": "F8t5-ytBIPKx7GXkGY1uCLKOgT_rAeSkAIObheGAgM4",
-      "name": "minimal_metadata_pairwise",
-      "upload_entry_jcs": "{\"capabilities\":[\"ak.content.v1\",\"mimi.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-08-25T17:33:02.954Z\",\"expires_at\":\"2026-09-01T17:33:02.954Z\",\"keypackage\":\"AAEAASDPfQa8LblxlCHkXCUnKCBwrigSWesBPDZ4ZzIUri02MSCybkVc7HAWomfLn8VUkQXp2945PAc7YoBQGyYhazNCeyAXy3n7K0Eg8rHsZeQZjW4Iso6BP-sB5KQAg5uF4YCAzgABQEBhazpkaWRfY29yZTprZXk6ejZNa2c0OU50UVIyTHlZUkRDUUZLNHcxVlZIcWh5cFpTU1JvN0hzeXVON1NWN3Y1AgABCAABAAIAAwBNBvHA8cHxwgACAAEBAAAAAGqNw74AAAAAavyPziLxwR-CbWFrLmNvbnRlbnQudjFvbWltaS5jb250ZW50LnYxQEB-prwxPTGXQWtTLAIT3mV1upxP-KQbS73g0hXfSqPQfUMwTBvVi6iS1DUqXGDYLFF03DsBc4SUWiDyN4fFo80KAEBAsrq3bloFJJhbkRgU2et5fqXPR0gRXUh86_OyXnib1BDqmySPsopiiKWL47Aoz-bRXVOpOpFKTbneXitR1SYvDA\",\"keypackage_id\":\"ak:mls:kp:01a039fb-906a-7701-a29d-062b05fd1cc0\",\"keypackage_ref\":\"sha256:9325a529310e78178c7c84447de85cc098df3859d52bec491d989c92d9aed375\"}",
-      "upload_entry_sha256": "sha256:d75ff32c125a546de7abb56f7c62a4a4678afc5c8c814b740c6c65a6ee330870"
     }
   ],
   "description": "Frozen real RFC 9420 KeyPackages for every Arkret endpoint branch. Each vector pins the BasicCredential, LeafNode signature key, complete KeyPackage bytes, and their SHA-256 digests.",
   "negative_contract": {
-    "actor_credential": "must equal the selected Agent or pairwise ActorId",
+    "actor_credential": "must equal the selected Agent ActorId",
     "actor_leaf_and_batch_key": "must both equal the selected accepted endpoint key",
     "forbidden_fields": [
       "keypackages[].endpoint_signature",

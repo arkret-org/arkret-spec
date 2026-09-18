@@ -79,7 +79,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.invite.claim.binding_proof.v1`、`ak.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
 | feature id（`supported_features` / `supported_features` 值） | `ak.feature.identity.webvh_native_log.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值 |
 | DID Document / 外部生态 profile 值 | `ak.organization.governance.v1` | identity-did.md 示例上下文 |
-| E2EE MLS content type | `application/vnd.arkret.identity-link+json` | 定义文档（history-visibility.md）；其 plaintext schema（`ak.schema.identity_link.v1`）仍 MUST 注册，content type 本身不进 durable event registry |
 | Signal plaintext payload kind | `ak.presence`、`ak.typing`、`ak.receipt.read`、`ak.call.signal`、`ak.message.stream` | [`../sync/signal.md` §1.1](../sync/signal.md) 的封闭登记表；每个 kind 的 closed plaintext schema 仍 MUST 注册（`ak.schema.signal_presence.v1` / `ak.schema.signal_typing.v1` / `ak.schema.read_receipt.v1` / `ak.schema.call_signal_plaintext.v1` / `ak.schema.signal_message_stream.v1`），kind 本身位于 ciphertext、不进 event-kind registry，也不分配 `wire_scope` |
 | 标准 account-data tag 词表 | `ak.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 
@@ -129,7 +128,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.resource_selector.v1` | Resource Selector |
 | `ak.schema.identity_resolution.v1` | did_core_id/did resolution、PCR evidence 与 AuthenticatedServiceResolution |
 | `ak.schema.identity_receipt.v1` | Identity Receipt |
-| `ak.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
 | `ak.schema.handle_claim.v1` | Handle Claim |
 | `ak.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
 | `ak.schema.media_metadata.v1` | Media Metadata |

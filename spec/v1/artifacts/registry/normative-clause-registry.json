@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.6",
+  "version": "2026-09-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T19:20:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -111,13 +111,6 @@
         "clause_id": "AK-NC-061",
         "vector_id": "ak.vector.mls.key_access_revision_key_access_only.v1",
         "carrier": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-063",
-        "vector_id": "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1",
-        "carrier": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
         "reason": "carrier_without_decision_point_mapping",
         "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
       },
@@ -286,7 +279,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:78b80c34756324ec888aab9fc30fb92c8c0485de2f71c7cc4b82e30143593bbd",
+      "section_digest": "sha256:51ca57131d79037404b27ba4f554054609b6754687accaf614281a9efd6bc887",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -587,7 +580,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#22-commit-与-welcome",
-      "section_digest": "sha256:0b5592041f6e21b63178456ca803f70babc919252389bf08e1dc53f5190388c8",
+      "section_digest": "sha256:2019ed1c124d8bb4e3dcc97e6f722c6c8a2f86c877f93b4e642d197829c86c64",
       "requirement": "A Commit and all of its Welcome deliveries land in one database transaction: the governance Station verifies the Commit Event, current membership/policy, base group revision and the RFC 9420 public transition, verifies every delivery binding, appends the RealmCommit and enqueues each Welcome durably. Any missing, duplicate, over-limit or mis-bound delivery makes the transaction write nothing, and Commit accepted is returned only after the transaction is durable.",
       "testability_grade": "audit",
       "test_plan": "Audited against the Commit/Welcome transaction contract: a conformance run submits an MlsCommitSubmission whose welcomes[] contains one mis-bound delivery and asserts the Station returns no acceptance and leaves the RealmCommit log, the public group result and every recipient queue unchanged. No vector exists because the obligation is on server transaction atomicity rather than on a byte-level artifact."
@@ -597,18 +590,18 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#221-mls-group-admin-推导",
-      "section_digest": "sha256:45dc86bb351a8299e7eb43c0457ef72d1c7bb7205332e8c65f7e628343dec0b3",
-      "requirement": "MLS leaf ownership and Proposal targets preserve the complete ActorId including its Station and never collapse to the signing principal, so remove/update targets match by complete ActorId. A minimal-metadata Realm-local pairwise actor is no exception: its in-Realm state stays keyed by the complete ActorId, and only the two closed out-of-Realm matching sites (consent peer and KeyPackage claim) use (realm_id, principal_id), which that branch did:key principal already pins. Committer authority comes from current capability, membership and policy, never from leaf index, first sender, device presence or UI role.",
+      "section_digest": "sha256:3ad6e9cf9d4923cfb24d79317e6de6a508347e472fd522b02802220dcf23b5a3",
+      "requirement": "MLS leaf ownership and Proposal targets preserve the complete ActorId including its Station and never collapse to the signing principal, so remove/update targets match by complete ActorId. There is no exception: no branch matches leaf ownership or a Proposal target by (realm_id, principal_id) alone. Committer authority comes from current capability, membership and policy, never from leaf index, first sender, device presence or UI role.",
       "testability_grade": "audit",
-      "test_plan": "Audited against the ActorId-completeness rule: a review pass asserts that every MLS leaf, Proposal target and remove/update matching site in the schemas and operation contracts carries a complete ActorId, and that (realm_id, principal_id) appears at exactly the two registered out-of-Realm sites. The minimal-metadata lifecycle is separately proven by ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1 under AK-NC-064; this clause is the identity-completeness half, which no vector covers."
+      "test_plan": "Audited against the ActorId-completeness rule: a review pass asserts that every MLS leaf, Proposal target and remove/update matching site in the schemas and operation contracts carries a complete ActorId, and that no contract admits a (realm_id, principal_id) matching key. No vector exists because the obligation is on the absence of a reduced matching key."
     },
     {
       "clause_id": "AK-NC-060",
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#222-公开握手契约",
-      "section_digest": "sha256:2989ec0e96c4de82d4ebf8602d053c96ee2521eccf9d281abdd80f001c2c0457",
-      "requirement": "For realm and circle effective scopes the Proposal and Commit wire inputs are complete RFC 9420 PublicMessage MLSMessages, and the governance Station verifies the public transition from the bytes it parsed itself. The membership MAC is verifiable only by a member holding that epoch membership_key, so the Station never obtains member secrets and never treats that MAC as its admission criterion. The Station persists, for each accepted Commit, the exact set of proposals it consumed and each proposal leaf provenance derived only from those public bytes. Remove+Add always creates new provenance even when the leaf tuple is unchanged. Application content and Welcome keep their existing protection, minimal-metadata handshakes disclose nothing beyond the existing Realm-local pairwise identity, and a sidecar scope keeps its own separate contract.",
+      "section_digest": "sha256:8ccf47f76178815a20f51c67e3e327c4d6ce7c42638e8699cad46495398e9aaa",
+      "requirement": "For realm and circle effective scopes the Proposal and Commit wire inputs are complete RFC 9420 PublicMessage MLSMessages, and the governance Station verifies the public transition from the bytes it parsed itself. The membership MAC is verifiable only by a member holding that epoch membership_key, so the Station never obtains member secrets and never treats that MAC as its admission criterion. The Station persists, for each accepted Commit, the exact set of proposals it consumed and each proposal leaf provenance derived only from those public bytes. Remove+Add always creates new provenance even when the leaf tuple is unchanged. Application content and Welcome keep their existing protection, the public handshake discloses nothing beyond the public quantities the section already lists, and a sidecar scope keeps its own separate contract.",
       "testability_grade": "audit",
       "test_plan": "Audited against the x-arkret-public-handshake-contract annotation in event-payload.schema.json, which fixes all eight keys this clause states. The review pass asserts the prose and the annotation agree key by key, that no operation accepts a PrivateMessage handshake input, that no Station-facing schema carries membership_key or any member secret, and that the consumed-proposal provenance record is reachable from the public wire bytes alone. No vector exists because RFC 9420 handshake KATs cover the message encoding, not this persistence and role boundary."
     },
@@ -633,18 +626,6 @@
       "requirement": "The Welcome producer proof covers the complete canonical delivery object except the proof itself and binds the exact Commit EventId, the recipient endpoint, the claim ref and the ciphertext digest. The Station verifies it inside the Commit transaction and the recipient verifies it again before decrypting.",
       "testability_grade": "audit",
       "test_plan": "Audited against the MlsWelcomeDelivery contract: a review pass asserts the proof transcript covers every delivery member except the proof, and that both the Station admission path and the recipient path verify it. The recipient-side digest equality is separately proven by ak.vector.mls.welcome_keypackage_hash.v1 under AK-NC-066; this clause is the producer-proof coverage half, which no vector covers."
-    },
-    {
-      "clause_id": "AK-NC-063",
-      "status": "active",
-      "category": "privacy",
-      "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#27-minimal-metadata-e2ee-realm",
-      "section_digest": "sha256:9a8953023fde76e5896b6f3a25b79dbeb81bf670fad904bf8814dff34c66d234",
-      "requirement": "A minimal-metadata scope may use Realm-local pairwise actors and methods, but MUST NOT disclose a Principal, Account, Device or out-of-Realm locator for the sake of a public tracker. Its pairwise identity, credential and leaf are verified by that profile existing proofs, and using the branch changes neither the Commit/Welcome atomic transaction nor the key-access revision rules.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.keypackage.minimal_metadata_pairwise_full_lifecycle.v1"
-      ]
     },
     {
       "clause_id": "AK-NC-064",
@@ -685,8 +666,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#15-applet-device-delegation",
-      "section_digest": "sha256:2db74060623f4d80cfa628bc9bc9653195c026a560709debac7b1cd2f203f76a",
-      "requirement": "An Applet-managed Bot or Ghost joins E2EE through the ordinary device branch rather than a fourth recipient endpoint branch: its restricted delegated device resolves through an accepted authorization_binding_kind=\"applet_managed_delegation\" ak.device.authorize submitted as an ordinary successor Event in that principal own applet_managed_control PCR. Every KeyPackage publication, Welcome admission and MLS durable receipt from that device is ANDed with the revoke fence of the exact Applet install named by that authorize payload applet_id, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
+      "section_digest": "sha256:17df6d81f85b8c5f9c32551b64b4f3bb4f996595e7f65ea7a434acb744f1948c",
+      "requirement": "An Applet-managed Bot or Ghost joins E2EE through the ordinary device branch rather than a third recipient endpoint branch: its restricted delegated device resolves through an accepted authorization_binding_kind=\"applet_managed_delegation\" ak.device.authorize submitted as an ordinary successor Event in that principal own applet_managed_control PCR. Every KeyPackage publication, Welcome admission and MLS durable receipt from that device is ANDed with the revoke fence of the exact Applet install named by that authorize payload applet_id, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
       "testability_grade": "audit",
       "test_plan": "Audited against the delegation contract: a conformance run fences an Applet install and asserts that the delegated device next KeyPackage publication, Welcome admission and durable receipt are each rejected with applet_revoked while no ak.device.revoke exists and the authorize Event is still present in the PCR, and that historical accepted Events remain verifiable. No vector exists because the obligation is a conjunction across two lifecycles."
     },
@@ -747,7 +728,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:37507496ede143edcf5d3d34fc465430eebe2c608e096f750fbe2c155c344d59",
+      "section_digest": "sha256:65247f70ebdc37781b364d3f1e6fd9e5e86e9769e7ee2f724f21342eb713c1b5",
       "requirement": "Revoking consent immediately invalidates the cached private contact discovery result, the invite capability gate and every scope cache, and the next PSI rotation excludes the peer.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -771,7 +752,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:37507496ede143edcf5d3d34fc465430eebe2c608e096f750fbe2c155c344d59",
+      "section_digest": "sha256:65247f70ebdc37781b364d3f1e6fd9e5e86e9769e7ee2f724f21342eb713c1b5",
       "requirement": "A ban, leave or remove membership transition, or a capability revoke that drops a link below its visibility gate, immediately invalidates the directory, sync, invite and local profile projections, and existing sessions and device claims fail or degrade to minimal disclosure at the next authorization check.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -783,8 +764,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:37507496ede143edcf5d3d34fc465430eebe2c608e096f750fbe2c155c344d59",
-      "requirement": "Tightening disclosure policy, historical visibility, minimal-metadata mode, linked-Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
+      "section_digest": "sha256:65247f70ebdc37781b364d3f1e6fd9e5e86e9769e7ee2f724f21342eb713c1b5",
+      "requirement": "Tightening disclosure policy, historical visibility, linked-Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.identity_link.policy_tightening_invalidation.v1"

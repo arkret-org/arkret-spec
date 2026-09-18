@@ -204,7 +204,7 @@ PSI 索引在下一轮轮转中排除该 peer。
 可见性门限后，directory、sync cache、invite cache 与本地 profile 投影 MUST 立即失效；后续 lookup 不得返回旧 link；
 既有 session 与 device claim MUST 在下一次授权检查时失败或降级到最小披露状态。
 
-`ak.vector.identity_link.policy_tightening_invalidation.v1` MUST 证明：披露策略、历史可见性、最小元数据模式、
+`ak.vector.identity_link.policy_tightening_invalidation.v1` MUST 证明：披露策略、历史可见性、
 linked Realm 可见性或 Circle effective-scope 可见性中任一项被收紧后，所有受影响 cache MUST 按当前策略失效；
 未重新通过当前策略门限的旧 link MUST NOT 返回，接口只能给出当前允许的最小身份信息。
 

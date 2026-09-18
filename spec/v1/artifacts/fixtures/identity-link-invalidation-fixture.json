@@ -58,17 +58,10 @@
           ]
         },
         {
-          "id": "minimal_metadata_minimum",
-          "requirement": "Minimal-metadata mode returns only the identity information the current policy allows.",
-          "evidence": [
-            "/cases/7"
-          ]
-        },
-        {
           "id": "linked_realm_and_circle_scope",
           "requirement": "Linked-Realm visibility and Circle effective-scope visibility are evaluated on the same rule, and a link failing either gate is withheld.",
           "evidence": [
-            "/cases/8"
+            "/cases/7"
           ]
         }
       ]
@@ -163,18 +156,6 @@
         "history is re-evaluated under the current policy",
         "an entry cached before the tightening is not grandfathered",
         "withholding is the outcome; a partial or approximate link is not returned instead"
-      ]
-    },
-    {
-      "name": "minimal_metadata_mode_returns_only_the_current_minimum",
-      "given": "minimal-metadata mode is switched on after the link was cached",
-      "action": "resolve the link",
-      "decision": "accept",
-      "observed": "the fields present in the response",
-      "assertions": [
-        "only the currently allowed minimum identity information is returned",
-        "fields that the previous mode permitted are absent, not merely marked",
-        "the response is derived from current policy rather than from the cached shape"
       ]
     },
     {

@@ -4616,7 +4616,7 @@ paths:
 
             blob or this purpose; or the grant''s TTL constraint forbids the
 
-            requested `max_age_seconds`; or the target is a minimal-metadata
+            requested `max_age_seconds`; or the target is a routing-unlinkable
 
             Realm-owned blob for which bearer presign is forbidden by
 

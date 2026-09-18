@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -246,11 +246,6 @@
           }
         }
       ]
-    },
-    "realm_local_ephemeral_actor": {
-      "required_adapter_properties": {
-        "has_update_operation": false
-      }
     }
   }
 }

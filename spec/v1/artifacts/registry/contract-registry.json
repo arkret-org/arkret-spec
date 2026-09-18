@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T17:10:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -6340,17 +6340,6 @@
         "file": "schemas/ice-config-response.schema.json"
       },
       {
-        "schema_id": "ak.schema.identity_link.v1",
-        "file": "schemas/identity-link.schema.json",
-        "status": "active",
-        "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain.",
-        "consumer_binding": {
-          "kind": "mls_encrypted_payload",
-          "selector": "content_type=application/vnd.arkret.identity-link+json; plaintext schema=ak.schema.identity_link.v1",
-          "normative_ref": "zh/governance/history-visibility.md"
-        }
-      },
-      {
         "schema_id": "ak.schema.identity_receipt.v1",
         "file": "schemas/identity-receipt.schema.json"
       },
@@ -7247,8 +7236,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-16.14",
-    "generated_at": "2026-09-19T23:30:00+08:00"
+    "version": "2026-09-21.1",
+    "generated_at": "2026-09-21T18:00:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -16560,14 +16549,9 @@
             }
           }
         ]
-      },
-      "realm_local_ephemeral_actor": {
-        "required_adapter_properties": {
-          "has_update_operation": false
-        }
       }
     },
-    "version": "2026-09-16.10"
+    "version": "2026-09-21.1"
   },
   "binding_kind_registry": {
     "kind_pattern": "^[a-z][a-z0-9_]*$",

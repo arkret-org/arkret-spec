@@ -391,7 +391,6 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 - intended MIMI room URI 和 Arkret `realm_id`。
 - required content profile、MLS capabilities 和 cipher suites。
 - requester provider DID 和 proof。
-- 是否允许 minimal-metadata pseudonymous credential。
 
 响应 MUST 返回 claimed KeyPackage、`claim_id`、`keypackage_ref`、device binding、expiry 和 supported capabilities。KeyPackage 被 Welcome 成功使用后 MUST 进入 `consumed`。不可见用户、无可用设备、policy denied 和不存在目标 SHOULD 使用统一失败形态，避免枚举。
 

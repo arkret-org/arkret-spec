@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.14",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T23:30:00+08:00",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -688,17 +688,6 @@
     {
       "schema_id": "ak.schema.ice_config_response.v1",
       "file": "schemas/ice-config-response.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.identity_link.v1",
-      "file": "schemas/identity-link.schema.json",
-      "status": "active",
-      "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain.",
-      "consumer_binding": {
-        "kind": "mls_encrypted_payload",
-        "selector": "content_type=application/vnd.arkret.identity-link+json; plaintext schema=ak.schema.identity_link.v1",
-        "normative_ref": "zh/governance/history-visibility.md"
-      }
     },
     {
       "schema_id": "ak.schema.identity_receipt.v1",

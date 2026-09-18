@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.1",
-  "generated_at": "2026-09-21T15:30:00+08:00",
+  "version": "2026-09-21.2",
+  "generated_at": "2026-09-21T18:00:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2268,14 +2268,6 @@
       "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_principal_ids[]` entry without a corresponding active `ak.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Reducer MUST reject the entire Event with this reason and MUST NOT accept a field-stripped projection. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant â€” `ak.self.agent.command.provision.v1` rejects when the controller cannot present an issuable accountability grant for the new agent principal, and `ak.self.agent.command.resume.v1` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `ak.self.agent.command.pause.v1`. HTTP callers MUST treat this as a precondition-class failure, not transient."
     },
     {
-      "code": "actor_session_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A minimal-metadata Realm Event used a principal/session identity combination that does not match the active Realm-scoped pairwise actor binding, or attempted that actor/session split outside the declared minimal-metadata profile. Receivers MUST reject instead of falling back to the long-lived principal identity. See zh/conformance/conformance-vectors.md minimal-metadata identity-link vectors."
-    },
-    {
       "code": "actor_signature_revoked",
       "applies_to": [
         "event_envelope",
@@ -3707,20 +3699,12 @@
       "description": "A moderation evidence package discloses material beyond the minimal-disclosure obligation (for example unrelated plaintext message bodies or MLS private state). The evidence submission MUST reject. See governance/content-moderation.md."
     },
     {
-      "code": "minimal_metadata_author_credential_invalid",
-      "applies_to": [
-        "event_envelope",
-        "identity_resolution"
-      ],
-      "description": "A minimal-metadata content Event proof could not be bound to exactly one active MLS LeafNode whose basic credential identity equals Event.actor_id and whose signature_key matches proof.verification_method at the encrypted envelope epoch/group-state reference. The receiver MUST fail closed without querying a principal-scoped device directory. See zh/crypto-media/encryption-and-audit.md §2.7."
-    },
-    {
-      "code": "minimal_metadata_presign_forbidden",
+      "code": "routing_unlinkability_presign_forbidden",
       "applies_to": [
         "authz",
         "service_call"
       ],
-      "description": "A presigned blob URL was requested for a Realm that requires minimal metadata or routing unlinkability. The service MUST deny presign and require an authenticated proxy, OHTTP relay, or equivalent non-bearer direct download path."
+      "description": "A presigned blob URL was requested for a Realm whose asset policy declares routing_unlinkability_required=true. The service MUST deny presign and require an authenticated proxy, OHTTP relay, or equivalent non-bearer direct download path."
     },
     {
       "code": "misinformation",

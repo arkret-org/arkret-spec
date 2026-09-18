@@ -335,8 +335,6 @@ def _binding_error(preimage: dict[str, Any]) -> str | None:
         return "human_device holder requires complete device_binding"
     if holder_kind == "agent_runtime" and has_device_binding:
         return "agent_runtime holder forbids device_binding"
-    if holder_kind == "minimal_metadata_pairwise" and has_device_binding:
-        return "minimal_metadata_pairwise holder forbids device_binding"
     return None
 
 

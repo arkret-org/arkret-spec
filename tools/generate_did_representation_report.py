@@ -20,7 +20,6 @@ DID_NAMES = {
     "human_principal_did": "did",
     "agent_did": "did",
     "applet_managed_actor_did": "did",
-    "ephemeral_pairwise_principal_did": "did",
     "did_key_did": "did",
     "did_core_id": "did_core_id",
     "did_url": "did_url",

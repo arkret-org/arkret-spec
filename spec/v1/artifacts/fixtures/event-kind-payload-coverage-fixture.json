@@ -85,6 +85,7 @@
       "instance": {
         "value": {
           "schema_refs": [
+            "ak.schema.realm.v1",
             "ak.schema.message.v1"
           ],
           "morph_kind_profiles": {
@@ -114,6 +115,7 @@
       "instance": {
         "value": {
           "schema_refs": [
+            "ak.schema.realm.v1",
             "ak.schema.message.v1"
           ],
           "morph_kind_profiles": {
@@ -121,6 +123,19 @@
               "allow_all_fields": true
             }
           }
+        }
+      }
+    },
+    {
+      "name": "realm_schema_rejects_set_without_core_realm_schema",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_schema_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not contain items matching the given schema",
+      "instance": {
+        "value": {
+          "schema_refs": [
+            "ak.schema.message.v1"
+          ]
         }
       }
     },

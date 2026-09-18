@@ -224,7 +224,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、PCR 设备授权、secret storage、key backup。 |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS key-access revision binding（`governance_binding.key_access_revision` + current winning group-state projection）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS key-access revision binding（`governance_binding.key_access_revision` + current winning group-state projection）、KeyPackage lifecycle 与 master-agent control 边界（核心机制）。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
 | `crypto-media/media-service-binding.md` | 媒体服务发现（`ak.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |

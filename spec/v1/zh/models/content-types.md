@@ -455,7 +455,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 #### 4.9.1 改票声明与唯一计票（normative）
 
-分区键为 `(realm_id, effective Circle scope, poll_ref, JCS(Event.actor_id))`；Realm scope 与任一 Circle scope 不同。`actor_id` 保留完整 AccountId：Agent 自身作为 actor 时独立计票；代理写入仍归 `actor_id`，不得按 controller、裸 principal、设备、签名 key 或 `executed_by` 合并或拆分票。minimal-metadata 身份规则不变。
+分区键为 `(realm_id, effective Circle scope, poll_ref, JCS(Event.actor_id))`；Realm scope 与任一 Circle scope 不同。`actor_id` 保留完整 AccountId：Agent 自身作为 actor 时独立计票；代理写入仍归 `actor_id`，不得按 controller、裸 principal、设备、签名 key 或 `executed_by` 合并或拆分票。
 
 **一个分区恰好落在一条 authority stream 内（normative）**：分区键已经固定了 Realm 与 effective Circle scope，而 Realm stream 与每个 Circle stream 是各自独立的 authority stream（[`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md)）。因此同一分区的全部 response Event 都由同一个治理 Station 在同一条 stream 上接纳，各自取得该 stream 严格 +1 的 `RealmCommit.stream_position`。它们之间是**全序**：并发 head 在这个分区里不可能出现。
 
