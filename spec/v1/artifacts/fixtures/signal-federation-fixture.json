@@ -210,7 +210,7 @@
         "currently revoked, fenced, or conflicted devices are rejected by source and recipient even if active at commit_ref and the MLS leaf has not yet been removed",
         "recipient requires current exact-account device key and authorization Event to match the active MLS leaf transition binding; successful AEAD does not establish sender identity",
         "queued source dispatch revalidates current device authority, membership, scope, class action, TTL and MLS outer basis",
-        "Agent uses the absent-sender_device_id branch only after accepted Agent classification and current key/lifecycle/controller authority verification; minimal-metadata endpoints cannot use it",
+        "Agent uses the absent-sender_device_id branch only after accepted Agent classification and current key/lifecycle/controller authority verification",
         "Agent sequence high-water is keyed by the verified raw signing-key digest; same-key reauthorization continues the sequence while an accepted new-key runtime replacement starts a new domain"
       ]
     },

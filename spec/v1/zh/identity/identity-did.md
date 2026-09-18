@@ -125,7 +125,7 @@ did:webvh:<scid>:<host-and-path>
 ```
 
 `did:key` 和 `did:web` **都不是** human principal anchor。`did:key` 的 self-certifying expansion 继续用于
-设备、Agent/service evidence 与显式 ephemeral pairwise actor，但不创建 human Account、PCR 或设备目录；
+设备、Agent/service evidence，但不创建 human Account、PCR 或设备目录；
 普通 WebPKI 只认证 TLS endpoint，既不对 HTTP DID Document body 签名，
 也不产生可离线验证的历史发布证明，因此它不能创建 human Account、PCR 与设备授权链；
 它仍可用于已登记的 current / no-history service resolution 与外部互通。
@@ -171,7 +171,7 @@ flowchart TB
 
     Q1 -- "organization / Agent" --> GOVERNED["按 ongoing DID governance 角色合同"]
 
-    Q1 -- "Realm-local ephemeral pairwise actor" --> KEY["did:key<br/>必须声明 ephemeral pairwise profile<br/>exact MLS LeafNode 是唯一 authority<br/>无账号 / PCR / 设备目录"]
+    Q1 -- "设备 / Agent 密钥 / service evidence" --> KEY["did:key<br/>仅 deterministic local expansion<br/>无账号 / PCR / 设备目录"]
 
     Q1 -- "钱包 / 链上账号绑定<br/>(interop extension)" --> PKH["did:pkh<br/>仅当钱包控制权就是业务身份根"]
 
@@ -215,7 +215,7 @@ Arkret v1 core conformance 要求如下：
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`，但 method 能被解析不代表可用于任意角色或能力：human principal anchor 的封闭集合只有 `did:webvh`。
   - `did:webvh:1.0` 是 v1 core MTI adapter 与 default human/service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
   - `did:webvh:1.0` 的 method parameter registry 是 closed：只允许 `method`、`scid`、`updateKeys`、`nextKeyHashes`、`witness`、`watchers`、`portable`。构造器与 verifier MUST 消费 `did-method-adapter-registry.json` 的同一 `parameter_allowlist` 与 `parameter_consumption`；任何其他 member（特别是 `governance`）必须在 proof、hash 与持久化之前以 `param_invalid` 拒绝。`portable` 缺失或 false 时，host-and-path 变化 MUST 以 `did_method_successor_invalid` 拒绝；只有 predecessor 的 effective `portable=true` 才能授权后继 relocation，在 relocation entry 自身首次设 true 不授权本次搬迁。`watchers` 由 method parser 验证并保留，但 v1 明确接受而不消费：它不得影响 authorization、admission、controller 选择、witness quorum、freshness、routing 或 policy。组织治理只存在于 typed DID Document `arkret_governance` / `ArkretGovernanceService` overlay，不得写入 method-native parameters，也不得与 witness quorum 混同。
-  - `did:key` MUST NOT 作为 human identity anchor，也没有 `registration_anchor_kind` 分支；human 注册、PCR genesis 与 portable `account_device_control` root 命中它时 MUST 以 `unsupported_did_method` fail closed。它继续用于已登记的 deterministic local expansion、设备/Agent 密钥、service evidence 与显式 ephemeral pairwise profile，但这些角色合同不得升级为 human Account/PCR。
+  - `did:key` MUST NOT 作为 human identity anchor，也没有 `registration_anchor_kind` 分支；human 注册、PCR genesis 与 portable `account_device_control` root 命中它时 MUST 以 `unsupported_did_method` fail closed。它继续用于已登记的 deterministic local expansion、设备/Agent 密钥与 service evidence，但这些角色合同不得升级为 human Account/PCR。
   - `did:web` MUST NOT 作为 human identity anchor。它没有 `registration_anchor_kind` 分支，human 注册、PCR genesis 与 portable `account_device_control` root 都不接受它；命中时 MUST 以 `unsupported_did_method` fail closed。它继续可用于已登记的 current / no-history service resolution 与外部互通，并且 MUST 在 ServiceDescribe / resolver evidence 中声明无历史信任强度。
 - `did:webvh` 的 history/pre-rotation 只开启 relocation 与可选 DID-root recovery 能力；它们不是 human anchor 的统一准入门槛。organization、Agent 与 service 是否要求持续 DID governance 由各自角色合同决定。
 - AT Protocol interop（`did:plc`）、wallet binding（`did:pkh`）、KERI 等 method 可以由 extension 解析为外部 claim；要进入 human anchor 或其它角色集合，必须先在 adapter registry 登记对应能力与 bootstrap trust，而不能由 implementation-local policy 增加。
@@ -621,12 +621,12 @@ DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影�
 
 从 `did:web` 改为 `did:webvh`、从临时 `did:key` 改为长期 method，或任何导致 adapter 产出不同 `did_core_id` 的变化，均创建新主体，不属于 resolution update。实现 MUST 支持通过显式业务流程把允许转移的关系重新建立到新主体，但 MUST NOT 声明两个 `did_core_id` 密码学等价，也不得改写旧 Event。
 
-1. 新的长期主体用自己的 `did:webvh` `did` 完成独立注册、adapter 验证与 PCR genesis；旧 pairwise actor 不参与该注册，也不是新主体的 control proof。
+1. 新的长期主体用自己的 `did:webvh` `did` 完成独立注册、adapter 验证与 PCR genesis；旧主体不参与该注册，也不是新主体的 control proof。
 2. 旧主体仍可控制时，可分别对账号换绑、Handle 更新、Realm 重新邀请或 capability re-grant 发起显式授权；这些授权只控制对应业务对象，不形成全局 identity continuity。
 3. 旧主体不可控制时，只能使用目标 Realm / organization 已定义的 recovery 或 governance 路径；恢复结论不得伪装为旧 DID 控制 proof。
 4. 客户端 MUST 显示“主体已更换”以及哪些关系已重新建立；不得把它渲染成无痕 rename。
 
-ephemeral pairwise actor principal 转为长期关系时也适用本节：它必须创建新的 `did:webvh` principal，
+临时 `did:key` 主体转为长期关系时也适用本节：它必须创建新的 `did:webvh` principal，
 再显式重建被允许转移的业务关系。所谓 OOB fingerprint 或双方签名 MAY 作为具体业务 re-binding 的
 强证据，但不改变 `did_core_id` 相等规则，也不构成 identity continuity。
 
