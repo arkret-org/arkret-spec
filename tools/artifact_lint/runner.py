@@ -119,6 +119,7 @@ from .fixtures import (
     check_schema_fixture_canonical_public_material,
     check_stated_preimage_matches_stated_digest,
     check_string_profile_format_vectors,
+    check_view_write_contract_fixture,
     check_vector_reference_closure,
     check_vector_registry,
     check_websocket_binding_fixture,
@@ -213,6 +214,7 @@ from .proof_context_schemas import (
     check_pre_state_requirement_closure,
     check_registered_families_are_listed_in_prose,
     check_result_family_write_agreement,
+    check_result_value_member_closure,
     check_result_write_contracts,
     check_result_write_target_uniqueness,
     check_result_write_coverage_note,
@@ -298,6 +300,7 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_domain_separation_binding_fields_are_carriable(lint),
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
+            ("result_value_member_closure", lambda: check_result_value_member_closure(lint)),
             (
                 "result_write_target_uniqueness",
                 lambda: check_result_write_target_uniqueness(lint),
@@ -548,6 +551,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "string_profile_format_vectors",
                 lambda: check_string_profile_format_vectors(lint),
+            ),
+            (
+                "view_write_contract_fixture",
+                lambda: check_view_write_contract_fixture(lint),
             ),
             ("websocket_binding_fixture", lambda: check_websocket_binding_fixture(lint)),
             (

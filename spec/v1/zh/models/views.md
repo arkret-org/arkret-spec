@@ -131,7 +131,26 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `updated_by` | no | `ActorId` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-**共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `set.state="tombstoned"`。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。 该接受面与 `state_changed_at` 的拒绝面由 `ak.vector.view.terminal_state_patch.v1` 固化。
+**成员来源（normative）**：上表是**物化对象**的形状，不是作者可写面。
+每个成员的来源由 [`../authz/capabilities.md` §10](../authz/capabilities.md) 与
+[`common-fields.md` §3.3](./common-fields.md) 的封闭词表给出，并逐条登记在
+[`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `result_writes[]` 与
+[`reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json) 的
+`value_member_maintenance` 里：
+
+| 成员 | 来源 | 说明 |
+| --- | --- | --- |
+| `id` | subject 派生 | 由 create Event 自身的 `event_id` retype 得到，MUST NOT 存入 typed current result，也 MUST NOT 出现在任何载荷里。 |
+| `schema` / `realm_id` / `created_by` / `created_at` | create-locked reducer 派生 | create 时分别由 `object_schema_identifier` / `object_realm_binding` / `object_create_actor` / `object_create_time` 产出；update 与 reconcile MUST 逐字保留，MUST NOT 重新派生，作者载荷 MUST NOT 声明它们。 |
+| `state` | create 派生 + 单一转换承载者 | create 由 `object_initial_state` 产出 `active`；只有 `ak.view.update` 可以写它（registry 中唯一一条 `universal_exemptions`），reconcile MUST 保留。 |
+| `state_changed_at` | 条件性 reducer 派生 | 仅在 `ak.view.update` 被接受为一次真实 state 转换时由 `object_state_transition_time` 产出。 |
+| `updated_by` / `updated_at` | reducer 派生 | 由 `object_update_actor` / `object_update_time` 产出；`view` family 的**每一条**已登记写入都 MUST 产出它们。 |
+| 其余成员 | 作者输入 | 即 `view.schema.json#/$defs/view_definition` 这一闭合作者定义区域，create 与 reconcile 携带它的整体，update 通过 patch 增量修改。 |
+
+作者定义区域与物化对象是**两个 schema**。把物化 schema 直接当作 create 的作者载荷，等于让签名 Event 自报创建者、
+自报所属 Realm、自报初始 state，而其后每一条写入都逐字保留该值——伪造因此成为该对象永久的 create-locked 真相。
+
+**共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `{"state": "tombstoned"}`（等价的显式算子形态是 `{"state": {"$op": "set", "value": "tombstoned"}}`）。patch map 的**键就是路径**（[`event-and-patch.md` §4.3.1](./event-and-patch.md)）：`state` 是已登记 `allowed_paths[]` 中的成员名，而 `set.state` 这种写法会被解析成先后两段路径 `set` / `state`，`set` 既不是 View 声明的成员也不在 `allowed_paths[]` 里，因而 MUST 被拒绝。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。 该接受面与 `state_changed_at` 的拒绝面由 `ak.vector.view.terminal_state_patch.v1` 固化。
 
 **Private View 承载（normative）**：`visibility="private"` 的 View MUST 作为
 `ak.views.private.<view_id>` 加密 account data 保存；其 plaintext value 仍按
@@ -148,15 +167,24 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ### 3.2 三个 View event 的写入语义（normative）
 
-三个 kind 写**同一个 typed current result family** `view`（`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出）。
+三个 kind 写**同一个 typed current result family** `view`（`current-value projection`）。
+同一个 View 的三种写入按其所属 stream 的 authority-commit 接纳顺序，依次作用于**唯一**已提交当前值；
+当前值就是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出。
+不存在并行的权威分支，也不存在需要在多个候选之间挑选的 current source。
 subject 一律是 `id:view` 编码：create 由 `envelope.event_id` 唯一派生该 View 的 id，
 update / reconcile 用 `payload.view_id`，两者归一到同一个 typed current result。
 
-| kind | typed current result family | subject | 写入 | payload |
+三个 kind 各自绑定**一个**闭合载荷；载荷之间互不通用，schema 层即拒绝跨 kind 的形状：
+
+| kind | subject | 写入 | payload（闭合） | 作者可写面 |
 | --- | --- | --- | --- | --- |
-| `ak.view.create` | `view` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | 创建时的 object snapshot |
-| `ak.view.update` | `view` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
-| `ak.view.reconcile` | `view` | `id:view(payload.view_id)` | `set` 整个 `payload.definition` | `{view_id, definition}` |
+| `ak.view.create` | `id:view(envelope.event_id)` | `set` 整个 `payload.object` | `view_create_payload` = `{object}` | `view_definition`，其余成员按 §3.1 由 reducer 产出 |
+| `ak.view.update` | `id:view(payload.view_id)` | 对冻结前态 `apply_patch` `payload.patch` | `view_update_payload` = `{view_id, patch, expected_state_digest?}` | `result_projection.allowed_paths[]` 登记的 13 个成员 |
+| `ak.view.reconcile` | `id:view(payload.view_id)` | `set` 整个 `payload.definition` | `view_reconcile_payload` = `{view_id, definition}` | `view_definition`，identity / 创建元数据 / `state` 按 `retained_members[]` 保留 |
+
+`allowed_paths[]` 不是第三份成员清单：它是 `reducer-managed-path-registry.json` 已固定禁集的**补集**——
+View 声明的 21 个成员减去该对象的有效禁集，其中 `state` 由唯一一条已登记 `universal_exemptions` 从禁集中减去。
+该 registry 逐对象求解：另一个对象的专属禁令不会收窄 View 的可写面，View 的豁免也不会放宽别人的。
 
 **为什么是一个 family（normative）**：`definition` 引用的就是完整 `view.schema.json`，
 它不是另一种业务对象。三条 Event 的载荷区别可以保留，但没有理由为同一个 View 维护三条
@@ -165,22 +193,30 @@ update / reconcile 用 `payload.view_id`，两者归一到同一个 typed curren
 
 由此产生三条约束：
 
-- **update / reconcile MUST NOT 创造不存在的 View。**目标 typed current result 在签名 basis 下没有真实对象基值时
-  MUST 拒绝，MUST NOT 把 `null` 或空对象当作隐式初始化，也不得存储任何部分效果。
+- **update / reconcile MUST NOT 创造不存在的 View。**在本次写入被接纳的位置上，目标 typed current result
+  没有由已登记 create 写入产生的真实对象基值时 MUST 拒绝，MUST NOT 把 `null` 或空对象当作隐式初始化，
+  也不得存储任何部分效果。
 - **三条写入采用同一 canonical 对象值口径。**typed current result 中 MUST NOT 保存可自报的 `id`，
   读取时由 subject 派生；`reconcile.definition` 同样 MUST NOT 携带 `id`，
   否则 create 与 reconcile 会在同一个 typed current result 里留下两种值形状。
-- **reconcile 的 whole-value `set` 引用其观察到的唯一 current source。**
-  并发但未被观察的分支仍保留为历史候选并参与固定 rank；「已知良好的定义」不是无条件覆盖全部未来写入的特权。
+- **reconcile 的 whole-value `set` 作用于其被接纳位置上的当前值。**
+  它替换的是作者定义区域，不是整个物化对象：identity、Realm、schema、创建元数据与 `state`
+  由 `retained_members[]` 从冻结前态逐字保留，更新元数据由 `derived_members[]` 从本次 Event 派生。
+  「已知良好的定义」不是无条件覆盖全部未来写入的特权——它只是该 stream 顺序上的又一次写入，
+  其后被接纳的 update / reconcile 照常覆盖它。
 
 `ak.view.reconcile` 用于把 View 定义**整体**重新同步到一个已知良好的 `ak.schema.view.v1`
 对象——典型场景是 schema 演进后重新发布定义。它与另外两者的分工是封闭的：create 只在
 View 首次出现时携带 object snapshot；update 携带增量 patch，无法表达"丢弃当前定义、
 以这一份为准"；reconcile 则不是增量，MUST 携带完整 `definition`。
 
-因此 reconcile 的 payload MUST 是 `view_reconcile_payload`（`{view_id, definition}` 闭合对象），
-**MUST NOT** 复用 create / update 的 `view_payload`：后者的 `{definition}` 分支连 `view_id`
-都不要求，而 `view_id` 是 typed current result subject，缺失即无法定址。
+因此 reconcile 的 payload MUST 是 `view_reconcile_payload`（`{view_id, definition}` 闭合对象）。
+一个带 `anyOf` 三分支、且没有 `event_kind` 判别式的共享载荷做不到这一点：
+它在每个 kind 上都接受全部三种形状——`ak.view.update` 可以携带一个不受约束的 definition 对象，
+`ak.view.create` 可以携带 `{view_id, patch}`，而 `{definition}` 分支连 `view_id` 都不要求，
+`view_id` 却是 typed current result subject，缺失即无法定址。
+因此三个 kind 各自绑定上表的闭合载荷；`definition` MUST 是
+`view.schema.json#/$defs/view_definition` 这一作者定义区域，MUST NOT 是物化对象 schema。
 
 reconcile 不改变 §3.1 的终态规则：目标 View 的 accepted lifecycle state 为 `tombstoned` 时，
 reconcile MUST 以 `failed_precondition`、`reason_code="view_already_terminal"` 拒绝。
@@ -189,9 +225,10 @@ tombstone 只走既有 update 路径：reconcile MUST NOT 把 `active` 改成 `t
 也 MUST NOT 复活 terminal View；存在已接受的终态事实时，迟到或并发的 active definition
 MUST NOT 绕过该终态 gate。
 
-reconcile 还 MUST 保留目标 View 的 `realm_id`、`created_by`、`created_at` 与身份：
-MUST NOT 跨 Realm、MUST NOT 把 `shared` 改成 `private`、
-MUST NOT 自报 reducer-derived 的 `state_changed_at`。
+reconcile 还 MUST 保留目标 View 的 `schema`、`realm_id`、`state`、`created_by`、`created_at` 与身份
+（已登记为该写入的 `retained_members[]`）：MUST NOT 跨 Realm、MUST NOT 把 `shared` 改成 `private`、
+MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根本不声明这些成员，
+因此"保留"在 v1 是 schema 与 registry 双重封闭的，不再依赖实现自觉。
 其完整 `definition` 要通过与 create / update **相同**的 schema、scope 与内容授权校验。
 
 ### 3.3 `CollectionConfig`

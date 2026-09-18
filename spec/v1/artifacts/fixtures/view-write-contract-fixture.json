@@ -1,0 +1,908 @@
+{
+  "profile": "ak.profile.core_event_store.v1",
+  "version": "2026-09-19",
+  "suite": "view_write_contract",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.view.write_contract.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.view.terminal_state_patch.v1"
+  ],
+  "description": "Executable form of ak.vector.view.terminal_state_patch.v1. The vector was description-only: it asserted that the terminal patch MUST be accepted and that an actor-supplied state_changed_at MUST be rejected, and nothing ran. The acceptance half was the load-bearing one -- the registry consumer that flattened every object reducer-managed path set into one collection made that patch unregisterable, so the only protocol-level removal path for a shared View could not be written down at all. cases[] is the schema face: every instance is validated against the live schema. admission_cases[] is the behavioral face: the outcomes schema validation cannot express, each carrying the registered error and reason code it MUST fail with.",
+  "author_writable_partition": {
+    "object_schema_ref": "schemas/view.schema.json",
+    "event_kind": "ak.view.update",
+    "note": "author_writable is not a third enumeration. It is the complement the reducer-managed path registry already fixes: every member view.schema.json declares, minus the effective forbidden set solved FOR THIS OBJECT, with state subtracted by the single registered universal exemption. The lint recomputes both halves from the live registry and fails on drift, so this fixture cannot become a stale second source.",
+    "author_writable": [
+      "collection",
+      "dashboard",
+      "document",
+      "graph",
+      "kind",
+      "layout",
+      "query",
+      "renderer",
+      "state",
+      "timeline",
+      "title",
+      "visibility",
+      "visible_fields"
+    ],
+    "reducer_managed": [
+      "created_at",
+      "created_by",
+      "id",
+      "realm_id",
+      "schema",
+      "state_changed_at",
+      "updated_at",
+      "updated_by"
+    ]
+  },
+  "cases": [
+    {
+      "name": "terminal_state_patch_is_accepted",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "valid": true,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "tombstoned"
+        }
+      },
+      "why": "models/views.md section 3.1: a shared View has no tombstone event kind, so its protocol-level removal IS this patch. If this payload did not validate, the spec would have no removal path. The patch map key IS the path: the removal patch is {\"state\": \"tombstoned\"}, never a {\"set\": {...}} wrapper -- that wrapper is a legal path named `set`, which is not one of the registered allowed_paths and is not a member view.schema.json declares."
+    },
+    {
+      "name": "terminal_state_patch_in_explicit_op_form_is_accepted",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "valid": true,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": {
+            "$op": "set",
+            "value": "tombstoned"
+          }
+        }
+      },
+      "why": "patch.schema.json admits both the direct value form and the explicit $op object form for the same path. Both spellings of the removal patch MUST validate, or the removal path would depend on which form the producer happened to choose."
+    },
+    {
+      "name": "terminal_state_patch_with_prestate_guard_is_accepted",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "valid": true,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "tombstoned"
+        },
+        "expected_state_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "why": "expected_state_digest names the single committed current value the patch was authored against; it is optional, and supplying it does not change the shape."
+    },
+    {
+      "name": "update_payload_refuses_a_reducer_derived_member",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "valid": false,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "tombstoned"
+        },
+        "state_changed_at": "2026-09-19T00:00:00.000Z"
+      },
+      "why": "state_changed_at is produced by object_state_transition_time on the accepted transition. The closed payload has no member for it at all, which is the only shape that cannot be argued with."
+    },
+    {
+      "name": "update_payload_refuses_an_object_snapshot",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "valid": false,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "object": {
+          "schema": "ak.schema.view.v1",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "state": "active",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          },
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "created_at": "2026-09-19T00:00:00.000Z",
+          "updated_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "updated_at": "2026-09-19T00:00:00.000Z"
+        }
+      },
+      "why": "Before the three kinds were split, one shared payload with an unguarded anyOf admitted every shape on every kind, so an update could carry a whole definition object."
+    },
+    {
+      "name": "update_payload_requires_the_subject",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "valid": false,
+      "instance": {
+        "patch": {
+          "title": "Quarterly plan"
+        }
+      },
+      "why": "view_id is the typed current result subject; without it the write cannot be addressed."
+    },
+    {
+      "name": "create_payload_accepts_the_author_definition",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
+      "valid": true,
+      "instance": {
+        "object": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          }
+        }
+      },
+      "why": "payload.object is view.schema.json#/$defs/view_definition -- the same closed authoring region reconcile replaces."
+    },
+    {
+      "name": "create_payload_refuses_a_self_reported_creator",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
+      "valid": false,
+      "instance": {
+        "object": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          },
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        }
+      },
+      "why": "created_by is create-locked and produced by object_create_actor. The earlier payload declared it and asked semantic validation to cross-check it against the envelope; every later write retained the author-supplied value verbatim, so a forged creator became permanent truth."
+    },
+    {
+      "name": "create_payload_refuses_a_self_reported_realm",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
+      "valid": false,
+      "instance": {
+        "object": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          },
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        }
+      },
+      "why": "realm_id is produced by object_realm_binding from the stream that accepted the Event, never from the payload."
+    },
+    {
+      "name": "create_payload_refuses_a_self_reported_state",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
+      "valid": false,
+      "instance": {
+        "object": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          },
+          "state": "active"
+        }
+      },
+      "why": "state is produced by object_initial_state. Pinning const active in the payload still made the author the nominal source of a member the reducer owns, and state is in universal_forbidden_patch_paths precisely so no author can reach it."
+    },
+    {
+      "name": "create_payload_refuses_the_derived_id",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
+      "valid": false,
+      "instance": {
+        "object": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          },
+          "id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
+        }
+      },
+      "why": "The View id is the create Event own event_id retyped; a payload id is a second, forgeable source."
+    },
+    {
+      "name": "create_payload_refuses_a_patch",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
+      "valid": false,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "title": "Quarterly plan"
+        }
+      },
+      "why": "Cross-kind shapes are refused at schema level, not by a runtime convention."
+    },
+    {
+      "name": "reconcile_payload_accepts_the_author_definition",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_reconcile_payload",
+      "valid": true,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "definition": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          }
+        }
+      },
+      "why": "reconcile replaces the definition wholesale and MUST address its subject."
+    },
+    {
+      "name": "reconcile_definition_cannot_resurrect_or_tombstone",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/view_reconcile_payload",
+      "valid": false,
+      "instance": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "definition": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          },
+          "state": "active"
+        }
+      },
+      "why": "state is a retained_member of the reconcile write, so reconcile can neither tombstone nor resurrect. The author region does not declare it."
+    },
+    {
+      "name": "materialized_active_view_validates",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+      "valid": true,
+      "instance": {
+        "schema": "ak.schema.view.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "kind": "collection",
+        "title": "Quarterly plan",
+        "visibility": "shared",
+        "state": "active",
+        "query": {},
+        "collection": {
+          "item_object_kinds": [
+            "task"
+          ],
+          "item_order_by": [
+            {
+              "field": "created_at",
+              "direction": "desc"
+            }
+          ],
+          "grouping": {
+            "mode": "none"
+          }
+        },
+        "layout": {
+          "columns": 3
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-09-19T00:00:00.000Z",
+        "updated_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "updated_at": "2026-09-19T00:00:00.000Z"
+      },
+      "why": "The result of composing the author definition with the create-lock and update derivations."
+    },
+    {
+      "name": "materialized_terminal_view_validates",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+      "valid": true,
+      "instance": {
+        "schema": "ak.schema.view.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "kind": "collection",
+        "title": "Quarterly plan",
+        "visibility": "shared",
+        "state": "tombstoned",
+        "query": {},
+        "collection": {
+          "item_object_kinds": [
+            "task"
+          ],
+          "item_order_by": [
+            {
+              "field": "created_at",
+              "direction": "desc"
+            }
+          ],
+          "grouping": {
+            "mode": "none"
+          }
+        },
+        "layout": {
+          "columns": 3
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-09-19T00:00:00.000Z",
+        "updated_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "updated_at": "2026-09-19T01:00:00.000Z",
+        "state_changed_at": "2026-09-19T01:00:00.000Z"
+      },
+      "why": "After the accepted terminal patch: state_changed_at is present because the transition happened, and views.md section 3.1 requires it exactly then. One accepted Event produces both members, so common-fields.md section 3 pins the ordering created_at <= state_changed_at <= updated_at -- JSON Schema cannot express it, so the lint checks it on every materialized case instead."
+    },
+    {
+      "name": "materialized_value_refuses_the_self_reportable_id",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+      "valid": false,
+      "instance": {
+        "schema": "ak.schema.view.v1",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "kind": "collection",
+        "title": "Quarterly plan",
+        "visibility": "shared",
+        "state": "active",
+        "query": {},
+        "collection": {
+          "item_object_kinds": [
+            "task"
+          ],
+          "item_order_by": [
+            {
+              "field": "created_at",
+              "direction": "desc"
+            }
+          ],
+          "grouping": {
+            "mode": "none"
+          }
+        },
+        "layout": {
+          "columns": 3
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "created_at": "2026-09-19T00:00:00.000Z",
+        "updated_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "updated_at": "2026-09-19T00:00:00.000Z",
+        "id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6"
+      },
+      "why": "The reader derives the id from the subject; storing it would leave two value shapes in one family."
+    }
+  ],
+  "admission_cases": [
+    {
+      "name": "legal_active_to_tombstoned_is_admitted",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "tombstoned"
+        }
+      },
+      "expected": {
+        "outcome": "admitted",
+        "value_after": {
+          "state": "tombstoned",
+          "state_changed_at": "derived:object_state_transition_time",
+          "updated_by": "derived:object_update_actor",
+          "updated_at": "derived:object_update_time"
+        },
+        "derived_members": [
+          "state_changed_at",
+          "updated_by",
+          "updated_at"
+        ],
+        "retained_members": [
+          "schema",
+          "realm_id",
+          "created_by",
+          "created_at"
+        ]
+      },
+      "why": "The half a rejection-only fixture silently drops. views.md section 3.1 gives a shared View no tombstone Event kind, so this admission IS the protocol-level removal path, and state_changed_at MUST be written from the accepted update's canonical lifecycle timestamp."
+    },
+    {
+      "name": "author_supplied_state_changed_at_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "tombstoned",
+          "state_changed_at": "2026-09-19T01:00:00.000Z"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation",
+        "reason_code": "patch_path_reducer_managed"
+      },
+      "why": "The rejection half the vector names. state_changed_at is in the effective forbidden set of the view object and is NOT one of the 13 registered allowed_paths, so the patch path itself is refused -- the author cannot backdate a lifecycle fact by writing it beside the transition."
+    },
+    {
+      "name": "unsetting_state_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": {
+            "$op": "unset"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation"
+      },
+      "why": "The single registered universal_exemptions row hands ak.view.update the state PATH, not the right to delete the member: state is required by view.schema.json, so the composed post-state would not validate against the family's value schema. An unset that removed a View's lifecycle state would produce a third kind of absence -- neither active nor tombstoned -- that no reader can interpret."
+    },
+    {
+      "name": "an_unregistered_lifecycle_state_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "archived"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation"
+      },
+      "why": "state is a closed enum. The exemption opens one path, not an open lifecycle vocabulary."
+    },
+    {
+      "name": "an_update_of_a_view_that_was_never_created_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKD7",
+        "accepted_state": "absent"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKD7",
+        "patch": {
+          "title": "Quarterly plan"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation",
+        "reason_code": "reducer_projection_failed",
+        "stored_effect": "none"
+      },
+      "why": "models/views.md section 3.2 bullet 1: the patch MUST NOT be applied to an implicit null or empty object, and the typed-current contract forbids filling that hole with a registered initial_value -- a base value may come only from a registered create or genesis write. event-and-patch.md section 4.3.1 names the code: a pre-state that cannot be uniquely bound is schema_violation with reason_code=reducer_projection_failed."
+    },
+    {
+      "name": "a_reconcile_of_a_view_that_was_never_created_is_refused",
+      "event_kind": "ak.view.reconcile",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKD7",
+        "accepted_state": "absent"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKD7",
+        "definition": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          }
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation",
+        "reason_code": "reducer_projection_failed",
+        "stored_effect": "none"
+      },
+      "why": "reconcile is a whole-value set, which makes it the tempting place to allow implicit creation. It MUST NOT: its registered retained_members[] read schema, realm_id, state, created_by and created_at off a frozen pre-state that does not exist here, so admitting it would have to invent create-locked truth."
+    },
+    {
+      "name": "turning_a_shared_view_private_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "visibility": "private"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation",
+        "reason_code": "private_view_requires_account_data"
+      },
+      "why": "visibility IS author-writable -- it is one of the 13 allowed_paths -- so this rejection cannot come from the patch surface. It is the separate normative rule of views.md section 3.1: a private View lives as encrypted holder account data under ak.views.private.<view_id> and MUST NOT enter the shared reducer, so title, query and layout MUST NOT be left behind in the shared typed current result."
+    },
+    {
+      "name": "an_update_after_the_terminal_transition_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "tombstoned"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "title": "Renamed after removal"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "failed_precondition",
+        "reason_code": "view_already_terminal",
+        "stored_effect": "none"
+      },
+      "why": "tombstoned is terminal. Without this, the removal path of section 3.1 would be reversible by an ordinary edit."
+    },
+    {
+      "name": "resurrecting_a_terminal_view_is_refused",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "tombstoned"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "active"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "failed_precondition",
+        "reason_code": "view_already_terminal",
+        "stored_effect": "none"
+      },
+      "why": "The exemption that makes the tombstone patch registrable is the same path that would express a resurrection. The terminal gate, not the patch surface, is what separates them."
+    },
+    {
+      "name": "a_late_reconcile_does_not_bypass_the_terminal_gate",
+      "event_kind": "ak.view.reconcile",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "tombstoned"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "definition": {
+          "kind": "collection",
+          "title": "Quarterly plan",
+          "visibility": "shared",
+          "query": {},
+          "collection": {
+            "item_object_kinds": [
+              "task"
+            ],
+            "item_order_by": [
+              {
+                "field": "created_at",
+                "direction": "desc"
+              }
+            ],
+            "grouping": {
+              "mode": "none"
+            }
+          },
+          "layout": {
+            "columns": 3
+          }
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "failed_precondition",
+        "reason_code": "view_already_terminal",
+        "stored_effect": "none"
+      },
+      "why": "views.md section 3.2: a late or concurrent known-good definition MUST NOT bypass an accepted terminal fact. reconcile retains state rather than writing it, so without this gate the admission would leave a tombstoned View carrying a freshly republished definition."
+    },
+    {
+      "name": "a_stale_prestate_guard_fails_without_selecting_a_historical_candidate",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active",
+        "current_value_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "title": "Renamed"
+        },
+        "expected_state_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "failed_precondition",
+        "stored_effect": "none",
+        "historical_candidate_search": "forbidden"
+      },
+      "why": "DIGEST_B may well equal an older accepted value of this same View. That is exactly the resolution the guard forbids: the current value is the last accepted write at the position this write is applied, per its own stream's order, and there is no parallel branch to choose among. current-results.md gives the code -- a pre-state that is not field-for-field equal returns failed_precondition -- and no reason code is registered because the generic code already says precisely what failed."
+    },
+    {
+      "name": "an_exact_retry_of_an_accepted_update_produces_no_second_effect",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "tombstoned",
+        "already_accepted": "legal_active_to_tombstoned_is_admitted"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "state": "tombstoned"
+        }
+      },
+      "expected": {
+        "outcome": "admitted",
+        "idempotent_replay": "same_event_identity_replay_noop",
+        "second_effect": "none",
+        "result_revision_advanced": false
+      },
+      "why": "Replay of the SAME Event identity, not a second Event with the same content. It returns the stored outcome and MUST NOT write again -- otherwise the terminal transition would move state_changed_at forward every time a retry crossed the wire. A second, differently identified Event carrying the same patch is NOT this case: it meets the terminal gate above."
+    },
+    {
+      "name": "a_patch_that_mixes_a_legal_and_an_illegal_path_stores_nothing",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "created_by": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "title": "Renamed"
+        }
+      },
+      "expected": {
+        "outcome": "refused",
+        "error": "schema_violation",
+        "reason_code": "patch_path_reducer_managed",
+        "stored_effect": "none",
+        "partially_applied_paths": []
+      },
+      "why": "event-and-patch.md section 4.3.1: every path in one payload.patch map is a single atomic write. The legal title MUST NOT survive the refusal of the create-locked created_by, or an author would gain a way to land edits by attaching them to a doomed path."
+    },
+    {
+      "name": "the_three_kinds_advance_one_revision_of_one_result",
+      "event_kind": "ak.view.update",
+      "given": {
+        "target": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "accepted_state": "active",
+        "note": "sequence: ak.view.create, then ak.view.reconcile, then this update"
+      },
+      "payload": {
+        "view_id": "ak:view:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6",
+        "patch": {
+          "title": "Renamed"
+        }
+      },
+      "expected": {
+        "outcome": "admitted",
+        "result_family": "view",
+        "result_selector": "id:view",
+        "distinct_results": 1,
+        "revision_advances_per_accepted_write": 1
+      },
+      "why": "views.md section 3.2: the three kinds write the SAME typed current result family. If they held three authority chains, ak.view.update's apply_patch would land on a result nothing had ever written -- and the typed-current contract forbids papering over that with a registered initial_value."
+    }
+  ]
+}

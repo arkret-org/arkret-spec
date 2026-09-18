@@ -313,6 +313,10 @@
       "sha256": "1f19a092023d01b4058af3408620f92ecbbad953e15827f81e1fe6a8b6adde23"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/view-write-contract-fixture.json",
+      "sha256": "e1657166dfbd051ad3e61e1e18229944187004ea514d1ab09bbbb8c0260ecc09"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
       "sha256": "e2063d4b96f5414e9bc2cd7566a757241bb1a286c2cfb15ba35e680a3f73fc9e"
     },

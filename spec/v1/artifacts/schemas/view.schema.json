@@ -102,217 +102,7 @@
   },
   "allOf": [
     {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "collection"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "collection"
-        ],
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "timeline"
-              ]
-            },
-            {
-              "required": [
-                "graph"
-              ]
-            },
-            {
-              "required": [
-                "document"
-              ]
-            },
-            {
-              "required": [
-                "dashboard"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "timeline"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "timeline"
-        ],
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "collection"
-              ]
-            },
-            {
-              "required": [
-                "graph"
-              ]
-            },
-            {
-              "required": [
-                "document"
-              ]
-            },
-            {
-              "required": [
-                "dashboard"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "graph"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "graph"
-        ],
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "collection"
-              ]
-            },
-            {
-              "required": [
-                "timeline"
-              ]
-            },
-            {
-              "required": [
-                "document"
-              ]
-            },
-            {
-              "required": [
-                "dashboard"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "document"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "document"
-        ],
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "collection"
-              ]
-            },
-            {
-              "required": [
-                "timeline"
-              ]
-            },
-            {
-              "required": [
-                "graph"
-              ]
-            },
-            {
-              "required": [
-                "dashboard"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "composite"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "dashboard"
-        ],
-        "properties": {
-          "renderer": {
-            "enum": [
-              "dashboard",
-              "custom"
-            ]
-          }
-        },
-        "not": {
-          "anyOf": [
-            {
-              "required": [
-                "collection"
-              ]
-            },
-            {
-              "required": [
-                "timeline"
-              ]
-            },
-            {
-              "required": [
-                "graph"
-              ]
-            },
-            {
-              "required": [
-                "document"
-              ]
-            }
-          ]
-        }
-      }
+      "$ref": "#/$defs/kind_config_exclusivity"
     },
     {
       "if": {
@@ -869,6 +659,279 @@
     "object_ref": {
       "type": "string",
       "pattern": "^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$"
+    },
+    "kind_config_exclusivity": {
+      "$comment": "zh/models/views.md section 3.1: kind and its typed config are mutually exclusive. The block is a $def because the materialized object and the author-supplied definition of zh/models/views.md section 3.2 MUST apply the same content constraint; restating it twice is how the two drift apart.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "collection"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "collection"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "timeline"
+                  ]
+                },
+                {
+                  "required": [
+                    "graph"
+                  ]
+                },
+                {
+                  "required": [
+                    "document"
+                  ]
+                },
+                {
+                  "required": [
+                    "dashboard"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "timeline"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "timeline"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "collection"
+                  ]
+                },
+                {
+                  "required": [
+                    "graph"
+                  ]
+                },
+                {
+                  "required": [
+                    "document"
+                  ]
+                },
+                {
+                  "required": [
+                    "dashboard"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "graph"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "graph"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "collection"
+                  ]
+                },
+                {
+                  "required": [
+                    "timeline"
+                  ]
+                },
+                {
+                  "required": [
+                    "document"
+                  ]
+                },
+                {
+                  "required": [
+                    "dashboard"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "document"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "document"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "collection"
+                  ]
+                },
+                {
+                  "required": [
+                    "timeline"
+                  ]
+                },
+                {
+                  "required": [
+                    "graph"
+                  ]
+                },
+                {
+                  "required": [
+                    "dashboard"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "composite"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "dashboard"
+            ],
+            "properties": {
+              "renderer": {
+                "enum": [
+                  "dashboard",
+                  "custom"
+                ]
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "collection"
+                  ]
+                },
+                {
+                  "required": [
+                    "timeline"
+                  ]
+                },
+                {
+                  "required": [
+                    "graph"
+                  ]
+                },
+                {
+                  "required": [
+                    "document"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "view_definition": {
+      "type": "object",
+      "description": "The author-editable View definition: the members zh/models/views.md section 2.1 calls the View own canonical state, and nothing else. It is deliberately NOT view.schema.json. A materialized object schema used as an authoring input hands the author id, the create metadata, the most-recent-update metadata and the lifecycle output fields, which is exactly the ownership the reducer-managed path registry exists to protect on the patch surface; ak.view.reconcile reached that surface through its definition member and lost it. Identity, Realm, schema and creation metadata are retained from the target pre-state, update provenance is derived from this Event, and lifecycle state is never author-requested: removal is an ak.view.update patch (section 3.1) and reconcile MUST NOT tombstone or resurrect.",
+      "required": [
+        "kind",
+        "query"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/properties/kind"
+        },
+        "renderer": {
+          "$ref": "#/properties/renderer"
+        },
+        "title": {
+          "$ref": "#/properties/title"
+        },
+        "visibility": {
+          "$ref": "#/properties/visibility"
+        },
+        "query": {
+          "$ref": "#/properties/query"
+        },
+        "visible_fields": {
+          "$ref": "#/properties/visible_fields"
+        },
+        "layout": {
+          "$ref": "#/properties/layout"
+        },
+        "collection": {
+          "$ref": "#/properties/collection"
+        },
+        "timeline": {
+          "$ref": "#/properties/timeline"
+        },
+        "graph": {
+          "$ref": "#/properties/graph"
+        },
+        "document": {
+          "$ref": "#/properties/document"
+        },
+        "dashboard": {
+          "$ref": "#/properties/dashboard"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/kind_config_exclusivity"
+        }
+      ],
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
     }
   },
   "patternProperties": {

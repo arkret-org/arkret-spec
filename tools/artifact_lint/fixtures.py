@@ -3144,6 +3144,322 @@ def check_one_of_branch_discriminability(lint: Lint) -> None:
             )
 
 
+def check_view_write_contract_fixture(lint: Lint) -> None:
+    """Run ak.vector.view.terminal_state_patch.v1 instead of describing it.
+
+    The vector said two things: the terminal `state=tombstoned` patch MUST be
+    accepted, and an actor-supplied `state_changed_at` MUST be rejected. Both
+    were prose in a registry row with no fixture behind them, and the acceptance
+    half was the load-bearing one -- `models/views.md` section 3.1 has no
+    tombstone Event kind for a shared View, so that patch IS the removal path.
+    Nothing ran, so nothing noticed that the patch could not even be registered:
+    the registry consumer flattened every object's reducer-managed paths into
+    one set, and `state` -- carved out for this exact write by the one
+    `universal_exemptions` row in the file -- came back as a prohibition.
+
+    Every case here is validated against the live schema, and the author-writable
+    partition is recomputed from the live registry rather than compared to a
+    copy, so the fixture cannot drift into being a second source of truth.
+    """
+
+    fixture_path = ARTIFACTS / "fixtures" / "view-write-contract-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict):
+        return
+
+    if fixture.get("covers_vectors") != ["ak.vector.view.terminal_state_patch.v1"]:
+        lint.fail(
+            fixture_path,
+            "covers_vectors must be exactly ['ak.vector.view.terminal_state_patch.v1']",
+        )
+
+    partition = fixture.get("author_writable_partition")
+    if not isinstance(partition, dict):
+        lint.fail(fixture_path, "author_writable_partition must be an object")
+        return
+
+    author_writable = partition.get("author_writable")
+    reducer_managed = partition.get("reducer_managed")
+    if not isinstance(author_writable, list) or not isinstance(reducer_managed, list):
+        lint.fail(fixture_path, "author_writable and reducer_managed must both be arrays")
+        return
+    author_set = set(author_writable)
+    managed_set = set(reducer_managed)
+
+    view_schema = load_json(lint, ARTIFACTS / "schemas" / "view.schema.json")
+    declared = set(view_schema.get("properties") or {}) if isinstance(view_schema, dict) else set()
+    if not declared:
+        lint.fail(fixture_path, "view.schema.json declares no properties to partition")
+        return
+    if author_set | managed_set != declared:
+        lint.fail(
+            fixture_path,
+            "author_writable + reducer_managed must partition every member view.schema.json declares; "
+            f"unclassified {sorted(declared - author_set - managed_set)}, "
+            f"undeclared {sorted((author_set | managed_set) - declared)}",
+        )
+    overlap = sorted(author_set & managed_set)
+    if overlap:
+        lint.fail(fixture_path, f"{overlap} are listed as both author-writable and reducer-managed")
+
+    registry = load_json(lint, ARTIFACTS / "registry" / "event-kind-registry.json")
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    registered_paths: set[str] | None = None
+    for row in rows or []:
+        if not isinstance(row, dict) or row.get("event_kind") != partition.get("event_kind"):
+            continue
+        for write in row.get("result_writes") or []:
+            projection = write.get("result_projection") if isinstance(write, dict) else None
+            if isinstance(projection, dict) and projection.get("kind") == "apply_patch":
+                registered_paths = {
+                    item for item in projection.get("allowed_paths") or [] if isinstance(item, str)
+                }
+    if registered_paths is None:
+        lint.fail(
+            fixture_path,
+            f"{partition.get('event_kind')!r} registers no apply_patch write, so the author-writable "
+            "partition has nothing to be the complement of",
+        )
+    elif registered_paths != author_set:
+        lint.fail(
+            fixture_path,
+            f"author_writable disagrees with the registered allowed_paths of "
+            f"{partition.get('event_kind')!r}: only in fixture {sorted(author_set - registered_paths)}, "
+            f"only in registry {sorted(registered_paths - author_set)}",
+        )
+
+    cases = fixture.get("cases")
+    if not isinstance(cases, list) or not cases:
+        lint.fail(fixture_path, "cases must be a non-empty array")
+        return
+    seen: set[str] = set()
+    accepted_terminal = False
+    for index, case in enumerate(cases):
+        label = f"cases[{index}]"
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"{label} must be an object")
+            continue
+        name = case.get("name")
+        if not isinstance(name, str) or not name:
+            lint.fail(fixture_path, f"{label}.name must be a non-empty string")
+            continue
+        if name in seen:
+            lint.fail(fixture_path, f"{label}.name duplicates {name}")
+        seen.add(name)
+        schema_ref = case.get("schema_ref")
+        if not isinstance(schema_ref, str) or not schema_ref:
+            lint.fail(fixture_path, f"{label}.schema_ref must name the schema this case is run against")
+            continue
+        if not isinstance(case.get("valid"), bool):
+            lint.fail(fixture_path, f"{label}.valid must be a boolean")
+            continue
+        if not isinstance(case.get("why"), str) or not case["why"].strip():
+            # A negative case whose reason is not written down decays into a
+            # shape nobody can re-derive when the schema changes under it.
+            lint.fail(fixture_path, f"{label}.why must say what the case proves")
+        check_json_instance_against_schema(
+            lint,
+            fixture_path,
+            f"{label} ({name})",
+            schema_ref,
+            case.get("instance"),
+            expect_valid=case["valid"],
+        )
+        if name == "terminal_state_patch_is_accepted" and case["valid"]:
+            accepted_terminal = True
+        if case["valid"] and schema_ref.endswith("view_value"):
+            # common-fields.md section 3 pins created_at <= state_changed_at
+            # <= updated_at, and JSON Schema has no keyword that can express an
+            # ordering between two members. One accepted Event produces both
+            # the transition time and the update time, so a materialized value
+            # whose state_changed_at runs ahead of its updated_at describes a
+            # write no reducer performed -- and every schema-shaped gate in the
+            # pipeline calls it valid.
+            _check_view_value_timestamps(lint, fixture_path, f"{label} ({name})", case.get("instance"))
+        if case["valid"] and schema_ref.endswith("view_update_payload"):
+            # A patch map's KEYS are its paths (patch.schema.json, and
+            # event-and-patch.md section 4.2.1). Nothing in that grammar
+            # distinguishes a member name from any other legal identifier, so
+            # the shape `{"set": {"state": "tombstoned"}}` validates -- as a
+            # patch that sets a member literally named `set`. It is neither a
+            # member view.schema.json declares nor one of the registered
+            # allowed_paths, so a fixture written that way would assert
+            # "the removal patch is accepted" while carrying a patch that the
+            # reducer must refuse.
+            for path in (case.get("instance") or {}).get("patch") or {}:
+                if not isinstance(path, str):
+                    continue
+                head = path.split(".", 1)[0]
+                if head not in author_set:
+                    lint.fail(
+                        fixture_path,
+                        f"{label} ({name}) is an accepted case whose patch addresses {path!r}, which is "
+                        f"not author-writable on this object; a patch map's keys ARE its paths",
+                    )
+    if not accepted_terminal:
+        lint.fail(
+            fixture_path,
+            "the fixture must keep an accepted terminal-state patch case: that acceptance IS the shared "
+            "View removal path, and it is the half a rejection-only fixture would silently drop",
+        )
+
+    _check_view_admission_cases(lint, fixture_path, fixture, author_set)
+
+
+def _check_view_value_timestamps(lint: Lint, fixture_path: Path, label: str, value: object) -> None:
+    """created_at <= state_changed_at <= updated_at, on a materialized View."""
+
+    if not isinstance(value, dict):
+        return
+    created_at = value.get("created_at")
+    updated_at = value.get("updated_at")
+    state_changed_at = value.get("state_changed_at")
+    if isinstance(created_at, str) and isinstance(updated_at, str) and updated_at < created_at:
+        lint.fail(fixture_path, f"{label} has updated_at earlier than created_at")
+    if not isinstance(state_changed_at, str):
+        return
+    if isinstance(created_at, str) and state_changed_at < created_at:
+        lint.fail(fixture_path, f"{label} has state_changed_at earlier than created_at")
+    if isinstance(updated_at, str) and state_changed_at > updated_at:
+        lint.fail(
+            fixture_path,
+            f"{label} has state_changed_at later than updated_at: the same accepted Event produces "
+            "both, so the transition cannot postdate the write that carried it",
+        )
+
+
+def _check_view_admission_cases(
+    lint: Lint, fixture_path: Path, fixture: dict, author_set: set[str]
+) -> None:
+    """The behavioral face: outcomes schema validation cannot express.
+
+    ``cases[]`` can prove that the terminal patch has a legal shape. It cannot
+    prove that the transition is admitted, that a later edit of a tombstoned
+    View is refused, that a stale pre-state guard does not quietly resolve
+    against an older matching value, or that a refusal leaves nothing behind.
+    Those are the acceptance items of the vector, and each one names the
+    registered error and reason code it MUST fail with, so a refusal cannot
+    drift into a different, vaguer code without this gate noticing.
+    """
+
+    admission_cases = fixture.get("admission_cases")
+    if not isinstance(admission_cases, list) or not admission_cases:
+        lint.fail(fixture_path, "admission_cases must be a non-empty array")
+        return
+
+    errors = load_json(lint, ARTIFACTS / "registry" / "error-code-registry.json")
+    registered_codes = {
+        row.get("code")
+        for row in (errors.get("codes") or [])
+        if isinstance(row, dict)
+    }
+    registered_reasons = {
+        row.get("code")
+        for row in (errors.get("reason_codes") or [])
+        if isinstance(row, dict)
+    }
+    kinds = load_json(lint, ARTIFACTS / "registry" / "event-kind-registry.json")
+    registered_kinds = {
+        row.get("event_kind")
+        for row in (kinds.get("event_kinds") or [])
+        if isinstance(row, dict)
+    }
+
+    seen: set[str] = set()
+    required = {
+        "legal_active_to_tombstoned_is_admitted",
+        "author_supplied_state_changed_at_is_refused",
+        "an_update_after_the_terminal_transition_is_refused",
+        "a_stale_prestate_guard_fails_without_selecting_a_historical_candidate",
+        "an_exact_retry_of_an_accepted_update_produces_no_second_effect",
+    }
+    for index, case in enumerate(admission_cases):
+        label = f"admission_cases[{index}]"
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"{label} must be an object")
+            continue
+        name = case.get("name")
+        if not isinstance(name, str) or not name:
+            lint.fail(fixture_path, f"{label}.name must be a non-empty string")
+            continue
+        if name in seen:
+            lint.fail(fixture_path, f"{label}.name duplicates {name}")
+        seen.add(name)
+        if not isinstance(case.get("why"), str) or not case["why"].strip():
+            lint.fail(fixture_path, f"{label} ({name}).why must say what the case proves")
+        event_kind = case.get("event_kind")
+        if event_kind not in registered_kinds:
+            lint.fail(
+                fixture_path,
+                f"{label} ({name}).event_kind {event_kind!r} is not a registered Event kind",
+            )
+        if not isinstance(case.get("given"), dict):
+            lint.fail(fixture_path, f"{label} ({name}).given must state the pre-state it runs against")
+        payload = case.get("payload")
+        if not isinstance(payload, dict):
+            lint.fail(fixture_path, f"{label} ({name}).payload must be an object")
+            payload = {}
+        expected = case.get("expected")
+        if not isinstance(expected, dict):
+            lint.fail(fixture_path, f"{label} ({name}).expected must be an object")
+            continue
+        result = expected.get("outcome")
+        if result not in ("admitted", "refused"):
+            lint.fail(
+                fixture_path,
+                f"{label} ({name}).expected.outcome must be 'admitted' or 'refused'",
+            )
+            continue
+
+        error = expected.get("error")
+        reason_code = expected.get("reason_code")
+        if result == "refused":
+            if error not in registered_codes:
+                lint.fail(
+                    fixture_path,
+                    f"{label} ({name}) is a refusal, so expected.error must be a registered error code; "
+                    f"got {error!r}",
+                )
+            if reason_code is not None and reason_code not in registered_reasons:
+                # A reason code is optional -- some refusals are fully described
+                # by the generic code -- but an unregistered spelling is a
+                # second vocabulary, which is the thing the registry exists to
+                # prevent.
+                lint.fail(
+                    fixture_path,
+                    f"{label} ({name}).expected.reason_code {reason_code!r} is not registered in "
+                    "error-code-registry.json",
+                )
+            if expected.get("stored_effect") not in (None, "none"):
+                lint.fail(
+                    fixture_path,
+                    f"{label} ({name}) is a refusal, so it MUST NOT declare a stored effect",
+                )
+        else:
+            if error is not None or reason_code is not None:
+                lint.fail(
+                    fixture_path,
+                    f"{label} ({name}) is admitted, so it MUST NOT carry an error or reason code",
+                )
+
+        patch = payload.get("patch")
+        if isinstance(patch, dict) and result == "admitted":
+            for path in patch:
+                if isinstance(path, str) and path.split(".", 1)[0] not in author_set:
+                    lint.fail(
+                        fixture_path,
+                        f"{label} ({name}) is admitted but patches {path!r}, which is not author-writable",
+                    )
+
+    missing = sorted(required - seen)
+    if missing:
+        lint.fail(
+            fixture_path,
+            "admission_cases must keep the acceptance items of "
+            f"ak.vector.view.terminal_state_patch.v1; missing {missing}",
+        )
+
+
 def check_string_profile_format_vectors(lint: Lint) -> None:
     """The custom string formats must keep one executable vector set.
 

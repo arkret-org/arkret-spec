@@ -1,15 +1,17 @@
 {
-  "version": "2026-09-18.1",
-  "generated_at": "2026-09-18T06:20:00+08:00",
+  "version": "2026-09-19.2",
+  "generated_at": "2026-09-19T12:00:00+08:00",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
-    "The effective forbidden set of an object kind is universal_forbidden_patch_paths, restricted to the paths its object schema actually declares, minus that object's universal_exemptions, plus its own forbidden_patch_paths. A path and every dotted descendant of it are forbidden together: banning `effective_scope` also bans `effective_scope.circle_id`.",
+    "The effective forbidden set of an object kind is universal_forbidden_patch_paths, restricted to the paths its object schema actually declares, minus that object's universal_exemptions, plus its own forbidden_patch_paths. A path and every dotted descendant of it are forbidden together: banning `effective_scope` also bans `effective_scope.circle_id`. The solution is per object: an object-specific ban constrains that object only and MUST NOT be collected into one shared set that other object kinds are then measured against. A consumer that flattens this file into a set of `path` strings reads `state` -- the single v1 exemption -- as a prohibition, and reads `resolution`, `stage`, `stage_changed_at`, `morph_kind`, `schema_refs`, `effective_scope`, `child_scope_policy`, `parent_space_id`, `scope_circle_id` and `mls_group_id` as prohibitions on every family that happens to declare a member of the same name. Both readings are wrong and both are refused by check_result_write_contracts.",
     "universal_forbidden_patch_paths is the general minimum set of zh/models/event-and-patch.md section 4.2.5 and MUST stay identical to the list that section spells out. Object-specific bans belong in the object's forbidden_patch_paths, never in the universal list.",
     "A universal_exemptions entry is a documented normative carve-out, not a relaxation of the general rule, and MUST name the clause that assigns the path to the generic update surface. v1 has exactly one: a shared View reaches its durable terminal state through an ak.view.update patch setting state=tombstoned (zh/models/views.md section 3.1), so `state` is authored on View while `state_changed_at` stays reducer-derived.",
     "Only object kinds whose update payload embeds event-payload.schema.json#/$defs/patch appear here. Message carries reducer-managed members too (`effective_scope`, `state_changed_at`), but it has no patch surface at all: ak.message.revise and ak.message.redact are dedicated payloads that are additionalProperties:false, so the ban is already decided by their schemas.",
     "schema_enforced=true means the named update payload already rejects the path through its own propertyNames guard, so a conforming implementation gets schema_violation from artifact validation alone. schema_enforced=false means only the reducer can decide it. The flag is an assertion about the shipped schema, not a preference: it is verified in both directions, so a guard can neither register a path it does not forbid nor forbid a path it did not register.",
-    "This registry does not classify create payloads. A create payload names its object shape directly, so it expresses its own bans in schema (see event-payload.schema.json#/$defs/relation_create_object); only the generic patch surface needs an external table."
+    "This registry does not classify create payloads. A create payload names its object shape directly, so it expresses its own bans in schema (see event-payload.schema.json#/$defs/relation_create_object); only the generic patch surface needs an external table.",
+    "A registered partial-update write names its target through value_schema_ref, and this file answers for that target only. An objects[] row carries result_family and value_schema_ref so the target resolves without guessing from a family name or a field spelling, and the row's value schema MUST be built on the row's object_schema_ref, so Event payload, result value schema and object registry are checked against each other instead of assumed to agree. A partial-update write whose value is not a materialized canonical object resolves through non_object_results[] instead, which carries that value's own field-ownership contract. A write that resolves to neither, or to both, is a gate failure: there is no fallback to a flattened set and no fallback to an empty one.",
+    "value_member_maintenance closes the other direction. Declaring it on a row means every registered write into that result_family is measured member by member: each required member of the value schema MUST be accounted for exactly once, as author input (a patch allowed_path, or a property of the closed author payload region a whole-value projection reads), as a derived_members[] production, or as a retained_members[] carry-over from the frozen pre-state; every name a write declares MUST be a declared member of that value schema; and the three roles are disjoint. always_maintained members MUST be produced by every write into the family, which is what stops object metadata from being supplied once at create and then silently frozen on every later write. conditional_producers names the writes that MAY produce a member whose presence is conditional, and forbids any other write from producing it. The frontier is explicit: a family without value_member_maintenance is not covered, and each uncovered row names the owner that closes it. That is a declared coverage boundary, not an exemption -- no row here excuses an assertion that is false."
   ],
   "reason_codes": [
     "patch_path_reducer_managed",
@@ -93,6 +95,7 @@
     {
       "object_kind": "actor_profile",
       "object_schema_ref": "schemas/actor-profile.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'actor_profile', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
         "schemas/event-payload.schema.json#/$defs/profile_realm_override_payload"
@@ -113,6 +116,7 @@
     {
       "object_kind": "circle",
       "object_schema_ref": "schemas/circle.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'circle', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/circle_patch_payload"
       ],
@@ -132,6 +136,7 @@
     {
       "object_kind": "morph",
       "object_schema_ref": "schemas/morph.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'morph', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/morph_update_payload"
       ],
@@ -178,6 +183,7 @@
     {
       "object_kind": "relation",
       "object_schema_ref": "schemas/relation.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'relation', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/relation_update_payload"
       ],
@@ -197,6 +203,7 @@
     {
       "object_kind": "space",
       "object_schema_ref": "schemas/space.schema.json",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract. The gap here is the whole family, not just its value schema: current-result-registry.json registers no result kind for 'space', and no active event kind declares a result_writes[] entry into one, so these reducer-managed paths currently guard a patch surface over a value that nothing in the protocol writes. value_member_maintenance cannot be declared until 0650 registers the family and its value schema.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/space_patch_payload"
       ],
@@ -234,6 +241,8 @@
     {
       "object_kind": "strand",
       "object_schema_ref": "schemas/strand.schema.json",
+      "result_family": "strand",
+      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns this object kind's write contract: it has no registered result_writes[] yet, so no value schema binds its family and value_member_maintenance has nothing to measure.",
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/strand_patch_payload"
       ],
@@ -262,8 +271,10 @@
     {
       "object_kind": "view",
       "object_schema_ref": "schemas/view.schema.json",
+      "result_family": "view",
+      "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
       "update_payload_refs": [
-        "schemas/event-payload.schema.json#/$defs/view_payload"
+        "schemas/event-payload.schema.json#/$defs/view_update_payload"
       ],
       "universal_exemptions": [
         {
@@ -273,7 +284,106 @@
           "justification": "zh/models/views.md section 3.1: a shared View has no separate tombstone event kind. Its protocol-level removal is an ak.view.update patch setting state=tombstoned, so state is authored on this one object kind. state_changed_at remains reducer-derived and stays forbidden, and tombstoned is terminal: any later update or reconcile MUST fail with view_already_terminal."
         }
       ],
-      "forbidden_patch_paths": []
+      "forbidden_patch_paths": [],
+      "value_member_maintenance": {
+        "owner": "zh/models/views.md sections 3.1 and 3.2",
+        "always_maintained": [
+          {
+            "path": "updated_by",
+            "derivation": "object_update_actor",
+            "justification": "zh/models/common-fields.md section 1 defines updated_by as the accepted Event's actor_id. It sits in universal_forbidden_patch_paths, so no author may supply it; if no write produces it the member is supplied once at create and afterwards names an actor who did not author the current value."
+          },
+          {
+            "path": "updated_at",
+            "derivation": "object_update_time",
+            "justification": "zh/models/common-fields.md section 3 defines updated_at as the accepted Event's canonical lifecycle timestamp, and views.md section 3.1 keeps it no earlier than created_at. Reducer-owned for the same reason as updated_by, so only a registered production can maintain it."
+          }
+        ],
+        "conditional_producers": [
+          {
+            "path": "state",
+            "derivation": "object_initial_state",
+            "producer_kinds": [
+              "ak.view.create"
+            ],
+            "condition": "Every accepted ak.view.create produces the registered initial state, and no other write may derive it. state is in universal_forbidden_patch_paths; the ONE registered universal exemption lets ak.view.update author it, because models/views.md section 3.1 makes that patch the only protocol-level removal path for a shared View. ak.view.reconcile retains it, so reconcile can neither tombstone nor resurrect."
+          },
+          {
+            "path": "state_changed_at",
+            "derivation": "object_state_transition_time",
+            "producer_kinds": [
+              "ak.view.update"
+            ],
+            "condition": "An accepted ak.view.update that transitions state from active to tombstoned. views.md section 3.1 is normative that a shared View reaches its terminal state through this one kind, so no other write may produce the member, and view.schema.json forbids it while state is not tombstoned, so its absence on an active View is the contract rather than a missing producer."
+          }
+        ],
+        "create_locked": [
+          {
+            "path": "schema",
+            "derivation": "object_schema_identifier",
+            "producer_kinds": [
+              "ak.view.create"
+            ],
+            "justification": "The schema identifier is a constant of the object kind, fixed by the schema-registry row for ak.schema.view.v1. An author region that declares it lets a signed create claim a different contract for the value it is writing."
+          },
+          {
+            "path": "realm_id",
+            "derivation": "object_realm_binding",
+            "producer_kinds": [
+              "ak.view.create"
+            ],
+            "justification": "The Realm binding comes from the stream that accepted the Event. A payload-supplied realm_id is a cross-Realm claim made by the author about where the object lives."
+          },
+          {
+            "path": "created_by",
+            "derivation": "object_create_actor",
+            "producer_kinds": [
+              "ak.view.create"
+            ],
+            "justification": "The creator is the accepted Event actor_id. The earlier payload declared this member and a prose sentence asked semantic validation to cross-check it against the envelope; a prose cross-check is not a gate, and there is nothing left to cross-check once the reducer is the only writer."
+          },
+          {
+            "path": "created_at",
+            "derivation": "object_create_time",
+            "producer_kinds": [
+              "ak.view.create"
+            ],
+            "justification": "Creation time is the canonical lifecycle timestamp of the create Event, not a client wall clock the author sends."
+          }
+        ]
+      }
+    }
+  ],
+  "non_object_results": [
+    {
+      "result_family": "realm_authority_root",
+      "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
+      "description": "The lifetime-stable Realm authority root is a closed three-member protocol value, not a materialized canonical object: no id, no schema member, no lifecycle state, no create or update metadata. None of universal_forbidden_patch_paths applies to it, and filing it as an objects[] row would measure it against members it does not declare. Its field ownership is fixed by zh/authz/capabilities.md section on authority-root successor counters.",
+      "forbidden_patch_paths": [
+        {
+          "path": "controller_epoch",
+          "basis": "reducer_derived",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "derived_member",
+          "owner": "realm_controller_epoch_successor",
+          "schema_enforced": false,
+          "description": "checked_add(prestate.controller_epoch, 1) on an accepted controller rotation. An author-selectable counter would let a rotation choose its own successor and replay an older grant generation."
+        },
+        {
+          "path": "authority_generation",
+          "basis": "reducer_derived",
+          "reason_code": "patch_path_reducer_managed",
+          "owner_kind": "derived_member",
+          "owner": "realm_authority_generation_successor",
+          "schema_enforced": false,
+          "description": "checked_add(prestate.authority_generation, 1) on an accepted planned governance Station handoff. Same reason as controller_epoch, and the two MUST NOT be interchanged."
+        }
+      ],
+      "value_member_maintenance": {
+        "owner": "zh/authz/capabilities.md section on authority-root successor counters",
+        "always_maintained": [],
+        "conditional_producers": []
+      }
     }
   ]
 }

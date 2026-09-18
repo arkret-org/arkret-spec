@@ -43,7 +43,16 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .core import ARTIFACTS, Lint, SPEC_ROOT, TOOLS_ROOT, load_json, read_text, resolve_json_pointer
+from .core import (
+    ARTIFACTS,
+    CELL_WRITE_DERIVATIONS,
+    Lint,
+    SPEC_ROOT,
+    TOOLS_ROOT,
+    load_json,
+    read_text,
+    resolve_json_pointer,
+)
 
 PROOF_CONTEXT_REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMA_REGISTRY = ARTIFACTS / "registry" / "schema-registry.json"
@@ -447,24 +456,244 @@ def _registered_error_codes(lint: Lint) -> set[str] | None:
 REDUCER_MANAGED_PATH_REGISTRY = ARTIFACTS / "registry" / "reducer-managed-path-registry.json"
 
 
-def _reducer_managed_paths(lint: Lint) -> set[str]:
-    """Every path the reducer owns, so no `allowed_paths` can name one."""
+def _row_paths(rows: Any) -> list[str]:
+    """The `path` strings of one registry array, in order."""
+    if not isinstance(rows, list):
+        return []
+    return [row["path"] for row in rows if isinstance(row, dict) and isinstance(row.get("path"), str)]
+
+
+def _declared_schema_members(lint: Lint, reference: str) -> set[str] | None:
+    """Top-level members a schema reference declares, following $ref and allOf."""
+    members: set[str] = set()
+    seen: set[str] = set()
+
+    def visit(file_ref: str, fragment: str) -> bool:
+        key = f"{file_ref}#{fragment}"
+        if key in seen:
+            return True
+        seen.add(key)
+        path = ARTIFACTS / file_ref
+        document = load_json(lint, path) if path.is_file() else None
+        if document is None:
+            return False
+        try:
+            node = resolve_json_pointer(document, fragment)
+        except (KeyError, IndexError, ValueError):
+            return False
+        return descend(node, file_ref)
+
+    def descend(node: Any, file_ref: str) -> bool:
+        if not isinstance(node, dict):
+            return False
+        ok = True
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            members.update(name for name in properties if isinstance(name, str))
+        reference = node.get("$ref")
+        if isinstance(reference, str):
+            target_file, separator, body = reference.partition("#")
+            target_file = target_file.lstrip("./") or file_ref
+            if not target_file.startswith("schemas/"):
+                target_file = f"schemas/{target_file}"
+            ok = visit(target_file, f"#{body}" if separator else "") and ok
+        for branch in node.get("allOf") or []:
+            ok = descend(branch, file_ref) and ok
+        return ok
+
+    file_ref, separator, body = reference.partition("#")
+    if not visit(file_ref, f"#{body}" if separator else ""):
+        return None
+    return members
+
+
+def _required_schema_members(lint: Lint, reference: str) -> set[str]:
+    """Members a schema reference requires unconditionally, following $ref and allOf."""
+    required: set[str] = set()
+    seen: set[str] = set()
+
+    def visit(file_ref: str, fragment: str) -> None:
+        key = f"{file_ref}#{fragment}"
+        if key in seen:
+            return
+        seen.add(key)
+        path = ARTIFACTS / file_ref
+        document = load_json(lint, path) if path.is_file() else None
+        if document is None:
+            return
+        try:
+            node = resolve_json_pointer(document, fragment)
+        except (KeyError, IndexError, ValueError):
+            return
+        descend(node, file_ref)
+
+    def descend(node: Any, file_ref: str) -> None:
+        if not isinstance(node, dict):
+            return
+        names = node.get("required")
+        if isinstance(names, list):
+            required.update(name for name in names if isinstance(name, str))
+        reference = node.get("$ref")
+        if isinstance(reference, str):
+            target_file, separator, body = reference.partition("#")
+            target_file = target_file.lstrip("./") or file_ref
+            if not target_file.startswith("schemas/"):
+                target_file = f"schemas/{target_file}"
+            visit(target_file, f"#{body}" if separator else "")
+        for branch in node.get("allOf") or []:
+            descend(branch, file_ref)
+
+    file_ref, separator, body = reference.partition("#")
+    visit(file_ref, f"#{body}" if separator else "")
+    return required
+
+
+def _forbidden_member_names(node: Any) -> set[str]:
+    """Members an `allOf` branch bans through `not: {anyOf: [{required: [name]}]}`."""
+    banned: set[str] = set()
+
+    def descend(current: Any) -> None:
+        if not isinstance(current, dict):
+            return
+        negation = current.get("not")
+        if isinstance(negation, dict):
+            branches = negation.get("anyOf")
+            if isinstance(branches, list):
+                for branch in branches:
+                    if isinstance(branch, dict):
+                        names = branch.get("required")
+                        if isinstance(names, list) and len(names) == 1:
+                            banned.update(name for name in names if isinstance(name, str))
+            names = negation.get("required")
+            if isinstance(names, list) and len(names) == 1:
+                banned.update(name for name in names if isinstance(name, str))
+        for branch in current.get("allOf") or []:
+            descend(branch)
+
+    descend(node)
+    return banned
+
+
+def _patch_target(lint: Lint, where: str, write: dict) -> dict | None:
+    """Resolve the one registry row that owns this write's field ownership.
+
+    `reducer-managed-path-registry.json` answers one question per object kind,
+    and the effective forbidden set its own `registry_rules` define is per
+    object: the universal list restricted to the members that object declares,
+    MINUS that object's `universal_exemptions`, PLUS its own bans. The first
+    reader of this file did none of that. It walked the whole document and
+    collected every `path` key it met into one flat set, so the single v1
+    exemption -- `state`, the member `views.md` section 3.1 requires
+    `ak.view.update` to write because a shared View has no tombstone event kind
+    -- came back as a prohibition, and the one write the spec makes normatively
+    load-bearing could not be registered at all: registering it turned the gate
+    red. The same flattening merged every object's private bans, so
+    `resolution`, `stage`, `morph_kind`, `effective_scope`, `child_scope_policy`,
+    `parent_space_id`, `scope_circle_id` and `mls_group_id` were enforced against
+    every family that happened to declare a member of the same name. View did not
+    collide, which is the only reason exactly one write was blocked rather than
+    several.
+
+    The target is resolved from `value_schema_ref`, cross-checked against
+    `result_family`, and -- for an object row -- against the object schema the
+    value is built on. Guessing from a family name or a field spelling is
+    refused, and so is falling back to a flat set or an empty one.
+    """
     data = load_json(lint, REDUCER_MANAGED_PATH_REGISTRY)
-    paths: set[str] = set()
+    if not isinstance(data, dict):
+        lint.fail(REDUCER_MANAGED_PATH_REGISTRY, "registry must be an object")
+        return None
+    value_schema_ref = write.get("value_schema_ref")
+    family = write.get("result_family")
+    if not isinstance(value_schema_ref, str) or not value_schema_ref:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where} is a partial-update write with no value_schema_ref, so nothing says which "
+            "registered value's field ownership applies to it",
+        )
+        return None
+    matches: list[tuple[str, dict]] = []
+    for row in data.get("objects") or []:
+        if isinstance(row, dict) and row.get("value_schema_ref") == value_schema_ref:
+            matches.append(("objects", row))
+    for row in data.get("non_object_results") or []:
+        if isinstance(row, dict) and row.get("value_schema_ref") == value_schema_ref:
+            matches.append(("non_object_results", row))
+    if len(matches) != 1:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.value_schema_ref {value_schema_ref!r} resolves to {len(matches)} rows of "
+            "registry/reducer-managed-path-registry.json; a registered patch surface MUST name exactly "
+            "one owning object kind or one non-object result",
+        )
+        return None
+    array_name, row = matches[0]
+    if row.get("result_family") != family:
+        lint.fail(
+            EVENT_KIND_REGISTRY,
+            f"{where}.result_family {family!r} disagrees with the "
+            f"reducer-managed-path-registry {array_name}[] row for {value_schema_ref!r}, which owns "
+            f"family {row.get('result_family')!r}",
+        )
+        return None
+    if array_name == "objects":
+        object_schema_ref = row.get("object_schema_ref")
+        members = _declared_schema_members(lint, value_schema_ref)
+        object_members = (
+            _declared_schema_members(lint, object_schema_ref)
+            if isinstance(object_schema_ref, str)
+            else None
+        )
+        if members is None or object_members is None or not members <= object_members:
+            lint.fail(
+                REDUCER_MANAGED_PATH_REGISTRY,
+                f"objects[] row {row.get('object_kind')!r} declares value_schema_ref "
+                f"{value_schema_ref!r}, which is not built on its object_schema_ref "
+                f"{object_schema_ref!r}; the Event payload, the result value schema and the object "
+                "registry MUST be checked against each other, not assumed to agree",
+            )
+            return None
+    return {"array": array_name, "row": row, "registry": data}
 
-    def walk(node: Any) -> None:
-        if isinstance(node, dict):
-            path = node.get("path")
-            if isinstance(path, str):
-                paths.add(path)
-            for value in node.values():
-                walk(value)
-        elif isinstance(node, list):
-            for value in node:
-                walk(value)
 
-    walk(data)
-    return paths
+def _effective_forbidden_paths(lint: Lint, where: str, write: dict, kind: str) -> set[str] | None:
+    """The forbidden set of THIS write's target, solved per the registry's own rules."""
+    target = _patch_target(lint, where, write)
+    if target is None:
+        return None
+    row = target["row"]
+    if target["array"] == "non_object_results":
+        return set(_row_paths(row.get("forbidden_patch_paths")))
+    data = target["registry"]
+    declared = _declared_schema_members(lint, row.get("object_schema_ref"))
+    if declared is None:
+        lint.fail(
+            REDUCER_MANAGED_PATH_REGISTRY,
+            f"objects[] row {row.get('object_kind')!r} object_schema_ref does not resolve",
+        )
+        return None
+    universal = set(_row_paths(data.get("universal_forbidden_patch_paths")))
+    forbidden = (universal & declared) | set(_row_paths(row.get("forbidden_patch_paths")))
+    for exemption in row.get("universal_exemptions") or []:
+        if not isinstance(exemption, dict):
+            continue
+        path = exemption.get("path")
+        if not isinstance(path, str):
+            continue
+        # An exemption is a carve-out assigned to one named owner, not a
+        # blanket relaxation: it subtracts the ban for the write it names and
+        # for no other.
+        if exemption.get("owner_kind") == "event_kind" and exemption.get("owner") != kind:
+            continue
+        forbidden.discard(path)
+    return forbidden
+
+
+def _names_a_forbidden_path(candidate: str, forbidden: set[str]) -> bool:
+    """A banned path and every dotted descendant of it are banned together."""
+    if candidate in forbidden:
+        return True
+    return any(candidate.startswith(f"{banned}.") for banned in forbidden)
 
 
 def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
@@ -534,7 +763,7 @@ def _check_projection_value_source(lint: Lint, ref: str, value: Any) -> None:
 
 
 def _check_result_apply_patch_projection(
-    lint: Lint, where: str, write: dict, projection: dict
+    lint: Lint, where: str, write: dict, projection: dict, kind: str
 ) -> None:
     """Validate one `apply_patch` `result_projection` and its closed path set.
 
@@ -619,14 +848,419 @@ def _check_result_apply_patch_projection(
             f"{where}.result_projection.allowed_paths and derived_members[] share {both}; a "
             "member is either author-writable or reducer-derived, never both",
         )
-    managed = _reducer_managed_paths(lint)
-    reserved = sorted(set(allowed) & managed)
+    forbidden = _effective_forbidden_paths(lint, where, write, kind)
+    if forbidden is None:
+        return
+    reserved = sorted(path for path in allowed if _names_a_forbidden_path(path, forbidden))
     if reserved:
         lint.fail(
             EVENT_KIND_REGISTRY,
             f"{where}.result_projection.allowed_paths names reducer-managed path(s) {reserved} "
-            "registered in reducer-managed-path-registry.json",
+            "registered in reducer-managed-path-registry.json for this write's own target",
         )
+
+
+def _authored_members(lint: Lint, where: str, payload_schema_ref: Any, field: Any) -> set[str] | None:
+    """Members the closed author payload region a whole-value projection reads declares."""
+    if not isinstance(payload_schema_ref, str) or not isinstance(field, str):
+        return None
+    segments = field.split(".")
+    if segments[0] != "payload" or len(segments) < 2:
+        return None
+    pointer = payload_schema_ref
+    for segment in segments[1:]:
+        pointer = f"{pointer}/properties/{segment}" if "#" in pointer else f"{pointer}#/properties/{segment}"
+    file_ref, separator, body = pointer.partition("#")
+    path = ARTIFACTS / file_ref
+    document = load_json(lint, path) if path.is_file() else None
+    if document is None:
+        return None
+    try:
+        node = resolve_json_pointer(document, f"#{body}" if separator else "")
+    except (KeyError, IndexError, ValueError):
+        return None
+    members = _declared_schema_members(lint, pointer)
+    if members is None:
+        return None
+    return members - _forbidden_member_names(node)
+
+
+def check_result_value_member_closure(lint: Lint) -> None:
+    """Every member of a covered result value has a registered source on every write.
+
+    A schema declaration is not a maintenance rule. `view_value` declares
+    `updated_by`, `updated_at` and `state_changed_at`; all three are in
+    `universal_forbidden_patch_paths`, so no author can ever supply them, and
+    before this gate nothing required any write to produce them. The result was
+    visible in the registry and invisible to every check: `ak.view.create` set
+    the whole `payload.object` snapshot, which carried author-supplied
+    `updated_by` / `updated_at` straight into the family, while the update path
+    had no producer at all -- the same three members, author-written on one write
+    of one family and unwritten on another. The only thing the old gate asked was
+    whether a `derived_members[]` name it found was in the closed vocabulary; it
+    never asked whether a member that MUST be maintained had a producer, and
+    omitting `derived_members[]` entirely passed.
+
+    So the check runs in both directions, per result family that declares
+    `value_member_maintenance` in `reducer-managed-path-registry.json`:
+
+    * every name a write declares -- author-writable, derived or retained -- MUST
+      be a declared member of that family's value schema, and the three roles are
+      disjoint;
+    * every unconditionally required member of the value schema MUST be accounted
+      for by exactly one of the three on every write into the family;
+    * `always_maintained` members MUST be produced by every write, which is what
+      an optional-but-reducer-owned metadata field needs and what a
+      required-members-only rule cannot express;
+    * a `conditional_producers` member MUST be produced by the writes it names and
+      by no others;
+    * a `create_locked` member MUST be produced by the writes its `producer_kinds`
+      names and retained verbatim by every other write of the family, which is the
+      half a "who derives it" rule cannot state: nothing stopped a later write from
+      silently re-authoring an identity member it was supposed to carry.
+
+    Optional members may legitimately be absent, so absence alone is not a
+    failure. The coverage frontier is declared rather than assumed: a family
+    without `value_member_maintenance` is not measured here, and its registry row
+    names the owner that closes it.
+    """
+    data = load_json(lint, REDUCER_MANAGED_PATH_REGISTRY)
+    if not isinstance(data, dict):
+        lint.fail(REDUCER_MANAGED_PATH_REGISTRY, "registry must be an object")
+        return
+    covered: dict[str, dict[str, Any]] = {}
+    for array_name in ("objects", "non_object_results"):
+        for row in data.get(array_name) or []:
+            if not isinstance(row, dict):
+                continue
+            maintenance = row.get("value_member_maintenance")
+            if not isinstance(maintenance, dict):
+                continue
+            family = row.get("result_family")
+            value_schema_ref = row.get("value_schema_ref")
+            if not isinstance(family, str) or not isinstance(value_schema_ref, str):
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"{array_name}[] row declaring value_member_maintenance MUST carry "
+                    "result_family and value_schema_ref",
+                )
+                continue
+            if not isinstance(maintenance.get("owner"), str) or not maintenance["owner"]:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"value_member_maintenance for family {family!r} MUST name the normative owner",
+                )
+            covered[family] = {"row": row, "maintenance": maintenance, "value": value_schema_ref}
+    if not covered:
+        lint.fail(
+            REDUCER_MANAGED_PATH_REGISTRY,
+            "no result family declares value_member_maintenance; the member-source closure would "
+            "then be vacuous",
+        )
+        return
+
+    registry = load_json(lint, EVENT_KIND_REGISTRY)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        return
+
+    seen_writes: dict[str, list[str]] = {family: [] for family in covered}
+    produced: dict[str, dict[str, set[str]]] = {family: {} for family in covered}
+    carried: dict[str, dict[str, set[str]]] = {family: {} for family in covered}
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = row.get("event_kind")
+        for index, write in enumerate(row.get("result_writes") or []):
+            if not isinstance(write, dict):
+                continue
+            family = write.get("result_family")
+            entry = covered.get(family) if isinstance(family, str) else None
+            if entry is None:
+                continue
+            where = f"{kind}.result_writes[{index}]"
+            seen_writes[family].append(where)
+            value_schema_ref = write.get("value_schema_ref")
+            if value_schema_ref != entry["value"]:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.value_schema_ref {value_schema_ref!r} is not the registered value schema "
+                    f"{entry['value']!r} of covered family {family!r}",
+                )
+                continue
+            declared = _declared_schema_members(lint, value_schema_ref)
+            if declared is None:
+                lint.fail(EVENT_KIND_REGISTRY, f"{where}.value_schema_ref does not resolve")
+                continue
+            required = _required_schema_members(lint, value_schema_ref)
+            projection = write.get("result_projection")
+            projection = projection if isinstance(projection, dict) else {}
+            projection_kind = projection.get("kind")
+            projected: set[str] = set()
+            if projection_kind == "apply_patch":
+                authored = {
+                    item for item in projection.get("allowed_paths") or [] if isinstance(item, str)
+                }
+            elif projection_kind in {"set", "merge"}:
+                value = projection.get("value")
+                if isinstance(value, dict) and "field" in value:
+                    authored = _authored_members(
+                        lint, where, row.get("payload_schema_ref"), value.get("field")
+                    )
+                    if authored is None:
+                        lint.fail(
+                            EVENT_KIND_REGISTRY,
+                            f"{where}.result_projection.value.field does not resolve to a closed author "
+                            "payload region, so its authored members cannot be checked against "
+                            f"{value_schema_ref!r}",
+                        )
+                        continue
+                else:
+                    # A value_projection names its members outright.
+                    value_projection = projection.get("value_projection")
+                    members = (
+                        value_projection.get("members")
+                        if isinstance(value_projection, dict)
+                        else None
+                    )
+                    if not isinstance(members, list):
+                        lint.fail(
+                            EVENT_KIND_REGISTRY,
+                            f"{where} writes a covered family but names neither a payload field nor "
+                            "value_projection members, so no member source can be resolved",
+                        )
+                        continue
+                    # A value_projection member is author input only when it
+                    # reads a payload field. `literal` and `envelope_field`
+                    # members are produced by the projection itself from the
+                    # signed envelope or from a fixed constant, so they account
+                    # for the member without handing it to the author -- the
+                    # genesis authority root is exactly that shape.
+                    authored = {
+                        item["name"]
+                        for item in members
+                        if isinstance(item, dict)
+                        and isinstance(item.get("name"), str)
+                        and "field" in item
+                    }
+                    projected = {
+                        item["name"]
+                        for item in members
+                        if isinstance(item, dict)
+                        and isinstance(item.get("name"), str)
+                        and "field" not in item
+                    }
+            else:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.result_projection.kind {projection_kind!r} has no registered member-source "
+                    f"reading for covered family {family!r}",
+                )
+                continue
+            derived = {
+                item.get("name")
+                for item in write.get("derived_members") or []
+                if isinstance(item, dict) and isinstance(item.get("name"), str)
+            }
+            retained_rows = write.get("retained_members")
+            if retained_rows is not None and (
+                not isinstance(retained_rows, list)
+                or not retained_rows
+                or not all(isinstance(item, str) and item for item in retained_rows)
+                or len(retained_rows) != len(set(retained_rows))
+            ):
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where}.retained_members must be a unique non-empty array of value member names",
+                )
+                retained_rows = None
+            retained = set(retained_rows or [])
+            for label, names in (
+                ("authored", authored),
+                ("projection-derived", projected),
+                ("derived", derived),
+                ("retained", retained),
+            ):
+                unknown = sorted(names - declared)
+                if unknown:
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where} declares {label} member(s) {unknown} that {value_schema_ref} does not "
+                        "declare",
+                    )
+            for left_label, left, right_label, right in (
+                ("authored", authored, "retained", retained),
+                ("derived", derived, "retained", retained),
+            ):
+                overlap = sorted(left & right)
+                if overlap:
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where} lists {overlap} as both {left_label} and {right_label}; one member has "
+                        "exactly one source on one write",
+                    )
+            unaccounted = sorted(required - (authored | projected | derived | retained))
+            if unaccounted:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} leaves required member(s) {unaccounted} of {value_schema_ref} with no "
+                    "registered source: name them as author input, derived_members[] or retained_members[]",
+                )
+            for name in retained:
+                carried[family].setdefault(name, set()).add(where)
+            for name in derived:
+                produced[family].setdefault(name, set()).add(where)
+            for item in write.get("derived_members") or []:
+                if not isinstance(item, dict):
+                    continue
+                name = item.get("name")
+                if isinstance(name, str):
+                    produced[family].setdefault(name, set()).add(where)
+            forbidden = _effective_forbidden_paths(lint, where, write, kind)
+            if forbidden is not None:
+                reserved = sorted(
+                    path for path in authored if _names_a_forbidden_path(path, forbidden)
+                )
+                if reserved:
+                    lint.fail(
+                        EVENT_KIND_REGISTRY,
+                        f"{where} lets the author supply reducer-managed member(s) {reserved}; a "
+                        "whole-value projection MUST NOT reach what a patch may not reach",
+                    )
+
+    for family, entry in covered.items():
+        maintenance = entry["maintenance"]
+        writes = seen_writes[family]
+        if not writes:
+            lint.fail(
+                REDUCER_MANAGED_PATH_REGISTRY,
+                f"family {family!r} declares value_member_maintenance but has no registered write",
+            )
+            continue
+        for item in maintenance.get("always_maintained") or []:
+            if not isinstance(item, dict):
+                continue
+            path = item.get("name") or item.get("path")
+            derivation = item.get("derivation")
+            if not isinstance(path, str):
+                continue
+            if derivation not in CELL_WRITE_DERIVATIONS:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"always_maintained {path!r} of family {family!r} names derivation "
+                    f"{derivation!r}, which is not in the closed derivation vocabulary",
+                )
+            missing = sorted(set(writes) - produced[family].get(path, set()))
+            if missing:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"family {family!r} requires {path!r} to be maintained by every write, but "
+                    f"{missing} produce no such derived member",
+                )
+        for item in maintenance.get("create_locked") or []:
+            if not isinstance(item, dict):
+                continue
+            path = item.get("path")
+            derivation = item.get("derivation")
+            producer_kinds = item.get("producer_kinds")
+            if not isinstance(path, str) or not isinstance(producer_kinds, list):
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"create_locked row of family {family!r} MUST carry path and producer_kinds",
+                )
+                continue
+            if derivation not in CELL_WRITE_DERIVATIONS:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"create_locked {path!r} of family {family!r} names derivation {derivation!r}, "
+                    "which is not in the closed derivation vocabulary",
+                )
+            if not isinstance(item.get("justification"), str) or not item["justification"]:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"create_locked {path!r} of family {family!r} MUST say why the member cannot be "
+                    "author input",
+                )
+            creators = {
+                where for where in writes if where.split(".result_writes[")[0] in producer_kinds
+            }
+            if not creators:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"create_locked {path!r} of family {family!r} names producer_kinds "
+                    f"{producer_kinds}, none of which registers a write into the family",
+                )
+            missing = sorted(creators - produced[family].get(path, set()))
+            if missing:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"family {family!r} locks {path!r} at create, but {missing} declare no "
+                    f"derived_members[] entry producing it",
+                )
+            re_derived = sorted(produced[family].get(path, set()) - creators)
+            if re_derived:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{re_derived} re-derive create-locked member {path!r} of family {family!r}; "
+                    "after create it may only be retained",
+                )
+            uncarried = sorted(set(writes) - creators - carried[family].get(path, set()))
+            if uncarried:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"family {family!r} locks {path!r} at create, but {uncarried} neither retain it "
+                    "nor are registered creators: a create-locked member MUST be carried verbatim by "
+                    "every other write",
+                )
+        for item in maintenance.get("conditional_producers") or []:
+            if not isinstance(item, dict):
+                continue
+            path = item.get("path")
+            derivation = item.get("derivation")
+            allowed_kinds = item.get("producer_kinds")
+            if not isinstance(path, str) or not isinstance(allowed_kinds, list):
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"conditional_producers row of family {family!r} MUST carry path and producer_kinds",
+                )
+                continue
+            if derivation not in CELL_WRITE_DERIVATIONS:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"conditional_producers {path!r} of family {family!r} names derivation "
+                    f"{derivation!r}, which is not in the closed derivation vocabulary",
+                )
+            if not isinstance(item.get("condition"), str) or not item["condition"]:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"conditional_producers {path!r} of family {family!r} MUST state the condition under "
+                    "which the member is produced",
+                )
+            actual = produced[family].get(path, set())
+            expected = {
+                where for where in writes if where.split(".result_writes[")[0] in allowed_kinds
+            }
+            if not expected:
+                lint.fail(
+                    REDUCER_MANAGED_PATH_REGISTRY,
+                    f"conditional_producers {path!r} of family {family!r} names producer_kinds "
+                    f"{allowed_kinds}, none of which registers a write into the family",
+                )
+            missing = sorted(expected - actual)
+            if missing:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"family {family!r} registers {allowed_kinds} as the producer(s) of {path!r}, but "
+                    f"{missing} declare no such derived member",
+                )
+            extra = sorted(actual - expected)
+            if extra:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{extra} produce {path!r} for family {family!r}, which "
+                    f"reducer-managed-path-registry.json assigns to {allowed_kinds} alone",
+                )
 
 
 def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, projection: dict) -> None:
@@ -1117,6 +1751,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                 "condition",
                 "result_projection",
                 "derived_members",
+                "retained_members",
                 "value_schema_ref",
                 "notes",
             }
@@ -1215,7 +1850,7 @@ def check_result_write_contracts(lint: Lint) -> None:
                             source["field"],
                         )
             elif projection["kind"] == "apply_patch":
-                _check_result_apply_patch_projection(lint, where, write, projection)
+                _check_result_apply_patch_projection(lint, where, write, projection, kind)
             elif projection["kind"] in _RESULT_KEYED_SET_KINDS:
                 _check_result_keyed_set_projection(lint, where, write, projection)
             elif "value" not in projection and "value_projection" not in projection:

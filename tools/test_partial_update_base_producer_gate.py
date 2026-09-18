@@ -115,7 +115,13 @@ class PartialUpdateBaseProducerTest(_GateHarness):
                     produced.add(family)
         self.assertEqual(
             updated,
-            {"capability_grant", "consent", "mls_group", "realm_authority_root"},
+            # `view` joined the partial-update families when `ak.view.update`
+            # became registerable at all: `models/views.md` section 3.1 makes
+            # that patch the only protocol-level removal path for a shared View,
+            # and the registry consumer that flattened every object's paths into
+            # one set turned red on the one write the spec cannot do without.
+            # Its base producer is `ak.view.create`'s whole-value `set`.
+            {"capability_grant", "consent", "mls_group", "realm_authority_root", "view"},
         )
         self.assertLessEqual(updated, produced)
 

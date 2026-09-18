@@ -376,6 +376,20 @@ OBJECT_ROW_FIELDS = (
     "forbidden_patch_paths",
 )
 
+# Optional, but not freely optional. The registry answered "which patch paths
+# does the reducer own" without ever saying which typed current result family
+# those paths belong to, so a consumer had to guess the target from a family
+# name or a field spelling -- and the first one did not even try: it flattened
+# every row into one set. `result_family` is absent only where no family is
+# registered at all, which for five of the seven object kinds is the case, and
+# is the subject the gap owner names.
+OBJECT_ROW_OPTIONAL_FIELDS = (
+    "result_family",
+    "value_schema_ref",
+    "value_member_maintenance",
+    "value_schema_open_gap_owner",
+)
+
 FORBIDDEN_ROW_FIELDS = (
     "path",
     "basis",
@@ -387,6 +401,55 @@ FORBIDDEN_ROW_FIELDS = (
 )
 
 EXEMPTION_ROW_FIELDS = ("path", "owner_kind", "owner", "justification")
+
+
+def _check_row_value_coverage(
+    lint: Lint, path: Path, label: str, row: dict, result_families: set[str]
+) -> None:
+    """A row declares its result family, and either its value schema or its gap owner.
+
+    `value_member_maintenance` is what makes the member-source closure gate
+    measure a family at all, so an undeclared row is an unmeasured family. That
+    is defensible -- one report cannot close ten object kinds -- but only when
+    the frontier is written down. An optional field with no rule would let the
+    frontier grow back silently, one quiet row at a time.
+    """
+    family = row.get("result_family")
+    has_family = isinstance(family, str) and bool(family)
+    if has_family and result_families and family not in result_families:
+        lint.fail(
+            path,
+            f"{label}.result_family {family!r} is not registered in current-result-registry.json",
+        )
+    has_value = isinstance(row.get("value_schema_ref"), str) and row["value_schema_ref"]
+    if has_value and not has_family:
+        lint.fail(
+            path,
+            f"{label} declares value_schema_ref without result_family, so nothing says which typed "
+            "current result the value belongs to",
+        )
+    gap_owner = row.get("value_schema_open_gap_owner")
+    has_gap = isinstance(gap_owner, str) and gap_owner
+    if has_value == has_gap:
+        lint.fail(
+            path,
+            f"{label} must declare exactly one of value_schema_ref (the family value whose members its "
+            "ownership rules are solved against) or value_schema_open_gap_owner (the report that closes "
+            "it); declaring both, or neither, leaves the coverage frontier unstated",
+        )
+    if not has_family and not has_gap:
+        lint.fail(
+            path,
+            f"{label} registers reducer-managed paths for an object with no typed current result "
+            "family and names no owner for that gap; the paths would then guard a value nothing "
+            "writes",
+        )
+    if "value_member_maintenance" in row and not has_value:
+        lint.fail(
+            path,
+            f"{label} declares value_member_maintenance without value_schema_ref, so there is no value "
+            "whose members the maintenance rules could be checked against",
+        )
 
 
 def check_reducer_managed_path_registry(lint: Lint) -> None:
@@ -459,9 +522,10 @@ def check_reducer_managed_path_registry(lint: Lint) -> None:
         if missing:
             lint.fail(path, f"{label} missing field(s): {', '.join(missing)}")
             continue
-        unknown = sorted(set(row) - set(OBJECT_ROW_FIELDS))
+        unknown = sorted(set(row) - set(OBJECT_ROW_FIELDS) - set(OBJECT_ROW_OPTIONAL_FIELDS))
         if unknown:
             lint.fail(path, f"{label} declares unknown field(s): {', '.join(unknown)}")
+        _check_row_value_coverage(lint, path, label, row, result_families)
 
         object_kind = row["object_kind"]
         if not isinstance(object_kind, str) or not PATCH_PATH_RE.fullmatch(object_kind):

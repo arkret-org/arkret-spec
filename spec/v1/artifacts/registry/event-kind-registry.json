@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.10",
+  "version": "2026-09-18.11",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T04:10:00+08:00",
+  "generated_at": "2026-09-19T05:20:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -95,7 +95,7 @@
     "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 70 of the 140 reducer_input kinds declare it; the remaining 70 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 71 of the 140 reducer_input kinds declare it; the remaining 69 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -3122,6 +3122,10 @@
               "derivation": "realm_authority_generation_successor"
             }
           ],
+          "retained_members": [
+            "controller_actor_id",
+            "controller_epoch"
+          ],
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
           "notes": "authz/capabilities.md section on authority-root successor counters fixes the whole write: the payload carries no patch, so allowed_paths is empty and the only change is the derived successor generation; controller_actor_id and controller_epoch are preserved verbatim from the CAS-frozen pre-state. Overflow of the JSON safe-integer ceiling MUST fail the Event with realm_authority_root_conflict rather than wrap, saturate or keep the old value. This is the only kind that advances authority_generation, which is why a realm_root grant ref binding a generation is a revocable delegation rather than a permanent one."
         }
@@ -3632,6 +3636,9 @@
               "name": "controller_epoch",
               "derivation": "realm_controller_epoch_successor"
             }
+          ],
+          "retained_members": [
+            "authority_generation"
           ],
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
           "notes": "authz/capabilities.md section on authority-root successor counters fixes the write: controller_actor_id is the single author-writable member and controller_epoch is derived by checked_add from the CAS-frozen pre-state, so no counter is author-selectable. authority_generation is preserved verbatim, which is what keeps every existing child grant valid across a controller rotation. Overflow MUST fail the Event with realm_authority_root_conflict. Without this write the registered controller rotation of models/realm-and-space.md section 2.5 had no machine expression at all and controller_epoch could never leave the genesis literal 0."
@@ -4649,7 +4656,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View create",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_payload",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_create_payload",
       "id_source": "event_derived",
       "id_kind": "view",
       "result_writes": [
@@ -4665,7 +4672,37 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
-          "notes": "models/views.md section 3.2 table row 1. The selector carries no field because ak.view.create is id_source=event_derived: the View id IS this Event's own event_id retyped, so naming a payload field would claim a second, forgeable source. The projection is the whole payload.object snapshot; the value MUST NOT keep the self-reportable id."
+          "notes": "models/views.md section 3.2 table row 1. The selector carries no field because ak.view.create is id_source=event_derived: the View id IS this Event own event_id retyped, so naming a payload field would claim a second, forgeable source. payload.object is the closed author definition -- the same region ak.view.reconcile replaces -- and NOT the materialized object: everything the author does not define is produced here by the registered create-lock derivations of common-fields.md section 3.3. That is the whole-value spelling of the rule the patch surface already enforces: a snapshot MUST NOT forge what a patch may not reach. Before this, the author region still declared schema, realm_id, created_by, created_at and state, and every later write retained those values verbatim, so a self-reported creator or realm became the permanent create-locked truth of the object.",
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "state",
+              "derivation": "object_initial_state"
+            },
+            {
+              "name": "created_by",
+              "derivation": "object_create_actor"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ]
         }
       ]
     },
@@ -4693,7 +4730,24 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
-          "notes": "models/views.md section 3.2 table row 3 and the normative paragraph under it: reconcile is neither create's snapshot nor update's patch, it replaces the definition wholesale, and it writes the SAME family as the other two kinds -- definition is the complete view.schema.json object, not a second business object. It MUST reject a tombstoned target with failed_precondition reason_code=view_already_terminal, MUST NOT resurrect a terminal View and MUST NOT carry an id. ak.view.update writes this family too but is not declared here yet: its apply_patch needs the allowed_paths set that section 3.1's canonical-state sentence implies but does not enumerate, so it stays one of the reducer_input kinds the result_writes coverage note tracks."
+          "notes": "models/views.md section 3.2 table row 3 and the normative paragraph under it: reconcile is neither create object snapshot nor update patch, it replaces the definition wholesale, and it writes the SAME family as the other two kinds -- definition is the complete author-editable View definition, not a second business object. payload.definition is view.schema.json#/$defs/view_definition rather than the materialized object: a materialized schema used as an authoring input reopens exactly the ownership the patch surface protects. The reducer composes the accepted definition with the retained members and the derived update metadata and validates the complete result against the materialized schema. state is retained, so reconcile can neither tombstone nor resurrect; it MUST reject a tombstoned target with failed_precondition reason_code=view_already_terminal and MUST NOT carry an id.",
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "state",
+            "created_by",
+            "created_at"
+          ]
         }
       ]
     },
@@ -4705,8 +4759,60 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View update",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_payload",
-      "id_source": "not_an_object_id"
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/view_update_payload",
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "view",
+          "result_selector": {
+            "kind": "id:view",
+            "field": "payload.view_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "kind",
+              "renderer",
+              "title",
+              "visibility",
+              "state",
+              "query",
+              "visible_fields",
+              "layout",
+              "collection",
+              "timeline",
+              "graph",
+              "document",
+              "dashboard"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            },
+            {
+              "name": "state_changed_at",
+              "derivation": "object_state_transition_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
+          "notes": "models/views.md section 3.2 table row 2, and the one write section 3.1 makes normatively load-bearing: a shared View has no tombstone event kind, so its protocol-level removal IS this patch setting state=tombstoned. allowed_paths is not a new enumeration -- it is the complement the reducer-managed-path-registry already fixed: the 21 declared View members minus the effective forbidden set for this object, with `state` subtracted by the single registered universal exemption. The registry is read per object, so another family declaring `stage` or `resolution` cannot narrow this set and this exemption cannot widen theirs. state_changed_at stays reducer-derived and conditional: only an accepted active -> tombstoned transition produces it, an author-supplied value MUST be rejected, and a terminal View MUST fail any later update or reconcile with failed_precondition reason_code=view_already_terminal. The four retained members are the create-locked identity and creation metadata, preserved verbatim from the frozen pre-state; a patch MUST NOT reach them and this write MUST NOT re-derive them."
+        }
+      ]
     }
   ],
   "actor_private_contracts": {

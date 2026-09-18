@@ -3124,7 +3124,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/view_payload"
+            "$ref": "./event-payload.schema.json#/$defs/view_create_payload"
           }
         }
       }
@@ -3162,7 +3162,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/view_payload"
+            "$ref": "./event-payload.schema.json#/$defs/view_update_payload"
           }
         }
       }

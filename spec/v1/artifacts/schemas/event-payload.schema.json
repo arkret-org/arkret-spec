@@ -9313,72 +9313,9 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
       "description": "DID URL of a concrete verification method. Bare DIDs are not valid where a key binding is required."
     },
-    "view_payload": {
-      "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "object"
-          ]
-        },
-        {
-          "required": [
-            "view_id",
-            "patch"
-          ]
-        },
-        {
-          "required": [
-            "definition"
-          ]
-        }
-      ],
-      "properties": {
-        "definition": {
-          "type": "object"
-        },
-        "expected_state_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. contract-registry.json registers nothing for it: the v1 result_projection grammar has no expected_prestate member, so this is an admission rule beside the projection rather than part of it."
-        },
-        "object": {
-          "allOf": [
-            {
-              "$ref": "./view.schema.json"
-            },
-            {
-              "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id (event-kind-registry.json declares id_source=event_derived for ak.view.create), so carrying it in the payload is schema_violation reason object_id_not_event_derived. `type` stays banned because the object kind comes from the typed-id prefix. Reusing view.schema.json also closes the payload: state_changed_at is reducer-derived and view.schema.json already forbids it on any View whose state is not tombstoned.",
-              "not": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "id"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "type"
-                    ]
-                  }
-                ]
-              }
-            }
-          ],
-          "description": "ak.view.create object snapshot: the full View object schema minus the id. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance."
-        },
-        "patch": {
-          "$ref": "#/$defs/patch"
-        },
-        "view_id": {
-          "type": "string",
-          "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
-        }
-      },
-      "additionalProperties": false
-    },
     "view_reconcile_payload": {
       "type": "object",
-      "description": "Payload for ak.view.reconcile. view_id is the view typed current result subject -- zh/models/views.md section 3.2 is normative that all three View kinds write ONE family, so the family is named for the View, not for this payload; definition is the whole View definition object being synced (zh/models/views.md section 3.2). Reconcile is neither ak.view.create's object snapshot nor ak.view.update's patch: it replaces the definition wholesale, so it MUST NOT be dispatched to the shared view_payload, whose definition branch does not even require view_id.",
+      "description": "Payload for ak.view.reconcile. view_id is the view typed current result subject -- zh/models/views.md section 3.2 is normative that all three View kinds write ONE family, so the family is named for the View, not for this payload. definition is the complete author-editable definition (view.schema.json #/$defs/view_definition), not an author-overwritable copy of the materialized object: identity, Realm, schema, creation metadata and lifecycle state are retained from the target pre-state, and update provenance is derived from this Event. Reconcile is neither create object snapshot nor update patch: it replaces the definition wholesale.",
       "required": [
         "view_id",
         "definition"
@@ -9389,7 +9326,7 @@
           "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
         },
         "definition": {
-          "$ref": "./view.schema.json"
+          "$ref": "./view.schema.json#/$defs/view_definition"
         }
       },
       "additionalProperties": false
@@ -9515,6 +9452,42 @@
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "JCS SHA-256 digest of the authority-root typed current result value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite. The successor generation is uniquely computed from the pre-state this digest freezes, so no counter is carried on the wire."
+        }
+      },
+      "additionalProperties": false
+    },
+    "view_create_payload": {
+      "type": "object",
+      "description": "Payload for ak.view.create. zh/models/views.md section 3.2 gives the three View kinds three different author loads over one typed current result family; one shared def with an anyOf of the three branches and no event_kind discriminator admitted every shape on every kind -- an ak.view.update could carry an unconstrained definition object, and an ak.view.create could carry {view_id, patch}. Each kind now binds exactly one closed payload.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./view.schema.json#/$defs/view_definition",
+          "description": "ak.view.create author definition: the same closed authoring region ak.view.reconcile replaces wholesale, NOT the materialized object. The earlier shape was the materialized View minus four banned members, which still handed the author schema, realm_id, created_by, created_at and state -- the create-locked members every later write retains verbatim, so a self-reported creator or realm became permanent truth, and a create could start a View outside its initial state. Those five are now produced by the registered create-lock derivations of zh/models/common-fields.md section 3.3, which also removes the prose-only cross-check that created_by and created_at had to equal the envelope: there is nothing left to cross-check when the reducer is the only writer."
+        }
+      },
+      "additionalProperties": false
+    },
+    "view_update_payload": {
+      "type": "object",
+      "description": "Payload for ak.view.update: the incremental patch surface, and the only shared-View removal path (zh/models/views.md section 3.1). It MUST NOT carry an object snapshot or a whole definition -- those are create and reconcile -- and view_id is required because it is the typed current result subject.",
+      "required": [
+        "view_id",
+        "patch"
+      ],
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "pattern": "^ak:view:[A-Za-z0-9_-]{44}$"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "Signed frozen pre-state guard. It names the exact committed current value this patch was authored against: the single value the target typed current result holds at the position the write is applied, per the accepted order of its own stream. A mismatch fails the Event; it MUST NOT be resolved by choosing an older historical candidate that does match. contract-registry.json registers nothing for it because the v1 result_projection grammar has no expected_prestate member, so it is an admission rule beside the projection rather than part of it."
         }
       },
       "additionalProperties": false

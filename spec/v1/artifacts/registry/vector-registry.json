@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.4",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-18T23:40:00+08:00",
+  "generated_at": "2026-09-19T13:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4599,9 +4599,10 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Shared View removal is an ak.view.update patch setting state=tombstoned, so that patch MUST be accepted; state_changed_at is reducer-derived and an actor-supplied value MUST be rejected by view.schema.json.",
+      "description": "Shared View removal is an ak.view.update patch setting state=tombstoned, so that patch MUST be accepted; state_changed_at is reducer-derived and an actor-supplied value MUST be rejected. The acceptance half is the load-bearing one: a shared View has no tombstone Event kind, so that patch IS the removal path, and while the reducer-managed path registry was read as one flat set the write could not be registered at all. The vector was description-only until view-write-contract-fixture.json gave it two executable faces: cases[] validates every payload shape against the live schemas and the live allowed_paths, and admission_cases[] pins the outcomes schema validation cannot express -- the admitted transition, the terminal gate on later update and reconcile, the refusal of an unset or an unregistered state, the refusal of an update or reconcile of a View no registered create ever wrote, shared -> private, a stale expected_state_digest that MUST NOT be resolved against an older matching value, an exact retry that produces no second effect, and a mixed patch that stores nothing. The fixture also pins the spelling: a patch map's keys ARE its paths, so the removal patch is {\"state\": \"tombstoned\"} and a {\"set\": {...}} wrapper is a patch on a member named `set` that no allowed_paths entry admits.",
       "source_refs": [
-        "spec/v1/zh/models/views.md"
+        "spec/v1/zh/models/views.md",
+        "spec/v1/artifacts/fixtures/view-write-contract-fixture.json"
       ]
     },
     {

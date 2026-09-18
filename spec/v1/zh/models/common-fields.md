@@ -375,6 +375,65 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 
 > 说明：§3.2 排序硬规则已由 `tools/artifact_lint` 的 `check_field_order` 自动校验——递归全部 `artifacts/schemas/*.schema.json` 的每个 `properties` 对象，强制 `created_by < created_at < updated_at`、`updated_by < updated_at`，以及 `state_changed_at` / `stage_changed_at` 紧邻 `state` / `stage`。规则按字段存在性条件触发，故 Read Cursor（无 `created_at`）、Capability Grant（用 `issued_at`）等有意例外天然不触发，无需白名单。
 
+### 3.3 公共元数据的来源与维护闭包（normative）
+
+物化对象的每个成员都 MUST 有一个已登记来源，且该对象 family 的**每一条**已登记写入都 MUST 对该成员给出明确维护方式。
+仅在 schema 里声明一个字段不证明它会被维护：一个从 create 复制进来、此后任何更新都不再触碰的 `updated_by`
+既通过 schema 校验，也通过任何只检查"写下的派生名是否登记"的门禁，却在每次更新后指向一个并未作者本次值的 Actor。
+
+来源词表是封闭的，且 MUST NOT 全部压进 reducer 派生白名单：
+
+| 来源 | 含义 | 机器表达 |
+| --- | --- | --- |
+| 作者输入 | 成员取自签名 Event 的闭合作者载荷 | `apply_patch` 的 `allowed_paths[]`，或 whole-value 投影所读的闭合作者载荷区域的声明属性 |
+| reducer 派生 | 成员由本次已接受 Event / RealmCommit 按固定规则算出 | `result_writes[].derived_members[]`，`derivation` 取自封闭派生名集合 |
+| 前态保留 | 成员逐字保留冻结前态的值，本次写入不改变它 | `result_writes[].retained_members[]` |
+| create-locked | 成员由 create 写入一次性确定，此后只能以前态保留出现 | registry 的 `create_locked[]`：仅 `producer_kinds` 命名的写入以 `derived_members[]` 产出，family 的其它每一条写入都 MUST 在 `retained_members[]` 里列出它 |
+| 专属事件维护 | 成员只由某个专属 event kind 写 | 该 kind 的已登记写入；其它写入 MUST NOT 产出它 |
+
+三种角色 MUST 互斥：同一成员在同一条写入上不能既是作者输入又是派生，也不能既是派生又是前态保留。
+每条写入声明的名字 MUST 是该 value schema 已声明的成员；value schema 的每个必填成员 MUST 被三者之一恰好覆盖一次。
+可选成员 MAY 按合同缺席，但**规范要求出现或要求随写入变化的成员若没有生产／维护规则，门禁 MUST 转红**。
+
+公共元数据的派生规则本身是可复用的，不是某个对象的专用字符串。v1 登记八个公共派生名。
+
+**更新元数据（三个）：**
+
+- `object_update_actor`：`updated_by` = 本次已接受 Event 的 `actor_id`（§3 表）。对象 family 的每一条已登记写入都 MUST 产出它。
+- `object_update_time`：`updated_at` = 本次已接受 Event 的 canonical lifecycle timestamp，即 §3 为 `state_changed_at`
+  定义的同一公式 `max(Event.created_at, accepting_committed_at)`；普通 Event 无 accepting RealmCommit 时取 `created_at`。
+  MUST NOT 使用本地接收时间、任意客户端值或独立墙钟。结果 MUST 满足 §3 的 `created_at` ≤ `updated_at`。对象 family 的每一条已登记写入都 MUST 产出它。
+- `object_state_transition_time`：`state_changed_at`，条件性产出——仅当本次写入被接受为一次真实 state 转换时产出，
+  公式同上，并 MUST 满足 `state_changed_at` ≤ `updated_at`。只有已登记为该转换承载者的 event kind 可以产出它。
+
+**create-locked 身份与创建元数据（五个）**：这五个成员 MUST NOT 出现在任何写入的作者输入区域里——
+包括 create 自己的。一个仍然声明它们的 create 作者载荷等于让签名 Event 自报创建者、自报所属 Realm、
+自报初始 state，而后续写入逐字保留该值，伪造因此成为永久的 create-locked 真相；
+`state` 之类成员在 `universal_forbidden_patch_paths` 里被 patch 面挡住，却从 create 的 whole-value 快照里整个漏进来，
+正是"patch 不能碰的，快照不得伪造"这一条在 v1 之前无人强制的结果。
+
+- `object_schema_identifier`：`schema` = 该对象 kind 在 [`schema-registry.json`](../../artifacts/registry/schema-registry.json)
+  中登记的 schema 标识常量，由 event kind 到对象 kind 的登记关系确定，与载荷内容无关。
+- `object_realm_binding`：`realm_id` = 接纳本次 Event 的 stream 所属 Realm，取自已验证 Event envelope，
+  MUST NOT 取自载荷；跨 Realm 的自报值 MUST 被拒绝。
+- `object_create_actor`：`created_by` = 本次已接受 create Event 的 `actor_id`，与 `object_update_actor` 同源，
+  差别只在它此后不再改变。
+- `object_create_time`：`created_at` = create Event 的 canonical lifecycle timestamp，公式同 `object_update_time`。
+  同一条 create 写入产出的 `created_at` 与 `updated_at` MUST 相等。
+- `object_initial_state`：`state` = 该对象 kind 登记的初始生命周期状态。create MUST NOT 创建出非初始状态的对象，
+  因此也 MUST NOT 产出 `state_changed_at`；离开初始状态只能由已登记的转换承载写入完成。
+
+八个名字与 [`../authz/capabilities.md` §10](../authz/capabilities.md) 登记的 capability / consent / authority-root 派生名同属**一个**封闭集合；
+新增任何一个等同新增 normative reducer 规则，MUST 先在正文定义其规范输入、适用写入、条件与确定性输出，再登记到写入行。
+
+以上双向闭包由 [`registry/reducer-managed-path-registry.json`](../../artifacts/registry/reducer-managed-path-registry.json)
+的 `value_member_maintenance` 逐 family 表达（`always_maintained` / `conditional_producers` / `create_locked` 三类规则），
+并由 `check_result_write_contracts` 与 `check_result_value_member_closure` 强制。
+该 registry 同时是"哪些 patch 路径归 reducer 所有"的唯一真源：其有效禁集**逐对象**求解，
+`universal_exemptions` 参与相减而不是被当作禁令，某个对象的专属禁令 MUST NOT 污染另一个恰好同名的 family。
+未声明 `value_member_maintenance` 的 family 属于已声明的覆盖边界，registry 行内 MUST 指出关闭它的 owner；
+这是覆盖边界，不是豁免，不得用来为一条虚假断言背书。
+
 ## 4. 主体引用字段交叉对照
 
 ### 4.1 DID 适用边界

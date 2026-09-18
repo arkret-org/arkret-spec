@@ -469,6 +469,33 @@ CELL_WRITE_DERIVATIONS = {
     "consent_status",
     "realm_authority_generation_successor",
     "realm_controller_epoch_successor",
+    # zh/models/common-fields.md section 3.3 registers the three reusable public
+    # metadata rules. They are not three View-specific strings: every canonical
+    # object carries `updated_by` / `updated_at`, every one of them is in
+    # `universal_forbidden_patch_paths`, and before section 3.3 nothing said who
+    # had to produce them -- so a family could declare the members, let the
+    # create snapshot supply them once, and never maintain them again while every
+    # gate stayed green. `object_state_transition_time` is the conditional one:
+    # it is produced only by the write registered as carrying the transition, and
+    # its absence while the object is not in a terminal state is the contract
+    # rather than a missing producer.
+    "object_update_actor",
+    "object_update_time",
+    "object_state_transition_time",
+    # The create-locked half of the same section. `view_create_payload` used to
+    # hand the author a region that still declared `schema`, `realm_id`,
+    # `created_by`, `created_at` and `state`: a signed create could name someone
+    # else as the creator of the object, bind it to a realm the Event was not
+    # committed into, or start it outside `active` -- and every later write
+    # retained those values verbatim, so the forgery became the permanent
+    # create-locked truth. These five names are the registered producers, and
+    # `create_locked` in reducer-managed-path-registry.json is what forces every
+    # other write of the family to retain rather than re-author them.
+    "object_schema_identifier",
+    "object_realm_binding",
+    "object_create_actor",
+    "object_create_time",
+    "object_initial_state",
 }
 
 
@@ -628,8 +655,6 @@ SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.profile", "realm_profile_payload"),
     ("ak.space.archive", "space_state_transition_payload"),
     ("ak.space.restore", "space_state_transition_payload"),
-    ("ak.view.create", "view_payload"),
-    ("ak.view.update", "view_payload"),
 }
 
 
