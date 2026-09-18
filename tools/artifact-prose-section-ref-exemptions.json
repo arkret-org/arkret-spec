@@ -1,16 +1,7 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T02:55:00+08:00",
+  "version": "2026-09-20.3",
+  "generated_at": "2026-09-20T18:10:00+08:00",
   "description": "Ledger of `<file>.md §N` citations — inside canonical artifacts, and in the prose's own plain text — whose target section does not exist. Every entry is a normative obligation whose stated source has no home: that is a protocol gap, not a numbering slip, so it MUST NOT be repaired by editing the number. `artifact` is the citing file: a path under spec/v1/artifacts, or a zh/... prose page. check_artifact_prose_section_refs and check_prose_plain_text_section_refs both consult this ledger.",
   "ratchet": "This list may only shrink. A new entry is admissible only together with the spec report that owns the gap it records; landing that report MUST remove the entry rather than renumber the citation.",
-  "exemptions": [
-    {
-      "artifact": "zh/conformance/conformance-profiles.md",
-      "target": "zh/conformance/conformance-vectors.md",
-      "section": "1.14",
-      "asserted_by": "SDK clause AK-SDK-014",
-      "reason": "conformance-vectors.md never carried a §1.x level in any commit, and the obligation the row asserts — a production profile rejecting test DIDs, test key ids and test trust domains — appears exactly once in the whole repository: in that row itself. No page defines what counts as test material, no ak.profile.production.* exists to be the subject, and none of the 373 vectors in vector-registry.json covers it, although conformance-profiles.json grades the clause V and demands a vector_result. Renumbering would point a MUST with no content at a section that does not assert it.",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-0230-ak-sdk-014-asserts-a-must-with-no-source-and-no-evidence.md"
-    }
-  ]
+  "exemptions": []
 }

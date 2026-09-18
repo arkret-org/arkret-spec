@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T11:30:00+08:00",
+  "version": "2026-09-20.3",
+  "generated_at": "2026-09-20T17:45:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2388,20 +2388,20 @@
       "description": "A agent_control ak.realm.create was submitted without an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). The genesis carries no ref to its provision, so this reverse look-up is the whole binding: no match MUST fail closed with zero writes, and the receiver MUST NOT materialize the Realm, the agent-status transition or any partial projection. See zh/identity/key-management.md §3.6.3."
     },
     {
-      "code": "agent_provisioning_already_declared",
-      "applies_to": [
-        "event_envelope",
-        "service_call"
-      ],
-      "description": "A second ak.agent.provision declared an agent_id that an accepted provision in this controller PCR already carries in the agent_provisioning family. The write set is empty and the earlier fact is untouched. The realm-id claim cannot catch this case: a second provision freezes a different genesis create, so it declares a different principal_control_realm_id and conflicts with nothing. Re-declaring one agent_id is how the immutable requested_scope ceiling would be widened, which zh/identity/key-management.md section 3.6.1 answers with provisioning a new Agent principal instead. See zh/identity/key-management.md section 3.6.3."
-    },
-    {
       "code": "agent_provision_scope_migration_required",
       "applies_to": [
         "auth_decision",
         "service_call"
       ],
       "description": "The Agent's immutable provision requested_scope omits an operation mandatory for the selected runtime capability. The operation fails with failed_precondition and recovery requires provisioning a new Agent principal; key re-pairing, Realm grants and session issuance MUST NOT widen this ceiling. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json."
+    },
+    {
+      "code": "agent_provisioning_already_declared",
+      "applies_to": [
+        "event_envelope",
+        "service_call"
+      ],
+      "description": "A second ak.agent.provision declared an agent_id that an accepted provision in this controller PCR already carries in the agent_provisioning family. The write set is empty and the earlier fact is untouched. The realm-id claim cannot catch this case: a second provision freezes a different genesis create, so it declares a different principal_control_realm_id and conflicts with nothing. Re-declaring one agent_id is how the immutable requested_scope ceiling would be widened, which zh/identity/key-management.md section 3.6.1 answers with provisioning a new Agent principal instead. See zh/identity/key-management.md section 3.6.3."
     },
     {
       "code": "agent_reply_not_permitted",
@@ -3421,6 +3421,14 @@
         "auth_decision"
       ],
       "description": "An Invite state transition is rejected because the target Invite is already in a terminal flow state (`accepted` / `rejected` / `revoked` / `revoked_by_capability_loss` / `revoked_by_inviter_left` / `expired` / `invalidated_by_rate_limit`). Note the Invite `state` is the invite flow axis (not the generic object lifecycle axis); see zh/models/governance-objects.md §5.3."
+    },
+    {
+      "code": "invite_directed_invitee_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "The invitee account carried by an ak.invite.accept / cancel / revoke payload and the invite_directed_invitee record stored for that InviteId are not both absent and not both present and byte-equal. It closes both directions of zh/models/governance-objects.md section 5.3: a third-party Invite cannot release another account's directed slot with a forged invitee, and a directed Invite cannot hold its slot forever by omitting the field."
     },
     {
       "code": "invite_event_actor_mismatch",
@@ -4884,6 +4892,16 @@
       "description": "Reducer audit reason stamped when one controller-signed ak.agent.key.authorize runtime-replacement Event atomically observe-removes every prior active authorization dot named by its exact supersedes[] set and adds the new authorization. No synthetic ak.agent.key.revoke Event is authored. Sessions issued from superseded keys MUST fail closed within the revocation freshness window. See zh/identity/key-management.md §3.6.1."
     },
     {
+      "code": "test_signing_material_denied",
+      "applies_to": [
+        "auth_decision",
+        "identity_resolution",
+        "proof_verification",
+        "crypto"
+      ],
+      "description": "The presented signing material or identifier is registered in artifacts/registry/test-material-registry.json as published test material or as a reserved test identifier, so it MUST NOT be admitted on a formal verification, authorization or trust-admission path even when the signature verifies: its private key ships with the specification. The refusal is fail-closed and MUST NOT leave a verified binding, a resolution cache entry or accepted auth state behind, MUST NOT degrade to a weaker evidence class, a limited_trust pin or a retryable unavailable, and MUST NOT be reachable through a configuration switch on the formal API. See zh/identity/did-usage-and-verification.md §8."
+    },
+    {
       "code": "third_party_invite_acceptance_missing",
       "applies_to": [
         "service_call",
@@ -5220,14 +5238,6 @@
         "federation_transaction"
       ],
       "description": "Confirmed fork evidence: two byte-distinct canonical Event preimages pass structure, suite and proof prerequisites and independently recompute to the same complete suite-tagged event_id (full-hash collision evidence); two byte-distinct signed RealmCommit objects name the same (stream_ref, stream_position); or a profile declares the observed combination non-joinable. A carried event_id whose recomputed digest differs is only event_id_digest_mismatch and MUST be rejected before quarantine. Two different accepted Events by one actor are not by themselves disagreement: an actor may author any number of Events and event-and-patch.md section 2.6 gives ordering precedence to the RealmCommit alone, so only one stream position carrying two distinct commits is equivocation. Raw stream head differences observed across different replication or disclosure scopes also are not disagreement: a consumer only ever observes the heads of the streams it is granted. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay plus an accepted operator-approved fork resolution. See zh/sync/operations-sync.md §12 and zh/sync/federation.md §4.5.1."
-    },
-    {
-      "code": "invite_directed_invitee_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "The invitee account carried by an ak.invite.accept / cancel / revoke payload and the invite_directed_invitee record stored for that InviteId are not both absent and not both present and byte-equal. It closes both directions of zh/models/governance-objects.md section 5.3: a third-party Invite cannot release another account's directed slot with a forged invitee, and a directed Invite cannot hold its slot forever by omitting the field."
     }
   ],
   "vocabulary": {

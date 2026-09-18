@@ -85,6 +85,28 @@ class MutateFile:
         self.path.write_text(self.original, encoding="utf-8", newline="\n")
 
 
+class WriteLedger:
+    """Replace the exemption ledger's rows, then restore the file verbatim."""
+
+    def __init__(self, rows: list[dict]) -> None:
+        self.rows = rows
+        self.path = ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH
+
+    def __enter__(self) -> "WriteLedger":
+        self.original = self.path.read_text(encoding="utf-8")
+        document = json.loads(self.original)
+        document["exemptions"] = self.rows
+        self.path.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.path.write_text(self.original, encoding="utf-8", newline="\n")
+
+
 class ArtifactProseSectionRefGateTest(unittest.TestCase):
     def test_no_artifact_cites_a_section_that_does_not_exist(self) -> None:
         self.assertEqual([], run_gate())
@@ -183,17 +205,34 @@ class ExemptionLedgerTest(unittest.TestCase):
             )
 
     def test_an_exemption_covers_exactly_the_citation_it_names(self) -> None:
-        """Retarget a live row's section: the citation it named goes red again."""
-        entry = self.ledger["exemptions"][0]
-        self.assertEqual([], run_gate())
-        with MutateFile(
-            ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH,
-            f'"section": "{entry["section"]}"',
-            f'"section": "{entry["section"]}9"',
-        ):
-            errors = run_prose_gate()
-        self.assertEqual(1, len(errors), errors)
-        self.assertIn(entry["target"].removeprefix("zh/"), errors[0])
+        """A synthesized row silences its own citation and nothing else.
+
+        This must not read a live row: the ledger is shrink-only, so it is
+        empty whenever every recorded gap has been landed, and a test that
+        needs a row would reward leaving one behind.
+        """
+        row = {
+            "artifact": "zh/conformance/conformance-profiles.md",
+            "target": "zh/conformance/conformance-vectors.md",
+            "section": "3.44",
+            "reason": "Synthesized by the test suite to prove the ledger silences "
+            "exactly the citation it names and no other; it is written to a "
+            "temporary copy of the file and never committed.",
+            "owner_report": "arkret-work/tasks/spec-open/synthesized-by-tests.md",
+        }
+        with MutateFile(PROFILES, "conformance-vectors §3.4", "conformance-vectors §3.44"):
+            unexempted = run_prose_gate()
+            self.assertEqual(1, len(unexempted), unexempted)
+            self.assertIn("§3.44", unexempted[0])
+
+            with WriteLedger([row]):
+                self.assertEqual([], run_prose_gate())
+
+            with WriteLedger([{**row, "section": "3.449"}]):
+                retargeted = run_prose_gate()
+        self.assertEqual(1, len(retargeted), retargeted)
+        self.assertIn("§3.44", retargeted[0])
+        self.assertIn("conformance-vectors.md", retargeted[0])
 
 
 class ProsePlainTextSectionRefGateTest(unittest.TestCase):

@@ -1,0 +1,197 @@
+{
+  "version": "2026-09-20.1",
+  "source_of_truth": true,
+  "generated_at": "2026-09-20T15:10:00+08:00",
+  "description": "Canonical list of the published test signing material and the reserved test identifiers that identity/did-usage-and-verification.md section 8 refuses on every formal verification, authorization and trust-admission path. Published material is material whose PRIVATE key ships with the specification, so a valid signature over it proves nothing about the signer. Matching is by canonicalized public-key fingerprint over algorithm-defined key material and by the typed identifier rules below; it is never inferred from the words test, fixture, did:key or example appearing in a string.",
+  "rules": [
+    "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
+    "Every published_signing_material row MUST declare a recomputation block naming the fixture and JSON Pointers its public key is read from, so the fingerprint is recomputable from the specification's own artifacts and a rotated fixture key turns the gate red instead of silently unbinding the obligation.",
+    "Every fixture under spec/v1/artifacts/fixtures that carries any member name in published_signing_material_field_names MUST appear in some row's source_fixtures. Publishing a new private signing key without registering it is what this rule refuses.",
+    "reserved_identifiers[] rules are independent: did, key_id and trust_domain are matched separately and by their own typed-identifier semantics. Matching one rule MUST NOT be taken to imply the others. Each row carries examples that MUST match and non_examples that MUST NOT, so the matching semantics are executable rather than described.",
+    "This registry is the only list. Domain pages, fixtures and implementations MUST NOT keep a second copy, and MUST NOT widen a rule to cover material it does not name.",
+    "Registering material here does not make unlisted material suspicious: unlisted material is still verified by the ordinary identity and trust rules."
+  ],
+  "published_signing_material_field_names": [
+    "test_private_key_jwk",
+    "private_key_seed",
+    "keygen_seed_b64u",
+    "source_private_seed_b64u",
+    "private_seed_hex"
+  ],
+  "public_key_encodings": {
+    "ed25519_rfc8032_public_key": {
+      "length_bytes": 32,
+      "definition": "RFC 8032 section 5.1.5 Ed25519 public key octet string."
+    },
+    "p256_sec1_uncompressed_point": {
+      "length_bytes": 65,
+      "definition": "SEC 1 v2 section 2.3.3 uncompressed point 0x04 || X || Y for the NIST P-256 curve."
+    },
+    "mldsa65_fips204_public_key": {
+      "length_bytes": 1952,
+      "definition": "NIST FIPS 204 ML-DSA-65 public key byte string."
+    }
+  },
+  "recomputation_schemes": {
+    "jwk_okp_x_b64u": "One pointer to the base64url OKP x member; the decoded bytes are the public key.",
+    "jwk_ec_uncompressed_point_b64u": "Two pointers, x then y, each base64url; the public key is 0x04 || X || Y.",
+    "raw_public_key_b64u": "One pointer to the base64url encoding of the algorithm-defined public key bytes."
+  },
+  "published_signing_material": [
+    {
+      "id": "conformance_ed25519_fixture_key",
+      "algorithm": "Ed25519",
+      "public_key_encoding": "ed25519_rfc8032_public_key",
+      "fingerprint": "sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c",
+      "why": "Ed25519 key generated from the published fixed seed bytes 0x00 through 0x1f. It signs the Ed25519 detached-JWS KAT, the franking proof transcript, the KeyPackage write transcript, the recovery transcript and the producer signer KAT, so every one of those fixtures hands a verifier a working private key.",
+      "source_fixtures": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
+        "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
+        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ],
+      "recomputation": {
+        "fixture": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "scheme": "jwk_okp_x_b64u",
+        "pointers": [
+          "/vectors/0/did_document_fragment/publicKeyJwk/x"
+        ]
+      }
+    },
+    {
+      "id": "conformance_p256_fixture_key",
+      "algorithm": "ES256",
+      "public_key_encoding": "p256_sec1_uncompressed_point",
+      "fingerprint": "sha256:c6f4e212a3ac26051c507ab582c041f01044b2d140d5ee018c4f950acd061460",
+      "why": "NIST P-256 key derived from the same published seed bytes as the Ed25519 row. It signs the ES256 detached-JWS KAT.",
+      "source_fixtures": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json"
+      ],
+      "recomputation": {
+        "fixture": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "scheme": "jwk_ec_uncompressed_point_b64u",
+        "pointers": [
+          "/vectors/1/did_document_fragment/publicKeyJwk/x",
+          "/vectors/1/did_document_fragment/publicKeyJwk/y"
+        ]
+      }
+    },
+    {
+      "id": "conformance_mldsa65_fixture_key",
+      "algorithm": "ML-DSA-65",
+      "public_key_encoding": "mldsa65_fips204_public_key",
+      "fingerprint": "sha256:7dc6f48006fb83016824a718645146e3c9653afe9c63e1c5ff255f9e78717ebd",
+      "why": "ML-DSA-65 key whose 32-byte FIPS 204 generation seed is published alongside it, so the signing key is reproducible by anyone. It signs the post-quantum raw detached-signature KAT.",
+      "source_fixtures": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json"
+      ],
+      "recomputation": {
+        "fixture": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "scheme": "raw_public_key_b64u",
+        "pointers": [
+          "/vectors/2/public_key_b64u"
+        ]
+      }
+    },
+    {
+      "id": "rfc8032_test_1_ed25519_key",
+      "algorithm": "Ed25519",
+      "public_key_encoding": "ed25519_rfc8032_public_key",
+      "fingerprint": "sha256:21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9",
+      "why": "The RFC 8032 section 7.1 TEST 1 Ed25519 key. It is the proof-of-possession key of the WebSocket DPoP known-answer test, and its private key has been published in an IETF document since 2017; a holder of this key can mint a syntactically perfect DPoP proof.",
+      "source_fixtures": [
+        "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ],
+      "recomputation": {
+        "fixture": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
+        "scheme": "jwk_okp_x_b64u",
+        "pointers": [
+          "/dpop_kat/public_jwk/x"
+        ]
+      }
+    }
+  ],
+  "reserved_identifiers": [
+    {
+      "id": "webvh_conformance_scid",
+      "kind": "did",
+      "why": "Every DID the conformance artifacts sign under is a did:webvh whose SCID segment is hand-written rather than derived. A real webvh SCID is a base58btc digest and a real did:key multibase ed25519 value starts z6Mk with a capital M, so a lowercase z6mkfixture or z6mkagent SCID cannot collide with material a deployment actually produced.",
+      "match": {
+        "terminal": "did",
+        "method": "webvh",
+        "scid_segment_prefixes": [
+          "z6mkfixture",
+          "z6mkagent"
+        ]
+      },
+      "examples": [
+        "did:webvh:z6mkfixture:alice.example",
+        "did:webvh:z6mkfixtureagentexample:agent.example",
+        "did:webvh:z6mkagent:agents.example"
+      ],
+      "non_examples": [
+        "did:webvh:z6Mkfixturealice:alice.example",
+        "did:webvh:zQmFixtureAlice:alice.example",
+        "did:web:z6mkfixture.example",
+        "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP"
+      ]
+    },
+    {
+      "id": "conformance_verification_method_fragment",
+      "kind": "key_id",
+      "why": "The fixture verification methods end their fragment with -fixture. The rule matches the fragment alone, so re-hanging a fixture key id under a deployment DID is still refused. Fragments such as runtime-1 that do not carry the suffix are covered only by the DID rule, which is why the three rules are evaluated independently.",
+      "match": {
+        "terminal": "did_url",
+        "fragment_suffixes": [
+          "-fixture"
+        ]
+      },
+      "examples": [
+        "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+        "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+        "did:webvh:acmelive:acme.example#assertion-fixture"
+      ],
+      "non_examples": [
+        "did:webvh:acmelive:acme.example#fixture-2026",
+        "did:webvh:acmelive:acme.example#ed25519-2026-05",
+        "did:webvh:acmelive:acme.example#runtime-1"
+      ]
+    },
+    {
+      "id": "conformance_trust_domain",
+      "kind": "trust_domain",
+      "why": "Trust domains are compared as the value of the ak:trust_domain typed identifier, never as a DNS suffix of an arbitrary string. Registered values cover the bare conformance token; the reserved top label rule covers the RFC 2606 and RFC 6761 names the fixtures use, which no deployment may claim.",
+      "match": {
+        "typed_identifier": "ak:trust_domain",
+        "values": [
+          "recovery-fixture",
+          "did.webvh.example",
+          "did.webvh.alice.example",
+          "did.webvh.acme.example",
+          "did.webvh.defense.example",
+          "example.test",
+          "registry.example",
+          "fixture.example"
+        ],
+        "reserved_top_labels": [
+          "example",
+          "invalid",
+          "localhost",
+          "test"
+        ]
+      },
+      "examples": [
+        "ak:trust_domain:recovery-fixture",
+        "ak:trust_domain:did.webvh.alice.example",
+        "ak:trust_domain:anything.test"
+      ],
+      "non_examples": [
+        "ak:trust_domain:did.webvh.acme.example.net",
+        "ak:trust_domain:examples.net",
+        "ak:trust_domain:acme-example",
+        "did.webvh.alice.example"
+      ]
+    }
+  ]
+}

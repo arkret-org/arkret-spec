@@ -1,7 +1,7 @@
 {
   "suite": "sdk_conformance_claim",
   "profile": "ak.vector_group.schema_validation.v1",
-  "version": "2026-07-11",
+  "version": "2026-09-20.1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -32,7 +32,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:d39906742ff96c62cf1ecff81d66d3ec9090e505c0b45c787d646816f7b44aa0",
+        "contract_digest": "sha256:1e901399d0eb0f90a7b2fc7058c20a1c03bf3ddf913b148102d64c65799b3ceb",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -46,14 +46,17 @@
               {
                 "kind": "vector_result",
                 "evidence_ref": "ci://arkret-rust-sdk/run/1",
-                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+                "covers_vectors": [
+                  "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+                ]
               }
             ]
           }
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "aJtxevQ7OiSMz7sIm09RsBTP31Pbx00LKdi_Y61PKwWbqX2efznqQTrORpNuoYYy6XFoNOYN8l-BV4WzlVnABQ",
+          "signature": "kE46Xlyo_tnPD12TRhxjMhtChV8v-zii_AIOBzeESdPfGPgbyY7CKEopCYJcqNB56WjAvT8O0xA3PJg6IZGXAQ",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -87,7 +90,10 @@
               {
                 "kind": "vector_result",
                 "evidence_ref": "ci://run/zero",
-                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+                "covers_vectors": [
+                  "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+                ]
               }
             ]
           }
@@ -168,7 +174,10 @@
               {
                 "kind": "vector_result",
                 "evidence_ref": "ci://run/1",
-                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+                "covers_vectors": [
+                  "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+                ]
               }
             ]
           }
@@ -179,6 +188,92 @@
           "signature_algorithm": "Ed25519"
         }
       }
+    },
+    {
+      "name": "vector_result_evidence_without_covers_vectors_rejected",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "sdk_artifact": {
+          "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:3fe64efee5dbeb6be09119170d03b83fcb7b4ac422d40b1c90263c1332a2f5cf",
+        "issued_at": "2026-07-11T00:00:00.000Z",
+        "issuer": {
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
+        },
+        "clause_claims": [
+          {
+            "clause_id": "AK-SDK-001",
+            "result": "pass",
+            "evidence": [
+              {
+                "kind": "vector_result",
+                "evidence_ref": "ci://arkret-rust-sdk/run/1",
+                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+              }
+            ]
+          }
+        ],
+        "proof": {
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "cSxP2iTqurx0qg89qvCfUchxveqVVnc-AvBnHYzW4peZHkloT0mOXEDkUDN-4LJYFHGZKAoXs_LxlMl7X5VqBw",
+          "signature_algorithm": "Ed25519"
+        }
+      },
+      "first_expected_error": "$.clause_claims[0].evidence[0]: 'covers_vectors' is a required property"
+    },
+    {
+      "name": "non_vector_evidence_carrying_covers_vectors_rejected",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "sdk_artifact": {
+          "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:3fe64efee5dbeb6be09119170d03b83fcb7b4ac422d40b1c90263c1332a2f5cf",
+        "issued_at": "2026-07-11T00:00:00.000Z",
+        "issuer": {
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
+        },
+        "clause_claims": [
+          {
+            "clause_id": "AK-SDK-001",
+            "result": "pass",
+            "evidence": [
+              {
+                "kind": "code_audit",
+                "evidence_ref": "ci://arkret-rust-sdk/run/1",
+                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+                "covers_vectors": [
+                  "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+                ]
+              }
+            ]
+          }
+        ],
+        "proof": {
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "cSxP2iTqurx0qg89qvCfUchxveqVVnc-AvBnHYzW4peZHkloT0mOXEDkUDN-4LJYFHGZKAoXs_LxlMl7X5VqBw",
+          "signature_algorithm": "Ed25519"
+        }
+      },
+      "first_expected_error": "$.clause_claims[0].evidence[0]: {'kind': 'code_audit', 'evidence_ref': 'ci://arkret-rust-sdk/run/1', 'digest': 'sha256:4444444444444444444444444444444444444444444444444444444444444444', 'covers_vectors': ['ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1']} should not be valid under {'required': ['covers_vectors']}"
     }
-  ]
+  ],
+  "description": "Signed artifact-bound SDK conformance claim cases. The positive case carries a signature that actually verifies under the scheme the schema declares (domain separator, LF, RFC 8785 JCS of the object with proof omitted) and a contract_digest recomputed from sdk_conformance_contract, so a contract edit that is not reflected here turns the gate red. A vector_result evidence entry must name the vectors its run covers; the other evidence kinds must not."
 }

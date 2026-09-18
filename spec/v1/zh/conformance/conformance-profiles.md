@@ -920,7 +920,7 @@ SHOULD 支持：
 - idempotency tests
 - reducer convergence tests（含 authority-commit projection 向量）
 - authority-commit projection vectors（见 `conformance-vectors.md`）
-- Event Envelope negative vectors（见 `artifacts/fixtures/schema-validation-fixture.json`）
+- Event Envelope negative vectors（见 `artifacts/fixtures/sdk-precheck-fixture.json`）
 - redaction vectors（见 `conformance-vectors.md`）
 - capability vectors（见 `conformance-vectors.md`）
 - sync fixture、state-resolution fixture、capability fixture 和 privacy/security fixture（见 `artifacts/fixtures/*.json`）
@@ -1038,6 +1038,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 **本节定位（normative for grading and claims）**：本节不新增 profile、不新增 wire MUST、不扩展部署用途的 `profile_requirements`；表中条款全部是既有条款的重述，其覆盖映射仍在各原始定义位置（§2.1.1 的悬空禁令不因本节复述而重复计数）。`conformance-profiles.json#sdk_conformance_contract` 为这些条款提供独立机读 claim 面：稳定 `clause_id`、V/A/U 等级、证据类型和 claim 必填字段。SDK 声明不得复用 deployment profile 字段，也不得以易漂移的表格行号代替 clause ID。
 
+**证据映射（normative）**：`sdk_conformance_contract` 中 `required_evidence` 含 `vector_result` 的条款 MUST 携带 `vector_evidence`，其余条款 MUST NOT 携带。`vector_evidence.vectors` 点名承载该条款的已登记向量；以 `.*` 结尾的条目只是书写便利，MUST 在当前 spec revision 的 `vector-registry.json` 下展开为非空且不含失活成员的集合。`vector_evidence.decision_points` 逐条登记该义务中可分别观测的判定点，每个判定点 MUST 有条款内唯一的 `id`、一句 `requirement`，以及至少一个取自展开后集合的精确 vector id。门禁只证明这层映射可解析；它不读 `requirement` 的自然语言，也不证明任一向量的语义足以覆盖该判定点——因此判定点在登记或变更时 MUST 经复核，且 MUST NOT 为迁就某份 fixture 现有的 case 把判定点写窄。SDK claim 中 `kind=vector_result` 的证据 MUST 携带 `covers_vectors`，其并集 MUST 是该条款展开后向量集合的子集，并 MUST 覆盖其每个判定点点名的向量；结果 MUST 与 claim 同一 `spec_revision` 并携带不可变摘要。本映射只服务于 SDK claim 的证据记账，MUST NOT 被当作部署 profile 的适用性 selector，也不改变 `evidence_coverage_semantics` 的 acceptable-set 语义。
+
 **收录规则（normative）**：任何约束客户端/SDK 内部行为、公开 API 形状或自动网络行为，且部署黑盒 profile 不能完整证明的 MUST / MUST NOT，MUST 在本节分配稳定 clause ID；新增或修改此类条款时 reviewer MUST 同步评估并更新 `sdk_conformance_contract`。未列入本契约的 prose 条款不在 SDK claim 的签名覆盖范围内，但其规范力不因此降低；不得用未知私有 clause ID扩展封闭 claim。
 
 ### 23.1 可测性三级
@@ -1054,8 +1056,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
-| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`schema-validation-fixture.json`）；"先于消费"的内部顺序为 U |
-| <a id="ak-sdk-002"></a>2 | `proofs`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
+| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1`，观测点是被消费效果的缺席）；"先于消费"的内部顺序为 U |
+| <a id="ak-sdk-002"></a>2 | `proofs`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（`ak.vector.sdk.envelope_forbidden_top_level_fields.v1`）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §3.4 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
 | <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | encoding §8；vector-registry.json（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
@@ -1065,9 +1067,9 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.7 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 以单条 Event 的本地投影结论替代 `RealmCommit` 接纳，也 MUST NOT 让同批次较早 Event 的投影成为后续 Event 的授权依据，MUST hold pending 或 fail closed | conformance-vectors §3.4 | **V**（以 SDK API 输出为观测点） |
-| <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
-| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（`schema-validation-fixture.json`） |
-| <a id="ak-sdk-014"></a>14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
+| <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors §3.6、§3.15 | **V**（`ak.vector.history_access.since_join_prejoin_denied.v1`、`ak.vector.media_binding.e2ee_key_source.v1`） |
+| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed；未声明 critical 的未知扩展仍 MUST 接纳并逐字节保留 | 本文 §3、§20 | **V**（`ak.vector.sdk.unknown_critical_feature_fail_closed.v1`、`ak.vector.sdk.requirements_mismatch_fail_closed.v1`） |
+| <a id="ak-sdk-014"></a>14 | 正式的验证、授权与信任准入路径 MUST 拒绝 `test-material-registry.json` 登记的公开测试签名材料与保留测试标识，签名验证通过不构成准入 | identity/did-usage-and-verification §8 | **V**（`ak.vector.identity.test_signing_material_rejected.v1`、`ak.vector.identity.reserved_test_identifier_rejected.v1`） |
 | <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
 | <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |
 | <a id="ak-sdk-017"></a>17 | schema 明示的 `x_*` 与 `critical_extensions[].parameters` 未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |

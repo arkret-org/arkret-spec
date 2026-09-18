@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:20:00+08:00",
+  "generated_at": "2026-09-20T17:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -848,6 +848,19 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.account_status.issuer_ledger.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-082",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/identity/did-usage-and-verification.md#8-公开测试签名材料与保留测试标识的拒收normative",
+      "section_digest": "sha256:8c8c460ec08333f30017ab454da5e032108bd7ec288c9aa407289af7b1da04e9",
+      "requirement": "Published test signing material and reserved test identifiers registered in artifacts/registry/test-material-registry.json MUST be refused on every formal verification, authorization and trust-admission path, independently of whether the signature verifies, because the private key ships with the specification. Matching is by a fingerprint over algorithm-defined public key bytes, so a rename or re-encoding of the same key still matches; the did, key_id and trust_domain reserved-identifier rules are matched independently and by their own typed-identifier semantics, never inferred from the words test, fixture, did:key or example. The refusal is fail-closed with reason test_signing_material_denied, leaves no verified binding, cache entry or accepted auth state, and MUST NOT degrade to a weaker evidence class, a limited_trust pin or a retryable unavailable. Unlisted material is still verified by the ordinary rules, and the isolated conformance harness is the only place the material may execute: the formal API MUST NOT expose a switch onto the test trust path.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.identity.test_signing_material_rejected.v1",
+        "ak.vector.identity.reserved_test_identifier_rejected.v1"
       ]
     }
   ]

@@ -327,6 +327,21 @@ operation、direction、schema、pointer 与 policy 反向边；private kind 一
 `ak.vector.identity.public_resolution_minimization.v1` MUST 证明：未认证的 principal 解析响应只包含
 service 背书的 current 投影与 method 历史证据；任何 PCR id、Event、receipt 与历史字段都被禁止。
 
+`ak.vector.identity.test_signing_material_rejected.v1` MUST 证明：`test-material-registry.json` 登记的公开
+测试签名材料，在正式的身份验证、授权与信任准入路径上一律被拒绝——签名验证通过本身不构成准入，因为这些材料的私钥
+随规范公布，密码学上分不出持有者是不是本人。指纹按算法定义的公钥字节计算，同一公钥换 kid、DID、JWK 成员顺序或
+传输编码仍被识别。拒绝发生在验证结论被用于授权之前，不写入已验证绑定、解析缓存或已接纳的鉴权状态，也不降级为更弱的
+证据类别、`limited_trust` 钉扎或可重试的 `unavailable`。未登记的材料仍按现有身份与信任规则正常验证；隔离的
+conformance harness 可以执行这些材料，而正式验证 API MUST NOT 提供切换到测试信任路径的配置项、feature flag、
+环境变量或运行时开关。
+
+`ak.vector.identity.reserved_test_identifier_rejected.v1` MUST 证明：`test-material-registry.json` 的 DID、
+key id 与 trust domain 三条保留标识规则各自独立判定，命中其一 MUST NOT 被视为蕴含其余——DID 规则按 method 与
+SCID 段匹配，key id 规则只看 fragment（因此把 fixture 的 key id 重新挂到部署 DID 下仍被拒），trust domain 规则按
+`ak:trust_domain` typed identifier 的值匹配而不做 DNS 后缀猜测。仅出现 `test`、`fixture`、`did:key`、`example`
+字样不构成保留，尾部相同的部署域不被拒绝。负例 MUST 先满足其余全部身份与信任前提，不得拿一个本来就无效的标识
+冒充保留标识拒收成功。
+
 ### 3.11 邀请
 
 `ak.vector.invite.claim_reducer_state_machine.v1` MUST 证明：`ak.invite.claim` 的 Realm reducer 权限——
@@ -395,6 +410,25 @@ capability revoke 之后该 actor 的新 reaction fail closed，既有 reaction 
 `device_message_id`；未被确认的字节相同重投只执行一次 durable handler 副作用；
 同键但意图冲突的复用以 `duplicate_conflict`（reason `device_message_id_conflict`）失败；
 不同 id 始终是不同的逻辑消息。
+
+`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1` MUST 证明：不满足 `ak.schema.event.v1`
+或其事件种类所声明 payload class 的 Event Envelope 以 `schema_violation` 被拒，且在 reducer 状态、投影、查询结果
+与本地缓存中都观测不到任何效果；重试、重连与 backfill 路径都不会重新接纳它，也不会把它规整、补默认值或修复成可接纳
+形态。观测点是被消费效果的缺席，而不是 schema 判定本身。
+
+`ak.vector.sdk.envelope_forbidden_top_level_fields.v1` MUST 证明：`hlc`、`producer_revision`、`domain_refs`、
+`requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；`proofs`、`scope_ref`、
+`actor_id` 与 `refs[role=authorized_by]` 各自缺失时同样被拒，且不从默认值、传输层、会话或相邻 Event 合成替代值后
+进入验证路径。
+
+`ak.vector.sdk.unknown_critical_feature_fail_closed.v1` MUST 证明：声明了本构建不识别的 critical extension 的
+对象以 `unsupported_feature` 整体拒收，判定取自 criticality 声明而非扩展体是否恰好可解析，且拒收发生在任何 payload
+成员被消费、落盘、投影或转发之前；未声明 critical 的未知扩展仍被接纳并在往返中逐字节保留，因此把全部未知值一律拒收的
+实现在此失败。
+
+`ak.vector.sdk.requirements_mismatch_fail_closed.v1` MUST 证明：声明的 `requirements` 指向本构建不提供的能力时
+以 `unsupported_feature` 拒收，这是与未知 critical extension 不同的判定；提供该能力的构建接纳同一个对象，从而把
+观测点钉在 requirements 检查而不是 schema 失败上。
 
 ### 3.15 媒体
 

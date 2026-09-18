@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "c63415db85a42fceb0394b6f0bc735356429aa20bfdc05eee5a4aaaa9970fb81"
+      "sha256": "8ac237c151ed9dc2a1d7072f921ff7cf0b091ae70ac89941a044c977f1d4beb4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
-      "sha256": "68853340697680bf32a0a81f5bfa80619ad3f951d89a341efe90b32d233ab30d"
+      "sha256": "c239992c83d96f4e432dc7f4d540abf9d270464448bd6df993f21d27e160479e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/handle-claim-kat.json",
@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "b9f3b7f49aeeef1c4b6c71163f9c35786ccead096b4112ef2e672975848b3a37"
+      "sha256": "f7ba140b1e367c8e0100eb136dea17a0dd8913e52a8ba4280f716a8c944319cd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-      "sha256": "94538bfb6380ba5aa4f58b1694e65b6f30e232e1d44f4591ffeb3dba4c1178fa"
+      "sha256": "0cd274aeb6cf69a694467c4e708f985b477b63a87b8f9e95489160c93f179543"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
@@ -302,7 +302,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "216ec6d25a2500702ae415132937a4c42bd078c683a21e90cb28d34368f02dbe"
+      "sha256": "a8b06cd34cf68f7a19f85569c24c4544677aedcdc43099006c2644d69ffda496"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json",
+      "sha256": "0dcab11bca8d97f660b189f9c1bed432ab83b7c128c151c1f1018e8f91212e8b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
@@ -331,6 +335,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",
       "sha256": "1f19a092023d01b4058af3408620f92ecbbad953e15827f81e1fe6a8b6adde23"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json",
+      "sha256": "aeaa9e606a765c110377056d2860649b7047b1e64df74138e2db728357fc20cb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/view-write-contract-fixture.json",

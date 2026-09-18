@@ -13,7 +13,7 @@
     "kid": "did:webvh:z6mkfixtureagentexample:agent.example#runtime-1",
     "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
     "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
-    "note": "Public conformance test key only. Production profiles MUST reject this test DID/key domain.",
+    "note": "Public conformance test key only: the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8.",
     "algorithm": "Ed25519"
   },
   "cases": [

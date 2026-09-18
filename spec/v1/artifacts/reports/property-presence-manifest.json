@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8798,
+    "total_properties": 8800,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2299,
+      "optional": 2300,
       "optional_defaulted": 50,
-      "required": 6007,
+      "required": 6008,
       "required_nullable": 288,
       "tristate": 154
     },
@@ -10006,6 +10006,8 @@
         "/$defs/clause_claim/properties/evidence": "required",
         "/$defs/clause_claim/properties/rationale": "optional",
         "/$defs/clause_claim/properties/result": "required",
+        "/$defs/evidence/allOf/0/if/properties/kind": "required",
+        "/$defs/evidence/properties/covers_vectors": "optional",
         "/$defs/evidence/properties/digest": "required",
         "/$defs/evidence/properties/evidence_ref": "required",
         "/$defs/evidence/properties/kind": "required",
@@ -10026,7 +10028,8 @@
         "/properties/spec_revision": "required"
       },
       "conditionally_required": [
-        "/$defs/clause_claim/properties/rationale"
+        "/$defs/clause_claim/properties/rationale",
+        "/$defs/evidence/properties/covers_vectors"
       ]
     },
     "search-service.schema.json": {

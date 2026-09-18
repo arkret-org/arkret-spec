@@ -79,7 +79,7 @@ def build_fixture() -> dict[str, Any]:
             "algorithm": "Ed25519",
             "private_key_seed": PRIVATE_SEED,
             "public_key": PUBLIC_KEY,
-            "note": "Public conformance test key only. Production profiles MUST reject this test key domain.",
+            "note": "Public conformance test key only: the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8.",
         },
         "case": {
             "source_payload": {**payload, "signature": signature},

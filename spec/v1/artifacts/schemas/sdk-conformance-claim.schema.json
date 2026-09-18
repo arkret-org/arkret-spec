@@ -223,8 +223,45 @@
         },
         "digest": {
           "$ref": "#/$defs/nonzero_digest"
+        },
+        "covers_vectors": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ak\\.vector\\.[a-z0-9_]+(\\.[a-z0-9_]+)+\\.v[0-9]+$"
+          },
+          "description": "Exact conformance vector ids this run produced results for. REQUIRED when kind is vector_result; the verifier checks the union against the clause's expanded vector_evidence.vectors and its decision_points."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "vector_result"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "covers_vectors"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "covers_vectors"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "One evidence reference. A vector_result entry MUST name the exact vectors it covers; the other kinds MUST NOT carry covers_vectors."
     },
     "clause_claim": {
       "type": "object",

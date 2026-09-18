@@ -139,6 +139,12 @@ from .http_signature import check_http_signature_contract_closure
 
 from .security_evidence import check_security_evidence_closure
 
+from .test_material import (
+    check_sdk_claim_contract_binding,
+    check_sdk_clause_vector_evidence,
+    check_test_material_registry,
+)
+
 from .prose import (
     check_account_notification_prose_schema_alignment,
     check_artifact_prose_section_refs,
@@ -534,6 +540,18 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "security_evidence_closure",
                 lambda: check_security_evidence_closure(lint),
+            ),
+            (
+                "test_material_registry",
+                lambda: check_test_material_registry(lint),
+            ),
+            (
+                "sdk_clause_vector_evidence",
+                lambda: check_sdk_clause_vector_evidence(lint),
+            ),
+            (
+                "sdk_claim_contract_binding",
+                lambda: check_sdk_claim_contract_binding(lint),
             ),
             (
                 "canonical_digest_fixtures",

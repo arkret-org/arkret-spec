@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.16",
-  "generated_at": "2026-09-20T11:30:00+08:00",
+  "version": "2026-09-20.5",
+  "generated_at": "2026-09-20T18:00:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -46,7 +46,9 @@
       "Every applicable clause MUST appear exactly once; not_applicable MUST include a machine-readable rationale.",
       "Evidence references MUST be content-addressed or carry an immutable CI run identifier.",
       "A verifier MUST enforce evidence_coverage_semantics: for every clause claim whose result is pass or fail, it MUST reject the claim unless at least one evidence entry is present and every evidence[].kind is a member of that clause's required_evidence set. A pass/fail clause substantiated only by evidence kinds outside its required_evidence set MUST be rejected. This check is independent of, and applied in addition to, the digest and signature checks above.",
-      "Section numbers and table row numbers are not clause identifiers; only clause_id is stable."
+      "Section numbers and table row numbers are not clause identifiers; only clause_id is stable.",
+      "Every evidence entry whose kind is vector_result MUST carry covers_vectors: the exact vector ids the referenced run produced results for. A verifier MUST reject the claim unless, for each pass or fail clause claim, the union of covers_vectors across that clause's vector_result evidence is a subset of the clause's expanded vector_evidence.vectors and covers every vector named by at least one of its decision_points.",
+      "A vector_result evidence entry MUST be bound to the same spec_revision as the claim and MUST carry the immutable digest of the result artifact it references; a result produced against a different spec revision MUST NOT be accepted."
     ],
     "clauses": [
       {
@@ -60,7 +62,35 @@
         "required_evidence": [
           "vector_result",
           "code_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "envelope_schema_failure_refused",
+              "requirement": "An Event Envelope that does not satisfy ak.schema.event.v1 is refused with schema_violation.",
+              "vectors": [
+                "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+              ]
+            },
+            {
+              "id": "payload_class_failure_refused",
+              "requirement": "A payload that does not satisfy the payload class its event kind declares is refused with schema_violation, so envelope-level admissibility opens no path for an inadmissible payload.",
+              "vectors": [
+                "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+              ]
+            },
+            {
+              "id": "no_effect_reaches_the_reducer",
+              "requirement": "No reducer state, projection, query result or cache shows an effect of the refused object, and no retry, reconnect or backfill path re-admits, normalizes or repairs it.",
+              "vectors": [
+                "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-002",
@@ -73,7 +103,28 @@
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "forbidden_top_level_members_refused",
+              "requirement": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped.",
+              "vectors": [
+                "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
+              ]
+            },
+            {
+              "id": "authorization_members_cannot_be_omitted_or_defaulted",
+              "requirement": "proofs, scope_ref, actor_id and refs[role=authorized_by] are each refused when omitted, and none is filled in from a default, the transport, the session or a neighbouring event before the verification path runs.",
+              "vectors": [
+                "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-003",
@@ -97,7 +148,35 @@
         "summary": "Fail closed for causal, revoked, and invalid-proof states",
         "required_evidence": [
           "vector_result"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.authority_commit_projection.*"
+          ],
+          "decision_points": [
+            {
+              "id": "state_change_holds_pending_until_a_covering_commit",
+              "requirement": "A state-changing Event stays pending until a valid RealmCommit on its own stream accepts it; the decision rests on the Commit itself.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+              ]
+            },
+            {
+              "id": "same_batch_projection_is_not_an_authorization_basis",
+              "requirement": "Projected writes earlier in one ordered submit batch never become the authorization basis for later Events in the same batch.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1"
+              ]
+            },
+            {
+              "id": "non_state_changing_event_projects_without_commit_finality",
+              "requirement": "A non-state-changing Event whose authorization_ref resolves in committed typed state is accepted and projected without waiting for a covering RealmCommit, so fail-closed is scoped rather than universal.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-005",
@@ -119,7 +198,53 @@
         "summary": "Reject malformed or non-canonical JSON without repair",
         "required_evidence": [
           "vector_result"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.encoding.reject_duplicate_key.v1",
+            "ak.vector.encoding.reject_malformed_json.v1",
+            "ak.vector.encoding.reject_non_nfc_string.v1",
+            "ak.vector.encoding.reject_noncanonical_numbers.v1",
+            "ak.vector.encoding.reject_feff_injection.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "duplicate_key_is_refused_not_last_wins",
+              "requirement": "A duplicate object key is refused rather than resolved by last-wins before hashing or signature verification.",
+              "vectors": [
+                "ak.vector.encoding.reject_duplicate_key.v1"
+              ]
+            },
+            {
+              "id": "malformed_json_is_refused_without_repair",
+              "requirement": "Malformed JSON is refused rather than repaired and then hashed or verified.",
+              "vectors": [
+                "ak.vector.encoding.reject_malformed_json.v1"
+              ]
+            },
+            {
+              "id": "non_nfc_input_is_refused_not_silently_normalized",
+              "requirement": "A non-NFC string is refused rather than implicitly normalized, so canonical bytes never change under the verifier.",
+              "vectors": [
+                "ak.vector.encoding.reject_non_nfc_string.v1"
+              ]
+            },
+            {
+              "id": "noncanonical_numbers_are_refused",
+              "requirement": "A non-canonical numeric literal is refused rather than reserialized into canonical form.",
+              "vectors": [
+                "ak.vector.encoding.reject_noncanonical_numbers.v1"
+              ]
+            },
+            {
+              "id": "invisible_character_injection_is_refused",
+              "requirement": "A U+FEFF or equivalent invisible-character injection is refused rather than stripped.",
+              "vectors": [
+                "ak.vector.encoding.reject_feff_injection.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-007",
@@ -130,7 +255,21 @@
         "summary": "Reject malformed HLC without normalization or truncation",
         "required_evidence": [
           "vector_result"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.encoding.reject_malformed_hlc.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "malformed_hlc_is_refused_without_normalization",
+              "requirement": "A malformed HLC string is refused instead of being truncated, zero-padded, case-folded or leniently parsed into a valid tuple.",
+              "vectors": [
+                "ak.vector.encoding.reject_malformed_hlc.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-008",
@@ -143,7 +282,29 @@
         "required_evidence": [
           "vector_result",
           "code_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.api.request_idempotency.v1",
+            "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "a_changed_body_cannot_reuse_the_request_key",
+              "requirement": "Retrying with a changed canonical body under the same request key conflicts instead of succeeding, and the request key stays bound to its scope.",
+              "vectors": [
+                "ak.vector.api.request_idempotency.v1"
+              ]
+            },
+            {
+              "id": "expected_revision_and_commit_requirements_survive_retry",
+              "requirement": "A retried state-changing Event still requires its expected_revision and a covering RealmCommit; waiting does not relax either constraint.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-009",
@@ -158,7 +319,37 @@
           "vector_result",
           "public_api_inventory",
           "code_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.mls.governance_epoch_binding.v1",
+            "ak.vector.agent.mls_keypackage_authorization.v1",
+            "ak.vector.encoding.encrypted_envelope_digest.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "governance_binding_mismatch_stops_the_commit",
+              "requirement": "Governance binding epochs must equal the Commit payload base and next epoch; a rejected Commit advances neither the MLS epoch result nor the active epoch.",
+              "vectors": [
+                "ak.vector.mls.governance_epoch_binding.v1"
+              ]
+            },
+            {
+              "id": "keypackage_did_authorization_precedes_encryption",
+              "requirement": "A KeyPackage binds exclusively to the current accepted authorization Event and its runtime signing key; stale, cross-principal, revoked, superseded or key-mismatched bindings fail closed before anything is encrypted to them.",
+              "vectors": [
+                "ak.vector.agent.mls_keypackage_authorization.v1"
+              ]
+            },
+            {
+              "id": "envelope_context_mismatch_fails_closed_without_partial_write",
+              "requirement": "An AAD, ciphertext-digest or encryption_context mismatch fails closed with no partial write, no plaintext downgrade and no retry under different secrets.",
+              "vectors": [
+                "ak.vector.encoding.encrypted_envelope_digest.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-010",
@@ -171,7 +362,29 @@
         "required_evidence": [
           "vector_result",
           "data_flow_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
+            "ak.vector.webrtc.media_plaintext_downgrade.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "search_and_bridge_surfaces_receive_no_private_plaintext",
+              "requirement": "Directory search, privacy-preserving search and bridge interop surfaces stay separated and do not leak private plaintext.",
+              "vectors": [
+                "ak.vector.search.surface_separation_no_plaintext_leakage.v1"
+              ]
+            },
+            {
+              "id": "no_media_key_is_published_to_an_unauthorized_service",
+              "requirement": "Joining a decrypting conference is refused and no media key is published when Realm policy has not authorized media-service decryption or the SFU service DID is absent from plaintext_visible_services.",
+              "vectors": [
+                "ak.vector.webrtc.media_plaintext_downgrade.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-011",
@@ -182,7 +395,29 @@
         "summary": "Light clients must not authorize a Event from a single leaf proof",
         "required_evidence": [
           "vector_result"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+            "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "an_earlier_events_projection_is_not_the_later_events_authority",
+              "requirement": "A projected write earlier in the same batch never becomes the authorization basis for a later Event; dependants wait for the subsequent RealmCommit.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1"
+              ]
+            },
+            {
+              "id": "the_client_holds_pending_or_fails_closed_rather_than_deciding_locally",
+              "requirement": "A light client observed only through the SDK API holds the Event pending or fails closed instead of substituting its own local projection for RealmCommit admission.",
+              "vectors": [
+                "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-012",
@@ -191,11 +426,33 @@
           "U"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-012",
-        "summary": "Apply late-key-recovery visibility checks before decrypting",
+        "summary": "Apply join-floor history visibility and key-source authorization checks before decrypting",
         "required_evidence": [
           "vector_result",
           "code_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.history_access.since_join_prejoin_denied.v1",
+            "ak.vector.media_binding.e2ee_key_source.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "history_before_the_join_floor_is_not_decrypted",
+              "requirement": "history_access=since_join refuses epochs before the exact winning membership activation epoch with history_not_visible, and a non-member cannot reach private history by guessing event ids.",
+              "vectors": [
+                "ak.vector.history_access.since_join_prejoin_denied.v1"
+              ]
+            },
+            {
+              "id": "an_unauthorized_key_source_is_refused_before_decryption",
+              "requirement": "Frame keys derive only from the registered exporter label over the canonical context; any context change changes the derived key and backend cloud key escrow is refused.",
+              "vectors": [
+                "ak.vector.media_binding.e2ee_key_source.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-013",
@@ -206,7 +463,36 @@
         "summary": "Fail closed on unknown critical features or unmet requirements",
         "required_evidence": [
           "vector_result"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+            "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "unknown_critical_extension_is_refused_as_a_whole",
+              "requirement": "An object declaring an unrecognised critical extension is refused with unsupported_feature, decided from the criticality declaration rather than from whether the extension body parses, and before any member is consumed, stored, projected or forwarded.",
+              "vectors": [
+                "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
+              ]
+            },
+            {
+              "id": "unmet_requirement_is_a_distinct_refusal",
+              "requirement": "An object whose declared requirements name a capability this build does not provide is refused with unsupported_feature, and a build that provides the capability admits the identical object.",
+              "vectors": [
+                "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
+              ]
+            },
+            {
+              "id": "unknown_non_critical_extension_is_still_admitted",
+              "requirement": "An unknown extension that is not declared critical is admitted and survives the round trip byte for byte, so fail-closed is scoped to criticality and to requirements.",
+              "vectors": [
+                "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-014",
@@ -214,10 +500,53 @@
           "V"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-014",
-        "summary": "Reject production use of test DIDs, keys, and trust domains",
+        "summary": "Refuse registered published test signing material and reserved test identifiers on every formal verification, authorization and trust-admission path",
         "required_evidence": [
           "vector_result"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.identity.test_signing_material_rejected.v1",
+            "ak.vector.identity.reserved_test_identifier_rejected.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "a_valid_signature_over_published_material_does_not_admit_it",
+              "requirement": "Material registered in test-material-registry.json is refused on every formal verification, authorization and trust-admission path even when the signature verifies, because its private key ships with the specification.",
+              "vectors": [
+                "ak.vector.identity.test_signing_material_rejected.v1"
+              ]
+            },
+            {
+              "id": "the_fingerprint_survives_renaming_and_re_encoding",
+              "requirement": "The fingerprint is taken over algorithm-defined public key bytes, so the same key under a different kid, DID, JWK member order or transport encoding still matches.",
+              "vectors": [
+                "ak.vector.identity.test_signing_material_rejected.v1"
+              ]
+            },
+            {
+              "id": "the_refusal_leaves_no_state_and_no_weaker_path",
+              "requirement": "The refusal is fail-closed with reason test_signing_material_denied, writes no verified binding, cache entry or accepted auth state, and does not degrade to a weaker evidence class, a limited_trust pin or a retryable unavailable.",
+              "vectors": [
+                "ak.vector.identity.test_signing_material_rejected.v1"
+              ]
+            },
+            {
+              "id": "the_three_reserved_identifier_rules_are_independent",
+              "requirement": "The did, key_id and trust_domain rules are matched separately and by their own typed-identifier semantics; matching one does not imply the others, and the words test, fixture, did:key and example reserve nothing on their own.",
+              "vectors": [
+                "ak.vector.identity.reserved_test_identifier_rejected.v1"
+              ]
+            },
+            {
+              "id": "unlisted_material_is_still_verified_normally",
+              "requirement": "Material that is not registered is verified by the ordinary identity and trust rules, so registration introduces no presumption against unlisted material.",
+              "vectors": [
+                "ak.vector.identity.test_signing_material_rejected.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-015",
@@ -244,7 +573,21 @@
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.encoding.open_registry_unknown_roundtrip.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "an_unknown_open_registry_value_does_not_fail_the_object",
+              "requirement": "An unknown value from an open registry is preserved verbatim through deserialization and re-encoding instead of failing the whole object because the local registry snapshot is older.",
+              "vectors": [
+                "ak.vector.encoding.open_registry_unknown_roundtrip.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-017",
@@ -257,7 +600,21 @@
         "required_evidence": [
           "vector_result",
           "data_flow_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.encoding.extension_slot_roundtrip.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "extension_slot_content_survives_the_canonical_round_trip",
+              "requirement": "Unrecognised x_* and critical_extensions[].parameters content is preserved byte for byte through decode, encode, storage, federation forwarding and backfill, and continues to enter canonical bytes.",
+              "vectors": [
+                "ak.vector.encoding.extension_slot_roundtrip.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-018",
@@ -294,7 +651,35 @@
         "required_evidence": [
           "vector_result",
           "config_audit"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.sdk.retry_after.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "the_delay_is_the_max_of_the_hint_and_jittered_local_backoff",
+              "requirement": "The client waits max(server_hint_delay, jitter(local_backoff_delay)) rather than taking either input alone.",
+              "vectors": [
+                "ak.vector.sdk.retry_after.v1"
+              ]
+            },
+            {
+              "id": "a_zero_or_elapsed_hint_never_accelerates_the_local_ladder",
+              "requirement": "A zero, short or already elapsed Retry-After hint does not shorten the local backoff ladder.",
+              "vectors": [
+                "ak.vector.sdk.retry_after.v1"
+              ]
+            },
+            {
+              "id": "a_long_hint_is_never_clamped_into_an_earlier_retry",
+              "requirement": "A hint longer than the local ceiling is honoured rather than clamped down to that ceiling.",
+              "vectors": [
+                "ak.vector.sdk.retry_after.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-021",
@@ -307,7 +692,21 @@
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.sdk.pagination_has_more.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "pagination_continues_solely_from_has_more",
+              "requirement": "The client continues paging only when has_more is true, independent of how many items the page returned.",
+              "vectors": [
+                "ak.vector.sdk.pagination_has_more.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-022",
@@ -320,7 +719,21 @@
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.encoding.confusable_check.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "the_canonical_confusable_check_is_callable_from_the_public_api",
+              "requirement": "The canonical confusable check is exposed as a callable SDK utility and agrees with the canonical test set.",
+              "vectors": [
+                "ak.vector.encoding.confusable_check.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-023",
@@ -333,7 +746,21 @@
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.sdk.event_type_axes.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "the_outer_and_payload_type_axes_are_orthogonal_and_closed",
+              "requirement": "Producer Event, authority RealmCommit and the payload-protection types are distinct closed types; an invalid combination fails at compile time and a verified submission cannot be mutated in place.",
+              "vectors": [
+                "ak.vector.sdk.event_type_axes.v1"
+              ]
+            }
+          ]
+        }
       },
       {
         "clause_id": "AK-SDK-024",
@@ -346,9 +773,75 @@
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
-        ]
+        ],
+        "vector_evidence": {
+          "vectors": [
+            "ak.vector.service.protocol_version_bootstrap.v1"
+          ],
+          "decision_points": [
+            {
+              "id": "the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+              "requirement": "protocol_version is inspected before typed describe or ping construction, route-cache writes, capability intersection and business traffic.",
+              "vectors": [
+                "ak.vector.service.protocol_version_bootstrap.v1"
+              ]
+            },
+            {
+              "id": "unsupported_and_malformed_discriminators_stay_distinct",
+              "requirement": "A well-formed value other than 1.0 returns unsupported_protocol_version while a missing, non-string or non-canonical literal returns schema_violation.",
+              "vectors": [
+                "ak.vector.service.protocol_version_bootstrap.v1"
+              ]
+            }
+          ]
+        }
       }
-    ]
+    ],
+    "vector_evidence_rule": "Every clause whose required_evidence contains vector_result MUST carry vector_evidence, and no other clause may. vector_evidence.vectors names the registered conformance vectors that carry the clause; an entry ending in .* is a writing convenience that MUST expand, against the vector-registry.json of the current spec revision, to a non-empty set containing no inactive member. vector_evidence.decision_points enumerates the separately observable decisions of the obligation; each decision point MUST have an id unique within the clause, a requirement sentence, and at least one exact vector id drawn from the expanded clause set. The gate proves that this mapping resolves; it does not read the requirement sentences and does not prove that any vector's semantics are sufficient, which is why every decision point is reviewed when it is registered or changed. A decision point MUST NOT be widened to fit the cases a fixture happens to contain. This mapping is evidence bookkeeping for SDK claims only: it is never an applicability selector for a deployment profile, and it does not change evidence_coverage_semantics from acceptable_set.",
+    "vector_evidence_carrier_ratchet_rule": "Each entry below names a (clause, vector) pair whose vector is registered and active but is carried by no fixture, so the SDK claiming that clause has no fixture case to run. The list is shrink-only: a pair MUST be removed in the change that gives the vector a fixture carrier, and the gate fails both on an unlisted uncarried pair and on a listed pair that now has a carrier. It is a ratchet, not an exemption: nothing may be added without moving the owner report.",
+    "vector_evidence_carrier_ratchet": [
+      {
+        "clause_id": "AK-SDK-004",
+        "vector_id": "ak.vector.authority_commit_projection.ordinary_event_accepts_without_commit_finality.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-004",
+        "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-004",
+        "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-008",
+        "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-011",
+        "vector_id": "ak.vector.authority_commit_projection.same_batch_does_not_advance_authorization_basis.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-011",
+        "vector_id": "ak.vector.authority_commit_projection.state_change_requires_expected_revision_and_commit.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-017",
+        "vector_id": "ak.vector.encoding.extension_slot_roundtrip.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      },
+      {
+        "clause_id": "AK-SDK-023",
+        "vector_id": "ak.vector.sdk.event_type_axes.v1",
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-20-1955-sdk-clause-vectors-have-no-fixture-carrier.md"
+      }
+    ],
+    "contract_digest_computation": "contract_digest is sha256 over the RFC 8785 JCS bytes of this sdk_conformance_contract object exactly as it appears in artifacts/profiles/conformance-profiles.json, rendered as \"sha256:\" followed by lowercase hex. The digest therefore covers this rule, the clause set, every clause's vector_evidence and the ratchet: any edit to the contract changes it, and a claim that binds a stale digest MUST be rejected. Nothing outside sdk_conformance_contract is covered."
   },
   "default_unsupported_behavior": {
     "write_receiver_unknown_active_standard_kind": {

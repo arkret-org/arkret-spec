@@ -1,0 +1,188 @@
+{
+  "suite": "sdk_precheck",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.sdk.precheck.v1"
+  },
+  "version": "2026-09-20.1",
+  "profile": "ak.profile.full_client.v1",
+  "covers_vectors": [
+    "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+    "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+    "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+    "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json",
+    "registry/event-kind-registry.json"
+  ],
+  "description": "Executable evidence for the SDK precheck clauses: an Event Envelope or payload that fails validation is refused before consumption and leaves no effect; the members that carry authorization cannot be omitted or defaulted and the four members that are forbidden at the Event top level are refused; an unknown critical extension and an unmet requirement each fail closed, while an unknown non-critical extension is preserved. Schema admissibility is not the observation point in any case: each case observes the absence or presence of a consumed effect.",
+  "cases": [
+    {
+      "name": "an_envelope_that_fails_the_event_schema_never_reaches_the_reducer",
+      "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "given": "an Event Envelope that does not satisfy ak.schema.event.v1, delivered through the ordinary ingest path",
+      "action": "submit it to the SDK and then read every surface the SDK exposes",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome, the reducer state, the local projection and every query result",
+      "assertions": [
+        "the call returns schema_violation",
+        "no reducer state changed",
+        "the object does not appear in any projection, query result or local cache",
+        "schema admissibility alone is not what this case asserts: the observation point is the absence of a consumed effect"
+      ]
+    },
+    {
+      "name": "a_payload_that_fails_its_payload_class_never_reaches_the_reducer",
+      "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "given": "an Event Envelope that satisfies ak.schema.event.v1 but whose payload does not satisfy the payload class its event kind declares",
+      "action": "submit it and read every exposed surface",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome and the reducer state",
+      "assertions": [
+        "the call returns schema_violation",
+        "no reducer state changed, so envelope-level admissibility does not open a path for an inadmissible payload",
+        "the payload class is resolved from the declared event kind rather than guessed from the payload shape"
+      ]
+    },
+    {
+      "name": "a_rejected_envelope_is_not_repaired_or_partially_applied",
+      "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "given": "an envelope rejected by the previous two cases and an SDK that owns a retry queue",
+      "action": "run every retry, reconnect and backfill path the SDK exposes",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the reducer state and the outbound queue after each path runs",
+      "assertions": [
+        "no path re-admits the rejected object",
+        "nothing is normalized, defaulted or repaired into an admissible form",
+        "no partial effect of the rejected object survives anywhere"
+      ]
+    },
+    {
+      "name": "hlc_at_the_event_top_level_is_refused",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "given": "an otherwise valid Event Envelope carrying hlc as a top-level member",
+      "action": "submit it",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome",
+      "assertions": [
+        "the member is refused rather than ignored or stripped",
+        "the refusal is schema_violation, not a softer acceptance with a warning"
+      ]
+    },
+    {
+      "name": "producer_revision_at_the_event_top_level_is_refused",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "given": "an otherwise valid Event Envelope carrying producer_revision as a top-level member",
+      "action": "submit it",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome",
+      "assertions": [
+        "the member is refused rather than ignored or stripped",
+        "the refusal is schema_violation"
+      ]
+    },
+    {
+      "name": "domain_refs_at_the_event_top_level_is_refused",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "given": "an otherwise valid Event Envelope carrying domain_refs as a top-level member",
+      "action": "submit it",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome",
+      "assertions": [
+        "the member is refused rather than ignored or stripped",
+        "the refusal is schema_violation"
+      ]
+    },
+    {
+      "name": "requirements_at_the_event_top_level_is_refused",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "given": "an otherwise valid Event Envelope carrying requirements as a top-level member",
+      "action": "submit it",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome",
+      "assertions": [
+        "the member is refused rather than ignored or stripped",
+        "the refusal is schema_violation",
+        "top-level requirements is refused here, which is a different observation from the unmet-requirements semantics exercised by the requirements vector"
+      ]
+    },
+    {
+      "name": "the_authorization_carrying_members_cannot_be_omitted_or_defaulted",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "given": "four envelopes, each omitting exactly one of proofs, scope_ref, actor_id and refs with role authorized_by",
+      "action": "submit each and inspect what the verification path did with the missing member",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "the returned outcome for each envelope and the values the verification path used",
+      "assertions": [
+        "each omission is refused on its own",
+        "no member is filled in from a default, from the transport, from the session or from a neighbouring event",
+        "the verification path is not reached with a synthesized value in place of the missing member"
+      ]
+    },
+    {
+      "name": "an_unknown_critical_extension_fails_closed",
+      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "given": "an object declaring a critical extension this build does not recognise, valid in every other respect",
+      "action": "consume it",
+      "decision": "reject",
+      "reason": "unsupported_feature",
+      "observed": "the returned outcome and the reducer state",
+      "assertions": [
+        "the object is refused as a whole",
+        "no part of it is applied, and the unrecognised extension is not skipped so the rest can proceed",
+        "the decision is made from the criticality declaration, not from whether the extension body happens to parse"
+      ]
+    },
+    {
+      "name": "unmet_requirements_fail_closed",
+      "vector_id": "ak.vector.sdk.requirements_mismatch_fail_closed.v1",
+      "given": "an object whose declared requirements name a capability this build does not provide, with no unknown extension present",
+      "action": "consume it",
+      "decision": "reject",
+      "reason": "unsupported_feature",
+      "observed": "the returned outcome and the reducer state",
+      "assertions": [
+        "the object is refused because the requirement is unmet, which is a different decision from an unknown critical extension",
+        "no part of it is applied",
+        "a build that provides the capability admits the identical object, so the case observes the requirement check and not a schema failure"
+      ]
+    },
+    {
+      "name": "an_unknown_non_critical_extension_is_preserved_and_admitted",
+      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "given": "an object carrying an unknown extension that is not declared critical",
+      "action": "consume it, then re-encode and forward it",
+      "decision": "accept",
+      "observed": "the admission outcome and the re-encoded bytes",
+      "assertions": [
+        "the object is admitted",
+        "the unknown extension survives the round trip byte for byte",
+        "an implementation that refused every unknown value would fail here, which is why fail-closed is scoped to criticality and to requirements"
+      ]
+    },
+    {
+      "name": "the_fail_closed_decision_precedes_consumption_and_storage",
+      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "given": "the two refusing objects above and an SDK that owns a durable store",
+      "action": "submit each, then inspect the durable store, the projection and the outbound queue",
+      "decision": "reject",
+      "reason": "unsupported_feature",
+      "observed": "the durable store, the projection and the outbound queue",
+      "assertions": [
+        "neither object is stored, projected or forwarded",
+        "the refusal happens before any payload member is consumed",
+        "a later registry refresh does not resurrect the refused object from a staged copy, because no copy was staged"
+      ]
+    }
+  ]
+}

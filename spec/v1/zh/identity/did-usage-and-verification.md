@@ -374,3 +374,82 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
 5. 若需要验证，purpose、trust domain、freshness、历史时点、缓存与失效条件是否完整；
 6. 是否错误地给 device、Realm、Message 等非主体对象发明 DID；
 7. 是否把签名验证、session 认证、handle 双向验证或 endpoint TLS 误写成 DID 控制权验证。
+
+## 8. 公开测试签名材料与保留测试标识的拒收（normative）
+
+规范随件公布的测试签名材料，其私钥与公钥一并公开，任何人都能用它产生可验证的签名。密码学验证
+因此无法把它与真实主体区分：签名有效恰恰是它被公布的目的，DID method adapter 与部署 trust policy
+也不会自动排除它被重新注册、重新托管或重新命名后再次出现。§4 与 §5 规定"如何验证"；本节规定
+**哪些材料即使验证通过也 MUST NOT 被接纳为授权依据**。
+
+### 8.1 唯一清单与匹配口径
+
+被拒收的对象由
+[`test-material-registry.json`](../../artifacts/registry/test-material-registry.json) 逐条登记，它是本节
+义务的唯一真相源。各领域页、各 fixture、各实现 MUST NOT 另存一份清单，也 MUST NOT 依据 `test`、
+`fixture`、`did:key`、`example` 等字样推断某个标识是否被保留：公开样例里的普通字符串不因出现在样例中
+而成为保留标识。
+
+清单登记两类对象。
+
+**一、公开签名材料**（`published_signing_material`）。每行绑定算法、canonical 公钥指纹与来源 fixture。
+指纹是对**算法定义的公钥编码字节**做 SHA-256：Ed25519 为 RFC 8032 的 32 字节公钥；ECDSA P-256 为
+SEC1 未压缩点 `0x04 || X || Y` 共 65 字节；ML-DSA-65 为 FIPS 204 的 1952 字节公钥。实现 MUST NOT 改为
+对 JWK、multibase、PEM 或任何 JSON 文本求摘要——同一公钥换 `kid`、换 DID、换 JWK 字段顺序或换编码
+形式后指纹不变，**改名与重编码因此不能绕过本节**。匹配只看指纹，与该材料此次出现在哪个字段、
+哪个 DID 文档、哪个 proof 中无关。
+
+**二、保留标识**（`reserved_identifiers`）。DID、verification method key id 与 trust domain 是三条
+彼此独立的规则，逐条登记，逐条匹配：
+
+| 规则类别 | 匹配对象 | 匹配方式 |
+| --- | --- | --- |
+| `did` | §2.1 的 `did` terminal | 先按 method 与 method-specific id 切分，再比较登记的 SCID 段；不做整串子串匹配。 |
+| `key_id` | §2.1 的 `did_url` terminal 的 fragment | 只比较 fragment，与其所挂的 DID 无关；被重新挂到生产 DID 下的 fixture key id 仍被拒收。 |
+| `trust_domain` | `ak:trust_domain:` typed identifier 的 value | 先按 typed identifier 语义取出 value，再按登记的精确值或 RFC 2606 / RFC 6761 保留顶级标签比较；MUST NOT 当作 DNS 后缀字符串猜测。 |
+
+三类规则互不蕴含：一个标识只要命中任意一条即被拒收；命中其中一条不得推断另两条也命中。
+
+### 8.2 拒收时机
+
+拒收 MUST 发生在该材料**成为授权依据之前**，具体为下列各点：
+
+- §4 任一 evidence class 的 DID authority call，在 adapter 投影与 key 选择之后、产出 §5 verification
+  result 之前；
+- Event ingress 与 proof 验证在解析出 `verification_method` 并取得 key 之后、把签名结论用于授权之前
+  （§6 第三条）；
+- registration / genesis 与 identity resolution 的 successor 接纳，使得公开材料不能被重新注册为新主体；
+- trust domain 准入与 service identity 准入，在把该 trust domain 写入本地信任面之前。
+
+拒收 MUST NOT 依赖签名是否有效：**签名验证通过的公开测试材料同样 MUST 被拒收**，因为它的私钥是公开的。
+实现 MUST NOT 把命中本节的材料写入 verified-binding store、resolution cache 或任何 accepted auth-state。
+
+### 8.3 拒收结果
+
+命中本节的调用点 MUST fail closed，并以 `test_signing_material_denied` 作为 reason code；具体 error code
+由调用面既有登记决定。已缓存的结果 MUST 被丢弃而不是标为 `stale`。拒收 MUST NOT 退化为任何较弱路径
+（换一个 evidence class 重试、降级为 `limited_trust` pin、或以 `unavailable` 当作暂时性故障重试）。
+
+未被清单登记的合法材料不受本节影响：它仍按 §4 与 §5 正常验证，**本节不引入"未登记即可疑"的推定**。
+
+### 8.4 适用面
+
+本节约束的是**正式认证、授权与信任准入的验证路径**，按实现已承担的相应验证能力适用；v1 不为此新增
+`ak.profile.*` 部署形态，也不存在一个名为"生产"的 profile。不承担 DID authority 验证、proof 验证或
+trust domain 准入能力的实现，其对应 SDK claim 的 `not_applicable` 理由 MUST 与其 capability inventory
+及调用职责一致，不得以"本实现没有生产模式"为由豁免。
+
+### 8.5 隔离 harness 是唯一执行例外
+
+conformance fixture runner MAY 在**隔离的 conformance harness** 内接受清单登记的材料，这是它们被公布的
+用途。该例外 MUST 由独立的 harness 执行上下文承担：正式验证 API **MUST NOT** 提供任何用户配置、
+feature flag、环境变量或运行期开关把自身切换到测试信任路径。
+
+### 8.6 证据
+
+本节的可执行证据为
+`ak.vector.identity.test_signing_material_rejected.v1` 与
+`ak.vector.identity.reserved_test_identifier_rejected.v1`，由
+[`test-material-rejection-fixture.json`](../../artifacts/fixtures/test-material-rejection-fixture.json)
+承载。构造负例时，除被测的那一项外，其余身份与信任前提 MUST 全部满足——用一个本来就无效的 DID
+被拒收冒充本节生效，证明不了任何事。

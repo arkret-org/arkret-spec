@@ -24,7 +24,7 @@
         "d": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
         "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
         "kty": "OKP",
-        "note": "Public conformance test key only. Production profiles MUST reject this test DID/key domain."
+        "note": "Public conformance test key only: the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8."
       },
       "binding_object": {
         "context": "ak.event_proof.v1",
@@ -91,7 +91,7 @@
         "x": "elkxgIYMQDfIPBJ0mEXI7hQk3Sl_rcuJXjWCVdLH0rI",
         "y": "qMolWA8mJv5XkGL_G5n_kcJKDaBvsytb4gFIySSfVlA",
         "kty": "EC",
-        "note": "Public conformance test key only (d = fixed seed bytes 0x00..0x1f). Production profiles MUST reject this test DID/key domain."
+        "note": "Public conformance test key only (d = fixed seed bytes 0x00..0x1f): the private key ships with the specification. the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8."
       },
       "binding_object": {
         "context": "ak.event_proof.v1",
@@ -147,7 +147,7 @@
         "ak.profile.signature.pqc.v1"
       ],
       "keygen_seed_b64u": "jCpeMepxmOde7Y-dXnCHktvKn4Gxaxy5FM5LqmLJKVA",
-      "keygen_note": "Public conformance test key only, generated as an ML-DSA-65 key and recorded with its 32-byte FIPS 204 seed. Production profiles MUST reject this test DID/key domain.",
+      "keygen_note": "Public conformance test key only, generated as an ML-DSA-65 key and recorded with its 32-byte FIPS 204 seed, so the signing key is reproducible by anyone. the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8.",
       "public_key_b64u": "Q4BB3HjypooPfHc42XIUANiPGS_cgZpIP62pfhPPs0fBE12vYfTAxC5He3WQFHAQS7pYD5N2PHBzYr4zXHtGuR7CqHS8kEITo7tY5pc9GA7uJ-hpsaiRCleAG05Pvel5Fh_dZmMdkFeUP77z_HJ3KmHrTJ7twHuEO02sr62uxqepTrUqn21OBaosv0APUuvYdULz8HITpJFjLdzXIqiLneGZEKNeiikVjTLkBBVPvzil164xFsTiQUFK-x6kdcFdtouQkUDkVXNbvIvF84-kCi2w7YIKNgkT7u1vHNbAKGBWYXTa7ORXLrvVzeXOqJpqveMOjcPHKMVtyDPfn56VjJXgT_Z4UYz-xINwT7DkR5Juc7baJEYGXEBZU6WcmEekI-2ZEnBuGUNpolSFkIg6pJUIOugSt_EaFwJj41d7rqJgUj9YDV3SyrMk75FyiGXI_AJSiYv56DyOo-9iwdEfQkoG3vYp9mvqoZ_NFjw94xjX2FXsFqxeFX3yLSbzOTeB4V4Xigvg2HLhHzLEbpFp4u3Vxaf3b1YXujBbN0I8y-em_-x294FlXoQQBkvLodGqN3jru3qEMvrxxUPs688mIHk-PSHwhRNBFAz5Yf9lDpnm35Tj6TF08TH-hsrltknrOdclKGDWUamcCIDZYDtGA7xlmXGyLLtrKSZrA_nuTVMBBEl8zdOGQcJB-ebVx5asQxcbjBK3qxBg7E4FET1pjsIpSXv2r0f161n56jPai6tG3KmvObWBW3BmZeh8dB2IrFaYu8c-e2yfVG3jTZoOpzdRwG1a2BJChMVo3GzpoEDJaGoR50zgJS1K1pmONBmOTfY8tfMVxpREmRGhhnF5EbOp3minHbWFsSJZE-GTctfulv60KQ_vyhW8tZKsN2uqfYyrPxqB6h6jVCnyPGSX7SKwtn4n7WcGJchN_FPFEwKpuYadQPS5_7VvEJRoHT9vjWbzwMVyniqOoVqEjYQxMEvXMy1hUZUDKejt6a5cl-v7GlnxHfBkxmshZ1V1wX3_NTs9aHzzJRVN-dbcWOaf8tPUqPNz6piw1xdTMz9OwBILu5iAUqLI42Ln1A4YD0gnzFQ6lBxPnbJJHYhF1_MxlCmjmqp4sB7Q9Kk6yYafU_GasvAqLr5udz47grTPEyvSpjG7xE2gwFb4HG6hFukRgKbHVGZu5pqvTMsz-5zztglOHXhBk7iBhoDm9quRZXnj0DQy20rPg2ZumXvXMe4-sJf0V2FRL-gSyp0DOeD92140G_E-hudinLKeTiV4MQGMDsZm0an-5i5iB8IdNS-IEslT5aS52d6WeCy_3d4oI2hVcoqavRy0erIAr1H63BTRXbVvgkukwUWM5tecGw2VbfeqrWlaSmk6VeNRZtuyoM-5UqCeE9K9zdYwzg6PGRsaqq8ENiIiCyLi-RFgQxsvOOk59j5xPq7nU-mYmk8Fd3iwmb_l2I_Ci1P-9e3SSQw0-8V_7V7ysD1QK9dVPE93abZ-XakYYgkBwuyWuJE60xUFxiRcje4aSrW0gbENjCTQvHQYXfq380Bvsx93nviKec3sV_tS7EQDp51vcVSeQintdqfikx3oREy3V_rgZ-fdL8r9wLj-UcRxDxdK9xLKLYZcKghuny4Hn6EGG1rvQ5uMXdH6BgL-1dEOeJ_gOpCRRKMDOVgfhv6D6qwOce4kym8bqM6PDMv3yBhwpCMMorvJWhHF_rkRpiCEdMYTTbY9thYAWkpA2mjMKEOR-T4javBhanfoHHGSZwsDjCU1gkgWsBOcTVk12acBEEO5wkdTq3AJaBJEU6BZD0PSxCTb92vK3P9yJLZ1KeQvvA-jhEBV1V93THOWt-fmp95f0FEvQgM9wzuRhlEOiscWqcTNEhA0HjqVRCnIWvvgQIUzaH5VFyGD-Yn18Io95PeBr6ZFiHsd8NuuoCEDiY7uMmgy_U68z2hVNPrCJgVMmTWWfRNDssOEZB0hIZAR1vDWZkareX7n9a1EwVzx4Vq-IXPA-xWkMKG6dt2eCgTlsS7NTvwlASwyIdw8UYxJ9GWfm1VW9EcYQeHO6fzawCQAeaDo6FK5vhl81e2-zqNQ2GkPWx39E49ZiAlm3vSp7HVnJwFX34hPQnIgjQQ4D5Z0BE1EqEJlqIzuRcB8DPL59sV0tF50LoCK07I6mVPiEZQW7dNQElbj00RJ7kWnb5rhHleibLLxGf4X7-pezPeZHfU5BlYloSxZWJ-MkgX_5H0zRpVFAW-6v1KsnJHShKNRCklEJfZkv8neeHntgwfx2T1zvqV1OXrwAjs5jckrCSoM_Lac8_SSeDn82UgFQdFzlInJ8jM3fPsPu-89nk6_Dk7qj8Ol3e-liEqcxmlPBzsL01EjRHDvXbZjf0-9MjY4Rv2nHon0iwTWzCgwBPvUyNU3M3D6RHFAgPKv9ilbXAMXu-bS4e-PlGs3UZ9GFbKzklhqTAn0HyBvUSF6tpUAOcXX49QmsMjVCmktUgOQEEkYUXj6t1jts-NCVLXKSoPzvecGtVzr3IyGsMJaYSfG_kEj0MVy49NvpVn-ucn1qWKrp6qYc9kutupnhzZb2GHNQsO8YxIoQUcbdcEO0neHhMtObVY",
       "binding_object": {
         "context": "ak.event_proof.v1",

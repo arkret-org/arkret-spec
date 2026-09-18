@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:20:00+08:00",
+  "generated_at": "2026-09-20T17:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2759,6 +2759,36 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.reserved_test_identifier_rejected.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1",
+        "ak.profile.identity_registry.v1"
+      ],
+      "description": "The did, key_id and trust_domain reserved-identifier rules of test-material-registry.json are matched independently and by their own typed-identifier semantics; matching one does not imply the others; the words test, fixture, did:key and example reserve nothing on their own and a deployment domain that merely shares a tail is not refused.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/did-usage-and-verification.md",
+        "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.test_signing_material_rejected.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1",
+        "ak.profile.identity_registry.v1"
+      ],
+      "description": "Published test signing material registered in test-material-registry.json is refused on every formal verification, authorization and trust-admission path even when the signature verifies; the fingerprint is taken over algorithm-defined public key bytes so renaming or re-encoding does not evade it; the refusal leaves no verified binding, cache entry or accepted auth state and offers no weaker path; unlisted material is unaffected; the isolated conformance harness is the only place the material may execute.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/did-usage-and-verification.md",
+        "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity_link.eager_invalidation.v1",
       "status": "active",
       "domain": "identity_link",
@@ -4054,6 +4084,34 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "status": "active",
+      "domain": "sdk",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1"
+      ],
+      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and proofs, scope_ref, actor_id and refs[role=authorized_by] cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "status": "active",
+      "domain": "sdk",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1"
+      ],
+      "description": "An Event Envelope that fails ak.schema.event.v1 or the payload class its event kind declares is refused with schema_violation and leaves no observable effect in reducer state, projections, query results or caches; no retry, reconnect or backfill path re-admits it and nothing is normalized or defaulted into an admissible form.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sdk.event_type_axes.v1",
       "status": "active",
       "domain": "sdk",
@@ -4078,6 +4136,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sdk.requirements_mismatch_fail_closed.v1",
+      "status": "active",
+      "domain": "sdk",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1"
+      ],
+      "description": "An object whose declared requirements name a capability this build does not provide is refused with unsupported_feature, which is a different decision from an unknown critical extension; a build that provides the capability admits the identical object, so the observation point is the requirement check and not a schema failure.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sdk.retry_after.v1",
       "status": "active",
       "domain": "sdk",
@@ -4087,6 +4159,20 @@
       "description": "SDK computes max(server_hint_delay, jitter(local_backoff_delay)); zero, short or elapsed hints never accelerate the local ladder, and long hints are never clamped into an earlier retry.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "status": "active",
+      "domain": "sdk",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1"
+      ],
+      "description": "An object declaring a critical extension this build does not recognise is refused as a whole with unsupported_feature, decided from the criticality declaration rather than from whether the extension body parses, and refused before any payload member is consumed, stored, projected or forwarded; an unknown non-critical extension is still admitted and preserved byte for byte.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json"
       ]
     },
     {
