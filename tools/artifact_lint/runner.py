@@ -272,6 +272,7 @@ from .proof_context_schemas import (
     check_partial_update_base_producers,
     check_pre_state_requirement_closure,
     check_realm_join_candidate_locator_contract,
+    check_realm_join_locator_carriers_and_bounds,
     check_registered_families_are_listed_in_prose,
     check_result_family_write_agreement,
     check_result_value_member_closure,
@@ -350,6 +351,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "realm_join_candidate_locator_contract",
                 lambda: check_realm_join_candidate_locator_contract(lint),
+            ),
+            (
+                "realm_join_locator_carriers_and_bounds",
+                lambda: check_realm_join_locator_carriers_and_bounds(lint),
             ),
             (
                 "digest_construction_registration",

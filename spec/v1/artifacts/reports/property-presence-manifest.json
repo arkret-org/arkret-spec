@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9175,
+    "total_properties": 9169,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2325,
+      "optional": 2324,
       "optional_defaulted": 46,
-      "required": 6351,
+      "required": 6346,
       "required_nullable": 295,
       "tristate": 158
     },
@@ -9565,9 +9565,6 @@
       ],
       "properties": {
         "/properties/endpoint_url": "optional",
-        "/properties/expires_at": "required",
-        "/properties/observed_at": "required",
-        "/properties/realm_id": "required",
         "/properties/service_id": "required",
         "/properties/service_kind": "required",
         "/properties/source": "required"
@@ -9596,9 +9593,6 @@
         "/$defs/application_status_request/properties/application_event_id": "required",
         "/$defs/application_status_request/properties/realm_id": "required",
         "/$defs/application_status_request/properties/request_id": "required",
-        "/$defs/authority_locator_hint/properties/endpoint_url": "optional",
-        "/$defs/authority_locator_hint/properties/service_id": "required",
-        "/$defs/authority_locator_hint/properties/source": "required",
         "/$defs/join_intent/oneOf/0/properties/invite_id": "required",
         "/$defs/join_intent/oneOf/0/properties/invite_token": "required",
         "/$defs/join_intent/oneOf/0/properties/kind": "required",

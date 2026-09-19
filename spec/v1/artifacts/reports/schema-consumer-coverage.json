@@ -3338,7 +3338,21 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.directory_operations.v1"
+          "ak.schema.directory_operations.v1",
+          "ak.schema.invite_delivery.v1",
+          "ak.schema.invite_delivery_request.v1",
+          "ak.schema.realm_join_bootstrap_outcome.v1",
+          "ak.schema.realm_join_bootstrap_request.v1",
+          "ak.schema.realm_join_peer_application_status_outcome.v1",
+          "ak.schema.realm_join_peer_application_status_request.v1",
+          "ak.schema.realm_join_peer_preview_outcome.v1",
+          "ak.schema.realm_join_peer_preview_request.v1",
+          "ak.schema.realm_join_prepare_outcome.v1",
+          "ak.schema.realm_join_prepare_request.v1",
+          "ak.schema.realm_join_self_application_status_outcome.v1",
+          "ak.schema.realm_join_self_application_status_request.v1",
+          "ak.schema.realm_join_self_preview_outcome.v1",
+          "ak.schema.realm_join_self_preview_request.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -4307,7 +4321,6 @@
           "ak.schema.realm.v1",
           "ak.schema.realm_authority_bundle.v1",
           "ak.schema.realm_commit.v1",
-          "ak.schema.realm_join_candidate.v1",
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_read_operations.v1",

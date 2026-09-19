@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.11",
+  "version": "2026-09-20.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:18:42+08:00",
+  "generated_at": "2026-09-20T07:26:35+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4046,7 +4046,7 @@
       "applies_to_fixtures": [
         "realm-join-candidate-locator-fixture.json"
       ],
-      "description": "RealmJoinCandidate is a closed, untrusted authority-bundle locator. It carries no proof or authority assertion, all three source values have equal trust, clients submit only to their own Station, and only a verified Realm genesis plus continuous handoff chain selects the current governance Station; mutually exclusive chains fail closed.",
+      "description": "RealmJoinCandidate is one closed, untrusted authority-bundle locator core shared directly by Directory, invite delivery, and join intake. Locator arrays contain 1..8 entries strictly ordered by service_id UTF-8 bytes and reject duplicate or conflicting service identities as a whole. Realm and freshness come only from the enclosing carrier and nonce-bound current assertion; only verified Realm genesis plus a continuous handoff chain selects the current governance Station.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"

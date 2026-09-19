@@ -392,8 +392,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",
-      "sha256": "b421ceb5aee70a7e923f69248c6d0f11b5b0512c2a42da5576ba2e6a24d6ead2",
-      "version": "2026-09-20.2"
+      "sha256": "628a5cec2f02f6854e96a3855ac0bd3908bc2581f8ffbced46c13622539aba7b",
+      "version": "2026-09-20.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",

@@ -149,7 +149,7 @@ class RealmJoinCandidateLocatorGateTest(unittest.TestCase):
 
     def test_schema_required_set_is_fixed(self) -> None:
         self.assert_red(
-            lambda d: d["schema"]["required"].remove("expires_at"),
+            lambda d: d["schema"]["required"].remove("source"),
             "required must equal",
         )
 
@@ -173,11 +173,19 @@ class RealmJoinCandidateLocatorGateTest(unittest.TestCase):
             "source.enum must equal",
         )
 
+    def test_endpoint_must_remain_canonical_https(self) -> None:
+        self.assert_red(
+            lambda d: d["schema"]["properties"]["endpoint_url"].__setitem__(
+                "pattern", "^https?://"
+            ),
+            "canonical HTTPS URI constraint",
+        )
+
     def test_removed_authority_fields_are_rejected_at_any_schema_depth(self) -> None:
         for field in sorted(gate.REALM_JOIN_CANDIDATE_FORBIDDEN_FIELDS):
             with self.subTest(field=field):
                 self.assert_red(
-                    lambda d, field=field: d["schema"]["properties"]["realm_id"].__setitem__(
+                    lambda d, field=field: d["schema"]["properties"]["service_id"].__setitem__(
                         "properties", {field: {"type": "string"}}
                     ),
                     "authority-elevating fields",
@@ -221,6 +229,14 @@ class RealmJoinCandidateLocatorGateTest(unittest.TestCase):
                 "description", "An untrusted Realm join hint."
             ),
             "contract-registry row description must contain 'locator'",
+        )
+
+    def test_registry_description_cannot_restore_locator_time_bounds(self) -> None:
+        self.assert_red(
+            lambda d: _contract_schema_row(d["contract"]).__setitem__(
+                "description", "A time-bounded, untrusted locator."
+            ),
+            "must not assign locator-specific time bounds",
         )
 
     def test_service_kind_description_cannot_restore_forwarding_authority(self) -> None:

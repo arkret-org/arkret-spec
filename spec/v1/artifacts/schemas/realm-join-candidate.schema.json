@@ -1,21 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-join-candidate.schema.json",
-  "title": "Arkret Realm Authority Locator Hint",
-  "description": "A closed, untrusted locator for obtaining a nonce-bound RealmAuthorityBundle. It carries no proof, authority assertion, governance history, operation advertisement, preference, or trust level; only a verified genesis and continuous handoff chain can identify the current governance Station.",
+  "title": "Arkret Realm Authority Locator Core",
+  "description": "A closed, untrusted locator core for obtaining a nonce-bound RealmAuthorityBundle. Realm scope and freshness belong to the enclosing carrier and current assertion. The core carries no proof, authority assertion, governance history, operation advertisement, preference, or trust level; only a verified genesis, continuous handoff chain, and valid nonce-bound current assertion can identify the current governance Station.",
   "type": "object",
   "required": [
-    "realm_id",
     "service_kind",
     "service_id",
-    "source",
-    "observed_at",
-    "expires_at"
+    "source"
   ],
   "properties": {
-    "realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
-    },
     "service_kind": {
       "enum": [
         "station"
@@ -35,12 +29,6 @@
         "directory",
         "cache"
       ]
-    },
-    "observed_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    },
-    "expires_at": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "additionalProperties": false

@@ -289,7 +289,7 @@ Agent 继续使用自身 producer key、controller authorization 和 Account Sta
 
 ## 12. 新鲜度与多服务并存
 
-多个 locator可以并存，但一个 Realm generation 只有一个 current governance Station。看到更高 generation 后不得回滚；互斥 handoff、相同 generation 不同 cut 或 authority equivocation 必须冻结相关 Realm/stream。
+多个 locator 可以并存，但 carrier MUST 直接使用 `ak.schema.realm_join_candidate.v1` 的同一个 closed core：1..8 项、按 `service_id` UTF-8 bytes 严格升序且该 id 语义唯一；同 id 的任何表示冲突令整组 fail closed。locator 不复制 Realm 或时间成员，Directory、invite 与 join intake 分别从 enclosing container 取得 scope/freshness。一个 Realm generation 只有一个 current governance Station。看到更高 generation 后不得回滚；互斥 handoff、相同 generation 不同 cut 或 authority equivocation 必须冻结相关 Realm/stream。
 
 ## 13. 传输安全与密文
 

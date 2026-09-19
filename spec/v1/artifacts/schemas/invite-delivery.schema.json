@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-delivery.schema.json",
   "title": "Arkret Invite Delivery",
-  "description": "Actor-private holder state containing directed-invite credentials and untrusted current-authority locator hints. It is not a typed current result and is not part of Realm history.",
+  "description": "Actor-private plaintext account-data typed current result value containing directed-invite credentials and untrusted authority-bundle locator hints. It is not part of Realm history.",
   "type": "object",
   "required": [
     "schema",
@@ -63,9 +63,9 @@
           "maxItems": 8,
           "uniqueItems": true,
           "items": {
-            "$ref": "./realm-join-intake.schema.json#/$defs/authority_locator_hint"
+            "$ref": "./realm-join-candidate.schema.json"
           },
-          "description": "Routing hints only. The invitee must fetch and verify a nonce-bound RealmAuthorityBundle before any preview, join submission, or bootstrap request."
+          "description": "One to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array. The invitee must fetch and verify a nonce-bound RealmAuthorityBundle before any preview, join submission, or bootstrap request."
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

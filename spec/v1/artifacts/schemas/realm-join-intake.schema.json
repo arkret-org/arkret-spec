@@ -55,32 +55,6 @@
       "minLength": 1,
       "maxLength": 512
     },
-    "authority_locator_hint": {
-      "type": "object",
-      "required": [
-        "service_id",
-        "source"
-      ],
-      "properties": {
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "source": {
-          "enum": [
-            "invite",
-            "directory",
-            "cache"
-          ]
-        },
-        "endpoint_url": {
-          "type": "string",
-          "format": "uri",
-          "pattern": "^https://"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Untrusted starting point used only to fetch a nonce-bound authority bundle."
-    },
     "join_target": {
       "type": "object",
       "required": [
@@ -103,8 +77,9 @@
           "maxItems": 8,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/authority_locator_hint"
-          }
+            "$ref": "./realm-join-candidate.schema.json"
+          },
+          "description": "One to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array."
         }
       },
       "additionalProperties": false

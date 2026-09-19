@@ -324,9 +324,13 @@
         },
         "join_candidates": {
           "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
           "items": {
             "$ref": "./realm-join-candidate.schema.json"
-          }
+          },
+          "description": "When disclosed, one to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array."
         },
         "as_of": {
           "$ref": "#/$defs/timestamp"
@@ -619,9 +623,13 @@
         },
         "join_candidates": {
           "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
           "items": {
             "$ref": "./realm-join-candidate.schema.json"
-          }
+          },
+          "description": "When disclosed, one to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array."
         }
       },
       "additionalProperties": false
@@ -694,9 +702,13 @@
         },
         "join_candidates": {
           "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
           "items": {
             "$ref": "./realm-join-candidate.schema.json"
-          }
+          },
+          "description": "When disclosed, one to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array."
         }
       },
       "additionalProperties": false

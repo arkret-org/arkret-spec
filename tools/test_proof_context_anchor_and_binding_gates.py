@@ -298,6 +298,7 @@ class RunnerWiringTest(unittest.TestCase):
         for name in (
             "check_digest_construction_registration",
             "check_realm_join_candidate_locator_contract",
+            "check_realm_join_locator_carriers_and_bounds",
             "check_proof_context_carrier_family_anchors",
             "check_domain_separation_binding_fields_are_carriable",
         ):

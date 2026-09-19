@@ -63,6 +63,16 @@ SERVICE_KIND_REGISTRY = ARTIFACTS / "registry" / "service-kind-registry.json"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 REALM_JOIN_CANDIDATE_SCHEMA = ARTIFACTS / "schemas" / "realm-join-candidate.schema.json"
 REALM_JOIN_CANDIDATE_FIXTURE = ARTIFACTS / "fixtures" / "realm-join-candidate-locator-fixture.json"
+REALM_JOIN_INTAKE_SCHEMA = ARTIFACTS / "schemas" / "realm-join-intake.schema.json"
+INVITE_DELIVERY_REQUEST_SCHEMA = ARTIFACTS / "schemas" / "invite-delivery-request.schema.json"
+INVITE_DELIVERY_SCHEMA = ARTIFACTS / "schemas" / "invite-delivery.schema.json"
+DIRECTORY_OPERATIONS_SCHEMA = ARTIFACTS / "schemas" / "directory-operations.schema.json"
+REALM_JOIN_LOCATOR_PROSE_FILES = (
+    SPEC_ROOT / "zh" / "discovery" / "discovery-directory.md",
+    SPEC_ROOT / "zh" / "governance" / "join-policy.md",
+    SPEC_ROOT / "zh" / "sync" / "invite-addressing.md",
+    SPEC_ROOT / "zh" / "sync" / "service-surface.md",
+)
 
 # Only these primitives describe a standalone signed wire object. Everything else
 # in DOMAIN_SEPARATION_PRIMITIVES binds bytes gathered from an enclosing carrier.
@@ -73,25 +83,22 @@ REALM_JOIN_CANDIDATE_VECTOR_ID = "ak.vector.realm_join_candidate.untrusted_locat
 REALM_JOIN_CANDIDATE_REMOVED_CONTEXT = "ak.realm_join_candidate_proof.v1"
 REALM_JOIN_CANDIDATE_REMOVED_FAMILY = "realm_join_candidate"
 REALM_JOIN_CANDIDATE_PROPERTIES = (
-    "realm_id",
     "service_kind",
     "service_id",
     "endpoint_url",
     "source",
-    "observed_at",
-    "expires_at",
 )
 REALM_JOIN_CANDIDATE_REQUIRED = (
-    "realm_id",
     "service_kind",
     "service_id",
     "source",
-    "observed_at",
-    "expires_at",
 )
 REALM_JOIN_CANDIDATE_SOURCES = ("invite", "directory", "cache")
 REALM_JOIN_CANDIDATE_FORBIDDEN_FIELDS = frozenset(
     {
+        "realm_id",
+        "observed_at",
+        "expires_at",
         "proof",
         "proofs",
         "signature",
@@ -169,6 +176,8 @@ def _check_locator_description(lint: Lint, path: Path, where: str, value: Any) -
                 path,
                 f"{where} description retains the authority-elevating claim {forbidden!r}",
             )
+    if "time-bounded" in lowered:
+        lint.fail(path, f"{where} description must not assign locator-specific time bounds")
 
 
 def check_realm_join_candidate_locator_contract(lint: Lint) -> None:
@@ -238,6 +247,17 @@ def check_realm_join_candidate_locator_contract(lint: Lint) -> None:
                 lint.fail(
                     REALM_JOIN_CANDIDATE_SCHEMA,
                     f"properties.source.enum must equal {list(REALM_JOIN_CANDIDATE_SOURCES)!r}",
+                )
+            endpoint = properties.get("endpoint_url")
+            if (
+                not isinstance(endpoint, dict)
+                or endpoint.get("type") != "string"
+                or endpoint.get("format") != "uri"
+                or endpoint.get("pattern") != "^https://"
+            ):
+                lint.fail(
+                    REALM_JOIN_CANDIDATE_SCHEMA,
+                    "properties.endpoint_url must retain the canonical HTTPS URI constraint",
                 )
         forbidden_fields = sorted(
             _schema_property_names(schema) & REALM_JOIN_CANDIDATE_FORBIDDEN_FIELDS
@@ -338,6 +358,218 @@ def check_realm_join_candidate_locator_contract(lint: Lint) -> None:
             {value for value in rejected if isinstance(value, str)}
         ):
             lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "fixture must reject every authority-elevating field")
+
+
+def realm_join_locator_array_errors(value: Any) -> list[str]:
+    """Validate the non-JSON-Schema ordering and semantic-identity contract."""
+
+    errors: list[str] = []
+    if not isinstance(value, list):
+        return ["locator array must be an array"]
+    if not 1 <= len(value) <= 8:
+        errors.append("locator array item count must be within 1..8")
+    previous: bytes | None = None
+    seen: set[str] = set()
+    for index, candidate in enumerate(value):
+        if not isinstance(candidate, dict):
+            errors.append(f"locator[{index}] must be an object")
+            continue
+        service_id = candidate.get("service_id")
+        if not isinstance(service_id, str) or not service_id:
+            errors.append(f"locator[{index}].service_id must be a non-empty string")
+            continue
+        key = service_id.encode("utf-8")
+        if service_id in seen:
+            errors.append(f"locator[{index}] duplicates semantic service_id {service_id!r}")
+        seen.add(service_id)
+        if previous is not None and key <= previous:
+            errors.append("locator array must be strictly sorted by service_id UTF-8 bytes")
+        previous = key
+    return errors
+
+
+def _nested_schema_node(document: Any, *keys: str) -> Any:
+    node = document
+    for key in keys:
+        if not isinstance(node, dict):
+            return None
+        node = node.get(key)
+    return node
+
+
+def _check_realm_join_locator_array_schema(
+    lint: Lint,
+    path: Path,
+    document: Any,
+    node_keys: tuple[str, ...],
+    *,
+    required_owner_keys: tuple[str, ...],
+    field_name: str,
+    must_be_required: bool,
+) -> None:
+    node = _nested_schema_node(document, *node_keys)
+    if not isinstance(node, dict):
+        lint.fail(path, f"{'.'.join(node_keys)} must define a locator array")
+        return
+    expected_ref = "./realm-join-candidate.schema.json"
+    if (
+        node.get("type") != "array"
+        or node.get("minItems") != 1
+        or node.get("maxItems") != 8
+        or node.get("uniqueItems") is not True
+        or node.get("items") != {"$ref": expected_ref}
+    ):
+        lint.fail(
+            path,
+            f"{'.'.join(node_keys)} must be a 1..8 uniqueItems array directly referencing {expected_ref}",
+        )
+    description = node.get("description")
+    if not isinstance(description, str) or not all(
+        phrase in description
+        for phrase in ("service_id", "UTF-8 bytes", "semantic identity", "entire array")
+    ):
+        lint.fail(
+            path,
+            f"{'.'.join(node_keys)} must register bytewise ordering, semantic identity, and whole-array rejection",
+        )
+    owner = _nested_schema_node(document, *required_owner_keys)
+    required = owner.get("required") if isinstance(owner, dict) else None
+    present = isinstance(required, list) and field_name in required
+    if present != must_be_required:
+        disposition = "required" if must_be_required else "optional for disclosure"
+        lint.fail(path, f"{'.'.join(node_keys)} must remain {disposition}")
+
+
+def check_realm_join_locator_carriers_and_bounds(lint: Lint) -> None:
+    """Pin one locator core, all carrier refs, bounds, and semantic uniqueness."""
+
+    intake = load_json(lint, REALM_JOIN_INTAKE_SCHEMA)
+    if isinstance(intake, dict):
+        definitions = intake.get("$defs")
+        if isinstance(definitions, dict) and "authority_locator_hint" in definitions:
+            lint.fail(REALM_JOIN_INTAKE_SCHEMA, "$defs.authority_locator_hint must not exist")
+        _check_realm_join_locator_array_schema(
+            lint,
+            REALM_JOIN_INTAKE_SCHEMA,
+            intake,
+            ("$defs", "join_target", "properties", "authority_locator_hints"),
+            required_owner_keys=("$defs", "join_target"),
+            field_name="authority_locator_hints",
+            must_be_required=True,
+        )
+
+    invite_request = load_json(lint, INVITE_DELIVERY_REQUEST_SCHEMA)
+    if isinstance(invite_request, dict):
+        _check_realm_join_locator_array_schema(
+            lint,
+            INVITE_DELIVERY_REQUEST_SCHEMA,
+            invite_request,
+            ("properties", "authority_locator_hints"),
+            required_owner_keys=(),
+            field_name="authority_locator_hints",
+            must_be_required=True,
+        )
+
+    invite_delivery = load_json(lint, INVITE_DELIVERY_SCHEMA)
+    if isinstance(invite_delivery, dict):
+        _check_realm_join_locator_array_schema(
+            lint,
+            INVITE_DELIVERY_SCHEMA,
+            invite_delivery,
+            ("$defs", "delivery_entry", "properties", "authority_locator_hints"),
+            required_owner_keys=("$defs", "delivery_entry"),
+            field_name="authority_locator_hints",
+            must_be_required=True,
+        )
+
+    directory = load_json(lint, DIRECTORY_OPERATIONS_SCHEMA)
+    if isinstance(directory, dict):
+        for definition in (
+            "realm_preview",
+            "directory_realm_resolution_outcome",
+            "directory_target_resolution_outcome",
+        ):
+            _check_realm_join_locator_array_schema(
+                lint,
+                DIRECTORY_OPERATIONS_SCHEMA,
+                directory,
+                ("$defs", definition, "properties", "join_candidates"),
+                required_owner_keys=("$defs", definition),
+                field_name="join_candidates",
+                must_be_required=False,
+            )
+
+    fixture = load_json(lint, REALM_JOIN_CANDIDATE_FIXTURE)
+    if isinstance(fixture, dict):
+        array_contract = fixture.get("locator_array_contract")
+        expected_contract = {
+            "min_items": 1,
+            "max_items": 8,
+            "sort_key": "service_id_utf8_bytes",
+            "semantic_identity_key": "service_id",
+            "duplicate_or_conflicting_identity": "reject_entire_array",
+            "directory_field_may_be_omitted": True,
+            "explicit_empty_array_is_valid": False,
+        }
+        if array_contract != expected_contract:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "locator_array_contract must pin bounds, ordering, identity, and omission")
+        accepted = fixture.get("accepted_sorted_candidates")
+        errors = realm_join_locator_array_errors(accepted)
+        if errors:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, f"accepted_sorted_candidates is invalid: {errors!r}")
+        rejected = fixture.get("rejected_locator_arrays")
+        required_cases = {
+            "exact_duplicate",
+            "same_service_different_source",
+            "same_service_different_endpoint",
+            "same_service_missing_endpoint",
+            "reverse_service_id_order",
+            "empty_array",
+        }
+        actual_cases = {
+            row.get("name") for row in rejected if isinstance(row, dict)
+        } if isinstance(rejected, list) else set()
+        if actual_cases != required_cases:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "rejected_locator_arrays must cover every duplicate, conflict, order, and empty case")
+        expected_freshness = {
+            "directory": "enclosing_as_of_and_stale",
+            "invite": "enclosing_invite_expires_at",
+            "join": "enclosing_realm_id_and_nonce_bound_current_assertion",
+            "locator_specific_ttl_or_skew": False,
+        }
+        if fixture.get("freshness_contract") != expected_freshness:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "freshness_contract must keep scope and freshness on enclosing carriers")
+        assertion_cases = fixture.get("authority_assertion_cases")
+        expected_assertion_cases = {
+            "directory_stale_false_only": "reject_as_authority",
+            "invite_unexpired_only": "reject_as_authority",
+            "endpoint_reachable_only": "reject_as_authority",
+            "current_assertion_missing": "reject_join",
+            "current_assertion_expired": "reject_join",
+            "current_assertion_nonce_mismatch": "reject_join",
+            "verified_chain_and_valid_nonce_bound_current_assertion": "accept_current_authority",
+        }
+        actual_assertion_cases = {
+            row.get("name"): row.get("expected")
+            for row in assertion_cases
+            if isinstance(row, dict)
+        } if isinstance(assertion_cases, list) else {}
+        if actual_assertion_cases != expected_assertion_cases:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "authority_assertion_cases must reject weak freshness signals and require a valid nonce-bound assertion")
+
+    forbidden_prose = (
+        "`realm_id` MUST 等于解析结果的 canonical Realm ID",
+        "`observed_at` 与 `expires_at` 定义 locator 缓存窗口",
+        '"observed_at": "2026-05-10T07:55:12Z"',
+        '"expires_at": "2026-05-10T08:05:12Z"',
+    )
+    for path in REALM_JOIN_LOCATOR_PROSE_FILES:
+        text = read_text(path)
+        for snippet in forbidden_prose:
+            if snippet in text:
+                lint.fail(path, f"prose restores removed per-locator scope/time material: {snippet!r}")
+        if re.search(r"\bauthority_locator_hint\b", text):
+            lint.fail(path, "prose restores the removed private authority_locator_hint DTO name")
 
 
 def _registered_schema_files(lint: Lint) -> tuple[set[str], dict[str, str]] | None:

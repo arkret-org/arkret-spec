@@ -5,18 +5,37 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.realm_join_candidate.untrusted_locator.v1"
   },
-  "version": "2026-09-20.2",
+  "version": "2026-09-20.3",
   "schema": "arkret.realm-join-candidate-locator-fixture.v1",
   "vector_id": "ak.vector.realm_join_candidate.untrusted_locator.v1",
   "accepted_candidate": {
-    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
     "service_kind": "station",
     "service_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
     "endpoint_url": "https://candidate.example/_arkret",
-    "source": "directory",
-    "observed_at": "2026-09-20T06:00:00Z",
-    "expires_at": "2026-09-20T06:05:00Z"
+    "source": "directory"
   },
+  "locator_array_contract": {
+    "min_items": 1,
+    "max_items": 8,
+    "sort_key": "service_id_utf8_bytes",
+    "semantic_identity_key": "service_id",
+    "duplicate_or_conflicting_identity": "reject_entire_array",
+    "directory_field_may_be_omitted": true,
+    "explicit_empty_array_is_valid": false
+  },
+  "accepted_sorted_candidates": [
+    {
+      "service_kind": "station",
+      "service_id": "ak:did_core:webvh:z1111111111111111111111111",
+      "source": "invite"
+    },
+    {
+      "service_kind": "station",
+      "service_id": "ak:did_core:webvh:z2222222222222222222222222",
+      "endpoint_url": "https://candidate.example/_arkret",
+      "source": "directory"
+    }
+  ],
   "trust_contract": {
     "candidate_is_authority": false,
     "candidate_is_authorization": false,
@@ -33,6 +52,9 @@
     "cache"
   ],
   "rejected_additional_members": [
+    "realm_id",
+    "observed_at",
+    "expires_at",
     "proof",
     "proofs",
     "signature",
@@ -50,6 +72,68 @@
     "governance_station_id",
     "current_authority",
     "authority_bundle"
+  ],
+  "rejected_locator_arrays": [
+    {
+      "name": "exact_duplicate",
+      "reason": "duplicate_service_id"
+    },
+    {
+      "name": "same_service_different_source",
+      "reason": "conflicting_service_id"
+    },
+    {
+      "name": "same_service_different_endpoint",
+      "reason": "conflicting_service_id"
+    },
+    {
+      "name": "same_service_missing_endpoint",
+      "reason": "conflicting_service_id"
+    },
+    {
+      "name": "reverse_service_id_order",
+      "reason": "not_strictly_sorted_by_service_id_utf8_bytes"
+    },
+    {
+      "name": "empty_array",
+      "reason": "item_count_out_of_bounds"
+    }
+  ],
+  "freshness_contract": {
+    "directory": "enclosing_as_of_and_stale",
+    "invite": "enclosing_invite_expires_at",
+    "join": "enclosing_realm_id_and_nonce_bound_current_assertion",
+    "locator_specific_ttl_or_skew": false
+  },
+  "authority_assertion_cases": [
+    {
+      "name": "directory_stale_false_only",
+      "expected": "reject_as_authority"
+    },
+    {
+      "name": "invite_unexpired_only",
+      "expected": "reject_as_authority"
+    },
+    {
+      "name": "endpoint_reachable_only",
+      "expected": "reject_as_authority"
+    },
+    {
+      "name": "current_assertion_missing",
+      "expected": "reject_join"
+    },
+    {
+      "name": "current_assertion_expired",
+      "expected": "reject_join"
+    },
+    {
+      "name": "current_assertion_nonce_mismatch",
+      "expected": "reject_join"
+    },
+    {
+      "name": "verified_chain_and_valid_nonce_bound_current_assertion",
+      "expected": "accept_current_authority"
+    }
   ],
   "authority_chain_cases": [
     {

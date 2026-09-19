@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.15",
+  "version": "2026-09-20.17",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:15:24+08:00",
+  "generated_at": "2026-09-20T07:42:06+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10140,7 +10140,7 @@
         "schema_id": "ak.schema.realm_join_candidate.v1",
         "file": "schemas/realm-join-candidate.schema.json",
         "status": "active",
-        "description": "Time-bounded, untrusted authority-bundle locator returned by Realm discovery / resolve paths during join, invite-accept, knock, or restricted-join submission. It neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
+        "description": "Closed, untrusted authority-bundle locator returned by Realm discovery, invite delivery, and join intake. Realm scope and freshness belong to the enclosing carrier and nonce-bound current assertion; the locator neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
       },
       {
         "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
@@ -10621,8 +10621,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.15",
-    "generated_at": "2026-09-20T07:15:24+08:00",
+    "version": "2026-09-20.17",
+    "generated_at": "2026-09-20T07:42:06+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
