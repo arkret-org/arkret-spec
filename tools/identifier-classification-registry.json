@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 5,
+  "version": 6,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 928,
-    "responsibility_identity_material": 568,
+    "typed_object_id": 930,
+    "responsibility_identity_material": 572,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -272,7 +272,7 @@
       "name": "draft_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 7,
+      "occurrences": 9,
       "example_path": "event-payload.schema.json#/$defs/agent_action_approve_payload/properties/draft_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true

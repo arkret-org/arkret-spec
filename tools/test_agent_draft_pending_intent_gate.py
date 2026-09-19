@@ -26,6 +26,7 @@ class AgentDraftPendingIntentGateTest(unittest.TestCase):
             gate.ACCOUNT_DATA.resolve(): read(gate.ACCOUNT_DATA),
             gate.EVENT_PAYLOAD.resolve(): read(gate.EVENT_PAYLOAD),
             gate.PRIVATE_SCHEMA.resolve(): read(gate.PRIVATE_SCHEMA),
+            gate.ACCOUNT_SUBSCRIBE.resolve(): read(gate.ACCOUNT_SUBSCRIBE),
             gate.VECTOR_REGISTRY.resolve(): read(gate.VECTOR_REGISTRY),
             gate.PROOF_CONTEXT.resolve(): read(gate.PROOF_CONTEXT),
             gate.FIXTURE.resolve(): read(gate.FIXTURE),
@@ -105,6 +106,125 @@ class AgentDraftPendingIntentGateTest(unittest.TestCase):
             documents[gate.CONTRACT.resolve()]["event_kind_registry"]["actor_private_contracts"]["event_writes"][gate.EVENT_KIND]["shared_realm_effect"] = "typed_current_result"
 
         self.assert_red(mutate, "shared reducer")
+
+    def test_live_pending_intent_cannot_drop_handoff(self) -> None:
+        def mutate(documents: dict) -> None:
+            live = documents[gate.PRIVATE_SCHEMA.resolve()]["$defs"]["agent_draft_pending_intent_live"]
+            live["required"].remove("content_handoff")
+
+        self.assert_red(mutate, "live pending intent")
+
+    def test_terminal_redacted_cannot_restore_ciphertext(self) -> None:
+        def mutate(documents: dict) -> None:
+            terminal = documents[gate.PRIVATE_SCHEMA.resolve()]["$defs"]["agent_draft_pending_intent_terminal_redacted"]
+            terminal["properties"]["content_handoff"] = {"$ref": "#/$defs/content_handoff"}
+
+        self.assert_red(mutate, "forbid ciphertext")
+
+    def test_terminal_redacted_cannot_drop_source_identity(self) -> None:
+        def mutate(documents: dict) -> None:
+            terminal = documents[gate.PRIVATE_SCHEMA.resolve()]["$defs"]["agent_draft_pending_intent_terminal_redacted"]
+            terminal["required"].remove("accepted_event_id")
+
+        self.assert_red(mutate, "preserve identity/source")
+
+    def test_dedicated_top_level_container_cannot_be_removed(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.ACCOUNT_SUBSCRIBE.resolve()]["properties"].pop("agent_draft_pending_intents")
+
+        self.assert_red(mutate, "top-level container")
+
+    def test_baseline_channel_set_cannot_omit_pending_intents(self) -> None:
+        def mutate(documents: dict) -> None:
+            baseline = documents[gate.ACCOUNT_SUBSCRIBE.resolve()]["$defs"]["account_baseline_segment"]
+            baseline["properties"]["channels"]["items"]["enum"].remove("agent_draft_pending_intents")
+
+        self.assert_red(mutate, "exactly five global channels")
+
+    def test_baseline_cannot_drop_frozen_cut_or_offsets(self) -> None:
+        def mutate(documents: dict) -> None:
+            baseline = documents[gate.ACCOUNT_SUBSCRIBE.resolve()]["$defs"]["agent_draft_pending_intent_baseline_container"]
+            baseline["required"].remove("snapshot_cut_position")
+
+        self.assert_red(mutate, "frozen cut and page offsets")
+
+    def test_delta_cannot_drop_projection_position(self) -> None:
+        def mutate(documents: dict) -> None:
+            delta = documents[gate.ACCOUNT_SUBSCRIBE.resolve()]["$defs"]["agent_draft_pending_intent_delta_container"]
+            delta["required"].remove("projection_position")
+
+        self.assert_red(mutate, "independent projection position")
+
+    def test_pending_changes_share_one_combined_item_bound(self) -> None:
+        def mutate(documents: dict) -> None:
+            delta = documents[gate.ACCOUNT_SUBSCRIBE.resolve()]["$defs"]["agent_draft_pending_intent_delta_container"]
+            delta["properties"]["items"]["maxItems"] = 101
+
+        self.assert_red(mutate, "combined 100-change bound")
+
+    def test_pending_channel_cannot_impose_universal_baseline_offsets(self) -> None:
+        def mutate(documents: dict) -> None:
+            baseline = documents[gate.ACCOUNT_SUBSCRIBE.resolve()]["$defs"]["account_baseline_segment"]
+            baseline["properties"]["channel_offsets"] = {"type": "object"}
+            baseline["required"].append("channel_offsets")
+
+        self.assert_red(mutate, "second universal baseline offset map")
+
+    def test_authz_cannot_allow_agent_session(self) -> None:
+        def mutate(documents: dict) -> None:
+            rows = documents[gate.CONTRACT.resolve()]["schema_registry"]["schemas"]
+            projection = gate._find(rows, "schema_id", "ak.schema.account_subscribe_frame.v1")["channel_contract"]
+            projection["authorization"]["deny"].remove("agent_session")
+
+        self.assert_red(mutate, "forbidden audiences")
+
+    def test_projection_cannot_reuse_station_cas(self) -> None:
+        def mutate(documents: dict) -> None:
+            rows = documents[gate.CONTRACT.resolve()]["schema_registry"]["schemas"]
+            projection = gate._find(rows, "schema_id", "ak.schema.account_subscribe_frame.v1")["channel_contract"]
+            projection["top_level_field"] = "account_data.station_cas"
+
+        self.assert_red(mutate, "dedicated top-level field")
+
+    def test_projection_item_ref_must_name_ordered_change_union(self) -> None:
+        def mutate(documents: dict) -> None:
+            rows = documents[gate.CONTRACT.resolve()]["schema_registry"]["schemas"]
+            projection = gate._find(rows, "schema_id", "ak.schema.account_subscribe_frame.v1")["channel_contract"]
+            projection["item_schema_ref"] = "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent"
+
+        self.assert_red(mutate, "ordered change item refs")
+
+    def test_sdk_channel_variant_must_be_registered(self) -> None:
+        def mutate(documents: dict) -> None:
+            rows = documents[gate.CONTRACT.resolve()]["schema_registry"]["schemas"]
+            row = gate._find(rows, "schema_id", "ak.schema.account_subscribe_frame.v1")
+            row["sdk_projection"]["baseline_channel_variant"] = "StationCas"
+
+        self.assert_red(mutate, "SDK frame/container/channel")
+
+    def test_fixture_cannot_drop_foreign_account_denial(self) -> None:
+        def mutate(documents: dict) -> None:
+            case = gate._find(documents[gate.FIXTURE.resolve()]["cases"], "name", "account_subscribe_projection")
+            case["variants"].remove("foreign_account_denied")
+
+        self.assert_red(mutate, "authz/forbidden-carrier variants")
+
+    def test_fixture_cannot_drop_terminal_ciphertext_rejection(self) -> None:
+        def mutate(documents: dict) -> None:
+            fixture = documents[gate.FIXTURE.resolve()]
+            fixture["schema_validation_cases"] = [
+                row for row in fixture["schema_validation_cases"]
+                if row.get("name") != "agent_draft_pending_intent_terminal_ciphertext_rejected"
+            ]
+
+        self.assert_red(mutate, "live/terminal/baseline/delta schema validation cases")
+
+    def test_vector_must_cover_dedicated_sync_channel(self) -> None:
+        def mutate(documents: dict) -> None:
+            vector = gate._find(documents[gate.VECTOR_REGISTRY.resolve()]["vectors"], "vector_id", gate.VECTOR_ID)
+            vector["source_refs"].remove("spec/v1/zh/sync/client-sync.md")
+
+        self.assert_red(mutate, "dedicated sync channel")
 
     def test_fixture_requires_atomic_rollback_mutation(self) -> None:
         def mutate(documents: dict) -> None:

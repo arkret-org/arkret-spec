@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.3",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T21:25:01+08:00",
+  "generated_at": "2026-09-20T01:48:33+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1098,6 +1098,11 @@
       "page": "sync/client-sync.md",
       "heading": "3.2 Agent signer 按需结果（normative）",
       "fragment": "32-agent-signer-按需结果normative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "3.3 Agent draft pending-intent channel（normative）",
+      "fragment": "33-agent-draft-pending-intent-channelnormative"
     },
     {
       "page": "sync/client-sync.md",

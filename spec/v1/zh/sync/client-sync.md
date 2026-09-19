@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-20
 see_also:
   - authority-commit-log.md
   - current-results.md
@@ -43,6 +43,17 @@ Client Sync 是 own Account Station 向客户端提供的受信账号聚合流�
 
 Initial sync 可以分段返回，但只有在某 section 的 baseline 完成标志到达后，客户端才能把该 section 作为完整集合替换。增量到达早于 baseline 完成时必须按 revision/stream position合并，不能被较旧 baseline 覆盖。
 
+账号全局 baseline 的封闭 channel 集合是
+`account_data_events / station_cas / device_lists / notifications / agent_draft_pending_intents` 五项。每个
+`account_baseline_segment` MUST 携同一个冻结窗口的 `snapshot_cursor`。只有某 channel 的末页已经交付，
+服务端才能把它列入
+`completed_channels`；中间页缺少某 item 不是 removal，客户端不得据此清除本地行。
+
+每个 NDJSON canonical frame 仍至多 8 MiB，每轮至多 16 MiB／16 帧。`agent_draft_pending_intents` 每帧的
+`items[]` 合计至多 100 项；每项是封闭的 `action=upsert|remove` 联合，单个 upsert value 的 canonical JSON
+至多 1 MiB。达到 count 或 bytes 任一上限都
+必须分页，不得通过截短 `content_handoff`、丢 terminal metadata 或借用其它 channel 规避预算。
+
 ## 3. Stream Classes
 
 账号聚合包含三类彼此不同的状态：
@@ -72,6 +83,39 @@ notification channel 使用自己的 Station-local revision。它不与任何 Re
 ### 3.2 Agent signer 按需结果（normative）
 
 Agent signer material 按需返回并绑定 exact Agent、controller、account 与 current authorization revision。客户端不从历史 Event自行挑选 signer。
+
+### 3.3 Agent draft pending-intent channel（normative）
+
+`AccountSubscribeFrame.agent_draft_pending_intents` 是独立 controller-holder-private projection；SDK 必须将它
+投影为 `AgentDraftPendingIntentContainer::{Baseline,Delta}`，并在 `AccountBaselineChannel` 增加唯一
+`AgentDraftPendingIntents` 分支。它不得进入 `account_data.events`、`account_data.station_cas`、
+`notifications` 或 `to_device`，也不得通过 storage-private API 冒充公开 handoff。
+
+稳定 item key 是 exact `(controller_account_id, agent_id, draft_id)`。`Baseline` 的
+`snapshot_cut_position + page_offset + next_page_offset` 与外层 `baseline.snapshot_cursor` 共同冻结分页；
+offset 仅属于该 pending-intent container，换 snapshot 或 `resync_required` 后必须丢弃。只有
+`next_page_offset=null` 的末页可把该 channel 加入 `completed_channels`。`Delta` 的
+`projection_position` 是本 channel 单调位置，并由外层 opaque account cursor 覆盖。cursor 续传必须返回遗漏的
+available upsert 或 terminal update/removal；两类变化都在同一有序 `items[]` 中，以
+`action=upsert|remove` 区分。cursor 失效时重做本 channel baseline，不得回退到 notification、to-device 或
+account-data register 推测状态。
+
+upsert value 直接验证为 `ak.schema.agent_draft_pending_intent.v1` 的 closed union：
+
+- `Live` 分支仅允许 `state=available` 且 MUST 携完整 `content_handoff`；
+- `TerminalRedacted` 分支仅允许 `state=consumed|expired`，MUST NOT 携 `content_handoff`／ciphertext，并 MUST
+  保留 controller/agent/draft create-once identity、`accepted_event_id`、`canonical_event_digest`、
+  `content_digest`、`created_at`、`expires_at` 与对应 `consumption` 或 `expired_at`；
+- removal 只发生在 terminal metadata retention 之后，仍携稳定 key、source Event id、canonical/content
+  digest、expiry、最后 terminal state／metadata 与 `removed_at`。客户端按 projection position 应用，旧
+  available upsert 不得复活 terminal-redacted 或 removed item，也不得被误作 account-data revision。
+
+每一 baseline page 与 delta 在披露前都 MUST 重验 session 对应 exact `controller_account_id` 的 active device。
+Agent session、其它 AccountId、目标 Realm member 与 federation peer 一律不可见；错误 audience 必须 withheld，
+不得用空 ciphertext 或 redacted 行泄露该 key 的存在。
+
+`ak.vector.agent.draft_pending_intent.v1` MUST 覆盖本 channel 的多页 baseline、cursor delta、live／terminal-redacted、
+terminal removal、no-resurrection、active controller device allow、四类 audience deny 与四个既有 carrier 禁用分支。
 
 ## 4. Realm Buckets
 

@@ -196,6 +196,17 @@
       "additionalProperties": false
     },
     "agent_draft_pending_intent": {
+      "description": "Closed live | terminal-redacted union. A live available record carries the HPKE content_handoff. A terminal-redacted consumed/expired record permanently omits ciphertext while retaining the create-once identity, source Event, canonical Event digest, expiry and exact terminal metadata.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/agent_draft_pending_intent_live"
+        },
+        {
+          "$ref": "#/$defs/agent_draft_pending_intent_terminal_redacted"
+        }
+      ]
+    },
+    "agent_draft_pending_intent_live": {
       "type": "object",
       "required": [
         "schema",
@@ -257,9 +268,72 @@
           "$ref": "./event-payload.schema.json#/$defs/timestamp"
         },
         "state": {
+          "const": "available"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_terminal_redacted": {
+      "type": "object",
+      "description": "Terminal metadata retained after HPKE ciphertext GC. content_handoff is not a property and is therefore forbidden by the closed object.",
+      "required": [
+        "schema",
+        "controller_account_id",
+        "agent_id",
+        "draft_id",
+        "proposed_action",
+        "target",
+        "content_digest",
+        "canonical_event_digest",
+        "accepted_event_id",
+        "expires_at",
+        "created_at",
+        "state"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_draft_pending_intent.v1"
+        },
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "agent_id": {
+          "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+        },
+        "draft_id": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "proposed_action": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+        },
+        "target": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_action_target"
+        },
+        "content_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "canonical_event_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "accepted_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "state": {
           "type": "string",
           "enum": [
-            "available",
             "consumed",
             "expired"
           ]
@@ -271,53 +345,37 @@
           "$ref": "./event-payload.schema.json#/$defs/timestamp"
         }
       },
-      "allOf": [
+      "oneOf": [
         {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "consumed"
-              }
-            },
-            "required": [
-              "state"
-            ]
-          },
-          "then": {
-            "required": [
-              "consumption"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "consumption"
-              ]
+          "properties": {
+            "state": {
+              "const": "consumed"
             }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "expired"
-              }
-            },
-            "required": [
-              "state"
-            ]
           },
-          "then": {
+          "required": [
+            "state",
+            "consumption"
+          ],
+          "not": {
             "required": [
               "expired_at"
             ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "expired_at"
-              ]
+          }
+        },
+        {
+          "properties": {
+            "state": {
+              "const": "expired"
             }
+          },
+          "required": [
+            "state",
+            "expired_at"
+          ],
+          "not": {
+            "required": [
+              "consumption"
+            ]
           }
         }
       ],

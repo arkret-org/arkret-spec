@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-subscribe-frame.schema.json",
   "title": "Arkret Account Subscribe Frame",
-  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe.v1 streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (per-Realm stream heads, to_device, account_data, device_lists, notifications, unread counts); the other kinds are control frames that mirror ak.self.events.stream.subscribe.v1 (`catchup_complete`, `checkpoint`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). Encrypted broadcast signals use the optional Signal Extension rail and never appear in this durable/account aggregate stream. `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
+  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe.v1 streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (per-Realm stream heads, to_device, account_data, agent_draft_pending_intents, device_lists, notifications, unread counts); the other kinds are control frames that mirror ak.self.events.stream.subscribe.v1 (`catchup_complete`, `checkpoint`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). Agent draft pending intents use their own holder-private baseline/delta channel and never reuse account_data.events, account_data.station_cas, notifications, or to_device. Encrypted broadcast signals use the optional Signal Extension rail and never appear in this durable/account aggregate stream. `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [
     "kind"
@@ -46,6 +46,10 @@
     "account_data": {
       "$ref": "#/$defs/account_data_container",
       "description": "Account-scoped private data on `delta` frames, split by authority: holder-authored durable Events remain in events[], while registry-declared station_cas registers use the closed station_cas branch."
+    },
+    "agent_draft_pending_intents": {
+      "$ref": "#/$defs/agent_draft_pending_intent_container",
+      "description": "Dedicated controller-holder-private Agent draft pending-intent baseline/delta channel. It is authorized for an authenticated active device of the exact controller AccountId and is never an account-data, notification or to-device carrier."
     },
     "notifications": {
       "$ref": "#/$defs/notification_container",
@@ -166,6 +170,239 @@
         },
         "updated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_key": {
+      "type": "object",
+      "description": "Stable pending-intent item key. All three components are compared byte-for-byte and are never inferred from account-data digest-key components.",
+      "required": [
+        "controller_account_id",
+        "agent_id",
+        "draft_id"
+      ],
+      "properties": {
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "draft_id": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_removal": {
+      "type": "object",
+      "description": "Explicit removal after terminal metadata retention. The stable key, source Event identity, canonical Event digest, content digest, expiry and exact last terminal outcome remain visible so a client cannot interpret the removal as permission to resurrect or recreate the intent.",
+      "required": [
+        "key",
+        "accepted_event_id",
+        "canonical_event_digest",
+        "content_digest",
+        "expires_at",
+        "state",
+        "removed_at"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/agent_draft_pending_intent_key"
+        },
+        "accepted_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "canonical_event_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "content_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "consumed",
+            "expired"
+          ]
+        },
+        "consumption": {
+          "$ref": "./agent-draft-private.schema.json#/$defs/pending_intent_consumption"
+        },
+        "expired_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "removed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "state": {
+              "const": "consumed"
+            }
+          },
+          "required": [
+            "state",
+            "consumption"
+          ],
+          "not": {
+            "required": [
+              "expired_at"
+            ]
+          }
+        },
+        {
+          "properties": {
+            "state": {
+              "const": "expired"
+            }
+          },
+          "required": [
+            "state",
+            "expired_at"
+          ],
+          "not": {
+            "required": [
+              "consumption"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_container": {
+      "description": "Independent pending-intent projection page. A frame carries at most 100 ordered changes in one items array; each upsert value's canonical JSON is at most 1 MiB and the complete canonical frame remains at most 8 MiB. The account cursor covers the independent pending-intent projection position.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/agent_draft_pending_intent_delta_container"
+        },
+        {
+          "$ref": "#/$defs/agent_draft_pending_intent_baseline_container"
+        }
+      ]
+    },
+    "agent_draft_pending_intent_change": {
+      "description": "One ordered pending-intent projection change. The closed union and one shared items array make the per-frame 100-change bound apply to upserts and removals together.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/agent_draft_pending_intent_upsert"
+        },
+        {
+          "$ref": "#/$defs/agent_draft_pending_intent_remove"
+        }
+      ]
+    },
+    "agent_draft_pending_intent_upsert": {
+      "type": "object",
+      "required": [
+        "action",
+        "value"
+      ],
+      "properties": {
+        "action": {
+          "const": "upsert"
+        },
+        "value": {
+          "$ref": "./agent-draft-private.schema.json#/$defs/agent_draft_pending_intent"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_remove": {
+      "type": "object",
+      "required": [
+        "action",
+        "value"
+      ],
+      "properties": {
+        "action": {
+          "const": "remove"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_draft_pending_intent_removal"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_delta_container": {
+      "type": "object",
+      "required": [
+        "mode",
+        "projection_position",
+        "items"
+      ],
+      "properties": {
+        "mode": {
+          "const": "delta"
+        },
+        "projection_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Highest independent pending-intent projection position covered by this container and its enclosing account cursor."
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/agent_draft_pending_intent_change"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent_baseline_container": {
+      "type": "object",
+      "required": [
+        "mode",
+        "snapshot_cut_position",
+        "page_offset",
+        "next_page_offset",
+        "items"
+      ],
+      "properties": {
+        "mode": {
+          "const": "baseline"
+        },
+        "snapshot_cut_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Frozen pending-intent projection cut shared by every page under the enclosing baseline.snapshot_cursor."
+        },
+        "page_offset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "next_page_offset": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Next offset in the same frozen cut, or null on the terminal page. Completion still requires baseline.completed_channels to name agent_draft_pending_intents."
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/agent_draft_pending_intent_change"
+          }
         }
       },
       "additionalProperties": false
@@ -1088,6 +1325,11 @@
         },
         {
           "required": [
+            "agent_draft_pending_intents"
+          ]
+        },
+        {
+          "required": [
             "notifications"
           ]
         },
@@ -1419,7 +1661,8 @@
         },
         "channels": {
           "type": "array",
-          "maxItems": 4,
+          "description": "Global baseline channels carried by this segment. agent_draft_pending_intents is independent from account_data_events, station_cas, notifications and to_device.",
+          "maxItems": 5,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -1427,14 +1670,16 @@
               "account_data_events",
               "station_cas",
               "device_lists",
-              "notifications"
+              "notifications",
+              "agent_draft_pending_intents"
             ]
           },
           "minItems": 1
         },
         "completed_channels": {
           "type": "array",
-          "maxItems": 4,
+          "description": "Channels whose complete frozen snapshot has been delivered. A pending-intent channel is complete only on its terminal page with next_page_offset=null; absent items on an earlier page never remove local records.",
+          "maxItems": 5,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -1442,7 +1687,8 @@
               "account_data_events",
               "station_cas",
               "device_lists",
-              "notifications"
+              "notifications",
+              "agent_draft_pending_intents"
             ]
           }
         }

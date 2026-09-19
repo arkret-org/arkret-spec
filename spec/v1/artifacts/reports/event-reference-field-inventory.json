@@ -7,8 +7,8 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 158,
-    "digest_copy_or_commitment": 6,
+    "complete_event_id": 160,
+    "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
   "fields": [
@@ -17,6 +17,18 @@
       "json_pointer": "/$defs/device_summary/properties/authorized_event_ref",
       "field": "authorized_event_ref",
       "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/agent_draft_pending_intent_removal/properties/accepted_event_id",
+      "field": "accepted_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "account-subscribe-frame.schema.json",
+      "json_pointer": "/$defs/agent_draft_pending_intent_removal/properties/canonical_event_digest",
+      "field": "canonical_event_digest",
+      "classification": "digest_copy_or_commitment"
     },
     {
       "schema": "account-subscribe-frame.schema.json",
@@ -68,13 +80,25 @@
     },
     {
       "schema": "agent-draft-private.schema.json",
-      "json_pointer": "/$defs/agent_draft_pending_intent/properties/accepted_event_id",
+      "json_pointer": "/$defs/agent_draft_pending_intent_live/properties/accepted_event_id",
       "field": "accepted_event_id",
       "classification": "complete_event_id"
     },
     {
       "schema": "agent-draft-private.schema.json",
-      "json_pointer": "/$defs/agent_draft_pending_intent/properties/canonical_event_digest",
+      "json_pointer": "/$defs/agent_draft_pending_intent_live/properties/canonical_event_digest",
+      "field": "canonical_event_digest",
+      "classification": "digest_copy_or_commitment"
+    },
+    {
+      "schema": "agent-draft-private.schema.json",
+      "json_pointer": "/$defs/agent_draft_pending_intent_terminal_redacted/properties/accepted_event_id",
+      "field": "accepted_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "agent-draft-private.schema.json",
+      "json_pointer": "/$defs/agent_draft_pending_intent_terminal_redacted/properties/canonical_event_digest",
       "field": "canonical_event_digest",
       "classification": "digest_copy_or_commitment"
     },

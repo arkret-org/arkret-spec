@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.11",
+  "version": "2026-09-20.12",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T01:08:57+08:00",
+  "generated_at": "2026-09-20T01:48:33+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -8032,7 +8032,7 @@
         "pending_intent_lifecycle": {
           "reading": {
             "audience": "authenticated active devices of payload.controller_account_id only",
-            "delivery_surface": "existing account subscribe controller-private projection with baseline and cursor-covered catch-up",
+            "delivery_surface": "the dedicated account subscribe agent_draft_pending_intents projection with its own baseline channel and cursor-covered catch-up",
             "visible_value": "the structured pending intent including HPKE content_handoff; never account-data plaintext or holder secret"
           },
           "content_handoff": {
@@ -8046,7 +8046,7 @@
           "expiry": {
             "comparison": "at consume time Station protocol time is strictly before payload.expires_at",
             "transition": "available -> expired exactly once; consumed is never expired",
-            "retention": "retain terminal metadata and exact-retry outcome for deployment retention, then GC ciphertext while retaining the occupied create-once key digest"
+            "retention": "retain a schema-valid terminal-redacted consumed/expired record and exact-retry outcome after HPKE ciphertext GC; retain the occupied create-once key digest for deployment retention"
           },
           "consumption": {
             "trigger_event_kind": "ak.account_data.set",

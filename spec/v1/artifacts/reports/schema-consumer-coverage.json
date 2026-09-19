@@ -49,7 +49,7 @@
       "outbound": 64,
       "prose": 105,
       "prose_only": 2,
-      "schema_reference": 162,
+      "schema_reference": 163,
       "startup_compile": 224,
       "vectors": 112
     },
@@ -455,6 +455,7 @@
         "declared_wire": "dynamic_schema_ref",
         "event_kind": "registered",
         "prose": "normative_text",
+        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "fixture"
       },

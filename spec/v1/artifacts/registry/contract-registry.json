@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.6",
+  "version": "2026-09-20.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T01:32:41+08:00",
+  "generated_at": "2026-09-20T02:13:54+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8389,7 +8389,7 @@
           "pending_intent_lifecycle": {
             "reading": {
               "audience": "authenticated active devices of payload.controller_account_id only",
-              "delivery_surface": "existing account subscribe controller-private projection with baseline and cursor-covered catch-up",
+              "delivery_surface": "the dedicated account subscribe agent_draft_pending_intents projection with its own baseline channel and cursor-covered catch-up",
               "visible_value": "the structured pending intent including HPKE content_handoff; never account-data plaintext or holder secret"
             },
             "content_handoff": {
@@ -8403,7 +8403,7 @@
             "expiry": {
               "comparison": "at consume time Station protocol time is strictly before payload.expires_at",
               "transition": "available -> expired exactly once; consumed is never expired",
-              "retention": "retain terminal metadata and exact-retry outcome for deployment retention, then GC ciphertext while retaining the occupied create-once key digest"
+              "retention": "retain a schema-valid terminal-redacted consumed/expired record and exact-retry outcome after HPKE ciphertext GC; retain the occupied create-once key digest for deployment retention"
             },
             "consumption": {
               "trigger_event_kind": "ak.account_data.set",
@@ -8686,8 +8686,8 @@
         }
       }
     },
-    "version": "2026-09-20.11",
-    "generated_at": "2026-09-20T01:08:57+08:00",
+    "version": "2026-09-20.12",
+    "generated_at": "2026-09-20T01:48:33+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8912,7 +8912,83 @@
       },
       {
         "schema_id": "ak.schema.account_subscribe_frame.v1",
-        "file": "schemas/account-subscribe-frame.schema.json"
+        "file": "schemas/account-subscribe-frame.schema.json",
+        "status": "active",
+        "description": "Closed account aggregate stream frame with five independently completed global baseline channels, including the holder-private agent_draft_pending_intents baseline/delta projection.",
+        "sdk_projection": {
+          "frame_type": "AccountSubscribeFrame",
+          "top_level_field": "agent_draft_pending_intents",
+          "container_type": "AgentDraftPendingIntentContainer",
+          "container_variants": [
+            "Baseline",
+            "Delta"
+          ],
+          "baseline_channel_enum_type": "AccountBaselineChannel",
+          "baseline_channel_variant": "AgentDraftPendingIntents",
+          "pending_intent_type": "AgentDraftPendingIntent",
+          "pending_intent_variants": [
+            "Live",
+            "TerminalRedacted"
+          ],
+          "change_type": "AgentDraftPendingIntentChange",
+          "change_variants": [
+            "Upsert",
+            "Remove"
+          ],
+          "removal_type": "AgentDraftPendingIntentRemoval",
+          "forbidden_field_reuse": [
+            "account_data.events",
+            "account_data.station_cas",
+            "notifications",
+            "to_device"
+          ]
+        },
+        "channel_contract": {
+          "top_level_field": "agent_draft_pending_intents",
+          "baseline_channel": "agent_draft_pending_intents",
+          "container_schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_container",
+          "item_schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_change",
+          "stable_key": [
+            "controller_account_id",
+            "agent_id",
+            "draft_id"
+          ],
+          "authorization": {
+            "allow": "authenticated active device of exact controller_account_id",
+            "deny": [
+              "agent_session",
+              "foreign_account",
+              "target_realm_member",
+              "federation_peer"
+            ],
+            "recheck": "on every baseline page and delta before disclosure"
+          },
+          "paging": {
+            "snapshot_cut": "baseline container snapshot_cut_position bound to baseline.snapshot_cursor",
+            "page_offset": "baseline container page_offset/next_page_offset scoped only to the pending-intent snapshot cut",
+            "completion": "baseline.completed_channels contains agent_draft_pending_intents only on next_page_offset=null",
+            "delta_position": "delta container projection_position covered by the opaque account cursor",
+            "resync": "discard the old pending-intent snapshot offset and rebuild the channel; never clear from an intermediate page"
+          },
+          "limits": {
+            "max_items_per_frame": 100,
+            "max_canonical_item_bytes": 1048576,
+            "max_canonical_frame_bytes": 8388608,
+            "max_round_bytes": 16777216
+          },
+          "state_projection": {
+            "live_schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live",
+            "terminal_redacted_schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted",
+            "removal_schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_removal",
+            "no_resurrection": "projection_position and terminal source/digest metadata prevent stale available rows or removals from reviving a consumed/expired intent"
+          },
+          "forbidden_carriers": [
+            "account_data.events",
+            "account_data.station_cas",
+            "notifications",
+            "to_device"
+          ]
+        }
       },
       {
         "schema_id": "ak.schema.accountability_grant.v1",
@@ -8965,7 +9041,7 @@
         "file": "schemas/agent-draft-private.schema.json",
         "fragment": "#/$defs/agent_draft_pending_intent",
         "status": "active",
-        "description": "Structured Station-private pending-intent value created by ak.agent.draft.propose and consumed atomically by the holder's first encrypted draft account-data CAS.",
+        "description": "Closed live | terminal-redacted Station-private pending-intent union created by ak.agent.draft.propose and consumed atomically by the holder's first encrypted draft account-data CAS. Live available values require content_handoff; terminal consumed/expired values forbid ciphertext and retain create-once identity, source/digest, expiry and terminal metadata.",
         "consumer_binding": {
           "kind": "dynamic_schema_ref",
           "selector": "contract-registry.json#/event_kind_registry/actor_private_contracts/event_writes/ak.agent.draft.propose/value_projection/schema_ref",
@@ -10539,8 +10615,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.11",
-    "generated_at": "2026-09-20T01:32:41+08:00",
+    "version": "2026-09-20.13",
+    "generated_at": "2026-09-20T02:13:54+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -14374,7 +14450,7 @@
         "http": "GET /_arkret/self/account/subscribe",
         "grpc": "SelfAccount/Subscribe",
         "mq": "self.account.stream.subscribe",
-        "notes": "Bounded account long polling with independently paged Realm summaries, at most 16 selected Realm details, segmented global baselines, explicit filter replacement and durable cursor recovery. Empty Realm selection returns no detail. Current authorization and invalidation channels are never window-filtered. Canonical frame <=8 MiB; a round <=16 MiB and <=16 frames; see client-sync section 2.3. HTTP filter and realm_list each use one percent-encoded RFC 8785 JSON query value, preserving empty objects/arrays; dotted/deepObject aliases are not accepted. notifications.items is one closed union discriminated by id form: ak:notification:<uuidv7> is the Agent runtime approval branch and ak:notification_projection:<token> is the ordinary source-Event current row, sharing one projection position, one notifications baseline channel and the same per-frame budget. Ordinary rows carry no inbox state and are re-authorized on every frame, frozen baseline pages included; there is no second notification list operation. See client-sync section 3.1.",
+        "notes": "Bounded account long polling with independently paged Realm summaries, at most 16 selected Realm details, five segmented global baselines, explicit filter replacement and durable cursor recovery. Empty Realm selection returns no detail. Current authorization and invalidation channels are never window-filtered. Canonical frame <=8 MiB; a round <=16 MiB and <=16 frames; see client-sync section 2.3. HTTP filter and realm_list each use one percent-encoded RFC 8785 JSON query value, preserving empty objects/arrays; dotted/deepObject aliases are not accepted. agent_draft_pending_intents is an independent controller-holder-private baseline/delta channel with its own projection position, frozen cut, offsets and completion marker; it never reuses account_data.events, account_data.station_cas, notifications or to_device. notifications.items is one closed union discriminated by id form: ak:notification:<uuidv7> is the Agent runtime approval branch and ak:notification_projection:<token> is the ordinary source-Event current row, sharing one projection position, one notifications baseline channel and the same per-frame budget. Ordinary rows carry no inbox state and are re-authorized on every frame, frozen baseline pages included; there is no second notification list operation. See client-sync sections 2.3, 3.1 and 3.3.",
         "body_class": "streaming_ndjson",
         "success_shape_kind": "event_stream",
         "response_schema_ref": "schemas/account-subscribe-frame.schema.json"
@@ -16083,8 +16159,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.1",
-    "generated_at": "2026-09-20T00:52:19+08:00",
+    "version": "2026-09-20.2",
+    "generated_at": "2026-09-20T01:48:33+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

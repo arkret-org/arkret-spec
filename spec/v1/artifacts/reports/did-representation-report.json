@@ -522,6 +522,26 @@
       ]
     },
     {
+      "schema_path": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_key/properties/agent_id",
+      "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_key/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "account-subscribe-frame.schema.json#/$defs/agent_runtime_approval_notification_data/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -862,7 +882,7 @@
       ]
     },
     {
-      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent/properties/agent_id",
+      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_core_id",
@@ -872,7 +892,27 @@
       ]
     },
     {
-      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent/properties/controller_account_id",
+      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/agent_id",
+      "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/controller_account_id",
       "property_name": "controller_account_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "account_id",
@@ -7765,6 +7805,18 @@
   "responsibility_fields": [
     {
       "source": "json_schema",
+      "schema_path": "account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_key/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
       "schema_path": "agent-authority-evidence.schema.json#/$defs/agent_key_authorization/properties/controller_principal_id",
       "property_name": "controller_principal_id",
       "resolved_carrier": "did_core_id",
@@ -7777,7 +7829,19 @@
     },
     {
       "source": "json_schema",
-      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent/properties/controller_account_id",
+      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_live/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted/properties/controller_account_id",
       "property_name": "controller_account_id",
       "resolved_carrier": "account_id",
       "required_subject_class": "account",

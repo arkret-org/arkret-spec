@@ -96,9 +96,11 @@ Station MUST 校验 recipient device 去重、属于 exact controller AccountId�
 取得 holder account secret、解密 content、生成 account-data ciphertext 或代 controller 重加密。
 
 proposal 接受时，服务在同一 private transaction 保存 canonical Event、authority commit、exact-retry outcome
-与 `state=available` pending intent。controller 的 active devices 只能通过既有 account subscribe 的
-controller-private projection（baseline + cursor-covered catch-up）读取该记录；不得向 Agent、目标 Realm 成员、
-federation peer 或其它 AccountId 暴露。recipient device 解密 handoff 后 MUST 校验 plaintext draft 坐标和
+与 `state=available` pending intent。controller 的 active devices 只能通过 account subscribe 顶层独立
+`agent_draft_pending_intents` controller-private projection（五项 global baseline 之一 + cursor-covered
+catch-up）读取该记录；该 carrier 不得复用 `account_data.events`、`account_data.station_cas`、notification、
+to-device 或 storage-private API。每一 baseline page／delta 都必须重验 exact controller AccountId 的 active
+device；不得向 Agent、目标 Realm 成员、federation peer 或其它 AccountId 暴露。recipient device 解密 handoff 后 MUST 校验 plaintext draft 坐标和
 `content_digest == digest(RFC8785-JCS(content))`，再用 controller account secret 生成
 `ak.schema.account_data_encrypted_value.v1`，其解密 plaintext验证为 `ak.schema.agent_draft.v1`。
 
@@ -137,8 +139,13 @@ CAS conflict、authority-commit 失败、存储中断或任一校验失败都必
 不同 bytes 或另一 consumer 返回 conflict 且零写入。后续 draft revision 不再携带 source，也不重复消费。
 
 当 Station protocol time 不再严格早于 `expires_at`，available intent 单向转成 `expired`；consumed 不得再
-过期。终态 metadata 与 exact-retry outcome 按部署 retention 保留；随后可清除 handoff ciphertext，但必须
-保留已占用 create-once key digest，防止不同 proposal 复活同一 key。
+过期。`ak.schema.agent_draft_pending_intent.v1` 是封闭的 `live | terminal-redacted` union：live 只允许
+`state=available` 且必须携 `content_handoff`；terminal-redacted 只允许 `consumed|expired`，禁止
+`content_handoff`／ciphertext，同时必须保留 controller/agent/draft、source Event id、canonical/content digest、
+created/expiry 与对应 consumption／expired metadata。终态 metadata 与 exact-retry outcome 按部署 retention
+保留；随后可发出携上述 terminal summary 的 removal，但必须保留已占用 create-once key digest，防止不同
+proposal 或旧 available delta 复活同一 key。独立 channel 的 frozen baseline、offset、completion、position 与
+权限规则见 [`../sync/client-sync.md` §3.3](../sync/client-sync.md)。
 
 `ak.agent.action_reject` 的 payload 必须在 `request_id` 与 `draft_id` 中**恰好携带一个**；两者都无或
 两者都有都必须拒绝。目标必须属于同一 controller/agent 对、存在且仍是可拒绝的非终态。服务必须在

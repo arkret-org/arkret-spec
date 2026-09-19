@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.agent.draft_pending_intent.v1",
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.6",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.draft_pending_intent.v1"
@@ -12,7 +12,8 @@
     "ak.schema.agent_draft.v1",
     "ak.schema.agent_draft_content_handoff.v1",
     "ak.schema.agent_draft_content_handoff_plaintext.v1",
-    "ak.schema.agent_draft_pending_intent.v1"
+    "ak.schema.agent_draft_pending_intent.v1",
+    "ak.schema.account_subscribe_frame.v1"
   ],
   "key_derivation_kat": {
     "digest_construction": "domain_prefixed_utf8_literal_sha256",
@@ -89,7 +90,7 @@
         "plaintext_or_holder_secret_presented_to_station"
       ],
       "expected": {
-        "active_controller_device_reads_ciphertext": "delivered_by_existing_account_subscribe_private_projection",
+        "active_controller_device_reads_ciphertext": "delivered_by_dedicated_agent_draft_pending_intents_projection",
         "agent_attempts_read": "withheld",
         "other_account_attempts_read": "withheld",
         "target_realm_member_attempts_read": "withheld",
@@ -145,6 +146,47 @@
       }
     },
     {
+      "name": "account_subscribe_projection",
+      "variants": [
+        "initial_baseline_first_page_available",
+        "initial_baseline_terminal_page_completed",
+        "cursor_delta_available_upsert",
+        "cursor_delta_consumed_redacted_upsert",
+        "cursor_delta_expired_redacted_upsert",
+        "terminal_metadata_retention_removal",
+        "stale_available_after_terminal",
+        "resync_rebuilds_only_pending_intent_channel",
+        "active_controller_device_allowed",
+        "agent_session_denied",
+        "foreign_account_denied",
+        "target_realm_member_denied",
+        "federation_peer_denied",
+        "account_data_events_carrier_rejected",
+        "station_cas_carrier_rejected",
+        "notification_carrier_rejected",
+        "to_device_carrier_rejected"
+      ],
+      "expected": {
+        "initial_baseline_first_page_available": "frozen_cut_offset_advances_without_completion_or_absent_item_deletion",
+        "initial_baseline_terminal_page_completed": "next_page_offset_null_and_completed_channels_contains_agent_draft_pending_intents",
+        "cursor_delta_available_upsert": "live_value_installed_at_projection_position",
+        "cursor_delta_consumed_redacted_upsert": "terminal_without_ciphertext_replaces_live_and_cannot_revert",
+        "cursor_delta_expired_redacted_upsert": "terminal_without_ciphertext_replaces_live_and_cannot_revert",
+        "terminal_metadata_retention_removal": "stable_key_source_digests_expiry_and_terminal_outcome_retained",
+        "stale_available_after_terminal": "ignored_by_projection_position_no_resurrection",
+        "resync_rebuilds_only_pending_intent_channel": "discard_old_offset_and_rebuild_frozen_pending_intent_snapshot",
+        "active_controller_device_allowed": "visible",
+        "agent_session_denied": "withheld",
+        "foreign_account_denied": "withheld",
+        "target_realm_member_denied": "withheld",
+        "federation_peer_denied": "withheld",
+        "account_data_events_carrier_rejected": "schema_violation",
+        "station_cas_carrier_rejected": "schema_violation",
+        "notification_carrier_rejected": "schema_violation",
+        "to_device_carrier_rejected": "schema_violation"
+      }
+    },
+    {
       "name": "expiry_and_retention",
       "variants": [
         "available_reaches_expiry",
@@ -158,6 +200,239 @@
         "terminal_ciphertext_gc": "metadata_outcome_and_occupied_digest_retained",
         "different_proposal_after_gc": "duplicate_conflict"
       }
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "agent_draft_pending_intent_live_available_valid",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.agent_draft_pending_intent.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:web:controller.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "agent_id": "ak:did_core:web:agent.example",
+        "draft_id": "draft-001",
+        "proposed_action": "ak.message.create",
+        "target": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+        },
+        "content_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "content_handoff": {
+          "scheme": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+          "recipients": [
+            {
+              "recipient_device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+              "recipient_hpke_key_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "enc": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
+              "ciphertext_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          ]
+        },
+        "canonical_event_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "accepted_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "expires_at": "2026-09-20T03:00:00.000Z",
+        "created_at": "2026-09-20T01:00:00.000Z",
+        "state": "available"
+      }
+    },
+    {
+      "name": "agent_draft_pending_intent_live_missing_handoff_rejected",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_live_available_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/content_handoff"
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_draft_pending_intent_available_redacted_branch_rejected",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent_terminal_redacted",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_live_available_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/content_handoff"
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_draft_pending_intent_consumed_redacted_valid",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.agent_draft_pending_intent.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:web:controller.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "agent_id": "ak:did_core:web:agent.example",
+        "draft_id": "draft-001",
+        "proposed_action": "ak.message.create",
+        "target": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+        },
+        "content_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "canonical_event_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "accepted_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "expires_at": "2026-09-20T03:00:00.000Z",
+        "created_at": "2026-09-20T01:00:00.000Z",
+        "state": "consumed",
+        "consumption": {
+          "account_data_set_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "account_data_key": "ak.agent.draft.v1:29zs6Yu_GblluGkdTEDf8gWy8fRlKv2Am4Ms91DB-U8:HpcHzfESu5dFt2Is2QQ2Tp_c7hfh4SZtz4pKrbxp0_s",
+          "accepted_revision": 1,
+          "consumed_at": "2026-09-20T01:30:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "agent_draft_pending_intent_terminal_ciphertext_rejected",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_consumed_redacted_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/content_handoff",
+          "value": {
+            "scheme": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+            "recipients": [
+              {
+                "recipient_device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+                "recipient_hpke_key_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                "enc": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
+                "ciphertext_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+              }
+            ]
+          }
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_draft_pending_intent_terminal_missing_source_rejected",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_consumed_redacted_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/accepted_event_id"
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_draft_pending_intent_consumed_missing_metadata_rejected",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_consumed_redacted_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/consumption"
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_draft_pending_intent_expired_redacted_valid",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.agent_draft_pending_intent.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:web:controller.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "agent_id": "ak:did_core:web:agent.example",
+        "draft_id": "draft-001",
+        "proposed_action": "ak.message.create",
+        "target": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+        },
+        "content_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "canonical_event_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "accepted_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "expires_at": "2026-09-20T03:00:00.000Z",
+        "created_at": "2026-09-20T01:00:00.000Z",
+        "state": "expired",
+        "expired_at": "2026-09-20T03:00:00.000Z"
+      }
+    },
+    {
+      "name": "agent_draft_pending_intent_expired_missing_metadata_rejected",
+      "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_expired_redacted_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/expired_at"
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_draft_pending_intent_baseline_segment_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/account_baseline_segment",
+      "expect_valid": true,
+      "instance": {
+        "snapshot_cursor": "ak:cursor:agent-draft-pending-snapshot",
+        "channels": [
+          "agent_draft_pending_intents"
+        ],
+        "completed_channels": []
+      }
+    },
+    {
+      "name": "agent_draft_pending_intent_delta_container_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_container",
+      "expect_valid": true,
+      "instance": {
+        "mode": "delta",
+        "projection_position": 7,
+        "items": []
+      }
+    },
+    {
+      "name": "agent_draft_pending_intent_baseline_container_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_container",
+      "expect_valid": true,
+      "instance": {
+        "mode": "baseline",
+        "snapshot_cut_position": 7,
+        "page_offset": 0,
+        "next_page_offset": null,
+        "items": []
+      }
+    },
+    {
+      "name": "agent_draft_pending_intent_baseline_missing_page_offset_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/agent_draft_pending_intent_container",
+      "expect_valid": false,
+      "instance_from": "agent_draft_pending_intent_baseline_container_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/page_offset"
+        }
+      ],
+      "first_expected_error": "contains:not valid under any of the given schemas"
     }
   ]
 }

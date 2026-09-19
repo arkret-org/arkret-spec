@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-20.6",
-      "generated_at": "2026-09-20T01:32:41+08:00",
-      "content_digest": "sha256:b66a116ee70040f41836048f2e0e8ef2aa01e4378c083d1382d4d4edc1cac0e2"
+      "version": "2026-09-20.8",
+      "generated_at": "2026-09-20T02:13:54+08:00",
+      "content_digest": "sha256:0a6709182db285fd17f6d204103751b082f7522a72f69fc71ab85cc99d02f28f"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-20.11",
-      "generated_at": "2026-09-20T01:08:57+08:00",
-      "content_digest": "sha256:a646a54c2b5cb8a749195b86262a8182d85ac3820755a0ffd230de5069a1367e"
+      "version": "2026-09-20.12",
+      "generated_at": "2026-09-20T01:48:33+08:00",
+      "content_digest": "sha256:a6b758456eb33228786650021a5b3e31770258c5d9696e0bb22242cbb872b919"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -231,15 +231,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-20.3",
-      "generated_at": "2026-09-20T01:32:41+08:00",
-      "content_digest": "sha256:1bbb70753cfceddeb19aac916af038b73e82be69c428a383f3ba551649e0d336"
+      "version": "2026-09-20.5",
+      "generated_at": "2026-09-20T01:48:34+08:00",
+      "content_digest": "sha256:a73bcff57b4686c36e8d6ab0f35cebf686c9a3daa36ce7aa491d2ead90ecdf12"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-20.1",
-      "generated_at": "2026-09-20T00:52:19+08:00",
-      "content_digest": "sha256:3cbe37a128649ec99e3f1b331b117c28f4eca3253681fd50479cc38ab93e0a32"
+      "version": "2026-09-20.2",
+      "generated_at": "2026-09-20T01:48:33+08:00",
+      "content_digest": "sha256:874e4cf4790a503e8fa9fd775bebf608522e4084c4a564847eb9be34735c3f59"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -333,9 +333,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-09-20.11",
-      "generated_at": "2026-09-20T01:32:41+08:00",
-      "content_digest": "sha256:88aed2b2c5733e932dab8528c7fac230122dd47926ea2d97cc308f606d27c416"
+      "version": "2026-09-20.13",
+      "generated_at": "2026-09-20T02:13:54+08:00",
+      "content_digest": "sha256:df2bd22a8fe84f0a313046dacf9a31420c4efb45da547697a20b87703c602f4a"
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-20.2",
-      "generated_at": "2026-09-20T01:08:57+08:00",
-      "content_digest": "sha256:f98ff184b12d8d2e52d7f4281d0315aecc753311941d392a5f99a6c5093ef0f8"
+      "version": "2026-09-20.3",
+      "generated_at": "2026-09-20T01:48:33+08:00",
+      "content_digest": "sha256:4c44b47356ac242ffda119b60476a13e070dd33d517897aeeecadb1eb0629e42"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 5,
+      "version": 6,
       "generated_at": null,
-      "content_digest": "sha256:5f5d50d5f8613cd1cffc1d31a7c7897594f98d58962900a992438e7fc44f4f4e"
+      "content_digest": "sha256:e0ae67f150d579ba9f20197a8318e56b95fe73f99b47fff3de83fb0590d65c7b"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
@@ -471,9 +471,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-09-19.3",
-      "generated_at": "2026-09-19T21:25:01+08:00",
-      "content_digest": "sha256:3467de09464fe3e0ff3dba8d941b632af9dc10904b0c7e7dfe9b59fddc2a3c0c"
+      "version": "2026-09-20.2",
+      "generated_at": "2026-09-20T01:48:33+08:00",
+      "content_digest": "sha256:afbfa1fb079af6d11577a856f9d1ab7e8cc805f4ba6050d552075f8478455bd6"
     },
     {
       "path": "tools/patch-base-producer-baseline.json",

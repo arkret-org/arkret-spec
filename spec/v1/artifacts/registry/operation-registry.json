@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T00:52:19+08:00",
+  "generated_at": "2026-09-20T01:48:33+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2371,7 +2371,7 @@
       "http": "GET /_arkret/self/account/subscribe",
       "grpc": "SelfAccount/Subscribe",
       "mq": "self.account.stream.subscribe",
-      "notes": "Bounded account long polling with independently paged Realm summaries, at most 16 selected Realm details, segmented global baselines, explicit filter replacement and durable cursor recovery. Empty Realm selection returns no detail. Current authorization and invalidation channels are never window-filtered. Canonical frame <=8 MiB; a round <=16 MiB and <=16 frames; see client-sync section 2.3. HTTP filter and realm_list each use one percent-encoded RFC 8785 JSON query value, preserving empty objects/arrays; dotted/deepObject aliases are not accepted. notifications.items is one closed union discriminated by id form: ak:notification:<uuidv7> is the Agent runtime approval branch and ak:notification_projection:<token> is the ordinary source-Event current row, sharing one projection position, one notifications baseline channel and the same per-frame budget. Ordinary rows carry no inbox state and are re-authorized on every frame, frozen baseline pages included; there is no second notification list operation. See client-sync section 3.1.",
+      "notes": "Bounded account long polling with independently paged Realm summaries, at most 16 selected Realm details, five segmented global baselines, explicit filter replacement and durable cursor recovery. Empty Realm selection returns no detail. Current authorization and invalidation channels are never window-filtered. Canonical frame <=8 MiB; a round <=16 MiB and <=16 frames; see client-sync section 2.3. HTTP filter and realm_list each use one percent-encoded RFC 8785 JSON query value, preserving empty objects/arrays; dotted/deepObject aliases are not accepted. agent_draft_pending_intents is an independent controller-holder-private baseline/delta channel with its own projection position, frozen cut, offsets and completion marker; it never reuses account_data.events, account_data.station_cas, notifications or to_device. notifications.items is one closed union discriminated by id form: ak:notification:<uuidv7> is the Agent runtime approval branch and ak:notification_projection:<token> is the ordinary source-Event current row, sharing one projection position, one notifications baseline channel and the same per-frame budget. Ordinary rows carry no inbox state and are re-authorized on every frame, frozen baseline pages included; there is no second notification list operation. See client-sync sections 2.3, 3.1 and 3.3.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream",
       "response_schema_ref": "schemas/account-subscribe-frame.schema.json"
