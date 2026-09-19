@@ -1,7 +1,7 @@
 {
   "suite": "sdk_conformance_claim",
   "profile": "ak.vector_group.schema_validation.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -15,6 +15,7 @@
       "expected_reason_code"
     ]
   },
+  "generated_by": "tools/regenerate_sdk_conformance_claim.py",
   "covers_vectors": [
     "ak.vector.sdk_conformance.claim_validation.v1"
   ],
