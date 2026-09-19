@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.2",
+  "version": "2026-09-22.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T12:00:00+08:00",
+  "generated_at": "2026-09-22T13:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -62,20 +62,6 @@
         "clause_id": "AK-NC-061",
         "vector_id": "ak.vector.mls.key_access_revision_key_access_only.v1",
         "carrier": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-065",
-        "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
-        "carrier": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-066",
-        "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
-        "carrier": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
         "reason": "carrier_without_decision_point_mapping",
         "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
       }

@@ -183,6 +183,111 @@
       "request_digest": "sha256:78f7b25686f416b01fe368726366af1266c21cc0146536f01a9b04b492fb358a"
     }
   ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
+      "clause_id": "AK-NC-065",
+      "decision_points": [
+        {
+          "id": "both_authorization_layers_are_mandatory",
+          "requirement": "A peer KeyPackage claim requires both the participant authorization and the outer service authorization; either one missing or invalid fails closed, and the device and Agent signer-evidence branches are an exact XOR that cannot fall back to one another.",
+          "evidence": [
+            "/cases/7"
+          ]
+        },
+        {
+          "id": "participant_signature_binds_the_request_and_the_destination",
+          "requirement": "The participant signature binds the exact unsigned request together with the source and destination service identity, so a valid authorization cannot be forwarded to another destination or deployment.",
+          "evidence": [
+            "/cases/7"
+          ]
+        },
+        {
+          "id": "destination_enforces_its_own_gates_and_leaks_no_inventory",
+          "requirement": "The destination independently enforces both directional Contact heads and scopes, the capability gate and the requester authority without consulting Consent, and business failures expose neither target inventory nor per-device reasons while leaving KeyPackage state unchanged.",
+          "evidence": [
+            "/cases/7"
+          ]
+        },
+        {
+          "id": "claim_binds_the_authorization_event_id_of_its_closed_branch",
+          "requirement": "Every claim record carries the accepted authorization Event id of its own closed branch as an exact XOR of the device and Agent forms; a record with neither, with both, or naming another accepted Event is rejected.",
+          "evidence": [
+            "/cases/11"
+          ]
+        },
+        {
+          "id": "producer_proof_is_independently_verifiable_and_portable",
+          "requirement": "The unique producer proof is verifiable from the authorization Event envelope and its portable signer evidence alone; a proof that can only be checked by replaying the producer's control history, or whose signer evidence resolves to a superseded key, does not satisfy the requirement.",
+          "evidence": [
+            "/cases/11"
+          ]
+        },
+        {
+          "id": "destination_receipt_covers_the_exact_claim_bytes",
+          "requirement": "The destination-signed claim_receipt is verified over the claim bytes the requester recomputes rather than over any reserialization carried in the response, and its claim_request_id is the request's own value.",
+          "evidence": [
+            "/cases/11"
+          ]
+        },
+        {
+          "id": "requester_verifies_before_installing_or_authoring_a_welcome",
+          "requirement": "The requester checks the authorization Event embedded signer evidence, the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome, and any single mismatch blocks both.",
+          "evidence": [
+            "/cases/11"
+          ]
+        },
+        {
+          "id": "wire_carries_no_signer_evidence_sidecar",
+          "requirement": "The wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history.",
+          "evidence": [
+            "/cases/11"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
+      "clause_id": "AK-NC-066",
+      "decision_points": [
+        {
+          "id": "keypackage_digest_is_recomputed_before_decrypt",
+          "requirement": "The Welcome claim_ref keypackage_digest is compared byte-exactly against the digest recomputed from the claimed KeyPackage bytes, and the comparison is made only against values recomputed from the claim record because KeyPackage publication writes no durable Event.",
+          "evidence": [
+            "/cases/8"
+          ]
+        },
+        {
+          "id": "capabilities_digest_mismatch_rejects_before_decrypt",
+          "requirement": "A Welcome whose claim_ref capabilities_digest does not match the digest recomputed from the claimed KeyPackage capabilities, or which requires capabilities outside the claimed subset, is rejected before decrypting.",
+          "evidence": [
+            "/cases/9"
+          ]
+        },
+        {
+          "id": "welcome_matches_the_accepted_winning_add_commit",
+          "requirement": "The recipient runtime checks the accepted winning Add Commit for that Welcome on the same accepted Genesis lineage; a Welcome with no accepted Add Commit, one matching a losing Commit of the same epoch, or one whose Commit was accepted on another lineage is rejected.",
+          "evidence": [
+            "/cases/12"
+          ]
+        },
+        {
+          "id": "five_way_binding_resolves_against_one_claim_record",
+          "requirement": "The requester, recipient, KeyPackage, group and epoch bindings of both the original claim receipt and the claim envelope resolve against the same accepted device, authorization Event and active generation carried by the claim record; the two carriers disagreeing on any one of the five is a rejection rather than a choice between them, and an unverified local cache entry is never accepted as proof.",
+          "evidence": [
+            "/cases/12"
+          ]
+        },
+        {
+          "id": "claim_is_consumed_only_after_durable_group_state",
+          "requirement": "The original claim is consumed only after the Welcome is processed and the group state is durably stored; a failed durable store produces no recipient receipt, the peer surface offers no consume proxy, and an indeterminate result is recovered by replaying the same signed request rather than by rotating the claim identity or claiming a replacement in parallel.",
+          "evidence": [
+            "/cases/13"
+          ]
+        }
+      ]
+    }
+  ],
   "cases": [
     {
       "name": "group_capability_floor",
@@ -677,6 +782,167 @@
         "Station MUST reject a new claim for an expired last-resort package",
         "An attacker with captured Welcome ciphertext and the matching compromised key can recover its encrypted GroupSecrets after expiry",
         "A subsequent effective secret update cannot retroactively restore old Welcome confidentiality"
+      ]
+    },
+    {
+      "name": "peer_claim_response_verification_before_install",
+      "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
+      "kind": "peer_claim_requester_side_response_verification",
+      "claim_purpose": "direct_conversation",
+      "source_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+      "destination_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+      "keypackage_claim_record": {
+        "branch": "device",
+        "target_device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
+        "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "agent_key_authorize_event_id": null,
+        "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
+        "signature_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+        "producer_proof_present_in_authorization_event_envelope": true,
+        "signer_resolution_evidence_ref": "sha256:5bc109a59cd6e594bbe6acf4d54bad93c45ba091d03d8c677b93e706c11313ff"
+      },
+      "claim_receipt": {
+        "signer_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
+        "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+        "covered_input": "the exact claim bytes of this keypackage_claim_record",
+        "covers_recomputed_claim_bytes": true
+      },
+      "requester_checks_before_install": [
+        "authorization_event_embedded_portable_producer_signer_evidence",
+        "destination_signed_claim_receipt",
+        "keypackage_signature",
+        "every_selector_of_the_claim_record"
+      ],
+      "wire_absent_sidecars": [
+        "pcr_genesis",
+        "control_history",
+        "device_signer_evidence",
+        "agent_signer_evidence"
+      ],
+      "negative_mutations": [
+        "claim_record_omits_the_branch_authorization_event_id",
+        "claim_record_carries_both_branch_authorization_event_ids",
+        "claim_record_authorization_event_id_names_another_accepted_event",
+        "producer_proof_verifiable_only_by_replaying_the_producer_control_history",
+        "signer_resolution_evidence_ref_resolves_to_a_superseded_key",
+        "claim_receipt_signed_over_a_reserialization_of_the_claim_bytes",
+        "claim_receipt_claim_request_id_differs_from_the_request",
+        "keypackage_signature_valid_but_selector_mismatched"
+      ],
+      "expected": {
+        "install_keypackage_before_all_four_checks_pass": false,
+        "author_welcome_before_all_four_checks_pass": false,
+        "branch_authorization_event_id_is_required_and_exact_xor": true,
+        "producer_proof_verifiable_without_any_sidecar_or_history_replay": true,
+        "claim_receipt_verified_over_recomputed_claim_bytes": true,
+        "external_verifier_replays_pcr_genesis_or_realmcommits": false,
+        "any_mutation_blocks_both_install_and_welcome_authoring": true
+      },
+      "assertions": [
+        "the claim record carries the accepted authorization Event id of its own closed branch, and the device and Agent ids are an exact XOR rather than two optional members",
+        "the producer proof is verifiable independently of the producer: the requester resolves it from the authorization Event envelope and its portable signer evidence, never by replaying the producer's control history",
+        "the destination-signed claim_receipt is verified over the claim bytes the requester recomputes, not over a reserialization the response supplies",
+        "all four checks -- authorization Event signer evidence, claim receipt, KeyPackage signature and every selector -- complete before the KeyPackage is installed and before a Welcome is authored, so a later mismatch cannot be discovered after the group already exists",
+        "any one of the eight mutations blocks both installing the KeyPackage and authoring the Welcome; neither is reached on a partial verification",
+        "the wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history"
+      ]
+    },
+    {
+      "name": "welcome_add_commit_and_claim_record_binding",
+      "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
+      "kind": "welcome_accepted_lineage_and_claim_record_binding",
+      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+      "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",
+      "mls_group_id": "fixture-dm-group-1",
+      "epoch": 1,
+      "accepted_winning_add_commit": {
+        "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "member_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "read_surface": "registered accepted Event / RealmCommit / governance dependency read"
+      },
+      "claim_record": {
+        "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
+        "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+        "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "active_model_generation_ref": 1,
+        "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+      },
+      "five_way_binding": [
+        "requester",
+        "recipient",
+        "keypackage",
+        "group",
+        "epoch"
+      ],
+      "binding_carriers_compared": [
+        "claim_receipt",
+        "claim_envelope"
+      ],
+      "negative_mutations": [
+        "welcome_has_no_accepted_winning_add_commit",
+        "welcome_matches_a_losing_add_commit_of_the_same_epoch",
+        "add_commit_accepted_on_another_genesis_lineage",
+        "claim_receipt_and_claim_envelope_disagree_on_the_requester",
+        "claim_receipt_and_claim_envelope_disagree_on_the_epoch",
+        "claim_envelope_group_id_differs_from_the_add_commit_group",
+        "binding_device_is_accepted_but_not_the_device_in_the_claim_record",
+        "binding_authorization_event_is_superseded_by_a_later_generation",
+        "active_generation_differs_between_the_two_carriers",
+        "bindings_satisfied_only_by_an_unverified_local_cache_entry"
+      ],
+      "expected": {
+        "reject_before_decrypt": true,
+        "reason": "keypackage_welcome_envelope_mismatch",
+        "accepted_winning_add_commit_required": true,
+        "all_five_bindings_resolved_against_one_claim_record": true,
+        "unverified_local_cache_accepted_as_proof": false,
+        "station_private_slot_read_required": false
+      },
+      "assertions": [
+        "the recipient runtime checks the accepted winning Add Commit for this Welcome, so a Welcome with no accepted Add Commit, or one matching a losing Commit of the same epoch, is rejected",
+        "the Add Commit and the Welcome must advance along the same accepted Genesis lineage; a Commit accepted on another lineage does not bind",
+        "the requester, recipient, KeyPackage, group and epoch bindings of the original claim receipt AND of the claim envelope are compared against the same claim record, so the two carriers disagreeing on any one of the five is a rejection rather than a choice between them",
+        "those bindings resolve to the same accepted device, authorization Event and active generation that the claim record carries; an accepted device that is not the claim record's device, and a superseded authorization Event, both fail",
+        "every mismatch is rejected before decrypting the Welcome",
+        "the checks read only registered accepted Event, RealmCommit and governance dependency surfaces: an unverified local cache entry is never accepted as proof, and no Station-private slot read is required"
+      ]
+    },
+    {
+      "name": "welcome_consume_only_after_durable_group_state",
+      "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
+      "kind": "welcome_consume_ordering",
+      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+      "mls_group_id": "fixture-dm-group-1",
+      "consume_operation": "ak.self.keys.keypackages.command.consume.v1",
+      "sequence": [
+        "welcome_processed",
+        "group_state_durably_stored",
+        "recipient_durable_receipt_generated",
+        "original_claim_consumed_through_own_station"
+      ],
+      "negative_mutations": [
+        "consume_issued_before_group_state_is_durable",
+        "recipient_receipt_signed_after_a_failed_durable_store",
+        "consume_proxied_through_the_peer_surface",
+        "claim_identity_rotated_and_retried_after_an_indeterminate_result",
+        "replacement_keypackage_claimed_in_parallel_after_an_indeterminate_result",
+        "claimed_keypackage_returned_to_published"
+      ],
+      "expected": {
+        "consume_reachable_before_durable_group_state": false,
+        "receipt_signed_on_durable_store_failure": false,
+        "peer_surface_offers_a_consume_proxy": false,
+        "blind_retry_under_a_new_claim_identity_allowed": false,
+        "idempotent_recovery_of_consume_by_signed_request": true
+      },
+      "assertions": [
+        "the original claim is consumed only after the Welcome is processed and the group state is durably stored; the consume step is unreachable before that point",
+        "a failed durable store produces no recipient receipt, so a receipt is never evidence of a group state that was not kept",
+        "consume goes through the recipient's own Station operation ak.self.keys.keypackages.command.consume.v1; the peer surface offers no consume proxy",
+        "an indeterminate network result is recovered by replaying the same signed consume request, never by rotating the claim identity, claiming a replacement KeyPackage in parallel, or returning a claimed KeyPackage to published"
       ]
     }
   ],
