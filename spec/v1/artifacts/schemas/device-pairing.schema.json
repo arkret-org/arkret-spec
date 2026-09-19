@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/device-pairing.schema.json",
   "title": "Arkret Device Pairing Short-Link DTOs",
-  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md sections 2.1.1 and 2.1.2). Staging is unauthenticated and account-less. Finalize is the one authenticated call that binds a staged record to an exact AccountId by attaching the signed target proof, and it is the only legal one-way step from staged to ready_for_claim. Resolve, the authenticated code claim and status then hand the same byte-equivalent proof and transcript to the approving device; none of them authorizes anything until an accepted device signs ak.device.authorize.",
+  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md sections 2.1.1 and 2.1.2). Staging is unauthenticated and account-less. Finalize is the one authenticated call that binds a staged record to an exact AccountId by attaching the signed target proof, and it is the only legal one-way step from staged to ready_for_claim. Resolve, the authenticated code claim and status then hand the same byte-equivalent proof and transcript to the approving device; none of them authorizes anything until an accepted device signs ak.device.authorize. The Account Authority also owns the service-private ten-failure ledger keyed only by device_pairing_request_id; that ledger has no wire member, and its tenth counted failure atomically expires an otherwise pending record without creating an Event, authorization, typed current result or success outcome.",
   "oneOf": [
     {
       "$ref": "#/$defs/device_pairing_stage_request_body"
@@ -68,10 +68,12 @@
       "description": "Origin of the Account Authority gate surface (gate_account_base_url) this pairing request is bound to. Minted by the staging service; the target proof commits to it so a proof cannot be replayed against another Account Authority."
     },
     "device_pairing_request_id": {
-      "$ref": "./agent-operations.schema.json#/$defs/device_pairing_request_id"
+      "$ref": "./agent-operations.schema.json#/$defs/device_pairing_request_id",
+      "description": "Opaque identity of one staged request and the exact key of its service-private ten-failure ledger. An unknown id never creates a failure-counter row."
     },
     "device_pairing_code": {
-      "$ref": "./agent-operations.schema.json#/$defs/device_pairing_code"
+      "$ref": "./agent-operations.schema.json#/$defs/device_pairing_code",
+      "description": "Eight-character pairing lookup credential. A code claim that cannot resolve this value to one exact retained request never creates a per-request failure-counter row."
     },
     "account_id": {
       "$ref": "./common-ids.schema.json#/$defs/account_id",
@@ -92,7 +94,7 @@
     },
     "device_pairing_state": {
       "type": "string",
-      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed or once a later successful finalize for the same AccountId supersedes it. Supersession is a server-side transition with no wire field of its own: it carries no request member and no response member, and the two causes of expired are deliberately indistinguishable. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim.",
+      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device.v1, and reports expired once its bounded TTL has elapsed, once a later successful finalize for the same AccountId supersedes it, or once the Account Authority atomically records the tenth countable failure for this device_pairing_request_id. These causes are server-side transitions with no wire field of their own and are deliberately indistinguishable. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim; authorized and a durable pair_device terminal outcome are never rewritten by failure counting.",
       "enum": [
         "staged",
         "ready_for_claim",
@@ -154,7 +156,7 @@
     },
     "device_pairing_finalize_request_body": {
       "type": "object",
-      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome, performs no second supersession, and the same request id with different content conflicts. A successful call also moves every other unaccepted ready_for_claim record of the same AccountId to terminal expired in the same durable transaction, so that account never holds two approvable records at once. The supersession key is the AccountId alone and no request member selects or suppresses it.",
+      "description": "Authenticated one-way transition of a staged record from staged to ready_for_claim. The caller presents the exact request id and pairing code, holds the staged candidate key, and authenticates with the sender-constrained pending account handoff that supplies the exact AccountId. The service recomputes the device-lifecycle.md 2.1.2 challenge transcript from its own durable stage, verifies target_proof.device_signature with the staged new_device_pubkey, and requires target_proof.account_id to equal the AccountId bound to that handoff. Exact retry of the same intent returns the same outcome, performs no second supersession, and the same request id with different content conflicts. A successful call also moves every other unaccepted ready_for_claim record of the same AccountId to terminal expired in the same durable transaction, so that account never holds two approvable records at once. The supersession key is the AccountId alone and no request member selects or suppresses it. Once the request id locates a retained record, a wrong pairing_code, AccountId/handoff mismatch, invalid transcript or signature, proof/stage mismatch, or unusable state consumes one unit of that request's ten-failure budget. Unknown ids and byte-identical replay of a recorded successful finalize do not consume the budget.",
       "required": [
         "device_pairing_request_id",
         "pairing_code",
@@ -259,7 +261,7 @@
     },
     "device_pairing_code_claim_request_body": {
       "type": "object",
-      "description": "Authenticated claim of one pending pairing request by its normalized eight-character code. The caller is a current accepted, non-pending-revocation device of an exact AccountId and presents nothing else: the code is the whole input and MUST be sent in the JSON body, never in URL path or query string. Unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed codes MUST all return the same not_found.",
+      "description": "Authenticated claim of one pending pairing request by its normalized eight-character code. The caller is a current accepted, non-pending-revocation device of an exact AccountId and presents nothing else: the code is the whole input and MUST be sent in the JSON body, never in URL path or query string. Unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed codes MUST all return the same not_found. A code that resolves to an exact retained request but then fails the AccountId, gate audience, proof, staged-material or usable-state checks consumes one unit of that request's ten-failure budget; a code that resolves to no request creates no counter row.",
       "required": [
         "pairing_code"
       ],
@@ -311,7 +313,7 @@
     },
     "device_pairing_status_outcome": {
       "type": "object",
-      "description": "Authorization status for a staged device-pairing record. While the record is still account-less the state is staged; after finalize it is ready_for_claim. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired, and so does a record a later finalize for the same AccountId superseded; the two are indistinguishable for the whole bounded tombstone retention period.",
+      "description": "Authorization status for a staged device-pairing record. While the record is still account-less the state is staged; after finalize it is ready_for_claim. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired, as does a record a later finalize for the same AccountId superseded or whose exact-request failure budget reached ten; all causes are indistinguishable for the whole bounded tombstone retention period.",
       "required": [
         "state"
       ],

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-19.3",
+  "version": "2026-09-19.4",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T18:54:52+08:00",
+  "generated_at": "2026-09-19T21:41:41+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -323,7 +323,7 @@
       "operation_specific": [
         "proof_invalid"
       ],
-      "description": "Unknown device_pairing_request_id, a pairing_code mismatch, an expired record and a record that is no longer staged MUST all return the same not_found, so this authenticated surface stays as unenumerable as the anonymous resolve. A schema-valid target proof that fails Ed25519 decoding, signature verification, transcript reconstruction, or whose signed account_id is not byte-equal to the AccountId the presented account handoff is bound to, returns failed_precondition with reason_code proof_invalid. Missing required members remain schema_violation. The same request id replayed with different canonical content returns duplicate_conflict and MUST NOT re-attach a proof.",
+      "description": "Unknown device_pairing_request_id, a pairing_code mismatch, an expired record and a record that is no longer staged MUST all return the same not_found, so this authenticated surface stays as unenumerable as the anonymous resolve. A schema-valid target proof that fails Ed25519 decoding, signature verification, transcript reconstruction, or whose signed account_id is not byte-equal to the AccountId the presented account handoff is bound to, returns failed_precondition with reason_code proof_invalid. Missing required members remain schema_violation. The same request id replayed with different canonical content returns duplicate_conflict and MUST NOT re-attach a proof. After an id locates a retained record, code/account/transcript/signature/proof/state failures count against its private ten-failure budget without changing any of those public errors; an unknown id and a byte-identical successful retry do not count, and the tenth failure atomically expires a pending record.",
       "codes": []
     },
     {
@@ -449,7 +449,7 @@
       "operation_specific": [
         "proof_invalid"
       ],
-      "description": "A schema-valid target possession proof that fails Ed25519 material decoding, signature verification or reconstructed stage binding returns failed_precondition with reason_code proof_invalid. Missing required request members or signature_material shape violations remain schema_violation; a nonempty signature string is schema-valid even when it is not valid Ed25519 material.",
+      "description": "A schema-valid target possession proof that fails Ed25519 material decoding, signature verification or reconstructed stage binding returns failed_precondition with reason_code proof_invalid. Missing required request members or signature_material shape violations remain schema_violation; a nonempty signature string is schema-valid even when it is not valid Ed25519 material. Before terminal acceptance, a retained request located by device_pairing_request_id counts code, approving-account/device, transcript, proof/stage or usable-state failures toward its private ten-failure budget while keeping these errors unchanged. Exact terminal replay never counts, and an authorized or durable terminal outcome is never rewritten.",
       "codes": []
     },
     {
@@ -532,7 +532,7 @@
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
       "http_alias": "POST /_arkret/gate/account/device-pairing/code-claims",
       "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface. An unknown code, a wrong code, an expired record, a record belonging to another AccountId, a record that is not yet finalized and an already consumed record MUST all return the same not_found; an error shape MUST NOT reveal whether a code exists, which account it belongs to or which device it describes. Exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited, and a request whose cumulative failure budget is exhausted stays locked out.",
+      "description": "No operation-specific error codes beyond the universal failure surface. An unknown code, a wrong code, an expired record, a record belonging to another AccountId, a record that is not yet finalized and an already consumed record MUST all return the same not_found; an error shape MUST NOT reveal whether a code exists, which account it belongs to or which device it describes. Exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited. A code that locates no exact retained request creates no per-request counter row; after an exact lookup succeeds, account/gate/proof/staged-material/state failures count privately, and the tenth atomically expires and consumes the pending request while the reply remains the same not_found.",
       "codes": []
     },
     {

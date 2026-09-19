@@ -347,8 +347,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "aae5bb6c91d59835a3d85fc7a18e6b79c50ffbfb4ec1e437e97f9f566dd8652d",
-      "version": "2026-09-19.1"
+      "sha256": "1e8ede3a9f5143ec1509964e33c46d24cec83960b9da7820a6777fce18b5802b",
+      "version": "2026-09-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json",

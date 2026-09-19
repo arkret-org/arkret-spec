@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -873,6 +873,12 @@
         "claim_cross_account_code",
         "claim_unfinalized_request",
         "claim_consumed_code",
+        "failure_budget_ninth_failure_preserves_pending_state",
+        "failure_budget_tenth_failure_atomically_expires",
+        "failure_budget_unknown_id_or_code_creates_no_row",
+        "failure_budget_exact_success_retry_does_not_count",
+        "failure_budget_authorized_outcome_is_immutable",
+        "failure_budget_transaction_rollback_is_atomic",
         "finalize_account_id_disagrees_with_handoff",
         "finalize_without_pending_account_handoff",
         "claim_code_in_url_query",
@@ -882,7 +888,10 @@
         "positive_decision": "accept",
         "negative_decision": "reject",
         "uniform_claim_failure": "not_found",
-        "staged_transition": "one_way_to_ready_for_claim"
+        "staged_transition": "one_way_to_ready_for_claim",
+        "failure_budget_key": "device_pairing_request_id",
+        "failure_budget_limit": 10,
+        "failure_budget_visibility": "service_private"
       },
       "assertions": [
         "the stage response and the stored record carry no principal and no AccountId, and the record state is staged",
@@ -900,7 +909,12 @@
         "the claim response carries no private key, no session credential, no recovery material and nothing about any other device of the account, and it grants no long-lived authority",
         "an unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed code all return one indistinguishable not_found with no observable difference in body, code, reason code or timing",
         "the pairing code never appears in a URL path or query string, an access log or an analytics event",
-        "exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited and an exhausted failure budget locks the request"
+        "exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited; those transport buckets neither replace nor reset the exact-request failure budget",
+        "only a failure after an exact retained request is located can create or increment the ledger row keyed by device_pairing_request_id; an unknown request id or a code that resolves to no exact request creates no row",
+        "the first nine counted failures leave staged or ready_for_claim unchanged, while the tenth count, pending-to-expired transition, code consumption and bounded tombstone are one durable transaction",
+        "a failed counter transaction rolls back both the increment and pending-state transition, so no partial abuse-control or business write is observable",
+        "byte-identical replay of a successful finalize or terminal pair_device result never counts, and authorized or durable pair_device terminal outcomes are never rewritten by later failures",
+        "counting or lockout never changes the existing not_found, proof_invalid or duplicate_conflict surface, reveals the count, authors an Event, grants authority, writes a typed current result or records a success outcome"
       ]
     },
     {
