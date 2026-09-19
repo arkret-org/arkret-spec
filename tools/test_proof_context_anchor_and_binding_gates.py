@@ -105,29 +105,34 @@ class AnchorGateTest(unittest.TestCase):
         self.assertEqual(len(errors), 1, errors)
         self.assertIn("events_checkpoint_leaf", errors[0])
 
-    def test_prose_mention_anchors_the_family(self) -> None:
-        self.assertEqual(self.run_gate([carrier_row()], prose="probe_carrier_digest is …"), [])
+    def test_prose_mention_does_not_anchor_the_family(self) -> None:
+        errors = self.run_gate([carrier_row()], prose="probe_carrier_digest is …")
+        self.assertEqual(len(errors), 1, errors)
+        self.assertIn("bare family/domain occurrence", errors[0])
 
-    def test_domain_literal_anchors_the_family(self) -> None:
-        self.assertEqual(
-            self.run_gate([carrier_row()], prose="see ak.probe.carrier_digest.v1"), []
-        )
+    def test_domain_literal_does_not_anchor_the_family(self) -> None:
+        errors = self.run_gate([carrier_row()], prose="see ak.probe.carrier_digest.v1")
+        self.assertEqual(len(errors), 1, errors)
+        self.assertIn("bare family/domain occurrence", errors[0])
 
-    def test_schema_mention_anchors_the_family(self) -> None:
-        self.assertEqual(
-            self.run_gate([carrier_row()], schema={"$defs": {"probe_carrier_digest": {}}}), []
+    def test_schema_mention_does_not_anchor_the_family(self) -> None:
+        errors = self.run_gate(
+            [carrier_row()], schema={"$defs": {"probe_carrier_digest": {}}}
         )
+        self.assertEqual(len(errors), 1, errors)
 
-    def test_vector_registry_mention_anchors_the_family(self) -> None:
-        self.assertEqual(
-            self.run_gate([carrier_row()], vectors={"vectors": ["probe_carrier_digest"]}), []
+    def test_vector_registry_mention_does_not_anchor_the_family(self) -> None:
+        errors = self.run_gate(
+            [carrier_row()], vectors={"vectors": ["probe_carrier_digest"]}
         )
+        self.assertEqual(len(errors), 1, errors)
 
     def test_declared_reference_anchors_the_family(self) -> None:
         for field, value in (
             ("schema_ref", "schemas/probe.schema.json"),
             ("transcript_schema_refs", ["schemas/probe.schema.json"]),
             ("defined_in", "zh/sync/probe.md"),
+            ("transcript_defined_in", "zh/sync/probe.md"),
         ):
             with self.subTest(field=field):
                 self.assertEqual(self.run_gate([carrier_row(**{field: value})]), [])
@@ -156,8 +161,7 @@ class AnchorGateTest(unittest.TestCase):
     def test_exemption_for_an_anchored_family_fails(self) -> None:
         """The ledger is a ratchet: cover that is no longer needed must be removed."""
         errors = self.run_gate(
-            [carrier_row()],
-            prose="probe_carrier_digest is …",
+            [carrier_row(defined_in="zh/sync/probe.md")],
             exemptions={
                 "unanchored_families": [
                     {"object_family": "probe_carrier_digest", "reason": "predates the gate"}

@@ -190,27 +190,16 @@ FORBIDDEN_WIRE_FIELDS = ARTIFACTS / "registry" / "forbidden-wire-fields.json"
 FORBIDDEN_EVENT_CONTEXT = "producer_event_envelope_root"
 
 
-def _anchor_corpus() -> list[tuple[str, str]]:
-    """Every place a carrier-bound family may legitimately be defined."""
-    paths = sorted((SPEC_ROOT / "zh").rglob("*.md"))
-    paths += sorted((ARTIFACTS / "schemas").glob("*.json"))
-    paths += sorted((ARTIFACTS / "fixtures").glob("*.json"))
-    # A conformance profile states the MUST that a receiver recompute a digest
-    # under a named domain, which is as strong a definition as prose gives. The
-    # first version of this corpus left profiles out, and the applet delivery
-    # record paid for it: prose and conformance-profiles.json agreed on one
-    # domain spelling while two registries carried two others, and no gate could
-    # see the fork because the only two files holding the normative spelling were
-    # one that was scanned and one that was not.
-    paths += sorted((ARTIFACTS / "profiles").glob("*.json"))
-    # registry/ stays out by design: a registry row must not anchor itself, and
-    # the rest of registry/ is generated from contract-registry.json. The vector
-    # registry is the exception because its vectors are inputs, not restatements.
-    paths.append(ARTIFACTS / "registry" / "vector-registry.json")
-    return [(str(path), read_text(path)) for path in paths if path.is_file()]
+def _row_is_anchored(row: dict[str, Any]) -> bool:
+    """Require an explicit independent definition; a bare occurrence is not one.
 
-
-def _row_is_anchored(row: dict[str, Any], corpus: list[tuple[str, str]]) -> bool:
+    Schema references are resolved by the proof-context schema gates and prose
+    fragments by ``check_artifact_fragment_targets``.  This gate owns the
+    structural requirement that a row name one of those anchors instead of
+    searching a large corpus for an unqualified family/domain substring.  A
+    fixture, profile or generated view may exercise or project a contract, but
+    merely repeating its label cannot define that contract.
+    """
     if isinstance(row.get("schema_ref"), str) and row["schema_ref"]:
         return True
     transcript_refs = row.get("transcript_schema_refs")
@@ -218,14 +207,10 @@ def _row_is_anchored(row: dict[str, Any], corpus: list[tuple[str, str]]) -> bool
         isinstance(item, str) and item for item in transcript_refs
     ):
         return True
-    if isinstance(row.get("defined_in"), str) and row["defined_in"]:
-        return True
-    literals = [
-        value
-        for value in (row.get("object_family"), row.get("domain"))
-        if isinstance(value, str) and value
-    ]
-    return any(literal in text for literal in literals for _, text in corpus)
+    for field in ("defined_in", "transcript_defined_in"):
+        if isinstance(row.get(field), str) and row[field]:
+            return True
+    return False
 
 
 def check_proof_context_carrier_family_anchors(lint: Lint) -> None:
@@ -245,11 +230,12 @@ def check_proof_context_carrier_family_anchors(lint: Lint) -> None:
     unimplementable, and the next reader cannot tell a live separator from a
     fossil.
 
-    So each carrier-bound row must either declare a reference of its own
-    (``schema_ref``, ``transcript_schema_refs`` or ``defined_in``) or have its
-    ``object_family`` or ``domain`` literal occur in zh prose, a schema, a
-    fixture or the vector registry. Rows that predate this gate and have not
-    been adjudicated are named one by one in
+    So each carrier-bound row must declare an independent reference of its own
+    (``schema_ref``, ``transcript_schema_refs``, ``defined_in`` or
+    ``transcript_defined_in``). A bare ``object_family`` or ``domain`` occurrence
+    in prose, a schema, a fixture, a profile or a generated view is not a
+    definition and cannot anchor the row. Rows that predate this gate and have
+    not been adjudicated are named one by one in
     ``tools/proof-context-anchor-exemptions.json``; that file is a ratchet, so a
     listed row that has since acquired an anchor is itself an error and must be
     removed from the list rather than left as cover for the next orphan.
@@ -283,7 +269,6 @@ def check_proof_context_carrier_family_anchors(lint: Lint) -> None:
                 continue
             exemptions[family] = reason
 
-    corpus = _anchor_corpus()
     seen: set[str] = set()
     for index, row in enumerate(rows):
         if not isinstance(row, dict) or row.get("primitive") in OBJECT_BEARING_PRIMITIVES:
@@ -292,7 +277,7 @@ def check_proof_context_carrier_family_anchors(lint: Lint) -> None:
         label = family if isinstance(family, str) and family else f"domain_separations[{index}]"
         if isinstance(family, str):
             seen.add(family)
-        anchored = _row_is_anchored(row, corpus)
+        anchored = _row_is_anchored(row)
         exempted = isinstance(family, str) and family in exemptions
         if anchored and exempted:
             lint.fail(
@@ -304,10 +289,10 @@ def check_proof_context_carrier_family_anchors(lint: Lint) -> None:
             continue
         lint.fail(
             PROOF_CONTEXT_REGISTRY,
-            f"domain_separations[{index}] object_family {label!r} is defined nowhere: neither the "
-            "object_family nor the domain literal occurs in zh prose, a schema, a fixture or the "
-            "vector registry, and the row declares no schema_ref, transcript_schema_refs or "
-            "defined_in. Define it, withdraw it, or record it in "
+            f"domain_separations[{index}] object_family {label!r} is defined nowhere: the row "
+            "declares no schema_ref, transcript_schema_refs, defined_in or transcript_defined_in. "
+            "A bare family/domain occurrence in prose or an artifact is not a definition. Define "
+            "it, withdraw it, or record it in "
             "tools/proof-context-anchor-exemptions.json with a reason",
         )
 
