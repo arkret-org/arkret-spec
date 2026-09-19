@@ -84,6 +84,7 @@ from .bindings import (
     check_openapi_error_enum_alignment,
     check_openapi_schema_component_order,
     check_operation_binding_metadata,
+    check_artifact_operation_id_references,
     check_operation_dto_closure,
     check_operation_durable_effect_contract,
     check_operation_field_table_schema_refs,
@@ -533,6 +534,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "request_material_supply",
                 lambda: check_request_material_supply_closure(lint),
+            ),
+            (
+                "artifact_operation_id_references",
+                lambda: check_artifact_operation_id_references(lint),
             ),
         ],
         quiet=args.quiet,

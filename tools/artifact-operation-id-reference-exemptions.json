@@ -1,0 +1,36 @@
+{
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T16:03:00+08:00",
+  "description": "Ledger of operation-id-shaped tokens that canonical artifacts name while operation-registry.json does not list them. An artifact that names an operation id is telling a runner which entry point to exercise; when the id is unregistered the case cannot be run at all, and a deleted wire surface leaves no other trace. check_artifact_operation_id_references consults this ledger. Two kinds are admissible and they are not the same thing: negative_token is a fixture deliberately naming an unregistered token so a runner can assert the rejection -- that is the case working as intended and it is permanent; owned_gap is a reference that should resolve and does not, which is a protocol gap owned by a named spec report.",
+  "ratchet": "owned_gap rows may only shrink: a new one is admissible only together with the spec report that owns it, and landing that report MUST remove the row rather than repoint the token. negative_token rows come and go with their fixture case, but a negative_token whose token becomes registered fails the gate: the case would then assert a rejection the registry contradicts. Any row whose token now resolves, or whose artifact no longer carries it, fails until the row is deleted.",
+  "references": [
+    {
+      "token": "ak.self.events.command.submit_with_approval.v1",
+      "artifact": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+      "kind": "negative_token",
+      "case": "reject_unregistered_operation_token",
+      "reason": "The case exists to show that a token satisfying the member's syntactic pattern is still refused because the registry does not list it. Registering this id would destroy the case."
+    },
+    {
+      "token": "ak.server.read.describe.v9",
+      "artifact": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
+      "kind": "negative_token",
+      "case": "describe_operation_selector_unknown_version",
+      "reason": "An unknown operation version selector must yield unsupported_operation_version with zero route-cache writes and zero body parse attempts. The v9 suffix is the unknown version."
+    },
+    {
+      "token": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
+      "artifact": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+      "kind": "owned_gap",
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1517-abandonment-challenge-is-named-but-never-registered.md",
+      "reason": "The abandonment vector names a challenge operation and a confirm operation. Only the confirm half, ak.gate.account.command.abandon_identity_creation.v1, is registered."
+    },
+    {
+      "token": "ak.self.events.read.delivery_status.v1",
+      "artifact": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
+      "kind": "owned_gap",
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1600-prose-deletions-ride-inside-tooling-commits.md",
+      "reason": "The fanout status read was deleted from the registry with the prose that defined it. The fixture still asserts a complete topology-redacted target set, sorted target_id ordering and a no-side-effect read against an entry point no runner can reach."
+    }
+  ]
+}

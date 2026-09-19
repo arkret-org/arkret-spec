@@ -11,6 +11,7 @@ from .core import (
     Lint,
     OPENAPI_OPERATION_ID_RE,
     Path,
+    ROOT,
     SPEC_ROOT,
     SUPPLY_EXEMPTION_REGISTRY_PATH,
     _SUPPLY_CALLER_SIGNED_SCHEMAS,
@@ -2314,4 +2315,169 @@ def check_request_material_supply_closure(lint: Lint) -> None:
                 SUPPLY_EXEMPTION_REGISTRY_PATH,
                 f"{row['exemption_id']}: stale exemption row matches no failing "
                 "demand; delete the row now that the supply exists",
+            )
+
+
+OPERATION_ID_REFERENCE_LEDGER_PATH = (
+    ROOT / "tools" / "artifact-operation-id-reference-exemptions.json"
+)
+
+
+def _operation_surface_prefixes(operation_ids: set[str]) -> list[str]:
+    """The second segment of every registered operation id.
+
+    The surface set is data, not a constant: it is read back from the registry
+    so the scan follows the registry instead of a hand-kept list. A token whose
+    surface segment appears nowhere in the registry is therefore not scanned
+    here -- it is not an operation id that drifted, it is a name from another
+    family or an invented surface, and naming families are governed elsewhere.
+    """
+    return sorted({operation_id.split(".")[1] for operation_id in operation_ids
+                   if operation_id.count(".") >= 3})
+
+
+def _load_operation_id_reference_exemptions(
+    lint: Lint,
+) -> dict[tuple[str, str], dict[str, Any]]:
+    try:
+        document = json.loads(
+            OPERATION_ID_REFERENCE_LEDGER_PATH.read_text(encoding="utf-8")
+        )
+    except Exception as exc:
+        lint.fail(OPERATION_ID_REFERENCE_LEDGER_PATH, f"unable to parse ledger: {exc}")
+        return {}
+    rows: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in document.get("references", []):
+        if not isinstance(row, dict):
+            lint.fail(OPERATION_ID_REFERENCE_LEDGER_PATH, f"row is not an object: {row!r}")
+            continue
+        token = row.get("token")
+        artifact = row.get("artifact")
+        kind = row.get("kind")
+        reason = row.get("reason")
+        if not isinstance(token, str) or not isinstance(artifact, str):
+            lint.fail(
+                OPERATION_ID_REFERENCE_LEDGER_PATH, f"row lacks token/artifact: {row!r}"
+            )
+            continue
+        label = f"{artifact} {token}"
+        if not isinstance(reason, str) or not reason.strip():
+            lint.fail(
+                OPERATION_ID_REFERENCE_LEDGER_PATH,
+                f"{label}: no reason; a row nobody can read is a permanent hole",
+            )
+            continue
+        if kind == "owned_gap":
+            owner = row.get("owner_report")
+            if not isinstance(owner, str) or not owner.strip():
+                lint.fail(
+                    OPERATION_ID_REFERENCE_LEDGER_PATH,
+                    f"{label}: an owned_gap row needs owner_report, otherwise the "
+                    "gap has nobody to close it",
+                )
+                continue
+        elif kind == "negative_token":
+            case = row.get("case")
+            if not isinstance(case, str) or not case.strip():
+                lint.fail(
+                    OPERATION_ID_REFERENCE_LEDGER_PATH,
+                    f"{label}: a negative_token row must name the case that "
+                    "asserts the rejection",
+                )
+                continue
+            if row.get("owner_report") is not None:
+                lint.fail(
+                    OPERATION_ID_REFERENCE_LEDGER_PATH,
+                    f"{label}: a negative_token is the case working as intended, "
+                    "so it has no owner_report; use kind owned_gap for a real gap",
+                )
+                continue
+        else:
+            lint.fail(
+                OPERATION_ID_REFERENCE_LEDGER_PATH,
+                f"{label}: kind must be negative_token or owned_gap, not {kind!r}",
+            )
+            continue
+        rows[(artifact, token)] = row
+    return rows
+
+
+def check_artifact_operation_id_references(lint: Lint) -> None:
+    """Every operation id an artifact names must be one the registry lists.
+
+    A fixture, vector or registry row that names an operation id is telling a
+    conformance runner which entry point to exercise. When that id is absent
+    from `operation-registry.json` the case cannot be run at all: there is no
+    path, no request schema and no error mapping to check it against. Nothing
+    checked this, so a wire surface could be deleted from the registry while
+    fixtures kept asserting obligations against it -- the fixture becomes the
+    only surviving trace of a surface that no longer exists.
+
+    Two kinds of unregistered token are legitimate and the ledger keeps them
+    apart. A `negative_token` is deliberate: the case exists to assert that an
+    unregistered id is refused, so registering it would destroy the case. An
+    `owned_gap` is a reference that should resolve, owned by the spec report
+    that must close it. Everything else is an error here.
+    """
+    registry_path = ARTIFACTS / "registry" / "operation-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    operation_ids = {
+        row.get("operation_id")
+        for row in registry.get("operations", [])
+        if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
+    }
+    operation_ids = {value for value in operation_ids if isinstance(value, str)}
+    if not operation_ids:
+        lint.fail(registry_path, "operation-registry.json lists no operations")
+        return
+    surfaces = _operation_surface_prefixes(operation_ids)
+    if not surfaces:
+        lint.fail(registry_path, "no operation id yields a surface segment")
+        return
+    token_re = re.compile(
+        r"ak\.(?:" + "|".join(surfaces) + r")\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+"
+    )
+    ledger = _load_operation_id_reference_exemptions(lint)
+    seen: set[tuple[str, str]] = set()
+    for path in sorted(ARTIFACTS.rglob("*.json")):
+        if path == registry_path:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception as exc:  # pragma: no cover - unreadable artifact
+            lint.fail(path, f"unable to read artifact: {exc}")
+            continue
+        rel = lint.rel(path)
+        for token in sorted(set(token_re.findall(text))):
+            if token in operation_ids:
+                continue
+            seen.add((rel, token))
+            if (rel, token) in ledger:
+                continue
+            lint.fail(
+                path,
+                f"names operation id {token} which operation-registry.json does "
+                "not list; a runner cannot reach it, so either register the "
+                "operation, name the registered one, or record the row in "
+                "tools/artifact-operation-id-reference-exemptions.json",
+            )
+    for key in sorted(ledger):
+        row = ledger[key]
+        if key[1] in operation_ids:
+            detail = (
+                "the case asserts a rejection the registry now contradicts"
+                if row.get("kind") == "negative_token"
+                else "the operation is registered now"
+            )
+            lint.fail(
+                OPERATION_ID_REFERENCE_LEDGER_PATH,
+                f"{key[0]} {key[1]}: {detail}, so its row MUST be removed",
+            )
+        elif key not in seen:
+            lint.fail(
+                OPERATION_ID_REFERENCE_LEDGER_PATH,
+                f"{key[0]} {key[1]}: this artifact does not name the token any "
+                "more, so its row MUST be removed",
             )
