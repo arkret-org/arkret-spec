@@ -362,8 +362,8 @@ contact request / invite / member-add 不再把 `resolve_handle(intent="contact_
 
 账号 handle claim MUST 直接携带 closed `subject_account_id: AccountId`，不得只携 `principal_id` 后再用 Directory、
 DID Document、当前 session 或接收服务推断 `station_id`。`subject_account_id` 的两个分量、handle、issuer、
-audience 与时间边界都进入 claim proof transcript。Handle claim 不携带 membership delivery route；账号所属 Principal
-Server 已由 `subject_account_id.station_id` 唯一确定，endpoint 另走 service resolution。
+audience 与时间边界都进入 claim proof transcript。Handle claim 不携带 membership delivery route；账号所属 Station
+已由 `subject_account_id.station_id` 唯一确定，endpoint 另走 service resolution。
 
 Handle claim 只证明“这个 handle 在声明上下文中寻址这个 AccountId”。它不是 membership grant、invite acceptance、
 Contact consent 或 delivery authorization。用于 invite/member-add 时，调用方把 exact `subject_account_id` 复制到

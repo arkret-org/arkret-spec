@@ -639,7 +639,7 @@ introspection 或本地会话状态自行判定或近似认证新鲜度：intros
 这些 API 必须使用高风险动作认证，例如 recent login、WebAuthn、recovery key 或管理员多方审批。
 
 **认证新鲜度的归属（normative）**：与 §8.1 同一原则——需要 fresh 高风险动作认证的操作
-MUST 由 Account Authority 直接受理，认证新鲜度由 Account Authority 本地判定。Principal
-Server MUST NOT 依据 session grant introspection 或本地会话状态自行判定或近似认证新鲜度；
+MUST 由 Account Authority 直接受理，认证新鲜度由 Account Authority 本地判定。Station MUST NOT
+依据 session grant introspection 或本地会话状态自行判定或近似认证新鲜度；
 introspection 响应不投影 `auth_time` 或认证 proof kind 是有意的闭合设计，不得为绕过该闭合
 而在 Station 侧重建新鲜度判定。

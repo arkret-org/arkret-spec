@@ -1978,9 +1978,9 @@ paths:
       summary: Atomically accept a root-committed PCR genesis unit.
       description: 'Account Authority relays the client''s exact signed unit. Its service
 
-        signature authenticates transport and correlation only. The Principal
+        signature authenticates transport and correlation only. The Station
 
-        Server independently verifies the identity-root creation transcript,
+        independently verifies the identity-root creation transcript,
 
         ordered root-signed realm create, founding-device possession signature,
 
@@ -2392,9 +2392,9 @@ paths:
         destinationTrustDomain: []
         contentDigest: []
       summary: Private Station invite delivery.
-      description: 'Delivers a ak.invite.create event from the inviter-side Principal
+      description: 'Delivers a ak.invite.create event from the inviter-side Station
 
-        Server to the invitee-side Station. The recipient validates
+        to the invitee-side Station. The recipient validates
 
         the signed invite event, explicit invite_address, introduction_evidence,
 
@@ -2435,9 +2435,9 @@ paths:
         destinationTrustDomain: []
         contentDigest: []
       summary: Private Station Contact fact delivery.
-      description: 'Delivers a signed ak.contact.* fact from the issuer-side Principal
+      description: 'Delivers a signed ak.contact.* fact from the issuer-side Station
 
-        Server to the target holder''s Station. Direct Conversation
+        to the target holder''s Station. Direct Conversation
 
         bindings and Realm Events are forbidden. The recipient validates the signed fact event, the
 

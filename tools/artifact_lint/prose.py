@@ -2019,6 +2019,69 @@ def check_non_normative_frontmatter(lint: Lint) -> None:
 
 
 
+_WHITESPACE_TOLERANT_TOKEN_CACHE: dict[str, Any] = {}
+
+
+def whitespace_tolerant_token_pattern(token: str) -> Any:
+    """Compile a forbidden token so no line break can hide an occurrence of it.
+
+    Both guarded surfaces wrap text at a column nobody chooses per word: zh
+    prose is hard-wrapped, and a YAML single-quoted scalar folds a blank line
+    into a real newline that survives into the parsed value. A plain substring
+    test is therefore blind to any occurrence that happens to be split, and
+    parsing the document first does not help because the newline is inside the
+    parsed string. The pattern requires a whitespace run wherever the token
+    itself has one and allows an optional whitespace run between every other
+    pair of characters, so a break anywhere inside the token still matches.
+    """
+    pattern = _WHITESPACE_TOLERANT_TOKEN_CACHE.get(token)
+    if pattern is None:
+        pieces: list[str] = []
+        for part in re.split(r"(\s+)", token):
+            if not part:
+                continue
+            if part.isspace():
+                pieces.append(r"\s+")
+            else:
+                pieces.append(r"\s*".join(re.escape(character) for character in part))
+        pattern = re.compile("".join(pieces))
+        _WHITESPACE_TOLERANT_TOKEN_CACHE[token] = pattern
+    return pattern
+
+
+def _line_number_at(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def _describe_forbidden_match(token: str, matched: str) -> str:
+    if matched == token:
+        return repr(token)
+    return f"{token!r} (as {matched!r})"
+
+
+def _report_forbidden_token_occurrences(
+    lint: Lint,
+    path: Path,
+    text: str,
+    candidates: list[tuple[int, str]],
+) -> None:
+    """Report every distinct occurrence once, in document order.
+
+    A single split occurrence matches several rows of a guard table at the same
+    offset (``Principal\\nServer`` satisfies the prose name, the type stem and
+    the stem regex alike), so occurrences are keyed by offset. Reporting is per
+    occurrence rather than per file: a file with three retired names used to
+    surface only the first, which made the author fix one and rerun to learn
+    there were two more.
+    """
+    reported: set[int] = set()
+    for offset, message in sorted(candidates, key=lambda candidate: candidate[0]):
+        if offset in reported:
+            continue
+        reported.add(offset)
+        lint.fail(path, f"{message} at line {_line_number_at(text, offset)}")
+
+
 def check_normative_prose_role_names(lint: Lint) -> None:
     """Keep normative prose bound to protocol roles rather than implementations."""
     zh_root = SPEC_ROOT / "zh"
@@ -2035,9 +2098,18 @@ def check_normative_prose_role_names(lint: Lint) -> None:
         frontmatter, body = _parse_frontmatter_block(text)
         if not isinstance(frontmatter, dict) or frontmatter.get("normative") is not True:
             continue
+        body_offset = len(text) - len(body)
+        candidates: list[tuple[int, str]] = []
         for token, label in forbidden.items():
-            if token in body:
-                lint.fail(path, f"normative prose contains {label}: {token!r}")
+            for match in whitespace_tolerant_token_pattern(token).finditer(body):
+                candidates.append(
+                    (
+                        body_offset + match.start(),
+                        f"normative prose contains {label}: "
+                        + _describe_forbidden_match(token, match.group(0)),
+                    )
+                )
+        _report_forbidden_token_occurrences(lint, path, text, candidates)
 
 
 def check_station_role_clean_break(lint: Lint) -> None:
@@ -2067,23 +2139,32 @@ def check_station_role_clean_break(lint: Lint) -> None:
         "ak.operation_bundle.search_service.describe.v1": "retired search role Describe bundle",
     }
     roots = (SPEC_ROOT / "zh", ARTIFACTS)
-    retired_station_stem = re.compile(r"principal(?:[ _-]?server)", re.IGNORECASE)
+    retired_station_stem = re.compile(r"principal(?:[\s_-]*server)", re.IGNORECASE)
     suffixes = {".json", ".md", ".mdx", ".py", ".yaml", ".yml"}
     for root in roots:
         for path in sorted(candidate for candidate in root.rglob("*") if candidate.suffix in suffixes):
             if "proposals" in path.parts:
                 continue
             text = path.read_text(encoding="utf-8")
-            match = retired_station_stem.search(text)
-            if match:
-                lint.fail(
-                    path,
-                    "Station clean-break violation (retired Station role stem): "
-                    f"{match.group(0)!r}",
-                )
+            candidates: list[tuple[int, str]] = []
             for token, label in forbidden.items():
-                if token in text:
-                    lint.fail(path, f"Station clean-break violation ({label}): {token!r}")
+                for match in whitespace_tolerant_token_pattern(token).finditer(text):
+                    candidates.append(
+                        (
+                            match.start(),
+                            f"Station clean-break violation ({label}): "
+                            + _describe_forbidden_match(token, match.group(0)),
+                        )
+                    )
+            for match in retired_station_stem.finditer(text):
+                candidates.append(
+                    (
+                        match.start(),
+                        "Station clean-break violation (retired Station role stem): "
+                        f"{match.group(0)!r}",
+                    )
+                )
+            _report_forbidden_token_occurrences(lint, path, text, candidates)
 
 
 

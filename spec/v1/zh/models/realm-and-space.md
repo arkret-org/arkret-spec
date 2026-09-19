@@ -253,8 +253,8 @@ Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在
 **全部 Realm——含 human PCR 与 Agent PCR——一律按 §2.5.0 从各自 genesis Event 派生
 `realm_id`**，使用同一个 33-octet / 44-character Realm token wire form，不使用 UUID。
 
-理由：PCR 的作用域是「某个 DID 在**当前 Station** 上的账号」，同一 DID 在不同 Principal
-Server 上是完全独立、不可迁移的 PCR。因此 `realm_id` MUST NOT 只由 principal DID 决定：那样会让这些互不
+理由：PCR 的作用域是「某个 DID 在**当前 Station** 上的账号」，同一 DID 在不同 Station
+上是完全独立、不可迁移的 PCR。因此 `realm_id` MUST NOT 只由 principal DID 决定：那样会让这些互不
 相关的 PCR 算出**同一个 `realm_id`**，使该 id 无法标识“哪一个 PCR”。这些值只在同一账号 authority 内用于设备、恢复与审计状态重建，不进入普通联邦 Event 的外部 identity；event-derived 仍能避免本地状态与恢复记录碰撞。
 event-derived 天然按创建事件区分，同时使 `realm_id` 承诺 create Event 的完整内容。
 
