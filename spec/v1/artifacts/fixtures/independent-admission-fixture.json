@@ -9,7 +9,7 @@
   "covers_vectors": [
     "ak.vector.identity.independent_admission.v1"
   ],
-  "spec_anchor": "spec/v1/zh/models/event-and-patch.md#31-独立接收与可携带授权normative",
+  "spec_anchor": "spec/v1/zh/identity/account-lifecycle.md#212b-独立接收与完整-accountidnormative",
   "semantic_cases": [
     {
       "name": "account_id_is_complete_external_identity",

@@ -150,7 +150,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
-      "sha256": "b9a7d7ec7ac85d891faa5d2c67ef920141a33890fed44dc06749d2da06ca28c7"
+      "sha256": "424097e075a7fb4cd8ceacb2446c7204c02c24699eb95294ef2d2108e2584c96"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json",
@@ -186,7 +186,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/independent-admission-fixture.json",
-      "sha256": "d9ea1450ff0644481d370f32d680de14abbc3394b46b66f10a77d98c8bf537d4"
+      "sha256": "fd5f9c5e7cc2dd5295e1cd233f771866503dc7b4f0b297f37d316b896fcc3bea"
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json",
@@ -194,7 +194,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
-      "sha256": "b2477fb20453767422f87f8dd64b22f1c1ce0c8f3180b4432934e159685e77cb"
+      "sha256": "aebd6fa48214cc82132dd834b29f35e484e33d7aab0557fd5d1f89ad1ed2ca12"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -226,7 +226,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
-      "sha256": "76be3b6a8c084cead2c2b27f075b4f9e7a1264b96425a32799e98133f9eacc49"
+      "sha256": "2db1bea3670197593b7e7f16d7e4144fbf6a848d3b7f16bc03985a3c18dc36d3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
-      "sha256": "fb18688c7549a0ff502424e1e3f6fed2524d0277517d809c8f2e7ab3629e635f"
+      "sha256": "38ec80300611941ea569aab7c15c03e4dd01d05a9419ffdfbbf93fbc3db54c80"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",
@@ -282,7 +282,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
-      "sha256": "3352d6dd1772fa4776578598850af3a52c07393ad0195da17c3368b2414534bd"
+      "sha256": "86951c7d9e665f1c9bb36c027112dfa4ee16c01a2a103373b022838f715e7cac"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",

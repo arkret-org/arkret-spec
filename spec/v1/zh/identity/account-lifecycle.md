@@ -177,6 +177,8 @@ Account Authority 从 durable onboarding checkpoint 取得 account subject、冻
 
 **challenge 生成与绑定提交是两个不同时间点（normative）**：第 1 步的解析与第 3–5 步的提交各自是一次独立的时间观察。两阶段若按 §5.4 的 freshness / current-key 合同需要刷新，MUST 刷新；MUST NOT 复用已失效的 challenge-era currentness，也 MUST NOT 声称整个注册只需要一次解析。第三方 DID 的 method-native witness / freshness、current active update key、exact proof transcript 与 `project(did)` 检查继续由上述指定 owner 执行；本家 Station 与 Account Authority 之间的部署内互信 MUST NOT 外推为信任第三方 DID host。本分支同样不新增第二份 DID、第二条 PCR lineage、账号绑定覆盖或私有注册端点。
 
+### 2.1.2b 独立接收与完整 AccountId（normative）
+
 账号的唯一外部身份是 closed `AccountId {principal_id, station_id}`；两个字段均为规范化 `did_core_id`，必须作为一个原子值传递和比较。`authority` 表达“为什么有权”，由签名、grant、producer proof 与已确认授权状态 承载；`AccountId` 只表达“是谁”。协议和实现 MUST NOT 重新引入 authority-named identity、只按一个分量比较、把两个分量作为松散 identity 传递，或用 PCR / service-local key 替代 `AccountId`。
 
 `AccountId` 与创建它的 Station 数据谱系永久绑定。同一 `principal_id` 在另一 Station 上注册会形成新的 `AccountId`、新的账号和新的 PCR lineage，绝不是原账号的搬迁、恢复、接管、合并或别名。原 Station 上的 Event、PCR、投影、设备上下文、session、cursor、to-device queue、push registration、admission 与审计谱系 MUST NOT 迁移、合并、由另一 Station 接管、继承或改写为另一 `station_id`；DID 表示、DID Document、handle 或 resolution 变化不改变该绑定。Station 的进程、数据库、存储副本或同一运营方基础设施 MAY 做运维迁移/复制，但该操作不得改变 wire `AccountId`、权威历史或数据所有权。

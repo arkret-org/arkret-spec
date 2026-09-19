@@ -6,7 +6,7 @@
     "ak.vector.realm_organization.schema_semantic.v1"
   ],
   "version": "2026-09-02.1",
-  "spec_anchor": "spec/v1/zh/models/realm-and-space.md#2.3.0",
+  "spec_anchor": "spec/v1/zh/models/realm-and-space.md#230-realm-组织归属与治理同意normative",
   "source_refs": [
     "spec/v1/zh/models/realm-and-space.md",
     "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/realm_organization_payload",

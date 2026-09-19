@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.15",
+  "version": "2026-09-19.16",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T13:25:00+08:00",
+  "generated_at": "2026-09-19T15:44:40+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -6490,7 +6490,7 @@
         "consumer_binding": {
           "kind": "account_data_storage",
           "selector": "account-data-key-registry.json#/keys[storage=encrypted_account_data]",
-          "normative_ref": "zh/models/account-data.md#2"
+          "normative_ref": "zh/models/account-data.md#2-namespace-key-与不透明寻址normative"
         }
       },
       {
@@ -6822,7 +6822,7 @@
         "consumer_binding": {
           "kind": "signal_plaintext_dispatch",
           "selector": "ak.call.signal",
-          "normative_ref": "zh/sync/signal.md#1.1"
+          "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
         }
       },
       {
@@ -6967,7 +6967,7 @@
         "consumer_binding": {
           "kind": "dynamic_schema_ref",
           "selector": "event kind ak.device.reanchor payload",
-          "normative_ref": "zh/identity/key-management.md#5.0.3"
+          "normative_ref": "zh/identity/key-management.md#503-pcr-policy-re-anchor-unitnormative"
         }
       },
       {
@@ -6984,7 +6984,7 @@
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "verified DID evidence/policy/freshness contract kind",
-          "normative_ref": "zh/identity/did-usage-and-verification.md#5"
+          "normative_ref": "zh/identity/did-usage-and-verification.md#5-验证结果缓存与失效"
         }
       },
       {
@@ -7018,7 +7018,7 @@
         "consumer_binding": {
           "kind": "account_data_plaintext",
           "selector": "ak.dnd_schedule",
-          "normative_ref": "zh/discovery/push-notifications.md#7"
+          "normative_ref": "zh/discovery/push-notifications.md#7-静默时段-do-not-disturb"
         }
       },
       {
@@ -7029,7 +7029,7 @@
         "consumer_binding": {
           "kind": "account_data_plaintext",
           "selector": "ak.profile.draft_sync.v1",
-          "normative_ref": "zh/models/personal-productivity.md#7"
+          "normative_ref": "zh/models/personal-productivity.md#7-draft-sync"
         }
       },
       {
@@ -7151,7 +7151,7 @@
         "consumer_binding": {
           "kind": "dynamic_schema_ref",
           "selector": "application/problem+json error responses selected by operations-error-mapping.json",
-          "normative_ref": "zh/sync/api-conventions.md#5"
+          "normative_ref": "zh/sync/api-conventions.md#5-rfc-9457-http-错误响应"
         }
       },
       {
@@ -7376,7 +7376,7 @@
         "consumer_binding": {
           "kind": "dynamic_schema_ref",
           "selector": "ak.schema.morph.v1#/schema_refs[]",
-          "normative_ref": "zh/models/morph.md#4"
+          "normative_ref": "zh/models/morph.md#4-morph-类型系统合并优先级"
         }
       },
       {
@@ -7532,7 +7532,7 @@
         "consumer_binding": {
           "kind": "signal_plaintext_dispatch",
           "selector": "ak.receipt.read",
-          "normative_ref": "zh/sync/signal.md#1.1"
+          "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
         }
       },
       {
@@ -7759,7 +7759,7 @@
         "consumer_binding": {
           "kind": "dynamic_schema_ref",
           "selector": "event kind ak.rsvp.set payload",
-          "normative_ref": "zh/models/calendar-event.md#8.4"
+          "normative_ref": "zh/models/calendar-event.md#84-admission"
         }
       },
       {
@@ -7811,7 +7811,7 @@
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "schema field equals ak.schema.service_identity_bundle.v1",
-          "normative_ref": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化"
+          "normative_ref": "zh/identity/identity-did.md#37-服务身份自举service-identity-bootstrap"
         }
       },
       {
@@ -7845,7 +7845,7 @@
         "consumer_binding": {
           "kind": "signal_plaintext_dispatch",
           "selector": "ak.presence",
-          "normative_ref": "zh/sync/signal.md#1.1"
+          "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
         }
       },
       {
@@ -7868,7 +7868,7 @@
         "consumer_binding": {
           "kind": "signal_plaintext_dispatch",
           "selector": "ak.typing",
-          "normative_ref": "zh/sync/signal.md#1.1"
+          "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
         }
       },
       {
@@ -7913,7 +7913,7 @@
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
-          "normative_ref": "zh/sync/transport-bindings.md#7"
+          "normative_ref": "zh/sync/transport-bindings.md#7-binding-discovery"
         }
       },
       {
@@ -7984,7 +7984,7 @@
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "challenge_dpop_session_v1 decoded proof",
-          "normative_ref": "zh/sync/websocket-binding.md#3.1"
+          "normative_ref": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
         }
       },
       {
@@ -13519,7 +13519,7 @@
         "operation_bundle_id": "ak.operation_bundle.agent_runtime.describe.v1",
         "service_kind": "agent_runtime",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13532,7 +13532,7 @@
         "operation_bundle_id": "ak.operation_bundle.applet_service.describe.v1",
         "service_kind": "applet_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13545,7 +13545,7 @@
         "operation_bundle_id": "ak.operation_bundle.archive_node.describe.v1",
         "service_kind": "archive_node",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13558,7 +13558,7 @@
         "operation_bundle_id": "ak.operation_bundle.blob_node.describe.v1",
         "service_kind": "blob_node",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13597,7 +13597,7 @@
         "operation_bundle_id": "ak.operation_bundle.key_recovery_service.describe.v1",
         "service_kind": "key_recovery_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13610,7 +13610,7 @@
         "operation_bundle_id": "ak.operation_bundle.media_service.describe.v1",
         "service_kind": "media_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13623,7 +13623,7 @@
         "operation_bundle_id": "ak.operation_bundle.moderation_service.describe.v1",
         "service_kind": "moderation_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13662,7 +13662,7 @@
         "operation_bundle_id": "ak.operation_bundle.recovery_service.describe.v1",
         "service_kind": "recovery_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13675,7 +13675,7 @@
         "operation_bundle_id": "ak.operation_bundle.sfu_service.describe.v1",
         "service_kind": "sfu_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13688,7 +13688,7 @@
         "operation_bundle_id": "ak.operation_bundle.turn_service.describe.v1",
         "service_kind": "turn_service",
         "deployment_evidence": [
-          "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
         ],
         "members": [
           {
@@ -13701,7 +13701,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "normative:zh/sync/service-surface.md#account-authority-与认证方法发现"
+          "normative:zh/sync/service-surface.md#251-account-authority-与认证方法发现"
         ],
         "members": [
           {
@@ -13726,7 +13726,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "normative:zh/sync/service-surface.md#account-authority-与认证方法发现"
+          "normative:zh/sync/service-surface.md#251-account-authority-与认证方法发现"
         ],
         "members": [
           {
@@ -17022,7 +17022,7 @@
         "service_endpoint_shape": "absolute_https_url",
         "required_extension_members": [],
         "reverse_binding": true,
-        "owner": "zh/identity/identity-did.md#8"
+        "owner": "zh/identity/identity-did.md#8-organization-principal-ownership"
       },
       {
         "type": "ArkretManagedPrincipalController",
@@ -17032,7 +17032,7 @@
         "service_endpoint_shape": "closed_object:{controller_did:did,authorization_ref:did_url,purposes:string[]}",
         "required_extension_members": [],
         "reverse_binding": true,
-        "owner": "zh/identity/key-management.md#4.1"
+        "owner": "zh/identity/key-management.md#41-principal-control-event-stream"
       },
       {
         "type": "ArkretPrincipalControlRealm",
@@ -17042,7 +17042,7 @@
         "service_endpoint_shape": "closed_object:{realm_id,controller_did,authorization_ref,requested_scope_digest}",
         "required_extension_members": [],
         "reverse_binding": true,
-        "owner": "zh/identity/key-management.md#4.1"
+        "owner": "zh/identity/key-management.md#41-principal-control-event-stream"
       }
     ],
     "version": "2026-09-16.8"
@@ -17464,7 +17464,7 @@
       {
         "feature_id": "ak.feature.cursor_revoke_high_assurance.v1",
         "status": "active",
-        "defined_in": "zh/sync/client-sync.md#1221-high-assurance-cursor-revoke",
+        "defined_in": "zh/sync/client-sync.md#1221-cursor-revokehigh-assurance-optional",
         "service_kinds": [],
         "required_operation_pairs": [
           {

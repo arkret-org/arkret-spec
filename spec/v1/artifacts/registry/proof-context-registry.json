@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T07:37:00+08:00",
+  "generated_at": "2026-09-19T15:44:40+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -238,7 +238,7 @@
         "proof_purpose",
         "audience_id"
       ],
-      "defined_in": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
+      "defined_in": "zh/discovery/discovery-directory.md#871-withdraw-governance-proof-wire-形态与绑定normative",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof",
       "transcript_schema_refs": [
         "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-19T15:45:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -44,7 +44,7 @@
     {
       "feature_id": "ak.feature.cursor_revoke_high_assurance.v1",
       "status": "active",
-      "defined_in": "zh/sync/client-sync.md#1221-high-assurance-cursor-revoke",
+      "defined_in": "zh/sync/client-sync.md#1221-cursor-revokehigh-assurance-optional",
       "service_kinds": [],
       "required_operation_pairs": [
         {

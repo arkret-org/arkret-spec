@@ -44,9 +44,10 @@ lineage/current proof绑定，不得回写旧Event。fork、跳版、同version�
 
 Contact request 与 invite delivery、`ak.self.consent.command.request.v1` 一样，是**陌生人向 holder
 发起的首次接触**，因此同样是"换一个 principal 就能重新骚扰"的放大面。这三条面 **MUST** 汇聚到
-[`consent-model.md` §6.1.1.3](./consent-model.md) 定义的**同一个 holder admission chokepoint**，共用
-§6.1.1.1 的 quota carrier 与 effective 值、§6.1.1.2 的 identity key
-`(holder 完整 AccountId, source_peer_principal_id)`、以及 §6.1.1.4 的 seen-source ledger 与线性化要求。
+[`consent-model.md`](./consent-model.md) §6.1.1.3 定义的**同一个 holder admission chokepoint**，共用
+[`../sync/invite-addressing.md`](../sync/invite-addressing.md) §5.2 的 quota carrier 与 effective 值、
+[`consent-model.md`](./consent-model.md) §6.1.1 的 identity key
+`(holder 完整 AccountId, source_peer_principal_id)`，以及该 chokepoint 同一事务边界内的 seen-source ledger 与线性化要求。
 Contact 首次接触照常计费；被计费的是**发起方 principal 首次向该 holder 接触**这件事，与该请求最终落在
 哪个 carrier 无关。
 
@@ -912,7 +913,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 但 founder 仍需要领料才能构造该 unit：§6.1 四条 Event 的 §5.4 critical ref、round / continuity 坐标与 §6.2 派生 baseline 都取决于 pair 当前的 Contact round（或 Agent provision）证据。若 resolver 只回一个无 material 的
 `creation_required`，则 founder 在协议层无法确定这些输入——这正是
-[`service-http-binding.md` §2.2.2](../sync/service-http-binding.md) 供给闭合律禁止的形态。
+[`service-http-binding.md`](../sync/service-http-binding.md) §2.2.4 供给闭合律禁止的形态。
 因此：
 
 - `creation_required` **MUST** 携带 `next_founding_input {founding_authority_evidence}`。它是 founder 构造

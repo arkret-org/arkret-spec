@@ -9,7 +9,7 @@
   "covers_vectors": [
     "ak.vector.mls.creator_bootstrap_recovery.v1"
   ],
-  "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建者-bootstrap-transactionnormative",
+  "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建-transaction",
   "registry_under_test": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
   "global_assertions": [
     "the server ends every positive run with exactly one accepted ak.mls.genesis for the effective scope",

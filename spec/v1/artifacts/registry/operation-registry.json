@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T13:25:00+08:00",
+  "generated_at": "2026-09-19T15:45:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4121,7 +4121,7 @@
       "operation_bundle_id": "ak.operation_bundle.agent_runtime.describe.v1",
       "service_kind": "agent_runtime",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4134,7 +4134,7 @@
       "operation_bundle_id": "ak.operation_bundle.applet_service.describe.v1",
       "service_kind": "applet_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4147,7 +4147,7 @@
       "operation_bundle_id": "ak.operation_bundle.archive_node.describe.v1",
       "service_kind": "archive_node",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4160,7 +4160,7 @@
       "operation_bundle_id": "ak.operation_bundle.blob_node.describe.v1",
       "service_kind": "blob_node",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4199,7 +4199,7 @@
       "operation_bundle_id": "ak.operation_bundle.key_recovery_service.describe.v1",
       "service_kind": "key_recovery_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4212,7 +4212,7 @@
       "operation_bundle_id": "ak.operation_bundle.media_service.describe.v1",
       "service_kind": "media_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4225,7 +4225,7 @@
       "operation_bundle_id": "ak.operation_bundle.moderation_service.describe.v1",
       "service_kind": "moderation_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4264,7 +4264,7 @@
       "operation_bundle_id": "ak.operation_bundle.recovery_service.describe.v1",
       "service_kind": "recovery_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4277,7 +4277,7 @@
       "operation_bundle_id": "ak.operation_bundle.sfu_service.describe.v1",
       "service_kind": "sfu_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4290,7 +4290,7 @@
       "operation_bundle_id": "ak.operation_bundle.turn_service.describe.v1",
       "service_kind": "turn_service",
       "deployment_evidence": [
-        "normative:zh/sync/service-http-binding.md#role-scoped-service-describe"
+        "normative:zh/sync/service-surface.md#3-通用服务描述接口"
       ],
       "members": [
         {
@@ -4303,7 +4303,7 @@
       "operation_bundle_id": "ak.operation_bundle.station.account_authority.v1",
       "service_kind": "station",
       "deployment_evidence": [
-        "normative:zh/sync/service-surface.md#account-authority-与认证方法发现"
+        "normative:zh/sync/service-surface.md#251-account-authority-与认证方法发现"
       ],
       "members": [
         {
@@ -4328,7 +4328,7 @@
       "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
       "service_kind": "station",
       "deployment_evidence": [
-        "normative:zh/sync/service-surface.md#account-authority-与认证方法发现"
+        "normative:zh/sync/service-surface.md#251-account-authority-与认证方法发现"
       ],
       "members": [
         {

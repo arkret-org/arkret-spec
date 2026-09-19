@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.8",
+  "version": "2026-09-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T18:00:00+08:00",
+  "generated_at": "2026-09-19T15:45:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -84,7 +84,7 @@
       "service_endpoint_shape": "absolute_https_url",
       "required_extension_members": [],
       "reverse_binding": true,
-      "owner": "zh/identity/identity-did.md#8"
+      "owner": "zh/identity/identity-did.md#8-organization-principal-ownership"
     },
     {
       "type": "ArkretManagedPrincipalController",
@@ -94,7 +94,7 @@
       "service_endpoint_shape": "closed_object:{controller_did:did,authorization_ref:did_url,purposes:string[]}",
       "required_extension_members": [],
       "reverse_binding": true,
-      "owner": "zh/identity/key-management.md#4.1"
+      "owner": "zh/identity/key-management.md#41-principal-control-event-stream"
     },
     {
       "type": "ArkretPrincipalControlRealm",
@@ -104,7 +104,7 @@
       "service_endpoint_shape": "closed_object:{realm_id,controller_did,authorization_ref,requested_scope_digest}",
       "required_extension_members": [],
       "reverse_binding": true,
-      "owner": "zh/identity/key-management.md#4.1"
+      "owner": "zh/identity/key-management.md#41-principal-control-event-stream"
     }
   ]
 }

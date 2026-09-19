@@ -10,7 +10,7 @@
     "ak.vector.invite.new_source_quota_holder_admission.v1",
     "ak.vector.invite.new_source_quota_effective_bounds.v1"
   ],
-  "spec_anchor": "spec/v1/zh/identity/consent-model.md#6111-quota-carrier-与-effective-值normative",
+  "spec_anchor": "spec/v1/zh/sync/invite-addressing.md#52-部署接收约束normative",
   "machine_contracts": [
     "schemas/invite-receive-policy.schema.json",
     "schemas/holder-quarantine.schema.json"

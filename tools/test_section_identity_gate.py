@@ -24,6 +24,8 @@ from artifact_lint import core
 from artifact_lint import section_identity as gate
 from artifact_lint.core import Lint
 
+NEWLINE = chr(10)
+
 OWNER = "arkret-work/tasks/spec-open/probe.md"
 
 GREEN_PAGE = """# 探针页
@@ -261,24 +263,58 @@ class SectionIdentityGateTest(unittest.TestCase):
             any("artifact anchor" in error for error in errors), errors
         )
 
-    def test_a_bare_number_anchor_resolves_against_section_numbers(self) -> None:
-        """`...md#2.1` names a section number, not a slug; both forms are in use."""
+    def test_a_bare_number_anchor_turns_the_gate_red(self) -> None:
+        """`...md#2.1` names a section number, which no renderer resolves."""
         artifact = {"rows": [{"normative": "zh/probe.md#2.1"}]}
-        self.assertEqual(
-            [],
-            self.run_gates(
-                artifacts={"registry/probe.json": artifact}, which="artifacts"
-            ),
-        )
-
-    def test_a_bare_number_anchor_for_a_missing_number_turns_the_gate_red(self) -> None:
-        artifact = {"rows": [{"normative": "zh/probe.md#9.7"}]}
         errors = self.run_gates(
             artifacts={"registry/probe.json": artifact}, which="artifacts"
         )
         self.assertTrue(
-            any("names section number 9.7" in error for error in errors), errors
+            any("retired section-number form" in error for error in errors), errors
         )
+
+    def test_a_bare_number_anchor_is_red_even_when_the_number_exists(self) -> None:
+        """The number resolving is not the point: the fragment still cannot be clicked."""
+        artifact = {"rows": [{"normative": "zh/probe.md#1"}]}
+        errors = self.run_gates(
+            artifacts={"registry/probe.json": artifact}, which="artifacts"
+        )
+        self.assertTrue(
+            any("retired section-number form" in error for error in errors), errors
+        )
+
+    def test_an_explicit_html_anchor_resolves(self) -> None:
+        """A table row cannot be an ATX heading, so it carries `<a id>` instead."""
+        page = GREEN_PAGE + NEWLINE + '| <a id="probe-001"></a>1 | 条款 |' + NEWLINE
+        artifact = {"rows": [{"source_anchor": "spec/v1/zh/probe.md#probe-001"}]}
+        self.assertEqual(
+            [],
+            self.run_gates(
+                pages={"probe.md": page},
+                artifacts={"registry/probe.json": artifact},
+                which="artifacts",
+            ),
+        )
+
+    def test_an_html_anchor_inside_a_code_fence_does_not_resolve(self) -> None:
+        """A sample in a fence is not a target, exactly as a fenced heading is not."""
+        page = (
+            GREEN_PAGE
+            + NEWLINE
+            + "```html"
+            + NEWLINE
+            + '<a id="probe-002"></a>'
+            + NEWLINE
+            + "```"
+            + NEWLINE
+        )
+        artifact = {"rows": [{"source_anchor": "spec/v1/zh/probe.md#probe-002"}]}
+        errors = self.run_gates(
+            pages={"probe.md": page},
+            artifacts={"registry/probe.json": artifact},
+            which="artifacts",
+        )
+        self.assertTrue(any("artifact anchor" in error for error in errors), errors)
 
     def test_a_ratchet_row_suppresses_a_known_broken_anchor(self) -> None:
         artifact = {"rows": [{"source_anchor": "spec/v1/zh/probe.md#1-并不存在"}]}

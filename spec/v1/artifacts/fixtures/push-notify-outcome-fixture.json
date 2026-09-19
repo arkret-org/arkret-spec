@@ -8,7 +8,7 @@
     "ak.vector.push.registration_handoff_lifecycle.v1"
   ],
   "version": "2026-09-14",
-  "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#5.2",
+  "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#52-响应",
   "source_refs": [
     "spec/v1/zh/discovery/push-notifications.md",
     "spec/v1/zh/sync/service-http-binding.md",

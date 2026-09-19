@@ -48,7 +48,7 @@
     },
     "ordinary_projection_content": {
       "type": "object",
-      "description": "Server-materialized current content of one ordinary source-Event notification projection, as delivered on the account subscribe notifications channel (account-subscribe-frame.schema.json#/$defs/notification_delta). It reuses the ak.schema.notification.v1 field shapes and carries only what the recipient's own Station can state authoritatively: the projection identity is the delta id, the recipient is the authenticated account, and the inbox state (unread / read / dismissed / archived) stays in holder-private account data. See spec/v1/zh/sync/client-sync.md#312.",
+      "description": "Server-materialized current content of one ordinary source-Event notification projection, as delivered on the account subscribe notifications channel (account-subscribe-frame.schema.json#/$defs/notification_delta). It reuses the ak.schema.notification.v1 field shapes and carries only what the recipient's own Station can state authoritatively: the projection identity is the delta id, the recipient is the authenticated account, and the inbox state (unread / read / dismissed / archived) stays in holder-private account data. See spec/v1/zh/sync/client-sync.md#312-普通源-event-当前行分支aknotification_projection",
       "required": [
         "realm_id",
         "source_event_id",

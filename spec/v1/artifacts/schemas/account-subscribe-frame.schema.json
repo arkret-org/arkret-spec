@@ -188,7 +188,7 @@
     },
     "notification_delta": {
       "type": "object",
-      "description": "One account-private notification projection delta. The `id` form is the only branch discriminator: `ak:notification:<uuidv7>` selects the Agent runtime approval branch, `ak:notification_projection:<44-char token>` selects the ordinary source-Event current-row branch. Both branches share one projector, one channel position and the section 2.3 per-frame budget; there is no second notification list operation. See spec/v1/zh/sync/client-sync.md#31.",
+      "description": "One account-private notification projection delta. The `id` form is the only branch discriminator: `ak:notification:<uuidv7>` selects the Agent runtime approval branch, `ak:notification_projection:<44-char token>` selects the ordinary source-Event current-row branch. Both branches share one projector, one channel position and the section 2.3 per-frame budget; there is no second notification list operation. See spec/v1/zh/sync/client-sync.md#31-account-notification-deltanormative",
       "required": [
         "id",
         "action"

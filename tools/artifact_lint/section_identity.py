@@ -43,6 +43,10 @@ FENCE_RE = re.compile(r"^\s*(```|~~~)")
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 
+HTML_ANCHOR_RE = re.compile(
+    r"<a\s[^>]*?\b(?:id|name)\s*=\s*[\"']([^\"']+)[\"']", re.IGNORECASE
+)
+
 POINTER_MARKER = "引用别名（normative pointer）"
 
 LEDGER_PATH = ROOT / "tools" / "prose-section-identity-ledger.json"
@@ -69,8 +73,37 @@ def _headings(text: str) -> list[tuple[int, str]]:
     return out
 
 
+def _anchor_ids(text: str) -> set[str]:
+    """Explicit HTML anchor ids, the third convention the spec really uses.
+
+    A clause table cannot carry an ATX heading per row, so the SDK clause table
+    gives each row an `<a id="...">`. Those fragments resolve in every renderer,
+    so a check that only reads headings would call every one of them broken and
+    no repair could ever clear it. Anchors inside fenced code blocks are samples,
+    not targets, and are skipped like headings are.
+    """
+    out: set[str] = set()
+    fence: str | None = None
+    for line in text.split("\n"):
+        fence_match = FENCE_RE.match(line)
+        if fence_match:
+            token = fence_match.group(1)
+            if fence is None:
+                fence = token
+            elif line.strip().startswith(fence):
+                fence = None
+            continue
+        if fence is not None:
+            continue
+        out.update(HTML_ANCHOR_RE.findall(line))
+    return out
+
+
 def _slugs(text: str) -> set[str]:
-    return {markdown_heading_slug(heading) for _, heading in _headings(text)}
+    """Every fragment the page really offers: heading slugs and HTML anchors."""
+    return {
+        markdown_heading_slug(heading) for _, heading in _headings(text)
+    } | _anchor_ids(text)
 
 
 def check_numbered_heading_identity(lint: Lint) -> None:
@@ -257,10 +290,13 @@ def check_artifact_fragment_targets(lint: Lint) -> None:
     resolved against real headings, so a row could name a section that no
     longer exists -- or never did.
 
-    Artifact anchors use two conventions and the check honours both: a bare
-    dotted number (`...md#4.1`) names a section *number*, while anything else is
-    a markdown slug. Resolving a number form against slugs would report every
-    correct row as broken.
+    Artifact anchors carry exactly one convention: a markdown fragment that a
+    renderer can resolve -- a heading slug or an explicit `<a id>`. The bare
+    dotted number form (`...md#4.1`) is retired: it named a section *number*,
+    which no renderer resolves, so such an anchor was never a working link and
+    could not be clicked through to the obligation it claimed to cite. Anchors
+    written that way are reported here rather than silently resolved against the
+    numbering table.
 
     Rows already broken when this gate landed are listed in a shrink-only
     ratchet, each owned by the spec report that must close it. A ratchet row
@@ -269,7 +305,6 @@ def check_artifact_fragment_targets(lint: Lint) -> None:
     """
     ratchet = _load_artifact_anchor_ratchet(lint)
     slug_cache: dict[Path, set[str]] = {}
-    number_cache: dict[Path, set[str]] = {}
     probe = SPEC_ROOT / "artifacts" / "_probe_"
     resolved_rows: set[tuple[str, str]] = set()
     seen_rows: set[tuple[str, str]] = set()
@@ -287,22 +322,12 @@ def check_artifact_fragment_targets(lint: Lint) -> None:
             exempt = (rel, raw) in ratchet
             seen_rows.add((rel, raw))
             if BARE_NUMBER_RE.match(fragment):
-                if not target_path.is_file():
-                    if not exempt:
-                        lint.fail(path, f"artifact anchor {raw!r} names a missing file")
-                    continue
-                if target_path not in number_cache:
-                    number_cache[target_path] = _numbers(
-                        target_path.read_text(encoding="utf-8")
-                    )
-                ok = fragment.rstrip(".") in number_cache[target_path]
-                if ok and exempt:
-                    resolved_rows.add((rel, raw))
-                elif not ok and not exempt:
+                if not exempt:
                     lint.fail(
                         path,
-                        f"artifact anchor {raw!r} names section number "
-                        f"{fragment.rstrip('.')}, which {page} does not have",
+                        f"artifact anchor {raw!r} uses the retired section-number "
+                        "form; write the heading fragment the page really offers "
+                        "so the citation resolves in a renderer",
                     )
                 continue
             errors_before = len(lint.errors)

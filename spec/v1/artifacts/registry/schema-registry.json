@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T13:25:00+08:00",
+  "generated_at": "2026-09-19T15:45:02+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -27,7 +27,7 @@
       "consumer_binding": {
         "kind": "account_data_storage",
         "selector": "account-data-key-registry.json#/keys[storage=encrypted_account_data]",
-        "normative_ref": "zh/models/account-data.md#2"
+        "normative_ref": "zh/models/account-data.md#2-namespace-key-与不透明寻址normative"
       }
     },
     {
@@ -359,7 +359,7 @@
       "consumer_binding": {
         "kind": "signal_plaintext_dispatch",
         "selector": "ak.call.signal",
-        "normative_ref": "zh/sync/signal.md#1.1"
+        "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
       }
     },
     {
@@ -504,7 +504,7 @@
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
         "selector": "event kind ak.device.reanchor payload",
-        "normative_ref": "zh/identity/key-management.md#5.0.3"
+        "normative_ref": "zh/identity/key-management.md#503-pcr-policy-re-anchor-unitnormative"
       }
     },
     {
@@ -521,7 +521,7 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "verified DID evidence/policy/freshness contract kind",
-        "normative_ref": "zh/identity/did-usage-and-verification.md#5"
+        "normative_ref": "zh/identity/did-usage-and-verification.md#5-验证结果缓存与失效"
       }
     },
     {
@@ -555,7 +555,7 @@
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "ak.dnd_schedule",
-        "normative_ref": "zh/discovery/push-notifications.md#7"
+        "normative_ref": "zh/discovery/push-notifications.md#7-静默时段-do-not-disturb"
       }
     },
     {
@@ -566,7 +566,7 @@
       "consumer_binding": {
         "kind": "account_data_plaintext",
         "selector": "ak.profile.draft_sync.v1",
-        "normative_ref": "zh/models/personal-productivity.md#7"
+        "normative_ref": "zh/models/personal-productivity.md#7-draft-sync"
       }
     },
     {
@@ -688,7 +688,7 @@
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
         "selector": "application/problem+json error responses selected by operations-error-mapping.json",
-        "normative_ref": "zh/sync/api-conventions.md#5"
+        "normative_ref": "zh/sync/api-conventions.md#5-rfc-9457-http-错误响应"
       }
     },
     {
@@ -913,7 +913,7 @@
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
         "selector": "ak.schema.morph.v1#/schema_refs[]",
-        "normative_ref": "zh/models/morph.md#4"
+        "normative_ref": "zh/models/morph.md#4-morph-类型系统合并优先级"
       }
     },
     {
@@ -1069,7 +1069,7 @@
       "consumer_binding": {
         "kind": "signal_plaintext_dispatch",
         "selector": "ak.receipt.read",
-        "normative_ref": "zh/sync/signal.md#1.1"
+        "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
       }
     },
     {
@@ -1296,7 +1296,7 @@
       "consumer_binding": {
         "kind": "dynamic_schema_ref",
         "selector": "event kind ak.rsvp.set payload",
-        "normative_ref": "zh/models/calendar-event.md#8.4"
+        "normative_ref": "zh/models/calendar-event.md#84-admission"
       }
     },
     {
@@ -1348,7 +1348,7 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "schema field equals ak.schema.service_identity_bundle.v1",
-        "normative_ref": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化"
+        "normative_ref": "zh/identity/identity-did.md#37-服务身份自举service-identity-bootstrap"
       }
     },
     {
@@ -1382,7 +1382,7 @@
       "consumer_binding": {
         "kind": "signal_plaintext_dispatch",
         "selector": "ak.presence",
-        "normative_ref": "zh/sync/signal.md#1.1"
+        "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
       }
     },
     {
@@ -1405,7 +1405,7 @@
       "consumer_binding": {
         "kind": "signal_plaintext_dispatch",
         "selector": "ak.typing",
-        "normative_ref": "zh/sync/signal.md#1.1"
+        "normative_ref": "zh/sync/signal.md#11-plaintext-payload-profile-通用最小集normative"
       }
     },
     {
@@ -1450,7 +1450,7 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
-        "normative_ref": "zh/sync/transport-bindings.md#7"
+        "normative_ref": "zh/sync/transport-bindings.md#7-binding-discovery"
       }
     },
     {
@@ -1521,7 +1521,7 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "challenge_dpop_session_v1 decoded proof",
-        "normative_ref": "zh/sync/websocket-binding.md#3.1"
+        "normative_ref": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
       }
     },
     {

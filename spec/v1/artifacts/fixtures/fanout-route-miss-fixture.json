@@ -9,7 +9,7 @@
   "covers_vectors": [
     "ak.vector.fanout.route_miss.v1"
   ],
-  "spec_anchor": "spec/v1/zh/sync/federation.md#41-推送模式-push",
+  "spec_anchor": "spec/v1/zh/sync/federation.md#411-realm-fanout-目标集合与持久-intentnormative",
   "machine_contracts": [
     "schemas/service-operation-dtos.schema.json",
     "registry/operation-registry.json",
