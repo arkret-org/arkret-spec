@@ -28,6 +28,22 @@ from tools.event_admission_contract import predicate_schema, selected_branches
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 EXECUTOR_PAIR = ("executed_by", "authorization_ref")
 
+# The executor pair members are typed: executed_by is the composite actor_id and
+# authorization_ref is one of the closed authority references. The selector only
+# looks at presence, so it accepted placeholder strings here for as long as these
+# tests existed -- including a bare "ak:actor:..." spelling that no schema in the
+# repository defines. Presence tests that use values the wire would reject cannot
+# tell a routing bug from a shape bug, so both members are the same values the
+# fixture admits, and the identity is asserted below rather than assumed.
+CONSTRUCTIVE_FIXTURE = "fixtures/content-bound-event-id-fixture.json"
+DELEGATED_CASE = "organization_governed_pcr_genesis_derives_a_distinct_realm"
+SELF_CASE = (
+    "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected"
+)
+MATRIX_CASE = (
+    "human_pcr_admission_selection_is_exclusive_over_the_executor_pair"
+)
+
 
 def load(relative: str) -> dict:
     return json.loads((ARTIFACTS / relative).read_text(encoding="utf-8"))
@@ -67,25 +83,54 @@ class HumanPcrAdmissionSelectorTest(unittest.TestCase):
         self.assertEqual(len(matched), 1, f"{instance!r} selected {matched!r}")
         return matched[0]
 
+    @classmethod
+    def case(cls, name: str) -> dict:
+        fixture = load(CONSTRUCTIVE_FIXTURE)
+        return next(case for case in fixture["cases"] if case.get("name") == name)
+
     def human_create(self, **members: object) -> dict:
         instance = {"kind": "ak.realm.create", "payload": {"object": {"purpose": "principal_control"}}}
         instance.update(members)
         return instance
 
+    def executor_pair(self) -> dict:
+        delegated = self.case(DELEGATED_CASE)["complete_wire_event"]
+        return {member: delegated[member] for member in EXECUTOR_PAIR}
+
     def test_executor_pair_absence_selects_the_self_principal_branch(self) -> None:
         self.assertEqual(self.select(self.human_create()), "registration_anchor")
 
     def test_executor_pair_presence_selects_the_delegated_branch(self) -> None:
-        instance = self.human_create(
-            executed_by="ak:actor:webvh:z6mkexecutor@ak:did_core:webvh:z6mkstation",
-            authorization_ref="ak:grant:0199aa01-0000-7000-8000-00000000abcd",
-        )
+        instance = self.human_create(**self.executor_pair())
         self.assertEqual(self.select(instance), "delegated_pcr_genesis")
 
+    def test_the_pair_members_are_the_shapes_the_envelope_schema_accepts(self) -> None:
+        # A presence selector cannot notice a malformed member, so the values used
+        # here have to be checked against the closed envelope somewhere or the test
+        # suite silently documents a wire form that does not exist.
+        envelope = Draft202012Validator(
+            self.envelope, registry=schema_registry()
+        )
+        for name in (SELF_CASE, DELEGATED_CASE):
+            with self.subTest(case=name):
+                event = self.case(name)["complete_wire_event"]
+                self.assertEqual(
+                    [error.message for error in envelope.iter_errors(event)], []
+                )
+
+    def test_each_complete_event_selects_exactly_its_declared_branch(self) -> None:
+        for name in (SELF_CASE, DELEGATED_CASE):
+            with self.subTest(case=name):
+                case = self.case(name)
+                self.assertEqual(self.select(case["complete_wire_event"]), case["admission"])
+
     def test_a_partial_executor_pair_is_denied_with_no_fallback(self) -> None:
+        pair = self.executor_pair()
         for member in EXECUTOR_PAIR:
             with self.subTest(member=member):
-                self.assertEqual(self.select(self.human_create(**{member: "ak:grant:x"})), "deny")
+                self.assertEqual(
+                    self.select(self.human_create(**{member: pair[member]})), "deny"
+                )
 
     def test_a_null_executor_member_counts_as_present(self) -> None:
         for member in EXECUTOR_PAIR:
@@ -95,15 +140,48 @@ class HumanPcrAdmissionSelectorTest(unittest.TestCase):
         self.assertEqual(self.select(both_null), "delegated_pcr_genesis")
 
     def test_the_two_human_branches_never_overlap(self) -> None:
-        registration = next(validator for admission, validator in self.branches if admission == "registration_anchor")
-        delegated = next(validator for admission, validator in self.branches if admission == "delegated_pcr_genesis")
+        # selected_branches() builds every guard as predicate_i AND NOT(any other
+        # predicate), so two guards can never both accept one instance and
+        # intersecting them is a tautology that passes even if two variants are
+        # written to match the same Event. Overlap is only observable on the
+        # unguarded `when` predicates.
+        row = next(
+            event
+            for event in self.registry["event_kinds"]
+            if event["event_kind"] == "ak.realm.create"
+        )
+        guards = {admission for admission, _ in self.branches}
+        self.assertIn("registration_anchor", guards)
+        self.assertIn("delegated_pcr_genesis", guards)
+        predicates = [
+            (variant["admission"], Draft202012Validator(predicate_schema(variant["when"])))
+            for variant in row["admission_variants"][:-1]
+        ]
+        pair = self.executor_pair()
         for present in ([], ["executed_by"], ["authorization_ref"], list(EXECUTOR_PAIR)):
-            instance = self.human_create(**{member: "ak:grant:x" for member in present})
+            instance = self.human_create(**{member: pair[member] for member in present})
+            accepting = [
+                admission for admission, validator in predicates if validator.is_valid(instance)
+            ]
             with self.subTest(present=present):
-                self.assertFalse(
-                    registration.is_valid(instance) and delegated.is_valid(instance),
-                    "the executor pair must keep the two human branches disjoint",
+                self.assertLessEqual(
+                    len(accepting),
+                    1,
+                    f"unguarded admission predicates {accepting} all accept {instance!r}",
                 )
+
+    def test_the_guard_subtraction_is_what_makes_guards_disjoint(self) -> None:
+        # Pins the reason the test above cannot use the guards. If selected_branches()
+        # ever stops subtracting the sibling predicates, this fails and the overlap
+        # test above becomes the only thing standing between two variants and a
+        # silent double match.
+        row = next(
+            event
+            for event in self.registry["event_kinds"]
+            if event["event_kind"] == "ak.realm.create"
+        )
+        guard = dict(selected_branches(row))["registration_anchor"]
+        self.assertIn("not", json.dumps(guard))
 
     def test_the_retired_inception_role_no_longer_routes_or_validates(self) -> None:
         union = self.envelope["$defs"]["semantic_ref"]["anyOf"]

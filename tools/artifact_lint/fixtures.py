@@ -3597,6 +3597,364 @@ def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
         lint.fail(schema_path, "Event Batch Receipt events must set uniqueItems=true")
 
 
+def _unrelaxed_event_envelope_validator(lint: Lint) -> Any:
+    """The closed wire Event schema, with nothing relaxed.
+
+    _event_preimage_envelope_validator deletes event_id/proofs/unsigned from
+    `required` because a stated preimage legitimately omits them. A complete wire
+    Event omits nothing, and no fixture carried one, so the members that only a
+    complete Event has -- event_id and the producer proof -- had no schema gate at
+    all.
+    """
+    if Draft202012Validator is None or Registry is None or Resource is None:
+        return None
+    document = load_json(lint, ARTIFACTS / "schemas" / "event-envelope.schema.json")
+    if not isinstance(document, dict):
+        return None
+
+    def retrieve(uri: str) -> Any:
+        return Resource.from_contents(load_json_schema_for_uri(uri))
+
+    return Draft202012Validator(
+        document,
+        registry=Registry(retrieve=retrieve),
+        format_checker=schema_format_checker(),
+    )
+
+
+def _realm_create_admission_branches(lint: Lint, path: Path) -> tuple[list, list] | None:
+    """The canonical ak.realm.create selector, as guards and as bare predicates.
+
+    Both forms are needed and they prove different things. The guards answer
+    "which variant does this Event select", because selected_branches() subtracts
+    the other predicates from each one. Precisely because it subtracts them, two
+    guards can never both accept one instance, so intersecting guards proves
+    nothing about overlap; only the bare predicates can.
+    """
+    if Draft202012Validator is None:
+        return None
+    from tools.event_admission_contract import predicate_schema, selected_branches
+
+    registry = load_json(lint, ARTIFACTS / "registry" / "contract-registry.json")
+    if not isinstance(registry, dict):
+        return None
+    row = next(
+        (
+            event
+            for event in registry.get("event_kind_registry", {}).get("event_kinds", [])
+            if isinstance(event, dict) and event.get("event_kind") == "ak.realm.create"
+        ),
+        None,
+    )
+    if not isinstance(row, dict):
+        lint.fail(path, "ak.realm.create is not registered, so its admission split has no source")
+        return None
+    try:
+        guards = [
+            (admission, Draft202012Validator(guard))
+            for admission, guard in selected_branches(row)
+        ]
+        predicates = [
+            (variant["admission"], Draft202012Validator(predicate_schema(variant["when"])))
+            for variant in row.get("admission_variants", [])[:-1]
+        ]
+    except (KeyError, TypeError, ValueError) as error:
+        lint.fail(path, f"ak.realm.create admission projection is invalid: {error}")
+        return None
+    return guards, predicates
+
+
+def check_human_pcr_admission_branch_evidence(lint: Lint) -> None:
+    """The two human PCR branches have complete Events and an exhaustive split.
+
+    1105 removed the did_inception reference that used to route human PCR genesis
+    and split the two branches on the executor pair instead. What the repository
+    then had was a selector with no complete instance: every fixture carried a
+    digest preimage, which by definition omits event_id and proofs, so the members
+    that distinguish a wire Event from its own preimage were never validated, and
+    "this instance selects exactly one branch" was asserted only by a unit test
+    over instances that were not valid Events at all.
+    """
+    path = ARTIFACTS / "fixtures" / "content-bound-event-id-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    cases = [case for case in data.get("cases", []) if isinstance(case, dict)]
+    by_name = {
+        case["name"]: case for case in cases if isinstance(case.get("name"), str)
+    }
+
+    branches = _realm_create_admission_branches(lint, path)
+    if branches is None:
+        return
+    guards, predicates = branches
+    envelope_validator = _unrelaxed_event_envelope_validator(lint)
+
+    def selects(instance: dict) -> list[str]:
+        return [admission for admission, validator in guards if validator.is_valid(instance)]
+
+    # --- 1. every complete wire Event ------------------------------------------
+    carriers = [case for case in cases if "complete_wire_event" in case]
+    required_admissions = {"registration_anchor", "delegated_pcr_genesis"}
+    declared_admissions = {
+        case.get("admission") for case in carriers if isinstance(case.get("admission"), str)
+    }
+    if not required_admissions <= declared_admissions:
+        lint.fail(
+            path,
+            "both human PCR admission branches MUST carry a complete wire Event: "
+            f"missing {sorted(required_admissions - declared_admissions)}. A branch with "
+            "no complete instance has never been shown to be reachable.",
+        )
+    for case in carriers:
+        name = case.get("name")
+        event = case["complete_wire_event"]
+        if not isinstance(event, dict):
+            lint.fail(path, f"{name}: complete_wire_event MUST be an object")
+            continue
+        admission = case.get("admission")
+        if not isinstance(admission, str):
+            lint.fail(
+                path,
+                f"{name}: a complete wire Event MUST declare the admission variant it "
+                "selects, otherwise the selector result cannot be compared to anything",
+            )
+            continue
+        if envelope_validator is not None:
+            errors = sorted(
+                envelope_validator.iter_errors(event), key=lambda error: list(error.path)
+            )
+            for error in errors[:4]:
+                pointer = "/".join(str(part) for part in error.path) or "<root>"
+                lint.fail(
+                    path,
+                    f"{name}: complete_wire_event is not a valid Event at /{pointer}: "
+                    f"{error.message}",
+                )
+        matched = selects(event)
+        if matched != [admission]:
+            lint.fail(
+                path,
+                f"{name}: complete_wire_event declares admission={admission} but the "
+                f"canonical selector returns {matched}",
+            )
+        # The hashed bytes and the admitted bytes must be one construction. A
+        # complete Event kept beside a preimage is the same "declaration next to
+        # evidence" shape that let projected_principal_id drift.
+        body = {
+            member: value
+            for member, value in event.items()
+            if member not in EVENT_PREIMAGE_RELAXED_ENVELOPE_MEMBERS
+        }
+        preimage = case.get("digest_preimage_canonical_bytes_utf8")
+        if not isinstance(preimage, str):
+            lint.fail(
+                path,
+                f"{name}: a complete wire Event MUST sit beside its own canonical "
+                "preimage bytes",
+            )
+        elif canonical_json(body) != preimage:
+            lint.fail(
+                path,
+                f"{name}: complete_wire_event minus "
+                f"{sorted(EVENT_PREIMAGE_RELAXED_ENVELOPE_MEMBERS)} is not the stated "
+                "preimage byte for byte, so the Event that is admitted is not the Event "
+                "that is hashed",
+            )
+        if event.get("event_id") != case.get("derived_event_id"):
+            lint.fail(
+                path,
+                f"{name}: complete_wire_event.event_id must be the recomputed "
+                f"{case.get('derived_event_id')}",
+            )
+        proofs = event.get("proofs")
+        if isinstance(proofs, list) and proofs and isinstance(proofs[0], dict):
+            if proofs[0].get("event_digest") != case.get("event_digest"):
+                lint.fail(
+                    path,
+                    f"{name}: the producer proof signs {proofs[0].get('event_digest')} "
+                    f"but the case derives {case.get('event_digest')}",
+                )
+        source = case.get("admission_evidence", {})
+        if not isinstance(source, dict) or not isinstance(source.get("selects_because"), str):
+            lint.fail(
+                path,
+                f"{name}: a complete wire Event MUST state which selector members put it "
+                "in its branch; a bare admission label is a claim, not evidence",
+            )
+
+    # --- 2. the delegated branch is a different Realm --------------------------
+    delegated_name = "organization_governed_pcr_genesis_derives_a_distinct_realm"
+    self_name = "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected"
+    delegated = by_name.get(delegated_name)
+    self_case = by_name.get(self_name)
+    if isinstance(delegated, dict) and isinstance(self_case, dict):
+        if delegated.get("derived_realm_id") == self_case.get("derived_realm_id"):
+            lint.fail(
+                path,
+                f"{delegated_name}: the executor pair enters canonical Event bytes, so "
+                "an organization-governed genesis MUST NOT derive the self-principal Realm",
+            )
+        if delegated.get("expected", {}).get(
+            "realm_id_equals_self_principal_branch"
+        ) is not False:
+            lint.fail(
+                path,
+                f"{delegated_name}: the case must state that the two branches derive "
+                "different Realms",
+            )
+        differs = delegated.get("differs_from", {})
+        if differs.get("case") != self_name:
+            lint.fail(
+                path,
+                f"{delegated_name}: the distinct-Realm claim must name the self-principal "
+                "case it differs from",
+            )
+        declared = differs.get("only_in")
+        left = _human_chain_preimage(lint, path, self_case, self_name)
+        right = _human_chain_preimage(lint, path, delegated, delegated_name)
+        if isinstance(left, dict) and isinstance(right, dict) and isinstance(declared, list):
+            left_leaves = _json_leaf_paths(left)
+            right_leaves = _json_leaf_paths(right)
+            actual = {
+                key
+                for key in set(left_leaves) | set(right_leaves)
+                if left_leaves.get(key, _RELATION_MISSING)
+                != right_leaves.get(key, _RELATION_MISSING)
+            }
+            if actual != set(declared):
+                lint.fail(
+                    path,
+                    f"{delegated_name}: the two genesis preimages differ in "
+                    f"{sorted(actual)} but the case declares {sorted(declared)}",
+                )
+
+    # --- 3. the executor-pair split is exhaustive and non-overlapping ----------
+    matrix_name = "human_pcr_admission_selection_is_exclusive_over_the_executor_pair"
+    matrix = by_name.get(matrix_name)
+    if not isinstance(matrix, dict):
+        lint.fail(
+            path,
+            f"missing required case {matrix_name}: the human PCR branches are split on "
+            "the presence of the executor pair, so the split is only fail-closed if "
+            "every pair combination is enumerated",
+        )
+        return
+    subject = matrix.get("subject")
+    samples = matrix.get("samples")
+    if not isinstance(subject, dict) or not isinstance(samples, list) or not samples:
+        lint.fail(path, f"{matrix_name}: the matrix requires a subject and a non-empty samples array")
+        return
+    seen_members: set[frozenset] = set()
+    seen_admissions: set[str] = set()
+    for index, sample in enumerate(samples):
+        if not isinstance(sample, dict):
+            lint.fail(path, f"{matrix_name}: samples[{index}] MUST be an object")
+            continue
+        members = sample.get("top_level_members")
+        expected = sample.get("expected_admission")
+        if not isinstance(members, dict) or not isinstance(expected, str):
+            lint.fail(
+                path,
+                f"{matrix_name}: samples[{index}] needs top_level_members and "
+                "expected_admission",
+            )
+            continue
+        key = frozenset(
+            (member, json.dumps(value, ensure_ascii=False, sort_keys=True))
+            for member, value in members.items()
+        )
+        if key in seen_members:
+            lint.fail(
+                path,
+                f"{matrix_name}: samples[{index}] repeats an executor-pair combination "
+                "already covered; a repeated combination hides a missing one",
+            )
+        seen_members.add(key)
+        seen_admissions.add(expected)
+        instance = copy.deepcopy(subject)
+        instance.update(members)
+        matched = selects(instance)
+        if matched != [expected]:
+            lint.fail(
+                path,
+                f"{matrix_name}: samples[{index}] ({sample.get('name')}) expects "
+                f"{expected} but the canonical selector returns {matched}",
+            )
+    # A presence shape counts as covered only by a sample whose present members all
+    # carry a real value. Counting a null-valued sample would let the matrix drop the
+    # combination that actually routes and keep the one that only tests member
+    # validation, and the four-combination claim would then be satisfied by samples
+    # that never exercise the branch.
+    valued_shapes: set[frozenset] = set()
+    nulled_shapes: set[frozenset] = set()
+    for sample in samples:
+        if not isinstance(sample, dict):
+            continue
+        members = sample.get("top_level_members")
+        if not isinstance(members, dict):
+            continue
+        shape = frozenset(members)
+        if any(value is None for value in members.values()):
+            nulled_shapes.add(shape)
+        else:
+            valued_shapes.add(shape)
+    pair_shapes = (
+        frozenset(),
+        frozenset({"executed_by"}),
+        frozenset({"authorization_ref"}),
+        frozenset({"executed_by", "authorization_ref"}),
+    )
+    for required_shape in pair_shapes:
+        if required_shape not in valued_shapes:
+            lint.fail(
+                path,
+                f"{matrix_name}: the executor pair has four presence combinations and "
+                f"{sorted(required_shape) or 'neither member'} is not covered by a "
+                "sample whose present members carry a real value",
+            )
+    for required_shape in pair_shapes[1:]:
+        if required_shape not in nulled_shapes:
+            lint.fail(
+                path,
+                f"{matrix_name}: absence is evaluated member by member, so "
+                f"{sorted(required_shape)} MUST also appear with a null value; a single "
+                "null sample somewhere does not show that each member is tested",
+            )
+    if not {"registration_anchor", "delegated_pcr_genesis", "deny"} <= seen_admissions:
+        lint.fail(
+            path,
+            f"{matrix_name}: the matrix must reach both human branches and the explicit "
+            f"deny branch; it only reaches {sorted(seen_admissions)}",
+        )
+    rule = matrix.get("non_overlap_rule", {})
+    if not isinstance(rule, dict) or "predicate" not in str(rule.get("compares", "")):
+        lint.fail(
+            path,
+            f"{matrix_name}: the non-overlap rule MUST state that it compares the bare "
+            "when predicates, not the selected_branches() guards",
+        )
+    if matrix.get("expected", {}).get("no_two_bare_predicates_accept_one_instance") is not True:
+        lint.fail(path, f"{matrix_name}: the matrix must assert bare-predicate disjointness")
+    for index, sample in enumerate(samples):
+        if not isinstance(sample, dict) or not isinstance(sample.get("top_level_members"), dict):
+            continue
+        instance = copy.deepcopy(subject)
+        instance.update(sample["top_level_members"])
+        accepting = [
+            admission
+            for admission, validator in predicates
+            if validator.is_valid(instance)
+        ]
+        if len(accepting) > 1:
+            lint.fail(
+                path,
+                f"{matrix_name}: samples[{index}] is accepted by more than one unguarded "
+                f"admission predicate {accepting}; the variants overlap and only the "
+                "subtraction in selected_branches() is hiding it",
+            )
+
+
 BINDING_MEMBERS = (
     "effective_scope",
     "base_group_state_ref",
