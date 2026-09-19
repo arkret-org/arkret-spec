@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -873,6 +873,14 @@
         "claim_cross_account_code",
         "claim_unfinalized_request",
         "claim_consumed_code",
+        "claim_current_device_gate_allow",
+        "claim_current_device_gate_revocation_pending",
+        "claim_current_device_gate_revoked",
+        "claim_current_device_gate_generation_mismatch",
+        "claim_current_device_gate_receipt_mismatch_or_expired",
+        "claim_current_device_gate_unavailable",
+        "claim_event_write_action_class_substitution",
+        "claim_session_grant_snapshot_only",
         "failure_budget_ninth_failure_preserves_pending_state",
         "failure_budget_tenth_failure_atomically_expires",
         "failure_budget_unknown_id_or_code_creates_no_row",
@@ -891,7 +899,17 @@
         "staged_transition": "one_way_to_ready_for_claim",
         "failure_budget_key": "device_pairing_request_id",
         "failure_budget_limit": 10,
-        "failure_budget_visibility": "service_private"
+        "failure_budget_visibility": "service_private",
+        "current_device_gate_operation": "ak.peer.device_revocations.command.check.v1",
+        "current_device_gate_action_class": "device_pairing_code_claim",
+        "current_device_gate_order": [
+          "authenticate_standard_session_grant_and_exact_http_dpop_jti",
+          "apply_caller_device_account_and_service_transport_buckets",
+          "obtain_origin_station_current_device_decision",
+          "locate_exact_pending_record_by_code",
+          "validate_pending_and_count_only_located_failures"
+        ],
+        "current_device_gate_failure": "fail_closed_before_pending_lookup_without_failure_budget_charge"
       },
       "assertions": [
         "the stage response and the stored record carry no principal and no AccountId, and the record state is staged",
@@ -910,6 +928,10 @@
         "an unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed code all return one indistinguishable not_found with no observable difference in body, code, reason code or timing",
         "the pairing code never appears in a URL path or query string, an access log or an analytics event",
         "exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited; those transport buckets neither replace nor reset the exact-request failure budget",
+        "the Account Authority verifies an active Standard human SessionGrant and exact HTTP DPoP JTI, applies all transport buckets, and obtains a fresh matching allow receipt through ak.peer.device_revocations.command.check.v1 with action_class device_pairing_code_claim before it performs any pairing-code lookup",
+        "the origin Station compares both expected selectors from the signed device_binding against its locked durable current projection; the SessionGrant snapshot alone never authorizes claim, and device_pairing_code_claim is never represented as event_write",
+        "revocation_pending, revoked, authority_mismatch, generation_mismatch, receipt mismatch or expiry, and origin unavailability all fail closed before pending lookup with no code-dependent disclosure and no request-id failure-budget write",
+        "after allow, only the Account Authority reads its single gate-side pending and abuse ledger; the origin current-device gate receives an intent digest rather than the plaintext pairing code and never reads or mirrors pairing state",
         "only a failure after an exact retained request is located can create or increment the ledger row keyed by device_pairing_request_id; an unknown request id or a code that resolves to no exact request creates no row",
         "the first nine counted failures leave staged or ready_for_claim unchanged, while the tenth count, pending-to-expired transition, code consumption and bounded tombstone are one durable transaction",
         "a failed counter transaction rolls back both the increment and pending-state transition, so no partial abuse-control or business write is observable",

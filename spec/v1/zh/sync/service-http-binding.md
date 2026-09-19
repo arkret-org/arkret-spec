@@ -3,7 +3,7 @@ title: Service HTTP Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-19
 see_also:
   - authority-commit-log.md
   - service-api-schema.mdx
@@ -51,6 +51,26 @@ Station-to-Station 请求必须绑定 exact source/destination service identity�
 #### 2.2.3 Deployment-internal channel
 
 部署内通道可使用独立认证 profile，但必须在 operation registry 逐项登记，不得作为通用 peer 降级路径。
+
+`ak.peer.device_revocations.command.check.v1` 是 Account Authority／其它已登记 issuer 向 exact origin
+Station 取得 current-device 与 revocation 权威判定的唯一 deployment-internal operation。其
+`gate_action_class` 是闭集；device-pairing 短码认领必须使用专用
+`device_pairing_code_claim`，MUST NOT 冒充 `event_write`、`keypackage_claim` 或其它相邻 class。
+
+Account Authority 调用该 class 前 MUST 已验证 active Standard human SessionGrant、该 grant 的 exact
+`AccountId` / human-device holder、当前 HTTP target/method 的 DPoP 与未消费 JTI；随后必须把 signed
+`device_binding` 中的 authorization Event / generation 作为两个 expected selector 一起提交。SessionGrant
+和 `device_binding` 只是 issuer-verified selector 来源，MUST NOT 自行替代 origin 的 current-state 判定；
+`device_pairing_code_claim` 禁带 `AcceptedDevicePossessionProof`。`intent_digest` 必须绑定 operation id、
+exact `AccountId`、caller device id 与 canonical code-claim request，内部请求只传 digest，不传明文
+pairing code。
+
+origin Station 必须在一个 device lock / serializable transaction 内比较 current accepted generation，判定
+`allow | revocation_pending | revoked | authority_mismatch | generation_mismatch` 并持久化短时 decision
+receipt；它不得读取 Account Authority 的 pairing pending / abuse ledger。只有 fresh、channel-bound、逐字段
+匹配的 `allow` receipt 才允许 Account Authority 继续定位 code。任何 non-allow、receipt 错配／过期或
+origin 不可用都 MUST 在 pairing lookup 前 fail closed，不得回退到 SessionGrant 快照，也不得消耗某条
+`device_pairing_request_id` 的失败预算。
 
 #### 2.2.4 请求材料供给闭合（normative）
 

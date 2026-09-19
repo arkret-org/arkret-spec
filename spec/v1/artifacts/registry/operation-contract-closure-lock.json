@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.3",
-  "generated_at": "2026-09-19T23:03:30+08:00",
+  "version": "2026-09-19.4",
+  "generated_at": "2026-09-19T23:20:20+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -173,7 +173,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:eff9b0c35a34c63f360ac5a00098c758ffffe8015ebfbe01883459d700f546cf"
+      "sha256": "sha256:53c54dae495b43dc26f2be3fd588dc2b454dd68fe5ad9c4638ad097aef7867f1"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -189,7 +189,7 @@
     },
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
-      "sha256": "sha256:2377f1c83de9cb700fe22a7fa7c30536a6add6c59e8e3621ec1475f87d957afb"
+      "sha256": "sha256:da4d44d609b3b4ec5987d86b27cb9fbf0594461faad1a907b717be2127df29a5"
     },
     {
       "operation_id": "ak.gate.account.read.onboarding.v1",
@@ -305,7 +305,7 @@
     },
     {
       "operation_id": "ak.peer.device_revocations.command.check.v1",
-      "sha256": "sha256:f103c7ae4a1e8aa7c4187515a3307c27a8aca9aa52273edc0c393a1f5b6c828c"
+      "sha256": "sha256:c1e92d7efa4c0062b11f318cde3143c1c63d1cd76c24cd98b751187d94f4fac8"
     },
     {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
@@ -457,7 +457,7 @@
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
-      "sha256": "sha256:93bc93b0f6432da6fca7211a77d3698f73271358ec0dfcc4a4086854251afdd2"
+      "sha256": "sha256:e3c07fda81236c7519b08da96c043f47777f830af2895106e6431c4a2d4099e7"
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",

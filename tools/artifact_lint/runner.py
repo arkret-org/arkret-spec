@@ -228,6 +228,7 @@ from .account_status_replica import (
     check_account_status_replica_decision_table,
 )
 from .account_status_issuer import check_account_status_issuer_genesis
+from .device_pairing_current_gate import check_device_pairing_current_device_gate
 
 from .franking_transcript import check_franking_proof_transcript
 
@@ -418,6 +419,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_event_kind_verb_form_registration(lint),
             ),
             ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
+            (
+                "device_pairing_current_device_gate",
+                lambda: check_device_pairing_current_device_gate(lint),
+            ),
         ],
         quiet=args.quiet,
         timing=args.timing,

@@ -60,6 +60,9 @@
           "const": "session_grant_issue_or_refresh"
         },
         {
+          "const": "device_pairing_code_claim"
+        },
+        {
           "const": "keypackage_claim"
         },
         {
@@ -69,8 +72,8 @@
           "const": "event_write"
         }
       ],
-      "minItems": 4,
-      "maxItems": 4,
+      "minItems": 5,
+      "maxItems": 5,
       "uniqueItems": true
     },
     "gate_action_class": {
@@ -78,6 +81,7 @@
         "session_grant_issue",
         "returning_session_grant_issue",
         "session_grant_refresh",
+        "device_pairing_code_claim",
         "keypackage_claim",
         "to_device_write",
         "event_write"
@@ -194,7 +198,7 @@
     },
     "device_revocation_gate_check_request_body": {
       "type": "object",
-      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Station. The exact authorization Event and PCR-local generation are derived from the origin's locked durable current device projection. expected selectors are issuer-verified, appear together or not at all, and MAY be omitted only for session_grant_issue or returning_session_grant_issue. returning_session_grant_issue and human session_grant_refresh require AcceptedDevicePossessionProof; registration/recovery session_grant_issue uses its already verified durable root/recovery evidence and forbids that proof. The intent digest identifies immutable prepared issuance or refresh bytes.",
+      "description": "Authenticated S2S request from an Account Authority or another registered issuer to the exact origin Station. The exact authorization Event and PCR-local generation are derived from the origin's locked durable current device projection. expected selectors are issuer-verified, appear together or not at all, and MAY be omitted only for session_grant_issue or returning_session_grant_issue. device_pairing_code_claim MUST carry both selectors from the Account Authority-verified Standard SessionGrant device_binding after exact HTTP DPoP verification; that grant snapshot does not itself authorize the claim. returning_session_grant_issue and human session_grant_refresh require AcceptedDevicePossessionProof; registration/recovery session_grant_issue and device_pairing_code_claim forbid that proof. The code-claim action is distinct from event_write and binds only a current-device eligibility decision; the origin never receives or reads the pairing ledger.",
       "required": [
         "account_id",
         "device_id",
@@ -220,7 +224,7 @@
         },
         "intent_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Digest of the complete immutable issue or refresh intent, including the exact grant id, jti, subject, device, audience, scope, holder binding, issued_at and expiry. Session-grant introspection is read-only issuer-ledger verification and never consumes this receipt."
+          "description": "Digest of the complete immutable issue or refresh intent, including the exact grant id, jti, subject, device, audience, scope, holder binding, issued_at and expiry; for device_pairing_code_claim it is the digest of the operation id, exact AccountId, caller device id and canonical code-claim request. The Account Authority sends only this digest, never the plaintext pairing code, to the origin Station. Session-grant introspection is read-only issuer-ledger verification and never consumes this receipt."
         },
         "accepted_device_possession_proof": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/AcceptedDevicePossessionProof",
