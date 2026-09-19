@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.3",
+  "version": "2026-09-22.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T13:00:00+08:00",
+  "generated_at": "2026-09-22T14:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -26,30 +26,6 @@
         "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
         "reason": "no_fixture_carrier",
         "note": "The vector is registered and defined in prose but no fixture covers it. It carries the second and third sentences of AK-NC-011, which the activation vectors do not touch: the closed {version, content_type, encryption_context, ciphertext} envelope with encryption_context limited to epoch, group_state_ref and registered routing context; the receiver reconstructing that exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf rather than trusting any copy carried alongside the envelope; and any AAD, ciphertext-digest or encryption_context mismatch failing closed with no partial write, no plaintext downgrade and no retry under different secrets. This row is therefore also the record that AK-NC-011 is evidenced in part: the two e2ee vectors discharge only its first sentence, and the exemption ledger is keyed by (clause_id, vector_id), so it is the only place a partly-evidenced clause can be stated."
-      },
-      {
-        "clause_id": "AK-NC-013",
-        "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
-        "reason": "no_fixture_carrier",
-        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
-      },
-      {
-        "clause_id": "AK-NC-013",
-        "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
-        "reason": "no_fixture_carrier",
-        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
-      },
-      {
-        "clause_id": "AK-NC-013",
-        "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
-        "reason": "no_fixture_carrier",
-        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
-      },
-      {
-        "clause_id": "AK-NC-013",
-        "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
-        "reason": "no_fixture_carrier",
-        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
       },
       {
         "clause_id": "AK-NC-057",

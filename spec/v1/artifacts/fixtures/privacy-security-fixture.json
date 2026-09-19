@@ -6,7 +6,7 @@
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
   "version": "2026-09-02",
-  "conformance_vectors": [
+  "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.organization_search.v1",
     "ak.vector.directory.restricted_claim_presentation.v1",
@@ -43,6 +43,130 @@
     "ak.vector.actor.accountability_grant_required.v1",
     "ak.vector.device.peer_directory_lookup_blinding.v1",
     "ak.vector.device.directory_unavailable_not_empty.v1"
+  ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
+      "clause_id": "AK-NC-013",
+      "decision_points": [
+        {
+          "id": "realm_resolution_failures_share_one_error_code",
+          "requirement": "A nonexistent Realm, a secret Realm and an invite-only Realm resolved without proof are not separable by error code: one status and one code cover all three.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "realm_resolution_failures_share_one_field_set",
+          "requirement": "The three Realm resolution failures carry the same response body shape, so the field set does not separate unauthorized from nonexistent from policy-denied, and no branch discloses the Realm id, title, join rule, discoverability, member ids or service endpoints.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "realm_resolution_failures_share_one_timing_class",
+          "requirement": "The three Realm resolution failures sit in one timing equivalence group, so the branch that runs the full discoverability and invite check is not observably slower than the branch that finds nothing.",
+          "evidence": [
+            "/cases/0"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
+      "clause_id": "AK-NC-013",
+      "decision_points": [
+        {
+          "id": "handle_resolution_failures_share_one_error_code",
+          "requirement": "A missing handle, a hidden handle and a handle the requester may not resolve are not separable by error code: one status and one code cover all three.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "handle_resolution_failures_share_one_field_set",
+          "requirement": "The three handle resolution failures carry the same response body shape, and none discloses the subject, issuer, binding state, account id, audience or claim digest behind the handle.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "handle_resolution_failures_share_one_timing_class",
+          "requirement": "The three handle resolution failures sit in one timing equivalence group, so the branch that runs the presentation, claim and audience checks is not observably slower than the branch that finds nothing.",
+          "evidence": [
+            "/cases/1"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
+      "clause_id": "AK-NC-013",
+      "decision_points": [
+        {
+          "id": "target_resolution_failures_are_byte_identical",
+          "requirement": "A nonexistent target, an undiscoverable target, an unauthorized preview and a token bound to another object return byte-identical not_found responses, so none of the four is separable by error code or field set.",
+          "evidence": [
+            "/cases/18"
+          ]
+        },
+        {
+          "id": "target_resolution_reveals_no_target_metadata",
+          "requirement": "No target resolution failure reveals the target kind, the Realm, Strand or Message id, a preview object, the join rule, join candidates or the policy revision.",
+          "evidence": [
+            "/cases/18"
+          ]
+        },
+        {
+          "id": "target_resolution_failures_share_one_timing_class",
+          "requirement": "All four target resolution failures sit in one timing equivalence group, so the branch that recomputes a token target descriptor digest before failing is not observably slower than the branch that finds nothing.",
+          "evidence": [
+            "/cases/18"
+          ]
+        },
+        {
+          "id": "token_validity_is_never_an_existence_oracle",
+          "requirement": "A token that is valid on its own but whose target descriptor names another object fails as not_found rather than as a token error, so a caller cannot use token handling to learn that the addressed object exists.",
+          "evidence": [
+            "/cases/18"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
+      "clause_id": "AK-NC-013",
+      "decision_points": [
+        {
+          "id": "withdraw_response_is_not_an_index_oracle",
+          "requirement": "Withdrawing a resource that was never indexed, one announced to another Directory and one already withdrawn produce the same status and body shape, and the response carries no field saying whether the resource was indexed.",
+          "evidence": [
+            "/cases/19"
+          ]
+        },
+        {
+          "id": "post_withdraw_resolve_is_indistinguishable",
+          "requirement": "After withdrawal the exact resolve of that resource returns not_found, indistinguishable by error code and field set from an unlisted resource and from one that never existed.",
+          "evidence": [
+            "/cases/19"
+          ]
+        },
+        {
+          "id": "post_withdraw_resolve_shares_the_timing_class",
+          "requirement": "The post-withdraw resolve sits in the same timing equivalence group as the other hidden not_found branches, so the extra state lookup a withdrawn entry requires is not observable.",
+          "evidence": [
+            "/cases/19"
+          ]
+        },
+        {
+          "id": "disclosure_stops_within_the_deadline_and_mid_page",
+          "requirement": "Disclosure stops within the one-hour deadline, and a search response already paging stops disclosing the withdrawn entry at the next cursor advance rather than finishing the page it started.",
+          "evidence": [
+            "/cases/19"
+          ]
+        }
+      ]
+    }
   ],
   "cases": [
     {
@@ -89,7 +213,13 @@
           "member_ids",
           "service_endpoints"
         ]
-      }
+      },
+      "assertions": [
+        "a nonexistent Realm, a secret Realm and an invite-only Realm resolved without proof all return the same HTTP status and the same error code",
+        "the three responses carry the same body shape, so a caller cannot separate them by field set either",
+        "all three fall in one timing equivalence group, so the branch that runs a full discoverability and invite check is not observably slower than the branch that finds nothing",
+        "no response reveals the Realm id, title, join rule, discoverability, member ids or service endpoints of the target"
+      ]
     },
     {
       "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
@@ -135,7 +265,13 @@
           "audience",
           "claim_digest"
         ]
-      }
+      },
+      "assertions": [
+        "a missing handle, a hidden handle and a handle the requester is not authorized to resolve return the same status and the same error code",
+        "the three responses carry the same body shape, so the field set does not separate them",
+        "all three fall in one timing equivalence group, so the branch that runs the presentation, claim and audience checks is not observably slower than the branch that finds nothing",
+        "no response reveals the subject, issuer, binding state, account id, audience or claim digest behind the handle"
+      ]
     },
     {
       "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
@@ -1026,6 +1162,150 @@
         ],
         "distinct_from": "device_result_unavailable"
       }
+    },
+    {
+      "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
+      "name": "resolve_target_failure_blinding",
+      "operation_id": "ak.find.directory.read.resolve_target.v1",
+      "inputs": [
+        {
+          "label": "nonexistent_target",
+          "body": {
+            "address": "web+arkret:realm/AUluXL7CRrekD0AIypsGAQgY9zjTsBHlvN2r6jtPI8Lz/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
+            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample"
+          }
+        },
+        {
+          "label": "undiscoverable_target",
+          "body": {
+            "address": "web+arkret:realm/AYYgLvwSNGGLJgZP4-vIp98a14ou-Q6vcd5Aa3dk7UdV/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
+            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample"
+          }
+        },
+        {
+          "label": "unauthorized_preview",
+          "body": {
+            "address": "web+arkret:realm/AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
+            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample"
+          }
+        },
+        {
+          "label": "policy_denied_token_for_another_object",
+          "body": {
+            "address": "web+arkret:realm/AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp?lt=invite",
+            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
+            "token": "fixture-invite-token-bound-to-another-strand"
+          }
+        }
+      ],
+      "expected": {
+        "same_http_status": 404,
+        "same_error_code": "not_found",
+        "same_body_shape": [
+          "ok",
+          "error.code",
+          "request_id"
+        ],
+        "responses_are_byte_identical": true,
+        "timing_equivalence_group": "directory_hidden_not_found",
+        "must_not_include": [
+          "target_kind",
+          "realm_id",
+          "strand_id",
+          "message_id",
+          "realm_preview",
+          "object_preview",
+          "join_rule",
+          "join_candidates",
+          "policy_revision"
+        ]
+      },
+      "assertions": [
+        "a nonexistent target, an undiscoverable target, an unauthorized preview and a token whose target descriptor names another object all return byte-identical not_found responses",
+        "the failure classes are not separable by error code: one code covers all four",
+        "the failure classes are not separable by field set: the response body shape is the same in all four, and no branch adds a field the others omit",
+        "the failure classes are not separable by timing: all four sit in one timing equivalence group, so the branch that recomputes a token target digest before failing is not observably slower than the branch that finds nothing",
+        "no response reveals the target kind, the Realm, Strand or Message id, any preview object, the join rule, join candidates or the policy revision",
+        "a token that is valid on its own but bound to another object fails as not_found rather than as a token error, so token validity is never an oracle for object existence"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
+      "name": "withdraw_blinded_not_found",
+      "operation_id": "ak.find.directory.command.withdraw.v1",
+      "inputs": [
+        {
+          "label": "resource_never_announced",
+          "body": {
+            "resource_id": "ak:realm:AUluXL7CRrekD0AIypsGAQgY9zjTsBHlvN2r6jtPI8Lz",
+            "reason": "fixture withdrawal of a resource this Directory never indexed",
+            "governance_proof": {
+              "proof_purpose": "governance_authorization",
+              "audience_id": "ak:did_core:webvh:z6mkfixturedirectoryexample"
+            }
+          }
+        },
+        {
+          "label": "resource_announced_to_another_directory",
+          "body": {
+            "resource_id": "ak:realm:AYYgLvwSNGGLJgZP4-vIp98a14ou-Q6vcd5Aa3dk7UdV",
+            "reason": "fixture withdrawal addressed to the wrong Directory",
+            "governance_proof": {
+              "proof_purpose": "governance_authorization",
+              "audience_id": "ak:did_core:webvh:z6mkfixturedirectoryexample"
+            }
+          }
+        },
+        {
+          "label": "resource_already_withdrawn",
+          "body": {
+            "resource_id": "ak:realm:AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU",
+            "reason": "fixture repeat withdrawal of an already withdrawn resource",
+            "governance_proof": {
+              "proof_purpose": "governance_authorization",
+              "audience_id": "ak:did_core:webvh:z6mkfixturedirectoryexample"
+            }
+          }
+        }
+      ],
+      "post_withdraw_resolve": {
+        "operation_id": "ak.find.directory.read.resolve_realm.v1",
+        "resource_id": "ak:realm:AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU",
+        "requester": "ak:did_core:webvh:z6mkfixturemalloryexample",
+        "disclosure_stop_deadline_seconds": 3600,
+        "comparison_labels": [
+          "withdrawn_resource",
+          "unlisted_resource",
+          "nonexistent_resource"
+        ]
+      },
+      "expected": {
+        "same_http_status": 200,
+        "same_body_shape": [
+          "withdrawal_ref",
+          "acked_at"
+        ],
+        "external_response_reveals_whether_the_resource_was_indexed": false,
+        "post_withdraw_resolve_same_error_code": "not_found",
+        "post_withdraw_resolve_indistinguishable_from_unlisted_and_nonexistent": true,
+        "post_withdraw_resolve_timing_equivalence_group": "directory_hidden_not_found",
+        "paging_search_stops_disclosing_at_next_cursor_advance": true,
+        "must_not_include": [
+          "indexed",
+          "was_indexed",
+          "entry_state",
+          "policy_revision",
+          "takedown_id",
+          "as_of"
+        ]
+      },
+      "assertions": [
+        "withdrawing a resource this Directory never indexed, one announced to another Directory, and one already withdrawn produce the same status and the same body shape, so the withdraw response is not an existence oracle for the index",
+        "the withdraw response omits every field that would say whether the resource was indexed, including the entry state, the policy revision and any takedown id",
+        "after withdrawal the exact resolve of that resource_id returns not_found, indistinguishable by error code and field set from an unlisted resource and from one that never existed",
+        "the post-withdraw resolve shares the timing equivalence group of the other hidden not_found branches, so the extra state lookup a withdrawn entry requires is not observable",
+        "disclosure stops within the one-hour deadline, and a search response already paging stops disclosing the entry at the next cursor advance rather than finishing the page"
+      ]
     }
   ]
 }
