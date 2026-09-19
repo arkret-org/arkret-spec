@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-20
 see_also:
   - normative-language.md
   - ../sync/authority-commit-log.md
@@ -438,6 +438,14 @@ Account Authority 是唯一 pending/abuse/fence/terminal owner，pair_device 只
 同一 RealmCommit exact replay、receipt identity/generation/Realm/stream/EventRef/bytes 任一错配、terminal rejection
 回滚、fenced record 的 TTL/budget/finalize 保护、无 `in_progress` public state、completed replay 无第二 Event，以及
 非 owning Station internal 直调拒绝。
+
+`ak.vector.signer_key.historical_commit_coordinate.v1` MUST 证明：account subscribe 与 per-stream scan 的已验证
+`stream_row{commit,event}` 是 historical signer selector 唯一坐标来源；两个 historical selector 都携完整
+`committed_event_ref` 并拒绝裸 `event_id`。selector target 与 key `authorization_ref` 分别验证且允许不相等；
+resolved key 同时携 authorization stream 的 current `revision` 与 `governance_generation`。向量必须分别拒绝
+EventId／commit_id／stream_ref／stream_position／Realm 错配、current projection 嵌套 Event 伪造来源、按数组下标
+关联、redacted row、换账号迟到 response 和 current-query 降级；重启恢复、乱序 outcome、受限历史 scan 与
+逐字回显 selector 的 unavailable 必须保持同一完整坐标。
 
 ### 3.11 邀请
 

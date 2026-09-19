@@ -1004,14 +1004,14 @@
     },
     {
       "schema": "signer-key-operations.schema.json",
-      "json_pointer": "/$defs/historical_account_device_selector/properties/event_id",
-      "field": "event_id",
+      "json_pointer": "/$defs/historical_account_device_selector/properties/committed_event_ref",
+      "field": "committed_event_ref",
       "classification": "complete_event_id"
     },
     {
       "schema": "signer-key-operations.schema.json",
-      "json_pointer": "/$defs/historical_agent_selector/properties/event_id",
-      "field": "event_id",
+      "json_pointer": "/$defs/historical_agent_selector/properties/committed_event_ref",
+      "field": "committed_event_ref",
       "classification": "complete_event_id"
     },
     {

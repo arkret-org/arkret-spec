@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/signer-key-operations.schema.json",
   "title": "Arkret Signer Key Operations",
-  "description": "Closed own-Station signing-key results for one current invocation or exact locally accepted historical Event. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
+  "description": "Closed own-Station signing-key results for one current invocation or one exact authority-committed historical Event. Historical coordinates come only from a verified stream_row delivered by account subscribe or per-stream scan. Receiver is the authenticated recipient Station, never a caller-selected remote service. No portable evidence or reusable current grant.",
   "$defs": {
     "signing_account_actor_id": {
       "type": "object",
@@ -53,7 +53,9 @@
       "type": "object",
       "required": [
         "public_key_b64u",
-        "authorization_ref"
+        "authorization_ref",
+        "revision",
+        "governance_generation"
       ],
       "properties": {
         "public_key_b64u": {
@@ -62,26 +64,35 @@
           "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
         },
         "authorization_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+          "description": "Exact accepted authorization Event for this key. For a historical query this is independent of the selector's target committed_event_ref: the two MAY be equal but equality is not required."
+        },
+        "revision": {
+          "type": "object",
+          "required": [
+            "commit_id",
+            "stream_position"
+          ],
+          "properties": {
+            "commit_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+            },
+            "stream_position": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "description": "Verified current revision of the authorization stream at resolution. The revision belongs to authorization_ref.stream_ref, is not older than authorization_ref.stream_position, and is never inferred from arrival order, a cursor or a current projection."
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Verified governance generation of revision.commit_id."
         }
       },
       "additionalProperties": false,
-      "description": "Query-only key material. Identity and method are taken exclusively from the enclosing complete selector. authorization_ref remains mandatory."
-    },
-    "historical_device_signing_key": {
-      "type": "object",
-      "required": [
-        "public_key_b64u"
-      ],
-      "properties": {
-        "public_key_b64u": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
-        }
-      },
-      "additionalProperties": false,
-      "description": "Historical self-query device key; identity and method come exclusively from the enclosing selector."
+      "description": "Query-only key material. Identity and method are taken exclusively from the enclosing complete selector. authorization_ref, revision and governance_generation are all mandatory; if any cannot be verified the result is unavailable rather than partial success."
     },
     "current_account_device_selector": {
       "type": "object",
@@ -147,7 +158,7 @@
         "actor",
         "device_id",
         "verification_method",
-        "event_id"
+        "committed_event_ref"
       ],
       "properties": {
         "verification_mode": {
@@ -167,8 +178,9 @@
           "format": "uri",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
-        "event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        "committed_event_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
         }
       },
       "additionalProperties": false
@@ -180,7 +192,7 @@
         "sender_kind",
         "actor",
         "verification_method",
-        "event_id"
+        "committed_event_ref"
       ],
       "properties": {
         "verification_mode": {
@@ -197,8 +209,9 @@
           "format": "uri",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
-        "event_id": {
-          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        "committed_event_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
         }
       },
       "additionalProperties": false
@@ -301,7 +314,7 @@
           "const": "resolved"
         },
         "key": {
-          "$ref": "#/$defs/historical_device_signing_key"
+          "$ref": "#/$defs/query_signing_key"
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",

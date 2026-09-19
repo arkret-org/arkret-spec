@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.5",
+  "version": "2026-09-20.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T03:12:30+08:00",
+  "generated_at": "2026-09-20T04:05:39+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -420,8 +420,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:5c7d981c8c2fab4d64d97275b745c6e17344aef1a83845a758ba961707137348",
-      "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, preserve mandatory current/Agent authorization_ref, and leave Signal standalone identity and peer portable evidence intact.",
+      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner."
     },
@@ -571,17 +571,17 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:5c7d981c8c2fab4d64d97275b745c6e17344aef1a83845a758ba961707137348",
-      "requirement": "An ordinary client obtains exact historical Agent signing keys from its own Station instead of replaying public governance history, and every such historical result keeps a real authorization_ref so the historical MLS leaf binding stays verifiable end to end. Reading the key from the Station does not replace verification: the client still verifies the actual producer signature and the historical MLS binding, and a stable (actor, method, key) triple never substitutes for the exact authorization Event instance.",
+      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a verified stream_row. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
       "testability_grade": "audit",
-      "test_plan": "Audited against signer-key-operations.schema.json: the review pass asserts authorization_ref is required on the current device and Agent branches and retained on historical Agent results, that an unavailable key returns the same-shaped unavailable rather than a bare cached public key, and that no client-facing contract accepts a Station result in place of producer-signature verification. No vector exists because the obligation is on what the client still does after a successful read."
+      "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
     },
     {
       "clause_id": "AK-NC-069",
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:5c7d981c8c2fab4d64d97275b745c6e17344aef1a83845a758ba961707137348",
+      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."

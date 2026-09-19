@@ -145,6 +145,14 @@ Timeline 是 committed Event 的展示序列；current 是 own Station返回的 
 
 Typed current result至少绑定 selector、value/status、领域 revision，以及来源 `{commit_id, stream_ref, stream_position}`。客户端核对 request/account/Realm/selector 后安装结果，不执行 authority-commit projection/typed current result reducer。
 
+该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
+signer-key selector 的 `committed_event_ref` 只能从已验证 `realm_sync_entry.commits[]` 的
+`stream_row{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
+`stream_scan_outcome.commits[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
+Realm／stream／position／predecessor 与 `commit.event_ref == event.event_id` 后才可建本地耐久索引；不得新增
+Event 字段、account sibling map 或 signer 专用 carrier，也不得从 current projection、cursor、producer time、
+arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可验 producer envelope，必须保持 unresolved。
+
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
 窗口上下文分为两类，不可互相冒充：`realm_sync_entry.state_at_window_start` 是 **Realm 级显示预览**（actor 显示行与 Realm metadata），`streams[].window_start_basis` 是**逐流的可验证重建材料**。显示预览 MUST NOT 被当作安全快照，它的存在 MUST NOT 清除任何一条流的 `preview_only`——一个 Realm 显示对象存在，不能把该 bucket 全部 Circle / Sidecar 的窗口都标成可重建。

@@ -3445,8 +3445,6 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("event-payload.schema.json", ("$defs", "mls_commit_payload"), "commit_message_ref", "commit_digest"),
     ("event-payload.schema.json", ("$defs", "agent_key_authorize_payload", "properties", "runtime_attestation"), "attestation_ref", "attestation_digest"),
     ("agent-membership-cascade.schema.json", ("$defs", "agent_cleanup_record"), "controller_terminal_event_id", "controller_terminal_event_digest"),
-    ("signer-key-operations.schema.json", ("$defs", "historical_account_device_selector"), "event_id", "event_digest"),
-    ("signer-key-operations.schema.json", ("$defs", "historical_agent_selector"), "event_id", "event_digest"),
     ("event-payload.schema.json", ("$defs", "audit_accessed_payload"), "paired_event_id", "paired_event_digest"),
     ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_ref", "device_authorization_event_digest"),
     ("relation.schema.json", ("$defs", "relation_conflict_candidate"), "event_id", "event_digest"),

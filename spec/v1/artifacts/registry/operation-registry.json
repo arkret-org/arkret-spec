@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T03:28:12+08:00",
+  "generated_at": "2026-09-20T04:05:38+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4127,7 +4127,7 @@
       "http": "POST /_arkret/self/signer-keys/query",
       "grpc": "SelfSignerKeys/Resolve",
       "mq": "self.signer_keys.query.resolve",
-      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Historical receiver is this authenticated recipient Station and the Event must be locally accepted and readable; Device and Agent history independently resolve the original producer key from portable immutable authorization evidence and apply known closure decisions. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Exactly one resolved/unavailable result per selector; no portable closure, caller-selected receiver, or current-directory substitution for history.",
+      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Every resolved key independently carries its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",

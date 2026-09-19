@@ -461,6 +461,11 @@
       "version": "2026-08-08"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
+      "sha256": "5fada94fcad4de685636f4061a3cdaf4dbd32ff37e0dfa46a06518e276dee24e",
+      "version": "2026-09-20.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",
       "sha256": "1f19a092023d01b4058af3408620f92ecbbad953e15827f81e1fe6a8b6adde23",
       "version": "2026-08-02"

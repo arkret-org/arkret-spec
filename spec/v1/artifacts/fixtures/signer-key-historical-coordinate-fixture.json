@@ -1,0 +1,118 @@
+{
+  "version": "2026-09-20.1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"
+  },
+  "vector_id": "ak.vector.signer_key.historical_commit_coordinate.v1",
+  "schema_refs": {
+    "request": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
+    "outcome": "schemas/signer-key-operations.schema.json#/$defs/query_outcome",
+    "carrier": "schemas/authority-commit-operations.schema.json#/$defs/stream_row"
+  },
+  "carrier_sources": [
+    "account_subscribe.realm_sync_entry.commits",
+    "ak.self.events.read.scan.v1.stream_scan_outcome.commits"
+  ],
+  "construction_rule": {
+    "preconditions": [
+      "verify_realm_commit_signature_and_governance_generation",
+      "verify_realm_stream_position_and_predecessor",
+      "verify_commit_event_ref_equals_full_event_event_id",
+      "reject_redacted_or_reference_locked_event_for_producer_signature_verification"
+    ],
+    "copy_fields": {
+      "event_id": "/event/event_id",
+      "commit_id": "/commit/commit_id",
+      "stream_ref": "/commit/stream_ref",
+      "stream_position": "/commit/stream_position"
+    },
+    "forbidden_sources": [
+      "bare_event_id",
+      "current_projection_nested_event",
+      "current_entry_source_for_nested_event",
+      "event_states",
+      "account_cursor",
+      "arrival_order",
+      "created_at",
+      "signer_evidence_ref",
+      "local_cache_sighting"
+    ],
+    "missing_coordinate_state": "unresolved_without_current_query_fallback"
+  },
+  "positive_case": {
+    "request_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "selector": {
+      "verification_mode": "historical_event",
+      "sender_kind": "agent",
+      "actor": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:web:agent.example",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      },
+      "verification_method": "did:web:agent.example#runtime-1",
+      "committed_event_ref": {
+        "event_id": "ak:event:ARTzU1T6HTPffn8VGBicK6XWx4KIC4PXvv0NX-EMSj4G",
+        "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "stream_position": 12
+      }
+    },
+    "resolved_key": {
+      "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "authorization_ref": {
+        "event_id": "ak:event:Aao964Xuq1Q7PmnLt9I97ih00Qs2N6qMkBgKgYCvUFFe",
+        "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "stream_position": 7
+      },
+      "revision": {
+        "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+        "stream_position": 15
+      },
+      "governance_generation": 4
+    },
+    "assertions": [
+      "selector_target_and_authorization_ref_are_independent",
+      "different_refs_are_valid_when_historical_effectiveness_verifies",
+      "same_key_bytes_do_not_merge_authorization_instances"
+    ]
+  },
+  "positive_flows": [
+    "verified_account_subscribe_row_builds_durable_index",
+    "verified_per_stream_scan_row_builds_durable_index",
+    "restart_restores_full_coordinate_index",
+    "out_of_order_results_join_by_complete_selector",
+    "unavailable_echoes_complete_selector",
+    "bounded_history_scan_respects_readable_floor"
+  ],
+  "negative_cases": [
+    "historical_selector_uses_bare_event_id",
+    "historical_selector_missing_committed_event_ref",
+    "current_selector_carries_committed_event_ref",
+    "request_realm_differs_from_selector_stream_realm",
+    "row_event_id_differs_from_commit_event_ref",
+    "selector_commit_id_differs_from_verified_row",
+    "selector_stream_ref_differs_from_verified_row",
+    "selector_stream_position_differs_from_verified_row",
+    "authorization_ref_missing",
+    "authorization_revision_missing",
+    "authorization_governance_generation_missing",
+    "target_and_authorization_ref_forced_equal",
+    "current_projection_nested_event_used_as_coordinate",
+    "current_entry_source_applied_to_nested_event",
+    "array_index_used_for_result_correlation",
+    "redacted_row_used_for_producer_signature_verification",
+    "late_response_for_another_recipient_account",
+    "bare_event_id_downgraded_to_current_query",
+    "cursor_or_created_at_used_to_guess_position"
+  ]
+}

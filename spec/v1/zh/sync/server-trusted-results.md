@@ -3,7 +3,7 @@ title: Authority-Attested Results
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-20
 see_also:
   - ../conformance/normative-language.md
   - authority-commit-log.md
@@ -115,15 +115,35 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 授权结果绑定 exact selector、authority generation、current revision 与 caller audience。机读合同是
 [`signer-key-operations.schema.json`](../../artifacts/schemas/signer-key-operations.schema.json)。
 
-**结果不镜像身份（normative）**：current 结果的 key 使用封闭 `query_signing_key`，只含 `public_key_b64u` 与
-`authorization_ref`。`actor` 与 `verification_method` **只从 enclosing selector 取得**，key MUST NOT 重复
-携带这两个字段。历史普通设备结果的 key 是封闭 `historical_device_signing_key`，只含 `public_key_b64u`。
-SDK MAY 在本地由 selector 与 key 组装完整缓存类型，但 MUST NOT 把该身份镜像写回 self wire result。
+**结果不镜像身份（normative）**：current 与 historical 结果的 key 统一使用封闭 `query_signing_key`，只含
+`public_key_b64u`、完整 `authorization_ref: committed_event_ref`、`revision{commit_id,stream_position}` 与
+`governance_generation`。`actor` 与 `verification_method` **只从 enclosing selector 取得**，key MUST NOT 重复
+携带这两个字段。`revision` 是该 authorization stream 在解析时已验证的 current revision，MUST 与
+`authorization_ref.stream_ref` 属于同一 stream、位置不得早于 authorization Event，并由其 RealmCommit 验证
+`governance_generation`；缺任一坐标或绑定时必须返回 `unavailable`，不得只返回缓存 key bytes。SDK MAY 在本地
+由 selector 与 key 组装完整缓存类型，但 MUST NOT 把该身份镜像写回 self wire result。
 
 **关联只靠完整 selector（normative）**：每个请求 selector 恰好对应一个结果，不省略、不重复、不额外添加。
 结果关联 MUST 使用**完整 selector 的相等性**——`verification_mode`、`sender_kind`、完整 AccountId、
-`device_id`（适用时）、`verification_method` 与历史 `event_id`（适用时）——MUST NOT 使用数组下标。乱序不影响
+`device_id`（适用时）、`verification_method` 与历史 `committed_event_ref`（适用时）——MUST NOT 使用数组下标。乱序不影响
 关联；重复、缺失或多余的 selector MUST 拒绝整份结果。
+
+**历史坐标来源与双引用分离（normative）**：两个 `historical_event` selector 都 MUST 携 required
+`committed_event_ref{event_id,commit_id,stream_ref,stream_position}`，且 `stream_ref.realm_id` 必须等于请求
+`realm_id`。该引用是“待验 producer 签名的 historical Event”；结果 key 的 `authorization_ref` 是“使该 key
+在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
+或因 key bytes 相同而合并授权代次。唯一构造来源是已验证
+`realm_sync_entry.commits[]` 或 `stream_scan_outcome.commits[]` 的 `stream_row{commit,event}`：客户端先验证
+RealmCommit signature／generation／stream／position／predecessor，并核对 `commit.event_ref == event.event_id`，
+再逐字复制四坐标。current projection 中嵌套的 Event、`event_states[]`、account cursor、arrival order、
+`created_at`、SignerEvidenceRef 或本地曾见同 EventId 都不能补出坐标；current entry 的 source coordinate 只证明
+该 entry 自身来源，不外推给 value 内嵌 Event。
+
+redacted／reference-locked row 即使暴露 EventId 或 Commit coordinate，也没有 producer envelope 可验，历史 signer
+状态仍为 unresolved。缺 exact target coordinate 时 MAY 在已知 stream 上用正式 per-stream scan 回填；只有裸
+EventId 时不得全 Realm 探测、按时间／cursor 猜 position，也不得降级成 `current_admission` query。缓存与耐久索引
+必须以完整 target `committed_event_ref` 为键并保留独立 authorization ref/revision；重启、乱序 response 与迟到
+的另一账号 response 都必须重新核对完整 selector 与 recipient context。
 
 **调用语境不可丢（normative）**：`recipient_account_id` MUST 逐字等于已认证 SessionGrant 的完整账号，其
 Station MUST 是服务本请求的自己 Station；结果 context MUST 逐字回显请求。current 结果只供**本次冻结的操作**
@@ -131,10 +151,10 @@ Station MUST 是服务本请求的自己 Station；结果 context MUST 逐字回
 bytes MAY 缓存，但 `(actor, method, key)` MUST NOT 替代 exact authorization Event 实例——同一 key 的重新授权
 必须按独立授权实例核对。
 
-**`authorization_ref` 是必填（normative）**：current 普通设备与 Agent 两个分支的 `query_signing_key` MUST
-携带真实适用的 accepted 授权 Event 引用；历史 Agent 结果同样保留真实 `authorization_ref`，供端到端历史 MLS
-leaf 绑定使用。缺失或无法取得时 MUST 返回同形的 `unavailable`，MUST NOT 把裸缓存公钥当作成功，也 MUST NOT
-用细分 reason 泄漏隐藏状态。
+**`authorization_ref` 是必填（normative）**：所有 resolved 分支的 `query_signing_key` MUST 携带真实适用的
+accepted 授权 Event 完整坐标、current revision 与 governance generation；历史 Agent 与普通设备没有例外。
+缺失或无法取得时 MUST 返回同形且逐字回显完整 selector 的 `unavailable`，MUST NOT 把裸缓存公钥当作成功，
+也 MUST NOT 用细分 reason 泄漏隐藏状态。
 
 **不改动的两条边界（normative）**：Signal frame 没有 enclosing selector，继续使用完整
 `station_signing_key {actor, verification_method, public_key_b64u, authorization_ref}` 的独立身份形态；

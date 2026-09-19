@@ -258,6 +258,7 @@ from .peer_event_submit import (
 from .account_data_revision_name import check_account_data_revision_name
 from .key_backup_active_series_source_anchor import check_key_backup_active_series_source_anchor
 from .key_backup_envelope_source_anchor import check_key_backup_envelope_source_anchor
+from .signer_key_historical_coordinate import check_signer_key_historical_coordinate
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
@@ -471,6 +472,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "key_backup_envelope_source_anchor",
                 lambda: check_key_backup_envelope_source_anchor(lint),
+            ),
+            (
+                "signer_key_historical_coordinate",
+                lambda: check_signer_key_historical_coordinate(lint),
             ),
             (
                 "account_data_revision_name",

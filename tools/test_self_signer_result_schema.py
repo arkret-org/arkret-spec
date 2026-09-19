@@ -18,6 +18,27 @@ class SelfSignerResultTests(unittest.TestCase):
     def validator(self, name, file="signer-key-operations.schema.json"):
         return Draft202012Validator({"$ref": self.documents[file]["$id"] + "#/$defs/" + name}, registry=self.registry)
 
+    def committed_ref(self, event_id="ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh", position=12):
+        return {
+            "event_id": event_id,
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_ref": {"kind": "realm", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"},
+            "stream_position": position,
+        }
+
+    def key(self):
+        return {
+            "public_key_b64u": "A" * 43,
+            "authorization_ref": self.committed_ref(
+                "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g", 7
+            ),
+            "revision": {
+                "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+                "stream_position": 15,
+            },
+            "governance_generation": 4,
+        }
+
     def request(self, mode="current_admission", sender="agent"):
         actor = {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:alice.example", "station_id": "ak:did_core:web:station.example"}}
         selector = {"verification_mode": mode, "sender_kind": sender, "actor": actor, "verification_method": "did:web:alice.example#runtime"}
@@ -25,7 +46,7 @@ class SelfSignerResultTests(unittest.TestCase):
             selector["device_id"] = "ak:device:01964137-0000-7000-8000-000000000001"
             selector["verification_method"] = "did:web:alice.example#" + selector["device_id"]
         if mode == "historical_event":
-            selector["event_id"] = "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+            selector["committed_event_ref"] = self.committed_ref()
         return {"request_id": "ak:request:01964137-0000-7000-8000-000000000001", "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd", "recipient_account_id": actor["account_id"], "queries": [selector]}
 
     def test_all_four_modes_are_closed_and_receiver_is_not_selectable(self):
@@ -38,7 +59,7 @@ class SelfSignerResultTests(unittest.TestCase):
 
     def test_device_requires_actual_device_and_method(self):
         request = self.request("historical_event", "account_device")
-        for field in ["device_id", "verification_method", "actor", "event_id"]:
+        for field in ["device_id", "verification_method", "actor", "committed_event_ref"]:
             changed = copy.deepcopy(request)
             del changed["queries"][0][field]
             self.assertFalse(self.validator("query_request_body").is_valid(changed))
@@ -55,24 +76,37 @@ class SelfSignerResultTests(unittest.TestCase):
         request["queries"].append(prototype)
         self.assertFalse(self.validator("query_request_body").is_valid(request))
 
-    def test_historical_device_has_no_fabricated_authorization_or_source_ref(self):
+    def test_historical_device_requires_independent_authorization_and_revision(self):
         selector = self.request("historical_event", "account_device")["queries"][0]
-        result = {"selector": selector, "status": "resolved", "key": {"public_key_b64u": "A" * 43}, "accepted_at": "2026-09-10T00:00:00.000Z"}
+        result = {"selector": selector, "status": "resolved", "key": self.key(), "accepted_at": "2026-09-10T00:00:00.000Z"}
         validator = self.validator("historical_account_device_outcome")
         validator.validate(result)
-        changed = copy.deepcopy(result)
-        changed["key"]["authorization_ref"] = selector["event_id"]
-        self.assertFalse(validator.is_valid(changed))
+        self.assertNotEqual(result["key"]["authorization_ref"], selector["committed_event_ref"])
+        for field in ["authorization_ref", "revision", "governance_generation"]:
+            changed = copy.deepcopy(result)
+            del changed["key"][field]
+            self.assertFalse(validator.is_valid(changed))
         result["signer_evidence_ref"] = "ak:signer_evidence:sha256:" + "a" * 64
         self.assertFalse(validator.is_valid(result))
 
-    def test_historical_agent_retains_authorization_without_source_provenance(self):
+    def test_historical_agent_retains_independent_authorization_coordinate(self):
         selector = self.request("historical_event")["queries"][0]
-        result = {"selector": selector, "status": "resolved", "key": {"public_key_b64u": "A" * 43, "authorization_ref": selector["event_id"]}, "accepted_at": "2026-09-10T00:00:00.000Z"}
+        result = {"selector": selector, "status": "resolved", "key": self.key(), "accepted_at": "2026-09-10T00:00:00.000Z"}
         validator = self.validator("historical_agent_outcome")
         validator.validate(result)
         del result["key"]["authorization_ref"]
         self.assertFalse(validator.is_valid(result))
+
+    def test_bare_event_id_is_not_a_historical_coordinate(self):
+        request = self.request("historical_event")
+        selector = request["queries"][0]
+        selector["event_id"] = selector.pop("committed_event_ref")["event_id"]
+        self.assertFalse(self.validator("query_request_body").is_valid(request))
+
+    def test_current_selector_rejects_a_committed_coordinate(self):
+        request = self.request()
+        request["queries"][0]["committed_event_ref"] = self.committed_ref()
+        self.assertFalse(self.validator("query_request_body").is_valid(request))
 
     def test_no_sync_bundle_on_the_subscribe_frame(self):
         self.assertNotIn("agent_signer_evidence_bundle", self.documents["account-subscribe-frame.schema.json"]["properties"])

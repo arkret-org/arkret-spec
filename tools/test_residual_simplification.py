@@ -137,7 +137,20 @@ class ResidualSimplificationTests(unittest.TestCase):
 
     def test_query_keys_reject_mirrors_and_signal_retains_identity(self):
         s=load('schemas/signer-key-operations.schema.json')
-        key={'public_key_b64u':'A'*43,'authorization_ref':'ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g'}
+        key={
+            'public_key_b64u':'A'*43,
+            'authorization_ref':{
+                'event_id':'ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g',
+                'commit_id':'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4',
+                'stream_ref':{'kind':'realm','realm_id':'ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd'},
+                'stream_position':7,
+            },
+            'revision':{
+                'commit_id':'ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5',
+                'stream_position':15,
+            },
+            'governance_generation':4,
+        }
         validator=Draft202012Validator({'$ref':s['$id']+'#/$defs/query_signing_key'},registry=self.registry)
         validator.validate(key)
         for field,value in [('actor',signer_tests.SelfSignerResultTests().request()['queries'][0]['actor']),('verification_method','did:web:alice.example#key')]:

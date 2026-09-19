@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.13",
+  "version": "2026-09-20.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T02:13:54+08:00",
+  "generated_at": "2026-09-20T04:05:38+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1568,14 +1568,14 @@
       "file": "schemas/signer-key-operations.schema.json",
       "fragment": "#/$defs/query_outcome",
       "status": "active",
-      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; exact local recipient, no evidence closure or reusable current grant."
+      "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
     },
     {
       "schema_id": "ak.schema.signer_key_query_request.v1",
       "file": "schemas/signer-key-operations.schema.json",
       "fragment": "#/$defs/query_request_body",
       "status": "active",
-      "description": "Unified own-Station current/historical Device and Agent signing-key request; exact local recipient, no evidence closure or reusable current grant."
+      "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified stream_row, never a bare EventId or current projection."
     },
     {
       "schema_id": "ak.schema.space.v1",

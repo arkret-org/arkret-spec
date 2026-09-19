@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.10",
+  "version": "2026-09-20.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T03:28:12+08:00",
+  "generated_at": "2026-09-20T04:05:38+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10429,14 +10429,14 @@
         "file": "schemas/signer-key-operations.schema.json",
         "fragment": "#/$defs/query_outcome",
         "status": "active",
-        "description": "Unified own-Station current/historical Device and Agent signing-key outcome; exact local recipient, no evidence closure or reusable current grant."
+        "description": "Unified own-Station current/historical Device and Agent signing-key outcome; resolved keys bind an independent committed authorization ref, current revision and governance generation, while unavailable echoes the exact selector."
       },
       {
         "schema_id": "ak.schema.signer_key_query_request.v1",
         "file": "schemas/signer-key-operations.schema.json",
         "fragment": "#/$defs/query_request_body",
         "status": "active",
-        "description": "Unified own-Station current/historical Device and Agent signing-key request; exact local recipient, no evidence closure or reusable current grant."
+        "description": "Unified own-Station current/historical Device and Agent signing-key request; historical selectors require an exact committed_event_ref obtained from a verified stream_row, never a bare EventId or current projection."
       },
       {
         "schema_id": "ak.schema.space.v1",
@@ -10615,8 +10615,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.13",
-    "generated_at": "2026-09-20T02:13:54+08:00",
+    "version": "2026-09-20.14",
+    "generated_at": "2026-09-20T04:05:38+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -16209,7 +16209,7 @@
         "http": "POST /_arkret/self/signer-keys/query",
         "grpc": "SelfSignerKeys/Resolve",
         "mq": "self.signer_keys.query.resolve",
-        "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Historical receiver is this authenticated recipient Station and the Event must be locally accepted and readable; Device and Agent history independently resolve the original producer key from portable immutable authorization evidence and apply known closure decisions. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. Exactly one resolved/unavailable result per selector; no portable closure, caller-selected receiver, or current-directory substitution for history.",
+        "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Every resolved key independently carries its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",
@@ -16460,8 +16460,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.4",
-    "generated_at": "2026-09-20T03:28:12+08:00",
+    "version": "2026-09-20.5",
+    "generated_at": "2026-09-20T04:05:38+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

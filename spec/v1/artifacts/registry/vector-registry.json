@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.5",
+  "version": "2026-09-20.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T03:28:12+08:00",
+  "generated_at": "2026-09-20T04:05:38+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4787,6 +4787,19 @@
       "description": "Sidecar union history exposes a checkpoint bounded by the controller's own eligibility; it never widens historical visibility beyond the effective access of the requesting principal.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signer_key.historical_commit_coordinate.v1",
+      "status": "active",
+      "domain": "signer_key",
+      "applies_to_fixtures": [
+        "signer-key-historical-coordinate-fixture.json"
+      ],
+      "description": "Historical account-device and Agent signer selectors address only a verified authority-committed Event by the closed committed_event_ref copied from account-subscribe or per-stream-scan stream_row. Bare EventId, nested current projection material, cursor/time/arrival/cache inference, redacted rows and current-query fallback remain unresolved. A resolved key independently binds its authorization committed_event_ref, current authorization-stream revision and governance generation; target and authorization references may differ and are never merged by equal key bytes. Complete selector equality survives restart, response reordering, account-context changes and bounded historical scan.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
