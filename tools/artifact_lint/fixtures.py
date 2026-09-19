@@ -4790,6 +4790,34 @@ def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
                 f"{DELEGATED_PCR_GENESIS_CASE}: the executor signs under its own DID, not under "
                 f"the subject principal's {did}",
             )
+        delegated_event = delegated.get("complete_wire_event")
+        if isinstance(delegated_event, dict):
+            subject_principal = ((event.get("actor_id") or {}).get("account_id") or {}).get(
+                "principal_id"
+            )
+            executor = (
+                (delegated_event.get("executed_by") or {}).get("account_id") or {}
+            ).get("principal_id")
+            if executor is None:
+                lint.fail(
+                    content_path,
+                    f"{DELEGATED_PCR_GENESIS_CASE}: the delegated branch is selected by the "
+                    "executor pair, so the Event MUST carry executed_by",
+                )
+            elif executor == subject_principal:
+                lint.fail(
+                    content_path,
+                    f"{DELEGATED_PCR_GENESIS_CASE}: the executor is the subject principal "
+                    f"({subject_principal}), so this is the self-principal branch wearing the "
+                    "delegated branch's label",
+                )
+            if not isinstance(delegated_event.get("authorization_ref"), str):
+                lint.fail(
+                    content_path,
+                    f"{DELEGATED_PCR_GENESIS_CASE}: an organization-governed genesis MUST carry "
+                    "the governing authority reference; without it the branch is an executor "
+                    "acting on no authority at all",
+                )
 
     # --- 6. the evidence's own cross-references ------------------------------
     binds = evidence.get("binds")

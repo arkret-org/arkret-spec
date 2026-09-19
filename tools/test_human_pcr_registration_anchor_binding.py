@@ -409,6 +409,23 @@ class MutatingLintCase(unittest.TestCase):
             self.overrides, "the wire proof and the signed binding name different methods"
         )
 
+    def test_the_delegated_executor_cannot_be_the_subject_principal(self) -> None:
+        delegated = self.cases[DELEGATED_CASE]
+        subject = self.cases[CREATE_CASE]["complete_wire_event"]["actor_id"]
+        delegated["complete_wire_event"]["executed_by"] = subject
+        self.assert_rejected(
+            self.overrides,
+            "the self-principal branch is wearing the delegated branch's label",
+        )
+
+    def test_the_delegated_branch_cannot_act_on_no_authority(self) -> None:
+        delegated = self.cases[DELEGATED_CASE]
+        del delegated["complete_wire_event"]["authorization_ref"]
+        self.assert_rejected(
+            self.overrides,
+            "an organization-governed genesis carries no governing authority reference",
+        )
+
     # --- the asserted SCID stays a declared exception ----------------------
     def test_an_unreserved_scid_is_not_an_acceptable_assertion(self) -> None:
         self.evidence["scid_derivation"]["asserted_segment"] = "zQmRealLookingScid"
