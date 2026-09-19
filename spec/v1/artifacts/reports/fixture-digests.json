@@ -12,8 +12,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
-      "sha256": "7f4a0dee868be57b8af44e39f6a58b9eb097f985726858b459913b84525ecb96",
-      "version": "2026-09-18.1"
+      "sha256": "0c05d380ae37405b09b49ca7a563e4434db43d52abfaeeed457d6b66c0426712",
+      "version": "2026-09-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",

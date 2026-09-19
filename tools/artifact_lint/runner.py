@@ -227,6 +227,7 @@ from .redactable_fields import (
 from .account_status_replica import (
     check_account_status_replica_decision_table,
 )
+from .account_status_issuer import check_account_status_issuer_genesis
 
 from .franking_transcript import check_franking_proof_transcript
 
@@ -855,6 +856,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "account_status_replica_decisions",
                 lambda: check_account_status_replica_decision_table(lint),
+            ),
+            (
+                "account_status_issuer_genesis",
+                lambda: check_account_status_issuer_genesis(lint),
             ),
             ("openapi_numbers", lambda: check_openapi_no_floating_number(lint)),
             ("field_order", lambda: check_field_order(lint)),
